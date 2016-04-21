@@ -12,4 +12,4 @@ rmdir /s /q \tools\UniServerZ\www\notes
 
 xcopy /s /e /i out \tools\UniServerZ\www\notes
 
-diff -r out expected
+diff -rq out expected
