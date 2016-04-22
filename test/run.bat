@@ -7,6 +7,7 @@ mkdir out
 go.pl
 
 copy /y ..\res\notes.css out
+copy /y ..\res\q.js      out
 
 rmdir /s /q \tools\UniServerZ\www\notes
 
