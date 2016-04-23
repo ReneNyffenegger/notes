@@ -1,0 +1,65 @@
+{ Create a new table with a select statement
+
+The equivalent of other databases' `create table NewTable as select * from ...` is
+code {
+select *
+into   NewTable
+from   ...
+code }
+
+}
+
+{ Referencing tables in other formats
+
+  { Tables in another Access file
+  
+    Tables in another access database can be referenced with `[access-path].[tablename]` which allows, for
+    example to insert into a table in another access (accdb) file:
+  
+  code {
+  insert into
+  [X:\path\to\backend.accdb].[TheTableName]
+  (x, y, z)
+  values
+  (1, 42, 99)
+  code }
+  
+  }
+  
+  { Data in Excel
+  
+    Similarly, a worksheet can be referenced as a table with `[Excel 8.0;HDR=yes;DATABASE=\path\to\xlsx].[Worksheet Name$]`.
+  
+    Of course, if the data has no header, you will set `HDR=no`.
+  
+    Note the trailing `$` after the sheet name. If there were a named range in the excel sheet, the name of the
+    range can be stated after the `$`. If the entire sheet has to be used, the `$` still needs to be present.
+  
+  code {
+  insert into someTable
+  select * from [Excel 8.0;HDR=yes;DATABSE=x:\path\to\the.xlsx].[worksheet name$]
+  code }
+  
+  }
+
+  { CSV files
+
+code {
+insert into someTabel
+select *
+from [TEXT;HDR=yes;DATABASE=x:\path\to\Directory\Containing\CSV].[fileName.csv]
+code }
+
+  }
+
+}
+
+{ Date related
+
+  Creating a `date`:
+code {
+dateSerial(year, month, day)
+code }
+
+}
+

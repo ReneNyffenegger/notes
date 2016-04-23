@@ -1,0 +1,177 @@
+$ Linux kernel compilation
+
+Also referred to as «building the Linux kernel».
+
+
+rem {
+
+{ prerequisites
+
+  • kernel sources
+  • glibc kernheaders
+  • glibc devel
+  • cpp (c preprocessor)
+  • binutils
+  • gcc
+  • tcl (for `make xconfig`)
+  • tk  (for `make xconfig`)
+
+  tk and tcl are required in configuration step
+
+
+}
+
+{ building
+
+Consider backing up `.config` (created by →configure) before executing the following command and coping back after the command.
+
+code {
+make mrproper 
+code }
+
+  { configuring
+
+     Three options:
+     • make config (this is the least desirable option)
+     • make menuconfig (requires ncurses4 and ncurses-devel)
+     • make xconfig    (requires tcl and tk)
+
+  }
+
+code {
+make dep
+make clean
+code }
+
+Maybe change the `EXTRAVERSION` macro(?) in `Makefile`.
+
+code {
+make bzImage
+make modules
+make modules_install
+make install
+code }
+
+`make install` also runs a few scripts that build the →Linux/kernel/initial-ram-disk image.
+}
+
+{ config directory
+
+  The config directory contains a few sample configurations that can be used instead of using →configure. Such a file would be copied
+  to the source root directory and be called `.config`.
+
+}
+
+rem }
+
+
+rem {
+
+→ http://kernelnewbies.org/KernelBuild
+
+→ https://wiki.archlinux.org/index.php/Kernels/Traditional_compilation
+
+code {
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+cd linux-stable
+code }
+
+Find lates stable (non release candidate) version:
+code {
+git tag -l | grep -v -- -rc
+code }
+For example `v4.5.1`.
+
+code {
+git checkout -b stable v4.5.1
+code }
+
+code {
+make mrproper
+code }
+
+code {
+zcat /proc/config.gz > .config
+code }
+
+Check for new →Linux/kernel/CONFIG/index[CONFIGs].
+code {
+make oldconfig
+code }
+
+code {
+make -j8
+code }
+
+code {
+sudo make modules_install
+code }
+
+I tried `make install` here, but that didn't work, somehow, because →Linux/booting/LILO was missing. (See also → Linux/kernel/source/arch/x86/boot/install_sh).
+
+So, I tried this instead
+code {
+sudo cp arch/x86_64/booz/bzImage /boot/vmlinuz-tq84
+code }
+
+code {
+sudo mkinitcpio -k 4.5.1-ARCH -c /etc/mkinitcpio.conf -g /boot/initramfs-4.5.1-tq84.img
+code }
+Note `4.5.1-ARCH` must match `/lib/modules/4.5.1-ARCH`.  
+
+code {
+sudo cp System.map /boot/System.map-4.1.5-tq84
+code }
+
+code {
+sudo ln -sf /boot/System.map-4.1.5-tq84 /boot/System.map
+code }
+
+There should now be the following files/symlinks under → Linux/fhs/boot/index: `vmlinuz-<KernelName>`, `initramfs-<KernelName>.img`, `System.map-<KernelName>`, `System.map`.
+
+
+TODO
+code {
+make localmodconfig
+code }
+or
+code {
+make localyesconfig
+code }
+
+code {
+make menuconfig
+code }
+
+
+rem }
+
+{ Config options #config-options
+
+  → hardware/UEFI/index needs → hardware/UEFI/index#required-kernel-config-options[these config options].
+
+}
+
+{ Specifying a seperate build directory
+
+  By default, the generated files go into the same tree as the kernel sources.
+  Invoking → make with `O=/path/to/output/dir` allows to specify an alternative
+  destination
+
+code {
+cd /usr/src/linux-4.X
+make O=/home/name/build/kernel menuconfig
+make O=/home/name/build/kernel
+sudo make O=/home/name/build/kernel modules_install install
+code }
+
+}
+
+{ Verbosity level
+
+  `make V=1` prints detailed compile and link commands.
+
+  `make V=2` also prints why a target is rebuilt.
+
+}
+

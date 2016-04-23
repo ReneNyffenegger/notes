@@ -1,0 +1,75 @@
+
+{ Command line operations
+
+
+  { Exporting a subtree
+
+  Export the contents of `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies` to the file `x:\path\to\export_file.reg`:
+
+code {
+regedit /e x:\path\to\export_file.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies"
+code }
+
+Note: if the file is speciefied without absolute path, it will be exported into the directory that was also used in the last export. So, you might want to use the
+environment variable →development/environment-variable#cd to make sure that the exported file goes into the current directory:
+
+code {
+regedit /e %CD%\export_file.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows"
+code }
+
+
+{ Exporting HKLM and HKCU
+
+Without specifying a registry key in an export, it will default to exporting both `HKEY_LOCALE_MACHINE` and `HKEY_CURRENT_USER`:
+
+code {
+regedit /e %CD%\export_file.reg 
+code }
+
+}
+
+
+   }
+
+  { Importing a subtree
+
+  The `/s` causes the import to be silent.
+
+code {
+regedit /s import_file.reg
+code }
+
+{ Format of import file
+
+An import file must start with `Windows Registry Editor Version 5.00`.
+
+code {
+Windows Registry Editor Version 5.00 
+
+; Comments start with a semicolon
+
+[HKEY_CURRENT_USER\path\to\a\key]
+"A String Value"="foo bar"
+"A dword values"=dword:00000001
+
+[HKEY_CURRENT_USER\another\path\to\another\key]
+"Another String Vaue"="baz"
+
+; The minus sign causes deletions
+[-HKEY_CURRENT_USER\path\to\be\deleted]
+
+[HKEY_CURRENT_USER\another\path\again]
+"Delete This Value only"=-
+
+
+code }
+
+   }
+
+}
+
+{ See also
+
+  → Windows/registry/reg
+
+}
