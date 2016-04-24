@@ -1,0 +1,184 @@
+
+rem {
+
+https://gist.github.com/mloskot/5995414
+
+https://wiki.archlinux.de/title/Anleitung_f%C3%BCr_Einsteiger
+https://wiki.archlinux.de/title/UEFI_Installation
+
+https://wiki.archlinux.org/index.php/Beginners'_guide#UEFI.2FGPT
+
+
+{ Misc
+
+Is the following really necessary?
+
+code {
+timedatectl set-ntp true
+code }
+
+}
+
+
+
+{ Partitioning the hard disk
+
+
+code {
+sgadisk                                 \
+  -Z                                    \
+  -n 0:0:+512MiB  -c 0:Boot -t 0:EF00   \
+  -n 0:0:+15GiB   -c 0:Home -t 0:8300   \
+  -n 0:0:+15GiB   -c 0:Var  -t 0:8300   \
+  -n 0:+0:-2GiB   -c 0:Root -t 0:8300   \
+  -n 0:+0:-0      -c 0:Swap -t 0:8200   \
+  -p                                    \
+      /dev/sda
+code }
+
+}
+
+{ Formatting the partitions
+
+code {
+mkfs.fat -F32 /dev/sda1
+mkfs.ext4     /dev/sda2
+mkfs.ext4     /dev/sda3
+mkfs.ext4     /dev/sda4
+mkswap        /dev/sda5
+code }
+
+}
+
+{ Connect to the internet
+
+code {
+wifi-menu
+code }
+
+{ Test connection
+ 
+code {
+ping -c 1 8.8.8.8
+code }
+
+}
+
+}
+
+{ Mounting the partitions
+
+code {
+# Root partition
+mount /dev/sda4 /mnt
+
+cd /mnt
+
+mkdir -p boot/efi home var
+
+mount /dev/sda1 boot/efi
+mount /dev/sda2 home
+mount /dev/sda3 var
+code }
+
+}
+
+{ Edit /etc/pacman.d/mirrorlist
+
+  `vim /etc/pacman.d/mirrorlist`
+
+}
+
+{ Installing some packages
+
+I am using wireless, so I add `wpa_supplicant` and `wireless_tools` (although I am not 100% sure if I need `wireless_tools`).
+
+code {
+  pacstrap /mnt base base-devel wpa_supplicant wireless_tools
+code }
+
+}
+
+{ Create /etc/fstab
+
+code {
+genfstab -p /mnt > /mnt/etc/fstab
+code }
+
+}
+
+
+{ Some configuration
+
+code {
+# What does this do?
+hwclock --systohc --utc
+code }
+
+code {
+arch-chroot /mnt /bin/bash
+
+echo L2 > /etc/hostname
+
+ln -s /usr/share/zoneinfo/Europe/Zurich /etc/localtime
+
+locale-gen
+
+# uncomment relevant entry in /etc/locale.gen
+vi /etc/locale.gen
+
+# TODO: Is this correct?
+echo en_US.ISO-8859-1 > /etc/locale.conf
+
+vi /etc/vconsole.conf
+code }
+
+}
+
+{ Change root password
+
+code {
+passwd
+code }
+
+}
+
+{ Create initial ram disk
+
+→ Linux/kernel/initial-ram-disk
+
+code {
+mkinitcpio -p linux
+code }
+
+Check with `ls -ltr /boot`
+
+}
+
+
+{ Boot loader
+
+→ Linux/booting/boot-loader
+
+{ Grub
+
+  → Linux/booting/GRUB
+
+code {
+mount -t efivars efivars /sys/firmware/efi/efivars
+code }
+
+
+}
+
+}
+
+{ Rebooting
+
+code {
+exit
+code }
+
+}
+
+rem }
