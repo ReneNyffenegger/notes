@@ -93,11 +93,17 @@ code }
 code {
 zcat /proc/config.gz > .config
 code }
+or, alternatively:
+code {
+make localmodconfig
+code }
 
 Check for new →Linux/kernel/CONFIG/index[CONFIGs].
 code {
 make oldconfig
 code }
+
+Change `→Linux/kernel/CONFIG/LOCALVERSION[CONFIG_LOCALVERSION] in →Linux/kernel/source/_config to something like `CONFIG_LOCALVERSION="-tq84"`.
 
 code {
 make -j8
@@ -106,21 +112,24 @@ code }
 code {
 sudo make modules_install
 code }
+This installes the modules under `→ Linux/fhs/lib/modules/index/→Linux/kernel/release[kernel-release]`.
+
+
 
 I tried `make install` here, but that didn't work, somehow, because →Linux/booting/LILO was missing. (See also → Linux/kernel/source/arch/x86/boot/install_sh).
 
 So, I tried this instead
 code {
-sudo cp arch/x86_64/booz/bzImage /boot/vmlinuz-tq84
+sudo cp arch/x86_64/boot/bzImage /boot/vmlinuz-tq84
 code }
 
 code {
-sudo mkinitcpio -k 4.5.1-ARCH -c /etc/mkinitcpio.conf -g /boot/initramfs-4.5.1-tq84.img
+sudo mkinitcpio -k 4.6.0-tq84 -c /etc/mkinitcpio.conf -g /boot/initramfs-4.6.0-tq84.img
 code }
-Note `4.5.1-ARCH` must match `/lib/modules/4.5.1-ARCH`.  
+Note `4.6.0-tq84` must match `/lib/modules/4.6.0-tq84`.  
 
 code {
-sudo cp System.map /boot/System.map-4.1.5-tq84
+sudo cp System.map /boot/System.map-4.6.0-tq84
 code }
 
 code {
@@ -128,6 +137,11 @@ sudo ln -sf /boot/System.map-4.1.5-tq84 /boot/System.map
 code }
 
 There should now be the following files/symlinks under → Linux/fhs/boot/index: `vmlinuz-<KernelName>`, `initramfs-<KernelName>.img`, `System.map-<KernelName>`, `System.map`.
+
+code {
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+code }
+code }
 
 
 TODO
