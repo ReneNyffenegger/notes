@@ -17,8 +17,12 @@ in → Linux/kernel/source/init/main_c (`start_kernel`).
   `bool var_name __read_mostly;`
 
   In .h file: `asmlinkage __cold void do_something(void)`. In .c file: `asmlinkage __visible void do_something(void)`.
+  -
+  `asmlinkage` is defined in → Linux/kernel/source/arch/x86/include/asm/linkage_h.
 
-  `char __initdata foo[FOO_SIZE];`
+  `char __initdata foo[FOO_SIZE];`: → Linux/kernel/source/include/linux/init_h
+
+  `__init` : → Linux/kernel/source/include/linux/init_h
 
   `void (*__initdata late_time_init)(void);`
 
@@ -28,7 +32,7 @@ in → Linux/kernel/source/init/main_c (`start_kernel`).
 
   `for_each_substystem(ss, i) {  }`
 
-  `boot_params` (for example `boot_params.hdr.type_of_loader`.
+  `boot_params` (for example `boot_params.hdr.type_of_loader`, defined in → Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h).
 
   `x86_init` (for example `x86_init.oem.arch_setup()`.
   
@@ -42,6 +46,21 @@ in → Linux/kernel/source/init/main_c (`start_kernel`).
 
   `extern __printf(2, 3) int krumly_fown(struct clurr *a, const char* name, ...)`
 
+  `struct xyz __attribute__((16));`
+
+  `BUILD_BUG_ON(sizeof foobar != 4096)`
+
+  `__attribute__((regparm(0))`
+
+  `static void __attribute__((section(".inittext"))) xyz(int a) {...}` means that this code will be in the `.inittext` section. Code in `.inittext`  can be used to
+   signal error during initialization.
+ 
+  `static __always_inline void* __inline_memcpy(...)`
+
+  `fastcall` calling convention: get parameters from `ax`, `dx` and `cx` registers.
+
+  `early_vga_write` in → arch/x86/kernel/early_printk_c
+
 code {
 struct xyz {
   u16 abc,
@@ -51,6 +70,7 @@ struct xyz {
 } __attribute__((packed))
 code }
    
+  `bzimage` = gzip(`vmlinux` + `header` + `kernel setup code`).
 
 }
 { git
