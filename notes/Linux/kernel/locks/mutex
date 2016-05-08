@@ -1,0 +1,88 @@
+$ Kernel lock: mutex
+
+
+Mutexes enforce serialization on shared memory systems. Unlike
+→ Linux/kernel/locks/spinlock[spinlocks], a process trying to acquire a mutex will
+suspend itself if it failes to acquire it. The process is then woken up when
+the mutex is available. This has the advantage that the CPU is free to persue
+another task.
+
+
+
+A mutex is represented by `struct mutex`, defined in → Linux/kernel/source/include/linux/mutex_h.
+
+
+
+{ Semantics
+
+  A lock can be held/owner by at most one owner at a time.
+  
+  Only this owner can release the lock when held. When a tasks holds
+  a mutex, it must not exit.
+  
+  A mutex object must be initialized through an API, not via `memset` or copying.
+  The memory containing the mutex may not be freed.
+  
+  
+  Mutexes may not be used in hardware or software 
+  → Linux/kernel/interrupts[interrupts] such as tasklets and timers.
+
+}
+
+{ Code snippets
+
+Statically define the mutex:
+code {
+DEFINE_MUTEX(name);
+code }
+
+Dynamically initialize the mutex:
+code {
+mutex_init(mutex);
+code }
+
+Acquire the mutex, uninterruptible
+code {
+void mutex_lock(struct mutex *lock);
+void mutex_lock_nested(struct mutex *lock, unsigned int subclass);
+int  mutex_trylock(struct mutex *lock);
+code }
+
+Acquire the mutex, interruptible:
+code {
+int mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass);
+int mutex_lock_interruptible(struct mutex *lock);
+code }
+
+Acquire the mutex, interruptible, if dec to 0:
+code {
+int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
+code }
+
+Unlock the mutex:
+code {
+void mutex_unlock(struct mutex *lock);
+code }
+
+Test if the mutex is taken:
+code {
+int mutex_is_locked(struct mutex *lock);
+code }
+
+}
+
+{ CONFIG_DEBUG_MUTEXES
+
+  When → Linux/kernel/CONFIG/DEBUG_MUTEXES is enabled, violation of the
+  semantics are enforced and reported.
+
+}
+
+
+sa:
+  → Linux/kernel/locks,
+  → Linux/kernel/locks/spinlock[spninlocks],
+  → Linux/kernel/source/include/linux/mutex_h,
+  → Linux/kernel/source/kernel/locking/mutex_c,
+  → Linux/kernel/source/Documentation/locking/mutex-design_txt,
+  → Linux/kernel/source/Documentation/DocBook/genericirq_tmpl
