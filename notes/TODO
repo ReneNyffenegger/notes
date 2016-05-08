@@ -9,10 +9,12 @@ If kernel command line contains `quiet`, default console log level= 4., if `debu
 
 *init_task* is used to set up the first task table (→ Linux/kernel/source/include/linux/init_task_h)
 
-*debug objects* → Linux/kernel/source/lib/debugobjects_c, → Linux/kernel/source/DocBook/debugobjects_tmpl. debug objects are initialized
+*debug objects* → Linux/kernel/source/lib/debugobjects_c, → Linux/kernel/source/Documentation/DocBook/debugobjects_tmpl. debug objects are initialized
 in → Linux/kernel/source/init/main_c (`start_kernel`).
 
 { Linux kernel compilation
+
+  Should it not read `sys_kill(pid_t pid, int sig)` in → Linux/kernel/source/include/linux/syscalls_h?
 
   `bool var_name __read_mostly;`
 
@@ -20,9 +22,17 @@ in → Linux/kernel/source/init/main_c (`start_kernel`).
   -
   `asmlinkage` is defined in → Linux/kernel/source/arch/x86/include/asm/linkage_h.
 
+  `__visible` expands to `__attribute__((externally_visible))`.
+
+  `__cold`: the function is rarely used, the compiler should try to reduce the function's size.
+
+  `notrace` expands to `__attribute__((no_instrument_function))`.
+
   `char __initdata foo[FOO_SIZE];`: → Linux/kernel/source/include/linux/init_h
 
-  `__init` : → Linux/kernel/source/include/linux/init_h
+  `__init` : → Linux/kernel/source/include/linux/init_h (After the kernel initialization process has finished, the functions marked with `__init` are discarded
+  by a call to `free_initmem` (in → Linux/kernel/source/arch/x86/mm/init_c). `__init` expands to `__section(.init.text) __cold notrace`
+  
 
   `void (*__initdata late_time_init)(void);`
 
