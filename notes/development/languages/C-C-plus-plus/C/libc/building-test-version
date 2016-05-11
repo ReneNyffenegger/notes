@@ -1,0 +1,51 @@
+code {
+GLIBC_ROOT=~/glibc
+GLIBC_BUILD=$GLIBC_ROOT.build
+GLIBC_INST=$GLIBC_ROOT.inst
+GLIBC_TEST=$GLIBC_ROOT.test
+
+mkdir $GLIBC_BUILD
+cd    $GLIBC_BUILD
+
+$GLIBC_ROOT/configure --prefix=$GLIBC_INST
+
+make 
+make install
+
+cd $GLIBC_TEST
+
+gcc                                         \
+  -nostdinc                                 \
+  -I$GLIBC_INST/include                     \
+  -I$(gcc --print-file-name=include)        \
+  -nostdlib                                 \
+  -nostartfiles                             \
+  -o foo                                    \
+   $GLIBC_INST/lib/crt1.o                   \
+   $GLIBC_INST/lib/crti.o                   \
+ $(gcc  --print-file-name=crtbegin.o)       \
+   foo.c                                    \
+  $GLIBC_INST/lib/libc.so.6                 \
+  $GLIBC_INST/lib/libc_nonshared.a          \
+ $(gcc  --print-file-name=crtend.o)         \
+  $GLIBC_INST/lib/crtn.o
+
+export LD_LIBRARY_PATH=$GLIBC_INST/lib
+code }
+
+
+`foo.c`:
+code {
+#include <stdio.h>
+int main() {
+
+  printf("This is a %s, the number is %d\n", "test", 42);
+
+  return 0;
+}
+code }
+
+Before running the executable, → development/environment-variable#ld-library-path must be set:
+code {
+export LD_LIBRARY_PATH=$GLIBC_INST/lib
+code }
