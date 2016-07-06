@@ -1,11 +1,59 @@
+`-B`
 
-`-K`: don't finalize post script plot. (See `-O`)
 
-`-O`: Append to existing post script plot. (See `-K`)
+code {
+ [a]tick[m|c]      // a=annotation, m=minutes, c=seconds (s?)
+[fTICK  [m|c|l|p]] // f=frame ; l=log₁₀ ; p=10 raised to log₁₀
+[gTICK  [m|c|l|p]] // g=grid intervall
+[:"label":]
+[:,"unit label":]
+[:."title":]
+[W|w]
+[E|e]
+[S|s]
+[N|n]
+code }
+
+`-H`: Input tables have header records.
+
+`-J`: Map Projection.
+
+`-K`: Omit postscript trailer (don't finalize post script plot). (See → #ko)
+
+`-O`: Omit postscript header (Overlay plot mode: append to existing post script plot). (See → #ko)
 
 `-P`: Use *portrait* plot orientation
 
-`-R`:
+`-R`: Region (min/max coordinates) of interest
   -
   use `g` for wrap around, see → https://github.com/ReneNyffenegger/about-GMT/blob/master/Technical-Reference-and-Cookbook/4.1.1-Map-centered-on-125-E.sh
 
+`-U`: Plot a timestamp (default: in the lower left corner of the page)
+
+`-V`: Verbose mode
+
+`-X`, `-Y`: shift plot for new plots.
+
+`-:`: Expect latitudes/longitudes instead of longitudes/latitudes pairs while reading input.
+
+
+{ -K and -O #ko
+
+The first PS producing command is to emit a postscript header, so `-O` is not used.
+It also must not emit a post script trailer, so `-K` is used, too
+
+The subsequent PS producing commands except the very last one are neither to produce a PS header nor trailer, so
+they are given `-K` as well as `-O`.
+
+The last PS producing command is to emit the PS trailer, so `-K` is not used anymore.
+
+This results in such a sequence:
+code {
+psCommand ... -K      >  plot.ps
+psCommand ... -K -O   >> plot.ps
+...
+psCommand ... -K -O   >> plot.ps
+psCommand ...    -O   >> plot.ps
+code }
+
+}
