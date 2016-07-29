@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>VBA Module CommonFunctionalityApp [Access]</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>VBA Module CommonFunctionalityApp [Access]</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/VBAModules'>VBAModules</a>, path: <a href='https://github.com/ReneNyffenegger/VBAModules/blob/master//Access/CommonFunctionalityApp.bas'>/Access/CommonFunctionalityApp.bas</a></div><pre class='code'>sub appTitle(text as string) ' {
+
+  call appProperty("AppTitle", dbText, text)
+  application.refreshTitleBar
+
+end sub ' }
+
+function appProperty(strName As String, varType As Variant, varValue As Variant) As Integer ' {
+' https://msdn.microsoft.com/en-us/library/bb256834(v=office.12).aspx
+'
+' TODO should this function be moved to its own «CommonFunctionalityApp.bas»?
+'
+  dim db As Object, prp As Variant
+  const conPropNotFoundError = 3270
+
+  set db = CurrentDb
+  on error goto nok
+  db.Properties(strName) = varValue
+  appProperty = true
+
+ok:
+    exit function
+
+nok:
+  if err = conPropNotFoundError Then
+     set prp = db.CreateProperty(strName, varType, varValue)
+     db.Properties.Append prp
+     resume
+  else
+     appProperty = false
+     resume ok
+  end if
+
+end function ' }
+</pre><div class='t'> </div>
+<div class='h'><h2>See also</h2>
+<div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//development/languages/VBA/modules/index.html'>VBA Modules</a> </div>
+</div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

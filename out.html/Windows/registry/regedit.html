@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>regedit</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>regedit</h1>
+
+<div class='h'><h2>Command line operations</h2>
+
+<div class='h'><h3>Exporting a subtree</h3>
+<div class='t'>
+  Export the contents of  <code>HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies</code> to the file  <code>x:\path\to\export_file.reg</code>: </div><div class='g'></div>
+<pre class='code'>regedit /e x:\path\to\export_file.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies"
+</pre><div class='g'></div><div class='t'>
+Note: if the file is speciefied without absolute path, it will be exported into the directory that was also used in the last export. So, you might want to use the environment variable <a href='file:///home/rene/github/github/notes/out.html//development/environment-variable.html#cd'>CD</a> to make sure that the exported file goes into the current directory: </div><div class='g'></div>
+<pre class='code'>regedit /e %CD%\export_file.reg "HKEY_CURRENT_USER\Software\Microsoft\Windows"
+</pre>
+<div class='h'><h4>Exporting HKLM and HKCU</h4>
+<div class='t'>
+Without specifying a registry key in an export, it will default to exporting both  <code>HKEY_LOCALE_MACHINE</code> and  <code>HKEY_CURRENT_USER</code>: </div><div class='g'></div>
+<pre class='code'>regedit /e %CD%\export_file.reg 
+</pre>
+</div>
+</div>
+<div class='h'><h3>Importing a subtree</h3>
+<div class='t'>
+  The  <code>/s</code> causes the import to be silent. </div><div class='g'></div>
+<pre class='code'>regedit /s import_file.reg
+</pre>
+<div class='h'><h4>Format of import file</h4>
+<div class='t'>
+An import file must start with  <code>Windows Registry Editor Version 5.00</code>. </div><div class='g'></div>
+<pre class='code'>Windows Registry Editor Version 5.00 
+
+; Comments start with a semicolon
+
+[HKEY_CURRENT_USER\path\to\a\key]
+"A String Value"="foo bar"
+"A dword values"=dword:00000001
+
+[HKEY_CURRENT_USER\another\path\to\another\key]
+"Another String Vaue"="baz"
+
+; The minus sign causes deletions
+[-HKEY_CURRENT_USER\path\to\be\deleted]
+
+[HKEY_CURRENT_USER\another\path\again]
+"Delete This Value only"=-
+
+
+</pre>
+</div>
+</div>
+<div class='h'><h3>See also</h3>
+<div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//Windows/registry/reg.html'>reg</a> </div>
+</div>
+</div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

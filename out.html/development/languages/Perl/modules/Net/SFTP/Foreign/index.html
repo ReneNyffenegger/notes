@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Perl module Net::SFTP::Foreign</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>Perl module Net::SFTP::Foreign</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//Net/SFTP/Foreign/script.pl'>/Net/SFTP/Foreign/script.pl</a></div><pre class='code'>use warnings;
+use strict;
+
+use Net::SFTP::Foreign;
+
+my $host     = shift;
+my $username = shift;
+my $password = shift;
+my $path     = shift;
+
+my $sftp = Net::SFTP::Foreign->new(
+    host     =>  $host,
+    user     =>  $username,
+    password =>  $password,
+#   ssh_cmd  => "$ENV{USERPROFILE}/tools/WinSCP.com"
+    ssh_cmd  => 'plink'
+);
+
+$sftp->die_on_error("Unable to establish SFTP connection");
+
+$sftp->setcwd($path, 
+    check => 0  # Is this needed because I am connecting to a Windows server?
+) or die "unable to change cwd: " . $sftp->error;
+
+my $ls =  $sftp->ls; # ($path);
+
+for my $e (@$ls) {
+  printf "%-30s | %-90s | %-6s\n",
+    $e->{filename},
+    $e->{longname},
+    $e->{a}->size || 'n/a'
+   ;
+}
+
+# $sftp->get("foo", "bar") or die "get failed: " . $sftp->error;
+
+# $sftp->put("bar", "baz") or die "put failed: " . $sftp->error;
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+<a href='file:///home/rene/github/github/notes/out.html//development/languages/Perl/modules/index.html'>Perl modules</a>. </div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

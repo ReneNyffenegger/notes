@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Perl module XML::Parser</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>Perl module XML::Parser</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//XML/Parser/script.pl'>/XML/Parser/script.pl</a></div><pre class='code'>use strict;
+use warnings;
+
+use XML::Parser;
+
+my $xml_file_name = shift || 'test.xml';
+
+open my $xml_file_h, '<', $xml_file_name;
+
+my $xml_parser = new XML::Parser(Style => 'Stream');
+
+$xml_parser -> setHandlers (
+   Start     => \&    start_element,
+   End       => \&      end_element,
+   Char      => \&     char_data,
+   Default   => \&  default_element
+);
+
+$xml_parser -> parse($xml_file_h);
+
+
+sub start_element {
+
+  my($parseinst, $element, %attributes) = @_;
+
+  #print "  parseinst: $parseinst\n"; 
+  print "start element: [$element]\n";
+
+  foreach my $attribute (keys %attributes) {
+    print "    $attribute = $attributes{$attribute}\n"
+  }
+
+  print "\n";
+}
+
+sub end_element {
+  my($parseinst, $element, %attributes) = @_;
+
+  #print " parseinst: $parseinst\n"; 
+  print "end element: [$element]\n";
+
+# It seems as though attributes will be always
+# be empty in end_element?
+  foreach my $attribute (keys %attributes) {
+    print "    $attribute = $attributes{$attribute}\n"
+  }
+
+  print "\n";
+}
+
+sub char_data {
+  my($parseinst, $data) = @_;
+  $data =~ s/{amp}/&/;
+
+  print "character data:\n";
+  print "  data: $data\n"; 
+
+  print "\n";
+}
+
+sub default_element {
+
+  my $parseinst = shift;
+
+  my $what_is_this = shift;
+
+  print "default element\n";
+  print "  $what_is_this\n";
+
+  print "\n";
+}
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+<a href='file:///home/rene/github/github/notes/out.html//development/languages/Perl/modules/index.html'>Perl modules</a>. </div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

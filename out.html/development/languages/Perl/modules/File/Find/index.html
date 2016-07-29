@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Perl module File::Find</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>Perl module File::Find</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//File/Find/script.pl'>/File/Find/script.pl</a></div><pre class='code'>use warnings;
+use strict;
+
+use File::Find;
+use File::Spec;
+
+my $root_dir = shift;
+
+print "\n";
+
+find(\&file_find_callback, $root_dir);
+
+
+sub file_find_callback { # {{{
+
+    print "\$File::Find::dir   $File::Find::dir \n"; # Relative path from $root_dir to directory containing file
+    print "\$File::Find::name  $File::Find::name\n"; # Relative path from $root_dir to file
+    print "\$_                 $_\n";                # Name of the file (without path information)
+    print "relative path      ". File::Spec -> abs2rel($File::Find::name, $root_dir), "\n";
+
+    print "\n";
+    
+} # }}}
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+Using  <code>no_chdir</code> in order to not descent into the directories: </div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//File/Find/no_chdir.pl'>/File/Find/no_chdir.pl</a></div><pre class='code'>#!/usr/bin/perl
+use warnings;
+use strict;
+
+use File::Find;
+use File::Spec;
+
+my $root_dir = shift;
+
+
+find({ no_chdir => 1, 
+       wanted   => \&file_find_callback, },
+       $root_dir);
+    
+
+
+sub file_find_callback { # {{{
+
+    print "\$File::Find::dir   $File::Find::dir \n";
+    print "\$File::Find::name  $File::Find::name\n";
+    print "\$_                 $_\n";
+    print "relative path      ". File::Spec -> abs2rel($File::Find::name, $root_dir), "\n";
+
+    print "\n";
+    
+} # }}}
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+Using  <code>preprocess</code>: </div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//File/Find/preprocess.pl'>/File/Find/preprocess.pl</a></div><pre class='code'>use warnings;
+use strict;
+use File::Find;
+use feature 'say';
+
+
+find({preprocess => \&preprocess,
+      wanted     => \&wanted},
+     '../..');
+
+sub preprocess {
+# Only files or directories that match 
+
+  say "Preprocess $File::Find::dir: ", join " - ", @_;
+  return grep { m/o/ } @_;
+}
+
+sub wanted {
+  say $File::Find::name;
+}
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+<a href='file:///home/rene/github/github/notes/out.html//development/languages/Perl/modules/index.html'>Perl modules</a>. </div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

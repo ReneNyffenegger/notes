@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>VBA - language: on error goto</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>VBA - language: on error goto</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/about-VBA'>about-VBA</a>, path: <a href='https://github.com/ReneNyffenegger/about-VBA/blob/master//language/error_handling/on_error_goto.bas'>/language/error_handling/on_error_goto.bas</a></div><pre class='code'>' runVBAFilesInOffice.vbs -word %CD%\on_error_goto -c main
+'
+' based upon http://stackoverflow.com/a/6050733/180275
+
+sub main()
+
+  selection.font.name = "Courier New"
+
+  selection.typeText "main" & chr(13)
+
+  selection.typeText "-> A()" & chr(13)
+
+  call A()
+
+  activeDocument.saved = true
+
+end sub
+
+sub A()
+
+  selection.typeText "  A" & chr(13)
+
+  selection.typeText "  -> B()" & chr(13)
+
+  call B()
+
+end sub
+
+sub B()
+
+  selection.typeText "    B" & chr(13)
+
+  selection.typeText "    -> C()" & chr(13)
+
+  call C()
+
+end sub
+
+sub C()
+
+  on error goto err_C
+
+  selection.typeText "      C"  & chr(13)
+
+  selection.typeText "      -> D()"  & chr(13)
+
+  call D()
+
+
+ done_C:
+
+  exit sub
+
+ err_C:
+  
+  msgBox "something's wrong" & vbCrLf & err.description & " [" & err.number & "]"
+
+  resume done_C
+
+' Note this second resume.
+' It will never execute in normal processing, since the Resume <label>
+' statement will send the execution elsewhere. It can be a godsend for debugging,
+' though. When you get an error notification, choose Debug (or press Ctl-Break,
+' then choose Debug when you get the "Execution was interrupted" message). The
+' next (highlighted) statement will be either the MsgBox or the following
+' statement. Use "Set Next Statement" (Ctl-F9) to highlight the bare Resume, then
+' press F8. This will show you exactly where the error was thrown.
+  resume
+
+end sub
+
+sub D()
+
+  dim a, b, c as integer
+
+  selection.typeText "        D"  & chr(13)
+  selection.typeText "        ."  & chr(13)
+
+  a = 5 - 3
+
+  selection.typeText "        ."  & chr(13)
+
+  b = a - 2
+
+  selection.typeText "        ."  & chr(13)
+
+  c = a / b ' Boom!
+
+end sub
+</pre><div class='t'> </div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

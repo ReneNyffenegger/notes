@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>VBA Module File [Common]</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>VBA Module File [Common]</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/VBAModules'>VBAModules</a>, path: <a href='https://github.com/ReneNyffenegger/VBAModules/blob/master//Common/File.bas'>/Common/File.bas</a></div><pre class='code'>option explicit
+
+private declare function win32_GetTempPath lib "kernel32" Alias "GetTempPathA" (byVal nBufferLength as long, byVal lpBuffer As string) as long
+
+function slurpFile(fileName as string) as string ' {
+
+   dim f        as integer
+
+   f = FreeFile()
+   open fileName for input as #f
+   slurpFile = input(lof(f), #f)
+   close f
+
+end function ' }
+
+function fileBaseName(filename as string) as string ' {
+
+  dim fso as new fileSystemObject
+
+  fileBaseName = fso.getBaseName(filename)
+
+end function ' }
+
+function fileSuffix(filename as string) as string ' {
+
+  dim fso as new fileSystemObject
+
+  fileSuffix = fso.getExtensionName(filename)
+
+end function ' }
+
+function fileExists(fileName as string) as boolean ' {
+
+' http://stackoverflow.com/a/28237845/180275
+  on error resume next
+  fileExists = (GetAttr(fileName) And vbDirectory) <> vbDirectory 
+
+end function ' }
+
+public function tempPath() as string ' {
+    const MAX_PATH = 260
+    tempPath = string$(MAX_PATH, chr$(0))
+    win32_GetTempPath MAX_PATH, tempPath
+    tempPath = replace(tempPath, chr$(0), "")
+end function ' }
+</pre><div class='t'> </div>
+<div class='h'><h2>See also</h2>
+<div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//development/languages/VBA/modules/index.html'>VBA Modules</a> </div>
+</div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

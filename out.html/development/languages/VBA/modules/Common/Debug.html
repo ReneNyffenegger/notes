@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>VBA Module Debug [Common]</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>VBA Module Debug [Common]</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/VBAModules'>VBAModules</a>, path: <a href='https://github.com/ReneNyffenegger/VBAModules/blob/master//Common/Debug.bas'>/Common/Debug.bas</a></div><pre class='code'>option explicit
+
+private debugFile   as integer
+private indent      as integer
+private fileName_   as string
+
+public sub dbgFileName(fileName as string) ' {
+  fileName_ = fileName
+end sub ' }
+
+public sub dbg(text as string) ' {
+
+  if not debugEnabled then
+     exit sub
+  end if
+
+  call startDbg()
+  print #debugFile, space(indent) & text
+  call endDbg()
+
+end sub ' }
+
+public sub dbgS(text as string) ' {
+
+  if not debugEnabled then
+     exit sub
+  end if
+
+' indent = indent + 1
+  call dbg("{ " & text)
+  indent = indent + 2
+end sub ' }
+
+public sub dbgE() ' {
+
+  if not debugEnabled then
+     exit sub
+  end if
+
+  indent = indent - 2
+  call dbg("}")
+' indent = indent - 1
+end sub ' }
+
+function debugEnabled() as boolean ' {
+
+' if environ$("username") = "René" and environ$("computername") = "THINKPAD" then
+     debugEnabled = true
+' else
+'    debugEnabled = false
+' end if
+
+end function ' }
+
+private sub startDbg() ' {
+
+  if not debugEnabled then
+     exit sub
+  end if
+
+  debugFile = freeFile()
+' open debugFileName for output as #debugFile
+  open fileName_ for append as #debugFile
+
+end sub ' }
+
+private sub endDbg() ' {
+
+  if not debugEnabled then
+     exit sub
+  end if
+
+  close #debugFile
+end sub ' }
+
+</pre><div class='t'> </div>
+<div class='h'><h2>See also</h2>
+<div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//development/languages/VBA/modules/index.html'>VBA Modules</a> </div>
+</div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

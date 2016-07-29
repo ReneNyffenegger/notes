@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Perl module pQuery</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>Perl module pQuery</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//pQuery/script.pl'>/pQuery/script.pl</a></div><pre class='code'>use warnings;
+use strict;
+
+use pQuery;
+
+my $html=<<"END"; # {{{
+
+<html>
+  <head>
+    <style type="text/css">
+      * {font-family: Courier}
+    </style>
+  </head>
+  <body>
+
+    <div> aaa </div>
+
+    <div> <div> bbb </div> </div>
+
+    <p> ccc </p>
+
+    <table summary='Note how the summary will appear in double quotes'>
+      <tr><td>a</td><td>b</td></tr>
+      <tr><td>c</td><td>d</td></tr>
+    </table>
+
+  </html>
+</html>
+
+END
+# }}}
+
+my $p = pQuery($html);
+
+print $p -> find('p'  ) -> html, "\n";
+$p -> find('div')->each(sub {
+  print 'Each: ' . pQuery($_)->html,"\n";
+});
+
+print $p -> find('div')->eq(2) -> text;
+
+print "style: ", $p -> find('style')->text, "\n";
+
+# Note: with ...->html, the enclosing <table>..</table> elements wouldn't
+#       be printed:
+print "table: ", $p -> find('table')->toHtml;      
+
+</pre><div class='t'> </div><div class='g'></div><div class='t'>
+<a href='file:///home/rene/github/github/notes/out.html//development/languages/Perl/modules/index.html'>Perl modules</a>. </div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Perl module Email::Stuffer</title>
+<link rel="stylesheet" type="text/css" href="file:///home/rene/github/github/notes/out.html//notes.css">
+<script src='file:///home/rene/github/github/notes/out.html//q.js'></script>
+</head>
+<body>
+Search notes: <input size='50' id='q' onchange='q();'>
+<h1>Perl module Email::Stuffer</h1>
+<div class='t'>
+</div><div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/PerlModules'>PerlModules</a>, path: <a href='https://github.com/ReneNyffenegger/PerlModules/blob/master//Email/Stuffer/script.pl'>/Email/Stuffer/script.pl</a></div><pre class='code'>use warnings;
+use strict;
+
+use Email::Stuffer;
+use Email::Sender::Transport::SMTP;
+
+my $sender_mail_address    = shift;
+my $smtp_server            = shift;
+my $recipient_mail_address = shift;
+my $subject                = shift;
+my $filename               = shift;
+my $auth_passwd            = shift;
+
+Email::Stuffer ->
+  from       ( $sender_mail_address     ) -> 
+  to         ( $recipient_mail_address  ) ->
+  subject    ( $subject                 ) ->
+# bcc        ( $blind_copy              ) ->
+  text_body  ("Hi\n\nAttached is a file") ->
+  attach_file( $filename                ) ->
+  transport  ( Email::Sender::Transport::SMTP -> new ({
+                 host             => $smtp_server,
+               # port             =>  25,
+                 sasl_username    => $sender_mail_address, # ?
+                 sasl_password    => $auth_passwd })
+             )
+->send or die "sending of mail failed $!";
+</pre><div class='t'> </div>
+<div class='h'><h2>See also</h2>
+<div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//tools/Emailing-executables.html'>Emailing executables</a> </div><div class='g'></div><div class='t'>
+  <a href='file:///home/rene/github/github/notes/out.html//development/languages/Perl/modules/index.html'>Perl modules</a>. </div>
+</div><hr><p><a href='file:///home/rene/github/github/notes/out.html//index.html'>Index</a><div class='bottom'></div></body>
+</html>
