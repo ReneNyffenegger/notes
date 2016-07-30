@@ -1,5 +1,8 @@
 package notes;
 
+use warnings;
+use strict;
+
 use utf8;
 use Encode;
 use Storable;
@@ -8,7 +11,7 @@ our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>';
 
 our %index;
 
-our $notes_root;
+# our $notes_root;
 
 our $html_suffix;
 
@@ -23,14 +26,14 @@ sub init { # {{{
 
   if ($web or $test) {
       $html_suffix = '';
-      $file_out_dir = "$notes_input_root/out/";
-      $notes_root = "/notes/";
+#     $file_out_dir = "$notes_input_root/out/";
+#     $notes_root = "/notes/";
   }
   else {
 #     $notes_root =~ s|\\|/|g;
       $html_suffix = '.html';
-      $file_out_dir = "$notes_input_root/out.html/";
-      $notes_root = "file://${notes_input_root}/out.html/";
+#     $file_out_dir = "$notes_input_root/out.html/";
+#     $notes_root = "file://${notes_input_root}/out.html/";
   }
 
 
@@ -128,7 +131,8 @@ sub replace_notes_link { # {{{
 
     $text = $optional_text if defined $optional_text;
 
-    "<a href='$notes_root$page_linked_to$html_suffix$anchor_txt'>$text</a>"; 
+#   "<a href='$notes_root$page_linked_to$html_suffix$anchor_txt'>$text</a>"; 
+    "<a href='" . RN::url_path_abs_2_url_full('/notes/') . umlaute($page_linked_to) . "$html_suffix$anchor_txt'>$text</a>"; 
       
   }gex;
 
@@ -221,23 +225,28 @@ sub os_path_to_perl_path { # {{{
 
 sub url_root { # {{{
 
-  return $notes_root;
+  die "deprecated";
+# return $notes_root;
 
 } # }}}
 
 sub path_in_rel_2_path_out_abs { # {{{
 
-  my $file_in_rel = shift;
+  die "deprecated";
 
-  return "$file_out_dir$file_in_rel";
+# my $file_in_rel = shift;
+
+# return "$file_out_dir$file_in_rel";
 
 } # }}}
 
 sub input_filename_os_2_out_filename { # {{{
 
-  my $input_filename_os = shift;
+  die "deprecated";
 
-  return $file_out_dir . umlaute(os_to_perl($input_filename_os)) . $html_suffix;
+# my $input_filename_os = shift;
+
+# return $file_out_dir . umlaute(os_to_perl($input_filename_os)) . $html_suffix;
 
 } # }}}
 
