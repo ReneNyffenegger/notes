@@ -1,16 +1,20 @@
-del notes\.index
-del notes\.last-run
+@rem @del  notes\.index     > nul
+@rem @del  notes\.last-run  > nul
 
-rmdir /s /q out
-mkdir out
+@rmdir /s /q out
+@mkdir out
 
-go.pl
+@go.pl
 
-copy /y ..\res\notes.css out
-copy /y ..\res\q.js      out
+@copy /y ..\res\notes.css out > nul
+@copy /y ..\res\q.js      out > nul
 
-rmdir /s /q \tools\UniServerZ\www\notes
+@rmdir /s /q \tools\UniServerZ\www\notes
 
-xcopy /s /e /i out \tools\UniServerZ\www\notes
+@xcopy /s /e /i out \tools\UniServerZ\www\notes > nul
 
-diff -rq out expected
+@echo .
+@echo .
+@echo .
+
+@diff -rq out expected
