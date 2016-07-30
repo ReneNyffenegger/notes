@@ -1,5 +1,5 @@
-@del  notes\.index     > nul
-@del  notes\.last-run  > nul
+@rem @del  notes\.index     > nul
+@rem @del  notes\.last-run  > nul
 
 @rmdir /s /q out
 @mkdir out
