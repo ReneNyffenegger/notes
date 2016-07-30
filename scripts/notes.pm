@@ -21,7 +21,7 @@ sub init { # {{{
 
   my $web              = shift;
   my $test             = shift;
-  my $notes_input_root = shift; # For example /foo/bar/notes  (NOT /foo/bar/notes/notes)
+# my $notes_input_root = shift; # For example /foo/bar/notes  (NOT /foo/bar/notes/notes)
 
 
   if ($web or $test) {
