@@ -1,14 +1,19 @@
 rm -f notes/.index notes/.last-run
 
-rm -Rf out
-mkdir out
+out_dir=${rn_root}test/notes
+
+rm -Rf $out_dir
+
+
+# mkdir out
 
 go.pl
 
-cp -f ../res/notes.css ../res/q.js out
+cp -f ../res/notes.css ../res/q.js $out_dir
 
 # TODO: copy files to webserver directory
 
-find out -type f -not -name '*.svg' | xargs unix2dos -q
+rm $out_dir/.index
+find $out_dir -type f -not -name '*.svg' | xargs unix2dos -q
 
-diff -rq out expected
+diff -rq $out_dir expected

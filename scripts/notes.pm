@@ -12,7 +12,7 @@ our $notes_root;
 
 our $html_suffix;
 
-our $file_out_dir;
+# our $file_out_dir;
 
 sub init { # {{{
 
@@ -141,7 +141,6 @@ sub load_index { # {{{
 
   my $index_file = shift;
 
-
   %index = %{ retrieve $index_file } if -e $index_file;
 
 } # }}}
@@ -149,7 +148,7 @@ sub load_index { # {{{
 sub store_index { # {{{
 
   my $index_file = shift;
-  store \%index, '.index';
+  store \%index, $index_file;
 
 } # }}}
 
@@ -199,17 +198,24 @@ sub umlaute { # {{{
 
   my $text = shift;
 
-  $text =~ s/ä/ae/;
-  $text =~ s/ö/oe/;
-  $text =~ s/ü/ue/;
+  $text =~ s/ä/ae/g;
+  $text =~ s/ö/oe/g;
+  $text =~ s/ü/ue/g;
 
-  $text =~ s/Ä/Ae/;
-  $text =~ s/Ö/Oe/;
-  $text =~ s/Ü/Ue/;
+  $text =~ s/Ä/Ae/g;
+  $text =~ s/Ö/Oe/g;
+  $text =~ s/Ü/Ue/g;
 
-  $text =~ s/é/e/;
+  $text =~ s/é/e/g;
 
   return $text;
+
+} # }}}
+
+sub os_path_to_perl_path { # {{{
+
+  my $os_path = shift;
+  return umlaute(os_to_perl($os_path));
 
 } # }}}
 
