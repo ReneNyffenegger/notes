@@ -10,30 +10,21 @@ use Storable;
 our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>'; 
 
 our %index;
-
-# our $notes_root;
-
 our $html_suffix;
 
-# our $file_out_dir;
 
 sub init { # {{{
 
   my $web              = shift;
   my $test             = shift;
-# my $notes_input_root = shift; # For example /foo/bar/notes  (NOT /foo/bar/notes/notes)
 
 
   if ($web or $test) {
       $html_suffix = '';
-#     $file_out_dir = "$notes_input_root/out/";
-#     $notes_root = "/notes/";
   }
   else {
 #     $notes_root =~ s|\\|/|g;
       $html_suffix = '.html';
-#     $file_out_dir = "$notes_input_root/out.html/";
-#     $notes_root = "file://${notes_input_root}/out.html/";
   }
 
 
