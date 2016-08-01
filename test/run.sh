@@ -1,3 +1,4 @@
+echo "Is the following rm really necessary?"
 rm -f notes/.index notes/.last-run
 
 out_dir=${rn_root}test/notes
