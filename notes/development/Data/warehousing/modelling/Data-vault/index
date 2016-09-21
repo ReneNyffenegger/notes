@@ -1,5 +1,10 @@
 $ Data Vault modelling
 
+{ Three types of tables
+
+  Data vauld modelling does not differentiate between dimension tables (master data) and fact tables (transactional data).
+  Instead, it diffentiates between hub, satellite and link tables.
+
 { Hub tables #hub-tables
 
   A hub table represents a *master data entity*.
@@ -8,6 +13,7 @@ $ Data Vault modelling
     • Surrogate key
     • Business key (which usually is the primary key from the data source system)
     • *No* business attributes
+    • A *load date* (which is not part of the primary key, compare with the primary key in satellite tables)
 
   Hubs are colored *blue*.
 
@@ -27,7 +33,11 @@ $ Data Vault modelling
   Additionally, data from different source system could be stored in different satellite tables.
 
   A satellite table has a `valid_from` (or effective date), but not a `valid_to` (or expiration date). Thus,
-  the dreaded(?) *updates* can be reduced (or omitted?)
+  the dreaded(?) *updates* (in an »insert only environment«) can be reduced (or omitted?)
+  -
+  This `valid_from` is not a »business date«, it rather defines when the record was loaded.
+  -
+  Usually, the `valid_from` attribute will be part of the *primary key* of the satellite table.
 
   Satellite tables are colored *red*.
 
@@ -35,16 +45,37 @@ $ Data Vault modelling
 
 { Links #links
 
-  Relationships are modelled as links, which in fact are *many to many* relationships between hub tables.
+  Relationships are modelled as links, which in fact are *many to many* relationships between hub tables (*even* if the
+  relationship  a 1:1 or 1:n !)
   -
   With the *many to many* approach, it is hoped to be more flexible (really …?).
+  -
+  Yet, the burden of vaildating the correct cardinality and relationships (especially in 1:1 and 1:n ones) is put on
+  the ETL job.
+
+  Like hub tables, link tables have a *load date* as well that is not part of the primary key.
 
   Link tables are colored *green*.
+}
+
+}
+{ Cost of the flexibility
+
+  The promised flexibility of data vault modeling comes with a cost.
+
+  Yes, the storing of the data has beomce »easy« in a way - but querying the data is now burdensome and difficult (and therefore
+  timely and financially costly). Ad hoc queries (which are quite easy in »traditional data warehouses«) have now become virtualyy
+  impossible. How do you a (previously simple) left outer join on hubs that have many satellites *and* find the correct version of records?
+
+  In order to handle these problems, *point in-time tables* were proposed. And these are exactly the problem: who's going to maintain them?
+
 }
 
 sa:
   → development/Data/warehousing/modelling/index
 
   → http://danlinstedt.com/[Dan Linstedt's website]
+  -
+  → http://learndatavault.com/[Learn Data Vault]
 
   → development/Data/warehousing/sources/2011-Schnider-Wehner-Welker_Data-Warehousing-mit-Oracle
