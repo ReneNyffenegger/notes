@@ -49,8 +49,59 @@
 
   For exports: Tools -> Preferences -> Database -> Utilities -> Export
 
+}
+{ SQLDEV:GAUGE
 
+code {
+with params as (
+   select
+           0 min_ ,
+         100 max_ ,
+          33 low_ ,
+          67 high_
+    from dual
+),
+val as (
+  select  80 ue from dual union all
+  select  11 ue from dual union all
+  select  42 ud from dual union all
+  select  98 ue from dual union all
+  select  27 ue from dual
+)
+select
+  'SQLDEV:GAUGE:'  ||
+    p.min_  || ':' ||
+    p.max_  || ':' ||
+    p.low_  || ':' ||
+    p.high_ || ':' ||
+    val.ue                 "Column name for a wide output."
+from
+  params p cross join
+  val    val;
+code }
+
+code {
+create table tq84_sqldev_gauge (
+  vc varchar2(10),
+  num number
+);
+
+insert into tq84_sqldev_gauge values('ABC',  66);
+insert into tq84_sqldev_gauge values('DEF',  42);
+insert into tq84_sqldev_gauge values('GHI',  17);
+insert into tq84_sqldev_gauge values('JKL', 100);
+insert into tq84_sqldev_gauge values('MNO',  24);
+
+select
+  vc,
+  'SQLDEV:GAUGE:0:101:33:67:' || num 
+from
+  tq84_sqldev_gauge
+order by
+  vc;
+code }
 
 }
+
 links:
   → development/Software/Oracle-SQL-Developer/Password-decryptor
