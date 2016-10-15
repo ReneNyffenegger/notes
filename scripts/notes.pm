@@ -104,8 +104,8 @@ sub replace_notes_link { # {{{
        $text = $index{$page_linked_to}{title};
 
         if (! $text) {
-          print "\nDying introduction\n";
-          print "\n------------------\n";
+          print "\nDying introduction (No title for paged_linked_to)\n";
+          print "\n-------------------------------------------------\n";
           print "  input_filename_os = $input_filename_os<\n";
           print "  page_linked_to    = $page_linked_to<\n\n";
           print "  index{page_linked_to} does not exist\n" unless $index{$page_linked_to};
