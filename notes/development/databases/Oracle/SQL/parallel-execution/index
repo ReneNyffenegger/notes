@@ -13,7 +13,6 @@ In an Oracle database, parallel SQL execution is based on
 
   PX does most of the work for the job at hand.
 
-
 }
 { QC and  PX
 
@@ -29,6 +28,26 @@ In an Oracle database, parallel SQL execution is based on
 code {
 alter session enable parallel dml;
 code } 
+
+}
+{ Default degree of parallelism
+
+  The default degree of parallelism is determined by the product of the two init-parameters `cpu_count` and `parallel_threads_per_cpu`:
+code {
+with p as (
+  select
+    max(case when name = 'cpu_count'                then value end) cpu_count,
+    max(case when name = 'parallel_threads_per_cpu' then value end) parallel_threads_per_cpu
+  from
+    v$parameter
+)
+select
+  p.cpu_count,
+  p.parallel_threads_per_cpu,
+  p.cpu_count * p.parallel_threads_per_cpu "default parallism degree"
+from
+  p;
+code }
 
 }
 { TODO
