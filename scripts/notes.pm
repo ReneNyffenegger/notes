@@ -64,7 +64,9 @@ sub replace_notes_link { # {{{
       $page_linked_to = umlaute(os_to_perl($input_filename_os)) unless $page_linked_to;
 
     }
-    if (-d perl_to_os($page_linked_to)) {
+    if              (-d $ENV{'github_root'} . 'notes/notes/' . perl_to_os($page_linked_to)) 
+    # 2016-12-13 if (-d                                        perl_to_os($page_linked_to)) 
+    {
 
       $page_linked_to =~ s,/$,,;
       $page_linked_to .= '/index';
