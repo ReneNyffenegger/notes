@@ -17,13 +17,42 @@ Compare with → tools/mp3info#duration[mp3info].
 
 }
 
+{ Compiling ffmpeg under Cygwin 64
+
+  Based on → http://www.mediaentertainmentinfo.com/2014/01/1-technical-series-how-to-compile-ffmpeg-under-cygwin.html/[How to compile ffmpeg] under
+  → development/Cygwin, I was able to compile ffmpeg (plus libmp3lame) for Cygwin 64 like so:
+  -
+  First, I had to compile ~libmp3lame~
+  -
+  The `configure.guess` script (apparantly dating back to 2003) had to be replaced by 
+  → http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD
+
+  As per → https://github.com/HPCE/hpce-2015-cw2/issues/3, the lines 138 and 139 in `frontend/lametime.c` had to be commented:
+code {
+       //#elif defined __CYGWIN__
+       //    setmode(fileno(fp), _O_BINARY);
+code }
+
+Then, with the usuale `./configure`, `make`, `make install` trilogy, libmp3lame could be built and installed.
+
+After that, ffmpeg could be build:
+
+code {
+→ development/Cygwin#apt-cyg install binutils, gcc-core, git, make, ming, mingw64-x86_64-runtime, yasm, texi2html, diffutils, dos2unix
+git clone git://source.ffmpeg.org/ffmpeg.git ffmpeg
+→ Linux/shell/commands/dos2unix configure
+LDFLAGS=-L/usr/local/lib ./configure --enable-shared --disable-static --enable-libmp3lame
+make
+make install
+code }
+
+}
+
 { See also
 
   → tools/mp3
 
   Project homepage: → https://ffmpeg.org/
 
-  → http://www.mediaentertainmentinfo.com/2014/01/1-technical-series-how-to-compile-ffmpeg-under-cygwin.html/[How to compile ffmpeg] under
-  → development/Cygwin
 
 }
