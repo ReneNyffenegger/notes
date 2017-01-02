@@ -1,3 +1,4 @@
+# vim: ft=perl
 package notes;
 
 use warnings;
