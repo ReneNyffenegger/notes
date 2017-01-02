@@ -1,3 +1,4 @@
+# vim: ft=sh
 echo "Is the following rm really necessary?"
 rm -f notes/.index notes/.last-run
 
