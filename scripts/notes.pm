@@ -13,20 +13,22 @@ our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>';
 our %index;
 our $html_suffix;
 
+my  $verbose;
 
 sub init { # {{{
 
   my $web              = shift;
   my $test             = shift;
-
+     $verbose          = shift;
 
   if ($web or $test) {
       $html_suffix = '';
   }
   else {
-#     $notes_root =~ s|\\|/|g;
       $html_suffix = '.html';
   }
+
+  print "notes.pm: html_suffix = $html_suffix\n" if $verbose;
 
 
 } # }}}
@@ -65,8 +67,12 @@ sub replace_notes_link { # {{{
       $page_linked_to = umlaute(os_to_perl($input_filename_os)) unless $page_linked_to;
 
     }
-    if              (-d $ENV{'github_root'} . 'notes/notes/' . perl_to_os($page_linked_to)) 
-    # 2016-12-13 if (-d                                        perl_to_os($page_linked_to)) 
+    if              (-d                                        perl_to_os($page_linked_to)) 
+#   ------------------------------------------------------------------------
+#   2017-01-02 using the absolute path (with $ENV{'github_root'}) breaks the
+#              test cases.
+#   if              (-d $ENV{'github_root'} . 'notes/notes/' . perl_to_os($page_linked_to)) 
+#   ------------------------------------------------------------------------
     {
 
       $page_linked_to =~ s,/$,,;
@@ -125,7 +131,6 @@ sub replace_notes_link { # {{{
 
     $text = $optional_text if defined $optional_text;
 
-#   "<a href='$notes_root$page_linked_to$html_suffix$anchor_txt'>$text</a>"; 
     "<a href='" . RN::url_path_abs_2_url_full('/notes/') . umlaute($page_linked_to) . "$html_suffix$anchor_txt'>$text</a>"; 
       
   }gex;
@@ -139,13 +144,22 @@ sub load_index { # {{{
 
   my $index_file = shift;
 
-  %index = %{ retrieve $index_file } if -e $index_file;
+
+  if (-e $index_file) {
+    print "notes.pm: loading index file $index_file\n" if $verbose >= 1;
+    %index = %{ retrieve $index_file };
+  }
+  else {
+    print "notes.pm: index file $index_file cannot be loaded because it does not exist\n" if $verbose >= 1;
+  }
 
 } # }}}
 
 sub store_index { # {{{
 
   my $index_file = shift;
+
+  print "notes.pm: storing index file $index_file\n" if $verbose >= 1;
   store \%index, $index_file;
 
 } # }}}
@@ -155,7 +169,11 @@ sub set_title_of_file { # {{{
   my $input_filename_os = shift;
   my $title             = shift;
 
-  $index{umlaute(os_to_perl($input_filename_os))}{title} = $title;
+  my $entry = umlaute(os_to_perl($input_filename_os));
+
+  print "notes.pm: setting title of $entry to $title\n" if $verbose >= 1;
+
+  $index{$entry}{title} = $title;
 
 } # }}}
 
@@ -218,29 +236,15 @@ sub os_path_to_perl_path { # {{{
 } # }}}
 
 sub url_root { # {{{
-
   die "deprecated";
-# return $notes_root;
-
 } # }}}
 
 sub path_in_rel_2_path_out_abs { # {{{
-
   die "deprecated";
-
-# my $file_in_rel = shift;
-
-# return "$file_out_dir$file_in_rel";
-
 } # }}}
 
 sub input_filename_os_2_out_filename { # {{{
-
   die "deprecated";
-
-# my $input_filename_os = shift;
-
-# return $file_out_dir . umlaute(os_to_perl($input_filename_os)) . $html_suffix;
 
 } # }}}
 
