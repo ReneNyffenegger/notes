@@ -67,11 +67,12 @@ sub replace_notes_link { # {{{
       $page_linked_to = umlaute(os_to_perl($input_filename_os)) unless $page_linked_to;
 
     }
-    if              (-d                                        perl_to_os($page_linked_to)) 
 #   ------------------------------------------------------------------------
-#   2017-01-02 using the absolute path (with $ENV{'github_root'}) breaks the
-#              test cases.
-#   if              (-d $ENV{'github_root'} . 'notes/notes/' . perl_to_os($page_linked_to)) 
+#   2017-01-03 using the absolute path (with $ENV{'github_root'}) breaks the
+#              test cases, so test directory according to target_env
+    if              ( ($RN::target_env eq 'test' and  -d $ENV{'github_root'} . 'notes/test/notes/' . perl_to_os($page_linked_to)) or
+                      (                               -d $ENV{'github_root'} . 'notes/notes/'      . perl_to_os($page_linked_to)) 
+                    )
 #   ------------------------------------------------------------------------
     {
 
