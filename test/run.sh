@@ -9,7 +9,7 @@ rm -Rf $out_dir
 
 # mkdir out
 
-go.pl
+../scripts/create-html.pl
 
 cp -f ../res/notes.css ../res/q.js $out_dir
 

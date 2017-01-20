@@ -5,7 +5,7 @@
 
 rmdir /s /q  %rn_root%test\notes
 
-@go.pl
+@..\scripts\create-html.pl
 
 @copy /y ..\res\notes.css %rn_root%test\notes > nul
 @copy /y ..\res\q.js      %rn_root%test\notes > nul
