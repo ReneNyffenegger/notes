@@ -22,8 +22,9 @@ set includeexpr=substitute(v:fname,'^→','','')
 call TQ84_log('set ff=unix, was ' . &ff)
 set ff=unix
 
-nnoremap <buffer> gf :call tq84#notes#gotoFileUnderCursor(v:false)<CR>
-nnoremap <buffer> gF :call tq84#notes#gotoFileUnderCursor(v:true )<CR>
+nnoremap <buffer> gf    :call tq84#notes#gotoFileUnderCursor(v:false)<CR>
+nnoremap <buffer> gF    :call tq84#notes#gotoFileUnderCursor(v:true )<CR>
+nnoremap <buffer> <TAB> :call tq84#notes#tabPressed()<CR>
 
 catch
 
