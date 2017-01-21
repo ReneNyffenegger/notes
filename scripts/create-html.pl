@@ -11,6 +11,7 @@ use lib "$ENV{github_root}/RN/";
 
 use File::Touch;
 use LWP::Simple;
+use File::Copy;
 use File::Find;
 use File::Basename;
 use File::Path qw(make_path);
@@ -120,15 +121,19 @@ print "index processed\n" if $verbose >= 1;
 touch $last_run_file_os_path_abs;
 print "touched $last_run_file_os_path_abs\n" if $verbose >= 1;
 
-RN::copy_os_path_2_url_path_abs('../res/notes.css', '/notes/notes.css');
+my $notes_css = '../res/notes.css';
+die "$notes_css does not exist, cwd=" . cwd() unless -f $notes_css;
+# RN::copy_os_path_2_url_path_abs('../res/notes.css', '/notes/notes.css');
 # put_ftp('notes.css');
+my $notes_css_dest = RN::url_path_abs_2_os_path_abs('/notes/notes.css');
+print "copying $notes_css to $notes_css_dest\n";
+copy($notes_css, $notes_css_dest) or print "\n\n  Failed to copying $notes_css to $notes_css_dest\n\n";
 
-unless ($web) {
-
-  my $notes_css = '../res/notes.css';
-  die "$notes_css does not exist" unless -f $notes_css;
-# copy('notes.css', $notes::file_out_dir) or die "could not copy notes.css to $notes::file_out_dir";
-  RN::copy_os_path_2_url_path_abs($notes_css, '/notes/notes.css');
+if ($web) {
+# 
+# # copy('notes.css', $notes::file_out_dir) or die "could not copy notes.css to $notes::file_out_dir";
+#   # 2017-01-21 RN::copy_os_path_2_url_path_abs($notes_css, '/notes/notes.css');
+   RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs($notes_css), "/notes/notes.css");
 }
 
 
@@ -796,7 +801,7 @@ sub process_index { # {{{
                       lc($notes::index{$b}{title})
                      } keys %notes::index) {
 
-    print $html "<a href='$page$notes::html_suffix'>$notes::index{$page}{title}</a><br>";
+    print $html "<a href='$page$notes::html_suffix'>$notes::index{$page}{title}</a><br>\n";
 
   }
 
@@ -876,7 +881,7 @@ sub open_html { # {{{
 <script src='${notes_root}q.js'></script>
 </head>
 <body>
-Search notes: <input size='50' id='q' onchange='q();'>
+<div class='screen-only'>Search notes: <input size='50' id='q' onchange='q();'></div>
 <h1>$title</h1>
 };
 
@@ -889,6 +894,7 @@ sub close_html { # {{{
   my $out = shift;
   my $wp  = shift;
 
+  print $out "<div class='screen-only'>\n";
   print $out "<hr>";
 
   if ($wp) {
@@ -899,6 +905,7 @@ sub close_html { # {{{
 
   print $out "<div class='bottom'></div>";
 
+  print $out "</div>\n"; # screen-only
   print $out "</body>
 </html>";
 
