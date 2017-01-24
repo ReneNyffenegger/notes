@@ -11,6 +11,8 @@ insert into table_abc values (   1 ,   42 ,   20 );
 select * from table_abc;
 code }
 
+  Although no datatypes are necessary when the table is created, the behaviour can be influenced: `integer primary key autoincrement` etc.
+
 }
 { Tabular output
 
@@ -18,6 +20,23 @@ code {
 sqlite3> .mode column
 sqlite3> .width 10 25 54 …
 sqlite3> select foo, bar, baz, … from tData;
+code }
+
+}
+{ Turning off autocommit
+
+  SQLLite commits every statement by default (so called *auto commit*).
+
+  To turn this behaviour off (which increases performance greatly when lots of statements are executed in sequence), the statements must be enclosed in `begin transaction` .. `commit transaction`:
+code {
+begin transaction;
+
+insert into tab_something values ('foo', 'bar', 'baz');
+insert into tab_something values ('one', 'two',  null);
+…
+…
+
+commit transaction;
 code }
 
 }
