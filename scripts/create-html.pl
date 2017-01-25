@@ -1082,17 +1082,17 @@ sub sub_sup { # {{{
 
 sub end_quote { # {{{
 
-  my $out = shift;
-  my $q_text = shift;
-  my $in_quote_ref = shift;
+  my $out                                 = shift;
+  my $q_text                              = shift;
+  my $in_quote_ref                        = shift;
 
-  my $in_text_ref = shift;
-  my $ul_ref      = shift;
-  my $next_t_with_gap_ref = shift;
+  my $in_text_ref                         = shift;
+  my $ul_ref                              = shift;
+  my $next_t_with_gap_ref                 = shift;
   my $empty_line_sets_next_t_with_gap_ref = shift;
 
-  my $source = shift;
-  my $file_name_with_path = shift;
+  my $source                              = shift;
+  my $file_name_with_path                 = shift;
 
   die "in quote ref error [$file_name_with_path]" unless $$in_quote_ref;
   $$in_quote_ref = 0;
