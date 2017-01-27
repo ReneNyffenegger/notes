@@ -159,6 +159,8 @@ sub process_page { # {{{
     return;
   }
 
+# 2017-01-27 directories might be named exactly »svg«...
+ if ($file_name_only_os ne 'svg') { # {{{
  (my $suffix = $file_name_only_os) =~ s/.*\.(\w*)$/$1/;
 
   if ( $suffix eq 'png' or $suffix eq 'jpg' or $suffix eq 'svg') { # {{{
@@ -168,6 +170,7 @@ sub process_page { # {{{
     }
 
     return;
+  } # }}}
   } # }}}
 
 
