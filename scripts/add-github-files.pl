@@ -4,10 +4,14 @@ use warnings;
 use strict;
 
 use File::Find;
+use File::Path qw(make_path);
 use File::Basename;
 use File::Spec;
 
-my $github_repo = 'about-awk';
+my $github_repo = 
+  # 'about-awk'
+    'about-svg'
+;
 
 my $dest_top_dir;
 my $src_top_dir;
@@ -39,6 +43,7 @@ my $hook_init      = sub {print "init: $dest_path\n"};
 my $hook_dir       = sub {print "dir  $src_path -> $dest_path\n"};
 my $hook_file      = sub {print "file $src_path -> $dest_path\n"};
 my $hook_dir_leave = sub {print "leave dir $src_path -> $dest_path\n"};
+my $hook_exit      = sub {print "exit\n"};
 
 
 determine_variables();
@@ -54,6 +59,8 @@ find({ # {
          &$hook_dir_leave;
        }
     }, $src_top_dir);
+
+&$hook_exit();
 
 sub wanted { # {
 #
@@ -88,11 +95,15 @@ sub wanted { # {
   }
 
   $dest_path   = "$dest_top_dir$rel_path";
+# remove suffix from $dest_path
+  $dest_path =~ s/\.([^.]+)$//;
+
+
   $src_path    = "$src_top_dir$rel_path";
 
   $github_path = "/$rel_path";
 
-  $notes_path  = File::Spec->abs2rel($dest_path, "$ENV{github_root}notes/notes/");
+  $notes_path = File::Spec->abs2rel($dest_path, "$ENV{github_root}notes/notes/");
 
   if ($filename eq '.') {
     #
@@ -122,9 +133,16 @@ sub wanted { # {
     # therefore, it doesn't make sense to append the trailing '/'
     # $dest_path .= '/';
 
+    # Just to be sure there is no dot in $notes_path
+      die if $notes_path =~ /\./;
+
       &$hook_dir;
     }
     elsif (-f $src_path) {
+
+    # Just to be sure there is no dot in $notes_path
+      die if $notes_path =~ /\./;
+
       &$hook_file;
     }
     else {
@@ -140,7 +158,7 @@ sub determine_variables { # {
 
   my ($dest_dir_rel, $src_dir_rel);
 
-  if ($github_repo   eq 'about-awk') { # {
+  if    ($github_repo eq 'about-awk') { # {
 
     $dest_dir_rel     = 'development/languages/awk/examples/';
     $src_dir_rel      = 'about/awk/';
@@ -216,6 +234,48 @@ sub determine_variables { # {
     };
 
   } # }
+  elsif ($github_repo eq 'about-svg' ) { # {
+
+    $dest_dir_rel     = 'design/graphic/svg/examples/';
+    $src_dir_rel      = 'about/svg/';
+
+    my @svg_examples = ();
+    $hook_init = sub {
+      make_sure_dest_path_is_dir_and_exists();
+    };
+    $hook_dir = sub {
+      make_sure_dest_path_is_dir_and_exists();
+    };
+    $hook_file = sub {
+
+
+      my $f = open_dest_path();
+      my $title = $filename;
+      $title =~ s/\..*//;
+
+      print $f "\$ SVG example: $title\n\n";
+      print $f "gh|$github_repo|$github_path||\n";
+
+      print $f "\nsa:\n  → $dest_dir_rel\[SVG examples]\n";
+
+      push @svg_examples, [$notes_path, $title];  
+
+    };
+    $hook_exit = sub {
+
+      my $svg_example_path = "$ENV{github_root}notes/notes/$dest_dir_rel/index";
+      die if -e $svg_example_path;
+      open (my $f, '>', $svg_example_path);
+
+      print $f "\$ SVG examples\n\n";
+
+      for my $e (@svg_examples) {
+        printf $f ("→ %s[%s]\n\n", $e->[0], $e->[1]);
+      }
+
+    }
+
+  } # }
   else { # {
     die "unknown github_repo $github_repo";
   } # }
@@ -238,7 +298,20 @@ sub make_sure_dest_path_is_dir_and_exists { # {
   return if -d $dest_path;
 
   print "creating dir $dest_path\n";
-  mkdir $dest_path or die "Could not create $dest_path [$!]"
+  make_path $dest_path or die "Could not create $dest_path [$!]"
+
+} # }
+
+sub open_dest_path { # {
+
+# Just to be sure
+  die "$dest_path contains a dot" if $dest_path =~ /\./;
+
+  die "$dest_path already exists" if -e $dest_path;
+
+  open (my $f, '>', $dest_path) or die;
+
+  return $f;
 
 } # }
 
