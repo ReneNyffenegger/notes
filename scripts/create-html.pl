@@ -694,7 +694,13 @@ sub process_page { # {{{
 
       if ($pass == 2) {
 
-        my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master/$path";
+  #     2017-01-27 $path should be prefixed by a slash anyway:
+        if (substr($path, 0, 1) ne '/') {
+          print "gh: $path does not start with /\n";
+        }
+  #     my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master/$path";
+        my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master$path";
+
         my $code = get($url);
 
         $code =~ s/&/&amp;/g;
@@ -702,7 +708,7 @@ sub process_page { # {{{
         $code =~ s/>/&gt;/g;
 
         ($in_text ? "</div>" : "") .
-        "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master/$path'>$path</a></div>" .
+        "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
         "<pre class='code'>$code</pre>" .
         ($in_text ? "<div class='t'>" : "");
 
