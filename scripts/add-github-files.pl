@@ -7,10 +7,16 @@ use File::Find;
 use File::Path qw(make_path);
 use File::Basename;
 use File::Spec;
+use Getopt::Long;
+
+GetOptions(
+  'force-overwrite' => \my $force_overwrite,
+) or die;
 
 my $github_repo = 
   # 'about-awk'
-    'about-svg'
+  # 'about-svg'
+    'about-Document-Object-Model'
 ;
 
 my $dest_top_dir;
@@ -234,46 +240,30 @@ sub determine_variables { # {
     };
 
   } # }
+  elsif ($github_repo eq 'about-Document-Object-Model' ) { # {
+
+
+    $dest_dir_rel  = 'development/web/DOM/examples/';
+    $src_dir_rel   = 'about/Document-Object-Model/';
+
+    one_to_one(
+       dest_dir_rel => $dest_dir_rel ,
+       title_prefix =>'DOM example:' ,
+       index_title  =>'DOM examples' ,
+    );
+
+
+  } # }
   elsif ($github_repo eq 'about-svg' ) { # {
 
-    $dest_dir_rel     = 'design/graphic/svg/examples/';
-    $src_dir_rel      = 'about/svg/';
+    $dest_dir_rel = 'design/graphic/svg/examples/';
+    $src_dir_rel  = 'about/svg/';
 
-    my @svg_examples = ();
-    $hook_init = sub {
-      make_sure_dest_path_is_dir_and_exists();
-    };
-    $hook_dir = sub {
-      make_sure_dest_path_is_dir_and_exists();
-    };
-    $hook_file = sub {
-
-
-      my $f = open_dest_path();
-      my $title = $filename;
-      $title =~ s/\..*//;
-
-      print $f "\$ SVG example: $title\n\n";
-      print $f "gh|$github_repo|$github_path||\n";
-
-      print $f "\nsa:\n  → $dest_dir_rel\[SVG examples]\n";
-
-      push @svg_examples, [$notes_path, $title];  
-
-    };
-    $hook_exit = sub {
-
-      my $svg_example_path = "$ENV{github_root}notes/notes/$dest_dir_rel/index";
-      die if -e $svg_example_path;
-      open (my $f, '>', $svg_example_path);
-
-      print $f "\$ SVG examples\n\n";
-
-      for my $e (@svg_examples) {
-        printf $f ("→ %s[%s]\n\n", $e->[0], $e->[1]);
-      }
-
-    }
+    one_to_one(
+       dest_dir_rel => $dest_dir_rel ,
+       title_prefix =>'SVG example:' ,
+       index_title  =>'SVG examples' ,
+    );
 
   } # }
   else { # {
@@ -307,7 +297,14 @@ sub open_dest_path { # {
 # Just to be sure
   die "$dest_path contains a dot" if $dest_path =~ /\./;
 
-  die "$dest_path already exists" if -e $dest_path;
+  if (-e $dest_path) {
+    if ($force_overwrite) {
+      print "$dest_path already exists\n";
+    }
+    else {
+      die "$dest_path already exists";
+    }
+  }
 
   open (my $f, '>', $dest_path) or die;
 
@@ -315,3 +312,63 @@ sub open_dest_path { # {
 
 } # }
 
+sub one_to_one { # Used for svg, document object model {
+
+  print join "\n", @_;
+
+  my %opts = @_;
+
+  my $dest_dir_rel     = $opts{dest_dir_rel} or die; # 'development/web/DOM'
+  my $title_prefix     = $opts{title_prefix} or die; # 'SVG example: '
+  my $index_title      = $opts{index_title } or die; # 'SVG examples'
+
+  my @all_examples = ();
+
+  $hook_init = sub {
+    make_sure_dest_path_is_dir_and_exists();
+  };
+
+  $hook_dir = sub {
+    make_sure_dest_path_is_dir_and_exists();
+  };
+
+  $hook_file = sub {
+
+    die if $filename =~ /^\./;
+    return if $filename eq 'README.md';
+
+    my $f = open_dest_path();
+  # Remove suffix:
+    my $title = $filename;
+    $title =~ s/\..*//;
+
+    print $f "\$ $title_prefix $title\n\n";
+    print $f "gh|$github_repo|$github_path||\n";
+
+    print $f "\nsa:\n  → $dest_dir_rel\[$index_title]\n";
+
+    push @all_examples, [$notes_path, $title];  
+
+  };
+  $hook_exit = sub {
+
+    my $example_path = "$ENV{github_root}notes/notes/$dest_dir_rel/index";
+
+    if (-e $example_path) {
+      if ($force_overwrite) {
+        print "$example_path alraedy exists\n";
+      }
+      else {
+        die "$example_path already exists\n";
+      }
+    }
+    open (my $f, '>', $example_path) or die "could not open $example_path";
+
+    print $f "\$ $index_title\n\n";
+
+    for my $e (@all_examples) {
+      printf $f ("→ %s[%s]\n\n", $e->[0], $e->[1]);
+  }
+
+    }
+} # }
