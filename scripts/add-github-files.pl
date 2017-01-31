@@ -19,7 +19,11 @@ my $github_repo =
   # 'about-Document-Object-Model'
     'about-perl'
 ;
-my $github_sub_topic = 'perl-functions';
+my $github_path_rel_under_repo = 
+# '/'           # default
+# 'functions/'  # about-perl
+  'operators/'  #    "   "
+;
 
 my $dest_top_dir;
 my $src_top_dir;
@@ -108,11 +112,12 @@ sub wanted { # {
   &$hook_transform_dest_path();
 # remove suffix from $dest_path
   $dest_path =~ s/\.([^.]+)$//;
+  $dest_path =~ s/\+/plus/g;
 
 
   $src_path    = "$src_top_dir$rel_path";
 
-  $github_path = "/$rel_path";
+  $github_path = "/$github_path_rel_under_repo$rel_path";
 
   $notes_path = File::Spec->abs2rel($dest_path, "$ENV{github_root}notes/notes/");
 
@@ -261,7 +266,7 @@ sub determine_variables { # {
   } # }
   elsif ($github_repo eq 'about-perl' ) { # {
 
-    if ($github_sub_topic eq 'perl-functions') {
+    if    ($github_path_rel_under_repo eq 'functions/') { #  {
 
        $dest_dir_rel  = 'development/languages/Perl/functions/';
        $src_dir_rel   = 'about/perl/functions/';
@@ -282,16 +287,32 @@ sub determine_variables { # {
           index_title  =>'Perl functions' ,
        );
 
-    }
+    } #  }
+    elsif ($github_path_rel_under_repo eq 'operators/') { #  {
+
+       $dest_dir_rel  = 'development/languages/Perl/operators/';
+       $src_dir_rel   = 'about/perl/operators/';
+
+#      $hook_transform_dest_path = sub {
+#        print "transform_dest_path: $dest_path\n";
+
+#        if ($dest_path =~ m!(.*)/require(/?)([^/]*)$!) {
+#          print "Changing $dest_path to $1$2$3\n";
+#          $dest_path = "$1$2";
+#        }
+
+#      };
+
+       one_to_one(
+          dest_dir_rel => $dest_dir_rel ,
+          title_prefix =>'Perl operator' ,
+          index_title  =>'Perl operators' ,
+       );
+
+    } #  }
     else {
-      die "Wrong sub topic $github_sub_topic for $github_repo";
+      die "Wrong sub topic $github_path_rel_under_repo for $github_repo";
     }
-
-
-
-#   $dest_dir_rel  = 'development/web/DOM/examples/';
-#   $src_dir_rel   = 'about/Document-Object-Model/';
-
 
 
   } # }
@@ -347,9 +368,14 @@ sub open_dest_path { # {
 
     }
     else {
-      print "$dest_path already exists\n";
+      print "$dest_path already exists, I won't overrite\n";
       return undef;
     }
+  }
+  else {
+
+      open (my $f, '>', $dest_path) or die;
+      return $f;
   }
 
 } # }
@@ -394,6 +420,9 @@ sub one_to_one { # Used for svg, document object model {
       print $f "\nsa:\n  → $dest_dir_rel\[$index_title]\n";
 
       close $f;
+    }
+    else {
+      print "!\$f !!!!\n";
     }
 
     push @all_examples, [$notes_path, $title];  
