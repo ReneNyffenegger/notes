@@ -20,9 +20,10 @@ my $github_repo =
     'about-perl'
 ;
 my $github_path_rel_under_repo = 
-# '/'           # default
-# 'functions/'  # about-perl
-  'operators/'  #    "   "
+# '/'                     # default
+# 'functions/'            # about-perl
+# 'operators/'            #    "   "
+  'regular-expressions/'  #    "   "
 ;
 
 my $dest_top_dir;
@@ -293,20 +294,24 @@ sub determine_variables { # {
        $dest_dir_rel  = 'development/languages/Perl/operators/';
        $src_dir_rel   = 'about/perl/operators/';
 
-#      $hook_transform_dest_path = sub {
-#        print "transform_dest_path: $dest_path\n";
-
-#        if ($dest_path =~ m!(.*)/require(/?)([^/]*)$!) {
-#          print "Changing $dest_path to $1$2$3\n";
-#          $dest_path = "$1$2";
-#        }
-
-#      };
 
        one_to_one(
           dest_dir_rel => $dest_dir_rel ,
           title_prefix =>'Perl operator' ,
           index_title  =>'Perl operators' ,
+       );
+
+    } #  }
+    elsif ($github_path_rel_under_repo eq 'regular-expressions/') { #  {
+
+       $dest_dir_rel  = 'development/languages/Perl/regular-expressions/';
+       $src_dir_rel   = 'about/perl/regular-expressions/';
+
+
+       one_to_one(
+          dest_dir_rel => $dest_dir_rel ,
+          title_prefix =>'Perl regular expressions:',
+          index_title  =>'Perl regular expressions' ,
        );
 
     } #  }
@@ -407,6 +412,8 @@ sub one_to_one { # Used for svg, document object model {
 
     my $title = $filename;
     $title =~ s/\..*//;
+
+    $title =~ y/-_/  /;
 
 
     my $f = open_dest_path();
