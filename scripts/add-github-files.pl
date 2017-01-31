@@ -16,8 +16,10 @@ GetOptions(
 my $github_repo = 
   # 'about-awk'
   # 'about-svg'
-    'about-Document-Object-Model'
+  # 'about-Document-Object-Model'
+    'about-perl'
 ;
+my $github_sub_topic = 'perl-functions';
 
 my $dest_top_dir;
 my $src_top_dir;
@@ -45,11 +47,12 @@ my $filename;
 my $github_path;
 
 #  Variables called from wanted
-my $hook_init      = sub {print "init: $dest_path\n"};
-my $hook_dir       = sub {print "dir  $src_path -> $dest_path\n"};
-my $hook_file      = sub {print "file $src_path -> $dest_path\n"};
-my $hook_dir_leave = sub {print "leave dir $src_path -> $dest_path\n"};
-my $hook_exit      = sub {print "exit\n"};
+my $hook_init                 = sub {print "init: $dest_path\n"};
+my $hook_dir                  = sub {print "dir  $src_path -> $dest_path\n"};
+my $hook_file                 = sub {print "file $src_path -> $dest_path\n"};
+my $hook_dir_leave            = sub {print "leave dir $src_path -> $dest_path\n"};
+my $hook_exit                 = sub {print "exit\n"};
+my $hook_transform_dest_path  = sub {}; # Needed because of directory 'require' in about/perl/functions
 
 
 determine_variables();
@@ -58,7 +61,7 @@ find({ # {
        wanted => \&wanted,  
        preprocess => sub {
          $dir_depth_level ++;
-         return grep { substr($_, 0, 1) ne '.' and substr($_, -4) ne '.swp' and $_ ne 'README.md' } @_ 
+         return sort grep { substr($_, 0, 1) ne '.' and substr($_, -4) ne '.swp' and $_ ne 'README.md' } @_ 
        },
        postprocess => sub {
          $dir_depth_level --;
@@ -101,6 +104,8 @@ sub wanted { # {
   }
 
   $dest_path   = "$dest_top_dir$rel_path";
+
+  &$hook_transform_dest_path();
 # remove suffix from $dest_path
   $dest_path =~ s/\.([^.]+)$//;
 
@@ -254,6 +259,42 @@ sub determine_variables { # {
 
 
   } # }
+  elsif ($github_repo eq 'about-perl' ) { # {
+
+    if ($github_sub_topic eq 'perl-functions') {
+
+       $dest_dir_rel  = 'development/languages/Perl/functions/';
+       $src_dir_rel   = 'about/perl/functions/';
+
+       $hook_transform_dest_path = sub {
+         print "transform_dest_path: $dest_path\n";
+
+         if ($dest_path =~ m!(.*)/require(/?)([^/]*)$!) {
+           print "Changing $dest_path to $1$2$3\n";
+           $dest_path = "$1$2";
+         }
+
+       };
+
+       one_to_one(
+          dest_dir_rel => $dest_dir_rel ,
+          title_prefix =>'Perl function:' ,
+          index_title  =>'Perl functions' ,
+       );
+
+    }
+    else {
+      die "Wrong sub topic $github_sub_topic for $github_repo";
+    }
+
+
+
+#   $dest_dir_rel  = 'development/web/DOM/examples/';
+#   $src_dir_rel   = 'about/Document-Object-Model/';
+
+
+
+  } # }
   elsif ($github_repo eq 'about-svg' ) { # {
 
     $dest_dir_rel = 'design/graphic/svg/examples/';
@@ -300,15 +341,16 @@ sub open_dest_path { # {
   if (-e $dest_path) {
     if ($force_overwrite) {
       print "$dest_path already exists\n";
+
+      open (my $f, '>', $dest_path) or die;
+      return $f;
+
     }
     else {
-      die "$dest_path already exists";
+      print "$dest_path already exists\n";
+      return undef;
     }
   }
-
-  open (my $f, '>', $dest_path) or die;
-
-  return $f;
 
 } # }
 
@@ -337,15 +379,22 @@ sub one_to_one { # Used for svg, document object model {
     die if $filename =~ /^\./;
     return if $filename eq 'README.md';
 
-    my $f = open_dest_path();
-  # Remove suffix:
     my $title = $filename;
     $title =~ s/\..*//;
 
-    print $f "\$ $title_prefix $title\n\n";
-    print $f "gh|$github_repo|$github_path||\n";
 
-    print $f "\nsa:\n  → $dest_dir_rel\[$index_title]\n";
+    my $f = open_dest_path();
+
+    if ($f) {
+    # Remove suffix:
+  
+      print $f "\$ $title_prefix $title\n\n";
+      print $f "gh|$github_repo|$github_path||\n";
+  
+      print $f "\nsa:\n  → $dest_dir_rel\[$index_title]\n";
+
+      close $f;
+    }
 
     push @all_examples, [$notes_path, $title];  
 
