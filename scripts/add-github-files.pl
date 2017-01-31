@@ -23,7 +23,8 @@ my $github_path_rel_under_repo =
 # '/'                     # default
 # 'functions/'            # about-perl
 # 'operators/'            #    "   "
-  'regular-expressions/'  #    "   "
+# 'regular-expressions/'  #    "   "
+  'variables/'            #    "   "
 ;
 
 my $dest_top_dir;
@@ -114,6 +115,10 @@ sub wanted { # {
 # remove suffix from $dest_path
   $dest_path =~ s/\.([^.]+)$//;
   $dest_path =~ s/\+/plus/g;
+  $dest_path =~ s/\^/caret/g;
+  $dest_path =~ s/#/hash/g;
+  $dest_path =~ s/[()]/_/g;
+  $dest_path =~ s/\@/at/g;
 
 
   $src_path    = "$src_top_dir$rel_path";
@@ -312,6 +317,19 @@ sub determine_variables { # {
           dest_dir_rel => $dest_dir_rel ,
           title_prefix =>'Perl regular expressions:',
           index_title  =>'Perl regular expressions' ,
+       );
+
+    } #  }
+    elsif ($github_path_rel_under_repo eq 'variables/') { #  {
+
+       $dest_dir_rel  = 'development/languages/Perl/variables/';
+       $src_dir_rel   = 'about/perl/variables/';
+
+
+       one_to_one(
+          dest_dir_rel => $dest_dir_rel ,
+          title_prefix =>'Perl variables:',
+          index_title  =>'Perl variables' ,
        );
 
     } #  }
