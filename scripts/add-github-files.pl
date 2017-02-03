@@ -17,19 +17,23 @@ my $github_repo =
   # 'about-awk'
   # 'about-svg'
   # 'about-Document-Object-Model'
-    'about-perl'
+  # 'about-perl'
+    'scripts-and-utilities'
 ;
 my $github_path_rel_under_repo = 
 # '/'                     # default
 # 'functions/'            # about-perl
 # 'operators/'            #    "   "
 # 'regular-expressions/'  #    "   "
-  'variables/'            #    "   "
+# 'variables/'            #    "   "
+  ''
 ;
 
 my $dest_top_dir;
 my $src_top_dir;
 my $title_prefix;
+
+my $remove_suffix_from_dest_path = 1;  # target scripts-and-utilities sets 0 to because of gitp and gitp.pl
 
 my $dir_depth_level = -1;
 
@@ -90,6 +94,8 @@ sub wanted { # {
 
   $filename  = $_;
 
+  return if $filename eq 'proxy.bat.old'; # scripts-and-utilities;
+
   # Checking assumptions {
   if ($dir_depth_level == -1) {
      die unless $filename eq '.';
@@ -112,8 +118,13 @@ sub wanted { # {
   $dest_path   = "$dest_top_dir$rel_path";
 
   &$hook_transform_dest_path();
-# remove suffix from $dest_path
-  $dest_path =~ s/\.([^.]+)$//;
+
+  if ($remove_suffix_from_dest_path) {
+    $dest_path =~ s/\.([^.]+)$//;            # foo/bar.bat -> foo/bar
+  }
+  else {
+    $dest_path =~ s/\.([^.]+)$/_$1/;         # foo/bar.bat -> foo/bar_bat
+  }
   $dest_path =~ s/\+/plus/g;
   $dest_path =~ s/\^/caret/g;
   $dest_path =~ s/#/hash/g;
@@ -156,14 +167,14 @@ sub wanted { # {
     # $dest_path .= '/';
 
     # Just to be sure there is no dot in $notes_path
-      die if $notes_path =~ /\./;
+      die "notes_path = $notes_path" if $notes_path =~ /\./;
 
       &$hook_dir;
     }
     elsif (-f $src_path) {
 
     # Just to be sure there is no dot in $notes_path
-      die if $notes_path =~ /\./;
+      die "notes_path = $notes_path" if $notes_path =~ /\./;
 
       &$hook_file;
     }
@@ -211,7 +222,6 @@ sub determine_variables { # {
        ($title = $filename) =~ s/_/ /g;
       }
       open (my $f, '>', $dest_path) or die "could not open $dest_path";
-      print "Notes path $notes_path\n";
 
     # We have to remove the trailing slash from $notes_path since
     # it's not a directory, but a file
@@ -351,6 +361,22 @@ sub determine_variables { # {
     );
 
   } # }
+  elsif ($github_repo eq 'scripts-and-utilities' ) { # {
+
+    $dest_dir_rel = 'development/tools/scripts/personal/';
+    $src_dir_rel  = 'lib/scripts/';
+
+    $remove_suffix_from_dest_path = 0;
+
+    one_to_one(
+       dest_dir_rel        => $dest_dir_rel ,
+       title_prefix        =>'Script:' ,
+       index_title         =>'Scripts' ,
+       no_title_whitespace => 1        ,
+       no_descend_dir      => 1        ,
+    );
+
+  } # }
   else { # {
     die "unknown github_repo $github_repo";
   } # }
@@ -420,6 +446,10 @@ sub one_to_one { # Used for svg, document object model {
   };
 
   $hook_dir = sub {
+    if ($opts{no_descend_dir}) {
+      $File::Find::prune = 1;
+      return;
+    }
     make_sure_dest_path_is_dir_and_exists();
   };
 
@@ -429,15 +459,16 @@ sub one_to_one { # Used for svg, document object model {
     return if $filename eq 'README.md';
 
     my $title = $filename;
-    $title =~ s/\..*//;
 
-    $title =~ y/-_/  /;
+    unless ($opts{no_title_whitespace}) {
+      $title =~ s/\..*//;
+      $title =~ y/-_/  /;
+    }
 
 
     my $f = open_dest_path();
 
     if ($f) {
-    # Remove suffix:
   
       print $f "\$ $title_prefix $title\n\n";
       print $f "gh|$github_repo|$github_path||\n";
