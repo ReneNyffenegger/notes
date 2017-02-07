@@ -7,6 +7,7 @@ use File::Find;
 use File::Path qw(make_path);
 use File::Basename;
 use File::Spec;
+use Cwd;
 use Getopt::Long;
 
 GetOptions(
@@ -18,15 +19,17 @@ my $github_repo =
   # 'about-svg'
   # 'about-Document-Object-Model'
   # 'about-perl'
-    'scripts-and-utilities'
+    'oracle-patterns'
+  # 'scripts-and-utilities'
 ;
 my $github_path_rel_under_repo = 
-# '/'                     # default
-# 'functions/'            # about-perl
-# 'operators/'            #    "   "
-# 'regular-expressions/'  #    "   "
-# 'variables/'            #    "   "
-  ''
+# '/'                                     # default
+# 'functions/'                            # about-perl
+# 'operators/'                            #    "   "
+# 'regular-expressions/'                  #    "   "
+# 'variables/'                            #    "   "
+  'Installed/dynamic-performance-views/'  # oracle-patterns
+# ''
 ;
 
 my $dest_top_dir;
@@ -49,6 +52,8 @@ my $notes_path;
 #  The path pointing to a real existing file on the HD of a
 #  checked out github repository:
 my $src_path;
+
+my $rel_path;
 #
 #  Just(!) the filename, without paths and anyting:
 my $filename;
@@ -107,7 +112,7 @@ sub wanted { # {
 
   my $full_path = $File::Find::name;
 
-  my $rel_path;
+# $rel_path;
   if ($filename eq '.') {
     $rel_path = '';
   }
@@ -377,6 +382,76 @@ sub determine_variables { # {
     );
 
   } # }
+  elsif ($github_repo eq 'oracle-patterns' ) { # {
+
+    if    ($github_path_rel_under_repo eq 'Installed/dynamic-performance-views/') { #  {
+
+       $dest_dir_rel  = 'development/databases/Oracle/installed/dynamic-performance-views/';
+       $src_dir_rel   = 'github/oracle-patterns/Installed/dynamic-performance-views/';
+
+       my @examples = ();
+    
+       $hook_init = sub {
+         make_sure_dest_path_is_dir_and_exists();
+       };
+       $hook_dir = sub {
+         make_sure_dest_path_is_dir_and_exists();
+    
+         print $File::Find::name, "\n";
+
+         if (my @files = grep {-f} glob ("$src_path*.sql")) { # Does the directory contain files:
+
+           my $v_view_name = $rel_path;
+           $v_view_name =~  s!/!_!g;
+           $v_view_name = 'v$' . $v_view_name;
+
+
+           print "opening index in $dest_path\n";
+           open(my $index, '>', "${dest_path}/index") or die;
+           print $index '$ ' . $v_view_name . "\n";
+           push @examples, [$notes_path, $v_view_name];
+
+           foreach my $file (@files) {
+
+             my $file_rel = File::Spec->abs2rel($file, $src_top_dir);
+
+             print $index "\ngh|$github_repo|/$github_path_rel_under_repo$file_rel||\n"; 
+           }
+
+           print $index "\nsa:\n  → $dest_dir_rel\[Oracle Dynamic Performance Views]\n";
+
+           close $index;
+
+        }
+        else {
+        }
+        
+
+#     $File::Find::prune = 1;
+    };
+    $hook_file = sub {
+
+#     do nothing
+
+    };
+    $hook_dir_leave = sub {
+       open (my $f, '>', "$ENV{github_root}notes/notes/${dest_dir_rel}index") or die;
+
+       print $f "\$ Oracle dynamic performance views\n\n";
+
+       for my $e (@examples) {
+         printf $f ("\n → %s[%s]\n", $e->[0], $e->[1]);
+       }
+    };
+
+
+    } #  }
+    else {
+      die "Wrong sub topic $github_path_rel_under_repo for $github_repo";
+    }
+
+
+  } # }
   else { # {
     die "unknown github_repo $github_repo";
   } # }
@@ -398,7 +473,7 @@ sub make_sure_dest_path_is_dir_and_exists { # {
   die "$dest_path should not be a file"  if -f $dest_path;
   return if -d $dest_path;
 
-  print "creating dir $dest_path\n";
+# print "creating dir $dest_path\n";
   make_path $dest_path or die "Could not create $dest_path [$!]"
 
 } # }
