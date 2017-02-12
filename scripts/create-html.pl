@@ -458,7 +458,7 @@ sub process_page { # {{{
       if ($pass == 2) {
 
         if ($line =~ /^\s*$/) {
-           print $out "<div class='gap'></div>";
+           print $out "\n<div class='gap'></div>";
         }
         elsif ($line =~ /^\s*-\s*$/) {
            print $out "<br>";
@@ -543,8 +543,8 @@ sub process_page { # {{{
 
 
       if ($pass == 2) {
-        print $out "<div class='g'></div>" if $next_t_with_gap and not $last_thing_was_blocky_paragraph;
-        print $out "<div class='t$uc'>\n";
+        print $out "\n<div class='g'></div>" if $next_t_with_gap and not $last_thing_was_blocky_paragraph;
+        print $out "\n<div class='t$uc'>\n";
       }
 
       $last_thing_was_blocky_paragraph = 0;
@@ -713,7 +713,7 @@ sub process_page { # {{{
         ($in_text ? "</div>" : "") .
         "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
         "<pre class='code'>$code</pre>" .
-        ($in_text ? "<div class='t'>" : "");
+        ($in_text ? "\n<div class='t'>" : "");
 
 
      }
@@ -903,7 +903,7 @@ sub close_html { # {{{
   my $out = shift;
   my $wp  = shift;
 
-  print $out "<div class='screen-only'>\n";
+  print $out "\n<div class='screen-only'>\n";
   print $out "<hr>";
 
   if ($wp) {
@@ -953,7 +953,7 @@ sub start_section { # {{{
 
   $$h_level_ref ++;
   print $out "\n<div class='h'>" if $pass == 2;
-  print $out "<h${$h_level_ref}$anchor_txt>$h_text</h${$h_level_ref}>\n" if $pass == 2;
+  print $out "\n<h${$h_level_ref}$anchor_txt>$h_text</h${$h_level_ref}>" if $pass == 2;
 
   $$next_t_with_gap_ref = 0;
   $$empty_line_sets_next_t_with_gap_ref = 0;
@@ -998,7 +998,7 @@ sub blocky_paragraph_start { # {{{
   }
   else {
     if ($$next_t_with_gap_ref) {
-      print $out "<div class='g'></div>\n" if $pass == 2;
+      print $out "\n<div class='g'></div>\n" if $pass == 2;
     }
   }
 
