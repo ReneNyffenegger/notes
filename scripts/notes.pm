@@ -111,7 +111,12 @@ sub replace_notes_link { # {{{
       }
     }
     else {
-       $text = $index{$page_linked_to}{title};
+       if (exists $index{$page_linked_to}{title_intern}) {
+         $text = $index{$page_linked_to}{title_intern};
+       }
+       else {
+         $text = $index{$page_linked_to}{title};
+       }
 
         if (! $text) {
           print "\nDying introduction (No title for paged_linked_to)\n";
@@ -169,12 +174,18 @@ sub set_title_of_file { # {{{
 
   my $input_filename_os = shift;
   my $title             = shift;
+  my $title_intern      = shift;
+
+  die unless defined $title_intern; # 2017-02-12 TODO: remove me if it proves to work
 
   my $entry = umlaute(os_to_perl($input_filename_os));
 
   print "notes.pm: setting title of $entry to $title\n" if $verbose >= 1;
 
   $index{$entry}{title} = $title;
+  if ($title_intern) {
+    $index{$entry}{title_intern} = $title_intern;
+  }
 
 } # }}}
 
