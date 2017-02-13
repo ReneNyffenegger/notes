@@ -18,4 +18,5 @@ rmdir /s /q  %rn_root%test\notes
 @echo .
 @echo .
 @del %rn_root%test\notes\.index
-@c:\tools\cygwin\bin\diff -rq %rn_root%test\notes expected
+@rem @c:\tools\cygwin\bin\diff -rq %rn_root%test\notes expected
+@diff -rq %rn_root%test\notes expected
