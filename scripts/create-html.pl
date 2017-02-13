@@ -191,6 +191,7 @@ sub process_page { # {{{
   my $last_thing_was_blocky_paragraph = 0;
   my $empty_line_sets_next_t_with_gap = 0;
   my $title = '';
+  my $title_intern = '';
   my $styles = '';
   my $line;
   my $abbr = '';
@@ -203,6 +204,7 @@ sub process_page { # {{{
     print "directive ?: $line" if $debug;
 
     if ($line =~ /^\$ *(.*) *$/) { $title = $1; next; }
+    if ($line =~ /^\@ *(.*) *$/) { $title_intern = $1; next; }
     if ($line =~ /^abbr: *(.*) *$/) { $abbr = $1; next; }
     if ($line =~ /^aka: *(.*) *$/)   { $aka  = $1; next; }
     if ($line =~ /^wp *(.*) *$/   ) { $wp   = $1; next; }
@@ -248,12 +250,11 @@ sub process_page { # {{{
   $title .= " - $abbr" if $abbr;
 
 # TODO: It should be sufficient to call set_title_of_file only when $pass==1
-  notes::set_title_of_file($input_filename_os, $title);
+  notes::set_title_of_file($input_filename_os, $title, $title_intern);
 
   my $url_path_abs = notes::os_path_to_perl_path("/notes/$input_filename_os");
   my $out;
   if ($pass == 2) {
-# $out = open_html( $input_filename_os, $title, $styles);
     print "opening html $url_path_abs\n";
     $out = open_html( $url_path_abs     , $title, $styles);
   }
