@@ -707,6 +707,8 @@ sub process_page { # {{{
 
         my $code = get($url);
 
+        print "\n\n  $url did not return anything\n\n" unless $code;
+
         $code =~ s/&/&amp;/g;
         $code =~ s/</&lt;/g;
         $code =~ s/>/&gt;/g;
