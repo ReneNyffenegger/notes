@@ -1,4 +1,96 @@
 $ Open Street Map - Switzerland
 
+{ Tags
+
+  → http://taginfo.openstreetmap.ch/
+
+  { key: admin_level
+
+    value 2 -> Country border
+
+    value 4 -> Kantonsgrenze
+
+    value 6 -> Bezirke
+
+    value 8 -> Ortschaften
+
+    code {
+with ortschaftsgrenze as (select relation_id from tag where k = 'admin_level' and v = '8') select name.* from ortschaftsgrenze join tag name on ortschaftsgrenze.relation_id = name.relation_id where name.k = 'name';
+    code }
+
+  }
+
+}
+
+{ Ortschaften
+
+code {
+select v from tag where k ='openGeoDB:name' order by v;
+code }
+
+code {
+with name as (select node_id, v from tag where k ='openGeoDB:name') select name.v, rest.* from name join tag rest on name.node_id = rest.node_id order by name.node_id, rest.k;
+code }
+
+code {
+sqlite> select * from tag where node_id = 102329369;
+102329369|||openGeoDB:sort_name|RORBAS
+102329369|||openGeoDB:population|2201
+102329369|||openGeoDB:layer|6
+102329369|||name|Rorbas
+102329369|||openGeoDB:version|0.2.6.11 / 2007-12-04 / http://fa-technik.adfc.de/code/opengeodb/dump/
+102329369|||openGeoDB:auto_update|population,is_in
+102329369|||openGeoDB:postal_codes|8427
+102329369|||opengeodb:lon|8.5771089
+102329369|||name:de|Rorbas
+102329369|||openGeoDB:community_identification_number|G0068
+102329369|||place|village
+102329369|||openGeoDB:name|Rorbas
+102329369|||openGeoDB:type|Gemeinde
+102329369|||openGeoDB:loc_id|32289
+102329369|||openGeoDB:is_in_loc_id|78518
+102329369|||name:gsw|Rorbis
+102329369|||is_in|Bezirk Bülach,Zürich,Schweiz,Europe
+102329369|||openGeoDB:is_in|Bezirk Bülach,Zürich,Schweiz,Europe
+102329369|||opengeodb:lat|47.5303235
+102329369|||population|2201
+code }
+
+}
+
+{ Grenzen der Schweiz
+
+  → http://wiki.openstreetmap.org/wiki/DE:Grenzen_der_Schweiz
+
+  code {
+sqlite> select * from tag where way_id = 75393781;
+|75393781||source:url|http://wiki.openstreetmap.org/wiki/DE:Grenzen_der_Schweiz
+|75393781||admin_level|8
+|75393781||boundary|administrative
+|75393781||source|GG25 swisstopo 2010
+  code }
+
+  code {
+ select
+   c.*
+ from
+   tag a                        join
+   tag b on a.way_id = b.way_id join
+   tag c on b.way_id = c.way_id
+ where
+   a.k = 'boundary' and a.v = 'administrative' and
+   b.k = 'source'   and b.v='swissBOUNDARIES3D swisstopo 2011' and
+   c.k not in ('source', 'boundary');
+  code }
+
+}
+
+{ Grenze der Stadt Zürich
+
+  Relation mit id 1682248
+
+}
+
+
 sa:
   → development/OpenStreetMap
