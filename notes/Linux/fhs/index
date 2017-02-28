@@ -1,7 +1,417 @@
 $ filesystem hierarchy standard 
 abbr: FHS
 
+
 The Filesystem Hierarchy Standard (FHS) is a reference describing the conventions used for the layout of a UNIX system.
 
+/      This is the root directory.  This is where the whole tree starts.
+
+→ Linux/fhs/bin/index[`/fhs/bin`] This directory contains executable programs which are needed in single user mode and to bring the system up or repair it.
+
+→ Linux/fhs/boot/index[`/fhs/boot`] Contains static files for the boot loader.
+  -
+  This directory holds only the files which are needed during the boot process.
+  -
+  The map installer and configuration files should go to → Linux/fhs/sbin/index[`/sbin`] and → Linux/fhs/etc/index[`/etc`].
+  -
+  The operating system kernel (initrd for example) must be located in either / or /boot.
+
+→ Linux/fhs/dev/index[`/dev`] Special or device files, which refer to physical devices.
+  -
+  See → Linux/shell/commands/mknod[`mknod (1)`].
+
+→ Linux/fhs/etc/index[`/etc`] Contains configuration files which are local to the machine.
+-
+Some larger software packages, like → Linux/X[X11], can have their own subdirectories below /etc: → Linux/fhs/etc/X11/[`/etc/X11`]
+
+
+rem {
+Site-wide configuration files may be placed here or  in  /usr/etc.   Nevertheless,
+       programs should always look for these files in /etc and you may have links for these files to /usr/etc.
+rem }
+
+→ Linux/fhs/etc/opt/index[`/etc/opt`] Host-specific configuration files for add-on applications installed in → Linux/fhs/opt[`/opt`].
+
+rem {
+/etc/sgml
+       This directory contains the configuration files for SGML (optional).
+}
+
+→ Linux/fhs/etc/skel[`/etc/skel`] When a new → Linux/user[user account] is created, files from this directory are usually copied into the user's home directory.
+
+
+rem {
+/etc/xml
+       This directory contains the configuration files for XML (optional).
+rem }
+
+
+→ Linux/fhs/home/index[`/home`] »Home« directories for users. The entire path for a user whose name is `username` is located under → Linux/fhs/home/username/[`/home/username`] and can be referred to in a
+→ Linux/shell[shell] with the tilde `~`.
+
+→ Linux/fhs/lib/index[`/lib`]   This directory should hold those shared libraries that are necessary to boot the system and to run the commands in the root filesystem.
+
+`/lib<qual>`
+       These directories are variants of /lib on system which support more than one binary format requiring separate libraries.
+
+→ Linux/fhs/lib/modules/index[`/lib/modules`] Loadable kernel modules.
+
+`/lost+found` This directory contains items lost in the filesystem.  These items are usually chunks of files mangled as a consequence of a faulty disk or a system crash.
+
+→ Linux/fhs/media/index[`/media`] contains  mount  points for removable media such as CD and DVD disks or USB sticks.
+  -
+  On systems where more than one device exists for mounting a certain type of media, mount directories can be created by appending a digit to the name of those available above starting with '0', but the unqualified name must also exist.
+
+rem {
+/media/floppy[1-9] Floppy drive (optional).
+
+/media/cdrom[1-9]
+       CD-ROM drive (optional).
+
+/media/cdrecorder[1-9]
+       CD writer (optional).
+
+/media/zip[1-9]
+       Zip drive (optional).
+
+/media/usp[1-9]
+       USB drive (optional).
+rem }
+
+→ Linux/fhs/mnt/index[`/mnt`] holds mount points for temporarily mounted filesystems.
+-
+In some distributions, `/mnt` contains subdirectories intended to be used as mount points for several temporary filesystems.
+
+→ Linux/fhs/opt/index[`/opt`] contains add-on packages that contain static files.
+
+→ Linux/fhs/proc/index[`/proc`] The mount point for the → Linux/filesystem/filesystems#proc[proc] → Linux/filesystem[filesystem], which provides information about running processes and the kernel.
+
+→ Linux/fhs/root/index[`/root`] is usually the home directory for the root user.
+
+→ Linux/fhs/sbin/index[`/sbin`]  Like `/bin`, this directory holds commands needed to boot the system, but which are usually not executed by normal users.
+
+→ Linux/fhs/srv/index[`/srv`] contains site-specific data that is served by this system.
+-
+Sub directories might be `/srv/http` or `/srv/ftp`.
+
+→ Linux/fhs/sys/index[`/sys`] mount point for the → Linux/filesystem/sysfs[sysfs] filesystem. (Compare → Linux/fhs/proc[`/proc`])
+
+→ Linux/fhs/tmp/index[`/tmp`] contains temporary files which may be deleted without notice, usually at system boot up, but also by a regular job. Compare with → Linux/fhs/var/tmp/[`/var/tmp`].
+
+→ Linux/fhs/usr/index[`/usr`] should only contain sharable, read-only data, so that it can be mounted by 
+various Linux installations.
+-
+Thus, it is usually mounted from a separate partition.
+
+rem {
+/usr/X11R6
+       The X-Window system, version 11 release 6 (optional).
+
+/usr/X11R6/bin
+       Binaries which belong to the X-Window system; often, there is a symbolic link from the more traditional /usr/bin/X11 to here.
+
+/usr/X11R6/lib
+       Data files associated with the X-Window system.
+
+/usr/X11R6/lib/X11
+       These contain miscellaneous files needed to run X;  Often, there is a symbolic link from /usr/lib/X11 to this directory.
+
+/usr/X11R6/include/X11
+       Contains include files needed for compiling programs using the X11 window system.  Often, there is a symbolic link from /usr/include/X11 to this directory.
+rem }
+
+→ Linux/fhs/usr/bin/index[`/usr/bin`] is the primary directory for executable programs which are not necessary for booting or repairing a system and run by »normal« users.
+
+rem {
+/usr/bin/mh
+       Commands for the MH mail handling system (optional).
+
+/usr/bin/X11
+       is the traditional place to look for X11 executables; on Linux, it usually is a symbolic link to /usr/X11R6/bin.
+
+/usr/dict
+       Replaced by /usr/share/dict.
+
+
+/usr/doc
+       Replaced by /usr/share/doc.
+
+/usr/etc
+       Site-wide configuration files to be shared between several machines may be stored in this directory.  However, commands should always reference those files using the /etc directory.  Links from files in  /etc  should  point  to  the
+       appropriate files in /usr/etc.
+rem }
+
+`/usr/games` Binaries for games and educational programs.
+
+→ Linux/fhs/usr/include/index[`/usr/include`] Include files for the C compiler.
+
+rem {
+/usr/include/bsd BSD compatibility include files (optional).
+rem }
+
+→ Linux/fhs/usr/include/X11/index[`/usr/include/X11`] Include files for the C compiler and the X-Window system.
+
+`/usr/include/asm` Include files which declare some assembler functions.
+
+→ Linux/fhs/usr/include/linux/index[`/usr/include/linux`] contains information which may change from system release to system release.
+
+
+rem {
+/usr/include/g++
+       Include files to use with the GNU C++ compiler.
+rem }
+
+→ Linux/fhs/usr/lib/index[`/usr/lib`] Object libraries, including dynamic libraries, plus some executables which usually are not invoked directly. More complicated programs may have whole subdirectories there.
+
+→ Linux/fhs/usr/local/index[`/usr/local`] This is where programs which are local to the site typically go.
+
+→ Linux/fhs/usr/local/bin/index[`/usr/local/bin`] Binaries for programs local to the site. (Apparently empty under arch linux).
+
+→ Linux/fhs/usr/sbin/index[`/usr/sbin`] contains program binaries for system administration which are not essential for the boot process, for mounting /usr, or for system repair.
+
+→ Linux/fhs/usr/share/index[`/usr/share`] contains subdirectories with specific application data, that can be shared among different architectures of the same OS.
+
+`/usr/share/dict` contains the word lists used by spell checkers (for example `/usr/share/dict/words` is a list of english words).
+
+`/usr/share/zoneinfo` contains files for timezone information (optional).
+
+→ Linux/fhs/var/index[`/var`] contains files which may change in size, such as spool and log files.
+
+`/var/cache` Data cached for programs.
+
+`/var/crash` System crash dumps.
+
+→ Linux/fhs/var/lib/index[`/var/lib`] Variable state information for programs.
+
+→ Linux/fhs/var/lock/index[`/var/lock`] contains lock files.
+
+→ Linux/fhs/var/log/index[`/var/log`] is for log files.
+
+→ Linux/fhs/var/run/index[`/var/run`] contains run-time variable files, like files holding process identifiers (PIDs) and logged user information (utmp).
+
+→ Linux/fhs/var/tmp/index[`/var/tmp`] contains temporary files. Compare → Linux/fhs/tmp/[`/tmp`].
+
+rem {
+/usr/lib<qual>
+       These directories are variants of /usr/lib on system which support more than one binary format requiring separate libraries, except that the symbolic link /usr/lib<qual>/X11 is not required (optional).
+rem }
+
+rem {
+/usr/lib/X11
+       The usual place for data files associated with X programs, and configuration files for the X system itself.  On Linux, it usually is a symbolic link to /usr/X11R6/lib/X11.
+
+/usr/lib/gcc-lib
+       contains executables and include files for the GNU C compiler, gcc(1).
+
+/usr/lib/groff
+       Files for the GNU groff document formatting system.
+
+/usr/lib/uucp
+       Files for uucp(1).
+
+
+
+/usr/local/doc
+       Local documentation.
+
+/usr/local/etc
+       Configuration files associated with locally installed programs.
+
+/usr/local/games
+       Binaries for locally installed games.
+
+/usr/local/lib
+       Files associated with locally installed programs.
+
+/usr/local/lib<qual>
+       These directories are variants of /usr/local/lib on system which support more than one binary format requiring separate libraries (optional).
+
+/usr/local/include
+       Header files for the local C compiler.
+
+/usr/local/info
+       Info pages associated with locally installed programs.
+
+/usr/local/man
+       Man pages associated with locally installed programs.
+
+/usr/local/sbin
+       Locally installed programs for system administration.
+
+/usr/local/share
+       Local application data that can be shared among different architectures of the same OS.
+
+/usr/local/src
+       Source code for locally installed software.
+
+
+/usr/share/doc
+       Documentation about installed programs (optional).
+
+/usr/share/games
+       Static data files for games in /usr/games (optional).
+
+/usr/share/info
+       Info pages go here (optional).
+
+/usr/share/locale
+       Locale information goes here (optional).
+
+/usr/share/man
+       Manual pages go here in subdirectories according to the man page sections.
+
+/usr/share/man/<locale>/man[1-9]
+       These directories contain manual pages for the specific locale in source code form.  Systems which use a unique language and code set for all manual pages may omit the <locale> substring.
+
+/usr/share/misc
+       Miscellaneous data that can be shared among different architectures of the same OS.
+
+/usr/share/nls
+       The message catalogs for native language support go here (optional).
+
+/usr/share/sgml
+       Files for SGML (optional).
+
+/usr/share/sgml/docbook
+       DocBook DTD (optional).
+
+/usr/share/sgml/tei
+       TEI DTD (optional).
+
+/usr/share/sgml/html
+       HTML DTD (optional).
+
+/usr/share/sgml/mathtml
+       MathML DTD (optional).
+
+/usr/share/terminfo
+       The database for terminfo (optional).
+
+/usr/share/tmac
+       Troff macros that are not distributed with groff (optional).
+
+/usr/share/xml
+       Files for XML (optional).
+
+/usr/share/xml/docbook
+       DocBook DTD (optional).
+
+/usr/share/xml/xhtml
+       XHTML DTD (optional).
+
+/usr/share/xml/mathml
+       MathML DTD (optional).
+
+
+/usr/src
+       Source files for different parts of the system, included with some packages for reference purposes.  Don't work here with your own projects, as files below /usr should be read-only except when installing software (optional).
+
+/usr/src/linux
+       This was the traditional place for the kernel source.  Some distributions put here the source for the default kernel they ship.  You should probably use another directory when building your own kernel.
+
+
+/var/account
+       Process accounting logs (optional).
+
+/var/adm
+       This directory is superseded by /var/log and should be a symbolic link to /var/log.
+
+/var/backups
+       Reserved for historical reasons.
+
+
+/var/cache/fonts
+       Locally-generated fonts (optional).
+
+/var/cache/man
+       Locally-formatted man pages (optional).
+
+/var/cache/www
+       WWW proxy or cache data (optional).
+
+/var/cache/<package>
+       Package specific cache data (optional).
+
+/var/catman/cat[1-9] or /var/cache/man/cat[1-9]
+       These directories contain preformatted manual pages according to their man page section.  (The use of preformatted manual pages is deprecated.)
+
+
+
+/var/lib/hwclock
+       State directory for hwclock (optional).
+
+/var/lib/misc
+       Miscellaneous state data.
+
+/var/lib/xdm
+       X display manager variable data (optional).
+
+/var/lib/<editor>
+       Editor backup files and state (optional).
+
+/var/lib/<name>
+       These directories must be used for all distribution packaging support.
+
+/var/lib/<package>
+       State data for packages and subsystems (optional).
+
+/var/lib/<pkgtool>
+       Packaging support files (optional).
+
+/var/local
+       Variable data for /usr/local.
+
+
+/var/opt
+       Variable data for /opt.
+
+/var/mail
+       Users' mailboxes.  Replaces /var/spool/mail.
+
+/var/msgs
+       Reserved for historical reasons.
+
+/var/preserve
+       Reserved for historical reasons.
+
+
+/var/spool
+       Spooled (or queued) files for various programs.
+
+/var/spool/at
+       Spooled jobs for at(1).
+
+/var/spool/cron
+       Spooled jobs for cron(8).
+
+/var/spool/lpd
+       Spooled files for printing (optional).
+
+/var/spool/lpd/printer
+       Spools for a specific printer (optional).
+
+/var/spool/mail
+       Replaced by /var/mail.
+
+/var/spool/mqueue
+       Queued outgoing mail (optional).
+
+/var/spool/news
+       Spool directory for news (optional).
+
+/var/spool/rwho
+       Spooled files for rwhod(8) (optional).
+
+/var/spool/smail
+       Spooled files for the smail(1) mail delivery program.
+
+/var/spool/uucp
+       Spooled files for uucp(1) (optional).
+
+
+/var/yp
+       Database files for NIS, formerly known as the Sun Yellow Pages (YP).
+
+rem }
 sa:
   `man hier`
