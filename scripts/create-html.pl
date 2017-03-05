@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# vim: ft=perl foldmarker={{{,}}} foldmethod=marker
+# vim: ft=perl
 
 use warnings;
 use strict;
@@ -21,6 +21,13 @@ use utf8;
 use notes;
 use RN;
 
+my $temp_dir;
+if ($^O eq 'MSWin32') {
+  $temp_dir = 'c:/temp/';
+}
+else {
+  $temp_dir = '/tmp/';
+}
 
 my $verbose = 0;
 Getopt::Long::GetOptions(
@@ -137,13 +144,14 @@ if ($web) {
 }
 
 
-sub process_page { # {{{
+sub process_page { #_{
 
-  # {{{
+  #_{
   return if $File::Find::name eq '.';
 
   my $input_filename_os = substr($File::Find::name, 2);
   my $file_name_only_os      = basename($input_filename_os);
+  my $dirname_os             = dirname ($input_filename_os);
 
   if ($file_name_only_os =~ m'TODO DEBUG') {
      $debug = 1;
@@ -160,24 +168,24 @@ sub process_page { # {{{
   }
 
 # 2017-01-27 directories might be named exactly »svg«...
- if ($file_name_only_os ne 'svg') { # {{{
+ if ($file_name_only_os ne 'svg') { #_{
  (my $suffix = $file_name_only_os) =~ s/.*\.(\w*)$/$1/;
 
-  if ( $suffix eq 'png' or $suffix eq 'jpg' or $suffix eq 'svg') { # {{{
+  if ( $suffix eq 'png' or $suffix eq 'jpg' or $suffix eq 'svg') { #_{
     
     if ($pass == 2) {
       RN::copy_os_path_2_url_path_abs ($input_filename_os, "/notes/$input_filename_os");
     }
 
     return;
-  } # }}}
-  } # }}}
+  } #_}
+  } #_}
 
 
   my $file_name_with_path_uml = notes::umlaute(notes::os_to_perl($input_filename_os));
-  if (-d $input_filename_os) { # {{{
+  if (-d $input_filename_os) { #_{
     return;
-  } # }}}
+  } #_}
 
 
   return if $file_name_only_os =~ /\.pl$/;
@@ -209,7 +217,7 @@ sub process_page { # {{{
     if ($line =~ /^aka: *(.*) *$/)   { $aka  = $1; next; }
     if ($line =~ /^wp *(.*) *$/   ) { $wp   = $1; next; }
 
-    if ($line =~ /^style \{/) { # {{{
+    if ($line =~ /^style \{/) { #_{
 
       while ($line =<$f>) {
 
@@ -218,11 +226,11 @@ sub process_page { # {{{
 
       }
 
-    } # }}}
+    } #_}
 
     last;
-  } # }}}
-  if ($line) { # {{{
+  } #_}
+  if ($line) { #_{
     print "seeking, becauselength($line)\n" if $debug;
     my $length_line;
     { use bytes;
@@ -231,10 +239,10 @@ sub process_page { # {{{
 #   seek($f, -length($line), 1) or die "\n$!\nline = $line, length = " . length($line); # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html
     seek($f, -$length_line, 1) or die "\n$!\nline = $line, length = " . $length_line; # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html // http://perlmeme.org/howtos/using_perl/length.html
 
-  } # }}}
+  } #_}
 
 
-  unless ($title) { # {{{
+  unless ($title) { #_{
     if ($file_name_only_os eq 'index') {
       $title = notes::os_to_perl(basename(dirname($input_filename_os)));
     }
@@ -245,7 +253,7 @@ sub process_page { # {{{
     if ($debug) {
       print "No title found, assigned $file_name_only_os and substituted to $title\n";
     }
-  } # }}}
+  } #_}
 
   $title .= " - $abbr" if $abbr;
 
@@ -259,49 +267,49 @@ sub process_page { # {{{
     $out = open_html( $url_path_abs     , $title, $styles);
   }
 
-  if ($pass == 2 && $aka) { # {{{
+  if ($pass == 2 && $aka) { #_{
     print $out "Also known as: <i>$aka</i><p>";
-  } # }}}
+  } #_}
 
-  # }}}
+  #_}
 # Then iterate over content {{{
 
-  my $in_text  = 0; # {{{ Variables
+  my $in_text  = 0; #_{ Variables
   my $in_html  = 0;
   my $in_rem   = 0;
   my $in_code  = 0;
   my $in_quote = 0;
   my $in_sa_links_etc   = '';
-  my $h_level = 1; # }}}
+  my $h_level = 1; #_}
 
-  while ($line = <$f>) { # {{{
+  while ($line = <$f>) { #_{
 
     print "ntw: $next_t_with_gap, ltwc: $last_thing_was_blocky_paragraph, it: $in_text, q: $in_quote, line: $line" if $debug;
 
     chomp $line;
 
-    if ($line =~ /^\s*rem\s*}\s*$/) {  # {{{ End remark
+    if ($line =~ /^\s*rem\s*}\s*$/) {  #_{ End remark
 
       dbg('end remark');
 
       $in_rem = 0;
       next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*rem\s*{\s*$/) {  # {{{ Begin remark
+    if ($line =~ /^\s*rem\s*{\s*$/) {  #_{ Begin remark
 
       dbg('start remark');
 
       $in_rem = 1;
       next;
 
-    } # }}}
+    } #_}
 
     next if $in_rem;
 
 
-    if ($line =~ /^\s*html\s*}\s*$/) { # {{{ End raw html section
+    if ($line =~ /^\s*html\s*}\s*$/) { #_{ End raw html section
 
       dbg('ending raw html section');
 
@@ -310,9 +318,9 @@ sub process_page { # {{{
       $in_html = 0;
       next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*html\s*{\s*$/) { # {{{ Begin raw html section
+    if ($line =~ /^\s*html\s*{\s*$/) { #_{ Begin raw html section
 
       dbg('starting raw html section');
 
@@ -323,18 +331,18 @@ sub process_page { # {{{
 
       next;
 
-    } # }}}
+    } #_}
 
-    if ($in_text and $line =~ /^ *- *$/) { # {{{ Paragraph without gap
+    if ($in_text and $line =~ /^ *- *$/) { #_{ Paragraph without gap
 
       end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
       print $out "\n" if $pass == 2;
       $next_t_with_gap = 0;
       next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*code\s*}\s*$/) {  # {{{ End code
+    if ($line =~ /^\s*code\s*}\s*$/) {  #_{ End code
 
       dbg ('Ending code');
 
@@ -346,9 +354,9 @@ sub process_page { # {{{
       $last_thing_was_blocky_paragraph = 1;
       next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*code\s*{\s*$/) {  # {{{ Begin code
+    if ($line =~ /^\s*code\s*{\s*$/) {  #_{ Begin code
 
       dbg ('Starting code');
 
@@ -360,9 +368,9 @@ sub process_page { # {{{
       print $out "<pre class='code'>" if $pass == 2;
       next;
 
-    } # }}}
+    } #_}
 
-    if (not $in_code and $line =~ /^\s*"\s*$/) { # {{{ start / end quote ( exactly one " in line)
+    if (not $in_code and $line =~ /^\s*"\s*$/) { #_{ start / end quote ( exactly one " in line)
 
 
       if ($in_quote) {
@@ -375,18 +383,18 @@ sub process_page { # {{{
       }
       next;
 
-    } # }}}
+    } #_}
 
-    if (not $in_code and $line =~ /^ *"([^[]*)$/) { # {{{ Start Quote
+    if (not $in_code and $line =~ /^ *"([^[]*)$/) { #_{ Start Quote
 
       dbg("calling start_quote, ul=$ul");
       start_quote($out, $1, \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, \$last_thing_was_blocky_paragraph);
       dbg("called start_quote, last_thing_was_blocky_paragraph = $last_thing_was_blocky_paragraph");
       next;
 
-    } # }}}
+    } #_}
 
-    if (not $in_code and $line =~ /(.*)" *(\[ *(.+) *\])? *$/) { # {{{ End Quote
+    if (not $in_code and $line =~ /(.*)" *(\[ *(.+) *\])? *$/) { #_{ End Quote
 
       my $q_text = $1;
       my $source = $3;
@@ -396,15 +404,15 @@ sub process_page { # {{{
       end_quote($out, $q_text, \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, $source);
       next;
 
-    } # }}}
+    } #_}
 
-    if ($in_rem) { # {{{
+    if ($in_rem) { #_{
       dbg('in rem');
       print "in rem" if $debug;
       next;
-    } # }}}
+    } #_}
 
-    if ($line =~ /^(sa|links|rel): */) { # {{{ See also
+    if ($line =~ /^(sa|links|rel): */) { #_{ See also
 
       my $sa_link_etc = $1;
       my $section_title;
@@ -431,30 +439,30 @@ sub process_page { # {{{
       start_section($out, $section_title, \$h_level, '', \$in_text, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
       next;
 
-    } # }}}
+    } #_}
 
-    unless ($in_html) { # {{{ Replace html entities
+    unless ($in_html) { #_{ Replace html entities
       $line =~ s/&/&amp;/g;
       $line =~ s/</&lt;/g;
       $line =~ s/>/&gt;/g;
-    } # }}}
+    } #_}
 
-    if ($in_code) { # {{{ in code
+    if ($in_code) { #_{ in code
       dbg('in code');
        if ($pass == 2) {
          $line = notes::replace_notes_link($line, $input_filename_os);
          print $out "$line\n";
        }
        next;
-    } # }}}
+    } #_}
 
-    if ($in_html) { # {{{ in html
+    if ($in_html) { #_{ in html
       dbg('in html');
       print $out "$line" if $pass == 2;
       next;
-    } # }}}
+    } #_}
 
-    if ($in_quote) { # {{{
+    if ($in_quote) { #_{
 
       if ($pass == 2) {
 
@@ -476,9 +484,9 @@ sub process_page { # {{{
       }
       next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*$/) { # {{{ Empty line, end div
+    if ($line =~ /^\s*$/) { #_{ Empty line, end div
 
       dbg('empty line, ending div');
 
@@ -493,9 +501,9 @@ sub process_page { # {{{
       }
 
       next;
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*{ *(.*)/) { # {{{  start subtitle
+    if ($line =~ /^\s*{ *(.*)/) { #_{  start subtitle
 
         dbg('Starting subtitle');
 
@@ -520,17 +528,17 @@ sub process_page { # {{{
 
         next;
 
-    } # }}}
+    } #_}
 
-    if ($line =~ /^\s*}\s*$/) { # {{{ End of section
+    if ($line =~ /^\s*}\s*$/) { #_{ End of section
 
       end_section($out, \$in_text, \$h_level, \$last_thing_was_blocky_paragraph);
 
         next;
 
-    } # }}}
+    } #_}
 
-    if (!$in_text or $last_thing_was_blocky_paragraph) { # {{{ Start new text div
+    if (!$in_text or $last_thing_was_blocky_paragraph) { #_{ Start new text div
 
       start_div_t(\$in_text);
 
@@ -549,9 +557,9 @@ sub process_page { # {{{
       }
 
       $last_thing_was_blocky_paragraph = 0;
-    } # }}}
+    } #_}
 
-    if ($pass == 2) { # {{{ Only manipulate $line if $pass == 2
+    if ($pass == 2) { #_{ Only manipulate $line if $pass == 2
 
 #   $linkifyer->find(\$line);
 
@@ -565,7 +573,7 @@ sub process_page { # {{{
 
     $line =~ s/\bj(-?\d+)\b/$1/g;
 
-    if ($line =~ s/(\s)•(.*)/$2/) { # {{{ UL element
+    if ($line =~ s/(\s)•(.*)/$2/) { #_{ UL element
 
       my $ul_ = length($1);
 
@@ -578,8 +586,8 @@ sub process_page { # {{{
 
       print $out "\n<li>";
 
-    } # }}}
-    else { # {{{ No UL Element
+    } #_}
+    else { #_{ No UL Element
 
       if ($ul) {
 
@@ -588,10 +596,10 @@ sub process_page { # {{{
 
       }
 
-    } # }}}
+    } #_}
 
-    # {{{ Links
-    # {{{  Media files jpg, png, svg ...
+    #_{ Links
+    #_{  Media files jpg, png, svg ...
 
      $line =~ s{
 
@@ -618,20 +626,20 @@ sub process_page { # {{{
 
      }gex;
 
-    # }}}
-    # {{{ replace → to external site
+    #_}
+    #_{ replace → to external site
   
     $line = replace_external_link($line);
 
-    # }}}
-    # {{{ replace → to local file
+    #_}
+    #_{ replace → to local file
   
     $line = notes::replace_notes_link($line, $input_filename_os);
 
-    # }}}
-    # }}}
+    #_}
+    #_}
 
-    # {{{ replace yt|||
+    #_{ replace yt|||
     
     $line =~ s{
 
@@ -645,8 +653,8 @@ sub process_page { # {{{
 
     }gex;
 
-    # }}}
-    # {{{ replace mapch|||
+    #_}
+    #_{ replace mapch|||
     
     $line =~ s{
 
@@ -666,8 +674,8 @@ sub process_page { # {{{
 
     }gex;
 
-    # }}}
-    # {{{ bold, italic, verses
+    #_}
+    #_{ bold, italic, verses
     
     $line = bold_italic($line);
     $line = bible_verse($line);
@@ -675,13 +683,13 @@ sub process_page { # {{{
     
 
 
-    # }}}
-    # {{{ `
+    #_}
+    #_{ `
 
     $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
 
-    # }}}
-    # {{{ Github source code (Must be at end, otherwise replacement of bold, italic etc kicks in!)
+    #_}
+    #_{ Github source code (Must be at end, otherwise replacement of bold, italic etc kicks in!)
 
     $line =~ s{
 
@@ -696,28 +704,47 @@ sub process_page { # {{{
       my $path = $2;
       my $opts = $3;
 
+      my $gh_ret;
+
       if ($pass == 2) {
 
-  #     2017-01-27 $path should be prefixed by a slash anyway:
-        if (substr($path, 0, 1) ne '/') {
-          print "gh: $path does not start with /\n";
-        }
-  #     my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master/$path";
         my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master$path";
 
-        my $code = get($url);
+        print "gh: $url\n";
+        if ($path =~ m!/([^//]+\.(png|jpg|jpeg|gif))$!) {
 
-        print "\n\n  $url did not return anything\n\n" unless $code;
+          my $image_name = $1;
 
-        $code =~ s/&/&amp;/g;
-        $code =~ s/</&lt;/g;
-        $code =~ s/>/&gt;/g;
+          print "Found $image_name in dir $dirname_os\n";
+          my $image = getstore($url, $temp_dir . $image_name);
+          print "copyng to /notes/$dirname_os/$image_name\n";
+          RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
-        ($in_text ? "</div>" : "") .
-        "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
-        "<pre class='code'>$code</pre>" .
-        ($in_text ? "\n<div class='t'>" : "");
+          $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
 
+        }
+        else {
+
+  #        2017-01-27 $path should be prefixed by a slash anyway:
+           if (substr($path, 0, 1) ne '/') {
+             print "gh: $path does not start with /\n";
+           }
+
+           my $code = get($url);
+
+           print "\n\n  $url did not return anything\n\n" unless $code;
+
+           $code =~ s/&/&amp;/g;
+           $code =~ s/</&lt;/g;
+           $code =~ s/>/&gt;/g;
+
+           $gh_ret = ($in_text ? "</div>" : "") .
+           "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
+           "<pre class='code'>$code</pre>" .
+           ($in_text ? "\n<div class='t'>" : "");
+       }
+
+       $gh_ret;
 
      }
      else {
@@ -726,18 +753,18 @@ sub process_page { # {{{
 
     }gex;
 
-    # }}}
+    #_}
     print $out "$line ";
 
-    } # }}}
+    } #_}
 
 
-  } # }}}
+  } #_}
 
-  if ($in_text) { # {{{ close in text
+  if ($in_text) { #_{ close in text
 
     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
-  } # }}}
+  } #_}
 
   if ($in_sa_links_etc) {
     end_section($out, \$in_text, \$h_level, \$last_thing_was_blocky_paragraph);
@@ -749,7 +776,7 @@ sub process_page { # {{{
 
   die "In quote" if $in_quote; 
   die "In code"  if $in_code;
-  # }}}
+  #_}
 
 
   if ($pass == 2 and $target_env eq 'web') {
@@ -758,9 +785,9 @@ sub process_page { # {{{
   }
 
 
-} # }}}
+} #_}
 
-sub replace_external_link { # {{{
+sub replace_external_link { #_{
   my $line = shift;
 
   $line =~ s{
@@ -797,9 +824,9 @@ sub replace_external_link { # {{{
 
   return $line;
 
-} # }}}
+} #_}
 
-sub process_index { # {{{
+sub process_index { #_{
 
   for my $k (keys %notes::index) {
     print "no title for $k\n" unless exists $notes::index{$k}{title};
@@ -824,9 +851,9 @@ sub process_index { # {{{
 #   RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index$notes::html_suffix");
     RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index.html");
   }
-} # }}}
+} #_}
 
-sub end_div_t { # {{{
+sub end_div_t { #_{
 
   my $out                 = shift;
   my $in_text_ref         = shift;
@@ -848,13 +875,13 @@ sub end_div_t { # {{{
     $$next_t_with_gap_ref = 1;
   }
   $$in_text_ref = 0;
-} # }}}
+} #_}
 
-sub start_div_t { # {{{
+sub start_div_t { #_{
 
-} # }}}
+} #_}
 
-sub open_html { # {{{
+sub open_html { #_{
 
   my $input_filename_os = shift;
   my $title             = shift;
@@ -899,9 +926,9 @@ sub open_html { # {{{
 
   return $out;
 
-} # }}}
+} #_}
 
-sub close_html { # {{{
+sub close_html { #_{
 
   my $out = shift;
   my $wp  = shift;
@@ -924,9 +951,9 @@ sub close_html { # {{{
   close ($out);
 
 
-} # }}}
+} #_}
 
-sub preprocess_dir { # {{{
+sub preprocess_dir { #_{
 
 # print "preprocess_dir $File::Find::dir $_ - " . (join ",", @_) ."\n";
 
@@ -935,9 +962,9 @@ sub preprocess_dir { # {{{
 
   return grep { $_ !~ /^\./}  @_;
 
-} # }}}
+} #_}
 
-sub start_section { # {{{
+sub start_section { #_{
 
   my $out                                 = shift;
   my $h_text                              = shift;
@@ -961,9 +988,9 @@ sub start_section { # {{{
   $$next_t_with_gap_ref = 0;
   $$empty_line_sets_next_t_with_gap_ref = 0;
 
-} # }}}
+} #_}
 
-sub end_section { # {{{
+sub end_section { #_{
 
   my $out                     = shift;
   my $in_text_ref             = shift;
@@ -982,9 +1009,9 @@ sub end_section { # {{{
    print $out "\n</div>" if $pass == 2;
    print $out "<!-- closing h -->\n" if $debug and $pass == 2;
 
-} # }}}
+} #_}
 
-sub blocky_paragraph_start { # {{{
+sub blocky_paragraph_start { #_{
 
   my $out  = shift;
   my $pass = shift;
@@ -1007,17 +1034,17 @@ sub blocky_paragraph_start { # {{{
 
   $$empty_line_sets_next_t_with_gap_ref = 1;
 
-} # }}}
+} #_}
 
-sub dbg { # {{{
+sub dbg { #_{
 
   return unless $debug;
   my $t = shift;
   print "DBG: $t\n";
 
-} # }}}
+} #_}
 
-sub bible_verse { # {{{
+sub bible_verse { #_{
 
   my $line = shift;
 
@@ -1065,9 +1092,9 @@ sub bible_verse { # {{{
   return $line;
 
 
-} # }}}
+} #_}
 
-sub bold_italic { # {{{
+sub bold_italic { #_{
 
   my $line = shift;
   return $line unless $pass == 2;
@@ -1078,9 +1105,9 @@ sub bold_italic { # {{{
   $line =~ s{(^|$boundary)~([a-zA-ZäöüÄÖÜ0-9<][^~]*)~($|$boundary)}{$1<b>$2</b>$3}g;
 
   return $line;
-} # }}}
+} #_}
 
-sub sub_sup { # {{{
+sub sub_sup { #_{
 
   my $line = shift;
   return $line unless $pass == 2;
@@ -1090,9 +1117,9 @@ sub sub_sup { # {{{
 
   return $line;
 
-} # }}}
+} #_}
 
-sub end_quote { # {{{
+sub end_quote { #_{
 
   my $out                                 = shift;
   my $q_text                              = shift;
@@ -1126,9 +1153,9 @@ sub end_quote { # {{{
 
   }
 
-} # }}}
+} #_}
 
-sub start_quote { # {{{
+sub start_quote { #_{
   my $out = shift;
   my $q_text = shift;
   my $in_quote_ref = shift;
@@ -1151,4 +1178,4 @@ sub start_quote { # {{{
   }
   $$empty_line_sets_next_t_with_gap_ref = 1;
   $$last_thing_was_blocky_paragraph_ref = 1;
-} # }}}
+} #_}
