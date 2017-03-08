@@ -1,0 +1,84 @@
+$ Socket.cpp - A C++ Socket class for Windows
+
+Socket.cpp is a *leight weight* C++ class that facilitates and demonstrates Sockets for Windows programming.
+
+
+{ Classes
+
+  These are actually four classes: ~Socket~ (the base class), ~SocketServer~ and ~SocketClient~ (which two derive
+  from which SocketServer) and ~SocketSelect~ which
+  can be used to do a Select call on more than one Socket.
+  
+  The constructors of Socket are protected; this should be a taken as a hint not to use Socket, but
+  either SocketServer or SocketClient.
+
+}
+{ Short description of the socket classes
+
+  Every program that uses Windows Sockets needs to call `WSAStartup()`.
+  -
+  This call is wrapped into `Socket::Start()` which in turn is called by the Socket's constructor.
+  -
+  I pass 2.0 as version here as I expect that version to be installed.
+  
+  The Socket's constructor also calls `socket()` (note the small s) which actually
+  creates the socket. It passes the `SOCK_STREAM` parameter, indicating TCP. If UDP
+  were wished, you'd have to pass SOCK_DGRAM.
+  
+ `SocketClient` is inherited from Socket.
+  - 
+  The constructor of SocketClient takes a host as parameter, which is the name of
+  the server that this client wishes to communicate to. This name is resolved
+  into an IP Address by `gethostbyname()`.
+  
+ `SocketServer` is inherited from Socket.
+  - 
+  The constructor of the SocketServer class listens on the port indicated in its
+  parameter. This is made by calling `bind()`.
+  - 
+  As SOCK_STREAM type sockets have the ability to queue incoming connection
+  requests, we need to know the maximum number of connections to be queued which
+  can be stated by the connections parameter (and which is passed to `listen()`).
+  
+ `SocketServer::Accept()` simply waits for an incoming connection request (or
+  removes one from the queue) by calling `accept()` (note the small a). 
+
+}
+{ Linking
+
+  When compiling these files, make sure you link them against ~ws2_32.lib~ (or wsock32.lib?), at least with
+  mingw, see
+  → development/languages/C-C-plus-plus/Socket_cpp/examples#compiling-socket-examples[compiling examples].
+
+}
+{ Examples
+
+  A few examples on using Socket.cpp → development/languages/C-C-plus-plus/Socket_cpp/examples[can be found here].
+
+  Additionally, here is a → http://www.adp-gmbh.ch/win/misc/webserver.html[Webserver].
+
+}
+{ Source code
+
+  The source code is hosted in → https://github.com/ReneNyffenegger/Socket.cpp[this github repository].
+
+  { Socket.h
+
+    gh|Socket.cpp|/src/Socket.cpp||
+
+  }
+  { Socket.cpp
+
+    gh|Socket.cpp|/src/Socket.h||
+
+  }
+
+
+}
+
+{ Thanks
+
+  I also want to say thanks Fabien Le Lez,
+  → http://www.infflux.com and Tamas Kaskoto who have improved this source.
+
+}
