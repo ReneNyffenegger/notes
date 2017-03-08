@@ -171,7 +171,6 @@ sub process_page { #_{
  if ($file_name_only_os ne 'svg' and $file_name_only_os ne 'png' and $file_name_only_os ne 'jpg') { #_{
  (my $suffix = $file_name_only_os) =~ s/.*\.(\w*)$/$1/;
 
-   print "suffix: $file_name_only_os, $suffix\n";
   if ( $suffix eq 'png' or $suffix eq 'jpg' or $suffix eq 'svg') { #_{
 
     
