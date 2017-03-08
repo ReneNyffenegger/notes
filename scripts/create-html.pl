@@ -168,10 +168,12 @@ sub process_page { #_{
   }
 
 # 2017-01-27 directories might be named exactly »svg«...
- if ($file_name_only_os ne 'svg') { #_{
+ if ($file_name_only_os ne 'svg' and $file_name_only_os ne 'png' and $file_name_only_os ne 'jpg') { #_{
  (my $suffix = $file_name_only_os) =~ s/.*\.(\w*)$/$1/;
 
+   print "suffix: $file_name_only_os, $suffix\n";
   if ( $suffix eq 'png' or $suffix eq 'jpg' or $suffix eq 'svg') { #_{
+
     
     if ($pass == 2) {
       RN::copy_os_path_2_url_path_abs ($input_filename_os, "/notes/$input_filename_os");
