@@ -4,8 +4,69 @@ $ Perl module: Tree::Create::DepthFirst
 `Tree::Create::DepthFirst` allows to create a tree (→ development/languages/Perl/modules/Tree/Simple) by adding its nodes in the same sequence (or order) which they would/will be
 returned if the tree is traversed depth first.
 
+{ Simple demonstration
+
+  The following simple script demonstrates how `Tree::Create::DepthFirst` is supposed to work.
+
+  The array `@nodes` is a list of elements, each with a depth and a value.
+  -
+  The elements of this list are added (`$tree_creator->addNode()`) to the tree being created.
+
+  Then, the final tree is stored in `$tree` (`$tree = $tree_creator->getTree()`).
+
+  Now, the `$tree`'s method `traverse` will call the supplied callback function for each node (and leaf) found
+  in the tree. The callback function verifis if in fact the nodes stored in the tree are returned in the same
+  order as they were previously added
 
 gh|PerlModules|/Tree/Create/DepthFirst/script.pl||
+
+}
+{ Creating a tree from HTML ul and li tags/elements
+
+  Here's a piece of a html docoument (→ https://github.com/ReneNyffenegger/PerlModules/blob/master/Tree/Create/DepthFirst/parse-html-ul-li.html[parse-html-ul-li.html]):
+code {
+  <ul><li>0<ul><li>0.0<ul><li>0.0.0<ul><li>0.0.0.0<li>0.0.0.1</ul>
+  </ul></ul><ul><li>0.1</li></ul></li><li>1<ul><li>1.0</li><li>1.1
+  </li><ul><li>1.1.0<li>1.1.1</ul></ul></li><li>2</li><li>3<ul><li>3.0
+  <ul><li>3.0.0</li><li>3.0.1</li><ul><li>3.0.1.0<li>3.0.1.1</ul>
+  <li>3.0.2</li></ul></li></ul><ul><li>3.1</li><li>3.2</li></ul></li></ul>
+code }
+
+  When rendered in a browser, this gibberish looks like this:
+gh|PerlModules|/Tree/Create/DepthFirst/parse-html-ul-li.png||
+
+  Now, I want to reconstruct this tree with a Perl script.
+  -
+  So, I combine the → development/languages/Perl/modules/HTML/Parser → development/languages/Perl/modules[Perl module] with Tree::Create::DepthFirst:
+
+gh|PerlModules|/Tree/Create/DepthFirst/parse-html-ul-li.pl||
+  
+  When the script is executed, it will print
+code {
+0
+  0.0
+    0.0.0
+      0.0.0.0
+      0.0.0.1
+  0.1
+1
+  1.0
+  1.1
+    1.1.0
+    1.1.1
+2
+3
+  3.0
+    3.0.0
+    3.0.1
+      3.0.1.0
+      3.0.1.1
+    3.0.2
+  3.1
+  3.2
+code }
+
+}
 
 sa:
   → development/languages/Perl/modules/index[Perl modules]
