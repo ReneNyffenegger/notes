@@ -1,8 +1,92 @@
 $ Shell command: paste
 @ paste
 
+{ Without command line options
+
+code {
+paste file-1 file-2 … file-n
+code }
+
+Without command line options, `paste` will read *one* line from each file and write each line, without new line, but seperated by a tabulator. It will do that until
+the all lines are read.
+
+So, if `file_one` contains
+code {
+foo
+bar
+baz
+code }
+and `file_two` contains
+code {
+one
+two
+three
+code }
+then `paste file_one file_two` will print
+code {
+foo       one
+bar       two
+baz       three
+code }
+
+}
+
+{ -d delimiter
+
+  `-d` specifies one or more delimiters (instead of the default tabulator) with which the lines will be pasted.
+  -
+  `paste -d, file_one file_two` will print
+code {
+foo,one
+bar,two
+baz,three
+code }
+
+}
+
+{ -s don't read files in parallel
+
+`-s` can be used to create a *pivot* from a file.
+
+If `some.txt` contains
+code {
+foo
+10.3
+18.9
+17.1
+bar
+7.8
+12.7
+15.6
+baz
+11.4
+15.1
+16.4
+code }
+then `paste -d "\t\t\t\n" some.txt` will print
+code {
+foo	10.3	18.9	17.1
+bar	7.8	12.7	15.6
+baz	11.4	15.1	16.4
+code }
+
+  Note how each delimiter is used in sequence and then »recycled«.  
+
+}
+
+{ Examples
+
+code {
+→ Linux/shell/commands/seq 10 | paste -sd+ | bc
+code }
+calculates the ~sum of the first 10 integers~: it will print `55`.
+
+}
+
 sa:
   → Linux/shell/commands/index[Shell commands]
+
+  → development/languages/R/functions/paste[R function: paste]
 
 links:
   → https://github.com/ReneNyffenegger/shell-commands/tree/master/paste
