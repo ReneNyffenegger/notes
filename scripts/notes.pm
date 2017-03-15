@@ -8,7 +8,7 @@ use utf8;
 use Encode;
 use Storable;
 
-our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>'; 
+our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>☰'; 
 
 our %index;
 our $html_suffix;

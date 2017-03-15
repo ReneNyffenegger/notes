@@ -3,6 +3,8 @@
 
 use warnings;
 use strict;
+use utf8;
+binmode(STDERR, ":utf8");
 
 my $remove_me_counter = 0;
 
@@ -208,7 +210,7 @@ sub process_page { #_{
   my $wp   = '';
   my $ul   = 0;
 
-  DIRECTIVES: while ($line = <$f>) { # 1st Iterate over directives {{{
+  DIRECTIVES: while ($line = <$f>) { #_{ 1st Iterate over directives
 
     print "directive ?: $line" if $debug;
 
@@ -273,7 +275,7 @@ sub process_page { #_{
   } #_}
 
   #_}
-# Then iterate over content {{{
+#_{ Then iterate over content
 
   my $in_text  = 0; #_{ Variables
   my $in_html  = 0;
@@ -281,6 +283,9 @@ sub process_page { #_{
   my $in_code  = 0;
   my $in_quote = 0;
   my $in_sa_links_etc   = '';
+  my $in_table = 0;
+  my $table_nof_columns=0;
+  my @table_column_alignment;
   my $h_level = 1; #_}
 
   while ($line = <$f>) { #_{
@@ -291,6 +296,7 @@ sub process_page { #_{
 
     if ($line =~ /^\s*rem\s*}\s*$/) {  #_{ End remark
 
+      die unless $in_rem;
       dbg('end remark');
 
       $in_rem = 0;
@@ -300,6 +306,7 @@ sub process_page { #_{
 
     if ($line =~ /^\s*rem\s*{\s*$/) {  #_{ Begin remark
 
+      die if $in_rem;
       dbg('start remark');
 
       $in_rem = 1;
@@ -309,6 +316,48 @@ sub process_page { #_{
 
     next if $in_rem;
 
+    if ($line =~ /^\s*table\s*{\s*(\w*)\s*$/) {  #_{ Begin table
+
+      dbg('start table');
+
+      my $alignments = $1;
+      die if $in_table;
+      die unless $alignments =~ /^[rl]+$/;
+
+
+      if ($table_nof_columns) {
+        die "Cannot specify table alignment twice";
+      }
+      $table_nof_columns=length($alignments);
+      @table_column_alignment = split '', $alignments;
+
+
+
+      $in_table = 1;
+#     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
+      blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
+
+      if ($pass == 2) {
+         print $out "\n<table>\n";
+      }
+      next;
+
+    } #_}
+
+    if ($line =~ /^\s*table\s*}\s*$/) {  #_{ End table
+
+      die unless $in_table;
+      dbg('end table');
+      $last_thing_was_blocky_paragraph = 1;
+
+      $in_table = 0;
+      $table_nof_columns = 0;
+      if ($pass == 2) {
+         print $out "\n</table>\n";
+      }
+      next;
+
+    } #_}
 
     if ($line =~ /^\s*html\s*}\s*$/) { #_{ End raw html section
 
@@ -448,6 +497,36 @@ sub process_page { #_{
       $line =~ s/>/&gt;/g;
     } #_}
 
+    if ($in_table) { #_{
+      next if $line =~ /^\s*$/;
+
+      my @tds = split '☰', $line, -1;
+      die sprintf ('%s -> @tds: %i, table_nof_columns: %i', $line, scalar @tds, $table_nof_columns) unless @tds == $table_nof_columns;
+
+      if ($pass == 2) {
+        print $out "  <tr>";
+
+        for my $col_align (@table_column_alignment) {
+          my $td = shift @tds;
+
+          print $out "<td class='";
+          print $out $col_align;
+
+          $td = replace_external_link($td);
+          $td = notes::replace_notes_link($td, $input_filename_os);
+          $td = bold_italic($td);
+          $td = bible_verse($td);
+
+          print $out "'>$td</td>"
+
+        }
+        print $out "</tr>\n";
+
+      }
+      next;
+
+    } #_}
+
     if ($in_code) { #_{ in code
       dbg('in code');
        if ($pass == 2) {
@@ -534,14 +613,12 @@ sub process_page { #_{
     if ($line =~ /^\s*}\s*$/) { #_{ End of section
 
       end_section($out, \$in_text, \$h_level, \$last_thing_was_blocky_paragraph);
-
-        next;
+      next;
 
     } #_}
 
     if (!$in_text or $last_thing_was_blocky_paragraph) { #_{ Start new text div
 
-      start_div_t(\$in_text);
 
       $in_text = 1;
 
@@ -767,23 +844,24 @@ sub process_page { #_{
     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
   } #_}
 
-  if ($in_sa_links_etc) {
+  if ($in_sa_links_etc) { #_{
     end_section($out, \$in_text, \$h_level, \$last_thing_was_blocky_paragraph);
-  }
+  } #_}
 
   die "h_level = $h_level in $File::Find::name" unless $h_level == 1;
 
   close_html($out, $wp) if $pass == 2;
 
-  die "In quote" if $in_quote; 
-  die "In code"  if $in_code;
+  die "In quote"  if $in_quote; 
+  die "In code"   if $in_code;
+  die "In table"  if $in_table;
   #_}
 
 
-  if ($pass == 2 and $target_env eq 'web') {
+  if ($pass == 2 and $target_env eq 'web') { #_{
     print "to web: $url_path_abs\n";
     RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs($url_path_abs), $url_path_abs);
-  }
+  } #_}
 
 
 } #_}
@@ -878,9 +956,6 @@ sub end_div_t { #_{
   $$in_text_ref = 0;
 } #_}
 
-sub start_div_t { #_{
-
-} #_}
 
 sub open_html { #_{
 
@@ -1025,7 +1100,6 @@ sub blocky_paragraph_start { #_{
 
   if ($$in_text_ref) {
     end_div_t($out, $in_text_ref, \$ul, $pass, $next_t_with_gap_ref);
-#   $$in_text_ref = 0;
   }
   else {
     if ($$next_t_with_gap_ref) {
