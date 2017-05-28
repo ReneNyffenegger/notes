@@ -113,11 +113,13 @@ unless (-e $last_run_file_os_path_abs) {
 }
 
 
+dbg("-> notes::load_index($index_file_os_path_abs)");
 notes::load_index($index_file_os_path_abs);
+dbg("<- notes::load_index()");
 
 my $pass;
-$pass = 1; find({ no_chdir=>1, wanted=> \&process_page, preprocess=>\&preprocess_dir} , '.');
-$pass = 2; find({ no_chdir=>1, wanted=> \&process_page, preprocess=>\&preprocess_dir} , '.');
+$pass = 1; dbg("pass: $pass"); find({ no_chdir=>1, wanted=> \&process_page, preprocess=>\&preprocess_dir} , '.');
+$pass = 2; dbg("pass: $pass"); find({ no_chdir=>1, wanted=> \&process_page, preprocess=>\&preprocess_dir} , '.');
 
 notes::store_index($index_file_os_path_abs);
 print "$index_file_os_path_abs stored\n" if $verbose >= 1;
@@ -149,6 +151,8 @@ if ($web) {
 sub process_page { #_{
 
   #_{
+
+  dbg("process_page: File::Find::name=$File::Find::name");
   return if $File::Find::name eq '.';
 
   my $input_filename_os = substr($File::Find::name, 2);
@@ -1208,7 +1212,7 @@ sub end_quote { #_{
   my $source                              = shift;
   my $file_name_with_path                 = shift;
 
-  die "in quote ref error [$file_name_with_path]" unless $$in_quote_ref;
+  die "in quote ref error [file_name_with_path: $file_name_with_path]" unless $$in_quote_ref;
   $$in_quote_ref = 0;
 
   if ($pass == 2) {
