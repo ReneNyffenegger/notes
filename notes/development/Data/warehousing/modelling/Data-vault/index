@@ -7,13 +7,18 @@ $ Data Vault modelling
 
 { Hub tables #hub-tables
 
-  A hub table represents a *master data entity*.
+  A hub table represents a *master data entity*, such as customer, vendor, sale, products…
 
-  Such a table has a
-    • Surrogate key
-    • Business key (which usually is the primary key from the data source system)
-    • *No* business attributes
-    • A *load date* (which is not part of the primary key, compare with the primary key in satellite tables)
+  A record in a hub table consists *only* of:
+    • a business key (which usually is the primary key from the data source system)
+    • a load date
+    • a machine sequence (surrogate key)
+    • a record source
+
+  It does *not* have
+    • business attributes (That is: there is no descriptive information)
+    • foreign keys
+
 
   Hubs are colored *blue*.
 
@@ -21,10 +26,10 @@ $ Data Vault modelling
 
 { Satellite tables #satellite-tables
 
-  All business attributes are stored in satellite tables.
+  All business attributes (the descriptive information) for a business key are stored in satellite tables.
 
   A foreign key in the satellite table references the primary key (surrogate key?) in the hub table.
-  --
+  -
   A hub table is referenced by one or more hub tables.
   - 
   Sometimes, when there are attributes that are thought not to change over time, they
@@ -32,7 +37,7 @@ $ Data Vault modelling
   -
   Additionally, data from different source system could be stored in different satellite tables.
 
-  A satellite table has a `valid_from` (or effective date), but not a `valid_to` (or expiration date). Thus,
+  A satellite table has a `valid_from` (or effective date), but no `valid_to` (or expiration date). Thus,
   the dreaded(?) *updates* (in an »insert only environment«) can be reduced (or omitted?)
   -
   This `valid_from` is not a »business date«, it rather defines when the record was loaded.
@@ -47,9 +52,11 @@ $ Data Vault modelling
 
   Relationships are modelled as links, which in fact are *many to many* relationships between hub tables (*even* if the
   relationship  a 1:1 or 1:n !)
-  -
+
+  Like hub tables, link tables do not contain descriptive information.
+
   With the *many to many* approach, it is hoped to be more flexible (really …?).
-  -
+
   Yet, the burden of vaildating the correct cardinality and relationships (especially in 1:1 and 1:n ones) is put on
   the ETL job.
 
