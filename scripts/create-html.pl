@@ -4,6 +4,7 @@
 use warnings;
 use strict;
 use utf8;
+binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
 
 my $remove_me_counter = 0;
@@ -159,17 +160,24 @@ sub process_page { #_{
   my $file_name_only_os      = basename($input_filename_os);
   my $dirname_os             = dirname ($input_filename_os);
 
+  dbg("file_name_only_os: $file_name_only_os");
+
   if ($file_name_only_os =~ m'TODO DEBUG') {
      $debug = 1;
   }
   else {
-     $debug = 0;
+#    $debug = 0;
   }
 
-  return if substr($file_name_only_os, 0, 1) eq '.' or
-            substr($file_name_only_os, 0, 2) eq '_.'; # Windows vim swap files
+  if (substr($file_name_only_os, 0, 1) eq '.' or
+      substr($file_name_only_os, 0, 2) eq '_.') { # Windows vim swap files
+
+      dbg('process_page: filename starts with . or _, returning');
+      return;
+  }
 
   if (-M $last_run_file_os_path_abs < -M $input_filename_os) {
+    dbg("process_page: returning because older");
     return;
   }
 
@@ -455,7 +463,7 @@ sub process_page { #_{
 
       dbg("end quote: source = " . (defined $source ? $source : '') );
 
-      end_quote($out, $q_text, \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, $source);
+      end_quote($out, $q_text, \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, $source, $input_filename_os);
       next;
 
     } #_}
@@ -1211,6 +1219,8 @@ sub end_quote { #_{
 
   my $source                              = shift;
   my $file_name_with_path                 = shift;
+
+  dbg("end_quote, file_name_with_path: $file_name_with_path");
 
   die "in quote ref error [file_name_with_path: $file_name_with_path]" unless $$in_quote_ref;
   $$in_quote_ref = 0;
