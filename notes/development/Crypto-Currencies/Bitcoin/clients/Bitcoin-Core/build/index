@@ -1,0 +1,94 @@
+$ Building Bitcoin-Core
+
+Some hints …
+
+{ Building Berkley DB
+
+  Berkley DB is needed to access the → development/Crypto-Currencies/Bitcoin/wallet.
+
+  Get *Berkley DB* from → http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/downloads/index-082944.html[Oracle]. Make sure you get version 4.8 (as of 2017-06-21)
+
+  Build it:
+code {
+tar xfvz db-4.8.30.tar.gz
+cd db-4.8.30
+cd build_unix
+../dist/configure --enable-cxx --disable-shared --with-pic
+make
+sudo make install
+code }
+
+By default, the headers and the library are installed under → Linux/fhs/usr/local into the directory `BerkeleyDB.4.8`.
+-
+To choose another destination, use `--prefix=/path/to/desired/location/` in the `configure` line.
+
+}
+
+{ Boost
+
+Boost version 1.47 or higher is also needed (as of 2017-06-21)
+
+code {
+sudo apt-get install libboost-all-dev
+code }
+
+}
+{ libprotobuf
+
+  Apparently, *libprotobuf* is needed for the frontend (`bitcoin-qt`).
+
+code {
+sudo apt-get install 
+code }
+
+}
+{ libevent
+
+  Not sure what libevent is needed for …
+
+code {
+sudo apt-get install libevent-dev
+code }
+
+}
+
+{ Building bitcoin itself
+
+Get the sources from → https://github.com[github]:
+
+code {
+cd /path/of/building/directory
+git clone https://github.com/bitcoin/bitcoin.git
+cd bitcoin
+code }
+
+code {
+./autoconfigure
+code }
+
+Note the specific declaration of the location of Berkeley DB:
+code {
+./configure LDFLAGS="-L/usr/local/BerkeleyDB.4.8/lib/" CPPFLAGS="-I/usr/local/BerkeleyDB.4.8/include/"
+code }
+
+code {
+make -s -j5
+code }
+
+The following executables should have been built:
+code {
+src/bitcoind
+src/bitcoin-cli
+src/bitcoin-tx
+src/qt/bitcoin-qt
+code }
+
+
+}
+
+
+links:
+  → https://gist.github.com/kostaz/19729e6d53adc5d1606c[This github gist] was useful.
+
+sa:
+  → development/Crypto-Currencies/Bitcoin/clients/Bitcoin-Core
