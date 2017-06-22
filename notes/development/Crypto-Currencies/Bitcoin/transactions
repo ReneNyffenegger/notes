@@ -1,24 +1,53 @@
 $ Bitcoin transactions
 @ transactions
 
-All transactions are recorded in the → development/Crypto-Currencies/Bitcoin/blockchain.
+All transactions are recorded in → development/Crypto-Currencies/Bitcoin/block[blocks] that are stored in the → development/Crypto-Currencies/Bitcoin/blockchain.
 
 A transaction can not be reversed.
 
+Apparently, a transaction allows to store 80 bytes of user-data along with it.
+
 The first transaction in a → development/Crypto-Currencies/Bitcoin/block is special: it starts a new
 → development/Crypto-Currencies/Bitcoin/coin which is owned by the creator of the block.
-
 
 Every transaction gets inputs, which refer to previous outputs being
 spent. Every input has the txid and the signature to prove that it is allowed,
 plus an amount and script in every output.
 
+{ Parts of a transaction
+
+  A (non coinbase-) transaction consists of
+    • version
+    • inputs
+    • outputs
+    • locktime
+
+  A transaction is prefixed by a four byte ~transaction version number~.
+  -
+  This number indicates which set of rules to validate it to.
+
+
+}
+
+{ Transaction chain
+
+  A → development/Crypto-Currencies/Bitcoin/clients[Bitcoin client] might give you the impression that Bitcoins (or Satoshis) are
+  transferred from one → development/Crypto-Currencies/Bitcoin/wallet to another.
+  However, this is not really the case.
+
+  In reality, Bitcoins/Satoshis move from one → development/Crypto-Currencies/Bitcoin/transactions[transaction] to another.
+
+  A transaction spends some or all of the satoshies that were received in the previous or earlier transaction.
+
+}
 
 { Transaction identification
 
   Transactions are identified by a 64-digit hexadecimal hash called a transaction identifier (txid).
   
   This hash is based on both the → development/Crypto-Currencies/Bitcoin/coin[coins] being spent and on who will be able to spend the results of the transaction.
+
+  *Outputs* are tied to such a txid
 
 }
 
@@ -30,6 +59,58 @@ plus an amount and script in every output.
 
   Although signatures are not part of the transaction, they are part of the transaction hash.
 
+}
+{ Transaction fees #transaction-fees
+
+  If the inputs of a transaction exceeds the outputs of a transaction, the difference can be claimed as
+  as a *transaction fee* by the → development/Crypto-Currencies/Bitcoin/mining[miner] that created the
+  → development/Crypto-Currencies/Bitcoin/block containing that transaction.
+
+}
+{ Coinbase transaction #coinbase-transaction
+
+  Aka *generation transaction*.
+
+  A coinbase transaction can only be created by a → development/Crypto-Currencies/Bitcoin/mining[miner].  
+
+  A coinbase transaction collects and spends the block reward which consists of a block subsidy and → #transaction-fees[transaction fees] paid
+  by the transactions stored in this block.
+
+  A coinbase transaction's UTXO cannot be spent (that is: used as an input) for at least 100 blocks.
+  -
+  Thus, a miner is prevented from spending the transaction fees and block rewards from a block that may later be determined to be stale.
+
+}
+
+{ P2PKH transactions
+
+  The most common transaction type is the ~Pay-to-public-key-hash~ (P2PKH).
+
+  P2PKH lets someone (→ development/security/cryptography/persons/Alice-and-Bob[Alice]) spend satoshis to a typical → development/Crypto-Currencies/Bitcoin/address[Bitcoin address].
+  The recipient (Bob) can then further spend those satoshis using a simple cryptographic key pair.
+
+  Bob must first create a public/private key pair to make it possible for Alice to send him some satoshis.
+  Bitcoin uses → development/security/cryptography/ECDSA for that.
+
+  Bob then creates a cryptographical hash of the public key (pubkey).
+
+  Bob sends the pubkey's hash to Alice. This hashes usually are encoded as → development/Crypto-Currencies/Bitcoin/address[Bitcoin addresses].
+
+  Now that Alice has Bob's address, she can create the transaction.
+  -
+  The (P2PKH-)transaction output contains a permission for everyone that controls Bob's previously generated private key.
+  -
+  These instructions are called *pubkey script* or *scriptPubKey*.
+
+  Alice broadcasts the transaction for addition to the → development/Crypto-Currencies/Bitcoin/blockchain.
+
+  The transaction is recognized as an unspent transaction output (UTXO).
+  Bob's → development/Crypto-Currencies/Bitcoin/wallet displays the amount of this UTXO as spendable amount.
+
+  Later, Bob decides to spend some of this amount. So, he creates a hash of Alice's transaction and her corresponding output number.
+  He has also to create a *signature script* (scriptSigs).
+
+  
 }
 
 { Misc
