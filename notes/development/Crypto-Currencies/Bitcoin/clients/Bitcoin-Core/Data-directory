@@ -4,15 +4,56 @@ On Linux, the default data directory for → development/Crypto-Currencies/Bitco
 On Windows, its `%APPDATA%\Bitcoin`.
 
 The data directory contains or might contain:
-  • `peers.dat` (→ development/Crypto-Currencies/Bitcoin/clients/Bitcoin-Core/dev/sources/src/addrdb_h)
-  • `banlist.dat`
+  • `bitcoin.conf`
+  • `wallet.dat`
+  • `peers.dat`: The IP-address database, accessed via `class CAddrDB`, → development/Crypto-Currencies/Bitcoin/clients/Bitcoin-Core/dev/sources/src/addrdb_h
+  • `banlist.dat`: The banlist database, accessed via `class CBanDB`,  → development/Crypto-Currencies/Bitcoin/clients/Bitcoin-Core/dev/sources/src/addrdb_h
+  • `fee_estimates.dat`
+  • `mempool.dat`
+  • `db.log`
+  • `debug.log`
+  • `.lock`
 
 
 { Directory blocks
 
-  The blocks directory within the data directory contains:
-    • `index`: Subdirectory for some indexes?
-    • `blk*.dat` which are *block files*
+  The `blocks` directory within the data directory contains:
+    • `index`: This subdirectory is a levelDB that helps find blocks (`blk*.dat` files?) on the harddisk.. Apparently, this directory is managed by `CBlockTreeDB`.
+    • `blk*.dat` which are *block files*. Used for 1) rescanning missing → development/Crypto-Currencies/Bitcoin/transactions in a → development/Crypto-Currencies/Bitcoin/wallet 2) reorganizing to a different part in the → development/Crypto-Currencies/Bitcoin/blockchain 3) serving → development/Crypto-Currencies/Bitcoin/block[block data] to other → development/Crypto-Currencies/Bitcoin/node[nodes] that are synchronizing
     • `rev*.dat` which are *undo files*
 
 }
+{ Directory chainstate
+
+  The `chainstate` directory is a levelDB database.
+
+  It represents all currently unspent → development/Crypto-Currencies/Bitcoin/transactions along with some information where these
+  transactions come from.
+
+  ? Using this database speeds up validation of → development/Crypto-Currencies/Bitcoin/transactions.
+  Without this database, such a validation would also be possible, but the *entire* block-data would have to be scanned for *every* output being spent.
+
+
+  The data could be rebuilt from the block data which. However, that takes a long time. (See `-reindex` command line flag).
+
+}
+
+{ Testnet
+
+  If bitcoin-qt is run with `-testnet`, it creates the directory `testnet3` under the data diretory.
+
+  `testnet3` then contains the same files (with different content) as the data directory.
+
+}
+
+{ Scrambling data
+
+  Some data (in levelDB?) is scrambled because otherwise some virus scanners would falsly detect them as potential harmful.
+
+}
+
+sa:
+  → development/Crypto-Currencies/Bitcoin/block#block-database
+
+links:
+  → https://en.bitcoin.it/wiki/Data_directory
