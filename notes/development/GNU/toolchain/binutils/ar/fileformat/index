@@ -1,0 +1,53 @@
+$ ar fileformat
+
+In order to examine the → development/GNU/toolchain/binutils/ar fileformat, we're first going to create an archive:
+gh|about-GNU-Binutils|/ar/fileformat/00-create-archive||
+
+`ar cr ….` creates an archive: a file which, incidentally, is called `an-archive`.
+
+In order to examine the content of the archive, we use → Linux/shell/commands/cat[`cat`]:
+gh|about-GNU-Binutils|/ar/fileformat/cat-archive||
+prints
+code {
+!<arch>
+code }
+
+We're adding the file `file_01.txt`:
+gh|about-GNU-Binutils|/ar/fileformat/file_01.txt||
+
+The file is added with `ar r`:
+gh|about-GNU-Binutils|/ar/fileformat/01-add-a-file||
+
+The content of `an-archive` has now changed to
+code {
+!<arch>
+file_01.txt/    0           0     0     644     71        `
+This is file_01.txt
+It consists of four
+lines. It's size
+is 71 bytes. 
+code }
+
+Similarly, we're adding two files in one go:
+gh|about-GNU-Binutils|/ar/fileformat/02-add-two-files||
+
+`an-archive` now has the following content
+code {
+!<arch>
+file_01.txt/    0           0     0     644     71        `
+This is file_01.txt
+It consists of four
+lines. It's size
+is 71 bytes. 
+
+file_02.txt/    0           0     0     644     48        `
+This is file_02.txt.
+Two lines, size: 48 bytes.
+file_03.txt/    0           0     0     644     24        `
+FILE 03
+FILE 03
+FILE 03
+code }
+
+Note the extra line between `file_01.txt` and `file_02.txt`. This is because `ar` stores files on even byte boundaries.
+`file_01.txt` has an uneven number of bytes, hence the additional newline.
