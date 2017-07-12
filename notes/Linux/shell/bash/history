@@ -1,24 +1,87 @@
 The commands executed in → Linux/shell/bash are stored in a → Linux/fhs/home/username/_bash_history[history file].
 
+{ Bash history expansion
 { Using !
 
 
-Repeat previous command:
+`!!` is expanded to the last command. So 
 code {
-!!
+$ !!
+code }
+repeats the last command.
+-
+A useful application for this construct is if → Linux/shell/commands/sudo was forgotten:
+code {
+$ pacman -Syu
+error: you cannot perform this operation unless you are root.
+$ sudo !!
 code }
 
-Repeat most recent ls command:
+Repeat the most recent command that *starts with* → Linux/shell/commands/ls:
 code {
-!ls
+$ !ls
 code }
 
-Just print most recent ls command
+Repeat the most recent command that *contains* foo:
 code {
-!ls:p
+$ !?foo
+code }
+
+`:p` does not execute the command but rather prints it:
+code {
+$ !ls:p
+code }
+
+}
+{ Using ^
+
+in a `!…` construct, `^` is replaced with the first argument:
+code {
+$ echo foo bar baz
+foo bar baz
+$ echo abc !^ def
+abc foo def
+code }
+Similarly, `$` is replaced with the last argument.
+
+The `^text^replace^` replaces *text* with *replace*:
+code {
+$ ls -l tmp
+$ ^-l^-la^
 code }
 
 
+}
+{ nth argument
+
+  Similar to `!!:^` and `!!:$`, the nth argument can be referred to with `!!:n`:
+code {
+$ echo one two three
+one two three
+$ echo !:3 !:2 !:1
+three two one
+code }
+
+All arguments are referred to with `:*`.
+-
+Arguments n through m are referred to with `:n-m`
+
+}
+{ Substituting elements in previous commands
+
+`s/text/replacement/` subsitutes the first occurence of *word*:
+code {
+$ !!:s/foo/bar/
+code }
+
+`gs/text/replacemaent/` susbistitues every occurence of *word* (`g`=global).
+
+`:&` reuses the last substitution:
+code {
+!ls:&
+code }
+
+}
 }
 { Environment variables
 
