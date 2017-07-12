@@ -2,6 +2,18 @@ $ Shell command: find
 @ find
 
 
+{ Business of find
+
+→ https://docstore.mik.ua/orelly/unix/upt/index.htm[Unix Power Tools] has the following quote about `find`:
+"
+   `find`'s business is evaluating expressions - not locating files. Yes, find
+   certainly locates files; but that's really just a side effect. For me,
+   understanding this point was the conceptual breakthrough that made find much
+   more useful.
+" [→ https://docstore.mik.ua/orelly/unix/upt/ch17_12.htm[Chapter 17.12]: Finding Many Things with One Command ]
+
+}
+
 { Find files case insensitively
 
 Use the `-iname` argument:
@@ -11,7 +23,9 @@ code }
 
 }
 
-{ Find files that were changed during the last 5 minutes
+{ Find files that were changed in a certain periodduring 
+
+{ During the last 5 minutes
 
 code {
 $ find . -cmin -5
@@ -25,12 +39,33 @@ $ find . -newermt '5 minutes ago'
 code }
 
 }
-{ Find files that were changed during the last n days
+{ During the last n days
 
 Similarly, files that were changed during the last week can be found so
 code {
 $ find . -ctime -7
 code }
+
+}
+}
+{ Excluding directories #find-prune
+
+Directries can be excluded with `-path ./path/do/excluded/dir -prune`.
+
+Note `-prune` (as `-print`) always returns true.
+-
+Therefore, it will probably be followed by `-o`.
+
+Find all files that contain a `b` in the filename but are not located under → development/version-control-systems/git/_git/index[`./git`]:
+code {
+$ find -path ./git -prune -o -type f -name '*b*' -print
+code }
+
+}
+{ Operator precedence
+
+  `-a` takes precedence over `-o`.
+
 
 }
 
