@@ -408,7 +408,7 @@ sub process_page { #_{
 
       dbg ('Ending code');
 
-      die unless $in_code;
+      die "Ending Code, but not in code" unless $in_code;
 
       $in_code = 0;
       print $out "</pre>" if $pass == 2;
