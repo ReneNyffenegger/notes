@@ -1,0 +1,46 @@
+$ SAS Enterprise Guide: Scripting
+
+aka: Enterprise Guide Automation
+
+code {
+option explicit
+
+dim app
+dim project
+dim sasProgram
+dim i
+
+Set app = createObject("SASEGObjectModel.Application.4.3")
+
+app.SetActiveProfile("tq84-Server")
+
+set project = app.new 
+set sasProgram = project.CodeCollection.Add
+ 
+' set the results types, overriding app defaults
+sasProgram.UseApplicationOptions = false
+sasProgram.genListing            = true
+sasProgram.genSasReport          = false
+ 
+sasProgram.server = "SASApp"
+sasProgram.text   = "proc means data=sashelp.cars; run;"
+ 
+sasProgram.run
+sasProgram.log.saveAs "c:\temp\outputAuto.log"
+ 
+for i=0 to (sasProgram.results.count -1)
+
+ ' Listing type is 7
+   if sasProgram.results.item(i).type = 7 then
+ ' Save the listing file to LOCAL disk
+     sasProgram.results.item(i).saveAs "c:\temp\outputAuto.lst"
+   end if
+next
+
+app.quit
+code }
+Compare → http://blogs.sas.com/content/sasdummy/2011/05/03/using-sas-enterprise-guide-to-run-programs-in-batch/
+
+
+sa:
+  → http://blogs.sas.com/content/sasdummy/2011/11/02/reportonegwithpowershell/[Power shell example]
