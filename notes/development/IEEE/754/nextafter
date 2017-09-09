@@ -1,0 +1,43 @@
+$ IEEE-754 / nextafter
+@ nextafter
+
+The C function `nextafter` determines the next higher or lower representable `double` from a given `double`.
+
+The following C programm calls `nextafter()` several times for a few select values and uses  → development/IEEE/754/index#represent-ieee-754-c to
+show how the internal bits of the double change:
+
+gh|about-IEEE-754|/nextafter.c||
+
+When run, the program prints
+code {
+We start with the representation of the double 0:
+    .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | 
+
+The next higher representable double just increases the value of the
+mantissa by one:
+    .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... ...M | 
+
+Each call to nextafter() increases the value of the mantissa by one:
+    .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... ..M. | 
+
+Again...:
+    .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... ..MM | 
+
+We can continue to increase the mantissa until all bits of the
+mantissa are set:
+    .... .... | .... MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | 
+
+Now, increasing the double to the next representable value clears
+all mantiassa bits and increases the exponent value by one:
+    .... .... | ...E .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | 
+
+The increasing of the mantissa value starts over:
+    .... .... | ...E .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... ...M | 
+
+Until all mantissa bits are set again:
+    .... .... | ...E MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | MMMM MMMM | 
+
+After which the mantissa value is reset to 0 and the
+exponent value is increased by one:
+    .... .... | ..E. .... | .... .... | .... .... | .... .... | .... .... | .... .... | .... .... | 
+code }
