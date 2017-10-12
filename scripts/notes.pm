@@ -21,6 +21,8 @@ sub init { # {{{
   my $test             = shift;
      $verbose          = shift;
 
+  print "init: $verbose\n";
+
   if ($web or $test) {
       $html_suffix = '';
   }

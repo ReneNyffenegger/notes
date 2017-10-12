@@ -24,6 +24,9 @@ use utf8;
 use notes;
 use RN;
 
+my $debug = 0;
+# $| = 1;
+
 my $temp_dir;
 if ($^O eq 'MSWin32') {
   $temp_dir = 'c:/temp/';
@@ -33,6 +36,7 @@ else {
 }
 
 my $verbose = 0;
+print "$0 -> Getopt::Long::GetOptions\n" if $debug;
 Getopt::Long::GetOptions(
     "web"        => \my $web,
     'verbose'    => \   $verbose
@@ -40,21 +44,27 @@ Getopt::Long::GetOptions(
 
 my $test;
 
+print "cwd() = " . cwd() . "\n" if $debug;
 if (cwd() =~ /notes.test$/) {
+  print "Setting test to 1\n" if $debug;
   $test = 1;
 }
 elsif (cwd() =~ /github.notes$/) {
+  print "Setting test to 0\n" if $debug;
   $test = 0;
 }
 else {
+  print "Setting test to 0\n" if $debug;
   $test = 0;
 }
+print "test = $test\n" if $debug;
 
 if (! $web and ! $test) {
 }
 else {
 }
 
+print "$0 -> notes::init\n" if $debug;
 notes::init(
   $web,
   $test, 
@@ -107,7 +117,6 @@ print "index file:    $index_file_os_path_abs\n";
 
 
 
-my $debug = 0;
 unless (-e $last_run_file_os_path_abs) {
   my $touch_1970 = new File::Touch (mtime => 0);
      $touch_1970 -> touch($last_run_file_os_path_abs);
