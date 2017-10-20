@@ -1,14 +1,45 @@
-$ Oracle: SQL Loader - Example 3
+$ Oracle: SQL Loader - Selectively insert records according to a criteria
 
-  gh|Oracle-Patterns|/SQLLoader/ex_03/readme.txt||
+This example sort of uses a where condition (`when ... = ...`) to select the records that need to be loaded.
+
+{ Create destination table
+
+  Create the table that is to be filled:
 
   gh|Oracle-Patterns|/SQLLoader/ex_03/create_table.sql||
 
+}
+{ Control file
+
+  The control file specifies that only records need to be loaded whose 2nd field's value is fruit.
+
   gh|Oracle-Patterns|/SQLLoader/ex_03/load_3.ctl||
+
+}
+{ The data file
+
+  The name of this data file is specified with the `infile` statement in the control file.
 
   gh|Oracle-Patterns|/SQLLoader/ex_03/load_3.dat||
 
-  gh|Oracle-Patterns|/SQLLoader/ex_03/all.sql||
+}
+{ Load the data
+
+code {
+$ sqlldr control=load_3.ctl userid=rene/password@ora.server.xy
+code }
+
+}
+{ Discarded records
+
+  One record didn't meet the load criterion. It is written into the discarded file `load_3.dsc`:
+
+code {
+Ford;Car;
+code }
+
+}
+
 
 sa:
   → development/databases/Oracle/tools/sql-loader
