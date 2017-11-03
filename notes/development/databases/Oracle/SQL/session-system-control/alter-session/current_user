@@ -1,0 +1,60 @@
+$ Oracle: alter session set current_user
+@ alter session set current_user
+
+
+`user_one` creates a table ...
+code {
+connect user_one/passwordSecretGarden
+create table tq84_table_user_one(txt varchar2(20));
+code }
+
+... and grants the table to `user_two`:
+code {
+grant  all on tq84_table_user_one to user_two; 
+code }
+
+The user inserts his username into the table:
+code {
+insert into tq84_table_user_one values(user);
+commit;
+code }
+
+User two does an analog thing
+code {
+connect user_two/passwordGardenSecret
+create table tq84_table_user_two(txt varchar2(20));
+grant  all on tq84_table_user_two to user_one; 
+insert into tq84_table_user_two values(user);
+commit;
+code }
+
+If user two wants to select his own table, he does not need to prefix with his username:
+code {
+select * from tq84_table_user_two;
+code }
+
+However, if he wants to query user one's table, he must prefix it (unless a synonym exists):
+code {
+select * from user_one.tq84_table_user_one;
+code }
+
+If user two finds it tedious to always type user_one's schema, he might choose to set user_one as default schema:
+code {
+alter session set current_schema = user_one;
+code }
+
+The select statement now works perfectly:
+code {
+select * from tq84_table_user_one;
+code }
+
+Note: user_two is still `user_one`. It's not as though he would magically get some extra privileges.
+The following statement returns `USER_ONE`, `USER_TWO`:
+code {
+select user, sys_context('userenv','current_schema') from dual;
+code }
+
+Also, if user_two queries USER_TABLES, he finds his tables:
+code {
+select * from user_tables where table_name like 'TQ84_TABLE_USER%';
+code }
