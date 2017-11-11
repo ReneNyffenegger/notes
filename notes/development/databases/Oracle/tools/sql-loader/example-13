@@ -1,0 +1,42 @@
+$ Oracle: SQL Loader - Example 13: make a unique index unusable
+
+{ Creating the table
+
+  A table with a primary key is created and populated with three records:
+  gh|Oracle-Patterns|/SQLLoader/ex_13_make-unique-indexes-unusable/create_table.sql||
+
+}
+{ Data to be loaded
+
+  This is the data to be populated into the table.
+  -
+  Note: it contains `id=2`, which was already inserted into the table.
+
+  gh|Oracle-Patterns|/SQLLoader/ex_13_make-unique-indexes-unusable/tab_with_pk.dat||
+
+}
+{ The control file
+
+  This is the → development/databases/Oracle/tools/sql-loader/control-file[control file] to load the table.
+
+  gh|Oracle-Patterns|/SQLLoader/ex_13_make-unique-indexes-unusable/tab_with_pk.ctl||
+
+  The control file uses `direct=true` and `unrecoverable`. So, Oracle does not verify the unique indexes while the data is loaded.
+
+}
+{ Data loaded
+
+`select * from tq84_tab_with_pk order by id` finds that the table now contains two records whose id is 2.
+
+}
+{ Unusable index
+
+  Since the unique constraint is now violated Oracle sets the index to *unusable*:
+code {
+select status from → development/databases/Oracle/installed/data-dictionary/indexes[user_indexes] where index_name = 'TQ84_TAB_PK';
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/tools/sql-loader
