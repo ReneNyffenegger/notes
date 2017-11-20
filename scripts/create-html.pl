@@ -327,7 +327,7 @@ sub process_page { #_{
 
     if ($line =~ /^\s*rem\s*{\s*$/) {  #_{ Begin remark
 
-      die if $in_rem;
+      die "Already in remark ($File::Find::name)" if $in_rem;
       dbg('start remark');
 
       $in_rem = 1;
