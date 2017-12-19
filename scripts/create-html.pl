@@ -1208,8 +1208,13 @@ sub sub_sup { #_{
   my $line = shift;
   return $line unless $pass == 2;
 
+# Apparently, the dash needs to be the last character in tr.
   $line =~ s{([₁₂₃₄₅₆₇₈₉₀₊₋]+)}{<sub>$1</sub>}g && $line  =~ tr/₁₂₃₄₅₆₇₈₉₀₊₋/1234567890+-/;
-  $line =~ s{([¹²³⁴⁵⁶⁷⁸⁹⁰⁺⁻]+)}{<sup>$1</sup>}g && $line  =~ tr/¹²³⁴⁵⁶⁷⁸⁹⁰⁺⁻/1234567890+-/;
+  $line =~ s{([¹²³⁴⁵⁶⁷⁸⁹⁰⁺ᵃᴬ⁻]+)}{<sup>$1</sup>}g && $line  =~ tr/¹²³⁴⁵⁶⁷⁸⁹⁰⁺ᵃᴬ⁻/1234567890+aA-/; # development/security/cryptography/Public-key-cryptography
+
+  $line =~ s|↑([^↑]+)↑|<sup>$1</sup>|g;
+  $line =~ s|↓([^↓]+)↓|<sub>$1</sub>|g;
+  
 
   return $line;
 
