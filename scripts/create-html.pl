@@ -664,6 +664,7 @@ sub process_page { #_{
 
     $line =~ s/(\d) (v|n)\. *Chr\./$1&nbsp;$2.&nbsp;Chr./g;
     $line =~ s/(\d) a\. *H\./$1&nbsp;a.&nbsp;H./g;
+    $line =~ s/(\d) AM\b/$1&nbsp;AM/g;
 
     $line =~ s/(\d)° *([0-9.]+)' *([0-9.]+)" *([NEWSO])/$1°&nbsp;$2′&nbsp;$3″&nbsp;$4/g;
     $line =~ s/(\d)° *([0-9.]+)' *([0-9.]+)"/$1°&nbsp;$2′&nbsp;$3″/g;
