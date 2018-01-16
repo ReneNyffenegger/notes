@@ -1,0 +1,67 @@
+$ A Simple Webserver in C++ for Windows
+
+*Transferred from adp-gmbh.ch 2018-01-15*
+
+This c++ source files are supposed to demonstrate the basic mechanisms of the → development/web/HTTP[HTTP Protocol] and a webserver for educational purposes.
+-
+Thus, it is far from being finished… I welcome everybody for further help.
+
+{ The webserver::http_request struct
+
+  The `webserver::http_request` (in `webserver.h`) is arguably on of the most important structures for the webserver.
+  
+  For each HTTP request, `path_` is filled with the request's path. `params_` contains name values pairs if the GET request passes some form variables.
+  
+  After filling these fields, this structure is passed to the request handler function who is responsible of filling `answer_`. 
+
+}
+{ main.cpp
+
+  `main.cpp` demonstrates how the webserver can be used.
+
+  The webserver's *constructor* is basically waiting for new connection request on the port passed as argument to the constructor.
+  
+  As soon as a request is detected, a new thread is created (`_beginthreadex`) which starts in the static method `Request`. This method fills the `http_request` structure and passes it to the supplied *http handler function*.
+
+ `Request` then reads the first line from the socket (`ReceiveLine`) to determine the Request *method*.
+
+  gh|cpp-webserver|/main.cpp||
+
+}
+{ Source code
+
+  The source code is hosted on → https://github.com/ReneNyffenegger/cpp-webserver[github].
+
+  It can be cloned as follows
+code {
+git clone https://github.com/ReneNyffenegger/cpp-webserver webserver
+cd webserver
+git submodule update --init --recursive
+code }
+
+  The sources come with a `compile.mingw.bat` file that should compile the sources into a `WebServer.exe` executable (GCC/MinGW).
+
+  If the executable could be successfully built and run, it listens, by default, on port 8080, so you can connect to it on `http://localhost:8080/`.
+
+}
+{ Dependencies
+
+  The webserver requires → development/Base64/Encoding-and-decoding-base-64-with-cpp[this base 64 c++ class] (for authentication) and
+  → development/languages/C-C-plus-plus/Socket_cpp/index[this c++ socket class].
+
+}
+{ Thanks
+
+  Cybrax Cyberspace pointed out that VS 2008 doesn't compile the code with a error C2065: 'EAGAIN': undeclared identifier error unless a
+  `#include <errno.h>`
+  is added in the source. Many thanks for the feedback! 
+
+  Kaarlo Räihä has created a Visual Studio 6 project for the webserver which can be downloaded → http://www.raiska.com/webserver.zip[here]. (But note, that the sources in this project are not up-to-date anymore). Thank you very much.
+
+  Thanks also to Tom Lynn and Frank M. Hoffmann who each pointed out an error in webserver.cpp.
+
+}
+
+
+sa:
+  → web/webserver
