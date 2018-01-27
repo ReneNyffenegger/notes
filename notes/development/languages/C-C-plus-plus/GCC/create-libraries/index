@@ -1,93 +1,179 @@
-$ Creating libraries with GCC
+$ Creating a shared and static library with the gnu compiler (gcc)
 
+2018-01-27: *Moved and adapted from `adp-gmbh.ch`*.
 
-{ tq84.h
+Here's a summary on how to create a shared and a static library with gcc. The goal is to show the basic steps. I do not want to go into the hairy details. It should be possible to use this page as a reference.
 
-  gh|cpp-create-library|/tq84.h||
+These examples were tested and run on → Linux
 
+{ The library sources
+
+  This is the code that goes into the library. It consists of two c-files: `add.c` and `answer.c`.
+  
+  'add.c` exhibits two functions: `setSummand` and `add`. `add()` returnes the passed value and adds it to the value set with `setSummand`.
+
+  `answer.c` has only one function: `answer()` which uses `setSummand(20)` and `add(22)` to produce 42 which it returns as answer.
+
+  Additionally, the library (`add.c`) has also the functions `initLibrary` and `exitLibrary` to demonstrate the influence of `__attribute__ ((constructor)` and `__attribute__ ((destructor))`.
+  These functions are called when the library is loaded and unloaded.
+
+  { add.c
+
+    The code for the library:
+    gh|gcc-create-library|/src/tq84/add.c||
+  
+  }
+  { add.h
+  
+    The header file for the library:
+    gh|gcc-create-library|/src/tq84/add.h||
+  
+  }
+  { answer.c
+
+    gh|gcc-create-library|/src/tq84/answer.c||
+  
+  }
+  { answer.h
+  
+    The header file for answer.c
+    gh|gcc-create-library|/src/tq84/answer.h||
+  
+  }
 }
-{ tq84.c
+{ main.c
 
-  gh|cpp-create-library|/tq84.c||
+  `main.c` is the source code that uses the library
+  gh|gcc-create-library|/src/main.c||
 
 }
 { Create the object files
 
-  gh|cpp-create-library|/object-files||
+  First, we create the object files.
+
+  Object files for the shared library need to be compiled with the `-fPIC` flag (PIC = position independent code).
+  -
+  The object files for the static library don't need this flag.
+
+  So, the created object files go into different directories: `bin/shared` and `/bin/static`:w
+
+  gh|gcc-create-library|/steps/create-object-files||
+
+}
+{ Create static library
+
+  A static library is basically a set of → development/languages/C-C-plus-plus/GCC/object-file[object files] that were copied into a single file with the suffix `.a`.
+
+  The static file is created with the → development/GNU/toolchain/binutils/ar[archiver] (`ar`). 
+
+  gh|gcc-create-library|/steps/create-static-library||
 
 }
 { Link statically
 
-  gh|cpp-create-library|/link-statically||
+  With the static library, we can statically link `main.o` with the library.
+
+  The `-L` flag indicates (non standard) directory where the libraries can be found.
+
+  The `-l` flag indicates the name of the library. Note, that it assumes the library to start with `lib` and end with `.o` (so `lib` and `.o` must not be specified)
+
+  gh|gcc-create-library|/steps/link-statically||
+
+  The created executable `bin/statically-linked` is not dependend on any other object file or library. It can be distributed without the `.a` file or the `.o` files.
 
 }
 { Create the shared library
 
-  Without SONAME
+  Here, we create a shared library Without SONAME.
 
-  gh|cpp-create-library|/shared-library||
+  A shared library is with GCC's `-shared` flag and naming the resultant file with the suffix `.so` rather than `.a`.
+
+  gh|gcc-create-library|/steps/create-shared-library||
 
 }
 { Link dynamically with the shared library
 
-  gh|cpp-create-library|/link-dynamically||
+  Note the similarity to linking with the static library. Since we specify the shared directory `bin/shared` with the `-L` flag, the linker links `with `libtq84.so`.
+
+  gh|gcc-create-library|/steps/link-dynamically||
 
 }
 { Use the shared library with LD_LIBRARY_PATH
 
-  gh|cpp-create-library|/use-shared-library-LD_LIBRARY_PATH||
+  As long as the shared library is not installed in a default location (such as → Linux/fhs/usr/lib), we must indicate where it is found. This is possible with the `LD_LIBRARY_PATH`
+  → development/environment-variable[environment variable].
+
+  gh|gcc-create-library|/steps/use-shared-library-LD_LIBRARY_PATH||
 
 }
 { Move the shared library to a default location
 
-  gh|cpp-create-library|/move-shared-object||
+  Let's move the shared library to `/usr/lib` so that we can execute `bin/use-shared-library` without explicitely setting the `LD_LIBRARY_PATH` variable.
+
+  gh|gcc-create-library|/steps/move-shared-object||
 
 }
 { Use the shared library in a default location
 
-  gh|cpp-create-library|/use-shared-library-no-LD_LIBRARY_PATH||
+  Now, with the library in `/usr/lib`, the executable can be run without setting the variable:
+
+  gh|gcc-create-library|/steps/use-shared-library-no-LD_LIBRARY_PATH||
 
 }
 { Use dlopen() etc to dynamically load the library
 
-  gh|cpp-create-library|/dlopen.c||
+  It's also possible to dynamically load a library from an executable. The necessary functions are `dlopen()`, `dlsym()` etc. whose definitions are found in `dlfcn.h`.
 
-  gh|cpp-create-library|/create-dlopen||
+  The following program tries to open the library `libtq84.so` and then to find the functions `doesNotExist`, `setSummand` and `add`.
+
+  gh|gcc-create-library|/src/dynamic-library-loader.c||
+
+  In order to use the `dl…()` functions, it must be linked against `libdl` (with the `-ldl` flag)
+  gh|gcc-create-library|/steps/create-dynamic-library-loader||
 
 }
 { Create a SONAME shared library
 
-  gh|cpp-create-library|/create-soname-library||
+  gh|gcc-create-library|/steps/create-soname-library||
 
 }
 { Link with the SONAME shared library
 
-  gh|cpp-create-library|/link-soname-library||
+  A shared library with a SONAME can be created with the `-soname` linker option.
+
+  gh|gcc-create-library|/steps/link-soname-library||
 
 }
 { Install the SONAME library
 
-  gh|cpp-create-library|/install-soname-library||
+  gh|gcc-create-library|/steps/install-soname-library||
 
 }
 { Using LD_DEBUG
 
-  gh|cpp-create-library|/LD_DEBUG||
+  The `LD_DEBUG` environment variable might be helpful for some debugging tasks related to shared libraries.
+
+  gh|gcc-create-library|/steps/LD_DEBUG||
 
 }
 { Difference between -fPIC and without -fPIC
 
-  gh|cpp-create-library|/show-difference-PIC||
+  gh|gcc-create-library|/steps/show-difference-PIC||
 
 }
 { readelf reloc
 
-  gh|cpp-create-library|/readelf-relocs||
+  gh|gcc-create-library|/steps/readelf-relocs||
 
 }
 { List symbols in object files
 
-  gh|cpp-create-library|/list-symbols||
+  gh|gcc-create-library|/steps/list-symbols||
+
+}
+{ Cleaning up
+
+  gh|gcc-create-library|/steps/cleanup||
 
 }
 
@@ -99,8 +185,6 @@ $ Creating libraries with GCC
 
 
   `objdump -p $EXECUTABLE | grep NEEDED`
-
-  `readelf`
 
 }
 
