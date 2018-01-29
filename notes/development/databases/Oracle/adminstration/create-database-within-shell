@@ -1,0 +1,149 @@
+$ Oracle: create a database within a shell
+
+There are basically three ways to create an Oracle database: <ul>
+  • Using the Database Configuration Assistant (DBCA)
+  • With the SQL <a href='http://www.adp-gmbh.ch/ora/sql/create_database.html'>create database</a> statement
+  • Through upgrading an existing database.
+
+This article focuses on the second option. It can be completed on the 
+command line only, that is, without any GUI tool.
+
+{ Setting ORACLE_HOME
+
+  Setting the `ORACLE_HOME` environment variable to the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[Oracle home directory].
+
+code {
+export → Linux/fhs/u01/app/oracle[ORACLE_BASE]=/u01/app/oracle
+export → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[ORACLE_HOME]=$ORACLE_BASE/product/12.2.0/dbhome_1
+code }
+
+}
+{ Setting the Instance's SID
+
+    There can be more than one → http://www.adp-gmbh.ch/ora/admin/instance.html[Oracle instance] on a single machine.
+    -
+    In order to be able to distinguish these instances, Oracle uses a → development/databases/Oracle/adminstration/SID[SID (System Identifier)] which is a string.
+
+    The SID can be set through the `ORACLE_SID` → development/environment-variable.
+
+code {
+export ORACLE_SID=ORA12
+code }
+
+}
+{ Adjusting the PATH variable
+
+  Making sure that → development/environment-variable#path[`$PATH`] contains → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin:
+
+code {
+export PATH=$ORACLE_HOME/bin:$PATH
+code }
+
+}
+{ Creating a password file
+
+code {
+orapwd file=→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/dbs/orapwORACLE_SID password=1_amRoot
+code }
+
+}
+{ Creating a minimal initialization parameter file
+
+code {
+
+datafiledir=$ORACLE_BASE/oradata/$ORACLE_SID
+
+ctlfiledir_1=$datafiledir
+
+echo "
+db_name                    =  $ORACLE_SID         # required
+db_block_size              =  8192
+db_recovery_file_dest      = '→ Linux/fhs/u01/app/oracle/fast_recovery_area[$ORACLE_BASE/fast_recovery_area]'
+db_recovery_file_dest_size =  2G                  # required if db_recovery_file_dest is specified
+memory_target              =  1G
+audit_trail                =  db
+control_files              = (
+     '$ctlfiledir_1/control.ctl'
+  #, '$ctlfiledir_2/control.ctl'
+)
+" > → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/dbs/initORACLE_SID_ora
+code }
+
+Apparently, the → Linux/fhs/u01/app/oracle/fast_recovery_area[`fast_recovery_area`] directory needs to be created manually:
+code {
+mkdir $ORACLE_BASE/fast_recovery_area
+code }
+
+}
+{ The create database script
+
+code {
+
+logfiledir_1=$datafiledir
+
+echo "
+create database $ORACLE_SID
+-- user sys    identified by sys_password
+-- user system identified by system_password
+   logfile group 1 ('$logfiledir_1/redo01.log'
+           --      ,'$logfiledir_2/redo01.log'
+                   )                            size 100m blocksize 512,
+           group 2 ('$logfiledir_1/redo02.log'
+           --      ,'$logfiledir_2/redo02.log'
+                   )                            size 100m blocksize 512,
+           group 3 ('$logfiledir_1/redo03.log'
+           --      ,'$logfiledir_2/redo03.log'
+                   )                            size 100m blocksize 512
+-- maxloghistory                  1
+-- maxlogfiles                   16
+-- maxlogmembers                  3
+-- maxdatafiles                1024
+   character set           al32utf8
+   national character set al16utf16
+   extent management local               datafile '$datafiledir/system_01.dbf'  size 700m reuse autoextend on next    10m maxsize unlimited
+   sysaux                                datafile '$datafiledir/sysaux_01.dbf'  size 550m reuse autoextend on next    10m maxsize unlimited
+   default           tablespace users    datafile '$datafiledir/users_01.dbf'   size 500m reuse autoextend on             maxsize unlimited
+   user_data         tablespace data     datafile '$datafiledir/data_01.dbf'    size 200m reuse autoextend on             maxsize unlimited
+   undo              tablespace undo     datafile '$datafiledir/undo.dbf'       size 200m reuse autoextend on next    10m maxsize unlimited
+   default temporary tablespace temp     tempfile '$datafiledir/temp.dbf'       size  20m reuse autoextend on next     1m maxsize unlimited
+   ;
+" > /tmp/create-db.sql
+code }
+
+Apparently, the → Linux/fhs/u01/app/oracle/oradata[`oradata`] directory must be created manually:
+code {
+mkdir $datafiledir
+# mkdir $logfiledir_1  # Same as $datafiledir
+# mkdir $logfiledir_2
+code }
+
+}
+{ Starting and connecting to the Oracle instance
+
+code {
+sqlplus sys/1_amRoot as sysdba
+code }
+
+{ Hmm??
+code {
+sqlplus /nolog
+SQL>  connect sys/1_amRoot as sysdba
+code }
+}
+
+→ development/databases/Oracle/SQL-Plus/[SQL*Plus] should confirm with
+code {
+Connected to an idle instance.
+code }
+
+code {
+SQL> startup nomount
+code }
+
+}
+{ Executing the create database script
+
+code {
+SQL> → development/databases/Oracle/SQL-Plus/start[@]/tmp/create-db
+code }
+}
