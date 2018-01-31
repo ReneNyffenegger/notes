@@ -1,0 +1,83 @@
+$ Oracle SQL: hierarchical queries / start with … connect by nocycle
+
+{ A directed graph with cycles
+
+  Here's a directed graph with cycles
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/directed-graph.txt||
+
+}
+{ Create table
+
+  In order to store the graph in Oracle, we create a table:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/create-table.sql||
+
+}
+{ Inserting edges
+
+  We insert a record for each edge:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/insert-edges.sql||
+
+}
+{ Nodes reachable from F
+
+  The following query selects all nodes that are reachable from F:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/nodes-reachable-from-F.sql||
+
+  The query returns
+code {
+F->J
+ J->G
+ J->K
+  K->L
+  K->M
+F->L
+code }
+
+  Note: the node `L` is reached via two paths. This is not a problem for the select statement.
+
+}
+{ Nodes reachable from A
+
+  Similar query, but now starting from node `A`:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/nodes-reachable-from-A.sql||
+
+  Because there's a loop (`C->H->D->C`), Oracle will throw the error *ORA-01436: CONNECT BY loop in user data.*.
+
+  In order to prevent this error, we'll use the `nocycle` clause:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/nodes-reachable-from-A-nocycle.sql||
+
+  The query returns
+code {
+A->B
+ B->E
+A->C
+ C->H
+  H->I
+   I->D
+    D->F
+     F->J
+      J->G
+      J->K
+       K->L
+       K->M
+     F->L
+code }
+
+
+  The query works now. However, the edge `D->C` is not displayed! 
+
+}
+{ Cleaning up
+
+  Finally, we can clean up:
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/nocycle/clean-up.sql||
+
+
+}
+
+
+sa:
+  → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by
+
+

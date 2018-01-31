@@ -1,3 +1,84 @@
 $ Oracle SQL: hierarchical queries / start with … connect by
+@ start with … connect by
 
-→ development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/recursive-additions[Example: recursive addtions]
+code {
+→ development/databases/Oracle/SQL/select … START WITH initial-condition CONNECT BY [ → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/nocycle[NOCYCLE] ] recurse-condition
+
+→ development/databases/Oracle/SQL/select … CONNECT BY [ → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/nocycle[NOCYCLE] ] recurse-condition
+code }
+
+Oracle's SQL extenstion `start with` and `connect by` can be used to create a query on data that has a hierarchical (parent-child such as superior-employee) relationship among records (that is → development/databases/Oracle/SQL/select/hierarchical-queries).
+
+{ prior clause
+
+  The relationship between the parent record and its child records is expressed by the `prior` keyword:
+  code {
+  PRIOR child_id = parent_id
+  code }
+
+}
+{ Interpreting start with … connnect by prior statements
+
+The following sort-of-pseudo code demonstrates how a `start with … connect by` statement might be interpreted.
+
+code {
+declare
+
+  procedure RECURSE (rec in MATCHES_SELECT_STMT, parent_id IN field_type) is
+  begin
+
+       APPEND_RESULT_LIST(rec);     
+
+       for rec_recurse in (select * from some_table) loop
+           if FULLFILLS_CONNECT_BY_CONDITION(rec_recurse.id, parent_id) then
+              RECURSE(rec_recurse,rec_recurse.id);
+           end if;
+       end loop;
+
+  end procedure RECURSE;
+
+begin
+
+  for rec in (select * from some_table) loop
+      if FULLFILLS_START_WITH_CONDITION(rec) then
+         RECURSE(rec, rec.child);
+      end if;
+  end loop;
+
+end;
+code }
+
+Thanks to ~Frank Trenkamp~ who spotted an error in the logic in the above pseudo code and corrected it.
+-
+Thanks also to ~Abhishek Ghose~ who made me think about a better way to describe the logic. 
+
+}
+
+{ Examples
+
+  → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/recursive-additions[recursive addtions]
+
+  → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/pruning-branches[pruning branches]
+
+  Check if two records are in a generaral → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/ancestor-descendant[ancestor descendant] relationship, not just (immediate) parent child.
+
+}
+{ TODO
+
+  With `sys_connect_by_path` it is possible to show the entire path from the top level down to the 'actual' child
+
+  `connect_by_root`, `connect_by_isleaf`, `connect_by_iscycle`
+
+}
+{ Thanks
+
+  Thanks to Peter Bruhn, Jonathan Schmalze, Jeff Jones, Keith Britch and Fabian Iturralde who each pointed out an error or typo on this page. 
+
+}
+sa:
+  Hierachical queries are also used to → http://www.adp-gmbh.ch/ora/explainplan.html[explain] → http://www.adp-gmbh.ch/ora/sql/execution_plan.html[execution plans].
+
+links:
+  → http://www.adp-gmbh.ch/blog/2005/october/18.html[On storing hierarchical data]
+
+  → http://www.adp-gmbh.ch/blog/2009/09/29.php[On summing up values of nodes of a hierarchical query]

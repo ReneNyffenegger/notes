@@ -1,0 +1,56 @@
+$ Oracle SQL: start with … connect by example: ancestor descendant
+
+This example checks if two records are in a general ancestor descendant relationship - not just in an immediate parent child relationship.
+
+{ Create table
+
+  First, we need a table to store the data.
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/ancestor-descendant/create-table.sql||
+
+}
+{ Fill the table
+
+  Then we can insert the data into the table.
+  
+  Note: each child record has the same value as the parent *plus* another character.
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/ancestor-descendant/insert-data.sql||
+
+}
+{ A procedure to check if the records are in an ancestor descendant relationship
+
+  This procedure takes two ids and prints if these ids stand in an ancestor descendant relationship.
+
+  The select statement *first* evaluates the `start with` and `connect by` conditions to build an »intermediate« record set.
+  Then, after creating this intermediate record set, it evaluates the `where` clause.
+  -
+  If it finds a record that matches the id of `descendant`, it has found an ancestor descendant relationship, otherwise, it's not
+  an ancestor descendant relationship.
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/ancestor-descendant/procedure.plsql||
+
+
+}
+{ Executing the procedure
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/ancestor-descendant/try.sql||
+
+  The output is:
+code {
+ab is an ancestor of abet
+b is an ancestor of bi
+a is no ancestor of biq
+code }
+
+}
+{ Cleaning up
+
+  Finally, we can clean up
+
+  gh|oracle-patterns|/SQL/select/hierarchical_queries/start-with_connect-by/ancestor-descendant/clean-up.sql||
+
+}
+sa:
+  → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by
+
