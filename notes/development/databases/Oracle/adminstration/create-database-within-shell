@@ -14,6 +14,8 @@ command line only, that is, without any GUI tool.
 
 code {
 export → Linux/fhs/u01/app/oracle[ORACLE_BASE]=/u01/app/oracle
+       ORACLE_COPY=/u02/app/oracle # Used for redundancy of important files
+
 export → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[ORACLE_HOME]=$ORACLE_BASE/product/12.2.0/dbhome_1
 code }
 
@@ -51,9 +53,8 @@ code }
 
 code {
 
-datafiledir=$ORACLE_BASE/oradata/$ORACLE_SID
-
-ctlfiledir_1=$datafiledir
+oradatadir_1=$ORACLE_BASE/oradata/$ORACLE_SID
+oradatadir_2=$ORACLE_COPY/oradata/$ORACLE_SID
 
 echo "
 db_name                    =  $ORACLE_SID         # required
@@ -63,8 +64,8 @@ db_recovery_file_dest_size =  2G                  # required if db_recovery_file
 memory_target              =  1G
 audit_trail                =  db
 control_files              = (
-     '$ctlfiledir_1/control.ctl'
-  #, '$ctlfiledir_2/control.ctl'
+     '$oradatadir_1/control.ctl'
+   , '$oradatadir_2/control.ctl'
 )
 " > → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/dbs/initORACLE_SID_ora
 code }
@@ -78,21 +79,18 @@ code }
 { The create database script
 
 code {
-
-logfiledir_1=$datafiledir
-
 echo "
 create database $ORACLE_SID
 -- user sys    identified by sys_password
 -- user system identified by system_password
-   logfile group 1 ('$logfiledir_1/redo01.log'
-           --      ,'$logfiledir_2/redo01.log'
+   logfile group 1 ('$oradatadir_1/redo01.log'
+                 ,  '$oradatadir_2/redo01.log'
                    )                            size 100m blocksize 512,
-           group 2 ('$logfiledir_1/redo02.log'
-           --      ,'$logfiledir_2/redo02.log'
+           group 2 ('$oradatadir_1/redo02.log'
+                 ,  '$oradatadir_2/redo02.log'
                    )                            size 100m blocksize 512,
-           group 3 ('$logfiledir_1/redo03.log'
-           --      ,'$logfiledir_2/redo03.log'
+           group 3 ('$oradatadir_1/redo03.log'
+                 ,  '$oradatadir_2/redo03.log'
                    )                            size 100m blocksize 512
 -- maxloghistory                  1
 -- maxlogfiles                   16
@@ -100,21 +98,20 @@ create database $ORACLE_SID
 -- maxdatafiles                1024
    character set           al32utf8
    national character set al16utf16
-   extent management local               datafile '$datafiledir/system_01.dbf'  size 700m reuse autoextend on next    10m maxsize unlimited
-   sysaux                                datafile '$datafiledir/sysaux_01.dbf'  size 550m reuse autoextend on next    10m maxsize unlimited
-   default           tablespace users    datafile '$datafiledir/users_01.dbf'   size 500m reuse autoextend on             maxsize unlimited
-   user_data         tablespace data     datafile '$datafiledir/data_01.dbf'    size 200m reuse autoextend on             maxsize unlimited
-   undo              tablespace undo     datafile '$datafiledir/undo.dbf'       size 200m reuse autoextend on next    10m maxsize unlimited
-   default temporary tablespace temp     tempfile '$datafiledir/temp.dbf'       size  20m reuse autoextend on next     1m maxsize unlimited
+   extent management local               datafile '$oradatadir_1/system_01.dbf'  size 700m reuse autoextend on next    10m maxsize unlimited
+   sysaux                                datafile '$oradatadir_1/sysaux_01.dbf'  size 550m reuse autoextend on next    10m maxsize unlimited
+   default           tablespace users    datafile '$oradatadir_1/users_01.dbf'   size 500m reuse autoextend on             maxsize unlimited
+   user_data         tablespace data     datafile '$oradatadir_1/data_01.dbf'    size 200m reuse autoextend on             maxsize unlimited
+   undo              tablespace undo     datafile '$oradatadir_1/undo.dbf'       size 200m reuse autoextend on next    10m maxsize unlimited
+   default temporary tablespace temp     tempfile '$oradatadir_1/temp.dbf'       size  20m reuse autoextend on next     1m maxsize unlimited
    ;
 " > /tmp/create-db.sql
 code }
 
 Apparently, the → Linux/fhs/u01/app/oracle/oradata[`oradata`] directory must be created manually:
 code {
-mkdir $datafiledir
-# mkdir $logfiledir_1  # Same as $datafiledir
-# mkdir $logfiledir_2
+mkdir -p $oradatadir_1
+mkdir -p $oradatadir_2
 code }
 
 }
