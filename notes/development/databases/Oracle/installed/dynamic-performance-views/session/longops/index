@@ -1,6 +1,78 @@
 $ v$session_longops
 
+`v$session_longops` gives feedback on long running queries.
+
 gh|oracle-patterns|/Installed/dynamic-performance-views/session/longops/show.sql||
+
+{ procedure long_proc
+
+code {
+create table f(g number);
+
+create or replace procedure long_proc as
+    rindex       pls_integer := dbms_application_info.set_session_longops_nohint;
+    slno         pls_integer; 
+                                          -- Name of task
+    op_name      varchar2(64) := 'long_proc';
+
+    target       pls_integer := 0;        -- ie. The object being worked on
+    context      pls_integer;             -- Any info
+    sofar        number;                  -- how far proceeded
+    totalwork    number := 1000000;       -- finished when sofar=totalwork
+
+                                          -- desc of target
+    target_desc  varchar2(32) := 'A long running procedure';
+
+    units        varchar2(32) := 'inserts';                -- unit of sofar and totalwork
+  begin
+
+  dbms_application_info.set_module('long_proc',null);
+
+  dbms_application_info.set_session_longops (
+    rindex,
+    slno);
+
+  for sofar in 0..totalwork loop
+
+    insert into f values (sofar);
+
+    if mod(sofar,1000) = 0 then
+      dbms_application_info.set_session_longops (
+        rindex,
+        slno,
+        op_name,
+        target,
+        context,
+        sofar,
+        totalwork,
+        target_desc,
+        units);
+
+    end if;
+
+  end loop;
+end long_proc;
+/
+code }
+
+While the procedure long_proc is runnning, one can issue the following query to get feedback on its progress: 
+code {
+select
+  time_remaining,
+  sofar,
+  elapsed_seconds 
+from
+  v$session_longops l,
+  v$session s 
+where
+  l.sid     = s.sid     and
+  l.serial# = s.serial# and
+  s.module  ='long_proc'
+code }
+
+
+
+}
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views/[Oracle Dynamic Performance Views]

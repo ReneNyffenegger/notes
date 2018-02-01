@@ -1,5 +1,26 @@
 $ v$lock
 
+This view stores all information relating to locks in the database. The interesting columns in this view are sid (identifying the session holding or aquiring the lock), type, and the lmode/request pair.
+
+Important possible values of type are TM (DML or Table Lock), TX (Transaction), MR (Media Recovery), ST (Disk Space Transaction).
+
+Exactly one of the lmode, request pair is either 0 or 1 while the other indicates the lock mode. If lmode is not 0 or 1, then the session has aquired the lock, while it waits to aquire the lock if request is other than 0 or 1.
+The possible values for lmode and request are:
+    • 1: null,
+    • 2: Row Share (SS),
+    • 3: Row Exclusive (SX),
+    • 4: Share (S),
+    • 5: Share Row Exclusive (SSX) and
+    • 6: Exclusive(X) 
+
+If the lock type is TM, the column id1 is the object's id and the name of the object can then be queried like so: select name from sys.obj$ where obj# = id1
+
+A lock type of JI indicates that a materialized view is being refreshed.
+
+A more detailed example can be found here
+
+See also → development/databases/Oracle/installed/fixed-views/kg/llk.
+
 gh|oracle-patterns|/Installed/dynamic-performance-views/lock/general-information.sql||
 
 sa:
