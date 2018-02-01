@@ -1,0 +1,171 @@
+$ Oracle SQL: select first n rows / rows between n and m (top n queries)
+
+At times, it's necessary to → development/databases/Oracle/SQL/select[select] the *first n rows* or the rows between n and m (paging) from a table or query.
+
+
+Here are a few wrong and correct ways to do it.
+
+{ 12c - row limiting clause
+
+  Other databases made top-n queries quite easy, with, for example, a → development/databases/SQLite/sql/select/limit[limit clause] (such as → development/databases/SQLite).
+
+  On Oracle, however, such a query was, until 12c, quite a nuisance. 12c, finally, comes with the *row limiting clause* which makes it acceptably easy to query the first n records
+
+  { test data
+
+    First, we need to create a table with test data:
+  
+    gh|oracle-patterns|/SQL/select/top_n/data.sql||
+
+  }
+  { select first row only
+
+    The `select first row only` does exactly that:
+
+    gh|oracle-patterns|/SQL/select/top_n/12c-first-row.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+code }
+
+  }
+  { select first n rows only
+
+    The `select first n rows only` selects the first n rows.
+
+    In the following example, there's an ambiguity: the third row might be where the `num` 3 is translated to german (`drei`) or where it is english (`three`).
+
+    gh|oracle-patterns|/SQL/select/top_n/12c-first-3-rows.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+         2 deux       fr
+         3 three      en
+code }
+
+  }
+  { select first 3 rows with ties
+
+    With `select first n rows with ties`, this ambiguity can be resolved
+
+    gh|oracle-patterns|/SQL/select/top_n/12c-first-3-rows-with-ties.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+         2 deux       fr
+         3 three      en
+         3 drei       de
+code }
+
+  }
+  { select m rows starting at the nth record
+
+    With `offset m rows fetch next n rows only`, the n records, starting at the mth record, can be fetched:
+
+    gh|oracle-patterns|/SQL/select/top_n/12c-offset-4-next-2.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         4 vier       de
+         5 cinque     fr
+code }
+
+  }
+  { Select a percentage rather than a fixed amount of rows
+
+    With `fetch first n percent rows only`, it can be stated how many percent of the result set should be returned:
+
+    gh|oracle-patterns|/SQL/select/top_n/12c-30-pct.sql||
+
+  }
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+         2 deux       fr
+         3 three      en
+code }
+
+
+}
+{ 11g -- rownum
+
+  With Orcle 11g, the rownum pseudocolumn was needed.
+
+  { The wrong way
+
+    The following approach is (most probably) wrong (and returnes something different than was intended) because Oracle first evaluates the `where` clause and *then* applies the `order by`. 
+
+    gh|oracle-patterns|/SQL/select/top_n/rownum-wrong.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+         4 vier       de
+         6 six        en
+code }
+
+  }
+  { Inner query
+
+    The following approach is better. With the *inner query*, Oracle is forced to first evaluate the `order by` clause. The result set is *then* passed
+    to the *outer query* where the `where rownum` condition is applied.
+
+    gh|oracle-patterns|/SQL/select/top_n/rownum-wrong.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         1 one        en
+         2 deux       fr
+         3 three      en
+code }
+
+  }
+  { Paging - wrong again
+
+    Unfortunately, the approach with the inner query does not allow for paging (selecting rows n through m):
+
+    gh|oracle-patterns|/SQL/select/top_n/rownum-paging.sql||
+
+    This query returns *nothing*!
+
+    This is because `rownum` never reaches 4 because `rownum` only increases when a row is returned.
+
+  }
+  { Paging with analytical functions
+
+    Paging, however, is possible with analytical functions, such as `row_number()`
+
+    gh|oracle-patterns|/SQL/select/top_n/row_number-paging.sql||
+
+code {
+       NUM TXT        LN
+---------- ---------- --
+         3 drei       de
+         4 vier       de
+         5 cinque     fr
+code }
+
+  }
+
+}
+
+{ Cleaning up
+
+  gh|oracle-patterns|/SQL/select/top_n/clean-up.sql||
+
+}
+
+
+sa:
+  → http://www.adp-gmbh.ch/ora/sql/analytical/top_n.html
