@@ -39,6 +39,98 @@ $ SQL Server
 
   Apparently, the SQL-SMO API allows programmers to administer SQL Server in their applications. 
 
+  `sp_who`
+
+code {
+use database_name
+go
+code }
+
+code {
+if object_id('dbo.my_procedure', 'P') is not null
+   drop procedure dbo.my_procedure
+go
+code }
+
+code {
+create procedure dbo.my_procedure (
+      @param_one nvarchar(42),
+      @param_two nvarchar(20)
+)
+as
+  set nocount on
+  
+  select …
+  where
+    field_one = @param_one and
+    field_two = @param_two;
+
+  set nocount off
+code }
+
+code {
+c:\> → development/databases/SQL-Server/tools-utilities/sqlcmd
+:setvar name Rene
+:setvar bla  moreBla
+exec dbo.my_procedure $(name), $bla)
+go
+code }
+
+code {
+select top(5)
+  col_1,
+  col_2,
+  col_3
+from
+  tab;
+go
+code }
+
+  { Killing a session
+
+code {
+c:\> → development/databases/SQL-Server/tools-utilities/sqlcmd -A
+select blocked from sys.dm_exec_requests where blocked <> 0;
+go
+.... some numbers returned ...
+kill 42
+go
+code }
+
+  }
+  { VB Script
+
+code {
+set oServer = createObject("SQLDmo.SqlServer")  
+
+oServer.loginSecure = true  
+oServer.connect "(local)"  
+
+…
+
+oServer.disconnect  
+set oServer = nothing  
+code }
+
+  Apparently obsoleted in next release.
+
+  }
+
+}
+{ Backing up the database
+
+code {
+backup database[$(db)] to disk='$(backup_file)'
+code }
+
+}
+{ XML
+
+code {
+:xml on
+select …
+code }
+
 }
 
 sa:

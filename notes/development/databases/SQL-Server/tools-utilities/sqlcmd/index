@@ -13,10 +13,142 @@ code {
 C:\> sqlcmd
 code }
   
-  In order to connect to another instance, use the `-S` flag
+  In order to connect to another instance, use the `-S` option.
 
 code {
 C:\> sqlcmd -S Hostname\InstanceName
 code }
 
+  If the instance is running on the same Server, instead of `Hostname`, a dot can be used:
+ 
+code {
+C:\> sqlcmd -S .\InstanceName
+code }
+
+}
+{ Specify a script name
+
+  An SQL Script can be specified with the `-i` option
+
+code {
+C:\> sqlcmd -S Hostname\InstanceName -i f:\project\some\script.sql
+code }
+
+  Other input options are `-Q` and `-q`.
+
+}
+{ Writing output to a file
+
+  An output file can be stated with the `-o` option
+
+code {
+C:\> sqlcmd -S Hostname\InstanceName -i f:\project\some\script.sql -o f:\project\output\file.dat
+code }
+
+}
+{ Authentification options
+
+  Credentials for authentification to the Server can be specified with `-E`, `-U` and `-P`.
+  
+  `-E` (use Windows authentification) is the default.
+
+}
+{ Use a dedicated administrative connection
+
+  With the `-A` option, a dedicated administrative connection (DAC) can be established.
+
+}
+{ Printing (echoing) text
+
+  gh|about-MSSQL|/tools/sqlcmd/print.sql||
+
+}
+{ Setting variables
+
+  gh|about-MSSQL|/tools/sqlcmd/setvar.sql||
+
+}
+{ Reading (sourcing) another file
+
+  Another file can be read with the `:r` command.
+  gh|about-MSSQL|/tools/sqlcmd/read-file.sql||
+
+  Variables are passed to the read file
+  gh|about-MSSQL|/tools/sqlcmd/file-to-read.sql||
+
+}
+{ Connecting to another instance #connect
+
+  With `:connect`, it's possible to connect to another → development/databases/SQL-Server/architecture/instance
+
+code {
+:connect Hostname\InstanceName
+code }
+
+}
+{ Execute ad-hoc statements
+
+  With the `-q` and `-Q` option, »ad-hoc statements« can be executed, that is: statements that are entered in `cmd.exe`:
+
+code {
+C:\> sqlcmd -q sp_who
+exit
+code }
+
+code {
+C:\> sqlcmd -Q sp_who
+exit
+code }
+
+Both execute the `sp_who` stored procedure.
+
+The difference between `-q` and `-Q` is that `-q` does not terminate the sqlcmd session after executing the given statement, so it must be explicitely exited. `-Q` just executes the specified statement and automatically exits.
+
+}
+{ Checking errorlevel in scripts
+
+  When a script terminates with an error, it sets the corresponding `%errorlevel%`.
+  
+  This can be checked in a `.bat` file.
+
+  { run-sql-script.bat
+
+    This batch script tries to run the script that is passed as argument.
+
+    If `sqlcmd` encounters an error, it immediatly returns (because of the `-b` option) and sets `%errorlevel%`. This
+    can be checked by the script
+
+    gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/run-sql-script.bat||
+
+    The at signs in front of each command prevent → Windows/cmd-exe from echoing the command when being run.
+
+  }
+  { script-with-error.sql
+
+    The following script contains an error.
+
+    gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/script-with-error.sql||
+
+  }
+  { script-without-error.sql
+
+    This script should be fine
+
+    gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/script-without-error.sql||
+
+  }
+  { exit-with-errorcode.sql
+
+    This script `:exit`s with a specific errorcode
+
+    gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/exit-with-errorcode.sql||
+
+  }
+  { run-sql-scripts.bat
+
+    `run-sql-scripts.bat` (note the plural) runs the three scripts.
+
+    gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/run-sql-scripts.bat||
+
+  }
 }
