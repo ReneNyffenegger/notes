@@ -1,0 +1,73 @@
+$ Oracle: return a »table« from a function
+
+With → development/databases/Oracle/PL-SQL/collection-types[collections] and the → development/databases/Oracle/SQL/table function, a function can return a table that can be queried in an
+SQL statement. This is demonstrated in the following example.
+
+{ Record type
+
+  First, we need to create a *record type*. In this example, the records consist of two attributes: `i`, a number and `n`, a varchar2.
+
+  The record type is created with `create type`:
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/create-record-type.sql||
+
+}
+{ Table type
+
+  Based on the record type, we can now create a table type.
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/create-table-type.sql||
+
+}
+{ Function
+
+  With the table type, we're ready to create a function.
+
+  Note: the function returns a `t_table`.
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/create-function.sql||
+
+}
+{ Using the function
+
+  In order to use the function's returned value as a table in a SQL statement, we have to enclose
+  the function within the → development/databases/Oracle/SQL/table statement. From the SQL's perspective, the `table(…)` construct
+  behaves as though it were an actual table.
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/select-from-function.sql||
+
+}
+{ Using bulk collect
+
+  The previous function is rather boring in that it returns the same result set each time it is
+  called.
+
+  The following function makes that a bit more dynamic. It takes a paramter that specifies
+  the maximum count of records to be returned.
+
+  Then, it uses `rownum` and `bulk collect` to select a result set into a variable of type `t_table`
+  and returns it.
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/bulk-collect.sql||
+
+}
+{ Using the function
+
+  Again, this function is used with the `table(…)` construct:
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/select-from-function-2.sql||
+
+}
+{ Cleaning up
+
+  Dropping the functions and record types to clean up:
+
+  gh|oracle-patterns|/PL-SQL/CollectionTypes/return-table-from-function/clean-up.sql||
+
+}
+{ Thanks
+
+  Thanks to *Vikram Singh Rathore* for a suggestion for this page.
+
+}
+sa:
+  → http://www.adp-gmbh.ch/ora/plsql/poor_mans_text_index.html[Poor man's text index in Oracle] is an example that uses this technique to search in the middle of words in a table. (ie `where filed like '%word%'`).
