@@ -178,17 +178,17 @@ sub process_page { #_{
 #    $debug = 0;
   }
 
-  if (substr($file_name_only_os, 0, 1) eq '.' or
+  if (substr($file_name_only_os, 0, 1) eq '.' or #_{
       substr($file_name_only_os, 0, 2) eq '_.') { # Windows vim swap files
 
       dbg('process_page: filename starts with . or _, returning');
       return;
-  }
+  } #_}
 
-  if (-M $last_run_file_os_path_abs < -M $input_filename_os) {
+  if (-M $last_run_file_os_path_abs < -M $input_filename_os) { #_{
     dbg("process_page: returning because older");
     return;
-  }
+  } #_}
 
 # 2017-01-27 directories might be named exactly »svg«...
  if ($file_name_only_os ne 'svg' and $file_name_only_os ne 'png' and $file_name_only_os ne 'jpg') { #_{
@@ -230,6 +230,7 @@ sub process_page { #_{
   my $aka  = '';
   my $wp   = '';
   my $ul   = 0;
+  my $meta_robots_no_index = 0;
 
   DIRECTIVES: while ($line = <$f>) { #_{ 1st Iterate over directives
 
@@ -237,6 +238,7 @@ sub process_page { #_{
 
     if ($line =~ /^\$ *(.*) *$/) { $title = $1; next; }
     if ($line =~ /^\@ *(.*) *$/) { $title_intern = $1; next; }
+    if ($line =~ /^- *$/) { $meta_robots_no_index=1; next; }
     if ($line =~ /^abbr: *(.*) *$/) { $abbr = $1; next; }
     if ($line =~ /^aka: *(.*) *$/)   { $aka  = $1; next; }
     if ($line =~ /^wp *(.*) *$/   ) { $wp   = $1; next; }
@@ -260,7 +262,6 @@ sub process_page { #_{
     { use bytes;
       $length_line = length($line);
     }
-#   seek($f, -length($line), 1) or die "\n$!\nline = $line, length = " . length($line); # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html
     seek($f, -$length_line, 1) or die "\n$!\nline = $line, length = " . $length_line; # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html // http://perlmeme.org/howtos/using_perl/length.html
 
   } #_}
@@ -288,7 +289,8 @@ sub process_page { #_{
   my $out;
   if ($pass == 2) {
     print "opening html $url_path_abs\n";
-    $out = open_html( $url_path_abs     , $title, $styles);
+
+    $out = open_html($url_path_abs, $title, $styles, $meta_robots_no_index);
   }
 
   if ($pass == 2 && $aka) { #_{
@@ -934,7 +936,8 @@ sub process_index { #_{
   }
 
   my $html;
-  $html = open_html('/notes/index.html', 'Notes', '');
+  $html = open_html('/notes/index.html', 'Notes', '', 0);
+  
 
 
   for my $page (sort {lc($notes::index{$a}{title}) cmp 
@@ -948,8 +951,6 @@ sub process_index { #_{
   close_html($html, '');
 
   if ($target_env eq 'web') {
-#   2016-08-01
-#   RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index$notes::html_suffix");
     RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index.html");
   }
 } #_}
@@ -981,9 +982,10 @@ sub end_div_t { #_{
 
 sub open_html { #_{
 
-  my $input_filename_os = shift;
-  my $title             = shift;
-  my $styles            = shift;
+  my $input_filename_os    = shift;
+  my $title                = shift;
+  my $styles               = shift;
+  my $meta_robots_no_index = shift;
 
   my $styles_='';
 
@@ -1007,12 +1009,17 @@ sub open_html { #_{
   }
 
   my $notes_root = RN::url_path_abs_2_url_full('/notes/');
-# print "notes_root: $notes_root (for js, css etc)\n";
+
+  my $meta_robots = '';
+
+  if ($meta_robots_no_index) {
+    $meta_robots = "\n<meta name=\"robots\" content=\"noindex\">";
+  }
 
   print $out qq{<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">$meta_robots
 <title>$title</title>
 <link rel="stylesheet" type="text/css" href="${notes_root}notes.css">$styles_
 <script src='${notes_root}q.js'></script>
