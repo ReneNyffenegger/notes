@@ -1,35 +1,80 @@
 $ .htaccess
 
-Create a 301 (Moved Permanetly) redirection. Note: the redirected path seems to be required to be statet absolutely, even if the `.htaccess` files is placed
-in the same directory where the redirected ressource is stored.
+{ Create a 301 (Moved permanently) redirection
+
+
 code {
 RewriteEngine On
 Redirect 301 /path/to/ressource.html http://renenyffenegger.ch/notes/development/Apache/Server/htaccess
 code }
-(See also → development/web/HTML/redirection)
 
-Serve `handler.php` no matter what was requested
+  Note: the redirected path seems to be required to be statet absolutely, even if the `.htaccess` files is placed
+  in the same directory where the redirected ressource is stored.
+
+  See also → development/web/HTML/redirection.
+
+}
+
+{ Serve handler.php no matter what was requested
+
+With the following snippet, any request will be served by `handler.php`.
+
 code {
 RewriteEngine on
 RewriteRule ^.* handler.php
 code }
 
-If url is a path only, Serve *file.one* if existing else serve *file.two* (if existing):
-code {
-DirectoryIndex file.one file.two
-code }
+Within the → development/web/php[PHP] script, the requested → development/web/URI-URL-URN-IRI-URC#uri[URI] can be accessed with `$_SERVER['REQUEST_URI']`.
 
-Force files without suffix to be served as `text/html` files:
+}
+{ DirectoryIndex
+
+  If url is a path only, Serve *file.one* if existing else serve *file.two* (if existing).
+
+  code {
+  DirectoryIndex file.one file.two
+  code }
+
+}
+
+{ Force files without suffix to be served as text/html files
+
+Without suffix, Apache is apparently unable to determine a → development/web/Multipurpose-Internet-Mail-Extensions[MIME] type.
+
+In order to force the MIME type for files without suffix, the following snippet should do:
+
 code {
 <FilesMatch "^[^\.]+$">
   ForceType text/html
 </FilesMatch>
 code }
 
-Let Apache serve suspicious files with names like → tools/wget, too.
+}
+
+{ Let Apache serve suspicious files with names like wget, too.
+
+For secuirity reasons, Apache does by default not really like to serve URIs that contain the word → tools/wget etc.
+
+This behaviour can be turned off with the following snippet:
+
 code {
 <IfModule mod_security.c>
   SecFilterEngine Off
   SecFilterScanPOST Off
 </IfModule>
 code }
+
+}
+{ Redirect http to https
+
+Redirect a request to `http://abc.yz/foo/bar.html` to `https://abc.yz/foo/bar.html`.
+
+In order to take effect for any url, the following .htaccess must pe put in the root directory.
+
+code {
+RewriteEngine On
+RewriteCond %{SERVER_PORT} !^ 443 $
+RewriteRule (.*) //%{HTTP_HOST}/$1 [L]
+code }
+
+}
