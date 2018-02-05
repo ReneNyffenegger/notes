@@ -5,10 +5,60 @@ The most ubiquitous *distributed* file system - one of the oldest still in use.
 An *NFS Server* lets a porition of its local file system be accessed by other nodes. These nodes (the *clients*)
 mount that portion.
 
+{ Prerequisites
+
+  All network → Linux/user[users] have the same UID.
+  
+
+}
+{ Configuration
+
+  { Server Access control
+
+    The clients that are allowed to access files on the servers need to be entered into → Linux/fhs/etc/exports.
+
+    After modifying `/etc/exports`, the file needs to be re-read:
+code {
+sudo exportfs -ra
+code }
+    Alternatively, the server might be → #restart-nfs-server[restarted].
+
+    The NFS server also respects → Linux/fhs/etc/hosts_allow and → Linux/fhs/etc/hosts_deny.
+
+  }
+
+}
+{ Mounting NFS on the client
+
+code {
+sudo mount $NFS_SERVER:/home/rene $MOUNTPOINT
+code }
+
+}
+{ Showing the export list
+
+code {
+showmount -e
+code }
+
+On the client:
+code {
+showmount -e $NFS_SERVER
+code }
+
+
+}
+{ Restarting the server #restart-nfs-server
+
+code {
+sudo → Linux/fhs/etc/init_d/nfs-kernel-server restart
+code }
+
+}
 { Advantage
 
-The *advantage* for the client is that he does not be aware of his using NFS, he can use `open`, `close` etc as
-he does with his local files.
+  The *advantage* for the client is that he does not be aware of his using NFS, he can use `open`, `close` etc as
+  he does with his local files.
 
 }
 { Limitations #limitations
@@ -26,4 +76,27 @@ he does with his local files.
 
   → development/Apache/Hadoop/HDFS tries to solve these limitations.
 
+  A further perceived limitation might be that → Linux/filesystem/GVfs[GVfs] is not supported.
+  
 }
+{ Installation
+
+  { Server
+
+    → Linux/distributions/Ubuntu:
+code {
+sudo apt-get install nfs-kernel-server
+code }
+
+  }
+  { Client
+
+code {
+sudo apt-get install nfs-common
+code }
+
+  }
+
+}
+sa:
+  → Linux/fhs/etc/default/nfs-kernel-server
