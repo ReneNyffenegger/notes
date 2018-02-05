@@ -2,12 +2,60 @@ $ Shell command: free
 @ free
 
 
-Determine size of memory (`-m`: in megabytes)
+
+~free~:  `grep /proc/meminfo 'MemFree\|SwapFree'` (Sometimes slightly different. Because of delay between executing commands?)
+
+~shared~: used by → Linux/filesystem/filesystems#tmpfs
+-
+`grep Shmem /proc/meminfo`
+
+~cache~: page cache and slabs.
+-
+`grep '^Cached:\|Slab /proc/meminfo`
+
+~buffers~: used for kernel buffers
+-
+`grep Buffers /proc/meminfo`
+
+~available~: An *estimation* on how much memory a new → Linux/kernel/process might allocate.
+-
+`grep MemAvailable /proc/meminfo`
+
+~total~: `cat → Linux/fhs/proc/meminfo | → Linux/shell/commands/grep MemInfo`
+-
+total = used + free + buffers + cache
+
+{ Actual free memory
+
+  Since *cache* (and also *buffers*?) are used to speed up hard disk access, the *actual free memory*
+  calculates as
+  -
+  free + cache + buffers
+
+}
+{ Determine size in megabyes
+
+  `-m`: megabytes
+
 code {
 free -m
 code }
 
+}
+{ -w: wide
+
+`-w` is the wide option: the `buff/cache` column is shown seperatly as `buffers` and `cache`.
+
+code {
+free -w
+code }
+
+}
+
 sa:
   → Linux/fhs/proc/meminfo
 
+  → Linux/memory
+
   → Linux/shell/commands/index[Shell commands]
+
