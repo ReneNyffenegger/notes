@@ -433,7 +433,7 @@ sub process_page { #_{
 
       dbg ('Starting code');
 
-      die if $in_code;
+      die "In code, line = $." if $in_code;
       $in_code = 1;
 
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
