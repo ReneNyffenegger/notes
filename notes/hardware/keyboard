@@ -12,17 +12,20 @@
 
   { Keycode #keycode
 
+    A keycode is a number in the range between 8 and 255 which represents a physical (or logical) key.
+
     The kernel parses the stream of scancodes and maps them to a series of *keycodes* (key press/release events).
     -
     → Linux/shell/commands/showkey[`showkey`] apparently is also able to display those keycodes.
 
-    The mapping can be viewed with → Linux/shell/commands/getkeycodes[`getkeycodes`].
+    In → Linux/X, the translation table from (evdev?) scancocdes to keycodes seems to be stored in
+    → Linux/fhs/usr/share/X11/xkb/keycodes/evdev
 
+    In a console, the mapping can be viewed with → Linux/shell/commands/getkeycodes[`getkeycodes`].
 
     ? In Linux, this seems to happen in → Linux/kernel/source/drivers/tty/vt/keyboard_c.
 
     → Linux/X[X] produces a keycode when a key is pressed and another when the key is released again.
-
 
   }
 
@@ -30,7 +33,9 @@
 
     Depending on which →#modifier-keys are pressed, the keycodes are mapped to keysyms.
 
-    A *keysym* represents a keyboard action. Each key can be bound to up to 256 keysyms (see → Linux/kernel/keymap#keycode-definition[keymap - keycode definition])
+    A keysym is a 32-bit integer of which the the three most significant bits are always 0, so that the number space is 29 bits.
+
+    A *keysym* is an encoding of a symbol on the cap of a kay; it represents a keyboard action. Each key can be bound to up to 256 keysyms (see → Linux/kernel/keymap#keycode-definition[keymap - keycode definition])
     -
     Such actions can be
       • outputting character codes
@@ -41,10 +46,22 @@
       • etc
     The action chosen is dependent on the →#modifier-keys[modifier keys] pressed concurrently with the key.
     -
-    The complete list can be queried with `→ Linux/shell/commands/dumpkeys -l`
-
+    In a console, the complete list can be queried with `→ Linux/shell/commands/dumpkeys -l`
+    -
     In X, this is done by →Linux/shell/commands/xmodmap.
 
+    With → Linux/shell/commands/X/xev[`xev`], it possible to display keycode and keysym: `xev -event keyboard`.
+
+    { Special keysyms
+
+      There are two special keysyms: `NoSymbol` and `VoidSymbol` which indicate the absence of symbols.
+
+    }
+    { Names of keysyms
+
+? A possible name for a keysym is for example `CAPS LOCK`.
+
+    }
     { X11 #keysym-x11
 
       The X11 standard defines keysym codes. these codes are 29 bit integer values (that identify
@@ -101,6 +118,15 @@
   Shift, AltGr, Control, Alt, ShiftL, ShiftR, CtrlL, CtrlR, CapsShift
 
 }
+{ Number of keys
+
+  The number of keys apparently defines the keyboard model (pc104, pc105 …, compare → Linux/fhs/usr/share/X11/xkb/rules/xorg_lst)
+
+  The 105 key keobard (apparently european layout) seems to be like the 104 key keboard (us layout) with an additional key between the *left shift* key and the *z* (or *y*) key.
+
+}
 
 sa:
   → Linux/kernel/keymap
+
+  → Linux/fhs/usr/share/X11/xkb/rules/xorg_lst
