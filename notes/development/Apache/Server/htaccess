@@ -70,11 +70,17 @@ code }
 Redirect a request to `http://abc.yz/foo/bar.html` to `https://abc.yz/foo/bar.html`.
 
 In order to take effect for any url, the following .htaccess must pe put in the root directory.
+code {
+RewriteEngine On
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ https://renenyffenegger.ch/%{REQUEST_URI} [R,L]
+code }
 
+The following snippet didn't work in subdirectories. Apparently the → development/regular-expressions[regular expression] only matches the last part of the URI:
 code {
 RewriteEngine On
 RewriteCond %{SERVER_PORT} !^ 443 $
-RewriteRule (.*) //%{HTTP_HOST}/$1 [L]
+RewriteRule (.*) https://%{HTTP_HOST}/$1 [L]
 code }
 
 }
