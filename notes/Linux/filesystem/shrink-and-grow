@@ -1,0 +1,172 @@
+$ Shrink and grow filesystems and partitions in Linux
+
+These example scripts try to show how filesystems and partitions can be shrunk and grown if a partition has become too little to accomodate for larger files.
+
+We're going to create a few partitions, most of the 10 M in size. The goal will be to grow the third partition to 15 M. In order to be able to that, the fourth
+partition needs to be shrank to 5 MB and then moved »to the right«.
+
+{ Variables
+
+  First, we need to define a few variables.
+
+ `device` is the harddisk on which these examples are to be run. If you run the following code, please make sure that you choose a hard disk with no important data on it!
+
+ `exec_parted` is how → Linux/shell/commands/parted is to be executed. It contains a reference to `$device` to make sure that we're not accidentally destroy the data on
+ → Linux/fhs/dev/sdX[`/dev/sda`].
+
+ `mountdir` specifies the directory where we're going to → Linux/shell/commands/mount[`mount`] the filesystems on.
+
+ Finally, `part_n_start` define, *in bytes*, where a partition starts on `$device`. The last partition also needs `part_7_end`.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/variables||
+
+}
+{ Removing each partition
+
+  In order to start with the example, we remove each partition on the hard disk.
+
+  I believe this is technically not really necessary, because in the next step we're going to create a partition table anyway. But it shows how to use the `rm` command of `parted`.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/remove-partitions||
+
+}
+{ Creating a partition table
+
+  Before we can create the partitions we need to initialise the hard disk with a partition table.
+  
+  I probably could choose the *partition type* `msdos`, but I go with the more modern `gpt`.
+
+  However, before I create the partition table, I *really* (and possibly paranoidly) want to erase evertything that reminds me of the past of the hard disk.
+  -
+  So, I use → Linux/shell/commands/dd[`dd`] to erase the start (and thus the old partition table) of the hard disk.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/create-partition-table||
+
+}
+{ Creating the partition
+
+  With `gparted`'s `mkpart` command I can create on partition after another.
+
+  I use the previously declared variables to specify the start and the end for each partition.
+  -
+  Note also the `b` after each start and end number. It signifies that the numbers are to be interpreted in bytes.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/create-partitions||
+
+}
+{ Printing the partition table
+
+  Now that the partition table has been created, I want to print it. This is also possible with `gparted`.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/print-partition-table||
+
+}
+{ Formatting and mounting the partitions
+
+  We're now ready to mount and format (command `mkfs.ext4`) the new partitions.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/format-and-mount-partitions||
+
+}
+{ Creating some files
+
+  We're going to create some files.
+
+  Note especially partition 4 (`/dev/${device}4`) where I create two 4M files.   
+
+  After creating those huge files, I create a rather smallisch `readme.txt` file. This file is placed at the »end« of the file system (because the
+  two 4M files occupy most of the file system.
+
+  Then I drop one of the 4M files to make room when we're going to shrink this filesystem
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/create-some-files||
+
+}
+{ Unmount partitions
+
+  Going into »administration mode«. We unmount the partitions so that we're able to shrink and/or grow them.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/unmount-partitions||
+
+}
+{ Shrinking filesystem on partition 4
+
+  Before we can grow partition 3, we need to make room for it. So we shrink partition 4 to 5 MB.
+
+  Yet, before we can shrink the partition we need to shrink the filesystem.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/shrink-filesystem||
+
+}
+{ Creating a file system image
+
+  The fileystem in partition 4 is now 5 M in size. We store it away so that we can
+  restore it again when the partition is shrunk.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/create-filesystem-image||
+
+}
+{ Moving partition 4
+
+  The fourth partition is not actually shrunk in one step: it is first deleted entierly (`rm`) and
+  then recreated with a different start and the same end as it previously had.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/shrink-partition||
+
+}
+{ Restoring the filesystem image
+
+  Again with `dd`, the file system image we created is restored into the moved partition;
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/restore-filesystem-image||
+
+}
+{ Grow partition 3
+
+  After moving the fourth partition up, we have enough room for the third partition go grow.
+
+  Again, we first delete it entirely and resize it.
+
+  Note: removing the partition does no harm to the filesystem that is stored in it. Since the
+  filesystem will physically reside in the same place on the harddisk after recreating the partition, there is no need
+  to take an image file. 
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/grow-partition||
+
+}
+{ Grow filesystem
+
+  The partition is now 15 M, but the filesystem is still 10 M. So, we have to grow it as well.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/grow-filesystem||
+
+}
+{ Mounting again
+
+  After we have finished the shrinking and growing, we can mount the filesystems again:
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/mount-again||
+
+}
+{ Writing a large file
+
+  Since the third partition is now 15 M, we can write a file up to ca 12 M (some space is needed
+  by the filesystem itself which we cannot access).
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/write-large-file||
+
+}
+{ Showing the files and contents
+
+  Let's check if the files are still valid and intact and if the 12 M file is indeed that size.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/cat-files||
+
+}
+{ Unmounting again
+
+  In order to release the hard disk, we're unmounting the harddisk again.
+
+  gh|about-filesystems-and-partitions|/shrink-and-grow/unmount-partitions||
+
+}
