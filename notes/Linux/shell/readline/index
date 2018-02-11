@@ -25,7 +25,39 @@ code }
   Apparently, it's not possible to associate a key sequence to commands in → Linux/shell/readline/initialization-file[inputrc like initialization files].
 
 }
+{ Programmatically change current line
 
+  With `bind -x`, not only an ordinary executable, but also a shell function can be called. The function can then read and write the variables `READLINE_POINT` (zero based position of cursor on line)
+  and `READLINE_LINE` (text of current line).
+
+  In the following example, a → Linux/shell/bash/variables/regular-expressions and → Linux/shell/bash/variables/regular-expressions#bash_rematch are used to cut everything after the last slash.
+  -
+  This might be useful when doing something like `cd /foo/bar/baz/xyz` and then finding out that `xyz` was the wrong directory. `ctrl-q` goes then back one directory.
+
+code {
+removeLastPartOfPath() { # {
+
+  # If READLINE_LINE ends on something like $SOMETHING/foo/bar/baz
+  # $SOMETHING/foo/bar is assigned to READLINE_LINE.
+
+  if [[ $READLINE_LINE =~ (.*)/ ]]; then
+     READLINE_LINE="${BASH_REMATCH[1]}"
+  fi
+} # }
+
+# Trying to bind ctlr-q to removeLastPartOfPath {
+# 
+#     ctrl-q is used by the tty for flow control (xon/xoff).
+#     I couldn't care less (at least momentarely), so
+#     flow control is turned off (stty -ixon) in order to make it possible
+#     to bind ctrl-q to a function
+#
+stty -ixon
+
+bind -x '"\C-q": removeLastPartOfPath'
+code }
+
+}
 { Modes
 
   Two modes: vi (`set -o vi`) and emacs (`set -o emacs`).
@@ -34,6 +66,8 @@ code }
 { Various
 
   `ctrl-t` exchanges the letter before the cursor with the second letter before the cursor.
+
+  In order to bind `ctrl-q`, flow control must be turned off (`→ Linux/shell/commands/stty[stty -ixon]`).
 
 }
 
