@@ -26,21 +26,31 @@ Use
 
   Using → Linux/shell/commands/parted
 
-  The following command creates two partitions in one go:
+  TODO: create a msdos partition table...
+
+
+{ TODO: creating a UEFI ESP whatever thingy
 code {
-→ Linux/shell/commands/parted --align=optimal -s → Linux/fhs/dev/sdX[/dev/sda] 'mklabel gpt mkpart primary 1MiB 5GiB mkpart primary 5GiB 100% unit GiB p'
+→ Linux/shell/commands/parted --align=optimal -s → Linux/fhs/dev/sdX[/dev/sda] 'mklabel gpt     mkpart primary 1MiB 1GiB       mkpart primary 1GiB 6GiB        mkpart primary 6GiB 100%     t 1 boot      unit GiB    p'
 code }
+
+  `-s` is the flag for scripted. So I don't have to confirm anything or so, just press enter.
 
   `mklabel gpt` creates a new → hardware/harddisk/GPT[GPT partition table]. It erases the previous partition table!!!
 
-  `mkpart primary 1MiB 5GiB` creates a (primary) partition that's going to be used for → Linux/swap-space/index[swap]. It's size is 5GiB minus 1MiB.
+  `mkpart primary 1MiB 1GiB` creates a approx 1GiB (primary) partition that's going to be used for the EFI System Partition (ESP).
 
-  `mkpart primary  5GiB 100%` creates another partition on the rest of the harddisk (that is: `100%`) for the data.
+  `mkpart primary 1GiB 6GiB` creates a 5 GiB (primary) partition that's going to be used for → Linux/swap-space/index[swap]. It's size is 5GiB minus 1MiB.
+
+  `mkpart primary 6GiB 100%` creates another partition on the rest of the harddisk (that is: `100%`) for the data.
+
+  `t 1 boot` toggles the first partition's boot flag (partition type becomes `ef00`).
 
   `unit GiB` sets the unit for the …
 
   `p`, the following print command.
 
+}
 
 rem {
   Alternatively, ~sgadisk~ (A → hardware/harddisk/GPT[GUID partition table] (GPT) manipulator) might be chosen
@@ -62,8 +72,10 @@ rem }
 { Formatting and Initializing the partitions
 
 code {
-→ Linux/shell/commands/mkswap → Linux/fhs/dev/sdX[/dev/sda1]
-mkfs.ext4 /dev/sda2
+→ Linux/shell/commands/mkswap    → Linux/fhs/dev/sdX[/dev/sda2]
+# ??? mkfs.fat  /dev/sda1
+mkfs.fat  -F 32 -n EFIBOOT /dev/sda1
+mkfs.ext4 /dev/sda3
 → Linux/shell/commands/swapon -s /dev/sda1
 code }
 
@@ -77,11 +89,13 @@ code }
 
   Now that the partition is formatted, we need to mount it so that we can write the installation on it:
 code {
-→ Linux/shell/commands/mount /dev/sda2 /mnt
+→ Linux/shell/commands/mount /dev/sda3 /mnt
+mkdir /mnt/boot
+→ Linux/shell/commands/mount /dev/sda1 /mnt/boot
 code }
 
 }
-{ Connectint to internet
+{ Connecting to internet
 
   Since `pacstrap` (used below) needs an internet connection to get the most recent packages from a mirror, we need to start the internet:
 
@@ -89,11 +103,118 @@ code {
 wifi-menu
 code }
 
+Test the connection
+code {
+ping -c 1 8.8.8.8
+code }
+
+}
+{ Updating keyring
+
+  Apparently, when installing from an old `*.iso` file, the keyring(?) must be updated in order to suppress a *update error: key "4A1AFC345EBE18F8" could not be looked up remotely*.
+
+  This »problem« can be eliminated with
+
+code {
+pacman -Sy archlinux-keyring
+code }
+
 }
 { Start installation
 
 code {
 pacstrap /mnt base base-devel
+code }
+
+}
+{ Filling /etc/fstab
+
+  The → Linux/fhs/etc/fstab file (which is currently mounted to `/mnt/etc/fstab`) is (probably empty).
+
+  It can be filled with
+
+code {
+genfstab -U /mnt  >  → Linux/fhs/etc/fstab[/mnt/etc/fstab]
+code }
+
+  The `-U` flag uses UUIDs for source identifiers. By default, pseude filesystem mounts are excluded, so `-p` does not need to be specified.
+
+}
+{ chroot
+
+  Changing the root so as not to have to type `/mnt` every time.
+
+code {
+arch-chroot /mnt /bin/bash
+code }
+
+}
+{ Various things
+
+Specify the localtime
+code {
+→ Linux/shell/commands/ln -sf → Linux/fhs/usr/share/zoneinfo/[/usr/share/zoneinfo/]Europe/Zurich → Linux/fhs/etc/localtime
+code }
+
+Set the hardware clock
+code {
+→ Linux/shell/commands/hwclock --systohc --utc
+code }
+
+Specify the hostname
+code {
+echo PC-four > → Linux/fhs/etc/hostname
+code }
+
+Change root's password
+code {
+passwd
+code }
+
+}
+{ locale
+
+  Use an editor to uncomment desired lines in → Linux/fhs/etc/locale_gen and then run
+code {
+locale-gen > → Linux/fhs/etc/locale_conf
+code }
+
+Apparently, it can be done even more simple:
+code {
+echo LANG=en_US.UTF-8 > /etc/locale.conf
+code }
+
+}
+{ Install bootloader
+
+code {
+pacman -S grub
+grub-install /dev/sda
+code }
+returned `error: cannot find EFI directory'. What is an EFI directory???
+
+But with `--target=i386-pc`, it worked:
+code {
+pacman -S grub
+grub-install --target=i386-pc /dev/sda
+code }
+
+
+code {
+pacman -S syslinux
+syslinux-install_update -iam
+code }
+
+}
+{ Copy wifi connection
+
+exit to leave chroot environment:
+code {
+exit
+code }
+
+code {
+cp → Linux/fhs/etc/netctl/[/etc/netctl]/tq84-wifi  /mnt/etc/netctl/tq84-wifi
 code }
 
 }
@@ -127,17 +248,7 @@ code }
 
 { Connect to the internet
 
-code {
-wifi-menu
-code }
 
-{ Test connection
- 
-code {
-ping -c 1 8.8.8.8
-code }
-
-}
 
 }
 
@@ -169,33 +280,20 @@ code }
 I am using wireless, so I add `wpa_supplicant` and `wireless_tools` (although I am not 100% sure if I need `wireless_tools`).
 
 code {
-  pacstrap /mnt base base-devel wpa_supplicant wireless_tools
+pacstrap /mnt base base-devel wpa_supplicant wireless_tools
 code }
 
 }
 
-{ Create /etc/fstab
 
-code {
-genfstab -p /mnt > /mnt/etc/fstab
-code }
 
-}
+
 
 
 { Some configuration
 
-code {
-# What does this do?
-→ Linux/shell/commands/hwclock --systohc --utc
-code }
 
 code {
-arch-chroot /mnt /bin/bash
-
-echo L2 > /etc/hostname
-
-ln -s /usr/share/zoneinfo/Europe/Zurich /etc/localtime
 
 locale-gen
 
@@ -210,13 +308,6 @@ code }
 
 }
 
-{ Change root password
-
-code {
-passwd
-code }
-
-}
 
 { Create initial ram disk
 
