@@ -5,20 +5,54 @@ Create a new → Linux/user[user] or update default new user information.
 
 It is a *low level utility*. Therefore, you might want to use → Linux/shell/commands/adduser.
 
-Use the `-m` flag to create the new user's → Linux/home-directory if it does not exist.
-
-If not invoked with `-s` to specify the shell, it assumes the value of `SHELL` variable in → Linux/fhs/etc/default/useradd.
-
-If not invoked with `-k`, the files from the `SKEL` variable in → Linux/fhs/etc/default/useradd (default: →Linux/fhs/etc/skel[/etc/skel/*]) are copied into the new user's home directory.
-
-A user is removed/deleted with →Linux/shell/commands/userdel.
-
 code {
-useradd -m rene
-passwd rene
+$ useradd -s /bin/bash -m  rene
 code }
 
+`-s` specifies the default shell for the new user. If not specified, it takes the value of `SHELL` variable in → Linux/fhs/etc/default/useradd.
+
+`-m` creates the new user's → Linux/home-directory if it does not exist.
+
+{ Adding a user to a group (for example sudo)
+
+  → Linux/shell/commands/usermod can be used to add an already created user to an already created group:
+code {
+$ usermod -a -G sudo rene
+code }
+
+  Make sure that → Linux/fhs/etc/sudoers is configured to → Linux/fhs/etc/sudoers#allow-sudo-group[allow users in the sudo group] to execute sudo commands.
+
+}
+{ Populating the users home directory (-k)
+
+  By default, the home directory of a new user is populated with the files from the `SKEL` variable in → Linux/fhs/etc/default/useradd (default: →Linux/fhs/etc/skel[/etc/skel/*]).
+
+  This directory can be overwritten with `-k /path/to/directory`.
+
+  In order to not create any files in the home directory, use `-k → Linux/fhs/dev/null`.
+
+}
+{ Not adding the user to the faillog and lastlog databases (-l) #l
+
+  When -l is specified, the user is not added to the → Linux/fhs/var/log/faillog[faillog] and
+  → Linux/fhs/var/log/lastlog[lastlog] databases.
+  
+
+}
+{ Changing the users password
+
+  After creating a user, the password for the user might be set with → Linux/shell/commands/passwd
+
+  code {
+useradd -m rene
+passwd rene
+  code }
+
+}
+
 sa:
+
+  A user is removed/deleted with →Linux/shell/commands/userdel.
 
   → Linux/shell/commands/groupadd
 
