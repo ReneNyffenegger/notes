@@ -1,12 +1,104 @@
+$ Installing arch linux
+
+
+{ Creating bootable USB stick / booting
+
+Download a `*.iso` file.
+
+Finding the USB device:
+code {
+→ Linux/shell/commands/lsblk
+code }
+
+Copy the `*.iso` file with → Linux/shell/commands/dd.
+
+code {
+  → Linux/shell/commands/dd bs=1M if=/path/to/downloaded.iso of=→ Linux/fhs/dev/sdX[dev/sdX]
+code }
+
+Put USB stick into PC where it needs to be installed and turn it on.
+
+Use 
+
+}
+
+{ Partitioning the hard disk
+
+  Using → Linux/shell/commands/parted
+
+  The following command creates two partitions in one go:
+code {
+→ Linux/shell/commands/parted --align=optimal -s → Linux/fhs/dev/sdX[/dev/sda] 'mklabel gpt mkpart primary 1MiB 5GiB mkpart primary 5GiB 100% unit GiB p'
+code }
+
+  `mklabel gpt` creates a new → hardware/harddisk/GPT[GPT partition table]. It erases the previous partition table!!!
+
+  `mkpart primary 1MiB 5GiB` creates a (primary) partition that's going to be used for → Linux/swap-space/index[swap]. It's size is 5GiB minus 1MiB.
+
+  `mkpart primary  5GiB 100%` creates another partition on the rest of the harddisk (that is: `100%`) for the data.
+
+  `unit GiB` sets the unit for the …
+
+  `p`, the following print command.
+
 
 rem {
+  Alternatively, ~sgadisk~ (A → hardware/harddisk/GPT[GUID partition table] (GPT) manipulator) might be chosen
 
-https://gist.github.com/mloskot/5995414
+code {
+→ Linux/shell/commands/sgdisk           \
+  -Z                                    \
+  -n 0:0:+512MiB  -c 0:Boot -t 0:EF00   \
+  -n 0:0:+15GiB   -c 0:Home -t 0:8300   \
+  -n 0:0:+15GiB   -c 0:Var  -t 0:8300   \
+  -n 0:+0:-2GiB   -c 0:Root -t 0:8300   \
+  -n 0:+0:-0      -c 0:Swap -t 0:8200   \
+  -p                                    \
+      /dev/sda
+code }
+rem }
 
-https://wiki.archlinux.de/title/Anleitung_f%C3%BCr_Einsteiger
-https://wiki.archlinux.de/title/UEFI_Installation
+}
+{ Formatting and Initializing the partitions
 
-https://wiki.archlinux.org/index.php/Beginners'_guide#UEFI.2FGPT
+code {
+→ Linux/shell/commands/mkswap → Linux/fhs/dev/sdX[/dev/sda1]
+mkfs.ext4 /dev/sda2
+→ Linux/shell/commands/swapon -s /dev/sda1
+code }
+
+Verify if swap space is used:
+code {
+→ Linux/shell/commands/swapon -s
+code }
+
+}
+{ Mount partition
+
+  Now that the partition is formatted, we need to mount it so that we can write the installation on it:
+code {
+→ Linux/shell/commands/mount /dev/sda2 /mnt
+code }
+
+}
+{ Connectint to internet
+
+  Since `pacstrap` (used below) needs an internet connection to get the most recent packages from a mirror, we need to start the internet:
+
+code {
+wifi-menu
+code }
+
+}
+{ Start installation
+
+code {
+pacstrap /mnt base base-devel
+code }
+
+}
+
+rem {
 
 
 { Misc
@@ -20,23 +112,6 @@ code }
 }
 
 
-
-{ Partitioning the hard disk
-
-
-code {
-sgadisk                                 \
-  -Z                                    \
-  -n 0:0:+512MiB  -c 0:Boot -t 0:EF00   \
-  -n 0:0:+15GiB   -c 0:Home -t 0:8300   \
-  -n 0:0:+15GiB   -c 0:Var  -t 0:8300   \
-  -n 0:+0:-2GiB   -c 0:Root -t 0:8300   \
-  -n 0:+0:-0      -c 0:Swap -t 0:8200   \
-  -p                                    \
-      /dev/sda
-code }
-
-}
 
 { Formatting the partitions
 
@@ -182,3 +257,14 @@ code }
 }
 
 rem }
+
+links:
+  → https://gist.github.com/mloskot/5995414
+  
+  → https://wiki.archlinux.de/title/Anleitung_f%C3%BCr_Einsteiger
+  -
+  → https://wiki.archlinux.de/title/UEFI_Installation
+  
+  → https://wiki.archlinux.org/index.php/Beginners'_guide#UEFI.2FGPT
+
+  → https://itsfoss.com/install-arch-linux/
