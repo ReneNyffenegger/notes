@@ -26,6 +26,31 @@ sudo -l -U fred
 code }
 
 }
+{ Not entering passwords
+
+  In order for the → Linux/user[user] fred not to have to enter a password when executing `sudo`, the following line can be added to the → Linux/fhs/etc/sudoers[sudoers] file:
+code {
+fred ALL=(ALL) NOPASSWD:ALL
+code }
+
+  Alternatively, a user can create a little shell script that echoes his password:
+code {
+#/bin/sh
+→ Linux/shell/bash/built-in/echo SecretGarden:w
+code }
+
+  He then has to store the path to this shell script in the → development/environment-variable[environment variable] `SUDO_ASKPASS`:
+code {
+export SUDO_ASKPASS=~/bin/password
+code }
+
+When he then executes sudo with the `-A` option, sudo will execute the shell script and take the password from this shell script:
+code {
+sudo -A do-something.sh
+code }
+
+
+}
 { Sessions
 
   A sudo session might be recorded and then later replayed with → Linux/shell/commands/sudoreplay
