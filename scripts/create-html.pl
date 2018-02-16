@@ -817,9 +817,10 @@ sub process_page { #_{
 
           my $image_name = $1;
 
-          print "Found $image_name in dir $dirname_os\n";
-          my $image = getstore($url, $temp_dir . $image_name);
-          print "copyng to /notes/$dirname_os/$image_name\n";
+          print "Found $image_name in dir $dirname_os (url = $url)\n";
+          my $http_response_code = getstore($url, $temp_dir . $image_name);
+          print "http_response_code = $http_response_code\n";
+          print "copying to /notes/$dirname_os/$image_name\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
