@@ -16,6 +16,7 @@ cp -f ../res/notes.css ../res/q.js $out_dir
 # TODO: copy files to webserver directory
 
 rm $out_dir/.index
-find $out_dir -type f -not -name '*.svg' | xargs unix2dos -q
 
-diff -rq $out_dir expected
+# 2018-02-16: use diff -Z instead... find $out_dir -type f -not -name '*.svg' | xargs unix2dos -q
+
+diff -rqZ $out_dir expected
