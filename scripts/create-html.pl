@@ -59,10 +59,6 @@ else {
 }
 print "test = $test\n" if $debug;
 
-if (! $web and ! $test) {
-}
-else {
-}
 
 print "$0 -> notes::init\n" if $debug;
 notes::init(
@@ -357,7 +353,6 @@ sub process_page { #_{
 
 
       $in_table = 1;
-#     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
 
       if ($pass == 2) {
@@ -539,6 +534,7 @@ sub process_page { #_{
           $td = notes::replace_notes_link($td, $input_filename_os);
           $td = bold_italic($td);
           $td = bible_verse($td);
+          $td = code       ($td);
 
           print $out "'>$td</td>"
 
@@ -777,18 +773,13 @@ sub process_page { #_{
     }gex;
 
     #_}
-    #_{ bold, italic, verses
+    #_{ bold, italic, verses, code
     
     $line = bold_italic($line);
     $line = bible_verse($line);
     $line = sub_sup    ($line);
+    $line = code       ($line);
     
-
-
-    #_}
-    #_{ `
-
-    $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
 
     #_}
     #_{ Github source code (Must be at end, otherwise replacement of bold, italic etc kicks in!)
@@ -1227,6 +1218,13 @@ sub sub_sup { #_{
 
   return $line;
 
+} #_}
+
+sub code { #_{
+  my $line = shift;
+  return $line unless $pass == 2;
+  $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
+  return $line
 } #_}
 
 sub end_quote { #_{

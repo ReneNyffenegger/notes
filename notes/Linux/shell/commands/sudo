@@ -1,7 +1,63 @@
 $ Shell command: sudo
 @ sudo
 
+`sudo` executes a command as anonther user, called the *target user* which typically is → Linux/user/root.
+
 Becoming → Linux/root: `sudo -i`.
 
+{ Run a command as a specific user
+
+  In order to run a command as a different user than the target user, the `-u` flag must be specified:
+code {
+sudo -u fred → Linux/shell/commands/ls ~fred
+code }
+
+}
+{ Print alowed/forbidden commands
+
+What am I allowed to do?
+code {
+sudo -l
+code }
+
+Together with `-U username`, `-l` queries another → Linux/user[user's] permissions. To use `-U`, the `ALL` privilege is needed (or being → Linux/user/root).
+code {
+sudo -l -U fred
+code }
+
+}
+{ Not entering passwords
+
+  In order for the → Linux/user[user] fred not to have to enter a password when executing `sudo`, the following line can be added to the → Linux/fhs/etc/sudoers[sudoers] file:
+code {
+fred ALL=(ALL) NOPASSWD:ALL
+code }
+
+  Alternatively, a user can create a little shell script that echoes his password:
+code {
+#/bin/sh
+→ Linux/shell/bash/built-in/echo SecretGarden:w
+code }
+
+  He then has to store the path to this shell script in the → development/environment-variable[environment variable] `SUDO_ASKPASS`:
+code {
+export SUDO_ASKPASS=~/bin/password
+code }
+
+When he then executes sudo with the `-A` option, sudo will execute the shell script and take the password from this shell script:
+code {
+sudo -A do-something.sh
+code }
+
+
+}
+{ Sessions
+
+  A sudo session might be recorded and then later replayed with → Linux/shell/commands/sudoreplay
+
+}
+
 sa:
-→ Linux/shell/commands/index[Shell commands]
+  → Linux/shell/commands/index[Shell commands]
+
+  → Linux/fhs/var/log/sudo-io
