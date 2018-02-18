@@ -1,13 +1,20 @@
 abbr: GUID Partition Table
 
-GPT fixes some/many problems of → hardware/harddisk/MBR.
+→ hardware/UEFI/index[UEFI] needs a GPT, it does not work with an MBR-partitioned disk.
 
-GPT needs → hardware/UEFI/index.
+{ Fixing problems of MBR
+
+  GPT fixes two problems of → hardware/harddisk/MBR[MBR]:
+    • It's not limited to 2 TiB
+    • → hardware/UEFI[UEFI] does not boot from an MBR disk.
 
 
+}
 { Layout on harddisk
 
-  A GPT disk has still an → hardware/harddisk/MBR → hardware/harddisk/partition-table on the first sector of the disk (the *protective MBR*) to prevent MBR-only partitioniong tools from overwriting GPT disks.
+  A GPT disk starts with a 512 byte large *protective MBR* (where an ordinary → hardware/harddisk/MBR[MBR] would be) to to prevent MBR-only partitioning tools from overwriting GPT disks.
+  -
+  This protective MBR contains an entry to an inexisting 2 TiB large partition (with code `EE00`). Thas, the MBR-only partitioning tool thinks the entire disk is occupied.
 
 When executing `gdisk /dev/sda`, it might print (note the `Found valid GPT with protective MBR`):
 code {
@@ -27,6 +34,11 @@ code }
 The GPT is (usually?) in the 2nd sector (LBA 1).
 
 The first → hardware/harddisk/partition (usually) starts with sector 2048.
+
+}
+{ ESP
+
+  A GPT formatted harddisk must have one → hardware/UEFI/ESP[EFI system partition (ESP)].
 
 }
 
