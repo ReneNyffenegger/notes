@@ -3,14 +3,47 @@ $ /etc/inittab
 This it the toplevel configuration file for (→ Linux/init/System-V style) → Linux/init. It describes how the init process should set up the
 system in a certain *run-level*.
 
+Each meaningful line (that is not commented or empty) consists of for fields that are seperated by a colon (`:`).
+  • id. Each id must be unique.
+  • Linux/runlevel[runlevel] (which can be empty or be a concatenated list of multiple runlevels)
+  • action
+  • process
+
+{ Possible actions
+
+  Possible actions are:
+    • respawn
+    • wait
+    • once
+    • boot
+    • bootwait
+    • powerfail
+    • powerfailnow
+    • powerwait
+    • powerokwait
+    • ctrlaltdel
+    • off
+    • ondemand
+    • initdefault
+    • sysinit
+    • kbrequest
+
+}
+
 code {
 #
-#    The initdefault entry determines the initial
+#    The initdefault action determines the initial
 #    runlevel of the system.
 #
 id:3:initdefault:
+
+si::sysinit:→ Linux/fhs/etc/rc_d/init_d[/etc/rc.d/init.d]/rc S
+…
+1:2345:respawn:/sbin/agetty --noclear tty1 9600
+…
 code }
 
+See → https://github.com/dcantrell/dcsysvinit/blob/master/src/init.c[init.c], function *read_inittab* for more details.
 
 
 sa:
