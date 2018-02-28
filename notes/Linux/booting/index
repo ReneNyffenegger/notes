@@ -5,11 +5,38 @@ $ booting Linux
 Among others, the → Linux/fhs/proc/sys/kernel[kernel] initializes the → Linux/Clocks#system-clock[system clock] from the
 → Linux/Clocks#hardware-clock[hardware clock] when the system is booted up.
 
+{ Tasks to bring up a system
+
+   When a linux system is booted up, severel tasks need to be accomplished:
+     • mount virtual → Linux/filesystem[file systems]
+     • initialize devices
+     • mount a file system unto `/`. This is special because it does not involve the `mount` system call, and there is no file system where it is mounted into.
+     • mount swap partitions or  swap files
+     • check integrity of file systems (for example with → Linux/shell/commands/fsck[`fsck`])
+     • activate → Linux/swap-space[swap]
+     • set the → Linux/Clocks/index#system-clock[system clock]
+     • connect to the internet/network
+     • start the → Linux/kernel/process[process] with PID 1. This is special because it does not use `fork`.
+     • start daemons
+
+  These tasks should run as parallel as possible to bring up the system as fast as possible.
+
+}
+
 sa:
 
   → Linux/kernel/boot-process
+
+  → Linux/fhs/etc/sysconfig
+
+  → Linux/fhs/boot
 
   → Linux/kernel/source/arch/x86/kernel/setup_c,
   → Linux/kernel/source/Documentation/x86/boot_txt
 
   → https://0xax.gitbooks.io/linux-insides/content/Booting/index.html
+
+  → Linux/init/System-V/index#boot-process[System V boot process]
+
+links:
+   → https://github.com/arvidjaar/bootinfoscript[bootinfoscript] is a → Linux/shell/bash[bash] script that looks at MBRs and identifies its boot loaders etc.

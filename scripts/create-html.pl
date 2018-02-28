@@ -59,10 +59,6 @@ else {
 }
 print "test = $test\n" if $debug;
 
-if (! $web and ! $test) {
-}
-else {
-}
 
 print "$0 -> notes::init\n" if $debug;
 notes::init(
@@ -356,7 +352,6 @@ sub process_page { #_{
 
 
       $in_table = 1;
-#     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
 
       if ($pass == 2) {
@@ -538,6 +533,7 @@ sub process_page { #_{
           $td = notes::replace_notes_link($td, $input_filename_os);
           $td = bold_italic($td);
           $td = bible_verse($td);
+          $td = code       ($td);
 
           print $out "'>$td</td>"
 
@@ -776,18 +772,13 @@ sub process_page { #_{
     }gex;
 
     #_}
-    #_{ bold, italic, verses
+    #_{ bold, italic, verses, code
     
     $line = bold_italic($line);
     $line = bible_verse($line);
     $line = sub_sup    ($line);
+    $line = code       ($line);
     
-
-
-    #_}
-    #_{ `
-
-    $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
 
     #_}
     #_{ Github source code (Must be at end, otherwise replacement of bold, italic etc kicks in!)
@@ -816,9 +807,10 @@ sub process_page { #_{
 
           my $image_name = $1;
 
-          print "Found $image_name in dir $dirname_os\n";
-          my $image = getstore($url, $temp_dir . $image_name);
-          print "copyng to /notes/$dirname_os/$image_name\n";
+          print "Found $image_name in dir $dirname_os (url = $url)\n";
+          my $http_response_code = getstore($url, $temp_dir . $image_name);
+          print "http_response_code = $http_response_code\n";
+          print "copying to /notes/$dirname_os/$image_name\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
@@ -1224,6 +1216,13 @@ sub sub_sup { #_{
 
   return $line;
 
+} #_}
+
+sub code { #_{
+  my $line = shift;
+  return $line unless $pass == 2;
+  $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
+  return $line
 } #_}
 
 sub end_quote { #_{

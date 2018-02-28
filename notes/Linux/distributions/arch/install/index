@@ -1,0 +1,367 @@
+$ Installing arch linux
+
+
+{ Creating bootable USB stick / booting
+
+Download a `*.iso` file.
+
+Finding the USB device:
+code {
+→ Linux/shell/commands/lsblk
+code }
+
+Copy the `*.iso` file with → Linux/shell/commands/dd.
+
+code {
+  → Linux/shell/commands/dd bs=1M if=/path/to/downloaded.iso of=→ Linux/fhs/dev/sdX[dev/sdX]
+code }
+
+Put USB stick into PC where it needs to be installed and turn it on.
+
+Use 
+
+}
+
+{ Partitioning the hard disk
+
+  Using → Linux/shell/commands/parted
+
+  TODO: create a msdos partition table...
+
+
+{ TODO: creating a UEFI ESP whatever thingy
+code {
+→ Linux/shell/commands/parted --align=optimal -s → Linux/fhs/dev/sdX[/dev/sda] 'mklabel gpt     mkpart primary 1MiB 1GiB       mkpart primary 1GiB 6GiB        mkpart primary 6GiB 100%     t 1 boot      unit GiB    p'
+code }
+
+  `-s` is the flag for scripted. So I don't have to confirm anything or so, just press enter.
+
+  `mklabel gpt` creates a new → hardware/harddisk/GPT[GPT partition table]. It erases the previous partition table!!!
+
+  `mkpart primary 1MiB 1GiB` creates a approx 1GiB (primary) partition that's going to be used for the EFI System Partition (ESP).
+
+  `mkpart primary 1GiB 6GiB` creates a 5 GiB (primary) partition that's going to be used for → Linux/swap-space/index[swap]. It's size is 5GiB minus 1MiB.
+
+  `mkpart primary 6GiB 100%` creates another partition on the rest of the harddisk (that is: `100%`) for the data.
+
+  `t 1 boot` toggles the first partition's boot flag (partition type becomes `ef00`).
+
+  `unit GiB` sets the unit for the …
+
+  `p`, the following print command.
+
+}
+
+rem {
+  Alternatively, ~sgadisk~ (A → hardware/harddisk/GPT[GUID partition table] (GPT) manipulator) might be chosen
+
+code {
+→ Linux/shell/commands/sgdisk           \
+  -Z                                    \
+  -n 0:0:+512MiB  -c 0:Boot -t 0:EF00   \
+  -n 0:0:+15GiB   -c 0:Home -t 0:8300   \
+  -n 0:0:+15GiB   -c 0:Var  -t 0:8300   \
+  -n 0:+0:-2GiB   -c 0:Root -t 0:8300   \
+  -n 0:+0:-0      -c 0:Swap -t 0:8200   \
+  -p                                    \
+      /dev/sda
+code }
+rem }
+
+}
+{ Formatting and Initializing the partitions
+
+code {
+→ Linux/shell/commands/mkswap    → Linux/fhs/dev/sdX[/dev/sda2]
+# ??? mkfs.fat  /dev/sda1
+mkfs.fat  -F 32 -n EFIBOOT /dev/sda1
+mkfs.ext4 /dev/sda3
+→ Linux/shell/commands/swapon -s /dev/sda1
+code }
+
+Verify if swap space is used:
+code {
+→ Linux/shell/commands/swapon -s
+code }
+
+}
+{ Mount partition
+
+  Now that the partition is formatted, we need to mount it so that we can write the installation on it:
+code {
+→ Linux/shell/commands/mount /dev/sda3 /mnt
+mkdir /mnt/boot
+→ Linux/shell/commands/mount /dev/sda1 /mnt/boot
+code }
+
+}
+{ Connecting to internet
+
+  Since `pacstrap` (used below) needs an internet connection to get the most recent packages from a mirror, we need to start the internet:
+
+code {
+wifi-menu
+code }
+
+Test the connection
+code {
+ping -c 1 8.8.8.8
+code }
+
+}
+{ Updating keyring
+
+  Apparently, when installing from an old `*.iso` file, the keyring(?) must be updated in order to suppress a *update error: key "4A1AFC345EBE18F8" could not be looked up remotely*.
+
+  This »problem« can be eliminated with
+
+code {
+pacman -Sy archlinux-keyring
+code }
+
+}
+{ Start installation
+
+code {
+pacstrap /mnt base base-devel
+code }
+
+}
+{ Filling /etc/fstab
+
+  The → Linux/fhs/etc/fstab file (which is currently mounted to `/mnt/etc/fstab`) is (probably empty).
+
+  It can be filled with
+
+code {
+genfstab -U /mnt  >  → Linux/fhs/etc/fstab[/mnt/etc/fstab]
+code }
+
+  The `-U` flag uses UUIDs for source identifiers. By default, pseude filesystem mounts are excluded, so `-p` does not need to be specified.
+
+}
+{ chroot
+
+  Changing the root so as not to have to type `/mnt` every time.
+
+code {
+arch-chroot /mnt /bin/bash
+code }
+
+}
+{ Various things
+
+Specify the localtime
+code {
+→ Linux/shell/commands/ln -sf → Linux/fhs/usr/share/zoneinfo/[/usr/share/zoneinfo/]Europe/Zurich → Linux/fhs/etc/localtime
+code }
+
+Set the hardware clock
+code {
+→ Linux/shell/commands/hwclock --systohc --utc
+code }
+
+Specify the hostname
+code {
+echo PC-four > → Linux/fhs/etc/hostname
+code }
+
+Change root's password
+code {
+passwd
+code }
+
+}
+{ locale
+
+  Use an editor to uncomment desired lines in → Linux/fhs/etc/locale_gen and then run
+
+code {
+locale-gen
+code }
+
+Apparently, it can be done even more simple:
+code {
+echo LANG=en_US.UTF-8 > /etc/locale.conf
+code }
+
+}
+{ Install bootloader
+
+code {
+pacman -S grub
+grub-install /dev/sda
+code }
+returned `error: cannot find EFI directory'. What is an EFI directory???
+
+But with `--target=i386-pc`, it worked:
+code {
+pacman -S grub
+grub-install --target=i386-pc /dev/sda
+code }
+
+
+code {
+pacman -S syslinux
+syslinux-install_update -iam
+code }
+
+}
+{ Copy wifi connection
+
+exit to leave chroot environment:
+code {
+exit
+code }
+
+code {
+cp → Linux/fhs/etc/netctl/[/etc/netctl]/tq84-wifi  /mnt/etc/netctl/tq84-wifi
+code }
+
+}
+
+rem {
+
+
+{ Misc
+
+Is the following really necessary?
+
+code {
+timedatectl set-ntp true
+code }
+
+}
+
+
+
+{ Formatting the partitions
+
+code {
+mkfs.fat -F32 /dev/sda1
+mkfs.ext4     /dev/sda2
+mkfs.ext4     /dev/sda3
+mkfs.ext4     /dev/sda4
+mkswap        /dev/sda5
+code }
+
+}
+
+{ Connect to the internet
+
+
+
+}
+
+{ Mounting the partitions
+
+code {
+# Root partition
+mount /dev/sda4 /mnt
+
+cd /mnt
+
+mkdir -p boot/efi home var
+
+mount /dev/sda1 boot/efi
+mount /dev/sda2 home
+mount /dev/sda3 var
+code }
+
+}
+
+{ Edit /etc/pacman.d/mirrorlist
+
+  `vim /etc/pacman.d/mirrorlist`
+
+}
+
+{ Installing some packages
+
+I am using wireless, so I add `wpa_supplicant` and `wireless_tools` (although I am not 100% sure if I need `wireless_tools`).
+
+code {
+pacstrap /mnt base base-devel wpa_supplicant wireless_tools
+code }
+
+}
+
+
+
+
+
+
+{ Some configuration
+
+
+code {
+
+locale-gen
+
+# uncomment relevant entry in /etc/locale.gen
+vi /etc/locale.gen
+
+# TODO: Is this correct?
+echo en_US.ISO-8859-1 > /etc/locale.conf
+
+vi /etc/vconsole.conf
+code }
+
+}
+
+
+{ Create initial ram disk
+
+→ Linux/kernel/initial-ram-disk
+
+code {
+mkinitcpio -p linux
+code }
+
+Check with `ls -ltr /boot`
+
+}
+
+
+{ Boot loader
+
+→ Linux/booting/boot-loader
+
+{ Grub
+
+  → Linux/booting/GRUB
+
+code {
+mount -t efivars efivars /sys/firmware/efi/efivars
+code }
+
+
+}
+
+}
+
+{ Rebooting
+
+code {
+exit
+code }
+
+}
+
+rem }
+
+sa:
+  → Linux/distributions/arch/after-installing
+
+  → Linux/distributions/arch/install/openbox
+
+links:
+  → https://gist.github.com/mloskot/5995414
+  
+  → https://wiki.archlinux.de/title/Anleitung_f%C3%BCr_Einsteiger
+  -
+  → https://wiki.archlinux.de/title/UEFI_Installation
+  
+  → https://wiki.archlinux.org/index.php/Beginners'_guide#UEFI.2FGPT
+
+  → https://itsfoss.com/install-arch-linux/
