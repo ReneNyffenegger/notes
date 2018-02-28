@@ -4,34 +4,50 @@ $ Shell command: dd
 
 Used to read from an input file stream and to write to an output file stream. It can perform encoding conversions.
 
+{ Handling of trailing bytes
+
+  If the input file is not exactly a multiple of the specified `bs`, the trailing bytes will, as expected, be copied.
+
+  Here's a file with exactly 516 (= 2*256 + 4) bytes:
+  gh|shell-commands|/dd/trailing-bytes/516.bytes||
+
+  This file is copied with `dd`:
+  gh|shell-commands|/dd/trailing-bytes/copy-file||
+
+  The command will print `2+1` records in. The `2` indiciates that 2 blocks of 256 bytes where transferred, the `+1` refers to the incomplete (less than 256 byte) final block (of 4 bytes).
+
+  If the input file had been exactly 512 bytes, `dd` would have reporeted `2+0 records in`.
+
+
+}
 { Using dd to make backups of partitions
 
-Creating a backup of the harddisk (`/dev/sda`) of a laptop.
+  Creating a backup of the harddisk (`/dev/sda`) of a laptop.
+  
+  Use a live cd to start Linux on the laptop.
 
-Use a live cd to start Linux on the laptop.
-
-Make sure that no partition of the harddisk is mounted
+  Make sure that no partition of the harddisk is mounted
 code {
 mount -l | grep sda
 code }
 
-Mounting the backup destination drive
+  Mounting the backup destination drive
 code {
 mount -t ntfs /dev/sdb1 /mnt
 code }
 
-Creating the destination folders
+  Creating the destination folders
 code {
 mkdir /mnt/Backups/T420
 code }
 
-Writing the backup
+  Writing the backup
 code {
 dd if=/dev/sda bs=1M | gzip > /mnt/Backups/T420/backup.sda.gz
 code }
 
 
-Restoring the backup
+  Restoring the backup
 code {
 gunzip -c /mnt/Backups/T420/backup.sda.gz | dd of=/dev/sda bs=1M  
 code }
