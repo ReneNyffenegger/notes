@@ -64,7 +64,6 @@ print "$0 -> notes::init\n" if $debug;
 notes::init(
   $web,
   $test, 
-# cwd(),  # 2017-01-02
   $verbose
 );
 
@@ -82,7 +81,7 @@ else {
 print "target_env = $target_env\n" if $verbose >= 1;
 RN::init(
   $target_env,
-  $verbose # 2017-01-02
+  $verbose
 );
 
 my $last_run_file_url_path_abs   = '/notes/.last-run';
@@ -970,7 +969,6 @@ sub end_div_t { #_{
   }
   $$in_text_ref = 0;
 } #_}
-
 
 sub open_html { #_{
 
