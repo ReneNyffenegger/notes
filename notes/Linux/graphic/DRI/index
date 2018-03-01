@@ -1,0 +1,38 @@
+$ Direct Rendering Infrastructure
+
+Abbreviated by: *DRI*.
+
+DRI is a framework that allows processes to safely and efficiently access graphic hardware.
+
+→ Linux/X (via → Linux/graphic/mesa/ ?) installs DRI if the graphic card supports it.
+
+Apparently, a → Linux/user must be member of the → Linux/group#group-video[video group] to be able to access graphic hardware acceleration.
+
+{ Checking if DRI is enabled
+
+code {
+→ Linux/shell/commands/grep DRI → Linux/fhs/var/log/Xorg_N_log[/varlog/Xorg.0.log]
+code }
+should print something like `(II) intel(0): direct rendering: DRI2 enabled`
+
+Alternatively, if `glxinfo` is installed, the following → Linux/shell/commands/grep can be used:
+code {
+glxinfo | grep -B2 'direct rendering'
+code }
+It should print
+code {
+name of display: :0
+display: :0 screen: 0
+direct rendering: Yes
+code }
+
+Finally, the working of DRI can be confirmed with
+code {
+glxinfo | egrep 'OpenGL (vendor|renderer|version)'
+code }
+If this `egrep` *does not* print something like `Software Rasterizer`, then the → Linux/user who ran this command has working acceleration.
+
+}
+
+links:
+  → http://linuxfromscratch.org/blfs/view/stable/x/xorg-config.html
