@@ -1,0 +1,121 @@
+$ Advanced Linux Sound Architecture
+@ ALSA
+
+
+ALSA deprecated → Linux/sound/OSS with Linux 2.6 since when ALSA is Linux' default sound system.
+
+ALSA is used in frameworks such as → Linux/sound/JACK or → Linux/sound/PulseAudio.
+
+Apparently, a user must belong to the → Linux/group#group-audio group to access ALSA devices.
+
+{ Configuring
+
+  → Linux/fhs/usr/share/alsa/alsa_conf is the main entry point for configuring the ALSA system.
+
+  → Linux/fhs/home/username/_asoundrc
+
+}
+{ Plugins
+
+  ALSA consists plugins.
+  
+  The *hw* plugin does not processing, it accesses the hardware driver.
+
+  The *plug* plugin performs channel duplication, sample value conversion and resampling (when necessary because not supported by the hardware).
+
+  The *file* plugin writes sample data to a file.
+
+}
+{ Cards, devices, subdevices, interfaces
+
+  { Cards
+
+    A card is either a *physical or logical* kernel device that is albe to record, process or emit sound.
+
+    ALSA counts up to eight *cards*, numbered from 0 to 7 or alternatively identified by an *ID*.
+
+  }
+  { Devices
+
+    Each card has devices whose numbers again start with 0.
+
+    These devices have a specific kind such as
+      • playback
+      • capture
+      • control
+      • timer
+      • sequencer
+
+    The device »level« is where most of the hardware access takes place.
+
+  }
+  { Subdevices
+
+    A device might have *subdevices*.
+
+    A subdevice, if available, specifies a sound end point.
+
+  }
+  { Interfaces
+
+    An interface specifies an asla protocl to a card/device/subdevice triple.
+
+    An interface string thus might look like `interface:CARD=0,DEV=1,SUBDEV=1`.
+
+
+  }
+
+}
+{ Utilities
+
+  `speaker-test` is a test tone generator for ALSA.
+
+  `alsactl` allows to save settings for a device.
+
+  `amixer` to make adjustments to devices volume and sound controls.
+
+  `alsamixer` is the → Linux/ncurses version of `amixer`.
+
+  `acconnect` and `aseqview` to make midi connections and view the list of connected ports.
+
+  `aplay` plays back a sound file.
+
+  `arecord` records a sound file.
+
+
+  `alsaconf`
+
+}
+{ Modules
+
+  → Linux/fhs/proc/asound/modules shows the loaded sound → Linux/kernel/module[module] (along with their order).
+
+  Alternativly, `→ Linux/shell/commands/lsmod | grep snd` gets a devices and modules list (snd = for sound cards?)
+
+  Apparently, the standard module for *on-board cards* is `snd_hda_intel`.
+
+}
+{ Kernel configuration
+
+  The → Linux/kernel must at least be built with → Linux/kernel/CONFIG#config_sound.
+
+  I had to enable the driver for the sound card with `make menuconfig`
+  under Device Drivers -> Sound card support -> Advanced Linux Sound Architecture -> HD-Audio -> Select a codec … -> Build Realtek HD-audio codec support. (This is
+  → Linux/kernel/CONFIG/index#config_snd_hda_codec_realtek )
+
+}
+
+
+sa:
+  → Linux/sound/index
+
+  → Linux/fhs/var/lib/alsa/asound_state seems to store ALSA mixer settings.
+
+  → Linux/fhs/usr/share/sounds/alsa
+
+
+
+links:
+  → http://www.alsa-project.org/main/index.php/Main_Page
+
+  → http://www.volkerschatz.com/noise/alsa.html
