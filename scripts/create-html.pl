@@ -59,16 +59,11 @@ else {
 }
 print "test = $test\n" if $debug;
 
-if (! $web and ! $test) {
-}
-else {
-}
 
 print "$0 -> notes::init\n" if $debug;
 notes::init(
   $web,
   $test, 
-# cwd(),  # 2017-01-02
   $verbose
 );
 
@@ -86,7 +81,7 @@ else {
 print "target_env = $target_env\n" if $verbose >= 1;
 RN::init(
   $target_env,
-  $verbose # 2017-01-02
+  $verbose
 );
 
 my $last_run_file_url_path_abs   = '/notes/.last-run';
@@ -178,17 +173,17 @@ sub process_page { #_{
 #    $debug = 0;
   }
 
-  if (substr($file_name_only_os, 0, 1) eq '.' or
+  if (substr($file_name_only_os, 0, 1) eq '.' or #_{
       substr($file_name_only_os, 0, 2) eq '_.') { # Windows vim swap files
 
       dbg('process_page: filename starts with . or _, returning');
       return;
-  }
+  } #_}
 
-  if (-M $last_run_file_os_path_abs < -M $input_filename_os) {
+  if (-M $last_run_file_os_path_abs < -M $input_filename_os) { #_{
     dbg("process_page: returning because older");
     return;
-  }
+  } #_}
 
 # 2017-01-27 directories might be named exactly »svg«...
  if ($file_name_only_os ne 'svg' and $file_name_only_os ne 'png' and $file_name_only_os ne 'jpg') { #_{
@@ -230,6 +225,7 @@ sub process_page { #_{
   my $aka  = '';
   my $wp   = '';
   my $ul   = 0;
+  my $meta_robots_no_index = 0;
 
   DIRECTIVES: while ($line = <$f>) { #_{ 1st Iterate over directives
 
@@ -237,6 +233,7 @@ sub process_page { #_{
 
     if ($line =~ /^\$ *(.*) *$/) { $title = $1; next; }
     if ($line =~ /^\@ *(.*) *$/) { $title_intern = $1; next; }
+    if ($line =~ /^- *$/) { $meta_robots_no_index=1; next; }
     if ($line =~ /^abbr: *(.*) *$/) { $abbr = $1; next; }
     if ($line =~ /^aka: *(.*) *$/)   { $aka  = $1; next; }
     if ($line =~ /^wp *(.*) *$/   ) { $wp   = $1; next; }
@@ -260,7 +257,6 @@ sub process_page { #_{
     { use bytes;
       $length_line = length($line);
     }
-#   seek($f, -length($line), 1) or die "\n$!\nline = $line, length = " . length($line); # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html
     seek($f, -$length_line, 1) or die "\n$!\nline = $line, length = " . $length_line; # http://code.izzid.com/2008/01/21/How-to-move-back-a-line-with-reading-a-perl-filehandle.html // http://perlmeme.org/howtos/using_perl/length.html
 
   } #_}
@@ -288,7 +284,8 @@ sub process_page { #_{
   my $out;
   if ($pass == 2) {
     print "opening html $url_path_abs\n";
-    $out = open_html( $url_path_abs     , $title, $styles);
+
+    $out = open_html($url_path_abs, $title, $styles, $meta_robots_no_index);
   }
 
   if ($pass == 2 && $aka) { #_{
@@ -355,7 +352,6 @@ sub process_page { #_{
 
 
       $in_table = 1;
-#     end_div_t($out, \$in_text, \$ul, $pass, \$next_t_with_gap);
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
 
       if ($pass == 2) {
@@ -431,7 +427,7 @@ sub process_page { #_{
 
       dbg ('Starting code');
 
-      die if $in_code;
+      die "In code, line = $." if $in_code;
       $in_code = 1;
 
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
@@ -537,6 +533,7 @@ sub process_page { #_{
           $td = notes::replace_notes_link($td, $input_filename_os);
           $td = bold_italic($td);
           $td = bible_verse($td);
+          $td = code       ($td);
 
           print $out "'>$td</td>"
 
@@ -775,18 +772,13 @@ sub process_page { #_{
     }gex;
 
     #_}
-    #_{ bold, italic, verses
+    #_{ bold, italic, verses, code
     
     $line = bold_italic($line);
     $line = bible_verse($line);
     $line = sub_sup    ($line);
+    $line = code       ($line);
     
-
-
-    #_}
-    #_{ `
-
-    $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
 
     #_}
     #_{ Github source code (Must be at end, otherwise replacement of bold, italic etc kicks in!)
@@ -815,9 +807,10 @@ sub process_page { #_{
 
           my $image_name = $1;
 
-          print "Found $image_name in dir $dirname_os\n";
-          my $image = getstore($url, $temp_dir . $image_name);
-          print "copyng to /notes/$dirname_os/$image_name\n";
+          print "Found $image_name in dir $dirname_os (url = $url)\n";
+          my $http_response_code = getstore($url, $temp_dir . $image_name);
+          print "http_response_code = $http_response_code\n";
+          print "copying to /notes/$dirname_os/$image_name\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
@@ -839,8 +832,8 @@ sub process_page { #_{
            $code =~ s/>/&gt;/g;
 
            $gh_ret = ($in_text ? "</div>" : "") .
-           "<div class='ghf'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
            "<pre class='code'>$code</pre>" .
+           "<div class='ghf2'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
            ($in_text ? "\n<div class='t'>" : "");
        }
 
@@ -934,7 +927,8 @@ sub process_index { #_{
   }
 
   my $html;
-  $html = open_html('/notes/index.html', 'Notes', '');
+  $html = open_html('/notes/index.html', 'Notes', '', 0);
+  
 
 
   for my $page (sort {lc($notes::index{$a}{title}) cmp 
@@ -948,8 +942,6 @@ sub process_index { #_{
   close_html($html, '');
 
   if ($target_env eq 'web') {
-#   2016-08-01
-#   RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index$notes::html_suffix");
     RN::copy_os_path_2_url_path_abs(RN::url_path_abs_2_os_path_abs("/notes/index.html"), "/notes/index.html");
   }
 } #_}
@@ -978,12 +970,12 @@ sub end_div_t { #_{
   $$in_text_ref = 0;
 } #_}
 
-
 sub open_html { #_{
 
-  my $input_filename_os = shift;
-  my $title             = shift;
-  my $styles            = shift;
+  my $input_filename_os    = shift;
+  my $title                = shift;
+  my $styles               = shift;
+  my $meta_robots_no_index = shift;
 
   my $styles_='';
 
@@ -1007,12 +999,17 @@ sub open_html { #_{
   }
 
   my $notes_root = RN::url_path_abs_2_url_full('/notes/');
-# print "notes_root: $notes_root (for js, css etc)\n";
+
+  my $meta_robots = '';
+
+  if ($meta_robots_no_index) {
+    $meta_robots = "\n<meta name=\"robots\" content=\"noindex\">";
+  }
 
   print $out qq{<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">$meta_robots
 <title>$title</title>
 <link rel="stylesheet" type="text/css" href="${notes_root}notes.css">$styles_
 <script src='${notes_root}q.js'></script>
@@ -1219,6 +1216,13 @@ sub sub_sup { #_{
 
   return $line;
 
+} #_}
+
+sub code { #_{
+  my $line = shift;
+  return $line unless $pass == 2;
+  $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
+  return $line
 } #_}
 
 sub end_quote { #_{

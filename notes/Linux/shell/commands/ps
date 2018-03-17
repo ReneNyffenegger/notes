@@ -1,13 +1,103 @@
 $ Shell command: ps
+-
 @ ps
+
+`ps` shows a snapshot of the current → Linux/kernel/process[processes].
+
+
+{ Show all processes
+
+  The `-e` option shows every process.
+
+code {
+ps -e
+code }
+
+  Using `-A` (apparently standing for *all*) is equivalent.
+
+}
+{ Long format ps-long
+
+  `ps -l` and `ps l` show some default columns such as `STAT` for the → Linux/kernel/process/states[process state]. 
+
+  Compare with `ps f`.
+
+}
+{ Showing a process with a specific PID
+
+code {
+ps --pid $PPID
+ps  -q   $PPID
+code }
+
+}
+{ Showing processes of a given user
+
+  With the `U` option (note: no hyphen), the process of the given → Linux/user[user] id or user name can be queried.
+
+  gh|shell-commands|/ps/U_userid-or-username||
+
+}
+{ Select displayed column
+
+  `ps` can be invoked with the `-o` option (*user defined format*) to specify which columns should be reported.
+
+  Show Process ID, Parent Process ID and command with all its name
+code {
+ps -o pid,ppid,args
+code }
+
+}
+{ Change column width
+
+  The width of the columns that were selected with `-o` can be changed with `:n`:
+
+   The width of `cmd` is specified to be 40, the widht of the user column to be 15:
+code {
+ps -e -o cmd:40,user:15,time
+code }
+
+}
+{ cmd vs comm, changing the process name
+
+  The following C program changes the process name as reported with the column `cmd`.
+
+  gh|shell-commands|/ps/change-command-name.c||
+
+  When the program runs, it first asks to print the two columns `cmd` and `comm`.
+  -
+  After pressing a key, the program changes its programm name and asks again to print
+  `cmd` and `comm`.
+
+  It can be seen that the process name was changed.
+
+}
+{ Some columns
+
+  `STAT`: the → Linux/kernel/process/states[process state]. An `s` indicates a *session leader*, a `+` that the process is part of a foreground process group. These attributes are
+  related to job control (pressing Ctrl-Z or starting a process in the background `&`).
+
+}
+{ Show process tree
+
+  With `f` (which stands for forest), the parent child relationship between the processes can be displayed:
+code {
+ps f
+ps xaf
+code }
+
+  Compare with → Linux/shell/commands/pstree[`pstree`].
+
+}
 
 { TODO
 
-  `ps -s`: → Linux/kernel/signals
+  `ps -s`: → Linux/kernel/process/signal
 
 }
 
 sa:
   → Linux/kernel/process/states
+
 
   → Linux/shell/commands/index[Shell commands]

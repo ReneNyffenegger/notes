@@ -1,6 +1,118 @@
 abbr: Common Unix Printing System
 
-Apparently, CUPS cn be accessed via → http://localhost:631
+CUPS is based on  → Linux/IPP[IPP], the Internet Printing Protocol and uses → development/languages/PostScript/PPD[PostScript Printer Description (PPD) files]
+to describe the capabilites of printers.
+
+{ Starting CUPS
+
+  CUPS is started with `cupsd` (the cups scheduler), see `man cupsd`.
+
+}
+{ Configuration
+
+  → Linux/fhs/etc/cups/cupsd_conf is the main(?) configuration file for CUPS.
+
+}
+{ Printer drivers
+
+ 
+  → Linux/shell/commands/lpinfo[`lpinfo -m`] lists all available driver.
+
+}
+{ Shell commands
+
+
+  → Linux/shell/commands/lpadmin[`lpadmin`] configures CUPS printers and classes. For example, a printer might be added with
+code {
+printer_name=ep901a
+device_uri=usb:/EPSON/EP-901A
+ppd_file=/opt/epson-inkjet-printer-escpr/ppds/EPSON/EPSON-EP-901A-epson-escpr-en.ppd.gz
+lpadmin -p $printer -v $device_uri - P $ppds -E
+code }
+
+  → Linux/shell/commands/lpinfo[`lpinfo`] lists available devices and drivers that are known to the CUPS server.
+
+  `lp` and `lpr` can be used to print files:
+code {
+lp  -o media=A4 -o resolution=600dpi $file
+lpr -o media=A4 -o resolution=600dpi $file
+code }
+
+}
+{ Monitoring
+
+  CUPS can be accessed via → http://localhost:631/admin. 631 is the default port for the → Linux/IPP[Internet Printing Protocol].
+
+  The user accessing CUPS must be member of the `lpadmin` → Linux/group. (Otherwise, the webinterface might complain with
+  *Enter your username and password or the root username and password to access this page. If you are using Kerberos authentication, make sure you have a valid Kerberos ticket.*)
+
+}
+{ Filters
+
+  ? Filters are used to render → development/languages/PostScript onto a pixel based device. These are necessary for printers that don't have built in post script support.
+
+  CUPS provides such filters: *gstoraster* (→ Linux/fhs/usr/lib/cups/filter/gstoraster) and *imagetoraster* (→ Linux/fhs/usr/lib/cups/filter/imagetoraster). These are based on the filter system of ghostscript.
+
+}
+{ Queues and Jobs
+
+    A queue is »attached« to a printer. It keeps track of the status of the printer (Enough paper? Printer Jam? Toner reserver? etc).
+
+    A job is created when an application asks something to be printed. The job is placed into a queue and removed when the printing is finished.
+
+}
+{ Job Sequence
+
+    The application sends → development/languages/PostScript data to CUPS.
+    
+    CUPS reads the destination printer's respective
+    → development/languages/PostScript/PPD[PostScript Printer Description (PPD) File] to determine the necessary filters to convert the PostScript into
+    the format the printer understands (such as PJL, PCL).
+    -
+    Usually, this is handed over to GhostScript.
+
+    The converted data is sent to the printers
+
+}
+{ Restarting cups
+
+code {
+# → Linux/fhs/etc/init_d/[/etc/init.d]/cups restart
+code }
+
+}
+{ TODO
+
+  → http://localhost:631/help
+  -
+  → http://localhost:631/documentation.html
+
+}
 
 sa:
-  → Linux/IPP
+
+  → Linux/fhs/etc/cups
+  -
+  → Linux/fhs/etc/cups/printers_conf[`/etc/cups/printers.conf`]: the printer configuration file for → Linux/CUPS[CUPS].
+  -
+  → Linux/fhs/etc/cups/cups-files_conf: T/he file and directory configuration file.
+  -
+  → Linux/fhs/var/log/cups
+  -
+  → Linux/fhs/var/log/cups/error_log: the general log file
+  -
+  → Linux/fhs/var/log/cups/access_log: the log file for all `cupsd` HTTP server activity.
+  -
+  → Linux/fhs/usr/share/cups
+  -
+  → Linux/fhs/usr/lib/cups/filter: the filter directory.
+  -
+  → Linux/fhs/var/spool/cups-pdf/USER: the default directory into which pdfs are stored. 
+
+  → Linux/networking/Avahi scans for printers on the local network.
+
+links:
+  → http://www.openprinting.org[openprinting.org] has resources to help with printing under → Linux.
+  -
+  For example, it has the → http://www.openprinting.org/printers[printer database] which allows to search for
+  a driver for a specific printer/manafacturer.
