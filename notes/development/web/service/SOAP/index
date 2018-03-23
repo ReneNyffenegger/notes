@@ -4,7 +4,7 @@ $ Simple Object Access Protocol
 
 SOAP is a messaging protocol specification for exchanging structured information.
 
-The message format uses → development/XML.
+The message format is based → development/XML.
 
 The underlying protocol is most likely → development/web/HTTP (It also operates over SMTP, TCP, UDP, JMS etc). HTTP is preferred because it easily tunnels through firewalls and proxies.
 
@@ -44,6 +44,8 @@ The underlying protocol is most likely → development/web/HTTP (It also operate
 }
 { Example message
 
+  { HTTP request
+
 code {
 POST /InStock HTTP/1.1
 Host: www.example.org
@@ -63,6 +65,31 @@ SOAPAction: "http://www.w3.org/2003/05/soap-envelope"
 </soap:Envelope>
 code }
 
+  }
+  { HTTP response
+
+code {
+HTTP/1.1 200 OK
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: nnn
+
+<?xml version="1.0"?>
+
+<soap:Envelope
+xmlns:soap="http://www.w3.org/2003/05/soap-envelope/"
+soap:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+
+<soap:Body xmlns:m="http://www.example.org/stock">
+  <m:GetStockPriceResponse>
+    <m:Price>34.5</m:Price>
+  </m:GetStockPriceResponse>
+</soap:Body>
+
+</soap:Envelope>
+code }
+
+  }
+
 }
 
 { TODO
@@ -73,5 +100,4 @@ code }
 
 sa:
   → development/web/service
-
 
