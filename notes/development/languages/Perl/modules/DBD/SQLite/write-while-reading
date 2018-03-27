@@ -1,0 +1,21 @@
+$ Perl module DBD::SQLite - Inserts in select loop
+
+Following example intends to demonstrate how readers don't block writers and writers don't block readers if → development/databases/SQLite/pragmas/index#pragma-journal-mode[`journal_mode`] is set to `WAL` (Write-Ahead Log).
+
+First, two connections to the database are established, one for writing access and one for reading access.
+
+The writing connection creates a table and inserts three records and commits them.
+
+Then, the reading connection iterates over these records with a `select * from`. After each fetch of a record, the writing connection inserts a record and commits it.
+The reading connection won't see these records.
+
+After the first `select * from`, the reading connection does it again.
+This time, it sees the records that were inserted.
+
+It is suggested trying to comment the lines where the pragma is enabled. It might cause dead locks.
+
+gh|PerlModules|/DBD/SQLite/write-while-reading.pl||
+
+sa:
+
+  → development/languages/Perl/modules/DBD/SQLite[DBD::SQLite]
