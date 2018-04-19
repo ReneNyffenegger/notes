@@ -340,7 +340,7 @@ sub process_page { #_{
 
       my $alignments = $1;
       die if $in_table;
-      die "Alignments: >$alignments<" unless $alignments =~ /^[rl]+$/;
+      die "Alignments: >$alignments<" unless $alignments =~ /^[rlc]+$/;
 
 
       if ($table_nof_columns) {
