@@ -1010,6 +1010,7 @@ sub open_html { #_{
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">$meta_robots
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$title</title>
 <link rel="stylesheet" type="text/css" href="${notes_root}notes.css">$styles_
 <script src='${notes_root}q.js'></script>
