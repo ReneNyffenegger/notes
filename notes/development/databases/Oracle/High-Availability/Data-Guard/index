@@ -1,0 +1,109 @@
+$ Oracle Data Guard
+
+Used for
+  • High availability
+  • Data protection
+  • Disaster recovery
+  • Primary database workload reduction
+
+
+{ Primary database #dg-primary-db
+
+  The primary db is the »real« production database.
+
+  The primary db must run in *archivelog mode*.
+
+}
+{ Standby databases #dg-standby-db
+
+  Standby databases are (transactionally consistent) copies of the primary database.
+
+  Up to 30 standby databases are supported.
+
+
+  { Physical and logical standby databases
+
+    A standby db is either *physical* or *logical* standby database. (A standby database can also become a *snapshot standby database*).
+
+    A physical database is an exact byte-wise copy of the primary database.
+
+    A logical database has the same data as the primary database, but is not necessarily stored in the same harddisk or db blocks.
+
+    The physical database is kept synchronized with *→ development/databases/Oracle/adminstration/redo-log-files[redo] apply*, the logical database with *SQL apply*.
+
+  }
+
+}
+{ Changing roles of databases
+
+  The role (primary vs standby) of a database can be changed.
+
+  A ~switchover~ is a planned role transition. In a switchover, the primary database becomes a standby database while (one of) the standby databases becomes the primary database.
+
+  A ~failover~ occurs when the primary database becomes unavailable. In this case, one of the standby databases becomes the new primary database.
+
+}
+{ RAC
+
+  The primary db and the standby databases can be run as single instance or *real application clusters* (RAC).
+
+}
+{ Active Data Guard
+
+  *Active data guard* offers the same features as *data guard* ~plus~ that it standby databases are opened read only *while* the copying of data takes place
+  -
+  Thus, it allows to query the standby databases without impacting the performance of the production database (for example to create resource-intensive reports).
+
+  The standbase database is called *phsyical standby database*.
+  -
+  The buzzword is *real time query*.
+
+  Active data guard must be licenced seperatly.
+
+}
+{ Data protection modes
+
+  • Maximum performance (default)
+  • Maximum availability
+  • Maximum performance
+
+}
+{ Configuration
+
+  Each primary and standby database needs its own → development/databases/Oracle/adminstration/control-file.
+
+  table { lll
+
+     ☰ Primary DB ☰ Standby DB
+   → development/databases/Oracle/adminstration/init-parameters#db_name[`db_name`]  ☰ `MY_ORA` ☰ `MY_ORA`
+   → development/databases/Oracle/adminstration/init-parameters#db_unique_name[`db_unique_name`]  ☰ `DB_PRIM` ☰ `DB_STBY`
+   → development/databases/Oracle/adminstration/init-parameters#fal_client[`fal_client`]  ☰ `db_prim` ☰ `db_stby`
+   → development/databases/Oracle/adminstration/init-parameters#fal_client[`fal_server`]  ☰ `db_stby` ☰ `db_prim`
+   → development/databases/Oracle/adminstration/init-parameters#log_archive_config[`log_archive_config`]  ☰ `dg_config=(db_prim,db_stby)` ☰ `dg_config=(db_prim,db_stby)`
+   → development/databases/Oracle/adminstration/init-parameters#log_archive_dest_n[`log_archive_dest_1`]  ☰ `LOCATION=/path/to/archive-dir VALID_FOR=(all_logfiles,all_roles) db_unique_name=DB_PRIM` ☰ `LOCATION=/path/to/archive-dir VALID_FOR=(all_logfiles,all_roles) db_unique_name=DB_STBY`
+   → development/databases/Oracle/adminstration/init-parameters#log_archive_dest_n[`log_archive_dest_2`]  ☰ `SERVICE=DB_STBY LGWR ASYNC VALID_FOR=(online_logfile,primary_role) db_unique_name=DB_STBY` ☰ `SERVICE=MASTER LGWR ASYNC VALID_FOR=(online_logfile,primary_role) db_unique_name=DB_PRIM`
+
+  table }
+
+  Other parameters:
+    • → development/databases/Oracle/adminstration/init-parameters#db_file_name_convert[`db_file_name_convert`]
+    • → development/databases/Oracle/adminstration/init-parameters#log_file_name_convert[`log_file_name_convert`]
+    • → development/databases/Oracle/adminstration/init-parameters#remote_login_passwordfile[`remote_login_passwordfile`]
+    • → development/databases/Oracle/adminstration/init-parameters#standby_file_management[`standby_file_management`]
+
+}
+{ TODO
+
+  Transportation of REDO
+
+  DGMGRL
+
+  Far sync
+
+}
+
+sa:
+
+  → development/databases/Oracle/High-Availability/Data-Guard-vs-Golden-Gate[Data Guard vs. Golden Gate]
+
+  → development/databases/Oracle/Options/active-data-guard
