@@ -150,6 +150,67 @@ code }
 
   }
 
+  { Declaring variables
+
+code {
+declare  @var_01  bigint
+declare  @var_02     int
+declare  @var_03     int           = 42
+declare  @var_04  decimal  (18, 6);
+declare  @var_05  nvarchar ( max ) = 'abc';
+declare   cur_06  cursor   for select foo, bar from tab;
+code }
+
+  }
+  { Creating an index if it does not exist
+
+code {
+if not exists (
+  select *
+  from sys.indexes
+  where
+    name=’IX_TQ84_TAB’ AND
+    object_id = OBJECT_ID('[dbo].[TQ84_TAB]')
+  )
+begin
+  create nonclustered index IX_TQ84_TAB
+    on dbo.TQ84_TAB(COL_1, COL_2)
+end
+code }
+
+  }
+  { cast as date
+
+code {
+select * from tab
+where
+  cast(col_dt as date) = '2017-08-28';
+code }
+
+  }
+  { cursors
+
+code {
+declare cur_tq84 cursor for select col_1, col_2 from tab;
+open cur_tq84;
+fetch next from cur_tq84 into @c1, @c2;
+while @@fetch_status = 0
+  …
+  fetch next from cur_tq84 into @c1, @c2;
+end
+close      cur_tq84;
+deallocate cur_tq84;
+code }
+
+  }
+  { DBCC
+
+code {
+dbcc checkident ('TABLE_NAME', reseed, 0); -- Check current identity value.
+code }
+
+  }
+
 }
 { Backing up the database
 
