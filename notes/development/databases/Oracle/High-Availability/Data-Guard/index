@@ -151,6 +151,61 @@ Used for
     • → development/databases/Oracle/adminstration/init-parameters#standby_file_management[`standby_file_management`]
 
 }
+{ v$ Queries
+
+code {
+select
+  protection_mode,
+  protection_level,
+  database_role,
+  switchover_status,
+  --
+  -- Columns related to fast-start failover status
+  --
+  fs_failover_status,
+  fs_failover_current_target,
+  fs_failover_threshold,
+  fs_failover_observer_present
+from
+  → development/databases/Oracle/installed/dynamic-performance-views/database[v$database];
+code }
+
+  *Redo apply* and *transport status* on a *physical standby* database:
+code {
+select
+  process,
+  status,
+  thread#,
+  sequence#,
+  block#,
+  blocks
+from
+  v$managed_statndby;
+code }
+
+  *Archived redo log files* that have been received  by a *physical* or *snapshot* standby database:
+code {
+select
+  thread#,
+  sequence#,
+  first_change#,
+  next_change#
+from
+  v$archived_log;
+code }
+
+  → development/databases/Oracle/installed/dynamic-performance-views/log/history[v$log_history]
+
+  Data guard messages:
+code {
+select
+  message,
+  …
+from
+  v$dataguard_status;
+code }
+
+}
 { TODO
 
   Transportation of REDO (Redo Transport Services)
