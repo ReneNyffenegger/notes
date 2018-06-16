@@ -77,21 +77,6 @@ if object_id('dbo.my_procedure', 'P') is not null
 go
 code }
 
-code {
-create procedure dbo.my_procedure (
-      @param_one nvarchar(42),
-      @param_two nvarchar(20)
-)
-as
-  set nocount on
-  
-  select …
-  where
-    field_one = @param_one and
-    field_two = @param_two;
-
-  set nocount off
-code }
 
 Apparently, in → development/databases/SQL-Server/tools-utilities/sqlcmd/, commands starting with a colon (such as → development/databases/SQL-Server/tools-utilities/sqlcmd#sqlcmd-listvar[`:listvar`], are executed immediatly, rather than
 stored in the execution buffer (which is executed with the next `GO`):
@@ -110,15 +95,27 @@ exec dbo.my_procedure $(name), $(bla)
 go
 code }
 
+
+
+
+Equivalent of → development/databases/Oracle/installed/packages/dbms/lock[`dbms_lock.sleep`]: `waitfor`.
+
+`substring` instead of `substr`, `charindex` instead of `instr`, `isnull` instead of `nvl`, `getdate` instead of `sysdate`, `choose` instead of `decode`, `print` instead
+of `→ development/databases/Oracle/installed/packages/dbms/output[`dbms_output.put_line`], `raiseerror` instead of `raise_application_error`.
+
 code {
-select top(5)
-  col_1,
-  col_2,
-  col_3
-from
-  tab;
-go
+convert(data-type, expression [, format])
 code }
+
+Automatic filling of primary key:
+code {
+create table tq84 (
+  id bigint IDENTITY(1, 1),
+  …
+);
+code }
+
+With `ansi_nulls off` -> `null = null` is true.
 
   { Killing a session
 
@@ -149,7 +146,6 @@ code }
   Apparently obsoleted in next release.
 
   }
-
   { Declaring variables
 
 code {
@@ -160,16 +156,33 @@ declare  @var_04    decimal  (18, 6);
 declare  @var_05    nvarchar ( max ) = 'abc';
 declare  @var_true  bit              =  1   ;
 declare   cur_ab    cursor   for select foo, bar from tab;
+declare  @tab       table (col_nm int, col_dt datetime); insert into @tab values (…); select * from @tab;
 code }
 
   }
   { Assinging values to variables
 
-  An assignment requires `set`:
+  An assignment requires `set` (or `select`):
 code {
 declare @foo int
-set @foo = 42
+declare @bar varchar(10)
+set    @foo =   42
+select @bar = 'baz'
 code }
+
+  }
+  { Scope of variables
+
+`go` apparently deletes or removes previously declared variables.
+
+  }
+  { Concatenation of strings
+
+code {
+@string_one + 'string two'
+code }
+
+    If one of the concatenated elements is `null`, then the entire resulting string will be `null`, too. (`concat` might help here)
 
   }
   { Creating an index if it does not exist
@@ -189,12 +202,28 @@ end
 code }
 
   }
-  { cast as date
+  { date datatype
 
+code {
+set dateformat dmy
+code }
+Use `exec sp_helplanguage` to determine available date formats.
+  
+  cast as date:
 code {
 select * from tab
 where
-  cast(col_dt as date) = '2017-08-28';
+  cast(col_dt as date) = '2017-08-28'
+code }
+Apparently, `where col_dt = '20170828'` works also.
+
+code {
+select
+  convert(nvarchar(10), getdate(), 112) as iso_date,
+  convert(nvarchar(10), getdate(), 108) as hour_minute_second,
+  format (@someDate, 'd', 'en-us')  date_en_us,
+  format (@someDate, 'd', 'de-de')  date_de_de,
+  …
 code }
 
   }
@@ -211,6 +240,34 @@ end
 close      cur_tq84;
 deallocate cur_tq84;
 code }
+
+  }
+  { procedures
+
+code {
+create procedure dbo.my_procedure (
+      @param_one nvarchar(42),
+      @param_two nvarchar(20),
+      @param_out int           output
+)
+as
+  set nocount on
+  
+  select …
+  where
+    field_one = @param_one and
+    field_two = @param_two;
+
+  set @param_out = 42;
+
+  set nocount off
+code }
+
+code {
+declare @ret int;
+exec dbo.my_procedure('foo', 'bar', @ret out);
+code }
+
 
   }
   { DBCC
@@ -237,7 +294,88 @@ if @@rowcount = 0
 code }
 
   }
-  
+  { T-SQL blocks
+
+code {
+begin
+declare
+  @someVar = 42
+
+  …
+end
+code }
+
+  { if
+
+code {
+if @a = @b
+   stmt
+code }
+
+code {
+if @a = @b
+begin
+   stmtOne
+   stmtTwo
+   stmtThree
+end
+code }
+
+  }
+
+code {
+begin try
+  …
+end try
+begin catch
+  select
+    error_number   (),
+    error_severity (),
+    error_state    (),
+    error_procedure(),
+    error_line     (),
+    error_message  ()
+  …
+end catch
+code }
+
+  }
+  { Transactions
+
+    `set transaction isolation level`
+
+    `begin transaction` -> `@@trancount ++`
+
+    `commit` -> `@@trancount --`
+
+    `rollback` -> `@@transcount = 0`
+
+    `@@transcount = 1` -> changes are written to database.
+
+  }
+  { Table valued functions
+
+  A table valued function may only contain exactly one
+  → development/databases/SQL-Server/sql/select[select statement].
+
+code {
+create function u.tabFn (@par int) returns table
+as return (
+  select
+    abc,
+    def,
+    ghi
+  from
+    t_bla
+  where
+    id = @par
+);
+
+select * from u.tabFn(42);
+code }
+
+  }
+
 
 
 }
