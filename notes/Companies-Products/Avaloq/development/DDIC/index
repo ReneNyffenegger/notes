@@ -1,14 +1,80 @@
 $ Avaloq data dictionary
 @ DDIC
 
+A DDIC is the interface/API for → Companies-Products/Avaloq/development/Avaloq-script[Avaloq script] to read and modify
+→ Companies-Products/Avaloq/order[orders] and → Companies-Products/Avaloq/object[objects].
+
 Every → Companies-Products/Avaloq/development/tables/code[code table] is associated with a DDIC.
 
+
+{ Components
+
+  A data dictionary has three essential components:
+    • data fields (simple and indexed)
+    • methods
+    • constructor
+
+  Fields allow to create »chains«, for example according to the → Companies-Products/Avaloq/object/model[object model] from position to
+  bp:
+code {
+  bp_name := some_pos.cont.bp.name;
+code }
+
+  { List fields
+
+    The items in an indexed data field can be iterated over with a `for … loop`.
+
+    Further methods are:
+      • `list`
+      • `count`
+      • `get` / `set`
+      • `clear`: remove all itemas
+      • `add`
+      • `rmv(ix)`: removes an item (`ix` between 1 and `.count`)
+      • `rmv_item(…)`: removes an item that meets a condition
+
+  }
+
+}
+{ Datatypes
+
+  Base types: the usual → Companies-Products/Avaloq/development/Avaloq-script[Avaloq script types]: `text`, `number`, `date`, `long`, `boolean`.
+
+  Id (or reference) types: primarky keys of tables such as → Companies-Products/Avaloq/development/tables/code[code tables] or business objects (`obj_bp` etc).
+
+}
+{ Methods
+
+  • `do`
+  • `new` (the constructor)
+  • …
+
+  Apparently, DDICs can inherit methods also from parent DDICs.
+
+}
+{ Types of DDICs
+
+  • Memory (`mem_...`): come with a constructor
+  • Table: to access *one* row in a table.
+  • Datamart (`dtm_...`) - temporarly used by → Companies-Products/Avaloq/development/report-writer[report writer].
+  • Pillar: to create → Companies-Products/Avaloq/pillars[pillars].
+
+  Additionally, there are the two special DDICs
+    • `session` and
+    • `lookup`.
+
+}
 { Examples of DDICS
 
   • `mem_doc_bp`
   • `doc_bp`
   • `obj_bp`
   • `dtm_doc_stex`
+
+  The `extn` DDIC allows to access an → Companies-Products/Avaloq/object/attributes[object's attributes]:
+code {
+  cust_type := obj_bp(some_id).extn.bp_custr_type;
+code }
 
 }
 { Task execution
@@ -25,10 +91,19 @@ Every → Companies-Products/Avaloq/development/tables/code[code table] is assoc
 }
 { Doc vs Mem Doc vs Obj layer
 
-  Mem doc layer: Used for order and object mutation.
+  ~Mem doc~ layer (or order memory layer): Used for → Companies-Products/Avaloq/order[order] and → Companies-Products/Avaloq/object[object] mutation.
 
-  doc layer: stores orders, allows for history.jk
+  ~doc~ layer (or order persistence layer): stores orders, allows for history.
+  -
+  Order go from *mem doc* to *doc* when the → Companies-Products/Avaloq/order/workflow[workflow] action *store* is executed.
 
-  The obj layer stores objects.
+  The ~obj layer~ (or kernel layer) stores objects.
+  -
+  The obj layer distinguishes between *static kernel data* (such as BPs, containers or assets) and *positions and bookings*.
+
+}
+{ TODO
+
+  Task 923.
 
 }
