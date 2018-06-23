@@ -1,5 +1,23 @@
 $ Avaloq: source
 
+Sources are used to *customize* an Avaloq installation to the needs of a customer.
+
+A source is a text file that adheres to a specific syntax so that it can be compiled.
+
+A source either belongs to Avaloq (the → Companies-Products/Avaloq[Company]) or the customer. Avaloq sources cannot be
+changed, but sometimes, they can be overwritten by creating a *source override*. Such sources are called CSS (= customer
+site specific) sources.
+
+{ Source types
+
+  For different purposes, different source types are needed.
+
+  Each source type has its own source syntax (or script extensions) and accordingly its own source compiler.
+
+
+}
+{ Parts of a source
+
 A source is structured into four parts:
   • header
   • (optional) imports
@@ -32,6 +50,81 @@ is                                  -- Header
                                     --
 end tq84_pkg;                       -- Footer ?
 code }
+
+}
+{ ICE - Avaloq ice workbench
+
+  ICE is used to create and administer sources.
+
+}
+{ src_intf# API
+
+  `src_intf#` is the → development/databases/Oracle/PL-SQL[PL/SQL] API to import and install sources.
+
+  Methods in this package are:
+    • `src#install`
+    • `src#do_action` (Action is either compile, activate, de-active, drop or reverse compilation)
+    • `src#cmpl_invalid`
+    • `src#set_invalid`
+    • 1install#set_install_step`
+
+code {
+
+The following → development/databases/Oracle/PL-SQL[PL/SQL] fragment installs a source and puts it into
+status *To be installed*:
+declare
+  src_text → development/databases/Oracle/SQL/data-types/lob[clob] :=
+'[Script 1.0]
+script package tq84
+  procedure p is begin
+    null;
+  end p;
+end tq84;
+';
+
+begin
+  src_intf#.src_install(
+    i_src_name         => 'tq84',
+    i_src_type_id      =>  def_obj_sub_type.src_script_pkg.
+    i_src_text         =>  src_text,
+    i_src_text_type_id =>  def_src_text_type.def,
+    i_init_deactiv     =>  false,     -- Don't install deactivated
+    i_chg_id           =>  …
+  );
+end;
+/
+code }
+
+Activating an inactive source:
+code {
+begin
+  src_intf#.src#do_action (
+    i_src_name      => 'TQ84',
+    i_src_type_id   => …,
+    i_src_action_id => def_src_action.do_activ
+  );
+end;
+code }
+
+}
+{ Source editor
+
+  Run → Companies-Products/Avaloq/tasks[tasks] 909 then open source editor with context action *Edit*.
+
+}
+{ TODO
+
+  Source management framework, apparently used to compile and install changed (Avaloq) sources.
+
+  → Companies-Products/Avaloq/tasks[Tasks]:
+    •  169 (System reogranisation)
+    •  909 (source list)
+    • 1020 (source export)
+    • 9232 (source search)
+
+  The parametrisation → Companies-Products/Avaloq/desk[desk] displays and administers sources.
+
+}
 
 sa:
   The → Companies-Products/Avaloq/development/tables/src/hist[src_hist] table.
