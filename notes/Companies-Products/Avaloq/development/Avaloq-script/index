@@ -1,31 +1,31 @@
 
-Avaloq script is modelled after → development/databases/Oracle/PL-SQL but does not allow direct (→ development/databases/SQL[SQL]) access.
+Avaloq script is modeled after → development/databases/Oracle/PL-SQL but does not allow direct (→ development/databases/SQL[SQL]) access.
 
 Used for
   • → Companies-Products/Avaloq/development/report-writer[Report writer]
   • → Companies-Products/Avaloq/order/[Order] validation
   • → Companies-Products/Avaloq/AMI[Avaloq Message Interface]
   • Rule loader
-  • Context actions
+  • → Companies-Products/Avaloq/development/context-action/[Context actions]
 
-{ Packages
-
-  Some available packages are
-    • `util` (special characters, numbers, dates)
-    • `format` (formatting numbers etc.)
-    • `err` (formatting error messages)
-    • `tab` (text based tables)
-
-  In an Avaloq script package of → Companies-Products/Avaloq/development/sources[source] type PGK (Avaloq script package), a
-  → development/databases/Oracle/PL-SQL[PL/SQL] package can be imported with `import native`.
-
-}
 { Vocabulary extensions
 
   Vocabulary extensions are additional keywords or syntax elements that are added to the basic script vocabulary depending on a
   script's *script type*.
 
   An example is `area` which is available for the *Report Writer Print Layout* script type.
+
+}
+{ Data types
+
+  • `number`
+  • `text`
+  • `boolean`
+  • `long`
+  • `date`
+  • `raw`
+  • `id` (in conjunction with → Companies-Products/Avaloq/development/tables/code[code tables]?)
+  • `obj_XYZ`
 
 }
 { Script context
@@ -46,6 +46,74 @@ Used for
 
   TODO: the → development/databases/Oracle/PL-SQL[PL/SQL] package `db_list#` and the → Companies-Products/Avaloq/development/DDIC[DDIC] `mem_db_list_nr` and `mem_db_list_char`.
 
+}
+{ Some Avaloq script constructs
+
+  { with … as … end with;
+
+code {
+with mem_doc_XYZ(some_id) as m do
+  m.field := …
+end with;
+code }
+
+  }
+  { with new … as do … end with;
+
+code {
+with new xfer.… as x do
+  x.field := …
+end with;
+code }
+
+  }
+  { require statement
+
+  The `require` statement is used to verify if the input values for a procedure's parameter meet a certain minimal requirement.
+code {
+procedure foo_bar(
+  i_bla      number,
+  i_more_bla text
+)
+is
+begin
+  require(i_bla > 42, 'i_bla should be greater than 42');
+  …
+
+code }
+
+  }
+  { assert statement
+
+    Similiarly to the `require` statement, the `assert` statement can be used to test conditions during runtime:
+code {
+assert(l_foo != 0, 'l_foo = 0');
+code }
+
+  }
+  { extendable and extension
+
+Packages marked with `extendable` can be overridden by customers. The overriding then needs
+the `extension` keyword.
+
+  }
+  { abstract, final, protected, private
+
+    These keywords can be used for procedures and functions (Avaloq refers to these as element levels).
+
+
+
+  }
+  { Booleans in DDICs
+
+Apparently, DDICs don't accept booleans. Instead, `'+'` and `'-'` are used.
+
+  }
+
+}
+{ Coding convention
+
+  It's incredible, but Avaloq bothered to create a document (1074) which mandates coding conventions with rather stupid rules.
 
 }
 { TODO
@@ -60,4 +128,7 @@ code }
 
 }
 sa:
+  → Companies-Products/Avaloq/development/Avaloq-script/packages
+
   → Companies-Products/Avaloq/development/sources[sources]
+
