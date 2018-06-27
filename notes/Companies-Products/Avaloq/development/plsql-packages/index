@@ -2,6 +2,7 @@ $ Avaloq PL/SQL packages
 -
 
 `base_par_intf#` to get and modify → Companies-Products/Avaloq/development/base-parameters[base parameters].
+:q
 
 `db_list#`
 
@@ -19,12 +20,39 @@ $ Avaloq PL/SQL packages
 
 `plsql_to_bool`
 
+`sec_admin_intf#`.
+-
+Create a new access code:
+code {
+begin
+  sec_admin_intf#.access#upsert(
+    i_intl_id   => 'foo_bar_access',
+    i_user_id   => 'FOO_BAR_ACCESS',
+    i_name      => 'Protect access to foo bar.'
+  );
+end;
+code }
+
 `src_app#` defines procedures which generate application objects from entries in the `tab_list` and
 `tab_meta_data` tables.
 
 `src_intf#` manages the installation and compilation of → Companies-Products/Avaloq/development/sources[sources].
 -
 → Companies-Products/Avaloq/tasks[Task] 1020 uses the procedures in this package.
+
+`user_admin#`:
+-
+Granting an access code (created with `sec_admin_intf#` to a specific (end-) user in a specific BU:
+code {
+begin
+  user_admin#.user#add_access(
+    i_access_id   => 'foo_bar_access', -- created with sec_admin_intf#.access#upsert
+    i_sec_user_id => 'RENE'          ,
+    i_bu_id       =>     9             -- 9 = AAA
+  );
+end;
+/
+code }
 
 { TODO
 
