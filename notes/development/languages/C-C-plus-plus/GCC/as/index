@@ -1,0 +1,56 @@
+$ GNU assembler
+
+{ Turning on intel syntax or AT&T syntax
+
+code {
+.intel_syntax noprefix
+xor eax, eax
+
+.att_syntax prefix
+movl %adx, %eax…
+code }
+
+}
+{ TODO
+
+`foo.s`:
+code {
+.text
+.globl _start
+_start:
+	push	$11		# sys_execve
+	popl	%eax
+
+	cdq
+
+	pushl %edx		# null-terminator byte(s)
+	pushl $0x68732f2f	# //sh
+	pushl $0x6e69622f	# /bin
+	movl %esp, %ebx		# "/bin//sh" addr
+
+	movl	%edx, %ecx
+
+int $0x80	# syscall
+code }
+
+Turning `foo.S` into `foo.o`:
+code {
+$ as foo.s  -o foo.o
+code }
+
+code {
+$ ld foo.o  -o foo
+code }
+
+code {
+$ objdump -d foo
+code }
+
+}
+
+
+sa: 
+
+  → development/languages/C-C-plus-plus/GCC/options/S_uppercase[`gcc -S`] to create assembler code.
+
+  → development/languages/C-C-plus-plus/GCC
