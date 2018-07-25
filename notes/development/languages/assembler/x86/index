@@ -2,7 +2,7 @@ $ Assember (x86)
 
 Since the x86 has evolved over three decades during whicht it had to respond to different »market forces« while maintaining *backward compatiblity*, the x86 assembly language is charged with an immense legacy:
   • 16 bit real mode
-  • real mode within *virtual 8068 mode*
+  • real mode within *virtual 8068 mode* (x86-64 discontinued *virtual protected mode*)
   • protected mode (16 or 32 bits)
   • enhanced mode (64 bit)
 
@@ -31,13 +31,11 @@ Since the x86 has evolved over three decades during whicht it had to respond to 
   eip: intstruction pointer
 
   
-  cs: code segment
-  -
-  ds: data segment
-  -
-  ss: stack segment
-  -
-  es, fs, gs: aribtrary segments
+  Registers that are (apparently exclusively) used in *real mode*:
+   • cs: code segment
+   • ds: data segment
+   • ss: stack segment
+   • es, fs, gs: aribtrary segments
 
   ef: flags
 
@@ -88,6 +86,23 @@ code }
   `push` decrements(!) the stack pointer.
 
 }
+{ Sections
+
+  Sections group portions of code and data which have similar purpose or should have the same memory permissions.
+
+  Common names:
+    • `.text`: code, never to be paged out.
+    • `.data`: read/write (global variables)
+    • `.rdata`: rean only data (e.g. strings)
+    • `.bss`: block storage start (or block started by symbol): uninitialized data. The .bss section seems to be merged into the .data section by the linker.
+    • `.reloc`: relocation information, used to modify addresses.
+    • `.idata`: import address table. (Seems to be merged into with .text or .rdata).
+    • `.edata`: export information
+    • `.rsrc`: ressources
+    • `PAGE*`: pagable code. Apparently mainly used for → Linux/kernel/drivers[kernel drivers].
+
+
+}
 { Misc
 
   Setting a register to zero (clearing it):
@@ -102,3 +117,4 @@ mul ebx
 code }
 
 }
+
