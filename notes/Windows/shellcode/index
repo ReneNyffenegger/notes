@@ -7,6 +7,16 @@
   wihtin this DLL.
 
   One DLL that is loaded for all processes is *kernel32.dll`. This DLL exhibits the functions that are needed to determine function addresses: `LoadLibrary` and
-  `GetProcAddress`. The addresses of these functions are stored in the *Process Environment Block* (PEB).
+  `GetProcAddress`.
+
+  kernel32.dll starts with MZ\x90.
+  The default kernel32.dll base address is dependent on the OS:
+    • NT: 0x77f00000
+    • 2kSP2/2kSP3: 0x77fe80000
+    • WinXP: 0x77e60000
+
+  Thus, the start of kernel32 might be found be starting in 0x77f00000 and searching backward for MZ\x90.
+
+  However, an easier way to get the addresses of `GetProcAddress` and `LoadLibrary` is to look them up in the *Process Environment Block* (PEB) where they are stored.
 
 }
