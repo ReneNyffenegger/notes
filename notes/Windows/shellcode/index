@@ -1,4 +1,5 @@
 
+
 { Finding addresses of Windows functions
 
   Executing a Windows function is more complicated than executing a → Linux/kernel/sys-calls[syscall] in → Linux because Linux syscalls are simply numbered.
@@ -8,6 +9,19 @@
 
   One DLL that is loaded for all processes is *kernel32.dll`. This DLL exhibits the functions that are needed to determine function addresses: `LoadLibrary` and
   `GetProcAddress`.
+
+  Thus, the recipe to execute → Windows/development/WinAPI[WinAPI] functions is roughly:
+    • Get the base address of *kernel32.dll*
+    • Determine the address of `GetProcAddress`.
+    • Determine the address of `LoadLibrary` using `GetProcAddress`.
+    • Load one of the WinAPI DLLs (e.g. *user32.dll*)
+    • Determine the address of the desired WinAPI function, again using `GetProcAddress`.
+    • Push and/or load the function parameters
+    • Call the address that was previously obtained.
+
+
+}
+{ kernel32.dll
 
   kernel32.dll starts with MZ\x90.
   The default kernel32.dll base address is dependent on the OS:
