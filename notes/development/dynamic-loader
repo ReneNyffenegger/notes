@@ -1,8 +1,9 @@
 
 → Linux/fhs/lib/ld-linux-so-2[`/lib/ld-linux.so.2`], `ld-linux-x86-64.so.2`
 
-The dynamic loader finds and loads shared libraries needed by a program when the program is run.
-By default these libraries are in → Linux/fhs/lib and → Linux/fhs/usr/lib. The file → Linux/fhs/etc/ld_so_conf can be used
+The dynamic loader finds and loads executables and shared libraries when a program is run.
+-
+By default, such shared libraries are in → Linux/fhs/lib and → Linux/fhs/usr/lib. The file → Linux/fhs/etc/ld_so_conf can be used
 to specifiy additional search paths.
 
 Determine the name of the dynamic loader with `readelf -l executable | grep interpreter`, for example
@@ -10,6 +11,21 @@ Determine the name of the dynamic loader with `readelf -l executable | grep inte
 
 The dynamic loader must not be confused with the → Linux/shell/commands/ld[standard-linker] (`ld`).
 
+{ Starting an executable
+
+  Read the executable's header to determine data and text segment sizes.
+
+  Create address space for these segments plus stack.
+
+  Copy data and text segments into created address space.
+
+  Copy program arguments onto stack.
+
+  Initialize registers. Most of them are just cleared, however, `esp` is set to point to stack's top.
+
+  Jump to a *start up routine* (`main`?). This routine should call the `exit` → Linux/kernel/sys-calls[syscall] when the executable is done with its work.
+
+}
+
 sa:
   → development/dynamic-linker
-

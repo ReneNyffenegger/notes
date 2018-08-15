@@ -76,6 +76,15 @@ code }
   `cs`, `eip` and `ip` cannot be the destination.
 
 }
+{ leave
+
+  `leave` is apparently equivalent to
+code {
+mov esp, ebp
+pop ebp
+code }
+
+}
 { Memory reference (pointers)
 
 code {
@@ -118,7 +127,7 @@ code }
     • `.text`: code, never to be paged out.
     • `.data`: read/write (global variables)
     • `.rdata`: rean only data (e.g. strings)
-    • `.bss`: block storage start (or block started by symbol): uninitialized data. The .bss section seems to be merged into the .data section by the linker. Since it contains unintialized data, it helps to reduce the size of the object file and is »expanded« into memory when the executable is loaded.
+    • `.bss`: block storage start (or block started by symbol). Uninitialized data (only size of objects is specified). The .bss section seems to be merged into the .data section by the linker. Since it contains unintialized data, it helps to reduce the size of the object file and is »expanded« into memory when the executable is loaded.
     • `.reloc`: relocation information, used to modify addresses.
     • `.idata`: import address table. (Seems to be merged into with .text or .rdata).
     • `.edata`: export information
@@ -126,6 +135,28 @@ code }
     • `PAGE*`: pagable code. Apparently mainly used for → Linux/kernel/drivers[kernel drivers].
 
    Unneeded seections can be disposed of with `strip`.
+
+}
+{ Data for operands
+
+  The data for an operand can be stored
+    • in an immediate (const value?)
+    • register
+    • memory location
+
+   The address of a memory location can be calculated by `base + index*scale + displacement`.
+   -
+   base: `e{a,b,c,d}x`, `e{s,b}p`, `e{s,d}i`
+   -
+   index: `e{a,b,c,d}x`, `ebp`, `e{s,d}i`
+   -
+   scale: 1, 2, 4 or 8
+   -
+   displacement: 0, 8, 16 or 32 bit
+
+   Intel syntax: `[base + index*scale + disp]`
+   -
+   AT&T syntax: `disp(base, index, scale)`.
 
 }
 { WinREPL
@@ -156,7 +187,9 @@ code }
 
   yasm (which apperently is modelled after nasm)
 
-
+  HLA: *High Level Assembler*, uses a high level language like syntax for declarations of functions and procedure calls and allows for control structures (`if`, `while` …).
+  -
+  As high level assembler, it requires a (real) low level assembler such as `as` or `masm`.
 
 }
 sa:
