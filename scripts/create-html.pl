@@ -668,7 +668,7 @@ sub process_page { #_{
     $line =~ s/(\d)° *([0-9.]+)' *([NEWSO])/$1°&nbsp;$2′&nbsp;&nbsp;$3/g;
     $line =~ s/(\d)° *([0-9.]+)'/$1°&nbsp;$2′/g;
 
-    $line =~ s/\bj(-?\d+)\b/$1/g;
+    $line =~ s/(?<! -)j(-?\d+)\b/$1/g; # 2018-08-18 because of `make -j2` etc.
 
     if ($line =~ s/(\s)•(.*)/$2/) { #_{ UL element
 
