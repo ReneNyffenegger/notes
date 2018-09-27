@@ -1,0 +1,30 @@
+$ Accessing DLLs from VBA: byVal vs byRef - as longPtr vs as any
+
+This is the result of a few little experiments that I conducted to find out how declaring parameters for a DLL as
+→ development/languages/VBA/language/subs-and-functions/byVal-byRef[`byVal` / `byRef`] and `as longPtr` / `as any` influence the values
+that are passed to the DLL.
+
+table { lllll
+
+  Parameter          ☰ `byVal p longPtr`   ☰ `byRef p as longPtr` ☰ `byVal p as any`    ☰ `byRef p as any`
+ `varLong`           ☰ `varLong`           ☰ `varPtr(varLong)`    ☰ `varLong`           ☰ `varPtr(varLong`
+ `strPtr(varString)` ☰ `strPtr(varString)` ☰  ?                   ☰ `strPtr(varString)` ☰  ?
+ `varPtr(varString)` ☰ `varPtr(varString)` ☰  ?                   ☰ `varPtr(varString)` ☰  ?
+ `vbNull`            ☰  1                  ☰  ?                   ☰  1                  ☰  ?
+ `vbNullString`      ☰  type mismatch      ☰  type mismatch       ☰  0                  ☰  ?
+
+table }
+
+{ The source for the DLL
+
+  gh|VBA-calls-DLL|/c/fourLongs.c||
+
+}
+{ The VBA source that calls the DLL
+
+  gh|VBA-calls-DLL|/fourLongs.bas||
+
+}
+
+sa:
+  → development/languages/VBA/Calling-DLLs
