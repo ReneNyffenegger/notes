@@ -99,15 +99,6 @@ code }
   `cs`, `eip` and `ip` cannot be the destination.
 
 }
-{ leave
-
-  `leave` is apparently equivalent to
-code {
-mov esp, ebp
-pop ebp
-code }
-
-}
 { Memory reference (pointers)
 
 code {
@@ -137,9 +128,49 @@ code }
 
 
 }
-{ Stack operations
+{ push / pos
 
-  `push` decrements(!) the stack pointer.
+ `push` *first* decrements(!) the stack pointer `esp`, *then* places the pushed value to the memory location pointed at with `esp`.
+
+ `pop` *first* loads the indicated destination with the value that `esp` points at, *then* increments `esp`.
+
+}
+
+{ Stack frame operations
+
+
+  The ~stack pointer~ `esp` stores the top (bottom) of the stack.
+
+  The ~base pointer~ `ebp` stores the value of the stack pointer when the current function was entered.
+  -
+  Thus, the first instructions of a function are commonly:
+code {
+pushl	%ebp            ; Save base pointer of calling function
+movl	%esp, %ebp      ; Load base pointer with current stack pointer
+subl	$40, %esp       ; Make room for a few local variables.
+code }
+  After setting up the stackframe like this, various values can be accessed via the base pointer (whose value does not change in the context of the function):
+    • `ebp+ 0`: the previous value of the `ebp` register.
+    • `ebp+ 4`: the return address.
+    • `ebp+ 8`: the first parameter.
+    • `ebp+12`: the second parameter, etc.
+    • `ebp- 4`: the first local variable.
+    • `ebp- 8`: the second local variable, etc.
+  
+
+  A function is then left with
+code {
+leave                ; FIRST set esp = ebp THEN pop ebp.
+ret                  : esp points now to return address: pop it into eip.
+code }
+
+
+  `leave` is equivalent to:
+code {
+mov esp, ebp
+pop ebp
+code }
+
 
 }
 { Sections
@@ -180,6 +211,17 @@ code }
    Intel syntax: `[base + index*scale + disp]`
    -
    AT&T syntax: `disp(base, index, scale)`.
+
+   { AT & T: $ prefix
+
+     In AT&T syntax, a number or symbol without the `$` prefix is always a *memory operand*: `movw 0x0a, %ax` loads the value pointed at in `ds:0x0a` into `%ax`.
+
+     With the `$` prefix, `movw $0x0A, %ax` loads `%ax` with the value `$0x0a`.
+
+     See also → https://stackoverflow.com/a/41131246/180275[this stackoverflow answer].
+
+
+   }
 
 }
 { WinREPL
