@@ -11,6 +11,67 @@ code }
 See → https://stackoverflow.com/a/9996597/180275[this stackoverflow answer].
 
 }
+{ Rules
+
+  A rule consists of three parts:
+    • One or more targets
+    • Zero or more dependencies
+    • Zeor or more commands
+code {
+target: dependency-1 dependency-2 …
+	command-1
+	command-2
+	…
+code }
+
+  A target is usually a file (but compare with phony targets).
+
+  The commands must be prepended by a *tab*.
+
+}
+{ Targets
+
+  The macro `$@` evaluates to the name of the current target.
+
+code {
+foo: $(objs)
+	$(CXX) -o $@ $(objs)
+code }
+
+  If make is invoked without stating an explicit target, it tries to update the first target in the makefile.
+
+}
+{ Suffix rules
+
+  Two types of suffix rules(?)
+    • single suffix
+    • double suffix
+
+  Example for double suffix rule:
+code {
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+code }
+
+  Suffix rules are obsoleted by *pattern rules* (which contain `%` signs).
+
+  The example above is equivalent to the following pattern rule:
+code {
+%.o : %.c
+	$(CC) $(CFLAGS) -c $<
+code }
+
+}
+{ Macros
+
+  Macros seem to the make specific term for *variables*.
+
+  Macros can be defined when make is invoked:
+code {
+$ make CFLAGS=-g
+code }
+
+}
 { Multiple processors #multiple_processors
 
   With multiple processors (or cores), the compilation time can be reduced by parallelizing the tasks.
@@ -105,6 +166,8 @@ code }
    Strawberry → development/languages/Perl[Perl] seems to name it `gmake.exe`. It also comes with a `dmake.exe`...
 
    → https://metacpan.org/pod/distribution/Makefile-GraphViz/script/gvmake[gvmake]
+
+   ~Phony targets~ are targets that is not supposed to update or create a file, but is rather a sequence of shell commands to be executed (such as the often seen *clean* target).
 
 
 }
