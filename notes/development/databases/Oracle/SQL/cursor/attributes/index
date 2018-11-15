@@ -1,0 +1,302 @@
+2018-11-15: *Moved and adapted from `adp-gmbh.ch`*
+
+There are five → development/databases/Oracle/SQL/cursor[cursor] attributes:
+  • %isopen,
+  • %found,
+  • %notfound,
+  • %rowcount,
+  • %bulk_rowcount.
+  • %bulk_exceptions
+  
+In order to demonstrate some of these, the following table is created…
+
+code {
+create table cur_attr_exmpl (
+  a number,
+  b varchar2(20)
+);
+code }
+
+… and filled with the following values:
+code {
+insert into cur_attr_exmpl values (   1, 'one'                );
+insert into cur_attr_exmpl values (   2, 'two'                );
+insert into cur_attr_exmpl values (  10, 'ten'                );
+insert into cur_attr_exmpl values (  20, 'twenty'             );
+insert into cur_attr_exmpl values (  42, 'fourty-two'         );
+insert into cur_attr_exmpl values ( 101, 'one hundred and one');
+insert into cur_attr_exmpl values (1000, 'thousand'           );
+code }
+
+{ %is_open
+
+   With `%isopen`, it is possible to test whether a cursor was opened: 
+
+code {
+declare
+  
+  cursor cur is 
+         select b
+           from cur_attr_exmpl;
+
+  b_     cur_attr_exmpl.b%type;
+
+  procedure is_cursor_open(txt in varchar2) as begin
+    dbms_output.put(txt);
+    if cur%isopen then
+      dbms_output.put_line('cursor is open');
+    else
+      dbms_output.put_line('cursor is not open');
+    end if;
+  end is_cursor_open;
+
+begin
+
+  is_cursor_open('First test:  ');
+
+  open cur;
+  is_cursor_open('Second test: ');
+
+  fetch cur into b_;
+
+  is_cursor_open('Third test:  ');
+
+  close cur;
+
+  is_cursor_open('Fourth test: ');
+
+end;
+/
+code }
+
+  This prints:
+code {
+First test:  cursor is not open
+Second test: cursor is open
+Third test:  cursor is open
+Fourth test: cursor is not open
+code }
+
+}
+{ %found
+
+  `%found` returns true if the last fetch operation on the cursor fetched a row.
+  
+  If %found is used on a cursor that is not open (`%open` is false), an ~ORA-01001: invalid cursor is raised. %notfound returns null is returned~:
+
+code {
+declare
+  
+  cursor cur is 
+         select b
+           from cur_attr_exmpl
+          where a between 40 and 140;
+
+  b_     cur_attr_exmpl.b%type;
+
+begin
+
+  begin
+    if cur%found then
+      dbms_output.put_line('Cursor found');
+    end if;
+  exception 
+    when invalid_cursor then
+      dbms_output.put_line('%found only possible if cursor is open');
+
+    when others then
+      raise;
+  end;
+
+  open cur;
+
+  if cur%found then 
+    dbms_output.put_line('Cursor opened and %found true');
+  elsif cur%found is null then
+    dbms_output.put_line('Cursor opened and %found null');
+  else
+    dbms_output.put_line('Cursor opened and %found false');
+  end if;
+
+  loop
+    fetch cur into b_;
+
+    if cur%found then
+      dbms_output.put_line('fetched: ' || b_);
+    else
+      exit;
+    end if;
+
+  end loop;
+
+  close cur;
+
+end;
+/
+code }
+
+This prints:
+code {
+%found only possible if cursor is open
+Cursor opened and %found null
+fetched: fourty-two
+fetched: one hundred and one
+code }
+
+}
+{ %notfound
+
+  `%notfound` returns true if the last fetch operation on the cursor did not fetch a row.
+  
+  If `%notfound` is used on a cursor that is not open (`%open` being false), an ~ORA-01001: invalid cursor is raised~. 
+
+code {
+declare
+  
+  cursor cur is 
+         select b
+           from cur_attr_exmpl
+          where a between 40 and 140;
+
+  b_     cur_attr_exmpl.b%type;
+
+begin
+
+  begin
+    if cur%notfound then
+      dbms_output.put_line('Cursor notfound');
+    end if;
+  exception when others then
+    if sqlcode = -1001 then -- ORA-01001: invalid cursor
+      dbms_output.put_line('%notfound only possible if cursor is open');
+    else 
+      raise;
+    end if;
+  end;
+
+  open cur;
+
+  if cur%notfound then 
+    dbms_output.put_line('Cursor opened and %notfound true');
+  elsif cur%notfound is null then
+    dbms_output.put_line('Cursor opened and %notfound null');
+  else
+    dbms_output.put_line('Cursor opened and %notfound false');
+  end if;
+
+  loop
+    fetch cur into b_;
+
+    if cur%notfound then
+      exit;
+    else
+      dbms_output.put_line('fetched: ' || b_);
+    end if;
+
+  end loop;
+
+  close cur;
+
+end;
+/
+code }
+
+The above prints:
+code {
+%notfound only possible if cursor is open
+Cursor opened and %notfound null
+fetched: fourty-two
+fetched: one hundred and one
+code }
+
+}
+{ %rowcount
+
+  `%rowcount` returns the number of rows that have been fetched so far. So, it increases with each fetch: 
+
+code {
+declare
+  
+  cursor cur is 
+         select b
+           from cur_attr_exmpl
+          where a between 9 and 90;
+
+  b_     cur_attr_exmpl.b%type;
+
+begin
+
+  open cur;
+
+  loop
+    fetch cur into b_;
+
+    if cur%found then
+      dbms_output.put_line(cur%rowcount || ': fetched: ' || b_);
+    else
+      exit;
+    end if;
+
+  end loop;
+
+  dbms_output.put_line('Totally ' || cur%rowcount || ' rows fetched');
+  close cur;
+
+end;
+/
+code }
+
+code {
+1: fetched: ten
+2: fetched: twenty
+3: fetched: fourty-two
+Totally 3 rows fetched
+code }
+
+}
+{ %bulk_rowcount
+
+  `%bulk_rowcount` similar to `%rowcount`, but is used in → http://www.adp-gmbh.ch/ora/plsql/bc/index.html[bulk collects].
+
+code {
+declare
+  
+  cursor cur is 
+         select b
+           from cur_attr_exmpl
+          where a between 9 and 90;
+
+
+  type b_t is table of cur_attr_exmpl.b%type;
+
+  b_   b_t;
+
+begin
+
+  open cur;
+
+  fetch cur bulk collect into b_;
+
+  for i in 1 .. b_.count loop
+    dbms_output.put_line('  ' || b_(i));
+  end loop;
+
+  dbms_output.put_line('');
+
+  dbms_output.put_line('Totally ' || cur%rowcount || ' rows fetched');
+
+  close cur;
+
+end;
+/
+code }
+
+code {
+  ten
+  twenty
+  fourty-two
+
+Totally 3 rows fetched
+code }
+
+}
