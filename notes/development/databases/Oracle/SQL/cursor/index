@@ -1,0 +1,81 @@
+$ Oracle: cursors
+
+2018-11-15: *Moved and adapted from `adp-gmbh.ch`*
+
+Each → development/databases/Oracle/SQL[SQL statement] is associated with a *cursor*. The cursor is a data structure that keeps track of all data that is needed to process the statement. 
+
+{ Explicit cursors
+
+ In → development/databases/Oracle/PL-SQL[PL/SQL],
+ all SQL statements except the select statement create an implicit cursor.
+ That is: the cursor is not explicitely declared. For select statements, an explicit cursor can be declared.
+ Such an explicit cursor can be thought of as a pointer to a record in a table or record set that can be moved forward within this table or record set. 
+
+ An explit cursor is declared and used, for example, like so: 
+
+code {
+declare
+
+  cursor explic_cur is 
+       select table_name
+         from user_tables;
+
+begin
+
+  for r in explic_cur loop
+    dbms_output.put_line(r.table_name);
+  end loop;
+
+end;
+/
+code }
+
+ Note: not all select statements in PL/SQL are explicit. For example, the following creates in implicit cursor: 
+
+code {
+declare
+  cnt number;
+begin
+  select count(*) into cnt
+    from user_tables;
+
+  dbms_output.put_line(
+   'There are ' || cnt || ' tables in your schema'
+  );
+end;
+/
+code }
+
+
+}
+{ Memory
+
+  A cursor "points" into the → http://www.adp-gmbh.ch/ora/concepts/shared_pool.html[shared pool] where its parsed sql statement is stored.
+  A cursor also occupies memory in the
+  → http://www.adp-gmbh.ch/ora/concepts/pga.html[pga] to store the values of
+  → http://www.adp-gmbh.ch/ora/concepts/bind_variables.html[bind variables] and to keep information about the cursor's state (open, bound, executed, closed). 
+
+}
+{ Open cursors
+
+   A cursor being *open* means that its associated statement is in the sql area. Parsing is not necessary for such cursors. 
+
+
+}
+{ Cached cursors
+
+ The → development/databases/Oracle/adminstration/init-parameters[initialization parameter] `session_cached_cursors` specifies how many cursors are held open for a session. Such cached cursors are stored in the session cursor cache.
+
+  If a new cursor needs to me moved into the session cursor cache, the cursor that hasn't been used for the longest time will be removed from the session cursor cache.
+
+  The higher the value of `session_cached_cursors` is set to a high value, the more the
+  → http://www.adp-gmbh.ch/ora/concepts/shared_pool.html[shared pool] might become fragmented.
+
+}
+sa:
+  → development/databases/Oracle/SQL/cursor/attributes[Cursor attributes]
+
+links:
+  → http://www.adp-gmbh.ch/ora/plsql/cursors/index.html[Cursors in PL/SQL]
+
+  → http://www.adp-gmbh.ch/ora/sql/cursor.html[Nested cursors in SQL]
