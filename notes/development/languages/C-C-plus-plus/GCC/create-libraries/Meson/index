@@ -4,9 +4,18 @@ This page is an attempt to show how a static and a shared → development/langua
 -
 It is a sequel to → development/languages/C-C-plus-plus/GCC/create-libraries.
 
-Most (if not all) files discussed on this page were contributed by → https://github.com/albfan[Alberto Fanjul (albfan)]. I appreciated and benefitted from his work very much and I hope you can, too.
+The files discussed on this page were contributed by → https://github.com/albfan[Alberto Fanjul (albfan)]. I appreciated and benefitted from his work very much and I hope you can, too.
 
-{ meson.build
+{ Overview of the source files
+
+  This example builds a static and shared version of the tq84-library (whose sources can be viewd → development/languages/C-C-plus-plus/GCC/create-libraries#tq84-lib-src[here]).
+  -
+  The sources are located under `./src/tq84`.
+
+  After building the libraries, the executables using the libraries are built. There is only one file that uses the library: → development/languages/C-C-plus-plus/GCC/create-libraries#main-src[`./src/main.c`].
+
+}
+{ meson.build files
 
   The Meson build system is mainly configured with `meson.build` files.
 
@@ -37,10 +46,25 @@ Most (if not all) files discussed on this page were contributed by → https://g
     -
     Note that we use a variables here: `tq84_lib_static` and `tq84_lib_shared`. The values for these variables were previously set when running `./src/tq84/meson.build`.
 
+    The executable `dynamic-library-loader` uses the functions `dlsym()`, `dlopen()` and `dlerror()` which are found in `libdl`. The the gnu linker, this library would be linked with the `-ldl` flag.
+    -
+    In order for Meson to do the same thing, we first get a compiler object (`cc`) through the `meson` object's `get_compiler('c')` function. Then, the compiler object can be queried for the
+    correct `ld` library with `cc.find_library('dl')`.
+    -
+    With this information, we're ready to create the executable `dynamic-library-loader`.
+
     gh|gcc-create-library|/src/meson.build||
 
   }
   { ./src/tq84/meson.build
+
+    The `./src/tq84/meson.build` file is responsible to create the shared and static shared objects.
+
+    The first line assigns the source names to the variable `runtime_sources` so that they don't need to be repeated.
+
+    The *static library* is built with the `static_library()` function, the *shared library* with the `shared_library()` function.
+
+    The `install` flag set to `true` causes the target to be installed (probably to → Linux/fhs/usr/lib[`/usr/lib`].
 
     gh|gcc-create-library|/src/tq84/meson.build||
 
