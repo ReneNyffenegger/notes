@@ -1,0 +1,49 @@
+$ Creating a shared and static library with the Meson build system
+
+This page is an attempt to show how a static and a shared → development/languages/C-C-plus-plus[C] library can be built with the → development/build-systems/Meson[Meson build system].
+-
+It is a sequel to → development/languages/C-C-plus-plus/GCC/create-libraries.
+
+Most (if not all) files discussed on this page were contributed by → https://github.com/albfan[Alberto Fanjul (albfan)]. I appreciated and benefitted from his work very much and I hope you can, too.
+
+{ meson.build
+
+  The Meson build system is mainly configured with `meson.build` files.
+
+  In our example, there are three `meson.build` files: in the top level directory, in the `./src` directory beneath (where `main.c` and `dynamic-library-loader.c` are located) and lastly
+  in `./src/tq84` where the files for the shared objects are located (`add.*` and `answer.*`).
+
+  { Top level meson.build file
+
+    Our top level `meson.build` uses the Meson function `project()` to name the project (*sum*) and specify the → development/languages[programming language] for the
+    project (in this case: → development/languages/C-C-plus-plus/C). Also, the project's license and version are stated here.
+
+    The `subdir()` function instructs Meson to enter into the specified directory (`src`) and execute the `meson.build` file in that subdirectory
+
+    gh|gcc-create-library|/meson.build||
+
+  }
+  { ./src/meson.build
+
+    The `./src/meson.build` file starts with the `subdir()` function. So, Meson first descends into `./src/tq84` and executes that `meson.file` which creates the static and shared object files.
+    -
+    It is necessary to build them first because the executables are dependent on it. More on this later.
+
+    After building the shared objects, control is returned to `./src/meson.build`. This file now instructs Meson to build three executables, each with the `executable()` function.
+    -
+    The first argument indicates the name of the executable and the unnamed following (that is: positional) arguments the sources to be compiled. In our case, this is one file: `main.c`.
+
+    The named argument `link_with` is used to determine with which files the executable is to be linked.
+    -
+    Note that we use a variables here: `tq84_lib_static` and `tq84_lib_shared`. The values for these variables were previously set when running `./src/tq84/meson.build`.
+
+    gh|gcc-create-library|/src/meson.build||
+
+  }
+  { ./src/tq84/meson.build
+
+    gh|gcc-create-library|/src/tq84/meson.build||
+
+  }
+
+}
