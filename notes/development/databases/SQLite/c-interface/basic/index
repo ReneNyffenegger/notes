@@ -1,0 +1,47 @@
+$ SQLite: basic demonstration of the c interface
+
+This is an attempt to demonstrate the basic functionality to use an → development/databases/SQLite[SQLite] database in a → development/languages/C-C-plus-plus/C[C] program.
+
+{ Creating a table
+
+ `sqlite3_open()` opens or, if it does not exist, creates an SQLite database. We assume that `the.db` does not yet exist and thus, `sqlite3_open()` will create it.
+
+  After creating the database, `sqlite3_exec()` is given a → development/databases/SQLite/tables/create[`create table`] sql statement to be executed in the new database.
+
+  Finally, the database is closed with `sqlite3_close()`.
+
+  gh|about-sqlite-c-interface|/basic/00_create-table.c||
+
+}
+{ Inserting some values
+
+  In this program, we use `sqlite3_exec()` again to execute two insert statements.
+
+  Note: the insert statements can be executed in *one* call by separating them with a semicolon (`;`):
+
+  gh|about-sqlite-c-interface|/basic/01_insert.c||
+
+}
+{ Using bind variables
+
+  When inserting many records, bind variables allow to only prepare a statement once and the execute it multiple times.
+
+  The statement is prepared with `sqlite3_prepare()` and executed with `sqlite3_step()`.
+
+  gh|about-sqlite-c-interface|/basic/02_insert-bind.c||
+
+}
+{ Selecting from the table
+
+  Since SQLite is not strongly typed (but rather *manifest* typed), each value stored in a row/column can have its own → development/databases/SQLite/datatypes[datatype].
+  -
+  Thus, when selecting and printing the values, we first have to determine a value's datatype with `sqlite3_column_type()`.
+  -
+  After determining the datatype, we can query the value with one of the `sqlite3_column_XXX()` functions.
+
+  gh|about-sqlite-c-interface|/basic/03_select.c||
+
+}
+
+links:
+  These files are → https://github.com/ReneNyffenegger/about-sqlite-c-interface/tree/master/basic[in this github repository].
