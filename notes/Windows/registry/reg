@@ -1,4 +1,23 @@
+{ Querying a specific value in the registry
 
+  `req query` in combination with `/v` can be used to query for a specific value under a specific key in the → Windows/registry[registry].
+
+  The following command determines the (system wide) value of the `PATH` → development/environment-variable[environment variable].
+
+code {
+reg query → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment["HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"] /v PATH
+code }
+
+  Unfortunately, `reg query` also prints the key and data type of the queried value. In order to only print the value, the `reg query` might be combined with
+  → Windows/cmd-exe/commands/for/f/tokens[`for /f "tokens=…"`] to extract the value only. On the command line, that would be:
+code {
+for /f "tokens=2,* skip=2" %a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v TEMP') do echo %b
+code }
+
+  If this construct is used in a *batch file*, the percent signs need to be doubled (`%%a` and `%%b` instead of `%a` and `%b`), see
+  for example → development/tools/scripts/personal/regQuery_bat[`regQuery.bat`].
+  
+}
 { Escaping special characters #reg-escape
 
   Apparently, apostrophes can be escaped with a backslash and percent signs can be escaped with a caret (`^`).
@@ -8,5 +27,5 @@
 
 sa:
 
- → Windows/registry/regedit, →Windows/registry/index.
+ → Windows/registry/regedit, → Windows/registry
 
