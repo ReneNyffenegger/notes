@@ -1,10 +1,58 @@
 $ Accessing and calling DLLs from VBA: Pointer to structs
 
-This test aimed at trying to pass a `type` (`struct` in c) to and from a  DLLl
+This test aims at trying to pass a `type` (`struct` in c) to  a  DLLl
 
-gh|VBA-calls-DLL|/pointer-to-struct/dll.c||
+{ dll.c
 
-gh|VBA-calls-DLL|/pointer-to-struct/call-the-dll.bas||
+  The DLL defines a struct (named `FOO`) and a function `passPtrToFOO` which takes a pointer to this struct.
+
+  If the pointer passed to the function is a null pointer, the function just displays a message box that a null pointer was passed.
+
+  If a non-null pointer is passed, the function displays a message box with the values of the stuct elements.
+
+  gh|VBA-calls-DLL|/pointer-to-struct/dll.c||
+
+}
+{ call-the-dll.bas
+
+  This is the → development/languages/VBA[VBA] program that uses the DLL.
+
+  First, a → development/languages/VBA/language/datatypes/user-defined[type] is defined that matches the `struct` in the DLL.
+  
+  It then declares three aliases for the function so that (a pointer) to the type (or a null pointer)  can be passed to the DLL function
+  either `as FOO`, `as any` or `as longPtr`.
+
+  It then declares a variable (`f`, which is a `FOO`) and initializes its members.
+
+}
+{ Running the VBA program
+
+  The function is then ready to call the DLL function.
+
+  gh|VBA-calls-DLL|/pointer-to-struct/call-the-dll.bas||
+
+  First, `f` is passed `as FOO`. The DLL receives a pointer to the struct and is able to display the values of the members of the struct. Note: VBA automagically converts its BSTR strings to `char*` for the
+  DLL:
+  gh|VBA-calls-DLL|/pointer-to-struct/img/1-2.png||
+
+  The second call uses `passPtrFOOasAny` to demonstrate that `f` can also be passed to the DLL `as any`. The DLL displays the same message box.
+
+  The third call tries pass a null pointer to the DLL. However, the intent fails. The DLL receives a pointer to an unitialized struct and displays
+  gh|VBA-calls-DLL|/pointer-to-struct/img/3.png||
+
+  However, a null pointer can be passed by calling the function `as longPtr`.
+
+  Lastly, the function is called with → development/languages/VBA/functions/xPtr[`varPtr()`]. This passes a pointer to the struct to the DLL, but the `BSTR` is not converted to a `char*`, thus, the
+  DLL displays the following message box:
+  gh|VBA-calls-DLL|/pointer-to-struct/img/5.png||
+
+
+}
+{ dll.def
+
+  gh|VBA-calls-DLL|/pointer-to-struct/dll.def||
+
+}
 
 
 sa:
