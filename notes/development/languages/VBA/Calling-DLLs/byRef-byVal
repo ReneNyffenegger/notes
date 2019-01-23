@@ -1,0 +1,49 @@
+$ Accessing and calling DLLs from VBA: passing parameters byRef and byVal
+
+This is a test that hopefully demonstrates how values can be passed to and from a → Windows/development/Portable-Executable/DLL[DLL] using
+→ development/languages/VBA/language/subs-and-functions/byVal-byRef[`byRef` and `byVal`].
+
+The function `diff_double` takes two doubles, displays them in a message box and calculates
+their difference and returns it.
+-
+In VBA, the doubles that are passed to the function need to be passed with the `byVal` option.
+
+The function `swap_double_ptr` takes to pointers to doubles, hence their values must be
+passsed to the function with the `byRef` option.
+-
+Since the arguments are passed by reference, the function can modify their value. This is what
+the function does: it swaps their values.
+
+The function `to_upper_char_ptr` takes a pointer to a `char`. Thus a string can be passed to this
+function. Although the function expects a pointer, in the special case of strings, they need
+to be passed with `byVal` anyway.
+
+The function `bits_in_long` shows which bits are set in a long. I needed that to verify that a VBA constant
+like `&h80000051` has the highest most bit set when assigned to a `long` → development/languages/VBA/language/datatypes[datatype].
+
+The functions (also subs) that VBA calls need to be declared in the VBA source code with the `declare` statement.
+-
+This statement identifies the physical location of the DLL, the entry points (functions) and calling conventions (`byVal` vs `byRef`).
+
+{ The source code for the DLL
+
+  gh|VBA-calls-DLL|/byRef-byVal/dll.c||
+
+}
+{ The VBA source that calls the DLL
+
+  This is the VBA code that calls the DLL.
+
+  Note that either the DLL needs to be in the `PATH` → development/environment-variable[environment variable] or that the path to the DLL needs to be explicitely stated in the `declare` statement.
+
+  gh|VBA-calls-DLL|/byRef-byVal/call-the-dll.bas||
+
+}
+{ The .def file for the Microsoft linker
+
+  In order to compile (link) the DLL with Microsoft's tools, I needed the following `.def` file
+  gh|VBA-calls-DLL|/byRef-byVal/dll.def||
+
+}
+sa:
+  → development/languages/VBA/Calling-DLLs
