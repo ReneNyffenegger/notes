@@ -3,11 +3,53 @@ $ Accessing and calling DLLs from VBA: passing null pointers
 This is a test that I used to check if I can pass null pointers to a → Windows/development/Portable-Executable/DLL[DLL] from
 → development/languages/VBA[Visual Basic for Applications].
 
-This is apparently possible if the pointer argument is declared `→ development/languages/VBA/language/subs-and-functions/byVal-byRef[byRef]` and the special type `any`.
+This is apparently possible if the pointer argument is declared `→ development/languages/VBA/language/subs-and-functions/byVal-byRef[byRef]` and the special type `any` in the
+VBA `declare` statement.
 
-gh|VBA-calls-DLL|/pass-null-pointers/dll.c||
+{ dll.c
 
-gh|VBA-calls-DLL|/pass-null-pointers/call-the-dll.bas||
+  This is the c source for the DLL. It has one function (or *entry point*): `asAny`. The function takes one argument: a simple pointer (`void*`).
+
+  The function returns false if the pointer was a *null pointer* and true (or more exactly `-1` which seems to be the VBA equivalent for `false`) otherwise.
+
+  Additionally, when the pointer was not null, it is assumed to be a pointer to a wstr (or an `OLECHAR` (?)). A message box then prints the address that the pointer
+  points at as well as the string value at that address.
+
+  gh|VBA-calls-DLL|/pass-null-pointers/dll.c||
+
+}
+{ call-the-dll.bas
+
+  This is the source code that calls the DLL.
+
+  The argument `pointer` of the DLL function `asAny` is declared with the special type `any` that seems to be necessary in order to be able to pass null pointers.
+
+  gh|VBA-calls-DLL|/pass-null-pointers/call-the-dll.bas||
+
+}
+{ Output
+
+  The VBA program calls `asAny` three times.
+
+  The first time, it calls it with → development/languages/VBA/language/null-and-nothing-etc[`nothing`]. This is passed as *null pointer* to the DLL and consequently,
+  the DLL returns false.
+
+  The second time, the function is called with the special constant `vbNullString`. Also this value is passed as *null pointer* to the DLL and again, the function
+  return false.
+
+  In the third time, the function is called with a → development/languages/VBA/language/datatypes/string[string]. This is passed as an actual pointer. Hence,
+  the DLL displays a message box and returns true.
+
+  gh|VBA-calls-DLL|/pass-null-pointers/img/MessageBox.png||
+
+}
+{ dll.def
+
+  This is the *def file* that is needed create a DLL with undecorated names when compiling with the Microsoft `cl` compiler.
+
+  gh|VBA-calls-DLL|/pass-null-pointers/dll.def||
+
+}
 
 sa:
   → development/languages/VBA/Calling-DLLs
