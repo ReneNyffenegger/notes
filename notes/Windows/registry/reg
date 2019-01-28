@@ -1,3 +1,22 @@
+
+`reg` allows to query the → Windows/registry[registry] or set values in the registry from → Windows/cmd-exe[cmd.exe].
+
+{ Writing a value int the registry
+
+code {
+c:\> reg add HKCU\path\to\key /v nameOfValue /t dataType /d value /f 
+code }
+
+dataType is one of
+  • `REG_DWORD`
+  • `REG_QWORD`
+  • `REG_SZ`
+  • `REG_MULTI_SZ`
+  • `REG_EXPAND_SZ`
+  • `REG_BINARY`
+  • `REG_NONE` (?)
+
+}
 { Querying a specific value in the registry
 
   `req query` in combination with `/v` can be used to query for a specific value under a specific key in the → Windows/registry[registry].
@@ -17,6 +36,19 @@ code }
   If this construct is used in a *batch file*, the percent signs need to be doubled (`%%a` and `%%b` instead of `%a` and `%b`), see
   for example → development/tools/scripts/personal/regQuery_bat[`regQuery.bat`].
   
+}
+{ Search recursively for a specific values
+
+  `reg query … /s` allows to recursively search for a specific value under a given key.
+
+   The following command searches for any key (`/k`) under → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Classes[`HKLM\SOFTWARE\Classes`] whose name contains *key-value*. 
+
+code {
+reg query HKLM\SOFTWARE\Classes /k /f key-value
+code }
+
+  If the search is to be restricted to values that contain a specific value, `/d` instead of `/k` should be used.
+
 }
 { Escaping special characters #reg-escape
 
