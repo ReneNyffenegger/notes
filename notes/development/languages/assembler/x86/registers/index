@@ -1,0 +1,86 @@
+$ x86 assemlber: registers
+
+eax, ebx, ecx, edx: 32 bit general purpose register (GPR)
+-
+ah, bh, ch, dh: Upper 16 bits of respective GPRs
+-
+al, bl, cl, dl: Lower 16 bits of respective GPRs
+-
+64 Bit version like 32 bit, but with RAX, RBX …
+
+The eax register is used to return values from functions. it has also a special semantic for arithmic functions.
+-
+ecx has special semantic for looping functions.
+
+esp: stack pointer
+-
+ebp: basepointer, can be used in high level languages for to reference function parameters and local variables on the stack.
+
+esi: source for string operations
+- 
+edi: destination for string operations
+-
+Some instructions, such as `rep stosb`, `rep movsb` or `rep scasb`, can only be done using these two registers.
+
+eip: intstruction pointer
+
+Registers that are (apparently exclusively) used in *real mode*:
+ • cs: code segment
+ • ds: data segment
+ • ss: stack segment
+ • es, fs, gs: aribtrary segments
+
+Apparently, recent x86 models feature a *thermal status register*. 
+
+{ FLAGS / status register
+
+  eflags, rflags
+
+  Control flags: they control the → hardware/CPU[CPU]'s operation.
+
+  Status flags:
+    • carry flag (CF): set if result of *unsigned arithmetic* operation is too large for destination.
+    • overthrow flag (OF): set if result of *signed arithmetic* operation is too large for destination.
+    • sign flag (SF): set if arithmetic or logical operation results in a negative outcome.
+    • zero flag (ZF): set if result of arithmetic or logical operation is zero.
+    • auxiliary carry flag (AC)
+    • parity flag (PF)
+
+  { Direction flag
+
+     The *Direction flag* applies to `REP`-instructions such as `MOVS`, `MOVSD`, `MOVSW` etc.
+
+     If it is set, strings are processed from highest to lowest address (»auto decrementing«), if it is cleared,
+     strings are processed from lowest to highest address (»auto incrementing«).
+
+     The direction flag is cleared with the `CLD` istruction and set with the `STD` instruction.
+
+  }
+  
+
+}
+{ Segment registers
+
+  An instruction that refers to a memory address implicitly uses a *segment register*.
+  For example, a jump instruction uses `cs`, a push instruction uses `ss`.
+
+  Most segment registers can be assigned a value with the `mov` instruction. However `cs` can only be assigned with `jmp` and `call`.
+
+}
+{ x86_64
+
+  The registers were extended to 64 bits: `rax` … `rdx`, `rsp` etc.
+
+  General purpose registers were added: `r8` … `r15`. The lower 32/16/8 bits of these registers are referred to as
+  `rXd`, `rXw` and `rXb`.
+
+}
+{ Clobber registers
+
+  With respect to an API (such as the → Windows/development/WinAPI[WinAPI]), registers that can be overwritten in a function of this API are called *clobber registers*.
+
+  In the 32-bit WinAPI, the clobber registers are `eax`, `ecx` and `edx`.
+  In the 64-bit WinAPI, all registers are clobber registers except `rbp`, `rbx`, `rdi`, `rsi`, `r12`, `r13`, `r14` and `r15`.
+
+}
+s
