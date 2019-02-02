@@ -1,0 +1,51 @@
+$ WinAPI: A and W functions
+
+Most (all?) string related WinAPI functions come in two versions: `FuncNameA` and `FuncNameW` which are the ansi and wide character
+variant of the same function.
+
+The `FuncNameA` variants are basically wrapper functions that convert strings from ansi to wide char representation and
+*then* call the corresponding `FuncNamew`.
+-
+I assume that the conversion from ansi to wide char is dependent on the current → Windows/development/Internationalization/Language-for-Non-Unicode-Programs[Language for Non-Unicode Programs].
+
+{ Defining UNICODE
+
+  In order to use the wide character (`FuncNameW`) versions of WinAPI functions, the macro `UNICODE` must be defined *before* including `<windows.h>`. 
+
+
+  For example, the include file `WinUser.h` contains the following lines (edited for better readability).
+
+
+code {
+WINUSERAPI int WINAPI MessageBoxA(
+    _In_opt_ HWND   hWnd,
+    _In_opt_ LPCSTR lpText,
+    _In_opt_ LPCSTR lpCaption,
+    _In_     UINT   uType
+);
+
+WINUSERAPI int WINAPI MessageBoxW(
+    _In_opt_ HWND    hWnd,
+    _In_opt_ LPCWSTR lpText,
+    _In_opt_ LPCWSTR lpCaption,
+    _In_     UINT    uType
+);
+
+#ifdef UNICODE
+  #define MessageBox  MessageBoxW
+#else
+  #define MessageBox  MessageBoxA
+#endif // !UNICODE
+code }
+
+  Here, the two WinAPI functions `MessageBoxA` and `MessageBoxB` are defined. The ansi version
+  has `LPCSTR` parameters while the wide character version has `LPCWSTR` parameters.
+
+  Then, depending whether `UNICODE` is defined, the macro `MessageBox` either expands to `MessageBoxA` or `MessageBoxB`.
+
+  Now, when `MessageBox` (or any other WinAPI function that takes a string) is called, the strings should be initialized with the `TEXT` macro (which depending on the defined value of `UNICODE`) creates an ansi `char*` or wide character `wchar_t*` string.
+  -
+  See also → Windows/development/WinAPI/data-types/Definition-of-TCHAR-and-TEXT-depending-on-UNICODE[Definition of TCHAR and TEXT depending on UNICODE].
+
+
+}
