@@ -1,31 +1,39 @@
 $ MS Access bootstrap - Create Access projects programmatically
 
-This light weight → development/languages/VBScript scriptlet can be used to programmatically bootstrap the creation
+`accessBootstrap.vbs` is a light weight → development/languages/VBScript scriptlet that can be used to programmatically bootstrap the creation
 of → development/databases/Access[MS Access] applications.
 
-Currently, it exhibits three functions:
-  • `createDB`: to create the access (`.accdb`) file
-  • `insertModule`: to insert a → development/languages/VBA[VBA] module
-  • `addReference`: to add a reference.
 
-rem {
 
-When it is inovoked, it needs three parameters:
-  • The path (inclusive filename) of the `accdb` to be created
-  • The path (without filename) to the VBA → development/languages/VBA/modules/Common/00_ModuleLoader[00_ModuleLoader.bas] module, which is used to load further VBA modules.
-  • The path (inclusive filename) of an *init module* that must have a `createApp` → development/languages/VBA/language/subs-and-functions[`sub`] which will be called after inserting both modules.
-
-rem }
-
-{ example.wsf
-
-  The most simple way to combine `accessBootstrap.vbs` with the desired functionality is probably to use `wsf` files such as the following:
-
-  gh|MS-Access-bootstrap|/example.wsf||
-
-}
 { accessBootstrap.vbs
 
+   Currently, `accessBootstrap.vbs` exhibits three functions:
+     • `createDB`: to create the access (`.accdb`) file. The sub takes a string that contains the path plus filename of the resulting file.
+     • `insertModule`: to insert a → development/languages/VBA[VBA] → development/languages/VBA/language/module[module]
+     • `addReference`: to add a reference to a *type lib* (see → Microsoft/Office/Visual-Basic-Editor/Object-Model#vbe-add-reference[here]).
+
   gh|MS-Access-bootstrap|/accessBootstrap.vbs||
+
+}
+{ Test
+
+  { The wsf file
+
+    The following wsf file uses `accessBootstrap.vbs` to insert a → development/languages/VBA/language/module[VBA module] and then call a
+    → development/languages/VBA/language/subs-and-functions[sub] (`createApplication`) in the inserted module.
+    -
+    In a real world case, `createApplication` would then create the Access application.
+
+    gh|MS-Access-bootstrap|/test/createAccess.wsf||
+
+  }
+
+  { The inserted VBA module
+
+    The (simple) inserted module with the `createApplication` sub that is called by the wsf file (via `accessBootstrap.vbs`)
+
+    gh|MS-Access-bootstrap|/test/init.bas||
+
+  }
 
 }

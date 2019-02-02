@@ -1,0 +1,104 @@
+$ VBA: lifetime of global variables
+
+The following → development/languages/VBA/language/module and → development/languages/VBA/language/classes[class] is an attempt to get clarification about
+the lifetime of *global → development/languages/VBA/language/variables[variables]*.
+
+{ tq84_obj.cls
+
+  This is a rather simple class with a constructor (`class_initialize`), a destructor (`class_terminate`), a member variable (`name_`) and a member function (`sayHello`) which basically says
+  *hello World, my name is …* (and then appends the value of `name_`).
+
+  gh|about-VBA|/language/variables/global/lifetime/tq84_obj.cls||
+
+}
+{ The module
+
+  The module declare two *global variables*, one is a simple → development/languages/VBA/language/datatypes/double[double], the other the `tq84_obj`
+  → development/languages/VBA/language/datatypes/object[object].
+
+  gh|about-VBA|/language/variables/global/lifetime/mod.bas||
+
+}
+{ Test
+
+  The tests are conducted in the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window[immediate window].
+
+  { Initalizing the variables
+
+  First, the global variables are initialized by calling
+code {
+main
+code }
+
+  Initizlizing `g_obj` implicititely calls the constructor of `tq84_obj` and consequently, the immediate window reports
+code {
+tq84_obj initialized
+code }
+
+  }
+  { Using the initalized variables
+
+    Next, I test if the global variables are available. Thus I execute the following two statements:
+code {
+g_obj.sayHello()
+? g_num
+code }
+
+   which prints
+code {
+Hello world, my name is main
+42
+code }
+
+   Thus, I see that the global variables were not destructed in the mean time.
+ 
+  }
+  { Using end
+
+    The → development/languages/VBA/language/statements/end[`end`] (which is in the `finalize` → development/languages/VBA/language/subs-and-functions[sub]) statement terminates all global variables:
+code {
+finalize
+code }
+
+  The first `debug.print` statement in `finalize` prints
+code {
+finalize 1
+code }
+
+   Because `end` terminates the execution of the currenlty running program, the second `debug.print` is not even executed.
+
+   Although the global variables were destroyed, the destructor of the object was not called. In order to verify their destruction, we need to again execute
+code {
+g_obj.sayHello()
+code }
+ 
+   to which the runtime environment says *Run-time error '91': Ojbect variable or With block variable not set*.
+
+   And
+code {
+? g_Num
+code }
+   prints
+code {
+0
+code }
+
+  }
+  { Causing an unhandled error
+
+    Global variables are also destroyed when an *unhandled error* occurs.
+
+    This is demonstrated similarly to the previous example:
+code {
+main
+causeError(0)
+code }
+
+  The runtime environment report *Run-time error '11': Division by zero*. I don't handle the error by just clicking the `End` buttun.
+
+  After that, the global variables are destroyed.
+  
+
+  }
+
+}
