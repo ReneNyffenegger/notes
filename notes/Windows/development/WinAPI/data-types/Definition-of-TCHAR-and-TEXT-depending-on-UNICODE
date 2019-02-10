@@ -1,21 +1,37 @@
-$ WinAPI: Definition of TCHAR and TEXT depending on UNICODE
+$ WinAPI: Definition of TCHAR, TEXT etc. depending on UNICODE
 
 When including `<windows.h>` (or more accuratly, when including `<winnt.h>`), the → development/languages/C-C-plus-plus/preprocessor[preprocessor] defines the
-→ development/languages/C-C-plus-plus/preprocessor/macros[macros] `TCHAR` and `TEXT` depending on the defined value of `UNICODE`.
-
-
+→ development/languages/C-C-plus-plus/preprocessor/macros[macros] `TCHAR` and `TEXT` depending on the defined value of `UNICODE` (manually edited for simplicity and clarity):
 
 code {
+
+// From WinDef.h
+#define CONST const
+
+// UNICODE (Wide Character) types                    -- 340
+
 typedef wchar_t WCHAR;
+
+// typedef   CONST WCHAR   *LPCWCH,  *PCWCH;            -- 351
+typedef   CONST WCHAR   *LPCWSTR, *PCWSTR;           -- 357
+
+
+// ANSI (Multi-bypte Character) types                -- 416
+
+typedef   CONST  CHAR   *LPCSTR,  *PCSTR;            -- 424
 
 #ifdef  UNICODE
 
-   typedef WCHAR TCHAR, *PTCHAR;
+   typedef WCHAR   TCHAR , *PTCHAR;
+   typedef LPCWSTR PCTSTR,  LPCTSTR;
+
    #define __TEXT(quote) L##quote
 
 #else
 
-   typedef char TCHAR, *PTCHAR;
+   typedef char    TCHAR, *PTCHAR;
+   typedef LPCSTR PCTSTR,  LPCTSTR
+
    #define __TEXT(quote) quote
 
 #endif
@@ -23,8 +39,15 @@ typedef wchar_t WCHAR;
 #define TEXT(quote) __TEXT(quote)
 code }
 
-
 This makes it possible to use the same source code when compiling for ansi or wide character targets (See → Windows/development/WinAPI/A-and-W-functions[WinAPI: `A` and `W` functions].)
+
+table { lll
+
+  Generic             ☰  Unicode  ☰ Ansi (Multibyte)
+ `TCHAR`              ☰ `WCHAR`   ☰ `char`
+ `PCTSTR` / `LPCTSTR` ☰ `LPCWSTR` ☰ `PCTSTR`
+
+table }
 
 { _UNICODE
 
@@ -37,3 +60,7 @@ sa:
   → Windows/development/WinAPI/data-types
 
   The GCC option → development/languages/C-C-plus-plus/GCC/options/m_lowercase/unicode[`-municode`].
+
+  → development/Unicode
+
+  → development/languages/C-C-plus-plus/C/language/datatypes/wchar_t[`wchar_t`]

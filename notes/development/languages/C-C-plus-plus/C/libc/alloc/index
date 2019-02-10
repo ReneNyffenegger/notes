@@ -1,0 +1,65 @@
+$ libc: Memory allocation
+
+In → development/languages/C-C-plus-plus/C[C], there are two ways to → development/languages/C-C-plus-plus/C/memory/allocation[allocate memory]; *static allocation* and *automatic allocation*. The
+libc memory allocation functions provide a third way to allocate memory: dynamic memory allocation.
+
+{ malloc
+
+ `malloc(n)` allocates `n` bytes of uninitialized memory (or a null pointer if not sufficient memory could be allocated).
+
+  The return type of `malloc` is `void*` which can be converted to any other pointer type in ISO C (but apparently not in traditional C).
+
+  gh|about-libc|/alloc/malloc.c||
+
+  In Linux, `malloc` uses → Linux/kernel/syscalls/brk to grow a → Linux/kernel/process[process's] data segment.
+
+  Apparently, there is also possibility to map → Linux/fhs/dev/zero to get anonymous memory.
+
+}
+{ mtrace
+
+ `mtrace()` traces function calls to `malloc()`, `realloc()` and `free` and protocolls them into the file pointed at with the
+  → development/environment-variable[environment variable] `MALLOC_TRACE` (at runtime, not at compile time). Thus, it is
+  possible to detect → development/memory/leak[memory leaks].
+
+  The protocol can then be analysed with the `mtrace` binary.
+
+  gh|about-libc|/alloc/mtrace.c||
+
+  With the program above, one might do
+code {
+$ gcc mtrace.c -o mt
+$ MALLOC_TRACE=/tmp/mtrace.out ./mt
+$ mtrace /tmp/mtrace.out
+code }
+
+  The result is then something like
+code {
+- 0x000055c5744986a0 Free 5 was never alloc'd 0x55c573a2319a
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x000055c5744988a0    0x3e8  at 0x55c573a2317e
+code }
+
+}
+{ mcheck
+
+  gh|about-libc|/alloc/mcheck.c||
+
+}
+{ TODO
+
+ `calloc`, `alloca`, `aligned_alloc`, `posix_memalign`.
+
+ `mallinfo`
+
+  `-lmcheck` (linker)
+
+}
+
+sa:
+  → development/languages/C-C-plus-plus/C/libc
+
+  → development/tools/Valgrind
