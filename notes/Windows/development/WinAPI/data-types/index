@@ -227,9 +227,9 @@ code }
 
 }
 
-{ guiddef.h
+{ guiddef.h #winapi-datatype-guiddef_h
 
-  GUID definitions
+  → development/UUID-GUID[GUID] definitions
 
 code {
 typedef struct _GUID {
@@ -365,7 +365,122 @@ code }
 }
 { TODO
 
-  Somehwere, `NTAPI` seems to be defined to `__stdcall__`.
+  { NTAPI
+
+    Somehwere, `NTAPI` seems to be defined to `__stdcall__`.
+
+  }
+
+  { IMAGE_DATA_DIRECTORY (winnt.h)
+code {
+typedef struct _IMAGE_DATA_DIRECTORY {
+      DWORD VirtualAddress;
+      DWORD Size;
+} IMAGE_DATA_DIRECTORY,*PIMAGE_DATA_DIRECTORY;
+code }
+  }
+
+  { IMAGE_OPTIONAL_HEADER
+
+code {
+#define IMAGE_NUMBEROF_DIRECTORY_ENTRIES 16
+
+typedef struct _IMAGE_OPTIONAL_HEADER {
+    …
+  IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+} IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
+
+typedef struct _IMAGE_OPTIONAL_HEADER64 {
+  …
+  IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+} IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
+
+#ifdef _WIN64
+    typedef  IMAGE_OPTIONAL_HEADER64  IMAGE_OPTIONAL_HEADER;
+    typedef PIMAGE_OPTIONAL_HEADER64 PIMAGE_OPTIONAL_HEADER;
+
+    #define IMAGE_SIZEOF_NT_OPTIONAL_HEADER IMAGE_SIZEOF_NT_OPTIONAL64_HEADER
+    #define IMAGE_NT_OPTIONAL_HDR_MAGIC     IMAGE_NT_OPTIONAL_HDR64_MAGIC
+#else
+    typedef  IMAGE_OPTIONAL_HEADER32  IMAGE_OPTIONAL_HEADER;
+    typedef PIMAGE_OPTIONAL_HEADER32 PIMAGE_OPTIONAL_HEADER;
+
+    #define IMAGE_SIZEOF_NT_OPTIONAL_HEADER IMAGE_SIZEOF_NT_OPTIONAL32_HEADER
+    #define IMAGE_NT_OPTIONAL_HDR_MAGIC     IMAGE_NT_OPTIONAL_HDR32_MAGIC
+#endif
+code }
+
+  }
+  { IMAGE_FILE_HEADER (winnt.h)
+
+code {
+typedef struct _IMAGE_FILE_HEADER {
+        WORD  Machine;
+        WORD  NumberOfSections;
+        DWORD TimeDateStamp;
+        DWORD PointerToSymbolTable;
+        DWORD NumberOfSymbols;
+        WORD  SizeOfOptionalHeader;
+        WORD  Characteristics;
+} IMAGE_FILE_HEADER,*PIMAGE_FILE_HEADER;
+code }
+  }  
+  { IMAGE_NT_HEADERS (winnt.h)
+  
+code {
+typedef struct _IMAGE_NT_HEADERS64 {
+        DWORD                   Signature;
+        IMAGE_FILE_HEADER       FileHeader;
+        IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+} IMAGE_NT_HEADERS64, *PIMAGE_NT_HEADERS64;
+
+typedef struct _IMAGE_NT_HEADERS {
+      DWORD                   Signature;
+      IMAGE_FILE_HEADER       FileHeader;
+      IMAGE_OPTIONAL_HEADER32 OptionalHeader;
+} IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
+
+
+#ifdef _WIN64
+    typedef  IMAGE_NT_HEADERS64  IMAGE_NT_HEADERS;
+    typedef PIMAGE_NT_HEADERS64 PIMAGE_NT_HEADERS;
+#else
+    typedef  IMAGE_NT_HEADERS32  IMAGE_NT_HEADERS;
+    typedef PIMAGE_NT_HEADERS32 PIMAGE_NT_HEADERS;
+#endif
+
+code }
+
+
+  }
+  { LOADED_IMAGE (via imagehlp.h)
+
+    The structure that can be optained by `MapAndLoad`.
+
+code {
+typedef struct _LOADED_IMAGE {
+    PSTR                  ModuleName;
+    HANDLE                hFile;
+    PUCHAR                MappedAddress;
+#ifdef _IMAGEHLP64
+    PIMAGE_NT_HEADERS64   FileHeader;
+#else
+    PIMAGE_NT_HEADERS32   FileHeader;
+#endif
+    PIMAGE_SECTION_HEADER LastRvaSection;
+    ULONG                 NumberOfSections;
+    PIMAGE_SECTION_HEADER Sections;
+    ULONG                 Characteristics;
+    BOOLEAN               fSystemImage;
+    BOOLEAN               fDOSImage;
+    BOOLEAN               fReadOnly;
+    UCHAR                 Version;
+    LIST_ENTRY            Links;
+    ULONG                 SizeOfImage;
+} LOADED_IMAGE, *PLOADED_IMAGE;
+code }
+
+  }
 
 }
 
