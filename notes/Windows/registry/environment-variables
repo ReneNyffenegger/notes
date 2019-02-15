@@ -6,10 +6,15 @@ There seem to be three places that control the values of → development/environ
   • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/App-Paths[`HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\App Paths`]
 
 
-{ WM_SETTINGCHANGE
+{ Notifying the system after making changes
 
-  After changing the value of an → development/environment-variable[environment variable], the system should be notified with sending the `WM_SETTINGCHANGE` message using the
-  → Windows/development/WinAPI[WinAPI] function `SendMessage`, having `lParam` set to the string `"Environment"`.
+  After changing the value of an → development/environment-variable[environment variable], the system should be notified.
+
+  This can apparently be done with the `WM_SETTINGCHANGE` message or with → Windows/development/Portable-Executable/DLL/rundll32_exe[rundll32.exe].
+
+ { WM_SETTINGCHANGE
+
+  Notify the system by ending the `WM_SETTINGCHANGE` message using the → Windows/development/WinAPI[WinAPI] function `SendMessage`, having `lParam` set to the string `"Environment"`.
 
   In → development/languages/VBA[Visual Basic for Applications], this can be achieved with the following call. The declaration of the function and constants
   is found → development/languages/VBA/Win-API[here].
@@ -17,5 +22,14 @@ There seem to be three places that control the values of → development/environ
 code {
 call SendMessageW(HWND_BROADCAST, WM_SETTINGCHANGE, 0, byVal → development/languages/VBA/functions/xPtr[strPtr]("Environment"))
 code }
+
+ }
+ { rundll32.exe
+
+code {
+c:\> rundll32.exe user32.dll,UpdatePerUserSystemParameters 1 True
+code }
+
+ }
 
 }
