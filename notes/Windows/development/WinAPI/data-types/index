@@ -1,4 +1,4 @@
-$ WinAPI data types
+$ WinAPI data types and constants
 
 The definition of WinAPI data types can be made visible by → development/languages/C-C-plus-plus/preprocessor[preprocessing] `#include <windows.h>`:
 code {
@@ -13,9 +13,31 @@ code }
 
 { basetsd.h
 
-  Type definitions for the basic sized types.
+  basetsd.h has definitions and typedefs for *basic sized types*. It includes new (64 bit?) data-type definitions to make source code word size independent. Examples of such
+  types are `INT_PTR`, `UINT_PTR`, `__int3264` etc.
 
  `INT_PTR` and its unsigned cousing `UINT_PTR` are defined to be the the same size as a *pointer*
+
+code {
+#ifdef _WIN64
+  typedef __int64            INT_PTR,*PINT_PTR  ;
+  typedef unsigned __int64  UINT_PTR,*PUINT_PTR ;
+  typedef __int64           LONG_PTR,*PLONG_PTR ;
+  typedef unsigned __int64 ULONG_PTR,*PULONG_PTR;
+
+  #define __int3264 __int64
+
+#else
+  typedef int                INT_PTR,*PINT_PTR  ;
+  typedef unsigned int      UINT_PTR,*PUINT_PTR ;
+  typedef long              LONG_PTR,*PLONG_PTR ;
+  typedef unsigned long    ULONG_PTR,*PULONG_PTR;
+
+  #define __int3264 int
+
+#endif
+code }
+
 
 code {
 typedef unsigned int UINT_PTR,*PUINT_PTR;
@@ -365,6 +387,50 @@ code {
 code }
 
 }
+
+
+
+{ minwindef.h
+
+  Among others, minwindef.h defines (→ development/languages/C-C-plus-plus/C/language/typedef[`typedef`s])
+ `FARPROC` with which → development/languages/C-C-plus-plus/C/language/datatypes/pointer/function[function pointers]
+  can be declared.
+  -
+  A prominent example of a function that returns a `FARPROC` is `GetProcAddress()`.
+code {
+#ifdef _WIN64
+  typedef INT_PTR (WINAPI *FARPROC ) ();
+  typedef INT_PTR (WINAPI *NEARPROC) ();
+  typedef INT_PTR (WINAPI *PROC    ) ();
+#else
+  typedef int     (WINAPI *FARPROC ) ();
+  typedef int     (WINAPI *NEARPROC) ();
+  typedef int     (WINAPI *PROC    ) ();
+#endif
+code }
+
+}
+
+{ winnls.h
+
+code {
+#define CP_ACP            0
+#define CP_OEMCP          1
+#define CP_MACCP          2
+#define CP_THREAD_ACP     3
+#define CP_SYMBOL        42
+
+#define CP_UTF8       65001
+  …
+#define CTRY_DEFAULT      0
+#define CTRY_SWITZERLAND 41
+  …
+#define CAL_GREGORIAN     1
+#define CAL_GREGORIAN_US  2
+code }
+
+}
+
 { TODO
 
   { NTAPI
@@ -481,6 +547,12 @@ typedef struct _LOADED_IMAGE {
     ULONG                 SizeOfImage;
 } LOADED_IMAGE, *PLOADED_IMAGE;
 code }
+
+  }
+
+  { 64 bit Windows
+
+    → https://docs.microsoft.com/en-us/windows/desktop/winprog64/the-new-data-types[The new data types]
 
   }
 
