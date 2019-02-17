@@ -46,7 +46,7 @@ code }
 
 }
 
-{ oaidl.h
+{ oaidl.h #winapi-datatype-oaidl_h
 
   Definitions for interfaces.
 
@@ -81,6 +81,16 @@ typedef struct tagEXCEPINFO {
 } EXCEPINFO,*LPEXCEPINFO;
 code }
 
+  The IDispatchVtbl `struct` and the → Windows/development/COM/IUnknown/IDispatch[`IDispatch`] interface is defined in this file
+code {
+typedef struct IDispatchVtbl {
+  …
+} IDispatchVtbl;
+
+interface IDispatch {
+    CONST_VTBL IDispatchVtbl* lpVtbl;
+};
+code }
 
 code {
 typedef struct tagVARIANT VARIANT;
@@ -243,10 +253,15 @@ typedef BYTE    BOOLEAN;
 
 typedef char    CCHAR;
 typedef char    CHAR;
+code }
 
+code {
+#define STDMETHODCALLTYPE WINAPI
 code }
 
    `winnt.h` also defines → Windows/development/WinAPI/data-types/Definition-of-TCHAR-and-TEXT-depending-on-UNICODE[`TCHAR` and `TEXT` depending on the value of `UNICODE`].
+
+
 
 
 }
@@ -339,7 +354,7 @@ code }
 
 }
 
-{ unknwn.h
+{ unknwn.h #winapi-datattype-unknwn_h
 
   `unknwn.h` defines the c `struct` for → Windows/development/COM/IUnknown[IUnknown].
 code {
@@ -407,6 +422,31 @@ code {
   typedef int     (WINAPI *NEARPROC) ();
   typedef int     (WINAPI *PROC    ) ();
 #endif
+code }
+
+}
+{ wtypesbase.h
+
+  Used for → Windows/development/COM
+
+code {
+#if !defined(OLE2ANSI)               // Apparently, OLE2ANSI is defined nowhere.
+  typedef WCHAR OLECHAR;
+  typedef       OLECHAR *LPOLESTR;
+  typedef const OLECHAR *LPCOLESTR;
+
+  #define OLESTR(str) L##str
+#else
+  typedef char       OLECHAR;
+  typedef LPSTR    LPOLESTR;
+  typedef LPCSTR   LPCOLESTR;
+  
+  #define OLESTR(str) str
+#endif
+code }
+
+code {
+typedef OLECHAR *BSTR;
 code }
 
 }
