@@ -6,15 +6,29 @@ The TIB is also known as *Thread Environment Block*.
 
 In a Win32 environment, the `FS` → development/languages/assembler/x86/registers[register] always points at the TEB, in a Win64 environment, it's the `GS` register.
 
+{ Struct members
 
-The TIB apparently corresponds to the `NT_TIB` struct (→ Windows/development/WinAPI/data-types#winapi-datatype-NT_TIB[winnt.h])
--
-The first element is a pointer to (the thread's) `EXCEPTION_REGISTRATION` struct.
--
-The second and third elements contain the high and low addresses of the stack.
--
-etc.
+  The TIB apparently corresponds to the `NT_TIB` struct (→ Windows/development/WinAPI/data-types#winapi-datatype-NT_TIB[winnt.h])
 
+  The first element is a pointer to (the thread's) `EXCEPTION_REGISTRATION` struct.
+
+  The second and third elements contain the high and low addresses of the stack.
+  -
+  etc.
+
+  Offset `0x18` (Win32) of the TIB points to the linear address of itself:
+code {
+mov eax, fs:[0x18]
+code }
+  In Win64, this is `gs:[0x30]`.
+  -
+  `NtosKrnl.exe` (`ntddk.h`, `NtosKrnl.lib`) provides the function `PsGetCurrentThreadTeb()` that returns a pointer to the TIB.
+
+
+ Offset `0x30` (Win32) points to the linear address of the  → Windows/development/process/PEB[PEB]. In Win64, this is `gs:[0x60]`.
+  
+
+}
 
 { EXCEPTION_REGISTRATION
 

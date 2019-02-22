@@ -17,6 +17,30 @@ Each → Windows/development/process/thread[thread] can set up its own variant o
 
   { Exception handlers
 
+
+ 
+  When an application encounters a *user mode* (software?) exception, the kernel traps the exception (via the *Interrupt Descriptor Table (IDT)*) and passes it to the (user mode) *exception dispatcher*.
+
+  The user mode exception handler checks if a → Windows/development/WinAPI/Debugging[debugger] is attached. If this is the case, it notifies the debugger
+  of the exception. This is the *first chance* exception.
+
+  If the debugger does not handle the the exception or there is no debugger attached, the *user mode dispatcher* checks for one (or more)
+  installed *vectored exception handlers* (VEHs) and calls them until one handles the exception.
+
+  If none of the VEHs handled the exception, the (stack based) chain of *structured exception handlers* (SEH) is traversed until
+  a SEH is found that handles the exception.
+
+  If none of the SEHs handles the exception, the exception is raised again. If there is a debugger, the debugger now ges a *second chance* to handle the exception.
+
+  If the debugger didn't handle the 2nd chance exception or if there was no debugger, the process is terminated.
+
+  Thus, VEH takes precedence over SEH.
+
+  The first item of the SEH chain is stored in the first element of the → Windows/development/process/thread/TIB[TIB].
+
+
+  { SEH handlers
+
     The *exception handlers* form a linked list on the stack.
 
     When an exception occurs, Windows picks the first element of that list and walks the list until it finds a handler that is able to properly deal with the exception.
