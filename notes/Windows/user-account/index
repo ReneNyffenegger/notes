@@ -1,33 +1,86 @@
 $ Windows: user account
 @ user
 
+→ Windows requires a *user account* for someone that access a Windows system.
 
 User accounts are stored in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/ProfileList[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList`].
 
 { Logging in
 
-  When a user logs in, Windows (the *Local Security Authority Subsystem* `lsass.exe`) creates a logon session and an → Windows/security/access-token[access token] for this user.
+  { Creating access tokens
 
-  Windows loads the user's → Windows/registry[registry] hive which is stored in → Windows/dirs/Users/username/NTUSER_DAT[`%UserProfile%\NTUSER.DAT`] and places it under the
-  registry key → Windows/registry/tree/HKEY_CURRENT_USER[`HKEY_CURRENT_USER`].
+    When a user logs in, Windows (the *Local Security Authority Subsystem* `lsass.exe`) creates a logon session and an → Windows/security/access-token[access token] for this user.
 
+    If this user is an *administrator*, an additional (second) access token is created. Thus, an administrator session has two access tokens: a standard user access token and a
+    an administrator access token.
 
-  The following → Windows/registry[registry] keys are parsed for applications and commands to run when when the system boots up and a user logs in:
-    • `HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Runonce`
-    • `HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run`
-    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Run[`HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run`]
-    • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows\Run`
-    • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run`
-    • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce`
-  The 2nd and 4th key are not run when another user logs in after the first one (see KB 137367
-  and → https://support.microsoft.com/en-us/help/179365/info-run-runonce-runservices-runservicesonce-and-startup[here])
+  }
+  { Load the user's registry hive
+
+    Windows loads the user's → Windows/registry[registry] hive which is stored in → Windows/dirs/Users/username/NTUSER_DAT[`%UserProfile%\NTUSER.DAT`] and places it under the
+    registry key → Windows/registry/tree/HKEY_CURRENT_USER[`HKEY_CURRENT_USER`].
+
+    The following → Windows/registry[registry] keys are parsed for applications and commands to run when when the system boots up and a user logs in:
+      • `HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Runonce`
+      • `HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run`
+      • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Run[`HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run`]
+      • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows\Run`
+      • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run`
+      • `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce`
+    The 2nd and 4th key are not run when another user logs in after the first one (see KB 137367
+    and → https://support.microsoft.com/en-us/help/179365/info-run-runonce-runservices-runservicesonce-and-startup[here])
+
+  }
+  { Start explorer.exe
+
+    `explorer.exe` is started with the created (standard user) access token.
+
+    `explorer.exe` then becomes (directly and indirectly) the parent process for all user-initiated → Windows/development/process[processes].
+
+  }
    
 }
-{ Administrator account
+{ First user
 
-  The *administrator account* has full (in Linux parlance: root) access over all ressources that are controlled by the local server.
+  When Windows is installed, a user is also created.
+
+  This *first user* will belong to the *Administrators group*. So, the user has the highest set of privileges (but still doesn't seem able to
+  open → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM[`HKLM\SAM`] or → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY[`HKLM\SECURITY`].
+
+}
+{ Adminstrator accounts vs standard accounts
+
+  Each account is either an
+    • *administrator account* or a
+    • *standard user account*
+
+  The *administrator account* has full (in Linux parlance: root) access over all ressources that are controlled by the local server. Such an account is needed, for example, to
+    • Install or remove executables (»apps«?)
+    • Create, modify or delete other accounts
+    • Access system files or files that belong to another user
+    • Change all users' settings
+    • Change → Windows/security[security] reated options
+
 
   This account's → Windows/security/SID[SID] is `S-1-5-domain-500` and has the display name *Administrator*.
+
+  At least in Windows, the administrator account is hidden by default.
+
+  A standard user account can be further divided into
+    • an *adult account* or a
+    • *child account*.
+
+}
+{ Microsoft accounts vs local accounts
+
+  An account is either
+   • a *Microsoft accounts* or
+   • a *Local accounts* (aka *offline accounts*?).
+
+   A *Microsoft account* is identified with an email address.
+
+   A *local account* exists one one particular computer only.
+
 
 }
 { TODO
@@ -45,7 +98,16 @@ code {
 c:\> start UserAccountControlSettings
 code }
 
-  Apparently, there are *Microsoft accounts* and *Local accounts* (aka *offline accounts*?).
+
+  { User account control
+
+    The `__COMPAT_LAYER` variable.
+
+    The → Windows/registry[registry] key → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Policies/System[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System`].
+
+
+
+  }
 
 }
 
@@ -55,6 +117,6 @@ sa:
 
   → Windows/dirs/Users/Default
 
-  → Windows/dirs/Users/username[`%USERPROFILE%`]
+  A user's profile is stored in the directories below → Windows/dirs/Users/username[`%USERPROFILE%`].
 
   → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM[`HKEY_LOCAL_MACHINE\SAM`] 
