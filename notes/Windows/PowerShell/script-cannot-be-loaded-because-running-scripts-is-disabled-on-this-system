@@ -1,0 +1,42 @@
+$ Powershell: script cannot be loaded because running scripts is disabled on this system
+
+A → Windows/PowerShell[PowerShell] script should be run:
+code {
+PS C:\> .\some-script.ps1
+code }
+
+The shell responds with
+code {
+some-script.ps1 cannot be loaded because running scripts is disabled on this system …
+code }
+
+→ Companies-Products/Google[Googling] around suggests to set the *execution policy* to something like `remoteSigned`:
+code {
+PS C:\> set-executionPolicy remoteSigned
+code }
+
+This time, the shell answers with
+code {
+PS C:\> Access to the registry key 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' is denied.
+code }
+
+Of course, this is because it requires administrator privilages to change the → Windows/registry[registry] key
+→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/PowerShell/1/ShellIds/Microsoft_PowerShell[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell`]
+and the user started PowerShell as an ordinary user only. Thus, he changes the execution policy for the himself (`-scope currentUser`):
+code {
+PS C:\> set-executionPolicy remoteSigned -scope currentUser
+code }
+
+And this now works, the shell says
+code {
+HKCU\Software\Microsoft\Powershell\1\ShellIds\Microsoft.PowerShell value of `ExecutionPolicy` was set to `RemoteSigned`.
+code }
+
+The script can now be run.
+
+sa:
+  The value of the *execution policy* can directly be changed in the → Windows/registry[registry] under
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/PowerShell/1/ShellIds/Microsoft_PowerShell[`HKEY_CURRENT_USER\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell`], value
+  `ExecutionPolicy`.
+
+
