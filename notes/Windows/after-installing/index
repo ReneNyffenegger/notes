@@ -74,6 +74,32 @@ $ua.downloadFile("https://live.sysinternals.com/Winobj.exe"          , "$binPath
 $ua.downloadFile("https://live.sysinternals.com/ZoomIt.exe"          , "$binPath\ZoomIt.exe"          )
 code }
 
+  { Accept EULAs
+
+code {
+→ Windows/PowerShell/language/statement/function[function] accept-Sysinternals-eula {
+
+    param (
+      [string] $utilName
+    )
+
+    $regKey = "HKCU:\Software\Sysinternals\" + $utilName
+
+    new-item         -path $regKey -force
+    new-itemProperty -path $regKey -name "EulaAccepted" -propertyType DWord -value 1
+
+}
+
+code }
+
+code {
+accept-Sysinternals-eula 'AccessChk'
+accept-Sysinternals-eula 'AccessEnum'
+…
+code }
+
+  }
+
 }
 
 { TODO
@@ -82,6 +108,21 @@ code }
 code {
 c:\> → Windows/cmd-exe/commands/net/user[net user] administrator /active:yes
 c:\> → Windows/cmd-exe/commands/net/user[net user] administrator MYSECRETPASSWORD
+code }
+
+  Create → Windows/PowerShell[PowerShell] profile
+code {
+if ( -not ( test-path $profile ) ) {
+
+   write-output "$profile does not exist. Creating it"
+   new-item -itemType file -path $profile -force
+
+}
+else {
+
+   write-output "$profile already exists"
+
+}
 code }
 
   Copy → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/profile.ps1[`profile.ps`] to profile path `$profile`.
