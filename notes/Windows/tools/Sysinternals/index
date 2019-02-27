@@ -1,0 +1,112 @@
+
+{ Download some interesting Sysinternal executables #download
+
+  The tools are downloaded into the `$binPath` directory (thus the variable must point to a valid directory, such as `→ Windows/dirs/Users/username[%UserProfile]\bin`.
+
+  In order to prevent *Exception calling "DownloadFile" with "2" argument(s): "The underlying connection was closed: An unexpected error occurred on a send."*, TLS1.2(?) needs to be enabled:
+code {
+[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+code }
+
+  Create a web client and download the files
+code {
+$ua = new-object system.net.webClient
+$ua.downloadFile("https://live.sysinternals.com/accesschk64.exe"     , "$binPath\accesschk64.exe"     )
+$ua.downloadFile("https://live.sysinternals.com/AccessEnum.exe"      , "$binPath\AccessEnum.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/Autoruns64.exe"      , "$binPath\Autoruns64.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/Autoruns64.dll"      , "$binPath\Autoruns64.dll"      )
+$ua.downloadFile("https://live.sysinternals.com/Bginfo64.exe"        , "$binPath\Bginfo64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/Coreinfo.exe"        , "$binPath\Coreinfo.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/Diskmon.exe"         , "$binPath\Diskmon.exe"         )
+$ua.downloadFile("https://live.sysinternals.com/handle64.exe"        , "$binPath\handle64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/hex2dec64.exe"       , "$binPath\hex2dec64.exe"       )
+$ua.downloadFile("https://live.sysinternals.com/Listdlls.exe"        , "$binPath\Listdlls.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/logonsessions64.exe" , "$binPath\logonsessions64.exe" )
+$ua.downloadFile("https://live.sysinternals.com/ntfsinfo64.exe"      , "$binPath\ntfsinfo64.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/procexp64.exe"       , "$binPath\procexp64.exe"       )
+$ua.downloadFile("https://live.sysinternals.com/Procmon64.exe"       , "$binPath\Procmon64.exe"       )
+$ua.downloadFile("https://live.sysinternals.com/PsExec64.exe"        , "$binPath\PsExec64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/PsGetsid64.exe"      , "$binPath\PsGetsid64.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/PsInfo64.exe"        , "$binPath\PsInfo64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/pskill64.exe"        , "$binPath\pskill64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/pslist64.exe"        , "$binPath\pslist64.exe"        )
+$ua.downloadFile("https://live.sysinternals.com/pspasswd64.exe"      , "$binPath\pspasswd64.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/PsService64.exe"     , "$binPath\PsService64.exe"     )
+$ua.downloadFile("https://live.sysinternals.com/RAMMap.exe"          , "$binPath\RAMMap.exe"          )
+$ua.downloadFile("https://live.sysinternals.com/regjump.exe"         , "$binPath\regjump.exe"         )
+$ua.downloadFile("https://live.sysinternals.com/RootkitRevealer.exe" , "$binPath\RootkitRevealer.exe" )
+$ua.downloadFile("https://live.sysinternals.com/ShellRunas.exe"      , "$binPath\ShellRunas.exe"      )
+$ua.downloadFile("https://live.sysinternals.com/strings.exe"         , "$binPath\strings.exe"         )
+$ua.downloadFile("https://live.sysinternals.com/Tcpview.exe"         , "$binPath\Tcpview.exe"         )
+$ua.downloadFile("https://live.sysinternals.com/Vmmap.exe"           , "$binPath\Vmmap.exe"           )
+$ua.downloadFile("https://live.sysinternals.com/whois64.exe"         , "$binPath\whois64.exe"         )
+$ua.downloadFile("https://live.sysinternals.com/Winobj.exe"          , "$binPath\Winobj.exe"          )
+$ua.downloadFile("https://live.sysinternals.com/ZoomIt.exe"          , "$binPath\ZoomIt.exe"          )
+code }
+
+}
+{ Accept EULA #accept-eula
+
+code {
+→ Windows/PowerShell/language/statement/function[function] accept-Sysinternals-eula {
+
+    param (
+      [string] $utilName
+    )
+
+    $regKey = "HKCU:\Software\Sysinternals\" + $utilName
+
+    new-item         -path $regKey -force
+    new-itemProperty -path $regKey -name "EulaAccepted" -propertyType DWord -value 1
+
+}
+
+code }
+
+  TODO: The function `accept-Sysinternals-eula` is rather verbose when run.
+
+code {
+accept-Sysinternals-eula 'AccessChk'
+accept-Sysinternals-eula 'AutoRuns'
+accept-Sysinternals-eula 'BGInfo'
+accept-Sysinternals-eula 'Coreinfo'
+accept-Sysinternals-eula 'Handle'
+accept-Sysinternals-eula 'Hex2Dec'
+accept-Sysinternals-eula 'ListDLLs'
+accept-Sysinternals-eula 'LogonSessions'
+accept-Sysinternals-eula 'NTFSInfo'
+accept-Sysinternals-eula 'Process Explorer'
+accept-Sysinternals-eula 'Process Monitor'
+accept-Sysinternals-eula 'PsExec'
+accept-Sysinternals-eula 'PsGetSid'
+accept-Sysinternals-eula 'PsInfo'
+accept-Sysinternals-eula 'PsKill'
+accept-Sysinternals-eula 'PsList'
+accept-Sysinternals-eula 'PsPasswd'
+accept-Sysinternals-eula 'PsService'
+accept-Sysinternals-eula 'Regjump'
+accept-Sysinternals-eula 'RootkitRevealer'
+accept-Sysinternals-eula 'Share Enum'
+accept-Sysinternals-eula 'ShellRunas - Sysinternals:'
+accept-Sysinternals-eula 'Strings'
+accept-Sysinternals-eula 'VMMap'
+accept-Sysinternals-eula 'Whois'
+accept-Sysinternals-eula 'Winobj'
+accept-Sysinternals-eula 'ZoomIt'
+code }
+
+}
+
+{ TODO
+
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/accesschk[AccessChk],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/accessenum[AccessEnum],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/diskmon[DiskMon],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns[Autoruns],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/procmon[Process Monitor],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer[Process Explorer],
+  → https://docs.microsoft.com/en-us/sysinternals/downloads/handle[Handle] …
+
+}
+sa:
+  → Windows/tools/Sysinternals/PsExec64

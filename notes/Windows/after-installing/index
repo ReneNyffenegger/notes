@@ -8,6 +8,11 @@ $ After installing Windows
   in order to be able to run → Windows/PowerShell[PowerShell] scripts.
 
 }
+{ Check default values in registry
+
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/RegisteredApplications#reg-registeredApplications-default[`HKEY_LOCAL_MACHINE\SOFTWARE\RegisteredApplications`]
+
+}
 { Create bin directory
 
   Create a `bin` directory under → Windows/dirs/Users/username[`%UserProfile%`] to store execetables and scripts so that they can be called from the command line (such as → Windows/cmd-exe[cmd.exe] or PowerShell).
@@ -28,87 +33,33 @@ code }
 }
 { Download Sysinternal tools
 
-Install → https://docs.microsoft.com/en-us/sysinternals/downloads[Sysinternals Utilities] such as
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/accesschk[AccessChk],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/accessenum[AccessEnum],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/diskmon[DiskMon],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns[Autoruns],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/procmon[Process Monitor],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/process-explorer[Process Explorer],
-  → https://docs.microsoft.com/en-us/sysinternals/downloads/handle[Handle] …
-
-  The tools are downloaded into the `$binPath` directory (thus the variable must point to a valid directory).
-
-code {
-[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
-$ua = new-object system.net.webClient
-$ua.downloadFile("https://live.sysinternals.com/accesschk64.exe"     , "$binPath\accesschk64.exe"     )
-$ua.downloadFile("https://live.sysinternals.com/AccessEnum.exe"      , "$binPath\AccessEnum.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/Autoruns64.exe"      , "$binPath\Autoruns64.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/Autoruns64.dll"      , "$binPath\Autoruns64.dll"      )
-$ua.downloadFile("https://live.sysinternals.com/Bginfo64.exe"        , "$binPath\Bginfo64.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/Coreinfo.exe"        , "$binPath\Coreinfo.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/Diskmon.exe"         , "$binPath\Dismon.exe"          )
-$ua.downloadFile("https://live.sysinternals.com/handle64.exe"        , "$binPath\handle64.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/hex2dec64.exe"       , "$binPath\hex2dec64.exe"       )
-$ua.downloadFile("https://live.sysinternals.com/Listdlls.exe"        , "$binPath\Listdlls.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/logonsessions64.exe" , "$binPath\logonsessions64.exe" )
-$ua.downloadFile("https://live.sysinternals.com/ntfsinfo64.exe"      , "$binPath\ntfsinfo64.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/procexp64.exe"       , "$binPath\procexp64.exe"       )
-$ua.downloadFile("https://live.sysinternals.com/Procmon64.exe"       , "$binPath\Procmon64.exe"       )
-$ua.downloadFile("https://live.sysinternals.com/PsGetsid64.exe"      , "$binPath\PsGetsid64.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/PsInfo64.exe"        , "$binPath\PsInfo64.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/pskill64.exe"        , "$binPath\pskill64.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/pslist64.exe"        , "$binPath\pslist64.exe"        )
-$ua.downloadFile("https://live.sysinternals.com/pspasswd64.exe"      , "$binPath\pspasswd64.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/PsService64.exe"     , "$binPath\PsService64.exe"     )
-$ua.downloadFile("https://live.sysinternals.com/RAMMap.exe"          , "$binPath\RAMMap.exe"          )
-$ua.downloadFile("https://live.sysinternals.com/regjump.exe"         , "$binPath\regjump.exe"         )
-$ua.downloadFile("https://live.sysinternals.com/RootkitRevealer.exe" , "$binPath\RootkitRevealer.exe" )
-$ua.downloadFile("https://live.sysinternals.com/ShellRunas.exe"      , "$binPath\ShellRunas.exe"      )
-$ua.downloadFile("https://live.sysinternals.com/strings.exe"         , "$binPath\strings.exe"         )
-$ua.downloadFile("https://live.sysinternals.com/Tcpview.exe"         , "$binPath\Tcpview.exe"         )
-$ua.downloadFile("https://live.sysinternals.com/Vmmap.exe"           , "$binPath\Vmmap.exe"           )
-$ua.downloadFile("https://live.sysinternals.com/whois64.exe"         , "$binPath\whois64.exe"         )
-$ua.downloadFile("https://live.sysinternals.com/Winobj.exe"          , "$binPath\Winobj.exe"          )
-$ua.downloadFile("https://live.sysinternals.com/ZoomIt.exe"          , "$binPath\ZoomIt.exe"          )
-code }
-
-  { Accept EULAs
-
-code {
-→ Windows/PowerShell/language/statement/function[function] accept-Sysinternals-eula {
-
-    param (
-      [string] $utilName
-    )
-
-    $regKey = "HKCU:\Software\Sysinternals\" + $utilName
-
-    new-item         -path $regKey -force
-    new-itemProperty -path $regKey -name "EulaAccepted" -propertyType DWord -value 1
+  → Windows/tools/Sysinternals#download[Download] interesting → Windows/tools/Sysinternals tools and → Windows/tools/Sysinternals#accept-eula[accept their EULA].
 
 }
 
-code }
+{ Activate Administrator account
 
+  Check current accounts (`wmic useraccount`) and → Windows/registry/tree/HKEY_USERS[`HKEY_USERS`].
+
+  In → Windows/cmd-exe[cmd.exe].
 code {
-accept-Sysinternals-eula 'AccessChk'
-accept-Sysinternals-eula 'AccessEnum'
-…
+C:\> wmic useraccount where (name='administrator' and domain='%computername%') get name,sid
 code }
-
-  }
-
-}
-
-{ TODO
 
   Activate and/or enable the administrator → Windows/user-account[account] and assign a password
 code {
 c:\> → Windows/cmd-exe/commands/net/user[net user] administrator /active:yes
 c:\> → Windows/cmd-exe/commands/net/user[net user] administrator MYSECRETPASSWORD
 code }
+
+}
+{ TODO
+
+  How do I determine if I started → Windows/PowerShell as Administrator?
+  -
+  Try `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
+
+  What is a users logon id (`→ Windows/dirs/Windows/System32/whoami_exe[whoami /logonid]`)?
 
   Create → Windows/PowerShell[PowerShell] profile
 code {
@@ -125,6 +76,55 @@ else {
 }
 code }
 
+  Which → Windows/development/process[processes] are seen to run after installation?
+    • → Windows/dirs/Windows/System32/audiodg_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/ApplicationFrameHost_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/backgroundTaskHost_exe
+    • → Windows/dirs/Windows/System32/browser_broker_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • CCC.exe (ATI?)
+    • → Windows/dirs/Windows/System32/csrss_exe
+    • → Windows/dirs/Windows/System32/ctfmon_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/dllhost_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/dwm_exe (Child of → Windows/dirs/Windows/System32/winlogon_exe)
+    • → Windows/dirs/Windows/explorer_exe
+    • SkypeApp.exe
+    • SkypeAppBackgroundHost.exe
+    • → Windows/dirs/Windows/System32/fontdrvhost_exe
+    • Interrupts (handling *hardware interrupts and DPCs, child of *System* process
+    • → Windows/dirs/Windows/System32/lsass_exe
+    • Memory Compression (Child of *System* process)
+    • → Windows/dirs/Program-Files/Windows-Defender/MSASCuiL_exe
+    • MOM.exe (ATI?)
+    • → Windows/dirs/ProgramData/Microsoft/Windows-Defender/Platform/_version_/MsMpEng_exe
+    • → Windows/dirs/ProgramData/Microsoft/Windows-Defender/Platform/_version_/NisSrv_exe
+    • OneDrive.exe (why…?)
+    • Registry
+    • → Windows/dirs/Windows/System32/RuntimeBroker_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/SearchFilterHost_exe
+    • → Windows/dirs/Windows/System32/SearchIndexer_exe (Parent process of → Windows/dirs/Windows/System32/SearchProtocolHost_exe and SearchFilterHost.exe)
+    • → Windows/dirs/Windows/System32/SearchProtocolHost_exe
+    • → Windows/dirs/Windows/SystemApps/Microsoft_Windows_Cortana_cw5n1h2txyewy/SearchUI_exe
+    • → Windows/dirs/Windows/System32/smartscreen_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/smss_exe (The first *user mode* process, child of *System* process)
+    • → Windows/dirs/Windows/System32/spoolsv_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/taskhostw_exe
+    • → Windows/dirs/Program-Files/rempl/sedlauncher_exe
+    • → Windows/dirs/Windows/System32/SecurityHealthService_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/services_exe (Parent process of quite a few → Windows/dirs/Windows/System32/svchost_exe[`svchost.exe`] processes)
+    • SgmBroker.exe
+    • → Windows/dirs/Windows/System32/sihost_exe
+    • ShellExperienceHost.exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
+    • → Windows/dirs/Windows/System32/svchost_exe (all of which seem to be a child process of → Windows/dirs/Windows/System32/services_exe[`services.exe`])
+    • System (always with PID = 4?)
+    • System Idle Process
+    • → Windows/dirs/Windows/System32/wininit_exe (Parent process of → Windows/dirs/Windows/System32/services_exe, → Windows/dirs/Windows/System32/lsass_exe and → Windows/dirs/Windows/System32/fontdrvhost_exe)
+    • → Windows/dirs/Windows/System32/winlogon_exe
+    • → Windows/dirs/Windows/System32/wbem/wmiprvse_exe
+    • → Windows/dirs/Windows/System32/wsqmcons_exe
+    • → Windows/dirs/Windows/System32/WWAHost_exe
+
+  Where does Sysinternals's Process Monitor store its settings?
+
   Copy → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/profile.ps1[`profile.ps`] to profile path `$profile`.
 
   → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Explorer/Advanced#reg-show-hidden-files-and-extensions
@@ -135,10 +135,12 @@ code }
 
 
 
+
   Remove unnecessary directories under → Windows/dirs/Users/username[`%UserProfile%'].
 
-Activate Windows
+  Activate Windows
 
+  What is auto-run? Why is *OneDrive.exe* started?
 
 → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/FileSystem#reg-long-paths[Enable long file paths]
 
@@ -154,5 +156,6 @@ Install → development/version-control-systems/git[git]
 
 Install → https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/[bash]
 
+Can *Cortana* be turned off/disabled?
 
 }
