@@ -271,6 +271,19 @@ code }
 
    `winnt.h` also defines → Windows/development/WinAPI/data-types/Definition-of-TCHAR-and-TEXT-depending-on-UNICODE[`TCHAR` and `TEXT` depending on the value of `UNICODE`].
 
+  { Rtl… definitions #winnt_h-rtl-definitions
+
+    The Rtl… strings were defined in → Windows/development/WinAPI/data-types#winbase_h-xxxMemory-macros[`WinBase.h`].
+  
+code {
+#define RtlMoveMemory(Destination,Source,Length)    memmove((Destination),(Source),(Length))
+#define RtlCopyMemory(Destination,Source,Length)    memcpy ((Destination),(Source),(Length))
+#define RtlFillMemory(Destination,Length,Fill)      memset ((Destination),(Fill)  ,(Length))
+#define RtlZeroMemory(Destination,Length)           memset ((Destination), 0      ,(Length))
+code }
+
+  }
+
 
   { NT_TIB #winapi-datattype-NT_TIB
 
@@ -331,6 +344,21 @@ wWinMain(
      int       nShowCmd
 );
 code }
+
+  { Definitions of xxxMemory macros #winbase_h-xxxMemory-macros
+
+   `WinBase.h` creates the following four macros to redirect memory related »functions« to Rtl… counterparts.
+
+   Interestingly, in `winnt.h`, the Rtl… strings are further → Windows/development/WinAPI/data-types#winnt_h-rtl-definitions[redirected] to `memcmp`, `memmove`, `memcpy` and `memset`.
+
+code {
+#define MoveMemory RtlMoveMemory
+#define CopyMemory RtlCopyMemory
+#define FillMemory RtlFillMemory
+#define ZeroMemory RtlZeroMemory
+code }
+
+  }
 
 }
 
@@ -478,8 +506,6 @@ code }
 
 }
 
-
-
 { minwindef.h
 
   Among others, minwindef.h defines (→ development/languages/C-C-plus-plus/C/language/typedef[`typedef`s])
@@ -542,6 +568,18 @@ code {
   …
 #define CAL_GREGORIAN     1
 #define CAL_GREGORIAN_US  2
+code }
+
+}
+
+{ WinError.h
+
+ `WinError.h` contains the *error code definitions*:
+code {
+#define ERROR_SUCCESS                    0L
+#define ERROR_INVALID_FUNCTION           1L    // dderror
+#define ERROR_FILE_NOT_FOUND             2L
+  … etc …
 code }
 
 }
