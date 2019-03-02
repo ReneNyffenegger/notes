@@ -2,6 +2,8 @@ $ Microsoft Visual Studio
 
 { Environment variables
 
+   { Visual Studio Express 2010
+
   Installing *Visual Studio Express 2010* created the → development/environment-variable[environment variable] `VS100COMNTOOLS`. This variable can be used to locate `vsvars32.bat` which itself
   sets further environment variables: `%include%`, `%lib%` and `%libpath%`:
 code {
@@ -9,6 +11,66 @@ C:\some\path> "%VS100COMNTOOLS%\vsvars32.bat"
 Setting environment for using Microsoft Visual Studio 2010 x86 tools.
 code }
 
+   }
+   { Visual 2017 Community Edition
+
+     After installing *2017 Community Edition*, there was no `VS…COMNTOOLS` environment variable.
+   
+   ? However, a `%VS150COMNTOOLS%` seems to be set with `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"`.
+
+     The required environment variables can apparently be installed with one of these → Windows/cmd-exe/batch-files[batch files]
+table { ll
+
+                        ☰ calls
+  `vcvars32.bat`        ☰ `vcvarsall.bat x86 %*`
+  `vcvars64.bat`        ☰ `vcvarsall.bat x64 %*`
+  `vcvarsamd64_x86.bat` ☰ `vcvarsall.bat x64_x86 %*`
+  `vcvarsx86_amd64.bat` ☰ `vcvarsall.bat x86_x64 %*`
+
+table }
+     These batch files as well as `vcvarsall.bat` are located under `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"`.
+
+    `vcvarsall.bat` needs to be called like soc
+code {
+vcvarsall.bat [arch] [platform_type] [winsdk_version] [-vcvars_ver=vc_version] [-vcvars_spectre_libs=spectre_mode]
+code }
+
+     `arch` is one of (as shown above)
+       • `x86`
+       • `x64`
+       • `x64_x86`
+       • `x86_x64`
+
+     `platform_type` can be set to `uwp` for *Universal Windows Platform* applications.
+
+     The `winsdk_version` is
+       • a full windows 10 SDK number (such as `10.0.10240.0` (10240 being the *build number*) see → Windows/versions)
+       • `8.1` (for the Windows 8.1 SDK)
+
+     The `-vcvars_ver` apparently specifies the VC tool set:
+       • `14.0` for VC++ 2015
+       • `14.1x` 
+       • `14.1x.yyyy`
+       •  etc
+
+    `spectre_mode` is either
+      • `none`
+      • `spectre`
+
+
+     { TODO
+
+       There is also the directory `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd\core"` which contains
+         • `dotnet.bat'
+         • `msbuild.bat'
+         • `parse_cmd.bat'
+         • `vsdevcmd_end.bat'
+         • `vsdevcmd_start.bat'
+         • `winsdk.bat'
+
+     }
+
+   }
    { TODO
 
      Apparently, there is also a `vcvarsall.bat` that can be called with the target environment:
