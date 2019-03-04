@@ -47,6 +47,25 @@ Two importand structures for processes are
   TODO: Is this process the *shell process*?
 
 }
+{ Process creation
+
+  A process is created by the → Windows/development/WinAPI[WinAPI] function `CreateProcess()`.
+
+ `CreateProcess()` 
+   • creates a *process object* 
+   • allocates memory for the new process.
+   • maps → Windows/dirs/Windows/System32/ntdll_dll[`ntdll.dll`] and the `.exe` image into the new allocated memory
+   • creates the first → Windows/development/process/thread[thread]
+   • allocates memory for the stack of the thread
+   • transfers control for this thread to the function `LdrpInitialize` in `ntdll.dll`
+
+  `LdrpInitialize` recursively traverses the → Windows/development/Portable-Executable/EXE[EXE's] import tables and maps the found executables into memory.
+   Then, it calls `LdrpRunInitializeRoutines` which in turn calls the *entry points* of the DLLs that were mapped into memory (using the parameter `DLL_PROCESS_ATTACH`).
+ 
+   After initialzing the DLLs, `LdrpInitialize` calls `BaseProcesStart` (in → Windows/dirs/Windows/System32/kernel32_dll[`kernel32.dll`]) which eventually calls
+   the exe's *entry point* which (probably) eventually calls `main` or `WinMain`.
+
+}
 { Integrity levels #win-process-integrity-level
 
   Each running process is assigned an *integrity level* which is identified by a → Windows/security/SID[SID]
@@ -64,7 +83,7 @@ table }
   (Source: Mario Hewardt, Daniel Pravat: *Advanced Windows Debugging*, chapter 15)
 
 }
-{ PoweSshell
+{ PowerShell
 
   The → Windows/PowerShell/language/variable/automatic[automatic] → Windows/PowerShell[PowerShell] → Windows/PowerShell/language/variable[variable] → Windows/PowerShell/language/variable/automatic/PID[`$PID`]
   contains the *process identifier* of the process that is hosting the current Windows PowerShell session.
