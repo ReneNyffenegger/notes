@@ -244,9 +244,6 @@ code {
 typedef LONG HRESULT;
 code }
 
-code {
-typedef DWORD LCID;
-code }
 
 code {
 typedef BYTE    BOOLEAN;
@@ -270,6 +267,42 @@ code {
 code }
 
    `winnt.h` also defines → Windows/development/WinAPI/data-types/Definition-of-TCHAR-and-TEXT-depending-on-UNICODE[`TCHAR` and `TEXT` depending on the value of `UNICODE`].
+
+  { LCID #winnt_LCID
+
+    `LCID` is the «data type» to store → Windows/development/Internationalization/locale[locale ids].
+
+code {
+typedef DWORD LCID;
+code }
+
+  }
+  { MAKELANGID #winnt_h_MAKELANGID
+
+   `MAKELANGID` creates a → Windows/development/Internationalization/language[language id].
+code {
+#define MAKELANGID(p, s)       ((((WORD  )(s)) << 10) | (WORD  )(p))
+#define PRIMARYLANGID(lgid)    ((WORD  )(lgid) & 0x3ff)
+#define SUBLANGID(lgid)        ((WORD  )(lgid) >> 10)
+code }
+
+  }
+  { MAKELCID #winnt_h_MAKELCID
+
+   `MAKELCID` creates a → Windows/development/Internationalization/locale[locale id] from a → Windows/development/Internationalization/language[language id] and a *sort id*.
+
+code {
+#define NLS_VALID_LOCALE_MASK  0x000fffff
+
+#define MAKELCID(lgid, srtid)  ((DWORD)((((DWORD)((WORD  )(srtid))) << 16) |  \
+                                         ((DWORD)((WORD  )(lgid)))))
+
+#define MAKESORTLCID(lgid, srtid, ver)                                        \
+                               ((DWORD)((MAKELCID(lgid, srtid)) |             \
+                                    (((DWORD)((WORD  )(ver))) << 20)))
+code }
+
+  }
 
   { Rtl… definitions #winnt_h-rtl-definitions
 
