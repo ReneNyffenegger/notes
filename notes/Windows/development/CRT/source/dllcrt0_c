@@ -1,12 +1,16 @@
 $ Windows CRT: dllcrt0.c
 
-{ __DllMainCRTStartup
+{ _DllMainCRTStartup
 
-  `dlcrt0.c` contains `__DllMainCRTStartup` which calls `DllMain` (of which a dummy version is provided in → Windows/development/CRT/source/dllmain_c[`dllmain.c`].
+  `dlcrt0.c` contains `_DllMainCRTStartup` which is the default → Windows/development/Visual-Studio/link/options/entry[entry point] for
+  → Windows/development/Portable-Executable/DLL[DLLs].
+  
+  `_DllMainCRTStartup`  calls `DllMain` via `__DllMainCRTStartup` (of which a dummy version is provided in → Windows/development/CRT/source/dllmain_c[`dllmain.c`].
 
-  __DllMainCRTStartup returns an `int` (`long`?) that is interpreted as a boolean) and is declared as → development/languages/C-C-plus-plus/calling-convention#cdecl[cdecl]) :
+  `_DllMainCRTStartup returns an `int` (long?) that is interpreted as a boolean) and is declared as → development/languages/C-C-plus-plus/calling-convention#stdcall[stdcall] which is hidden behind the
+  → Windows/development/WinAPI/data-types#wintdef_h_WINAPI[`WINAPI`] macro) :
 code {
-__declspec(noinline) BOOL __cdecl __DllMainCRTStartup(
+BOOL WINAPI _DllMainCRTStartup(
         HANDLE  hDllHandle,
         DWORD   dwReason,
         LPVOID  lpreserved
