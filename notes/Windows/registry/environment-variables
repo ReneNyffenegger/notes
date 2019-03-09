@@ -12,11 +12,22 @@ There seem to be three places that control the values of → development/environ
 
   This can apparently be done with the `WM_SETTINGCHANGE` message or with → Windows/development/Portable-Executable/DLL/rundll32_exe[rundll32.exe].
 
- { WM_SETTINGCHANGE
+ { WM_SETTINGCHANGE #reg-wm_settingchange
 
-  Notify the system by ending the `WM_SETTINGCHANGE` message using the → Windows/development/WinAPI[WinAPI] function `SendMessage`, having `lParam` set to the string `"Environment"`.
+  Notify the system by ending the `WM_SETTINGCHANGE` message using the → Windows/development/WinAPI[WinAPI] function `SendMessage` or `SendMessageTimeout`, having `lParam` set to the string `"Environment"`.
 
-  In → development/languages/VBA[Visual Basic for Applications], this can be achieved with the following call. The declaration of the function and constants
+  With → Windows/PowerShell, its possible to invoke a WinAPI function. The following script sends a message in order for new processes to have updated values for
+  changed environment variables:
+
+  gh|about-Windows-Registry|/HKEY_CURRENT_USER/Environment/apply-changes.ps1||
+
+  It should be noted, however, that it's not necessary to send a `WM_SETTINGCHANGE` if an environment variable is changed with the
+   → Windows/PowerShell/index#ps-env-variables[PowerShell idiom to change variables] because PowerShell is smart enough to figure out that this needs to be done:
+code {
+PS C:\> [environment]::setEnvironmentVariable("VAR", "value", "user")`
+code }
+
+  In → development/languages/VBA[Visual Basic for Applications], a `WM_SETTINGCHANGE` can be sent with the following call. The declaration of the function and constants
   is found → development/languages/VBA/Win-API[here].
 
 code {
@@ -31,6 +42,8 @@ c:\> rundll32.exe user32.dll,UpdatePerUserSystemParameters 1 True
 code }
 
  }
+
+
 
 }
 { TODO
