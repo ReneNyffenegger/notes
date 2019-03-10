@@ -1,18 +1,55 @@
 $ Registry: HKEY_CURRENT_USER\Control Panel\Sound
 
-{ Beep
+{ Values
+ { Beep
 
   gh|about-Windows-Registry|/HKEY_CURRENT_USER/Control Panel/Sound/no-beep.bat||
 
-}
-{ ExtendedSounds
+ }
+ { ExtendedSounds
 
   gh|about-Windows-Registry|/HKEY_CURRENT_USER/Control Panel/Sound/no-extendedSounds.bat||
 
   … however, setting `ExtendedSound` to `no` didn't have the epxected result. Actually, I am not even sure what it changed or changes.
 
+ }
 }
+{ Relation to beep service / restarting the computer
 
+  The relation (if any) to the *beep* → Windows/services[service] is unclear.
+
+  Some site suggest to stop or restart the beep service after making a change to this key in order to apply the changes with immediate effect.
+  -
+  However, I found that I could not stop the beep service, the service hangs after stopping it:
+code {
+C:\> → Windows/dirs/Windows/System32/sc_exe[sc stop] beep
+
+SERVICE_NAME: beep
+        TYPE               : 1  KERNEL_DRIVER
+        STATE              : 3  STOP_PENDING
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+C:\> → Windows/dirs/Windows/System32/sc_exe[sc queryex] beep
+
+SERVICE_NAME: beep
+        TYPE               : 1  KERNEL_DRIVER
+        STATE              : 3  STOP_PENDING
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        PID                : 0
+        FLAGS              :
+code }
+
+  Thus, it seems, to me at least, that I have to restart the computer to apply the changes.
+
+}
 { TODO
 
   What is the relation to → Windows/registry/tree/HKEY_CURRENT_USER/AppEvents/Schemes/Apps[`HKEY_CURRENT_USER\AppEvents\Schemes\Apps`] and

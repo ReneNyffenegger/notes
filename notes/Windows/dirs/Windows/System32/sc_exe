@@ -2,3 +2,36 @@ $ sc.exe
 
 → Windows/services[Service] Control Manager Configuration Tool
 
+{ Insufficient buffer size returned FAILED 122
+
+  At times, `sc.exe` fails with an error message that the buffer size was too small:
+
+code {
+C:\Windows\system32>sc qprivs beep
+[SC] GetConfigInfo: Insufficient buffer size returned FAILED 122:
+
+The data area passed to a system call is too small.
+
+[SC] GetConfigInfo needs 8 bytes
+   … …
+code }
+
+  So, we specifically add a buffer size to the command: same command, but buffer size of 8 appended (error was `GetConfigInfo needs 8 bytes`):
+code {
+C:\Windows\system32>sc qprivs beep 8
+[SC] QueryServiceConfig2 SUCCESS
+
+
+SERVICE_NAME: beep
+        PRIVILEGES       :
+code }
+
+  There's also the `bufsize=` option, but this does not really seem to work in this case.
+
+}
+{ PowerShell
+
+  Note that → Windows/PowerShell[PowerShell] has an → Windows/PowerShell/language/alias[alias] `sc` for `set-content`. Thus, in order to use `sc` from a PowerShell
+  command line, it needs to be invoked with its suffix, `sc.exe`.
+
+}

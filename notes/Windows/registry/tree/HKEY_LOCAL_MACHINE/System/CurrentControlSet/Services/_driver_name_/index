@@ -1,0 +1,54 @@
+$ Registry: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\driverName
+
+The subkeys under → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services`] names of drivers.
+
+The driver may use this subkey to store data it needs.
+
+When the *PnP manager* initializes a driver with its `DriverEntry()` function, it passes to the function the registry-path of this key.
+
+The (optional) → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/_driver_name_/Parameters[Parameters] subkey stores *driver specific* data.
+
+The (optoinal) subkey *Performance* is used for performance monitoring.
+
+
+
+{ ImagePath #reg-services-imagePath
+
+ `ImagePath` stores the fully qualified path to the drivers *image file*.
+
+  Usually, the value is something like `→ Windows/dirs/Windows/System32/drivers[%SystemRoot%\System32\drivers\driverName.sys`.
+
+  At times, however, a reference to → Windows/dirs/Windows/System32/svchost_exe[`svchost.exe`] is also seen, for example:
+  -
+ `%SystemRoot%\System32\svchost.exe -k netsvcs -p`
+
+  This value is created by the mandatory `ServiceBinary` entry of the drivers's `.inf` file.
+
+}
+{ Start #reg-services-start
+ 
+  Start specifies how or when a service is started:
+    • 0: Loaded (but not started) by the boot loader. Then started during kernel initialization.
+    • 1: Started during kernel initialization after services whose start parameter is 0.
+    • 2: Automatically. Started by → Windows/dirs/Windows/System32/smss_exe[`smss.exe`] (session manager) or → Windows/dirs/Windows/System32/services_exe[`services.exe`] (services controller).
+    • 3: Manually. Started by the Service Control Manager (SCM).
+    • 4: Disabled
+    • 5: Delayed start.
+
+  The start value of 1 indicates that that this is a kernel device or other low-lwever hardware device driver.
+
+  For adapters, the start value is ignored.
+
+}
+{ Type
+
+  The type value specifies the type of the service:
+    • 0x01: Kernel device driver
+    • 0x02: File system driver (which is also a kernel device driver)
+    • 0x04: Set of arguments for an adapter
+    • 0x10: A Win32 program that can be started by the *service controller* and that obeys the service control protocol.
+    • 0x20: A Win32 service that can share a process with other Win32 services.
+    • 0x60: USER_SHARE_PROCESS TEMPLATE
+    • 0xE0: USER_SHARE_PROCESS INSTANCE
+
+}
