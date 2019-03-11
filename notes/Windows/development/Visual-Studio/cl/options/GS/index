@@ -1,15 +1,19 @@
 $ cl /GS
 
-Sources that are compiled with `/GS` (which is enabled by default) protect stack variables from overflows that result in arbitrary code execution, thus
-mitigating buffer overfow vulnerabilities in → development/languages/C-C-plus-plus/C[C] and → development/languages/C-C-plus-plus/CPP[C++].
- 
-The goal of using `/GS` is to detect corruption of a functions's return address that is stored on the stack. This is achieved by placing a cookie right after (before?)
-the *frame pointer* and before (after?) the *exception handler frame*.
+The goal of using `/GS` is to detect an alteration of a functions's return address that is stored on the stack. If the return address was changed during the execution of
+a function, the program does not return to the original code. This might be exploited by malware or might happen inadvertantly when a buffer overflows.
+
+Sources that are compiled with `/GS` (which is enabled by default) can detect the alteration of the return address. The compiler causes the function to insert a »cookie« (a value) on the
+stack right after (before?) the *frame pointer* and before (after?) the *exception handler frame* or return address when the function is entered. When the function is left, the value
+of the cookie is compareed to the value it had when the function is entered. If those values are different, this is a sign that indeed a buffer overflow has happened and an error
+reporting function is called.
+
+The value of the cookie that is put on the stack is also stored in the global variable `__security_cookie` which is defined in the CRT source
+→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/crt/src/vcruntime/gs_cookie_c[`gs_cookie.c`].
+-
+The function that initializes the value of `__security_cookie` is defined in 
+→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/crt/src/vcruntime/gs_support_c[`gs_support.c`].
 
 sa:
-
-  The CRT sources 
-  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/crt/src/vcruntime/gs_support_c[`gs_support.c`] and
-  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/crt/src/vcruntime/gs_cookie_c[`gs_cookie.c`].
 
   → Windows/development/Visual-Studio/cl/options[cl options]
