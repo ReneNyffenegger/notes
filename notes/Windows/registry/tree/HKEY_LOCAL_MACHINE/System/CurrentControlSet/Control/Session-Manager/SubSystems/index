@@ -1,8 +1,18 @@
 $ Registry: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\SubSystems
 
+{ Debug
+
+  Although referenced by → #reg-subsystem-required[`Required`], the value of `Debug` is empty: it is not needed anymore since → Windows/versions[Windows XP].
+
+}
 { Kmode #reg-subsystem-kmode
 
-  → Windows/dirs/Windows/System32/win32k_sys[`\Systemroot\System32\win32k.sys`]
+  `Kmode` stores the filename of the kernel component of the *Windows subsystem*: → Windows/dirs/Windows/System32/win32k_sys[`\Systemroot\System32\win32k.sys`]
+
+}
+{ Optional
+
+  `Optional` lists the → Windows/development/Portable-Executable/subsystem[subsystems] that are loaded when required.
 
 }
 { Posix #reg-subsystem-posix
@@ -15,12 +25,26 @@ $ Registry: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\
   → Linux/fhs/bin/bash[bash shell] in Windows 10.
 
 }
+{ Required #reg-subsystem-required
+
+  The value in `Required` lists the → Windows/development/Portable-Executable/subsystem[subsystems] that load when Windows → Windows/booting[boots up] (see also value of `Optional`).
+
+  The items in this string are names of other values under this registry key.
+
+  These subsystems are started by → Windows/dirs/Windows/System32/smss_exe[`smss.exe`] (the *session manager*).
+
+  On some machines (most?), the value is `Debug Windows`
+
+  TODO: Why is the → Windows/development/Portable-Executable/subsystem/console[console subsystem] not listed?
+
+}
 { Windows #reg-subsystem-windows
 
+  Used for the → Windows/development/Portable-Executable/subsystem/windows[Windows subsystem].
+  
   The value of `Windows` might be somthing like
 code {
 → Windows/dirs/Windows/System32/csrss_exe[%SystemRoot%\system32\csrss.exe] ObjectDirectory=→Windows/dirs/Windows[\Windows] SharedSection=1024,20480,768 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ServerDll=sxssrv,4 ProfileControl=Off MaxRequestThreads=16
 code }
  
-
 }

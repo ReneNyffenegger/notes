@@ -1,6 +1,6 @@
 $ Windows versions
 
-{ Determining versions
+{ Determining versions #win-determine-version
 
   { winver.exe
 
@@ -21,7 +21,7 @@ code }
     Note, Windows 7, 8 and 8.1 all have version 6, but are distinguished by their minor number, as per the table below.
 
   }
-  { cmd.exe
+  { Registry
 
     The following → Windows/cmd-exe/batch-files[batch file] queries the → Windows/registry[registry] under
     → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion`] to
@@ -36,6 +36,33 @@ ProductName        : Windows
 CurrentBuildNumber : 7601
 EditionID          : Enterprise
 InstallationType   : Client
+code }
+
+  }
+  { Using systeminfo.exe
+
+
+    Besides other information, → Windows/dirs/Windows/System32/systeminfo_exe[`systeminfo.exe`] prints OS Version and name.
+
+In → Windows/cmd-exe[cmd.exe] with → Windows/dirs/Windows/System32/findstr_exe[`findstr.exe`]. Note, because the → development/regular-expressions[regular expression] capabilities of `findstr.exe`
+don't support alternations, its not easy to restrict the output to *OS Name* and *OS Version*:
+code {
+C:\Users\Rene>systeminfo | findstr OS
+OS Name:                   Microsoft Windows 7 Enterprise
+OS Version:                6.1.7601 Service Pack 1 Build 7601
+OS Manufacturer:           Microsoft Corporation
+OS Configuration:          Member Workstation
+OS Build Type:             Multiprocessor Free
+BIOS Version:              Dell Inc. A21, 01.02.2018
+code }
+
+
+In → Windows/PowerShell, it's easier to search for lines that match a list of regular expressions:
+code {
+PS C:\> systeminfo | select-string "^OS Name", "^OS Version"
+ 
+OS Name:                   Microsoft Windows 7 Enterprise
+OS Version:                6.1.7601 Service Pack 1 Build 7601
 code }
 
   }
