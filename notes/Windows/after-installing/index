@@ -173,9 +173,6 @@ Swap keys
 Then try to install winpty (`:help :terminal`)
 
 
-Install → development/version-control-systems/git[git]
--
-Add `github_top_root` and `github_root` to environment variables.
 
 Can *Cortana* be turned off/disabled?
 
@@ -202,6 +199,37 @@ code }
 
   → Windows/cmd-exe[cmd.exe]: check values under → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`], particularly
    `CompletionChar`, `PathCompletionChar` and `EnableExtensions`.
+
+  }
+  { Install git
+
+    Install the PortableGit version of → development/version-control-systems/git[git].
+
+    Download end extract the self extracting executable:
+code {
+$ua = new-object system.net.webClient
+[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+$ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-32-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
+code }
+
+  It seems that an output directory cnnot be specified with the `-o` flag. Therefore some detouring:
+code {
+& $home\Downloads\PortableGit.exe
+move-item $home\Downloads\PortableGit $env:programFiles
+code }
+
+  Add new path to (global) environment variables:
+code {
+$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
+[environment]::setEnvironmentVariable("PATH", "$env:programFiles\PortableGit\cmd;$systemPath", "machine") 
+code }
+
+   Cleaning up
+code {
+rm $home\Downloads\PortableGit.exe 
+code }
+
+    Add `github_top_root` and `github_root` to environment variables.
 
   }
 
