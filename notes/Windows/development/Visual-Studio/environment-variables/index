@@ -7,10 +7,10 @@ The *Visual Studio environment variables* are needed for the → Windows/develop
 
 
 
-{ Setting the variables on the command line
+{ Setting the variables on the command line #vs-set-env-vars
 
 
-  Up to Visual Studio version 2015 (?), the installer set the → development/environment-variable[environment variable[`%VSxxxCOMNTOOLS%`] with which it was possible to
+  Up to Visual Studio → Windows/development/Visual-Studio/versions[version] 2015 (?), the installer set the → development/environment-variable[environment variable] `%VSxxxCOMNTOOLS%` with which it was possible to
   set the environment variables. The `xxx` refers to the Visual Studio version (without dots), for example `100`, thus the variable being `%VS100COMNTOOLS%`. The value of the variable points to the
   → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools[`Commont7\Tools`] directory under
   the respective → Windows/development/Visual-Studio#vs-installation-root[installation root].
@@ -20,16 +20,16 @@ The *Visual Studio environment variables* are needed for the → Windows/develop
   Note the apostrophes when using this variable because of the spaces in the path that the variable points at:
 code {
 C:\> "%VS100COMNTOOLS%\vsvars32.bat"
-Setting environment for using Microsoft Visual Studio 2010 x86 tools
+Setting environment for using Microsoft Visual Studio 2010 x86 tools.
 code }
   
-   Beginning with Visual Studio 2017, this `%VSxxxCOMNTOOLS%` is not set anymore. Instead, the installer comes with
-   → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer/vswhere_exe[`vswhere.exe`], (by default) located under
+   Beginning with Visual Studio 2017, this `%VSxxxCOMNTOOLS%` is not set globally anymore. Instead, the installer comes with
+   → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer/vswhere_exe[`vswhere.exe`], which is (by default) located under
    → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer[`C:\Program Files (x86)\Microsoft Visual Studio\Installer`]
    -
    Also, `vsvars32.bat` is replaced with → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools/VsDevCmd_bat[`VsDevCmd.bat`] (which seems to have more options).
    -
-   Now, with a combination of `vswhere.exe` and Windows/cmd-exe/commands/for/f[`for /f`], it is possible to call `VsDevCmd.bat` in → Windows/cmd-exe[cmd.exe]:
+   Now, with a combination of `vswhere.exe` and → Windows/cmd-exe/commands/for/f[`for /f`], it is possible to call `VsDevCmd.bat` in → Windows/cmd-exe[cmd.exe]:
 code {
 C:\> for /f "usebackq delims=#" %a in (`"%programfiles(x86)%\Microsoft Visual Studio\Installer\vswhere" -latest -property installationPath`) do "%a\Common7\Tools\VsDevCmd.bat"
 **********************************************************************
@@ -55,23 +55,14 @@ C:\> for /f "usebackq delims=#" %a in (`"%programfiles(x86)%\Microsoft Visual St
 [vcvarsall.bat] Environment initialized for: 'x86'
 code }
 
-  
-
-  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools/VsDevCmd_bat[`VsDevCmd.bat`] which is located under an
-  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition[installation root's]
-  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools[`Common7/Tools`] directory.
-
-  The environment variables are set by the → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Auxiliary/Build#vcvars_bat[`vcvars32.bat` and `vcvars64.bat`]
-  → Windows/cmd-exe/batch-files[batch files].
-  -
-  The location of these files is in the directory → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Auxiliary/Build/[`%VCINSTALLDIR%/Auxiliary/Build`] -
-  however, the environment variable `%VCINSTALLDIR%` will be set by these batch files, thus we have a typical *schwanzbeisser* (a catch-22).
-  
-  See also the → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Auxiliary/Build/vcvarsall_bat[`vcvarsall.bat`] in that directory.
 
 }
 
-{ PATH
+{ Modifications of these scripts
+
+  These script (`VsDevCmd.bat` etc.) modify and add the following environment variables:
+
+ { PATH
 
   The following directories are added to `%PATH%`
   • `→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/bin[%VCToolsInstallDir%\bin]\HostX{86\x86,64\x64}`
@@ -92,8 +83,8 @@ code }
   • `→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools[%VSxxxCOMNTOOLS%]`
 
   The `__VSCMD_PREINIT_PATH` variable contains the value of `%PATH%` it had prior to adding the Visual Studio variables.
-}
-{ INCLUDE
+ }
+ { INCLUDE
 
   These directories are added to the `%INCLUDE%` variable:
   • `→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version[%VCToolsInstallDir%]\ATLMFC\include`
@@ -107,8 +98,8 @@ code }
 
   The `INCLUDE` directories are not dependent on the 86,64 environment.
 
-}
-{ LIB
+ }
+ { LIB
 
    These directories are added to the `LIB` variable:
     • `→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version[%VCToolsInstallDir%]\ATLMFC\lib\{x86,x64}`
@@ -117,8 +108,8 @@ code }
     • `→ Windows/dirs/Program-Files-x86/Windows-Kits/n[%WindowsSdkDir%]\lib\%UCRTVersion%\ucrt\{x86,x64}`
     • `→ Windows/dirs/Program-Files-x86/Windows-Kits/n[%WindowsSdkDir%]\lib\%UCRTVersion%\um\{x86,x64}`
 
-}
-{ LIBPATH
+ }
+ { LIBPATH
 
   These directories are added to the `LIBPATH` variable:
     • `→ Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version[%VCToolsInstallDir%]\ATLMFC\lib\{x86,x64}`
@@ -127,8 +118,8 @@ code }
     • `→ Windows/dirs/Program-Files-x86/Windows-Kits/n[%WindowsSdkDir%]\UnionMetadata\%UCRTVersion%`
     • `→ Windows/dirs/Program-Files-x86/Windows-Kits/n[%WindowsSdkDir%]\References\%UCRTVersion%`
     • `→ Windows/dirs/Windows/Microsoft_NET/Framework[%SystemRoot%\Microsoft.NET\Framework]{,64}\%FrameworkVersion%`   (*Note: 86 environment without 86 in path name.*)
-}
-{ Directories
+ }
+ { Directories
 
   Variables that specify specific directories.
 
@@ -182,7 +173,7 @@ table { lll
 
   Variables that are dependent on the target-bitness
 
-table { lll
+ table { lll
 
    ~Variable~                  ☰ ~env 32 value~ ☰ ~env 64 value~
     Platform                   ☰ x86   ☰ x64
@@ -193,9 +184,10 @@ table { lll
     __DOTNET_ADD_32BIT         ☰ 1      ☰ *n/a*
     __DOTNET_ADD_64BIT         ☰ *n/a*  ☰ 1
 
-table }
-}
-{ Others
+ table }
+
+ }
+ { Others
 
   table { ll
 
@@ -205,6 +197,7 @@ table }
 
   table }
 
+ }
+
+
 }
-
-
