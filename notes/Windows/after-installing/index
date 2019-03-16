@@ -1,5 +1,4 @@
 $ After installing Windows
--
 
 { Change execution policy of PowerShell
 
@@ -78,7 +77,6 @@ $ua = new-object system.net.webClient
 
 if ([environment]::is64BitOperatingSystem) {
   $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-64bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
-
 } else {
   $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-32bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
 }
@@ -88,6 +86,7 @@ if ([environment]::is64BitOperatingSystem) {
 #
 $shell = new-object -comObject shell.application
 $shell.nameSpace($strawberryPerlDestDir).copyHere($shell.nameSpace("$home\Downloads\StrawberryPerl.zip").items())
+
 #
 # Other dissapointing trials to unzip zipfile were:
 #
@@ -129,7 +128,7 @@ if ([environment]::is64BitOperatingSystem) {
 }
 code }
 
-  It seems that an output directory cnnot be specified with the `-o` flag. Therefore some detouring:
+  It seems that an output directory cannot be specified with the `-o` flag. Therefore some detouring:
 code {
 & $home\Downloads\PortableGit.exe
 move-item $home\Downloads\PortableGit $env:programFiles
@@ -162,20 +161,20 @@ code }
 
     Add the environment variables `github_top_root` and `github_root`
 code {
-[environment]::setEnvironmentVariable("github_top_root", "$env:userprofile\"         , "user")
-[environment]::setEnvironmentVariable("github_root"    , "$env:userprofile\github\"  , "user")
-[environment]::setEnvironmentVariable("git_work_dir"   , "$env:userprofile\localgit\", "user")
+[environment]::setEnvironmentVariable("github_top_root", "$env:userprofile\github\"       , "user")
+[environment]::setEnvironmentVariable("github_root"    , "$env:userprofile\github\github\", "user")
+[environment]::setEnvironmentVariable("git_work_dir"   , "$env:userprofile\localgit\"     , "user")
 code }
 
   }
   { Create git directories
 
 code {
-mkdir ~\github\github
-mkdir ~\github\about
-mkdir ~\github\lib
-mkdir ~\github\temp
-mkdir ~\localgit
+$eatOutput = mkdir ~\github\github
+$eatOutput = mkdir ~\github\about
+$eatOutput = mkdir ~\github\lib
+$eatOutput = mkdir ~\github\temp
+$eatOutput = mkdir ~\localgit
 code }
 
   }
@@ -190,11 +189,58 @@ code }
 
 
 }
+{ Compile vim
+
+  Strawberry Perl comes with a → development/languages/C-C-plus-plus/C[C compiler] which can be used to → development/vim/compiling[compile vim].
+
+  Make sure that the setting of the variable `github_top_root` has already taken effect.
+code {
+cd $env:github_top_root
+git clone https://github.com/vim/vim
+cd $env:github_top_root\vim\src
+code }
+
+Edit `feature.h` to match preferences.
+
+Find the short path of the perl directory because → Windows/dirs/Program-Files[C:\Program Files] contains spaces:
+code {
+$fso = new-object -comObject scripting.fileSystemObject
+$perlShortPath = $fso.getFolder("$env:programFiles\StrawberryPerl\perl").shortPath
+code }
+
+The `ARCH=native` option is passed to gcc via the → development/languages/C-C-plus-plus/GCC/options/m_lowercase/arch[`-march`] option. Additionally,
+it prevents the make file from trying to invoke → development/languages/sed[sed] which is not yet installed.
+
+Define `XPM=no` to prevent *fatal error: xpm.h: no such file or directory*.
+
+code {
+gmake -f Make_ming.mak gvim.exe PERL=$perlShortPath DYNAMIC_PERL=yes PERL_VER=528 ARCH=native XPM=no gvim.exe
+code }
+
+code {
+cp gvim.exe   $home\bin
+cp vimrun.exe $home\bin
+code }
+
+ 
+   Set the `VIMRUNTIME` environment variable
+code {
+[environment]::setEnvironmentVariable("VIMRUNTIME", "$($env:github_top_root)vim\runtime", "user") 
+code }
+
+   TOOD: build with *terminal support* (winpty, `:help terminal`)
+code {
+gmake -f … TERMINAL=yes
+code }
+
+}
 { TODO
 
   How do I determine if I started → Windows/PowerShell as Administrator?
   -
   Try `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
+
+  How do I → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/FileSystem#reg-long-paths-enabled[enable long paths]?
 
   Enable → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon#reg-enable-automatic-logon[auto logon]?
 
@@ -299,9 +345,6 @@ code }
 
 Swap keys
 
-→ development/vim/compiling[Compile and install vim]
--
-Then try to install winpty (`:help :terminal`)
 
 
 
