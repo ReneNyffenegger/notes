@@ -61,12 +61,142 @@ c:\> → Windows/dirs/Windows/System32/net_exe/user[net user] administrator MYSE
 code }
 
 }
+{ Install Perl
+
+  Install a *portable* → development/languages/Perl[Perl]. Strawberry's portable Perl claims that it does not need admin privileges.
+
+code {
+#
+#   Strawberry recommends to put into path without spaces... let's see, if it
+#   is possible nevertheless…
+#
+$strawberryPerlDestDir="$env:programFiles\StrawberryPerl"
+$eatOutput = mkdir $strawberryPerlDestDir
+
+$ua = new-object system.net.webClient
+# [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+
+if ([environment]::is64BitOperatingSystem) {
+  $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-64bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
+
+} else {
+  $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-32bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
+}
+
+#
+# Unzip zip file with COM object shell.application
+#
+$shell = new-object -comObject shell.application
+$shell.nameSpace($strawberryPerlDestDir).copyHere($shell.nameSpace("$home\Downloads\StrawberryPerl.zip").items())
+#
+# Other dissapointing trials to unzip zipfile were:
+#
+#   extrac32 $home\Downloads\StrawberryPerl.zip "$env:programFiles\StrawberryPerl"
+#  &rundll32.exe zipfldr.dll,RouteTheCall $home\Downloads\StrawberryPerl.zip
+
+rm $home\Downloads\StrawberryPerl.zip
+
+
+#
+# Set env variables
+#
+#   portableshell.bat also sets these variables:
+#     set TERM=
+#     set HOME=%~dp0data
+#
+
+$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
+[environment]::setEnvironmentVariable("PATH"          , "$strawberryPerlDestDir\perl\site\bin;$strawberryPerlDestDir\perl\bin;$strawberryPerlDestDir\c\bin;$systemPath", "machine") 
+
+[environment]::setEnvironmentVariable("PLPLOT_LIB"    , "$strawberryPerlDestDir\c\share\plplot", "machine") 
+[environment]::setEnvironmentVariable("PLPLOT_DRV_DIR", "$strawberryPerlDestDir\c\share\plplot", "machine") 
+code }
+
+}
+{ Install git
+
+    Install the PortableGit version of → development/version-control-systems/git[git].
+
+    Download end extract the self extracting executable:
+code {
+$ua = new-object system.net.webClient
+[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+
+if ([environment]::is64BitOperatingSystem) {
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-32-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
+} else {
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-64-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
+}
+code }
+
+  It seems that an output directory cnnot be specified with the `-o` flag. Therefore some detouring:
+code {
+& $home\Downloads\PortableGit.exe
+move-item $home\Downloads\PortableGit $env:programFiles
+code }
+
+  Add new path to (global) environment variables:
+code {
+$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
+[environment]::setEnvironmentVariable("PATH", "$env:programFiles\PortableGit\cmd;$systemPath", "machine") 
+code }
+
+   Cleaning up
+code {
+rm $home\Downloads\PortableGit.exe 
+code }
+
+
+    Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
+code {
+git config --system core.longpaths true
+code }
+
+    Possibly, username and password need to be configured, too:
+code {
+git config --global user.email "…"
+git config --global user.name  "René Nyffenegger"
+code }
+
+  { Add github_root and github_top_root variables
+
+    Add the environment variables `github_top_root` and `github_root`
+code {
+[environment]::setEnvironmentVariable("github_top_root", "$env:userprofile\"         , "user")
+[environment]::setEnvironmentVariable("github_root"    , "$env:userprofile\github\"  , "user")
+[environment]::setEnvironmentVariable("git_work_dir"   , "$env:userprofile\localgit\", "user")
+code }
+
+  }
+  { Create git directories
+
+code {
+mkdir ~\github\github
+mkdir ~\github\about
+mkdir ~\github\lib
+mkdir ~\github\temp
+mkdir ~\localgit
+code }
+
+  }
+  { Add new github script path variables
+
+code {
+$userPath = [environment]::getEnvironmentVariable("PATH", "user"    )
+[environment]::setEnvironmentVariable("PATH", "$env:userprofile\localgit\scripts;$env:userprofile\github\lib\scripts;$userPath", "user") 
+code }
+
+  }
+
+
+}
 { TODO
 
   How do I determine if I started → Windows/PowerShell as Administrator?
   -
   Try `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
 
+  Enable → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon#reg-enable-automatic-logon[auto logon]?
 
   Install → Windows/development/Visual-Studio and add `/nologo` to the `CL` and `LINK` → development/environment-variable[environment variables].
 
@@ -136,6 +266,7 @@ code }
     • → Windows/dirs/Windows/System32/wbem/wmiprvse_exe
     • → Windows/dirs/Windows/System32/wsqmcons_exe
     • → Windows/dirs/Windows/System32/WWAHost_exe
+    • → Windows/dirs/Windows/System32/OptionalFeatures_exe (also PS: `get-windowsOptionalFeatures`)
 
   Which → Windows/services[services] are installed?
 
@@ -201,53 +332,6 @@ code }
    `CompletionChar`, `PathCompletionChar` and `EnableExtensions`.
 
     Set the → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-size[window and buffer size of cmd.exe].
-
-  }
-  { Install git
-
-    Install the PortableGit version of → development/version-control-systems/git[git].
-
-    Download end extract the self extracting executable:
-code {
-$ua = new-object system.net.webClient
-[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
-
-if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-32-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
-}
-else {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-64-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
-}
-code }
-
-  It seems that an output directory cnnot be specified with the `-o` flag. Therefore some detouring:
-code {
-& $home\Downloads\PortableGit.exe
-move-item $home\Downloads\PortableGit $env:programFiles
-code }
-
-  Add new path to (global) environment variables:
-code {
-$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
-[environment]::setEnvironmentVariable("PATH", "$env:programFiles\PortableGit\cmd;$systemPath", "machine") 
-code }
-
-   Cleaning up
-code {
-rm $home\Downloads\PortableGit.exe 
-code }
-
-    Add `github_top_root` and `github_root` to environment variables.
-
-    Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
-code {
-git config --system core.longpaths true
-code }
-
-  }
-  { Get localgit
-
-    Add `~\localgit\scripts` to path.
 
   }
 
