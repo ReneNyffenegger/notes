@@ -1,0 +1,98 @@
+$ Windows Management Instrumentation
+
+
+WMI providers are:
+  • cimwin32.dll
+  • stdprov.dll
+  • …
+  
+
+WMI clients are:
+  • → Windows/dirs/Windows/System32/wbem/WMIC_exe[`WMIC.exe`]
+  • → Windows/PowerShell (`get-wmiobject`)
+  • → development/languages/WSH[Windows Scripting Host] (→ development/languages/VBScript[VB Script], → development/languages/JScript[JScript])
+  • → Windows/dirs/Windows/System32/wbem/wbemtest_exe
+  • → Windows/development/COM[COM] capable programs
+  • winrm
+  • → Windows/dirs/Windows/System32/winrs_exe
+
+*MOF* files are *Managed Object Format* files.
+
+{ WMI Classes
+
+  Win32_Process, Win32_Service, AntiVirusProduct, Win32_Startup ...
+
+  WMI objects are queried using a → development/databases/SQL[SQL] like language: *WMI Query Language (WQL)*.
+
+  Persistent objects are stored in → Windows/dirs/Windows/System32/wbem/Repository/OBJECTS_DATA.
+
+  Most classes are implemented as *providers*. Such providers are either → Windows/development/COM[COM] dlls or *kernel drivers*.
+
+}
+{ Providers
+
+  A provider monitors a *managed object* such as
+    • hard disk drive
+    • network adapter
+    • database system
+    • operating system
+    • → Windows/development/process[process]
+    • → Windows/services[service]
+
+  A provider consists of
+    • a dll
+    • a MOF (Managed Object Format) file
+
+  These DLLs and MOF files are located under → Windows/dirs/Windows/System32/wbem[%SYSTEMROOT%\System32\wbem].
+
+
+}
+{ Hierarchical Namespace
+
+  WMI classes are hierarchically organized into namespaces.
+
+  Some namespaces (such as `root\default`, `root\cimv2`, `root\subscription…`) are created when the system → Windows/booting[boots up]
+
+  The name of the *default namespace* is `ROOT\CIMV2` (see → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/WBEM/Scripting#reg-wbem-default-namespace[`Default Namespace`] under the → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/WBEM/Scripting[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WBEM\Scripting`].
+
+  A → Windows/PowerShell script (that I found → https://www.blackhat.com/docs/us-15/materials/us-15-Graeber-Abusing-Windows-Management-Instrumentation-WMI-To-Build-A-Persistent%20Asynchronous-And-Fileless-Backdoor-wp.pdf[here]) can be used to
+  show the namespaces:
+code {
+function get-wmiNamespace {
+   param($namespace='ROOT')
+   get-wmiObject -namespace $namespace -class __NAMESPACE | forEach-object { (
+     $ns='{0}\{1}' -f $_.__NAMESPACE, $_.name)
+     get-wminamespace -namespace $ns
+   }
+}
+
+# $wmiClasses=
+get-wminamespace | forEach-object {
+  $namespace=$_
+  get-wmiObject -namespace $namespace -list | forEach-object {
+     $_.path.path
+  }
+} | sort-object -unique
+code }
+
+}
+{ Remote usage
+
+  WMI can be used locally, and even more importantly and powerfully remotely.
+  
+  There are two protocols for remote adminstering: DCOM and WinRM.
+
+  See also
+    • → Windows/dirs/Windows/System32/dcomcnfg_exe[`dcomcnfg.exe`]
+    • Value of → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Ole#reg-enable-dcom[`EnableDCOM`] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Ole[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Ole`]
+
+}
+
+sa:
+  → Windows/dirs/Windows/System32/wbem/WMIC_exe[`WMIC.exe`]
+  -
+  → Windows/dirs/Windows/System32/wbem/wbemtest_exe[`wbemtest.exe`]
+
+links:
+  → https://www.blackhat.com/docs/us-15/materials/us-15-Graeber-Abusing-Windows-Management-Instrumentation-WMI-To-Build-A-Persistent%20Asynchronous-And-Fileless-Backdoor-wp.pdf
