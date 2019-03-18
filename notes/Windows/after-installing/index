@@ -21,6 +21,36 @@ $ After installing Windows
   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/RegisteredApplications#reg-registeredApplications-default[`HKEY_LOCAL_MACHINE\SOFTWARE\RegisteredApplications`]
 
 }
+
+{ Configure cmd.exe
+
+  → Windows/cmd-exe[cmd.exe]: check values under → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`], particularly
+   `CompletionChar`, `PathCompletionChar` and `EnableExtensions`.
+
+  Set the → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-size[window and buffer size of cmd.exe],
+  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-font[font size
+  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-quick-edit[allow copying text (quick edit)].
+
+  Set the → Windows/cmd-exe/variables/PROMPT[`%PROMPT%`] environment variable:
+code {
+[environment]::setEnvironmentVariable("PROMPT", '$t$s$p$_$+$g$s', 'user') 
+code }
+
+  With → Windows/versions/10[Windows 10], `cmd.exe` can be made transparent - not sure, though, if I really want that!
+
+  Set the → Windows/cmd-exe/commands/dir#cmd-exe-dircmd[`DIRCMD`] variable to specify the default behaviour of → Windows/cmd-exe/commands/dir[`dir`]:
+code {
+[environment]::setEnvironmentVariable("DIRCMD", '/ogn /a', 'user')
+code }
+
+  Assign a → Windows/cmd-exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
+  under → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]:
+code {
+new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
+code }
+
+}
 { Create bin directory
 
   Create a `bin` directory under → Windows/dirs/Users/username[`%UserProfile%`] to store executables and scripts so that they can be called from the command line (such as → Windows/cmd-exe[cmd.exe] or PowerShell).
@@ -284,6 +314,8 @@ code }
 
   Copy → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/profile.ps1[`profile.ps`] to profile path `$profile`.
 
+  Change → Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel/Desktop#reg-deskop-wallpaper[wallpaper]
+
   Which → Windows/development/process[processes] are seen to run after installation?
     • → Windows/dirs/Windows/System32/audiodg_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
     • → Windows/dirs/Windows/System32/ApplicationFrameHost_exe (Child of a → Windows/dirs/Windows/System32/svchost_exe)
@@ -330,7 +362,7 @@ code }
     • → Windows/dirs/Windows/System32/wbem/WmiPrvSE_exe
     • → Windows/dirs/Windows/System32/wsqmcons_exe
     • → Windows/dirs/Windows/System32/WWAHost_exe
-    • → Windows/dirs/Windows/System32/OptionalFeatures_exe (also PS: `get-windowsOptionalFeatures`)
+    • → Windows/dirs/Windows/System32/OptionalFeatures_exe (also PS: `get-windowsOptionalFeatures`, → Windows/dirs/Windows/System32/Fondue_exe[`Fondue.exe`])
 
   Which → Windows/services[services] are installed?
 
@@ -385,14 +417,6 @@ Can *Cortana* be turned off/disabled?
 code {
 PS C:\> enable-windowsOptionalFeature -online -featureName Microsoft-Windows-Subsystem-Linux
 code }
-
-  }
-  { cmd.exe
-
-  → Windows/cmd-exe[cmd.exe]: check values under → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`], particularly
-   `CompletionChar`, `PathCompletionChar` and `EnableExtensions`.
-
-    Set the → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-size[window and buffer size of cmd.exe].
 
   }
 
