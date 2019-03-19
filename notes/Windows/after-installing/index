@@ -22,35 +22,6 @@ $ After installing Windows
 
 }
 
-{ Configure cmd.exe
-
-  → Windows/cmd-exe[cmd.exe]: check values under → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`], particularly
-   `CompletionChar`, `PathCompletionChar` and `EnableExtensions`.
-
-  Set the → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-size[window and buffer size of cmd.exe],
-  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-font[font size
-  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-quick-edit[allow copying text (quick edit)].
-
-  Set the → Windows/cmd-exe/variables/PROMPT[`%PROMPT%`] environment variable:
-code {
-[environment]::setEnvironmentVariable("PROMPT", '$t$s$p$_$+$g$s', 'user') 
-code }
-
-  With → Windows/versions/10[Windows 10], `cmd.exe` can be made transparent - not sure, though, if I really want that!
-
-  Set the → Windows/cmd-exe/commands/dir#cmd-exe-dircmd[`DIRCMD`] variable to specify the default behaviour of → Windows/cmd-exe/commands/dir[`dir`]:
-code {
-[environment]::setEnvironmentVariable("DIRCMD", '/ogn /a', 'user')
-code }
-
-  Assign a → Windows/cmd-exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
-  under → Windows/registry[registry] key
-  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]:
-code {
-new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
-code }
-
-}
 { Create bin directory
 
   Create a `bin` directory under → Windows/dirs/Users/username[`%UserProfile%`] to store executables and scripts so that they can be called from the command line (such as → Windows/cmd-exe[cmd.exe] or PowerShell).
@@ -213,6 +184,22 @@ $eatOutput = mkdir ~\github\temp
 code }
 
   }
+
+
+}
+{ Clone localgit
+
+code {
+git clone e:\git $env:userprofile\localgit
+code }
+
+}
+{ Clone github script repository
+
+code {
+git clone https://github.com/ReneNyffenegger/scripts-and-utilities $env:userprofile/github/lib/scripts
+code }
+
   { Add new github script path variables
 
 code {
@@ -222,13 +209,47 @@ code }
 
   }
 
-
 }
-{ Clone localgit
+{ Configure cmd.exe
 
+  Check if → Windows/registry[registry] key → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`] exists and
+  what the values of `CompletionChar`, `PathCompletionChar` and `EnableExtensions` are.
+  -
+  If the key does not exist, create it with
 code {
-git clone e:\git $env:userprofile\localgit
+new-item -path 'hkcu:\Software\Microsoft\Command Processor'
 code }
+
+  Assign a → Windows/cmd-exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
+  under → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]).
+  -
+  The → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/autorun.bat[`autorun.bat`] was installed previoulsly in *Clone github repositories*.
+code {
+new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
+code }
+
+  Make sure that → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe[`HKEY_CURRENT_USER\Console\%SystemRoot%_system32_cmd.exe`] exists, otherwise create it with
+code {
+new-item -path 'hkcu:\Console\%SystemRoot%_system32_cmd.exe'
+code }
+
+  Set the → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-size[window and buffer size of cmd.exe],
+  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-font[font size] and
+  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-quick-edit[allow copying text (quick edit)].
+
+  Set the → Windows/cmd-exe/variables/PROMPT[`%PROMPT%`] environment variable:
+code {
+[environment]::setEnvironmentVariable("PROMPT", '$t$s$p$_$+$g$s', 'user') 
+code }
+
+  With → Windows/versions/10[Windows 10], `cmd.exe` can be made transparent - not sure, though, if I really want that!
+
+  Set the → Windows/cmd-exe/commands/dir#cmd-exe-dircmd[`DIRCMD`] variable to specify the default behaviour of → Windows/cmd-exe/commands/dir[`dir`]:
+code {
+[environment]::setEnvironmentVariable("DIRCMD", '/ogn /a', 'user')
+code }
+
 
 }
 { Compile vim
