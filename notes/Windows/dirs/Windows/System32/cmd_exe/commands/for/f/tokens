@@ -1,0 +1,96 @@
+$ cmd.exe: for /f "tokens=…"
+
+This page tries to demonstrate how the `tokens=…` option influences the splitting into variables in a → Windows/dirs/Windows/System32/cmd_exe/commands/for/f[`for /f`] command.
+
+The text that is used for splitting consists of seven items and is: `one   two  three four five    six seven`.
+
+The `for /f` command assigns to the `%%A` and following variables. The variables `A` through `F` are printed after splitting the text into tokens.
+
+
+{ tokens=*
+
+  With `tokens=*`, all tokens, that is: the entire text, is assigned to *one* variable.
+
+code {
+A = one   two  three four five    six seven
+B = %B
+C = %C
+D = %D
+E = %E
+code }
+
+}
+{ tokens=3*
+
+  With `tokens=3*`, the first two tokens are skipped, the third token is assigned to the first variable and the rest to the second variable:
+
+code {
+A = three
+B = four five    six seven
+C = %C
+D = %D
+E = %E
+code }
+
+}
+{ tokens=1-4*
+
+  With `tokens=1-4*`, the first four tokens are assigned to the first four variables (`%%A` through `%%D`) and the rest is assigned to the next (in this case: the fifth) variable:
+
+code {
+A = one
+B = two
+C = three
+D = four
+E = five    six seven
+code }
+
+}
+{ tokens=1-4,*
+
+  `tokens=1-4,*` behaves exactly as `tokens=1-4*` does. So, the comma in front of the asterisk does not change any meaning.
+
+code {
+A = one
+B = two
+C = three
+D = four
+E = five    six seven
+code }
+
+}
+{ tokens=2,4,5
+
+  With `tokens=2,4,5`, only the second, forth and fifth tokens are assigned. The rest is ommited.
+
+code {
+A = two
+B = four
+C = five
+D = %D
+E = %E
+code }
+
+}
+{ tokens=2,4,5*
+
+  `tokens=2=4,5*` again assignes the second, fourth and fifth token. The star assigns everything after the fifth token to the next (here: the fourth) variable:
+
+code {
+A = two
+B = four
+C = five
+D = six seven
+E = %E
+code }
+
+}
+{ Test script
+
+  The following test script can be used to experiment with different token values:
+
+  gh|about-cmd.exe|/commands/for/f-tokens.bat||
+
+}
+sa:
+  → Windows/dirs/Windows/System32/cmd_exe/commands/for/f[`for /.f`]

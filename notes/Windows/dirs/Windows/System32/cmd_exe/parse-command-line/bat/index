@@ -1,0 +1,82 @@
+$ cmd.exe: Splitting command line into arguments when calling a batch file
+
+{ showArguments.bat
+
+  The following → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] displays the arguments with which it was called.
+
+  gh|about-cmd.exe|/parse-command-line/bat/showArguments.bat||
+
+  Below, the results of some tests are displayed that try to show how the command line is parsed when a batch file is invoked.
+
+}
+
+{ simple test
+
+  The most simple test is probably something like that:
+code {
+C:\> showArguments.bat foo bar baz
+arg 1 = foo
+arg 2 = bar
+arg 3 = baz
+code }
+
+}
+{ Argument seperators
+
+  White space and the characters `,`, `;` and `=` seperate arguments from one another
+
+code {
+C:\> showArguments.bat one,two;three=four five
+C:\> arg 1 = one
+C:\> arg 2 = two
+C:\> arg 3 = three
+C:\> arg 4 = four
+C:\> arg 5 = five
+code }
+
+}
+{ Using apostrophes
+
+  Apostrophes can be used to pass multiple words as *one* argument. Note: the apostrophes are not removed.
+code {
+C:\> showArguments "this is one argument" "This is the 2nd argument" "The 3rd"
+arg 1 = "this is one argument"
+arg 2 = "This is the 2nd argument"
+arg 3 = "The 3rd"
+code }
+
+}
+{ Percent signs
+  
+
+code {
+C:\> showArguments.bat %%userprofile%% %^userprofile% %userprofile% 10% etc.
+arg 1 = %C:\Users\Rene%
+arg 2 = %userprofile%
+arg 3 = C:\Users\Rene
+arg 4 = 10%
+arg 5 = etc.
+code }
+
+}
+{ Carets
+
+code {
+C:\> showArguments.bat ^^^^ ^^^^^^^^ ^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^
+arg 1 =
+arg 2 = ^
+arg 3 = ^
+arg 4 = ^^
+arg 5 = ^^
+arg 6 = ^^^
+code }
+
+}
+
+
+sa:
+  Similar tests were conducted with → Windows/dirs/Windows/System32/cmd_exe/parse-command-line/exe[executing an exe] from the command line.
+
+  → Windows/dirs/Windows/System32/cmd_exe/parse-command-line[Parse the command line]
+
+  → Windows/dirs/Windows/System32/cmd_exe/batch-files/arguments[Batch file variables `%0`, `%1` etc. and `%*`]

@@ -1,5 +1,173 @@
 $ cmd.exe
 
+{ Starting cmd.exe
+
+  A way to start `cmd.exe` is to press `Win+R` and then type `cmd+ENTER`.
+
+  On *Windows 10*, it can also be started by pressing `Win+X` followed by `C`. (However, this can be changed in *Settings -> Taskbar*: the option *Replace Command Prompt with Windows → Windows/PowerShell[PowerShell] …* needs to be turned off for this.
+
+  When `cmd.exe` is started *without* `/D`, it first executes the commands that are listed in the → Windows/registry[registry] under
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`] and
+ `HKEY_LOCAL_MACHINE\Software\Microsoft\Command Processor` (value of `Autorun`).
+
+  Some cmd.exe settings, such as its size or colors, are stored in the registry under
+  → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe[`HKEY_CURRENT_USER\Console\%SystemRoot%_system32_cmd.exe`]
+
+
+  { Options #cmd-exe-options
+
+table { ll
+ `/c` - `/k`       ☰ Execute specified cammand and *stop* - *continues*
+ `/s`              ☰ How string after `/c` or `/k` is treated
+ `/q`              ☰ Turn → Windows/dirs/Windows/System32/cmd_exe/commands/echo[`echo`] off.
+ `/d`              ☰ disable → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[autorun] commands (found under → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`])
+ `/a`  - `/u`      ☰ Output is ANSI - → development/Unicode.
+ `/t:bf`           ☰ Set background (`b`) and foreground (`f`) color (for example `/t:4f` is white on red)
+ `/f:on`, `/f:off` ☰ Enable or disable → Windows/dirs/Windows/System32/cmd_exe/file-directory-name-completion[file and directory name completion]
+ `/e:on`, `/e:off` ☰ Enable or disable → Windows/dirs/Windows/System32/cmd_exe/command-extension[command extensions]
+ `/v:on`, `/v:off` ☰ Enable or disable → Windows/dirs/Windows/System32/cmd_exe/variables/delayed-expansion[delayed environment variable expansion]
+table }
+
+  }
+
+  The new started cmd.exe session stores how it was started in the → Windows/dirs/Windows/System32/cmd_exe/variables[variable] → Windows/dirs/Windows/System32/cmd_exe/variables/CmdCmdLine[`%CmdCmdLine%`].
+
+}
+
+
+
+{ Starting a program without suffix
+
+  → development/environment-variable#pathext, → Windows/registry/Configuring-Windows-with-registry#assoc_file_types.
+
+}
+{ Configuring cmd.exe
+
+  → Windows/registry/Configuring-Windows-with-registry#cmd_exe
+
+}
+{ Environment variables
+
+  The → Windows/development/environment-variables[environment variable] `%ComSpec%` stores the full path (directory plus filename,
+  for example → Windows/dirs/Windows/System32/cmd_exe[`C:\Windows\system32\cmd.exe`]).
+
+  `%PROMPT%` specifies how the prompt is formatted.
+
+}
+{ History
+
+  → Windows/dirs/Windows/System32/doskey_exe[doskey]: a basic history utility.
+
+  `F7` pops up a window that shows the most recently entered → Windows/dirs/Windows/System32/cmd_exe/commands[commands].
+
+}
+{ Windows 10
+
+  With → Windows/versions/10[Windows 10], its possible to use `ctrl-c` and `ctrl-v`.
+
+  Text can be searched with `ctrl-f`. If something was found, the selected region can be extended by pressing the `shift` key and navigating with the arrow keys.
+
+  The → Windows/dirs/Windows/System32/cmd_exe/variables/PROMPT[`%PROMPT%`] environment variable has now a `$e` to insert an escape character, thus the prompt can be
+  colorized with → Linux/shell/ANSI-escape-sequences[ANSI escape sequences].
+
+}
+{ TODO
+
+
+  The *actual console program* behind cmd.exe is → Windows/dirs/Windows/System32/conhost_exe[`conhost.exe`].
+
+  → https://github.com/adoxa/ansicon[ANSICON] promises ANSI escape sequences for Windows console programs,
+  similarly as ANSI.SYS did for MS-DOS.
+
+  Starting the *management console*
+code {
+C:\> mmc
+code }
+
+  Starting the *device manager*:
+code {
+C:\> devmgmt.msc
+C:\> mmc devmgmt.msc
+code }
+
+  Opening the *→ Windows/user-account[User Account] Control Settings*:
+code {
+C:\> UserAccountControlSettings
+code }
+
+  The default value for the default value for the → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_CLASSES_ROOT/Directory/shell/cmd/command[`HKEY_CLASSES_ROOT\Directory\shell\cmd\command`] seems
+  to be `→ Windows/dirs/Windows/System32/cmd_exe[cmd.exe] /s /k pushd "%V"`.
+
+  More msc:
+  table { ll
+
+    azman.msc                  ☰ Authorization manager
+    certlm.msc                 ☰ Certificates (local computer)
+    certmgr.msc                ☰ Certificates (current user
+    comexp.msc                 ☰ Component services
+    compmgmt.msc               ☰ Computer management
+    devmgmt.msc                ☰ Device manager
+    DevModeRunAsUserConfig.msc ☰ Start menu and taskbar
+    diskmgmt.msc               ☰ Disk management (paritions, drive paths)
+    eventvwr.msc               ☰ Event viewer
+    fsmgmt.msc                 ☰ Shared folders
+    gpedit.msc                 ☰ Local group policy editor
+    lusrmgr.msc                ☰ Local users and groups
+    perfmon.msc                ☰ Performance monitor
+    printmanagement.msc        ☰ 
+    rsop.msc                   ☰ Resultant set of policy
+    secpol.msc                 ☰ allows to configure the *elevation prompt* (Local Security Policy).
+    services.msc               ☰ → Windows/services[Services]
+    taskschd.msc               ☰ Task scheduler, compare with → Windows/dirs/Windows/System32/schtasks_exe[`schtasks.exe`]
+    tpm.msc                    ☰ Trusted platform module (TPM)
+    WF.msc                     ☰ Windows defender firewall
+    WmiMgmt.msc                ☰ Windows management instrumentation (WMI)
+
+  table }
+  
+  { Some programs
+
+  `write`: open *wordpad*. (Compare with `notepad`).
+
+  `calc`: simple calculator
+
+  `psr`: *Problem steps recorder*: capture actions (mouse movements etc.) on the screen for later replay.
+
+  → Windows/dirs/Windows/System32/Taskmgr_exe[`taskmgr.exe`]
+
+  `control`: open → Windows/control-panel[control panel]
+
+  `mstsc`: open *remote desktop connection* dialog box
+
+  }
+
+
+}
+
 sa:
-  The complete path of `cmd.exe` (typically `C:\Windows\system32\cmd.exe`) is stored in the
+  → Windows/dirs/Windows/System32/cmd_exe/commands[Commands]
+
+  → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch-files]
+
+  → Windows/dirs/Windows/System32/cmd_exe/variables[variables]
+
+  → Windows/dirs/Windows/System32/cmd_exe/WinAPI
+
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]
+
+  → Windows/dirs/Windows/System32/cmd_exe/tasks/determine-if-32-or-64-bit-Windows[Determine if Windows is running in a 32 or 64 bit environment].
+
+  The appearance and functionality of cmd.exe is controlled by the → Windows/console-host.
+
+  Changing the → Windows/registry such that cmd.exe can be opened froo the explorer with a → Windows/registry/tree/HKEY_CLASSES_ROOT/Directory/shell#open-cmd-exe-here[context menu] on a
+  directory.
+
+  → Windows/dirs/Windows/System32/cmd_exe/line-continuation
+
+  → Windows/dirs/Windows/System32/cmd_exe/parse-command-line[Parsing the command line]
+
+  → Windows/development/Portable-Executable/DLL/rundll32_exe[`rundll32`] allows to execute functions from cmd.exe.
+
+   The complete path of `cmd.exe` (typically `C:\Windows\system32\cmd.exe`) is stored in the
   → Windows/development/environment-variables[environment variable] `ComSpec`].
