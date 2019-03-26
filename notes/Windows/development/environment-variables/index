@@ -1,8 +1,14 @@
 $ Windows environment variables
 
+There are four types of Windows environment variables:
+  • ~System~, found in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`]
+  • ~User~, found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKCU\Environment`]
+  • ~Volatile~, found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment[`HKCU\Volatile Environment`]
+  • ~Process~
+
 table { llll
 
-  ~Variable~ ☰ ☰ ☰ ~→ Windows/registry[registry]~
+  ~Variable~ ☰ ~Possible value~ ☰ ☰ ~→ Windows/registry[registry]~
   ALLUSERSPROFILE ☰ → Windows/dirs/ProgramData[C:\ProgramData] ☰  ☰
   APPDATA ☰ → Windows/dirs/Users/username/AppData/Roaming[C:\Users\Rene\AppData\Roaming] ☰  ☰ → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment[`HKCU\Volatile Environment`]
   CLIENTNAME ☰ ☰ ☰ → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment/n[`HKCU\Volatile Environment\n`]
@@ -60,7 +66,7 @@ Unclear is where the values defined for
   • SystemDrive
   • SystemRoot
 
-{ Path
+{ Path #win-envvar-path
 
   Path consists of a list of directories that are separated by a semicolon:
     • → Windows/dirs/Windows/System32[C:\Windows\system32]
@@ -74,6 +80,35 @@ Unclear is where the values defined for
   The value of `Path` is a combination (concatenation?) of
   → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKLM\SYSTEM\CurrentControlSet\Session Manager\Environment`] and 
   → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKEY_CURRENT_USER\Environment`]
+
+   The → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] command
+   → Windows/dirs/Windows/System32/cmd_exe/commands/start[`start`] is able to locate executables (binaries) that are not found via the `PATH` environment variable. These
+   applications need to be registered under the → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/App-Paths[`HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\App Paths`].
+
+}
+{ PATHEXT #win-envvar-pathext
+
+  The variable `%PATHEXT%` contains a list of file suffixes (with the corresponding dot) that are seperated by a semicolon (as are the paths in `%PATH%`).
+
+  The suffixes usually specify a file type that can somehow be exectued. Commonly seen suffixes are;
+    • `.COM`
+    • `.EXE`
+    • `.BAT`
+    • `.CMD`
+    • `.VBS`
+    • `.VBE`
+    • .`JS`
+    • `.JSE`
+    • `.WSF`
+    • `.WSH`
+    • `.MSC`
+
+  `PATHEXT` is used to start a program, → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] or script without explicitely specifying its suffix
+  in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] or its → Windows/dirs/Windows/System32/cmd_exe/commands/start[`start`] command.
+
+  There seems to be no Unix equivalent: → http://unix.stackexchange.com/questions/280528.
+
 }
 { PSModulePath
 
