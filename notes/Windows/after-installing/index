@@ -7,6 +7,8 @@ $ After installing Windows
   in order to be able to run → Windows/PowerShell[PowerShell] scripts and not receive error
   → Windows/PowerShell/script-cannot-be-loaded-because-running-scripts-is-disabled-on-this-system[script cannot be loaded because running scripts is disabled on this system] anymore.
 
+  2019-04-01: There was no such key and an according change didn't seem necessary.
+
 }
 { Start powershell as administrator
 
@@ -24,9 +26,13 @@ code }
 }
 { Configure Text Services and Input Methods
 
+  { Keyboard layouts
+
 code {
 #
-# Remove and create 'HKCU\Keyboard Layout\Substitutes'
+#
+# No substitutes
+#    Remove entire key `HKCU\Keyboard Layout\Substitutes' and add an empty one
 #
   remove-item        -path 'HKCU:\Keyboard Layout\Substitutes'
   $eatMe = new-item  -path 'HKCU:\Keyboard Layout\Substitutes'
@@ -43,15 +49,24 @@ code {
 #
   new-itemProperty -path 'HKCU:\Keyboard Layout\Preload' -name  1 -value ('0000' + '0409') # US
   new-itemProperty -path 'HKCU:\Keyboard Layout\Preload' -name  2 -value ('0000' + '0807') # German (Switzerland)
+code }
 
+  }
+  { Language bar
 
+code {
 #
 # Language Bar
 #
   $eatMe = new-itemProperty -path 'HKCU:\Software\Microsoft\CTF\LangBar' -name  ShowStatus             -value 4  -propertyType DWord -force   # Docked in the taskbar
   $eatMe = new-itemProperty -path 'HKCU:\Software\Microsoft\CTF\LangBar' -name  Label                  -value 1  -propertyType DWord -force   # Show text labels on the Language Bar
   $eatMe = new-itemProperty -path 'HKCU:\Software\Microsoft\CTF\LangBar' -name  ExtraIconsOnMinimized  -value 0  -propertyType DWord -force   # Don't »Show additional Language bar icons in the taskbar«
+code }
 
+  }
+  { Hotkeys to switch between keyboard layouts
+
+code {
 #
 # Hotkeys to switch between keyboard layouts
 #
@@ -79,6 +94,17 @@ code {
   $eatMe = new-itemProperty -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000101' -name 'Key Modifiers' -value $valKeyModifiers         -propertyType binary
   $eatMe = new-itemProperty -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000101' -name 'Target IME'    -value $valLayoutSwissGerman    -propertyType binary
 code }
+
+  }
+  { Registry links
+  
+  See also
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Keyboard-Layout/Substitutes[`HKEY_CURRENT_USER\Keyboard Layout\Substitutes`]
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Keyboard-Layout/Preload[`HKEY_CURRENT_USER\Keyboard Layout\Preload`]
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/CTF/LangBar[`HKEY_CURRENT_USER\Software\Microsoft\CTF\LangBar`]
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel/Input-Method/Hot-Keys[`HKEY_CURRENT_USER\Control Panel\Input Method\Hot Keys`]
+
+  }
 
 }
 { Check default values in registry
@@ -517,6 +543,8 @@ code }
   Should `Beep` and `ExtendedSound` under the → Windows/registry[registry] key → Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel/Sound[`HKEY_CURRENT_USER\Control Panel\Sound`] be set to `no`?
 
   Does → Windows/dirs/Windows/Installer need to be cleaned up with → http://www.homedev.com.au/free/patchcleaner[PatchCleaner]?
+
+  Check Start -> Settings -> Privacy -> Diagnostics & Feedback
 
   { Install Subsystem for Linux
 
