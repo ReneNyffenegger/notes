@@ -1,0 +1,30 @@
+$ Connect to SQL Server with Oracle's SQL Developer
+
+→ development/Software/Oracle-SQL-Developer[SQL Developer] can be used to connect to → development/databases/SQL-Server[MS SQL Server].
+
+First, → https://sourceforge.net/projects/jtds/files/jtds/1.3.1/[jTDS] needs to be downloaded. I used version 1.3.1. The downloaded zip file needs to be unzipped. It contains
+`jtds-1.3.1.jar` which needs to be copied to a »safe« location.
+
+Then, in SQL Developer, this jar file needs to be pointed at in menu *Tools -> Preferences -> Database -> Third Party JDBC Driver*. Probably, SQL Developer should be restarted now.
+
+The connection dialog box now comes with the possibility to choose SQL Server as database to connect to:
+gh|about-SQL-Developer|/SQL-Server/img/connect.png||
+
+In order to connect to my local SQL Server 2017 (developer edition), I had to change the default port of 1433 to 1434. I determined the port with
+code {
+use → development/databases/SQL-Server/administration/system-databases/master[master];
+go
+
+xp_readerrorlog 0, 1, N'Server is listening on';
+go
+code }
+
+{ Using Windows Authentication
+
+  In order to be able to use Windows authentication, I also had to copy the file `x64\SSO\ntlmauth.dll` (also found in the jtds zip file) to the directory `jre\bin` under the root
+  directory of the JDK used.
+
+  When connecting, the username-password requires a username. With windows authentication, such a username is technically not necessary. I was able to proceed with the connection by
+  just entering a space into the username field.
+
+}
