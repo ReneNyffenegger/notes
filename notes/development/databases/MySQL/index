@@ -1,6 +1,7 @@
 
 code {
 show databases;
+select database();
 code }
 
 code {
@@ -12,21 +13,16 @@ show tables;
 code }
 
 code {
-create database tq84_db;
+create database tq84_db
+  [ [default] character set … ]
+  [ [default] collate       … ]
 code }
 
-code {
-create user rene@localhost identified by 'rene';
-create user rene@'%'       identified by 'rene';
-code }
 
-code {
-grant all on tq84_db.* to rene@localhost;
-grant all on tq84_db.* to rene@'%';
-code }
 
 code {
 select * from sys.version;
+select version();
 code }
 
 code {
@@ -35,6 +31,14 @@ code }
 
 code {
 select * from mysql.db;
+code }
+
+code {
+select
+  user(),
+  current_user(), -- the account that the server used to authenticate a user
+  session_user(),
+  system_user()
 code }
 
 The *processlist* seems to show connected users:
@@ -47,6 +51,79 @@ show variables;
 show variables like '%some_text%';
 code }
 
+code {
+create table tab (a integer) engine = myIsam;
+code }
+
+code {
+set global innodb_file_per_table=1;
+code }
+
+If the `innodb_file_per_table` option is set, a table can be (or is?) created in its own *.ibd* file rather than in a shared *ibdata file* of the *system tablespace*.
+-
+This option is enabled by default.
+
+An *instance* is a `mysqld` daemon in Unix or (probably) a → Windows/services[service] in → Windows that listens on its designated → development/web/TCP-IP[TCP] port (the default being 3306).
+-
+An instance manages a *data directory* (that in turn consists of one ore more *databases*).
+
+The `mybinsqllog` command examines the content of *bin logs* (binary log files).
+
+MySQL's equivalent of Oracle's *index-organized tables* are *clustered indexes*.
+
+A *database* is the same thing as a *schema* (both words are used synonously.
+
+The *data directory* is the directory under which an *instance* stores *data files* for InnoDB.
+-
+Do data directories contain a sub-directory for each database?
+-
+Compare the `datadir` configuration option.
+
+{ User accounts
+
+   An *account name* consists of a *user name* and a *host name*. The syntax to specify an account name is `'rene'@'host.xyz'`.
+
+  `'rene'@'%'` is equvalent to `'rene``.
+
+code {
+create user rene@localhost identified by 'rene';
+create user rene@'%'       identified by 'rene';
+code }
+
+code {
+grant all on tq84_db.* to rene@localhost;
+grant all on tq84_db.* to rene@'%';
+grant all on       *.* to …
+code }
+
+  Special (reserved) accounts are:
+    • `'root'@'localhost'`
+    • `'mysql.sys'@'localhost'`
+    • `'mysql.session'@'localhost'`
+    • `'mysql.infoschema'@'localhost'`
+
+}
+{ Engines
+
+code {
+show engines;
+select * from information_schema.engines;
+select @@default_storage_engine;
+code }
+
+  The default storage engine in MySQL 8 is *InnoDB*.
+
+  { InnoDB
+
+    InnoDB is a *multi-versioned storage engine*.
+
+code {
+select * from information_schema.innodb_tables where name = 'ts/tab';
+code }
+
+  }
+
+}
 { Importing CSV files
 
 code {
@@ -55,6 +132,110 @@ show variables like 'secure_file_priv';
 code }
 
   The default location that `secure_file_priv` points to is → Windows/dirs/ProgramData/MySQL/MySQL-Server-X_Y/Uploads.
+
+  The `local_infile` option controls if the server permits *local data loading* (`load data local`).
+
+ `load data` statements without `character set` clause default to using the value of the `character_set_database` system varible.
+
+}
+{ Character sets and collations
+
+  The *reportoire* of a → development/Unicode/character-set[character set] is the collection of characters in the set.
+
+  MySQL Server has a *server character set* and a *server collation* which are set at startup (options `--character-set-server=…` and
+  `--collation-server=…`).
+  -
+  Similarly, a database has a *database character set* and a *database collation*.
+  -
+  Similarly, every character string has a *character set* and a *collation*
+
+  System variables `character_set_database`, `character_set_connection`, `collation_connection`.
+
+  `utf8` is an alias for the `utf8mb3` character set. (utf8mb3 is deprecated and will be removed in a future version of MySQL, probably in favour of utf8mb4).
+
+code {
+show character set;
+show character set like 'utf8%'
+show collation where charset = 'utf8mb4';
+code }
+
+code {
+select
+  @@character_set_database,
+  @@collation_database;
+code }
+
+code {
+select
+   default_character_set_name,
+   default_collation_Name
+from
+   information_schema.schemata
+where
+   schema_name = 'tq84_db';
+code }
+
+code {
+create table tab (
+   col_1 varchar(50) character set ascii,
+   col_2 varchar(50) character set latin1
+);
+code }
+
+code {
+set names ascii;
+set names utf8;
+code }
+
+  In the following example, `_utf8` and `_ucs2` are called *introducers*.
+code {
+select
+  _utf8'foo'    collate …,
+  _ucs2 X'0041' collate …
+code }
+
+code {
+show variables like 'character_set_system';
+code }
+
+  Collation suffixes:
+    • `_ai`  - Accent insentive
+    • `_as`  - Accent sensitive
+    • `_ci`  - Case insentive
+    • `_cs`  - Case sensitive
+    • `_ks`  - Kana sensitive
+    • `_bin` - Binary
+
+
+  { National character set
+
+     `nvarchar(10) character set utf8` = `national varchar(10)` == `nvarchar(10)` == `nchar varchar(10)` == `national character varying(10)` == `national char varying(10)`.
+
+     `char(10) character set utf8` == `national character(10)` == `nchar(10)`.
+
+     N'foo bar' == n'foo bar' == _utf8'foo bar'.
+
+
+  }
+
+}
+{ Security
+
+  Is `mysql -u root` possible?
+
+code {
+show grants;
+show grants for 'rene'@'somewhere.net';
+code }
+
+  The `secure_file_priv` system variable.
+
+  The `user` option under `[mysqld]` in the configuration file.
+
+}
+{ TODO
+
+  Is *autocommit* set? How is it turned off?
 
 }
 
