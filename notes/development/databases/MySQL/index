@@ -18,8 +18,6 @@ create database tq84_db
   [ [default] collate       … ]
 code }
 
-
-
 code {
 select * from sys.version;
 select version();
@@ -45,11 +43,6 @@ The *processlist* seems to show connected users:
 code {
 show processlist;
 code}
-
-code {
-show variables;
-show variables like '%some_text%';
-code }
 
 code {
 create table tab (a integer) engine = myIsam;
@@ -79,6 +72,18 @@ Do data directories contain a sub-directory for each database?
 -
 Compare the `datadir` configuration option.
 
+{ Starting mysql client
+
+  Apparently, there must be no space between the `-p` option and the password.
+
+code {
+mysql -u rene -psecretGarden
+mysql -u rene -psecretGarden --local-infile
+mysql -u rene -psecretGarden tq84_db
+mysql -u rene -psecretGarden tq84_db < script.sql
+code }
+
+}
 { User accounts
 
    An *account name* consists of a *user name* and a *host name*. The syntax to specify an account name is `'rene'@'host.xyz'`.
@@ -124,6 +129,21 @@ code }
   }
 
 }
+{ SQL modes
+
+code {
+show variables like 'sql_mode';
+
+select @@global.sql_mode;
+select @@session.sql_mode;
+code }
+
+code {
+set session sql_mode = '…';
+set global  sql_mode = '…';
+code }
+
+}
 { Importing CSV files
 
 code {
@@ -136,6 +156,11 @@ code }
   The `local_infile` option controls if the server permits *local data loading* (`load data local`).
 
  `load data` statements without `character set` clause default to using the value of the `character_set_database` system varible.
+
+  Start `mysql` with the `--local-infile` option
+code {
+mysql -u rene -prene --local-infile tq84_db
+code }
 
 }
 { Character sets and collations
@@ -213,10 +238,23 @@ code }
 
      `char(10) character set utf8` == `national character(10)` == `nchar(10)`.
 
-     N'foo bar' == n'foo bar' == _utf8'foo bar'.
+     `N'foo bar'` == `n'foo bar'` == `_utf8'foo bar'`.
 
 
   }
+
+}
+{ System variables
+
+code {
+show variables;
+show variables like '%some_text%';
+code }
+
+  Changing (global?) system variables. However, it does not seem to survive a bounce.
+code {
+set global local_infile = on;
+code }
 
 }
 { Security

@@ -453,12 +453,26 @@ code }
 }
 { AutoHotKey
 
+  A → development/web/HTTP/User-Agent[user agent] needs to be specified in order to prevent *The remote server returned an error: (403) forbiddden."*
+
 code {
 $ua = new-object system.net.webClient
+$ua.headers.add('User-Agent', 'Mozilla/5.0 (the-OS)')
+$ua.downloadFile("https://www.autohotkey.com/download/1.1/AutoHotkey_1.1.30.03.zip", "$home\Downloads\AutoHotkey_1.1.zip"     )
 $ua.downloadFile("https://autohotkey.com/download/2.0/AutoHotkey_v2.0-a075_x64.zip", "$home\Downloads\AutoHotkey_v2.0-x64.zip")
 
 $shell = new-object -comObject shell.application
+
+#
+# TOOD: V 1.1 also contains a compiler and some *.ahk files.
+#
+$shell.nameSpace("$home\bin").copyHere("$home\Downloads\AutoHotKey_1.1.zip\AutoHotkeyU64.exe")
+mv $home\bin\AutoHotkeyU64.exe $home\bin\ahk.exe
+
 $shell.nameSpace("$home\bin").copyHere("$home\Downloads\AutoHotkey_v2.0-x64.zip\AutoHotkey.exe")
+mv $home\bin\AutoHotkey.exe    $home\bin\ahk2.exe
+
+rm $home\Downloads\AutoHotkey_1.1.zip
 rm $home\Downloads\AutoHotkey_v2.0-x64.zip
 code }
 
