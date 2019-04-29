@@ -15,7 +15,7 @@ code }
 code {
 create database tq84_db
   [ [default] character set … ]
-  [ [default] collate       … ]
+  [ [default] collate       … ] -- NOTE: the keyword is collate, not collation!
 code }
 
 code {
@@ -176,12 +176,19 @@ code }
 
   System variables `character_set_database`, `character_set_connection`, `collation_connection`.
 
-  `utf8` is an alias for the `utf8mb3` character set. (utf8mb3 is deprecated and will be removed in a future version of MySQL, probably in favour of utf8mb4).
+  `utf8` is an alias for the `utf8mb3` character set and stores a maximum of three bytes per character. It allows to represent the
+  → development/Unicode/Codepoints[code points] `0x0000` through `0xffff`, thus, it cannot store all Unicode characters. `utf8mb3 is deprecated and will be removed in a future version of MySQL, probably in favour of utf8mb4.
+  -
+  `utf8mb4` is what most of the world would call → development/Unicode/UTF-8[utf-8]. It uses up to four bytes per character and thus allows to store supplemental characters (such as emoji).
 
 code {
 show character set;
 show character set like 'utf8%'
 show collation where charset = 'utf8mb4';
+
+select * from information_schema.character_sets order by character_set_name;
+
+select * from information_schema.collations where character_set_name = 'utf8mb4' order by collation_name;
 code }
 
 code {
@@ -242,6 +249,13 @@ code }
 
 
   }
+
+code {
+create database db_xyz
+       character set utf8mb4
+       collate       utf8mb4_0900_as_cs  -- Accent and case sensitive.
+;
+code }
 
 }
 { System variables
