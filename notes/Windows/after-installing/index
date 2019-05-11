@@ -144,7 +144,6 @@ code }
   2019-03-02: It turns out that at least → Windows/tools/Sysinternals/Procmon[Procmon] comes with the command line option `/AcceptEula` which does that, too.
 
 }
-
 { Activate Administrator account
 
   Check current accounts (`wmic useraccount`) and → Windows/registry/tree/HKEY_USERS[`HKEY_USERS`].
@@ -351,15 +350,6 @@ code {
 new-item -path 'hkcu:\Software\Microsoft\Command Processor'
 code }
 
-  Assign a → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
-  under → Windows/registry[registry] key
-  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]).
-  -
-  The → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/autorun.bat[`autorun.bat`] was installed previoulsly in *Clone github repositories*.
-code {
-new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
-code }
-
   Make sure that → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe[`HKEY_CURRENT_USER\Console\%SystemRoot%_system32_cmd.exe`] exists, otherwise create it with
 code {
 new-item -path 'hkcu:\Console\%SystemRoot%_system32_cmd.exe'
@@ -369,22 +359,49 @@ code }
   → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-set-font[font size] and
   → Windows/registry/tree/HKEY_CURRENT_USER/console/_SystemRoot_system32_cmd_exe#reg-cmd-quick-edit[allow copying text (quick edit)].
 
-  Set the → Windows/dirs/Windows/System32/cmd_exe/variables/PROMPT[`%PROMPT%`] environment variable:
-code {
-[environment]::setEnvironmentVariable("PROMPT", '$t$s$p$_$+$g$s', 'user') 
-code }
+
+  { Environment variable PROMPT
 
   → Windows/versions/10[Windows 10] comes with → Linux/shell/ANSI-escape-sequences, thus, the prompt can be colored:
 code {
 [environment]::setEnvironmentVariable("PROMPT", '$e[38;5;6m$t$s$e[38;5;10m$p$_$e[38;5;9m$+$g$s$e[38;5;15m', 'user')
 code }
 
-  With → Windows/versions/10[Windows 10], `cmd.exe` can be made transparent - not sure, though, if I really want that!
+  Set the → Windows/dirs/Windows/System32/cmd_exe/variables/PROMPT[`%PROMPT%`] environment variable (without ANSI colors):
+code {
+[environment]::setEnvironmentVariable("PROMPT", '$t$s$p$_$+$g$s', 'user') 
+code }
+
+
+  }
+  { Environment variable DIRCMD
 
   Set the → Windows/dirs/Windows/System32/cmd_exe/commands/dir#cmd-exe-dircmd[`DIRCMD`] variable to specify the default behaviour of → Windows/dirs/Windows/System32/cmd_exe/commands/dir[`dir`]:
 code {
 [environment]::setEnvironmentVariable("DIRCMD", '/ogn /a', 'user')
 code }
+
+  }
+  { autorun.bat
+
+
+    Assign a → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
+    under → Windows/registry[registry] key
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]).
+
+code {
+new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
+code }
+
+    The → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/autorun.bat[`autorun.bat`] was installed previously in *Clone github repositories*.
+
+
+  }
+  { Transparent cmd.exe
+
+    With → Windows/versions/10[Windows 10], `cmd.exe` can be made transparent - not sure, though, if I really want that!
+
+  }
 
 
 }
