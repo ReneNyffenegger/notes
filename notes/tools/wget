@@ -115,19 +115,33 @@ code }
 
   See also `--proxy-user` and `--proxy-passwd`.
 }
-
-{ Windows
-
-  If installing wget for windows without installer (but from the zip file), it also needs the files `libeay32.dll`, `libiconv2.dll`, `libintl3.dll` and `libssl32.dll`.
-  These can be downloaded from https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-dep.zip/download.
-
-}
-
 { wget initialization files #wget-initialization-files
 
   → Linux/fhs/etc/wgetrc (global, for all users)
   -
   → Linux/fhs/home/username/_wgetrc (for a single user)
+
+}
+{ Installing on Windows #wget-install-windows
+
+  The following → Windows/PowerShell[PowerShell] commands should be able to install `wget`.
+
+  If installing wget for windows without installer (but from the zip file), it also needs the files `libeay32.dll`, `libiconv2.dll`, `libintl3.dll` and `libssl32.dll`.
+  These can be downloaded from https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-dep.zip/download.
+
+code {
+$ua = new-object system.net.webClient
+$ua.downloadFile("http://downloads.sourceforge.net/gnuwin32/wget-1.11.4-1-bin.zip" , "$home\Downloads\wget.zip")
+
+$shell = new-object -comObject shell.application
+$shell.nameSpace("$home\bin").copyHere("$home\Downloads\wget.zip\bin\wget.exe")
+rm $home\Downloads\wget.zip
+
+$ua.downloadFile("https://sourceforge.net/projects/gnuwin32/files/wget/1.11.4-1/wget-1.11.4-1-dep.zip/download", "$home\Downloads\wget-dep.zip")
+$shell.nameSpace("$home").copyHere("$home\Downloads\wget-dep.zip\bin")
+code }
+
+  
 
 }
 
