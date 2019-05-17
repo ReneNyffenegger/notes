@@ -146,6 +146,88 @@ set global  sql_mode = '…';
 code }
 
 }
+{ information_schema
+
+code {
+select
+   tab.table_name      ,
+   tab.table_catalog   ,  -- always def?
+   tab.table_type         -- always SYSTEM VIEW
+from
+   information_schema.tables tab
+where
+   tab.table_schema = 'information_schema';
+code }
+
+  The following tables might be returned:
+    • CHARACTER_SETS
+    • COLLATION_CHARACTER_SET_APPLICABILITY
+    • COLLATIONS
+    • COLUMN_PRIVILEGES
+    • COLUMN_STATISTICS
+    • COLUMNS
+    • ENGINES
+    • EVENTS
+    • FILES
+    • INNODB_BUFFER_PAGE
+    • INNODB_BUFFER_PAGE_LRU
+    • INNODB_BUFFER_POOL_STATS
+    • INNODB_CACHED_INDEXES
+    • INNODB_CMP
+    • INNODB_CMP_PER_INDEX
+    • INNODB_CMP_PER_INDEX_RESET
+    • INNODB_CMP_RESET
+    • INNODB_CMPMEM
+    • INNODB_CMPMEM_RESET
+    • INNODB_COLUMNS
+    • INNODB_DATAFILES
+    • INNODB_FIELDS
+    • INNODB_FOREIGN
+    • INNODB_FOREIGN_COLS
+    • INNODB_FT_BEING_DELETED
+    • INNODB_FT_CONFIG
+    • INNODB_FT_DEFAULT_STOPWORD
+    • INNODB_FT_DELETED
+    • INNODB_FT_INDEX_CACHE
+    • INNODB_FT_INDEX_TABLE
+    • INNODB_INDEXES
+    • INNODB_METRICS
+    • INNODB_SESSION_TEMP_TABLESPACES
+    • INNODB_TABLES
+    • INNODB_TABLESPACES
+    • INNODB_TABLESPACES_BRIEF
+    • INNODB_TABLESTATS
+    • INNODB_TEMP_TABLE_INFO
+    • INNODB_TRX
+    • INNODB_VIRTUAL
+    • KEY_COLUMN_USAGE
+    • KEYWORDS
+    • OPTIMIZER_TRACE
+    • PARAMETERS
+    • PARTITIONS
+    • PLUGINS
+    • PROCESSLIST
+    • PROFILING
+    • REFERENTIAL_CONSTRAINTS
+    • RESOURCE_GROUPS
+    • ROUTINES
+    • SCHEMA_PRIVILEGES
+    • SCHEMATA (which apparently has a record for each *database*)
+    • ST_GEOMETRY_COLUMNS
+    • ST_SPATIAL_REFERENCE_SYSTEMS
+    • ST_UNITS_OF_MEASURE
+    • STATISTICS
+    • TABLE_CONSTRAINTS
+    • TABLE_PRIVILEGES
+    • TABLES
+    • TABLESPACES
+    • TRIGGERS
+    • USER_PRIVILEGES
+    • VIEW_ROUTINE_USAGE
+    • VIEW_TABLE_USAGE
+    • VIEWS
+
+}
 { Databases
 
 code {
@@ -259,10 +341,6 @@ create table tab (
 );
 code }
 
-code {
-set names ascii;
-set names utf8;
-code }
 
   In the following example, `_utf8` and `_ucs2` are called *introducers*.
 code {
@@ -283,6 +361,38 @@ code }
     • `_ks`  - Kana sensitive
     • `_bin` - Binary
 
+  { set names
+
+  `set names` specifies the character set of the communication between the server and the client.
+
+code {
+set names ascii;
+set names utf8;
+set names cp1251;
+code }
+
+  }
+
+  { Show variables with character set in their names
+
+code {
+show variables like '%character%';
+
+Variable_name                                                    Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+---------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+character_set_client                                             utf8                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+character_set_connection                                         utf8                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+character_set_database                                           utf8mb4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+character_set_filesystem                                         binary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+character_set_results                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+character_set_server                                             utf8                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+character_set_system                                             utf8                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+character_sets_dir                                               C:\Program Files\MySQL\MySQL Server 8.0\share\charsets\                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+8 rows selected. 
+code }
+
+  }
 
   { National character set
 
@@ -348,6 +458,11 @@ code }
 { TODO
 
   Is *autocommit* set? How is it turned off?
+
+  What does the following do?
+code {
+show warnings;
+code }
 
 }
 
