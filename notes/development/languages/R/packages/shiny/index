@@ -18,7 +18,10 @@ ui     <- fluidPage (
             …
           );
 
-server <- function(input, output) {
+server <- function(
+                input ,  # input stores the current values of all widgets
+                output
+          ) {
             …
           }
 
@@ -30,13 +33,27 @@ code {
 runApp('/path/to/the/directory');
 code }
 
+  An app can be executed in *show case mode* in which case the code of the app is shown and the executed code highlighted.
+code {
+runApp('/path/to/the/directory', display.mode='showcase');
+code }
+  Alternatively, show case mode can also be enabled within the `DESCRIPTION` file.
+
 }
 { fluidPage
+
+`fluidPage()` is called with calls to *elements* that define the user interface. With `fluidPage()`, the layout of the elements is adjusted to the dimensions of the browser.
+
+ Some often seen elements in the call of `fluidPage` are
+   • `titlePanel`
+   • `sidebarLayout`
+   • `navbarPage` for a *multi page* experience with a navigation bar.
+
 
 code {
 ui <- fluidPage(
 
-        titlePanel(''),
+        titlePanel('Some Title goes here'),
 
         sidebarLayout(
           # position = 'right',
@@ -46,6 +63,8 @@ ui <- fluidPage(
 )
 code }
 
+  An alternative to using `fluidPage` is to use `fluidRow` and `column` for a tabular interface.j
+
 }
 { sidebarLayout
 
@@ -54,14 +73,116 @@ code }
    • `mainPanel`
 
 }
+{ *Panel functions
+
+  `*Panel()` functions are used to add content to the user interface.j
+
+}
+{ *Output
+
+ `*Output()` functions display → development/languages/R/object[R objects] on the user interface.
+
+? These functions are placed into the calls to the `*Panel()` functions.
+
+  When calling a `*Output` function, one argument is required: the name of the reactive element.
+  -
+  The name given then becomes a slot(?) (entry) in the `output` variable, for example `output$foo` for `textOutput('foo')`.
+  -
+  Each of these entries should correspond to a `render*` function whose return value is assigned to the `output$…` slot.
+
+  Some (or all?) of the `*Output` functions are
+    • `dataTableOutput`
+    • `imageOutput`
+    • `plotOutput`
+    • `tableOutput`
+    • `textOutput` (text)
+    • `verbatimTextOutput` (text)
+    • `htmlOutput` (raw → development/web/HTML[HTML] output)
+    • `uiOutput` (raw → development/web/HTML[HTML] output)
+
+}
+{ HTML Elements
+
+ 
+? HTML elements can be placed where `*Output` elements can be placed as well.
+
+  gh|about-r|/packages/shiny/htmlElements/app.R||
+
+}
+{ Input Widgets
+
+ *Widgets* get input from a user.
+
+
+  Most widgets are created with a `*Input` function, some are created with `*Button` or `*Buttons` function:
+    • `actionButton`
+    • `checkboxGroupInput`
+    • `checkboxInput`
+    • `dateInput`
+    • `dateRangeInput`
+    • `fileInput`
+    • `helpText`
+    • `numericInput`
+    • `radioButtons`
+    • `selectInput`
+    • `sliderInput`
+    • `submitButton`
+    • `textButton`
+
+  Each widget function take at least two arguments: the *name* of the widget and a *label* (which can be `''`).
+  -
+  The value of the widget is stored within the `server` function in `input$widgetName`.
+
+
+  { sliderInput
+
+    The `sliderInput` widget allows to enter a single value or a range. The behaviour depends on the value of the parameter `value`. If it is
+    a two element → development/languages/R/data-structures/vector[vector], a range is expected.
+
+    Choose a single value (within a given range):
+code {
+        sliderInput(inputId = 'foo',
+                    label   = 'Foo',
+                    min     =  18  ,
+                    max     =  72  ,
+                    value   =  44
+        )
+code }
+    
+    Choose a sub range within a given range:
+code {
+        sliderInput(inputId = 'bar_range',
+                    label   = 'bar Range',
+                    min     =  0         ,
+                    max     =  100       ,
+                    value   = c(10, 90)
+        )
+code }
+
+  }
+
+}
 { Inputs
 
   All inputs are *reactive*.
 
 }
-{ HTML Elements
+{ render* functions
 
-  gh|about-r|/packages/shiny/htmlElements/app.R||
+  The `render*` functions processes the value of an R expression and makes it suitable for displaying in an element that was placed on the user interface with one of the `*Output` functions.
+  -
+  The expression can consist of many lines of code.
+
+  The expressions need to be encapsulated into curly braces (`{ … }`).
+
+  Some (all) functions are
+    • `renderDataTable`
+    • `renderImage`
+    • `renderPlot`
+    • `renderPrint`
+    • `renderTable`
+    • `renderText`
+    • `renderUI`
 
 }
 { Close button
@@ -72,6 +193,62 @@ code }
 { Exiting app when browser closes
 
   gh|about-r|/packages/shiny/exitWhenBrowserCloses/app.R||
+}
+{ Debugging
+
+  { Printing to stderr
+
+code {
+→ development/languages/R/functions/cat(file=stderr(), "input$foo = ", $input$foo, "\n");
+code }
+
+   It's recommended to write to stderr because output to stdout might be captured because in some cases (for example `renderPrint`) might be captured by a `capture.output`.
+
+  }
+  { browser()
+
+    The call to the (wierdly named) `browser()` statement stops execution and allows to inspect variables etc.
+
+    After inspecting them, execution can be resumed with `cont` (or `c` for short?).
+
+  }
+  { Showing the reactive log
+
+code {
+options(shiny.reactlog = TRUE);
+runApp('/path/to/app');
+code }
+
+   After setting this option, the reactive log can be shown by pressing `ctrl+F3` in the → development/web/browser[browser] window that hosts the app.
+
+  }
+  { Calling an error function
+
+    The `shiny.error` option allows to specify a function to be called when an error occurs.
+
+code {
+options(shiny.error = browser);
+code }
+
+
+  }
+
+}
+{ DESCRIPTION
+
+  A file named `DESCRIPTION` might be placed into the application folder, for example with the following content.
+code {
+Title: Some name for the shiny-app
+Author: Joe
+DisplayMode: Showcase
+Type: Shiny
+code }  
+
+}
+{ TODO
+
+ `renderPlot` is *reactive*: it is called whenever the inputs (`input$…`) change.
+
 }
 
 sa:
