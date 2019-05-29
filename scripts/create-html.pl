@@ -802,6 +802,10 @@ sub process_page { #_{
 
         my $url = "https://raw.githubusercontent.com/ReneNyffenegger/$repo/master$path";
 
+          print ("dirname_os = $dirname_os\n");
+
+          print ("dirname_os = $dirname_os\n");
+
         print "gh: $url\n";
         if ($path =~ m!/([^//]+\.(png|jpg|jpeg|gif))$!) {
 
@@ -810,7 +814,13 @@ sub process_page { #_{
           print "Found $image_name in dir $dirname_os (url = $url)\n";
           my $http_response_code = getstore($url, $temp_dir . $image_name);
           print "http_response_code = $http_response_code\n";
-          print "copying to /notes/$dirname_os/$image_name\n";
+        #
+
+        # 2019-05-29
+          $dirname_os =~ s/\xc3\xbc/ue/g;
+          $dirname_os =~ s/\xc3\xa4/ae/g;
+          $dirname_os =~ s/\xc3\xb6/oe/g;
+          print "copying img to /notes/$dirname_os/$image_name\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
