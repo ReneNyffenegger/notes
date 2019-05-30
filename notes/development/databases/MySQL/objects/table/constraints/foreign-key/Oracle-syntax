@@ -1,0 +1,24 @@
+$ Using Oracle syntax for foreign keys in MySQL
+
+This is kind of interesting: it's possible to use (what I believe to be) Oracle syntax to create a *foreign key* - but the foreign key is either not created or enforced.
+-
+I try to demonstrate that odd behavior here.
+
+First, a → development/databases/MySQL[MySQL] database is created:
+gh|about-MySQL|/objects/table/constraints/foreign-key/Oracle-syntax/create-db.sql||
+
+And and then, I create two tables in a supposed parent-child relationship. Note the `id_p … references p(id)` part. In Oracle, it specifies that this is a foreign key.
+gh|about-MySQL|/objects/table/constraints/foreign-key/Oracle-syntax/create-fk-1.sql||
+
+When run, the two `create table` statements don't issue any warning and the tables are created.
+
+I am now going to insert a few values into these tables. The last record has no corresonding primary key in the parent table and should be rejected by MySQL. However, the
+records get inserted just fine:
+gh|about-MySQL|/objects/table/constraints/foreign-key/Oracle-syntax/insert-values.sql||
+
+This behaviour is a bit irritating, I would have at least expected a warning if not an error when the tables were created.
+
+So, in order to have the foreign key enforced, I create it in the traditional way  (`foreign key (id_p) references p(id)`):
+gh|about-MySQL|/objects/table/constraints/foreign-key/Oracle-syntax/create-fk-2.sql||
+
+Running the insert statements now will reject the record without parent.
