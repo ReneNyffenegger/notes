@@ -494,6 +494,23 @@ rm $home\Downloads\AutoHotkey_1.1.zip
 rm $home\Downloads\AutoHotkey_v2.0-x64.zip
 code }
 
+
+   Also: add an filetype association for the `.ahk2` suffix:
+code {
+# new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
+# $classRoot = 'HKCR:\'
+$classRoot = 'HKCU:\Software\Classes'
+$ext_ahk2 = new-item -path $classRoot -name .ahk2
+#
+# Set default value
+#
+$ext_ahk2.setValue('', 'AHK2Script')
+
+$ahk2script         = new-item -path $classRoot -name AHK2Script
+$ahk2script_command = $ahk2script.createSubKey('Shell\Open\Command')
+$ahk2script_command.setValue('', "$home" + '\bin\ahk2.exe "%1" %*')
+code }
+
 }
 { R and RStudio
 
@@ -527,6 +544,14 @@ code }
 
 code {
 PS C:\> [environment]::setEnvironmentVariable("SQLPATH", "$($env:github_root)oracle_scriptlets\sqlpath", "user") 
+code }
+
+}
+{ Add User accounts
+
+  Add another → Windows/user-account[user account]:
+code {
+C:\> net user john johnsPassword /add
 code }
 
 }
