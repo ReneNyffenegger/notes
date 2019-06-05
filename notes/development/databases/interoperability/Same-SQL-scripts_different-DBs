@@ -1,0 +1,36 @@
+$ Running the same SQL script on different DBs
+
+At times, I find myself in need to run the same SQL script in different → development/databases[database] products. Because these databases
+have dfferent → development/databases/SQL[SQL] dialects, there needs to be some kind of *if db = mysql then … else … end* logic in the scripts.
+
+For example, → development/databases/MySQL[MySQL] starts a → development/databases/SQL/transaction[transaction] with `begin work` while
+→ development/databases/SQLite[SQLite] starts it with `begin transaction`.
+
+Solving such a requirement is easily possible if there is a → development/languages/C-C-plus-plus/preprocessor[preprocessor] and the scripts can be run from the command line.
+-
+This is demonstrated with the following relevant porition of the SQL script:
+code {
+…
+#ifdef MYSQL
+  begin work;
+#elif defined SQLITE
+  begin transaction;
+#endif
+…
+code }
+
+Now, to execute the script in MySQL, the preprocessor needs to be started with the → development/languages/C-C-plus-plus/GCC/options/E[`-E`] flag (so that
+neither the compiler nor the linker will be invoked) and the → development/languages/C-C-plus-plus/GCC/options/P_uppercase[`-P`] flag (so that the
+command line markers are excluded from the output).
+-
+Additionally, the → development/languages/C-C-plus-plus/GCC/options/D_[`-D`] flag is used to specify the database environment.
+
+With all that said, the script is executed for MySQL like so
+code {
+$ → development/languages/C-C-plus-plus/GCC[gcc] -E -P -DMYSQL  | mysql -u rene
+code }
+
+And similarly for SQLite with
+code {
+$ → development/languages/C-C-plus-plus/GCC[gcc] -E -P -DSQLITE | sqlite db
+code }
