@@ -1,0 +1,31 @@
+$ PostgreSQL: with clause containing a delete statement
+
+Today, I stumbled upon a cool → development/databases/SQL[SQL] feature (via → https://modern-sql.com[Markus Winand]): the `with` clause containing a `delete` statement that returns the deleted records to a subsequent SQL statement.
+-
+The subsequent SQL can then process the «deleted» records further.
+
+Apparently, this feature is only available on PostgreSQL (but I'd like to be corrected on that if I am wrong).
+
+I try to demonstrate this feature in the following simple example:
+
+First, we need to create a table to store some → development/Data[data]. It contains «important» and «less important» data.
+gh|about-PostgreSQL|/sql/with/delete/create-table-abc.sql||
+
+Then, we need a history table to receive the important data when it is deleted in `abc` (for whatever reason that I am not able to make up a good reason, currently).
+gh|about-PostgreSQL|/sql/with/delete/create-table-abc_hist.sql||
+
+Fill some values.
+gh|about-PostgreSQL|/sql/with/delete/insert.sql||
+
+Delete *one* record. Use the `with` clause and pass the deleted records to an outer `insert` statement, so that the deleted
+record can be inserted into the history table with the timestamp (`localtimestamp`) of the deletion:
+gh|about-PostgreSQL|/sql/with/delete/delete-one-record.sql||
+
+Same thing as above, but with multiple records:
+gh|about-PostgreSQL|/sql/with/delete/delete-multiple-records.sql||
+
+Be sure, we actually deleted three records …
+gh|about-PostgreSQL|/sql/with/delete/select-from-abc.sql||
+
+… and inserted them into the history table:
+gh|about-PostgreSQL|/sql/with/delete/select-from-abc_hist.sql||
