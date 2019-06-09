@@ -1,0 +1,39 @@
+$ SQL: NTILE
+
+`ntile(n) over (order by val)` allows to partition an SQL result set into `n` groups of (approximatively) equal numbers of records.
+
+The returned value of `ntile` is an integer between `1` and `n` which indicates the group number into which a record belongs.
+-
+The group number that the record falls into is determined by the `order by val` clause: the lower `val` is, the lower the assigned group is.
+
+I try to demonstrate that behaviour with the following simple example.
+
+First, I need to have a table …
+gh|about-SQL|/select/analytic/ntile/create-table.sql||
+
+… into which I insert some → development/Data[data]:
+gh|about-SQL|/select/analytic/ntile/insert-values.sql||
+
+I now want to create the inserted fruits into three groups: the cheapest (group `1`), the
+medium priced (group `2`) and the expensive ones (group `3`).
+-
+Also, within a group, I want to order the records by the fruit (as opposed to their value):
+gh|about-SQL|/select/analytic/ntile/select-neile.sql||
+
+The query returns
+code {
+group_no item        val     
+-------- ----------- ------- 
+1        Banana      1.21    
+1        Papaya      0.98    
+1        Pineapple   2.14    
+2        Guava       5.08    
+2        Mango       3.84    
+2        Mosumbi     4.78    
+3        Jack Fruit  8.32    
+3        Orange      5.63    
+code }
+
+sa:
+
+  → development/databases/SQL/select/analytic[Analytic functions]

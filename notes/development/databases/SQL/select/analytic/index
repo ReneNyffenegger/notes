@@ -1,0 +1,52 @@
+$ SQL: analytic functions
+
+→ development/databases/SQL/select/analytic/ntile[`ntile`] to partition a result set into n groups.
+
+→ development/databases/SQL/select/analytic/percentile/disc[`percentile_disc`] to calculate the nth percentile of a value within a group.
+
+{ Defining Window into which a row belongs
+
+code {
+OVER ( … ROWS  BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )
+OVER ( … ROWS  BETWEEN n         PRECEDING AND m         FOLLOWING )
+OVER ( … ROWS  BETWEEN n         PRECEDING AND CURRENT ROW         )
+…
+
+OVER ( … RANGE BETWEEN           n        PRECEDING AND           m        FOLLOWING )
+OVER ( … RANGE BETWEEN INTERVAL 'n' MONTH PRECEDING AND INTERVAL 'm' MONTH FOLLOWING )
+OVER ( … RANGE BETWEEN UNBOUNDED PRECEDING          AND CURRENT ROW                  )
+…
+code }
+
+  { Default window
+
+  The ~default window~ is dependent on if the `ORDER BY` clause is specified.
+
+  With an `ORDER BY` clause, it is
+code {
+OVER ( … RANGE BETWEEN UNBOUNDED PRECEDING and CURRENT ROW
+code }
+
+   Without an `ORDER BY` clause, it is 
+code {
+OVER ( … ROWS  BETWEEN UNBOUNDED PRECEDING and UNBOUNDED FOLLOWING
+code }
+
+  }
+
+
+}
+{ Navigating within a window
+
+  Functions to *navigate within a window* are
+    • `lag` and `lead`
+    • `nth_value`
+    • `first_value` and `last_value`
+
+   While `lag` and `lead` allow to access a specific row relative to the current row, `nth_value(n)` provides access to to the `n`th row
+   relative to the first or last row in a window.
+
+  `first_value` and `last_value` are really just a special case of `nth_value(n)` where `n` is 0.
+
+}
+

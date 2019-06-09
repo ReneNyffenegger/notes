@@ -1,0 +1,137 @@
+$ SQL: temporal data
+
+Support for temporal data was introduced in → misc/ISO/9075#sql-2011[SQL:2011]
+
+Temporal tables should not be mistaken with *temporary tables*.
+
+`period` data type: an interval. `period` is to time as `geometry` to spatial data.
+
+With support for temporal data:
+  • Tables may have additional period (or interval) information
+  • → development/databases/SQL/DML statements automatically maintain this information
+  • → development/databases/SQL/select[`select`] should add a means to query for *non-current* data (`select … from t as of system time <time>`).
+
+{ Time dimensions
+
+  Three time dimensions
+  • user defined time
+  • Business Time (aka Validity Time or Application Time)
+  • System Time (aka Transaction Time)
+
+  Time models:
+    • valid time only
+    • transaction time
+    • both = bitemporal
+
+}
+
+{ Transaction time
+
+   What was the → development/databases/common/ACID[ACID] state of the data as of <time>?
+   -
+   Thus, it only stores past data states.
+
+   To be maintained by the system (»system versioned tables«).
+
+   Useful for auditing.
+
+   Records for which the current time falls into their period are called *system rows*. Other records are called *historical system rows*.
+   -
+   Only *system rows* can be updated or deleted. Similarly, constraints are enforced on *system rows* only.
+
+  { Syntax
+
+    The `create table` statement contains a `period` clause whose name is `system_time`.
+
+code {
+create table t (
+   col_one …,
+   …
+   validFrom     timestamp(12) generated always as row begin not null,
+   validTo       timestamp(12) generated always as row end   not null,
+   trxId         timestamp(12) generated always as transaction start id,
+   period system_time (vaildFrom, validTo)
+)
+[ with (system_versioning = on) ] -- ???
+;
+
+create table t_hist like t;
+alter  table t add versioning use history table t_hist;
+
+
+select … from t as of system time '2019-04-03 09:52:18' where …;
+select … from t as of system time  timestamp '2019-04-03';
+select … from t as of system time  current_timestamp;
+select … from t as of system time  current_timestamp - 10 days;
+select … from t as of system time  current_timestamp -  7 minutes;
+
+code }
+
+  On → development/databases/DB2:
+code {
+select • from t for system_time as of '2019-04-03 09:52:18' where …
+select • from t as of timestamp       '2019-04-03 09:52:18' where …
+code }
+
+  → development/databases/Oracle[Oracle] (flashback query):
+code {
+select * from t as of timestamp       '2019-04-03 09:52:18' where …
+
+
+-- Pseude columns
+select
+   version_starttime,
+   version_endtime,
+   version_xid
+   …
+code }
+ 
+
+  }
+
+
+}
+{ Business Time (aka Application time)
+
+  Maintained by user/applications (*not* by system).
+
+  Possibility of entering future dates (*I'll change my address on 1st of November of 2019*). Such an update statement is called *proactive update*.
+
+  The `create table` statement also contains a `period` clause, however, for business time tables, the name of the period is user-definable.
+
+
+  { Syntax
+
+    The standard does (not yet?) propose a syntax for querying Business Time.
+
+    → development/databases/DB2:
+code {
+select * from t for business_time as of '2019-04-03 09:52:18';
+code }
+
+
+  }
+
+
+}
+
+{ Support for temporal data
+
+  Some → development/databases[databases] that support temporal data:
+    • → development/databases/DB2 which implements temporal data according to the specification in the → misc/ISO/9075#sql-2011[SQL:2011] standard.
+    • → development/databases/PostgreSQL
+    • Teradata (since version 10). It is based on the TSQL2 model
+    • → development/databases/Oracle (since 12c). two components: *valid time* based on «temporal validity», *transaction time* based on «Flashback Data Archive»
+    • → development/databases/SQL-Server[SQL Server] (since version 2016).
+
+}
+
+sa:
+  → development/databases/SQL-Server/sql/temporal-data/system-versioned[System versioned tables in SQL Server]
+
+links:
+  → https://pgxn.org/dist/temporal_tables
+
+  →  wiki.postgresql.org/wiki/SQL2011Temporal
+
+  → http://metadata-standards.org/Document-library/Documents-by-number/WG2-N1501-N1550/WG2_N1536_koa046-Temporal-features-in-SQL-standard.pdf

@@ -1,0 +1,58 @@
+$ SQL Server: System versioned tables
+
+System versioned tables automatically store the history of (changed) → development/Data[data] and thus makes it possible to query earlier states of data.
+
+Actually, a system versioned table needs a *history table* which stores the data (records) that had been changed are not valid anymore.
+
+I try to demonstrate a simple case with the following SQL snippets.
+
+{ Create a system versioned table
+
+  First, I need a table. A table can be *system versioned* if
+    • It has a *primary key*
+    • Two columns with datatype → development/databases/SQL-Server/T-SQL/data-types/datetime2[datetime2] (which are not explicitely set as nullable) with a `generated alwasy as row start/end` clause
+    • A period `clause` that uses those two columns. The name of the period must be `system_time`.
+
+  In the following → development/databases/SQL-Server/sql/create/table[`create table`] statement, I specify the `validFrom` and `validTo` columns to be `hidden` because I don't want to see them
+  when I query them.
+
+  I also explicitely name the *history table* with the `history_table = ` clause. Without it, SQL Server would name the history table something like `MSSQL_TemporalHistoryFor_<table-obj-id>`.
+  (`<table-obj-id>` is the → development/databases/SQL-Server/T-SQL/functions/object_id[object id] of the system versioned table).
+
+  gh|about-MSSQL|/sql/temporal-data/system-versioned/first/create-table.sql||
+
+}
+{ Insert some values
+
+  I start by inserting three records in the table:
+
+  gh|about-MSSQL|/sql/temporal-data/system-versioned/first/create-table.sql||
+
+}
+{ More DML
+
+  I now change the data in the table. Before each change, I store the before-change-timestamp in a → development/databases/SQL-Server/T-SQL/variables[variable] so that I can look back in time
+  to that specific time later on.
+  -
+  It is important to use `sysutcdatetime()` rather than `sysdatetime()` because SQL server stores the → misc/UTC[UTC] time in the history table
+
+  After changing the data, I can use the variables to query a specific state of the data with the `for system_time as of` clause:
+
+  The `for system_time all` clause selects all data: that of the system versioned table and that of the history table.
+
+  gh|about-MSSQL|/sql/temporal-data/system-versioned/first/dml.sql||
+
+}
+{ Drop the table
+
+  In order to *drop* a system versioned table, it first needs to be set to `system_versioning = off` (otherwise, the error
+  *Drop table operation failed on table … because it is not a supported operation on system-versioned temporal tables.* is thrown).
+
+  Also, the history table needs to be dropped separately:
+
+  gh|about-MSSQL|/sql/temporal-data/system-versioned/first/drop-table.sql||
+
+}
+
+sa:
+  → development/databases/SQL/temporal-data
