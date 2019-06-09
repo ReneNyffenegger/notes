@@ -2,7 +2,7 @@ $ SQL: percentile_disc
 
 This is an attempt at trying to explain the `percentile_disc()` SQL analytic function.
 
-`percentile_disc(p) within group (over order by val)` (with `0<= p <= 1`) returns a value `r` such that `p*100` percent of the values of `val` are
+`percentile_disc(p) within group (over order by val)`, with `0<= p <= 1`, returns a value `r` such that `p*100` percent of the values of `val` are
 less than `r`, within a given group (thus the clause `within group`).
 
 I am trying to demonstrate that with the following SQL snippets.
@@ -18,19 +18,21 @@ I am trying to demonstrate that with the following SQL snippets.
 }
 { Calculate some percentiles
 
-  I am now having SQL calculating the 20th, 40th and 70th percentile of the data.
+  I now let SQL calculate the 20th, 40th and 70th percentile of the data.
 
   gh|about-SQL|/select/analytic/percentile/disc/select-some-percentiles.sql||
 
-  The select statement returned `2`, `4` and `7`.
+  The select statement returns `2`, `4` and `7`.
 
- `2` is the 20th percentile of the data because 40 % of data data are less than `2` (namely `0` and `1`). The same goes for the other two numbers as well.
+ `2` is the 20th percentile of the data because 20 % of data data are less than `2` (namely `0` and `1`). The same goes for the other two numbers as well.
 
   I was able to run this Query on → development/databases/Oracle[Oracle] and → development/databases/PostgreSQL[PostgreSQL].
   -
   → development/databases/SQL-Server[SQL Server] 2017 returns the error message *Msg 10753 The function 'percentile_disc' must have an OVER clause.*
   -
   → development/databases/SQLite[SQLite] 3.27.2 returned *near "(": syntax error*
+  -
+  → development/databases/MySQL[MySQL] was unable to execute the query, too.
 
 }
 { 50th percentile / median vs average
@@ -43,7 +45,7 @@ I am trying to demonstrate that with the following SQL snippets.
 
   The query returns `5` (= the median aka 50th percentile of `val_one`), `5` (the average of `val_one`), `10` (the median of `val_two`) and `909098` (the mean of `val_two`).
 
-  This result demonstrates that the medion is much more robust against *outliers*. The high value of 9999999 drags the average into a region that does not like the original data at all while
+  This result demonstrates that the median is much more robust against *outliers*. The high value of 9999999 drags the average into a region that does not look like the original data at all while
   the median still is in the region of most data of the original data.
 
 }
@@ -51,7 +53,7 @@ I am trying to demonstrate that with the following SQL snippets.
 
  `percentile_disc` (as also any other analytic function) can also be combined with `group by`.
 
-  I Insert a few more records for another group (`item = 'bar'`)):
+  I Insert a few more records for another group (`item = 'bar'`):
 
   gh|about-SQL|/select/analytic/percentile/disc/insert-item-bar.sql||
 
