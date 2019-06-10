@@ -1,0 +1,197 @@
+$ libc: Strings and arrays
+
+Functions that operate on arbitrary sizes of *memory* have names that start with `mem*` or `wmem*` (for example `memcpy` and `wmemcpy`).
+-
+Functions that specifically operate on *strings* and *wide strings* have names that start with `str*` or `wcs*` (for example `strcpy` and `wcscpy`).
+
+`str*` and `mem*` functions are declared in `<string.h>`. `w*` functions are declared in `wchar.h`.
+
+
+code {
+size_t    strlen      (const  char    * s);
+size_t    wcslen      (const wchar_t  *ws);
+
+size_t    strnlen     (const  char    * s, size_t  maxlen);  // GNU extension, declared in <string.h>
+size_t    wcsnlen     (const  char    *ws, size_t  maxlen);  // GNU extension, declared in <string.h>
+
+char    * strcpy      ( char   *restrict  to  const  char   *restrict  from);
+wchar_t * wcscpy      (wchar_t *restrict wto  const wchar_t *restrict wfrom);
+
+char    * stpcpy      ( char   *restrict  to  const  char   *restrict  from);
+char    * wcpcpy      (wchar_t *restrict  to  const wchar_t *restrict  from);
+
+void    * memcpy      (void    *restrict  to, const void    *restrict  from, size_t size);
+wchar_t *wmemcpy      (wchar_t *restrict wto, const wchar_t *restrict wfrom, size_t size);
+
+void    * mempcpy     (void    *restrict  to, const void    *restrict  from, size_t size); // GNU extension
+wchar_t *wmempcpy     (wchar_t *restrict  to, const wchar_t *restrict  from, size_t size); // GNU extension
+
+void    * memccpy     (void    *restrict  to, const void    *restrict  from, int c, size_t size);
+
+char    * strncpy     ( char   *restrict  to, const  char   *restrict  from, size_t size);
+wchar_t * wcsncpy     (wchar_t *restrict  to, const wchar_t *restrict  from, size_t size);
+
+char    * stpncpy     ( char   *restrict  to, const  char   *restrict  from, size_t size);
+wchar_t * wcpncpy     (wchar_t *restrict  to, const wchar_t *restrict  from, size_t size);
+
+void    * memmove     (void    * to, const void * from, size_t size);
+wchar_t *wmemmove     (void    *wto, const void *wfrom, size_t size);                      // GNU extension
+
+void    * memset      (void    *block, int      c, size_t size);
+wchar_t *wmemset      (wchar_t *block, wchar_t wc, size_t size);
+
+char    * strdup      (const  char   * s); // use malloc to allocate new memory
+wchar_t * wcsdup      (const wchar_t *ws); // use malloc to allocate new memory
+
+char    * strndup     (const  char   * s, size_t size);
+wchar_t * wcsndup     (const wchar_t *ws, size_t size);
+
+char    * strdupa     (const  char   * s); // use malloca instead of malloc
+wchar_t * wcsdupa     (const wchar_t *ws); // use malloca instead of malloc
+
+char    * strndupa    (const  char   * s, size_t size);
+wchar_t * wcsndupa    (const wchar_t *ws, size_t size);
+
+char    * strcat      (char    *restrict to, const  char   *restrict  from);
+wchar_t * wcscat      (wchar_t *restrict to, const wchar_t *restrict wfrom);
+
+char    * strncat     (char    *restrict to, const  char   *restrict  from, size_t size);
+wchar_t * wcsncat     (wchar_t *restrict to, const wchar_t *restrict wfrom, size_t size);
+
+int       memcmp      (const void    *a1, const void    *a2, size_t size);
+int      wmemcmp      (const wchar_t *a1, const wchar_t *a2, size_t size);
+
+int       strcmp      (const  char   *a1, const  char   *a2);
+int       wcscmp      (const wchar_t *a1, const wchar_t *a2);
+
+int       strcasecmp  (const  char   *a1, const  char   *a2);
+int       wcscasecmp  (const wchar_t *a1, const wchar_t *a2);
+
+int       strncmp     (const  char   *a1, const  char   *a2, size_t size);
+int       wcsncmp     (const wchar_t *a1, const wchar_t *a2, size_t size);
+
+int       strncasecmp (const  char   *a1, const  char   *a2, size_t size);
+int       wcsncasecmp (const wchar_t *a1, const wchar_t *a2, size_t size);
+
+int       strverscmp  (const  char   *a1, const  char   *a2);  // compares strings containing versions or indices - GNU extension
+
+int       strcoll     (const  char   *s1, const  char   *s2);
+int       wcscoll     (const wchar_t *s1, const wchar_t *s2);
+
+int       strxfrm     ( char   *restrict  to, const  char   *restrict  from, size_t size);
+int       wcsxfrm     (wchar_t *restrict wto, const wchar_t *restrict wfrom, size_t size);
+
+void    * memchr      (const void    *block, int     c, size_t size);
+void    *wmemchr      (const wchar_t *block, wchar_t c, size_t size);
+
+void    * rawmemchr   (const void    *block, int     c); // GNU extension
+void    *wrawmemchr   (const wchar_t *block, wchar_t c); // GNU extension
+
+void    * memrchr     (const void    *block, int     c, size_t size); // GNU extension
+
+char    * strchr      (const  char   * string, int     c);
+wchar_t * wcschr      (const wchar_t *wstring, wchar_t c);
+
+char    * strchrnul   (const  char   * string, int      c); // GNU extension
+wchar_t * wcschrnul   (const wchar_t *wstring, wchar_t wc); // GNU extension
+
+char    * strrchr     (const  char   * string, int      c);
+wchar_t * wcsrchr     (const wchar_t *wstring, wchar_t wc);
+
+code }
+
+{ memcpy / wmemcpy / wmempcpy #libc-memcpy
+
+  The returned value of `memcpy` / `wmemcpy` is the value of the input parameter `to`/`wto`.
+  -
+  The returned pointer of `mempcpy` / `wmempcpy` points to the address right after the last byte written to in `to` (`((void *) ((char *) to + size))`) or `wto`.
+
+  The behavior of `memcpy` is undefined if `from` and `to` overlap. `memmove` should be used in such a case.
+
+ `wmemcpy` was introduced in Amendment 1 of → development/languages/C-C-plus-plus/C/standards#c90[C90]
+
+
+}
+{ strcmp / strcasecmp
+
+  `strcmp` can be used to → https://en.wikipedia.org/wiki/Lexicographical_order[lexicographically] compare two strings.
+  gh|about-libc|/strcmp/strcmp.c||
+
+  In order to compare the strings *case insenstively*, `strcasecmp` might be used:
+  gh|about-libc|/strcmp/strcasecmp.c||
+
+  Apparently, the Windows equivalent of libc has a `stricmp` function instead of `strcasecmp`.
+
+}
+{ TODO
+
+  code {
+char * strstr (const char *haystack, const char *needle);
+wchar_t * wcsstr (const wchar_t *haystack, const wchar_t *needle)
+wchar_t * wcswcs (const wchar_t *haystack, const wchar_t *needle)
+char * strcasestr (const char *haystack, const char *needle)
+
+void * memmem (const void *haystack, size t haystack-len, const void *needle, size t needle-len)
+size_t strspn (const char *string, const char *skipset)
+size_t wcsspn (const wchar_t *wstring, const wchar_t *skipset)
+size_t strcspn (const char *string, const char *stopset)
+size_t wcscspn (const wchar_t *wstring, const wchar_t *stopset)
+char * strpbrk (const char *string, const char *stopset)
+wchar_t * wcspbrk (const wchar_t *wstring, const wchar_t *stopset)
+
+char * index (const char *string, int c)
+char * rindex (const char *string, int c)
+
+char    * strtok (char *restrict newstring, const char *restrict delimiters)
+wchar_t * wcstok (wchar_t *newstring, const wchar_t *delimiters, wchar_t **save_ptr)
+
+char * strtok_r (char  *newstring , const char *delimiters, char **save_ptr)
+char * strsep   (char **string_ptr, const char *delimiter)
+
+char * basename (const char *filename)
+char * basename (char *path)
+
+char * dirname (char *path)
+
+void explicit_bzero (void *block, size t len)
+
+char *    strfry (char *string)
+void *    memfrob (void *mem, size t length)
+ 
+char *   l64a (long int n)
+long int a64l (const char *string)
+
+error_t argz_create (char *const argv[], char **argz, size t *argz_len)
+error_t argz_create_sep (const char *string, int sep, char **argz, size t *argz_len)
+
+size_t  argz_count    (const char *argz, size t argz_len)
+void    argz_extract  (const char *argz, size t argz_len, char **argv)
+
+void    argz_stringify(char *argz, size t len, int sep)
+error_t argz_add      (char **argz, size t *argz_len, const char *str)
+
+error_t argz_add_sep  (char **argz, size t *argz_len, const char *str, int delim)
+error_t argz_append   (char **argz, size t *argz_len, const char *buf, size t buf_len)
+
+void    argz_delete   (char **argz, size t *argz_len, char *entry)
+error_t argz_insert   (char **argz, size t *argz_len, char *before, const char *entry)
+char *  argz_next     (const char *argz, size t argz_len, const char *entry)
+
+error_t argz_replace  (char **argz, size t *argz_len, const char *str, const char *with, unsigned *replace_count)
+
+char *  envz_entry    (const char *envz, size t envz_len, const char *name)
+char *  envz_get      (const char *envz, size t envz_len, const char *name)
+
+error_t envz_add      (char **envz, size t *envz_len, const char *name, const char *value)
+error_t envz_merge    (char **envz, size t *envz_len, const char *envz2, size t envz2_len, int override)
+
+void    envz_strip    (char **envz, size t *envz_len)
+void    envz_remove   (char **envz, size t *envz_len, const char *name)
+  code }
+
+}
+sa:
+
+  `strftime` and `wcsftime` (→ development/languages/C-C-plus-plus/C/libc/date-and-time[date and time]).
+
+  → development/languages/C-C-plus-plus/C/libc
