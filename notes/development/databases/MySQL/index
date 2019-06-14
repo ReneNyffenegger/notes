@@ -25,14 +25,7 @@ select
   system_user()
 code }
 
-The *processlist* seems to show connected users:
-code {
-show processlist;
-code}
 
-code {
-create table tab (a integer) engine = myIsam;
-code }
 
 code {
 set global innodb_file_per_table=1;
@@ -220,6 +213,20 @@ code {
 select * from sys.version;
 select version();
 show variables like "%version%";
+code }
+
+}
+{ Tables
+
+code {
+create table tab (a integer) engine = myIsam;
+code }
+
+  Show structure of table:
+code {
+show create table tab;
+show columns from tab;
+select * from information_schema.columns where table_name = 'tab' and table_schema = '…';
 code }
 
 }
@@ -485,6 +492,65 @@ code }
     • `datetime`
     • `time`
     • `binary`
+
+}
+{ Timing / profiling / monitoring
+
+code {
+show variables like 'performance_schema';
+code }
+
+code {
+select * from information_schema.engines where engine       = 'PERFORMANCE_SCHEMA';
+
+-- Note the lower case table schema and lower case table names:
+select * from information_schema.tables  where table_schema = 'performance_schema';
+code }
+
+Configure and show *monitoring characteristics with *setup tables*:
+code {
+select * from performance_schema.setup_actors;
+select * from performance_schema.setup_consumers;
+select * from performance_schema.setup_instruments;
+select * from performance_schema.setup_objects;
+select * from performance_schema.setup_threads;
+
+update performance_schema.setup_… set enabled = 'NO' where name = '…';
+code }
+
+code {
+select * from performance_schema.events_waits_history where thread_id = 13 order by event_id;
+select * from performance_schema.events_waits_summary_global_by_event_name;
+code }
+
+}
+{ Processes
+
+The *processlist* seems to show connected users and what SQL statement they're currently executing (column `info`):
+code {
+show processlist;
+select * from information_schema.processlist;
+
+select
+   id,
+   user,
+   db,
+   time,
+   state,
+   info   as sql_stmt
+from
+   information_schema.processlist
+where
+   command = 'Query';
+code}
+
+}
+{ Parallel execution
+
+code {
+show variables like '%innodb_parallel_read_threads%';
+set local innodb_parallel_read_threads=32;
+code }
 
 }
 { TODO
