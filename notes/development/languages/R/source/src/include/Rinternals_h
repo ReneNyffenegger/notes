@@ -6,3 +6,70 @@ $ R source file: src/include/Rinternals.h
   → development/languages/R/packages[packages] should be re-installed.
 
 }
+{ struct SEXPREC
+
+  The `struct SEXPREC` seems to be the container for a value.
+
+code {
+typedef struct SEXPREC {
+    SEXPREC_HEADER;
+    union {
+	struct primsxp_struct primsxp;
+	struct symsxp_struct symsxp;
+	struct listsxp_struct listsxp;
+	struct envsxp_struct envsxp;
+	struct closxp_struct closxp;
+	struct promsxp_struct promsxp;
+    } u;
+} SEXPREC;
+code }
+
+  A pointer type is also defined that points to a `SEXPREC`:
+code {
+typedef struct SEXPREC *SEXP;
+code }
+
+}
+{ SEXPTYPE
+
+code {
+typedef enum {
+    NILSXP	= 0,	/* nil = NULL */
+    SYMSXP	= 1,	/* symbols */
+    LISTSXP	= 2,	/* lists of dotted pairs */
+    CLOSXP	= 3,	/* closures */
+    ENVSXP	= 4,	/* environments */
+    PROMSXP	= 5,	/* promises: [un]evaluated closure arguments */
+    LANGSXP	= 6,	/* language constructs (special lists) */
+    SPECIALSXP	= 7,	/* special forms */
+    BUILTINSXP	= 8,	/* builtin non-special forms */
+    CHARSXP	= 9,	/* "scalar" string type (internal only)*/
+    LGLSXP	= 10,	/* logical vectors */
+    INTSXP	= 13,	/* integer vectors */
+    REALSXP	= 14,	/* real variables */
+    CPLXSXP	= 15,	/* complex variables */
+    STRSXP	= 16,	/* string vectors */
+    DOTSXP	= 17,	/* dot-dot-dot object */
+    ANYSXP	= 18,	/* make "any" args work */
+    VECSXP	= 19,	/* generic vectors */
+    EXPRSXP	= 20,	/* expressions vectors */
+    BCODESXP	= 21,	/* byte code */
+    EXTPTRSXP	= 22,	/* external pointer */
+    WEAKREFSXP	= 23,	/* weak reference */
+    RAWSXP	= 24,	/* raw bytes */
+    S4SXP	= 25,	/* S4 non-vector */
+
+    NEWSXP      = 30,   /* fresh node creaed in new page */
+    FREESXP     = 31,   /* node released by GC */
+
+    FUNSXP	= 99	/* Closure or Builtin */
+} SEXPTYPE;
+code }
+
+}
+
+links:
+
+  → https://colinfay.me/r-internals/r-internal-structures.html
+
+  → https://github.com/wch/r-source/blob/trunk/src/include/Rinternals.h
