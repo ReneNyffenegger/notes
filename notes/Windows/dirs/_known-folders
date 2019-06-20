@@ -1,13 +1,6 @@
 $ Windows: known folders
 
 table { lll
-
-
-
-
-
-
-                                   ☰ → development/UUID-GUID[GUID]            ☰
                                    ☰ → development/UUID-GUID[GUID]            ☰
   3D Objects                       ☰ `{31C0DD25-9439-4F12-BF41-7FF4EDA38722}` ☰ %USERPROFILE%\3D Objects
   Account Pictures                 ☰ `{008CA0B1-55B4-4C56-B8A8-4DE4B299D3BE}` ☰ → Windows/dirs/Users/username/AppData/Roaming/Windows/AccountPictures
@@ -34,7 +27,7 @@ table { lll
   Documents                        ☰ `{24D89E24-2F19-4534-9DDE-6A6671FBB8FE}` ☰ %USERPROFILE%\OneDrive\Documents
   Documents                        ☰ `{7B0DB17D-9CD2-4A93-9733-46CC89022E7C}` ☰ %APPDATA%\Microsoft\Windows\Libraries\Documents.library-ms
   Documents                        ☰ `{FDD39AD0-238F-46AF-ADB4-6C85480369C7}` ☰ %USERPROFILE%\Documents
-  Downloads                        ☰ `{374DE290-123F-4565-9164-39C4925E467B}` ☰ %USERPROFILE%\Downloads
+  Downloads                        ☰ `{374DE290-123F-4565-9164-39C4925E467B}` ☰ → Windows/dirs/Users/username/Downloads[`%USERPROFILE%\Downloads`] or `%HOMEDRIVE%%HOMEPATH%\Downloads`.
   Favorites                        ☰ `{1777F761-68AD-4D8A-87BD-30B759FA33DD}` ☰ %USERPROFILE%\Favorites
   Fonts                            ☰ `{FD228CB7-AE11-4AE3-864C-16F3910AB8FE}` ☰ %windir%\Fonts
   Gadgets                          ☰ `{7B396E54-9EC5-4300-BE0A-2482EBAE1A26}` ☰ %ProgramFiles%\Windows Sidebar\Gadgets
@@ -137,3 +130,45 @@ table { lll
 
 table }
 
+{ Querying the location of a known folder with PowerShell and SHGetKnownFolderPath #win-known-folder-ps
+
+code {
+#
+#   https://stackoverflow.com/a/25094236
+#
+
+add-type @"
+
+    using System;
+    using System.Runtime.InteropServices;
+  
+    public class shell32  {
+        [DllImport("shell32.dll")]
+        private static extern int SHGetKnownFolderPath(
+             [MarshalAs(UnmanagedType.LPStruct)] 
+             Guid       rfid,
+             uint       dwFlags,
+             IntPtr     hToken,
+             out IntPtr pszPath
+         );
+
+         public static string GetKnownFolderPath(Guid rfid)  {
+            IntPtr pszPath;
+            if (SHGetKnownFolderPath(rfid, 0, IntPtr.Zero, out pszPath) != 0) {
+                return "Could not get folder";
+            }
+            string path = Marshal.PtrToStringUni(pszPath);
+            Marshal.FreeCoTaskMem(pszPath);
+            return path;
+         }
+    }
+
+"@
+code }
+
+  The value for the → Windows/dirs/Users/username/Downloads[Downloads] folder can then be queried and assigned with: 
+code {
+$downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9164-39C4925E467B}'))
+code }
+
+}

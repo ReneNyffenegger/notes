@@ -127,13 +127,24 @@ code }
   → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International[`HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International`].
 
 } 
+{ Determine folders
+
+  Stuff to be downloaded should go into the → Windows/dirs/Users/username/Downloads[Downloads] directory. The location of the download directory can be determined in
+  → Windows/dirs/_known-folders#win-known-folder-ps[Powershell by accessing the WinApi function `SHGetKnownFolderPath`]. After running the linked script, the download
+  folder can be assigned to a variables with
+code {
+PS C:\> $downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9164-39C4925E467B}'))
+code }
+
+}
 { Create bin directory
 
   Create a `bin` directory under → Windows/dirs/Users/username[`%UserProfile%`] to store executables and scripts so that they can be called from the command line (such as → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] or PowerShell).
   -
   With → Windows/PowerShell[PowerShell]:
 code {
-$binPath = "$env:userprofile\bin"
+# $binPath = "$env:userprofile\bin"
+$binPath = "$($env:homedrive)$($env:homepath)\bin"
 mkdir $binPath
 code }
 
@@ -219,7 +230,6 @@ $shell.nameSpace($strawberryPerlDestDir).copyHere($shell.nameSpace("$home\Downlo
 
 rm $home\Downloads\StrawberryPerl.zip
 
-
 #
 # Set env variables
 #
@@ -238,7 +248,7 @@ code }
 }
 { Install git
 
-    Install the PortableGit version of → development/version-control-systems/git[git].
+    Install git → development/version-control-systems/git[git].
 
     Download end extract the self extracting executable:
 code {
@@ -246,7 +256,12 @@ $ua = new-object system.net.webClient
 [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
 
 if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-32-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.22.0.windows.1/Git-2.22.0-64-bit.exe", "$($env:homedrive)$($env:homepath)Download\Git.exe")
+
+  # LFS Git does not seem necessary enymore
+  # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
+
+& "$($env:homedrive)$($env:homepath)Download\Git.exe"
 
 #
 # TODO does the downloaded file really need to have the *amd64* thingy?
@@ -254,34 +269,9 @@ if ([environment]::is64BitOperatingSystem) {
   $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.1/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
 
 } else {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.21.0.windows.1/PortableGit-2.21.0-64-bit.7z.exe" , "$home\Downloads\PortableGit.exe")
+  echo "64 bit expected"
 }
 code }
-
-  It seems that an output directory cannot be specified with the `-o` flag. Therefore some detouring:
-code {
-& $home\Downloads\PortableGit.exe
-move-item $home\Downloads\PortableGit $env:programFiles
-code }
-
-  Extract `git-lfs.exe`. This file is also extracted into the `PortableGit\cmd` directory so as not need to add more paths to the respective environment variable.
-code {
-$shell = new-object -comObject shell.application
-$shell.nameSpace("$env:programFiles\PortableGit\cmd").copyHere("$home\Downloads\git-lfs-windows-amd64.zip\git-lfs.exe")
-code }
-
-  Add new path to (global) environment variables:
-code {
-$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
-[environment]::setEnvironmentVariable("PATH", "$env:programFiles\PortableGit\cmd;$systemPath", "machine") 
-code }
-
-   Cleaning up
-code {
-rm $home\Downloads\PortableGit.exe 
-rm $home\Downloads\git-lfs-windows-amd64.zip
-code }
-
 
     Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
 code {
