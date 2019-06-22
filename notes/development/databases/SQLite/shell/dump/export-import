@@ -1,0 +1,77 @@
+$ SQLite: export and import a data base with .dump
+
+The → development/databases/SQLite/shell[SQL shell] command `.dump` makes it fairly easy to export and import a database.
+-
+I try to demonstrate this with the following example.
+
+{ A schema
+
+  First, we need some tables with → development/databases/SQLite/tables/constraints/primary-key[primary] and
+  → development/databases/SQLite/tables/constraints/foreign-key[foreign key] and
+  a → development/databases/SQLite/tables/constraints/unique[unique] constraint.
+
+  gh|about-sqlite|/shell/dump/export-import/create-schema.sql||
+
+}
+{ Inserting a few values
+
+  The tables need to be filled.
+
+  gh|about-sqlite|/shell/dump/export-import/insert.sql||
+
+}
+{ Export the database
+
+  The entire database is exported with the `.dump` command
+code {
+sqlite3 db .dump > db.dump
+code }
+
+}
+{ Import the database
+
+  The database can easily be imported because `.dump` exported the database as → development/databases/SQL[SQL] statements:
+code {
+sqlite3 db < db.domp
+code }
+
+}
+{ Export file
+
+  For completness' sake, the dump file that was produces is:
+code {
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE num (
+  num    integer not null primary key,
+  roman  text    not null
+);
+INSERT INTO num VALUES(2,'II');
+INSERT INTO num VALUES(4,'IV');
+INSERT INTO num VALUES(5,'V');
+INSERT INTO num VALUES(7,'VII');
+INSERT INTO num VALUES(9,'IX');
+CREATE TABLE lang (
+  id     text not null primary key,
+  lng    text not null
+);
+INSERT INTO lang VALUES('en','English');
+INSERT INTO lang VALUES('de','German');
+INSERT INTO lang VALUES('fr','French');
+CREATE TABLE num_lang (
+  id_num   integer not null references num,
+  id_lang  text    not null references lang,
+  txt      text    not null,
+  --
+  unique(id_num, id_lang)
+);
+INSERT INTO num_lang VALUES(7,'en','seven');
+INSERT INTO num_lang VALUES(7,'de','sieben');
+INSERT INTO num_lang VALUES(9,'fr','neuf');
+INSERT INTO num_lang VALUES(9,'de','neue');
+INSERT INTO num_lang VALUES(2,'de','zwei');
+CREATE INDEX ix_num on num(roman);
+COMMIT;
+code }
+
+}

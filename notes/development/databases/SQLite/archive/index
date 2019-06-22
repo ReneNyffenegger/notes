@@ -1,0 +1,94 @@
+$ SQLite archives
+
+An SQLite archive is an → development/databases/SQLite database that can be used like other well known
+→ development/archive-files[archive file] formats, such as zip, tar etc.
+
+An SQLite archive contains one → development/databases/SQLite/tables[table] (`sqlar`) in which each record contains the compressed file content
+stored in a → development/databases/SQLite/datatypes/blob[blob] column along with the stored file's → development/Data/metadata[meta data] (such as last modification time) in additional columns.
+
+{ Command line options
+
+  In the command line (→ Linux/shell[shell], → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], …) archive mode is enabled with the command line option `-A`.
+
+  The other command line options are modelled like those of → Linux/shell/commands/tar[`tar`]:
+     • `-c` : Create a new archive
+     • `-x` : Extract files from an archive.
+     • `-i` : Insert (add) files to an archive.
+     • `-u` : Update files *if* they have changed.
+     • `-t` : List the file names in an archive.
+     • `-C` : Interpret relative paths in relation to the directory specified.
+
+}
+{ Example
+
+  The current directory contains the three files `foo.txt`, `bar.txt` and `baz.txt`.
+
+  We first → Linux/shell/commands/touch[`touch`] these files with the → Linux/shell/commands/touch#touch-t[`-t`] option so that we know their modification
+  time:
+code {
+#        YYYYMMDDHHMI.SS
+$ touch -t 201112131415.16 foo.txt
+$ touch -t 201312111009.08 bar.txt
+$ touch -t 201212121212.12 bar.txt
+code }
+
+   We also change their → Linux/filesystem/file-directory-metadata#file-mode-bits[access rights] with → Linux/shell/commands/chmod[`chmod`]:
+code {
+chmod    0666            foo.txt
+chmod    0660            bar.txt
+chmod    0600            baz.txt
+code }
+
+  The archive file is created with the `-A` and `-c` command line option:
+code {
+$ sqlite3 archive.db -A -c foo.txt bar.txt baz.txt
+code }
+
+  The `-t` option shows the content of the archive file:
+code {
+$ sqlite3 archive.db -A -t
+bar.txt
+baz.txt
+foo.txt
+code }
+
+  The → development/databases/SQLite/shell[SQLite shell command] `.schema` command shows the structure of the `sqlar` table:
+code {
+$ sqlite3 archive.db .schema
+CREATE TABLE sqlar(
+  name TEXT PRIMARY KEY,  -- name of the file
+  mode INT,               -- access permissions
+  mtime INT,              -- last modification time
+  sz INT,                 -- original file size
+  data BLOB               -- compressed content
+);
+code}
+
+A → development/databases/SQLite/sql/select[select statement] to select all from `sqlar` table:
+gh|about-sqlite|/archives/select-from-sqlar.sql||
+
+Each file that is stored in the SQLite archive is represented by a record:
+code {
+name        printf("%o  mtime                 sz          data_txt                                          
+----------  ----------  --------------------  ----------  --------------------------------------------------
+foo.txt     100666      2011-12-13 13:15:16   22          This is the foo file.\n                           
+bar.txt     100660      2012-12-12 11:12:12   14          The bar file.\n                                   
+baz.txt     100600      2019-06-22 10:09:34   48          And, of course, the baz file cannot be missing.\n 
+code}
+
+  → Linux/shell/commands/rm[Removing] the `*.txt` files:
+code {
+$ rm foo.txt bar.txt baz.txt
+code }
+
+  Extract *one* file from the archive
+code {
+sqlite3 archive.db -A -x foo.txt
+code }
+
+  And also extract the other two files:
+code {
+sqlite3 archive.db -A -x bar.txt baz.txt
+code }
+
+}
