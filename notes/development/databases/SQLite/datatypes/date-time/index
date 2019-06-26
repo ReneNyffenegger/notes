@@ -1,0 +1,43 @@
+$ SQLite: date and time data type
+
+SQLite does not have an explicit date and/or time → development/databases/SQLite/datatypes[data type].
+-
+However, it's possible to store dates using one of the numeric data types
+→ development/databases/SQLite/datatypes/integer or
+→ development/databases/SQLite/datatypes/real.
+
+{ Storing dates as Julian days
+
+→ development/databases/SQLite/functions/date-time-related#sqlite-julianday[`julianday(date_string)`] returns a
+→ development/databases/SQLite/datatypes/real.
+-
+The value of the returned julian day can then be expressed as a date string with → development/databases/SQLite/functions/date-time-related#sqlite-strftime[`strftime(fmt_string, julian_day)`].
+
+}
+{ Unixepoch
+
+  Another possiblity to store dates or times in SQLIte is to store them as *seconds since January 1st, 1970*, aka *Unix epoch*. 
+
+  The following example first creates the → development/databases/SQLite/tables[table] `d` to store some dates in
+  → development/databases/SQLite/datatypes/text[`text`] format.
+
+  It then uses the `→ development/databases/SQLite/tables/create[create table] as select` statement together with `strftime('%s', …)` to convert the date string
+  to the unix epoch and store these values in the table `s`.
+
+  Finally, it → development/databases/SQLite/sql/select[selects] these seconds from `s` and uses `strftime(fmt, secs, 'unixepoch')` to create a date time string again:
+
+  gh|about-sqlite|/datatypes/date-time/unix-epoch.sql||
+  
+  The select statement returns
+code {
+date_string           secs_since_1970_01_0  secs_hex              t                   
+--------------------  --------------------  --------------------  --------------------
+1970-01-01 00:00:01   1                     1                     1970-01-01 00:00:01 
+1969-12-31 23:59:59   -1                    ffffffffffffffff      1969-12-59 23:59:59 
+2038-01-19 03:14:07   2147483647            7fffffff              2038-01-07 03:14:07 
+2038-01-19 03:14:08   2147483648            80000000              2038-01-08 03:14:08 
+code }
+
+  Note, that the example stores the the datetime of `2038-01-19 03:14:08` to test the → misc/Year-2038-problem[year 2038 problem].
+
+}
