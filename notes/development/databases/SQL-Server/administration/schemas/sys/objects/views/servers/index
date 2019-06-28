@@ -1,0 +1,57 @@
+$ SQL Server - sys.servers
+@ sys.servers
+
+`sys.servers` lists *linked servers*.
+
+{ TODO
+
+  { Dropping and adding servers
+
+?   Prior to development/databases/SQL-Server[SQL Server] 2014, servers could be dropped and added with `sp_dropserver` and `sp_addserver`:
+
+code {
+sp_dropserver 'srv_foo'
+go
+code }
+
+code {
+sp_addserver 'srv_foo',local
+go
+code }
+
+?  However, starting with SQL Server 2014, these statements result in the error message *Feature "sp_addserver" is no longer supported. Replace remote servers by using linked servers.*
+
+  }
+  { Adding linked servers
+
+code {
+exec sp_addlinkedserver @server = 'SRV_FOO'
+go
+
+exec sp_addlinkedsrvlogin 'SRV_FOO'
+                         ,'false'
+                         , null
+                         ,'rene'         # user name
+                         ,'SecretGarden' # password
+go
+code }
+
+  }
+  { sp_linkedservers
+
+   `sp_linkedservers` also shows basic information about linked servers
+
+code {
+sp_linkedservers
+go
+code }
+
+  }
+
+}
+
+sa:
+
+  The T-SQL function → development/databases/SQL-Server/T-SQL/functions/rowset/openrowset[`openrowset`].
+
+  The → development/databases/SQL-Server/administration/schemas/sys[sys schema]
