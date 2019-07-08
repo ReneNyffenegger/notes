@@ -1,0 +1,63 @@
+$ SQL Server: Table valued functions
+
+A table valued function returns a → development/databases/SQL-Server/T-SQL/data-types/table[`table` data type].
+
+The returned values can be used in an → development/databases/SQL-Server/sql/select[select statement] as though it was a «real» table.
+
+{ Two variants
+
+  There are *two variants* of table valued functions:
+    • *Inline table-valued function* (ITVF)
+    • *Multi-statement table-valued function* (MSTVF)
+
+  An ITVF might be more performant than a MSTVF but MSTVF are more flexible
+
+}
+{ Inline table valued functions
+
+  An ISTV may only contain exactly one → development/databases/SQL-Server/sql/select[select statement].
+
+code {
+create function u.istv (@par int) returns table
+as return
+  select
+    abc,
+    def,
+    ghi
+  from
+    t_bla
+  where
+    id = @par
+;
+
+select * from u.istv(42);
+code }
+
+}
+{ Multi-statement table valued functions
+
+code {
+create function mstvf(@p integer)
+  returns @ret table(col integer)
+as
+begin
+  declare @v integer;
+
+  set @v = 10 * @p; insert into @ret(col) values (@v);
+  set @v = 20 * @p; insert into @ret(col) values (@v);
+
+  return;
+end;
+
+select * from dbo.mstvf(4);
+code }
+
+  Combining → development/databases/SQL-Server/sql/select[`select`] and `into`:
+  gh|about-MSSQL|t-sql/user-defined-functions/table-valued/multi-statement/select-into.sql||
+
+}
+
+sa:
+  → development/databases/Oracle/PL-SQL/collection-types/return-table-from-function[Returning a «table» in Oracle]
+
+  The → development/databases/SQL-Server/T-SQL/data-types/table[`table` data type]
