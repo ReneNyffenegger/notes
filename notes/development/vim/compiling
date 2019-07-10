@@ -53,5 +53,42 @@ C:\Users\Rene\build\vim\>    reg add → Windows/registry/tree/HKEY_CURRENT_USER
 code }
 
  }
+ { Windows 10 / Rtools
+
+   → Windows/dirs/Rtools[RTools] comes with → Windows/development/MinGW which can be used if RTools is installed and there is no Visual Studio.
+
+   If RTools was installed without adjusting the → Windows/development/environment-variables[`PATH` environment variable], `PATH` needs to be modified
+   so that → development/make[`make`] and the → development/languages/C-C-plus-plus/GCC[GCC compiler] are found:
+code {
+set rtools_root=C:\Rtools
+set path=%rtools_root%\bin;%path%
+set path=%rtools_root%\mingw_32\bin;%path%
+code }
+
+   As per instructions in `→ development/vim/src[src]/Make_cyg_ming.mak`, the executables should be built with
+code {
+make -f Make_ming.mak
+code }
+
+  However, `gui_dwrite.cpp` could not be compiled because it tried to include `dwrite_2.h` which did not exist in the RTools directory. The
+  error message was something like `gui_dwrite.cpp:42:23: fatal error: dwrite_2.h: No such file or directory`.
+
+  I had to turn of colored emoji (which I probably won't need anyway):
+code {
+make -f Make_ming.mak COLOR_EMOJI=no
+code }
+
+   Then, the compilation went on smoothly.
+   -
+   However, when trying to → development/languages/C-C-plus-plus/GCC/linker[link] `uninstall.exe`, I got this error:
+  `undefined reference to '_imp__CoTaskMemFree@4'`.
+   -
+   In order to fix this, I had to manually add `-lole32` in the target `uninstal.exe` in `src\Make_cyg_ming.mak`:
+code {
+uninstal.exe: uninstal.c
+            $(CC) $(CFLAGS) -o uninstal.exe uninstal.c $(LIB) -lole32
+code }
+
+ }
 
 }
