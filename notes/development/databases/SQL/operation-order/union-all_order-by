@@ -1,0 +1,58 @@
+$ SQL: order of operations - union all / order by
+
+gh|about-SQL|/select/order-of-operations/union-all_order-by/create-data.sql||
+
+{ Ordering the entire result set
+
+  Because in the → development/databases/SQL/operation-order[SQL order of operation], the → development/databases/SQL/select/order-by[`order by`] is performed after
+  a `union all` the following select statement returns *all* records ordered by `id`, not just the records of `tq84_tab_2`.
+
+  gh|about-SQL|/select/order-of-operations/union-all_order-by/select-1.sql||
+
+  Note: → development/databases/Oracle[Oracle] 18c is not able to process this query, it fails with *ORA-00904: "ID": invalid identifier*.
+
+  I was able to run it on
+  → development/databases/SQL-Server[SQL Server],
+  → development/databases/MySQL[MySQL] and
+  → development/databases/SQLite[SQLite],
+  though.
+
+}
+{ Apply order by first, then combine result set
+
+  { First attempt
+
+    The following example puts the → development/databases/SQL/select[`select`] statements with the `order by` clauses within paranthesis so that the
+    the records of `tq84_tab_1` are ordered indepentently from those of `tq84_tab_2`. Additionally, the records of `tq84_tab_1` are returned first, *then*
+    the records of `tq84_tab_2`.
+
+    gh|about-SQL|/select/order-of-operations/union-all_order-by/select-1.sql||
+
+    Unfortunately, I was only able to execute this query without errors on MySQL.
+    -
+    Oracle failed with *ORA-00907: missing right parenthesis*,
+    SQL Server with *Incorrect syntax near the keyword 'order'.* and
+    SQLite with *Result: near "(": syntax error*.
+
+  }
+  { Using subqueries
+
+    The `order by` clause might be put into a *subquery* in order to achieve the same result on Oracle 18c, MySQL and SQLite.
+
+    gh|about-SQL|/select/order-of-operations/union-all_order-by/select-subquery.sql||
+
+    SQL Server complains with *The ORDER BY clause is invalid in views, inline functions, derived tables, subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified.*.
+
+  }
+  { Using an additional column
+
+    In order to *finally* make the desired ordering possible in SQL Server, too, an additional column might be added to the `select` statements: 
+      
+    gh|about-SQL|/select/order-of-operations/union-all_order-by/select-additional-col.sql||
+
+    This also works with SQLite and MySQL, but Oracle fails with *ORA-00904: "ID": invalid identifier*.
+
+  }
+
+
+}
