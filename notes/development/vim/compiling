@@ -1,5 +1,7 @@
 $ Vim: building/compiling
 
+Before compiling vim, one might want to edit the preferences in → development/vim/sources/src/feature_h[`src/feature.h`].
+
 Compiles, but produces `E25: GUI cannot be used: not enabled at compile time`.
 code {
 $ → development/GNU/toolchain/Build-System/configure[./configure] --enable-python3interp --enable-perlinterp --with-x --enable-gui=gtk3 --enable-fontset --disable-xim
@@ -53,6 +55,34 @@ uninstal.exe: uninstal.c
 code }
 
    Update *2019-07-11*: The `-lole32` is now fixed with → https://github.com/vim/vim/releases/tag/v8.1.1662[my patch 8.1.1662].
+
+ }
+ { Strawberry Perl / Windows 10
+
+   Strawberry → development/languages/Perl[Perl] comes with a → development/languages/C-C-plus-plus/GCC[gcc compiler].
+
+   However, it seems to lack
+   → development/languages/sed[`sed`] which results in the following error message:
+code {
+'sed' is not recognized as an internal or external command
+…
+gcc: error: missing argument to → development/languages/C-C-plus-plus/GCC/options/m_lowercase/arch['-march=']
+code }
+
+  `sed` is needed  to extract the CPU model from the → development/misc/target-triplet in → development/vim/sources/src/Make_cyg_ming_mak[`Make_cyg_ming.mak`]:
+code {
+ARCH := $(shell $(CC) → development/languages/C-C-plus-plus/GCC/options/dumpmachine[`-dumpmachine`] | sed -e 's/-.*//' -e 's/_/-/' -e 's/^mingw32$$/i686/')
+code }
+
+
+   Thus, `ARCH` needs to be specified manually when invoking `gmake`:
+code {
+gmake -f Make_ming.mak ARCH=x86-64
+code }
+
+   Note: running `gcc -dumpmachine` returned `x86_64-w64-mingw32` but I had to change the first part of the triple from `x86_64` to `x86-64`.
+
+   The value of `ARCH` seems to be passed directly to the → development/languages/C-C-plus-plus/GCC/options/m_lowercase/arch[`-march` gcc option].
 
  }
  { Visual Studio 2017 Community Edition on Windows 7
