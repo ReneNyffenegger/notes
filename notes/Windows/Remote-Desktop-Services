@@ -1,0 +1,130 @@
+$ Remote Desktop Services
+
+The server component of RDS is Terminal Server (termdd.sys), which listens on TCP port 3389
+
+When a Remote Desktop Protocol (RDP) client connects to this port, it is tagged
+with a unique SessionID and associated with a freshly spawned console session
+(Session 0, keyboard, mouse and character mode UI only). The login subsystem
+(winlogon.exe) and the GDI graphics subsystem is then initiated, which handles
+the job of authenticating the user and presenting the GUI. 
+These executables are loaded in a new session, rather than the console session.
+-
+When creating the new session, the graphics and keyboard/mouse device drivers
+are replaced with RDP-specific drivers: RdpDD.sys and RdpWD.sys. The RdpDD.sys
+is the device driver and it captures the UI rendering calls into a format that
+is transmittable over RDP. RdpWD.sys acts as keyboard and mouse driver; it
+receives keyboard and mouse input over the TCP connection and presents them as
+keyboard or mouse inputs.
+-
+ It also allows creation of virtual channels, which allow other devices, such
+ as disc, audio, printers, and COM ports to be redirected, i.e., the channels
+ act as replacement for these devices. The channels connect to the client over
+ the TCP connection; as the channels are accessed for data, the client is
+ informed of the request, which is then transferred over the TCP connection to
+ the application. This entire procedure is done by the terminal server and the
+ client, with the RDP mediating the correct transfer, and is entirely
+ transparent to the applications.[12] RDP communications are encrypted using
+ 128-bit RC4 encryption. Windows Server 2003 onwards, it can use a FIPS 140
+ compliant encryption schemes.[2]
+
+Bei einem Windows Terminalserver handelt es sich um einen speziellen  Server mit dem Betriebssystem Windows Server, der dazu dient, mehreren Arbeitsplätzen gleichzeitig, vollständige Arbeitsumgebungen zur Verfügung zu stellen.
+
+ When packaged as an .rdp file (which contains the address of the RemoteApp server, authentication schemes to be used, and other settings
+
+Remote Desktop Connection (RDC, also called Remote Desktop, formerly Microsoft Terminal Services Client, mstsc or tsclient)[21][22] is the client application for RDS. It allows a user to remotely log into a networked computer running the terminal services server. RDC presents the desktop interface (or application GUI) of the remote system, as if it were accessed locally.[2] In addition to regular username/password for authorizing for the remote session, RDC also supports using smart cards for authorization.
+-
+RDC can also be used to connect to computers which are exposed via Windows Home Server RDP Gateway over the Internet.[23] Finally, RDC can be used to reboot the remote computer with the Ctrl+Alt+End key combination.
+
+WINDOWS TERMINAL SERVER	OPTISCHES ERSCHEINUNGSBILD
+Windows Server 2003 Terminalserver	Windows XP Desktop
+Windows Server 2008 (R2) mit Remote Desktop Services	Windows 7 Desktop
+Windows Server 2012 / 2012R2 mit Remote Desktop Services	Windows 8 Desktop / Windows 8.1 Desktop
+Windows Server 2016 mit Remote Desktop Services	Windows 10 Desktop
+
+? = Remote Desktop Services (RDS)
+
+RDSH = Remote Desktop Session Host 
+
+RDWA = Remote Desktop Web Access
+
+RDP protocol. Default port 3389
+-
+ RDP is a proprietary protocol from Microsoft and basically provides users with a graphical interface to connect to another computer over a network.
+-
+ It’s the protocol used to connect clients (e.g. laptops, desktops) to operating systems and applications that are running on a remote device. 
+-
+Third party protocols: Citrix HDX, VMware PCoIP
+
+ Virtual Desktop Infrastructure 
+-
+ In VDI, the client connects to a dedicated “host” running a client version of Windows, such as the Windows 7 or Windows 10 that is running on your laptop.
+
+{ Renaming in Windows Server 2008 R2
+
+  As per → https://docs.microsoft.com/en-us/windows/win32/termserv/terminal-services-is-now-remote-desktop-services[Terminal Services Is Now Remote Desktop Services], in Windows Server 2008 R2,
+  some renaming took place:
+  table { ll
+    Terminal Services ☰ Remote Desktop Services
+    Terminal Server ☰ Remote Desktop Session Host (RD Session Host)
+    Terminal Services Licensing (TS Licensing) ☰ Remote Desktop Licensing (RD Licensing)
+    Terminal Services Gateway (TS Gateway) ☰ Remote Desktop Gateway (RD Gateway)
+    Terminal Services Session Broker (TS Session Broker) ☰ Remote Desktop Connection Broker (RD Connection Broker)
+    Terminal Services Web Access (TS Web Access) ☰ Remote Desktop Web Access (RD Web Access)
+    Terminal Services Virtualization ☰ Remote Desktop Virtualization Host (RD Virtualization Host)
+  table }
+
+
+}
+
+{ Keyboard shortcut to go from the remote desktop to the local desktop
+
+  The following → Windows/keyboard-shortcuts[keyboard shortcuts] allo to go from the remote desktop to the local desktop:
+  -
+  First *ctrl+alt+home* to activate the connection bar.
+  -
+  Then *alt-tab* (as accustomed to) to switch between the windows.
+
+}
+{ TODO
+
+  CAL = Client Access License
+  -
+  RDS CAL
+
+}
+
+sa:
+  → Windows/dirs/Windows/System32/mstsc_exe
+
+  → Windows/registry[Registry] keys
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Terminal-Server-Client[`HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client`]
+    • → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Terminal-Server-Client/Servers[`HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Servers`]
+
+  → https://en.wikipedia.org/wiki/RemoteFX[RemoteFX]
+
+  → https://en.wikipedia.org/wiki/Rdesktop[rdesktop]
+
+  → https://en.wikipedia.org/wiki/Citrix_Virtual_Apps[Citrix Virtual Apps]
+
+  → https://en.wikipedia.org/wiki/Microsoft_App-V[Microsoft App-V]
+
+  → Windows/dirs/Windows/System32/change_exe[`change.exe`]
+  -
+  → Windows/dirs/Windows/System32/qappsrv_exe[`qappsrv.exe`]
+  -
+  → Windows/dirs/Windows/System32/rdpsign_exe[`rdpsign.exe`]
+  -
+  → Windows/dirs/Windows/System32/reset_exe[`reset.exe`]
+  -
+  → Windows/dirs/Windows/System32/sessionmsg_exe[`sessionmsg.exe`]
+
+  → Windows/dirs/Windows/System32/termsrv_dll[`termsrv.dll`]: the Remote Desktop Session Host Server Remtoe Connections Manager
+  -
+  → Windows/dirs/Windows/System32/tlscsp_dll[`tlscsp.dll`]
+  -
+  → Windows/dirs/Windows/System32/tscfgwmi_dll[`tscfgwmi.dll`]
+  -
+  → Windows/dirs/Windows/System32/TSErrRedir_dll[`TSErrRedir.dll`]
+  -
+  → Windows/dirs/Windows/System32/umrdp_dll[`umrdp.dll`]
+  → Windows/dirs/Windows/System32/drivers/terminpt_sys[`terminpt.sys`] is the input driver.
