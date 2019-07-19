@@ -1,0 +1,130 @@
+$ NETSTAT.EXE
+
+netstat stands for (→ development/web/TCP-IP[TCP/IP] *network statistics*.
+
+`netstat.exe` can be used in command line programs such as → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] or → Windows/PowerShell to display
+  • active TCP/IP connections
+  • ports on which the computer is listening
+  • ethernet statistics
+  • the IP routing table
+  • IPv4 statistics (IP, ICMP, TCP and UDP protocols)
+  • IPv6 statistics (IPv6, ICMPv6, TCP over IPv6 and UDP over IPv6 protocols)
+
+{ Displaying active TCP connections
+
+  Active TCP connections are displayed without passing parameters to `netstat.exe`.
+
+code {
+c:\> netstat
+
+Active Connections
+
+  Proto  Local Address          Foreign Address        State
+  TCP    127.0.0.1:5127         LAPTOP-007:57476       ESTABLISHED
+  TCP    127.0.0.1:37897        LAPTOP-007:57857       TIME_WAIT
+  TCP    127.0.0.1:37897        LAPTOP-007:57878       TIME_WAIT
+  …
+code }
+
+  Since this command only shows *active connectsions*, the state cannot be `LISTENING` and usually is one of `ESTABLISHED` or `TIME_WAIT`.
+
+
+}
+{ Don't resolve names of IP numbers
+
+  By default, an attempt is made to resolve the name of IP numbers (such as `LAPTOP-007` in the example abover).
+  -
+  This can be quite slow and at times undesired. It can be turned off with `-n` or `/n` which prints IP numbers only (and can be much faster).
+
+code {
+c:\> netstat -n
+
+Active Connections
+
+  Proto  Local Address          Foreign Address        State
+  TCP    127.0.0.1:5127         127.0.0.1:57476        ESTABLISHED
+  TCP    127.0.0.1:37897        127.0.0.1:57857        TIME_WAIT
+  TCP    127.0.0.1:37897        127.0.0.1:57878        TIME_WAIT
+code }
+
+
+
+}
+{ Adding listeners to the output
+
+  Using `/a` or `-a` adds the TCP or UDP ports on which a → Windows/development/process[process] is listening, too. That is, the `LISTENING` is added to the reported *State*.
+
+code {
+c:\> netstat -na
+
+Active Connections
+
+  Proto  Local Address          Foreign Address        State
+  TCP    0.0.0.0:22             0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING
+  …
+  TCP    127.0.0.1:5127         127.0.0.1:57476        ESTABLISHED
+  TCP    127.0.0.1:37897        127.0.0.1:57857        TIME_WAIT
+code }
+
+}
+{ Adding bound non-listening ports
+
+  Using `-q` adds bound non-listening ports (and listining ports, as `-a`) in the output. Thus, *State* can also be `BOUND`.
+
+code {
+c:\> netstat -nq
+  TCP    0.0.0.0:22             0.0.0.0:0              LISTENING
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING
+  …
+  TCP    0.0.0.0:49676          0.0.0.0:0              BOUND
+  TCP    0.0.0.0:49738          0.0.0.0:0              BOUND
+code }
+
+}
+{ Also displaying process ID #netstat-exe-o
+
+  `-o` or `/o` adds a connection's owning process' → Windows/development/process/identifer[PID (process id)] in a separate column. 
+code {
+c:\> netstat -nao
+
+Active Connections
+
+  Proto  Local Address          Foreign Address        State           PID
+  TCP    0.0.0.0:22             0.0.0.0:0              LISTENING       5908
+  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       1244
+  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING       4
+  …
+  TCP    127.0.0.1:49679        127.0.0.1:54784        ESTABLISHED     5380
+  …
+code }
+
+  With the Process ID (PID) and → Windows/dirs/Windows/System32/taskkill_exe[`taskkill.exe`], it is possible to kill a process (that might be blocking a special port).
+
+}
+{ Limiting output to specific protocols only
+
+  Using `-p` or `/p` limits the output to specific protocols:
+
+code {
+c:\> netstat -p tcp
+c:\> netstat -p tcpv6
+c:\> netstat -p udp
+c:\> netstat -p udpv6
+c:\> netstat -p ip
+c:\> netstat -p ipv6
+c:\> netstat -p icmpkkkkkkkkkkkk
+code }
+
+}
+{ Displaying the IP routing table
+
+  The *IP routing table* is displayed with `-r`
+
+}
+{ Displaying statistics
+
+  Statistics are shown with `-s`
+
+}
