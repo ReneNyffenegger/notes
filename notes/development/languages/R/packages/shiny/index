@@ -45,7 +45,7 @@ code }
 }
 { fluidPage
 
-`fluidPage()` is called with calls to *elements* that define the user interface. With `fluidPage()`, the layout of the elements is adjusted to the dimensions of the browser.
+`fluidPage()` is called with calls to *elements* that define the user interface. With `fluidPage()`, the layout of the elements is adjusted to the dimensions of the → development/web/browser[browser].
 
  Some often seen elements in the call of `fluidPage` are
    • `titlePanel`
@@ -66,7 +66,7 @@ ui <- fluidPage(
 )
 code }
 
-  An alternative to using `fluidPage` is to use `fluidRow` and `column` for a tabular interface.j
+  An alternative to using `fluidPage` is to use `fluidRow` and `column` for a tabular interface.
 
 }
 { sidebarLayout
@@ -151,7 +151,6 @@ code }
 
  *Widgets* get input from a user.
 
-
   Most widgets are created with a `*Input` function, some are created with `*Button` or `*Buttons` function:
     • `actionButton`
     • `checkboxGroupInput`
@@ -199,10 +198,11 @@ code }
 
   }
 
-}
-{ Inputs
+  { reactive
 
-  All inputs are *reactive*.
+    All inputs are *reactive*.
+
+  }
 
 }
 { render* functions
@@ -247,7 +247,7 @@ code }
   }
   { browser()
 
-    The call to the (wierdly named) `browser()` statement stops execution and allows to inspect variables etc.
+    The call to the (wierdly named) → development/languages/R/functions/browser[`browser()`] statement stops execution and allows to inspect → development/languages/R/variable[variables] etc.
 
     After inspecting them, execution can be resumed with `cont` (or `c` for short?).
 
@@ -261,6 +261,10 @@ code }
 
    After setting this option, the reactive log can be shown by pressing `ctrl+F3` in the → development/web/browser[browser] window that hosts the app.
 
+   gh|temp-shiny|/options/shiny.reactlog/app.R||
+
+   In order for this functionality to run, the package → development/languages/R/packages/reactlog[`reactlog`] needs to be installed.
+
   }
   { Calling an error function
 
@@ -272,6 +276,44 @@ code }
 
 
   }
+
+}
+{ Architecture
+
+  Shiny implements a client-server paradigm: the server being an R process and the client a → development/web/browser[(web) browser].
+
+  The client is connected to the server by a → https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API[WebSocket].
+  -
+  As soon as the client detects a state change (usually because the user changed or entered an input), the client notifies the server
+  on the channel that is established with the WebSocket.
+
+  shiny uses → development/languages/JavaScript/JSON to send data back and forth.
+
+}
+{ Intercepting traffic between client and server
+
+  The data that is exchanged between the client and server can be monitored by setting `options(shiny.trace = TRUE)`.
+
+  gh|temp-shiny|/options/shiny.trace/app.R||
+
+  When the browser connects to the server, something like the following might be exchanged. (`SEND` and `RECV` are from the perspective of the server).
+code {
+SEND {"config":{"workerId":"","sessionId":"579c95df425f54e24c22ee1bc97230aa","user":null}}
+RECV {"method":"init","data":{"go:shiny.action":0,".clientdata_output_tm_hidden":false, … }}
+SEND {"busy":"busy"}
+SEND {"busy":"idle"}
+SEND {"errors":[],"values":[],"inputMessages":[]}
+code }
+
+  When the user presses the button, something like to following will be seen on the channel:
+code {
+RECV {"method":"update","data":{"go:shiny.action":1}}
+SEND {"busy":"busy"}
+SEND {"recalculating":{"name":"tm","status":"recalculating"}}
+SEND {"recalculating":{"name":"tm","status":"recalculated"}}
+SEND {"busy":"idle"}
+SEND {"errors":[],"values":{"tm":"1563524235"},"inputMessages":[]}
+code }
 
 }
 { DESCRIPTION
@@ -350,11 +392,43 @@ code }
 
 
   }
+  { Showcase mode
+
+code {
+shiny::runApp(display.mode='showcase');
+code }
+
+    Show case mose can also be enabled in the `DESCRIPTION` file by adding the following line:
+code {
+DisplayMode: Showcase
+code }
+
+  }
+  { Shiny Server
+
+    Shiny Server is a Linux(?) platform to publish mutliple shiny applications on a single machine.
+
+    { Log files #r-shiny-log-files
+
+     The server writes log messages to → Linux/fhs/var/log/shiny-server_log[`/var/log/shiny-server.log`] and
+     → Linux/fhs/var/log/shiny-server[`/var/log/shiny-server/*`].
+
+    }
+
+  }
+  { function htmlTemplate
+
+    ...
+
+  }
 
 }
 
 sa:
   R packages
-    → development/languages/R/packages/shinydashboard[`shinydashboard`] and → development/languages/R/packages/shinyjs[`shinyjs`].
+    → development/languages/R/packages/shinydashboard[`shinydashboard`], → development/languages/R/packages/shinyjs[`shinyjs`]
+   -
+    → development/languages/R/packages/reactlog[reactlog] allows to visually investigate the dependencies of → development/languages/R/packages/shiny[`shiny` applications].
+
 
     → development/languages/R/packages
