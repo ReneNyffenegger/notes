@@ -1,4 +1,54 @@
-$ Preprocessor: __VA_ARGS__ 
+$ Preprocessor: __VA_ARGS__ (Variadic macros)
+
+{ Basics
+
+  The following example tries to demonstrate the basic functionality of variadic macros.
+  
+  If the parameters of a macro contain three consecutive dots (`...`), this indicates that an arbitrary number of parameters may be passed.
+
+  In the macro expansion, these values that are then referenced by the special identifier `__VA_ARGS__`.
+
+  gh|about-preprocessor|/macros/__VA_ARGS__/basics.c||
+
+  When this source file is preprocessed (`gcc -E -P basics.c` or `cl -nologo -EP basics.c`), it prints
+code {
+RESULT()
+RESULT(one)
+RESULT(two,three)
+RESULT(foo, bar, baz)
+code }
+
+
+}
+{ Compiler differences
+
+  Apparently, the → development/languages/C-C-plus-plus/GCC[GNU compiler] treats the expansion of `__VA_ARGS__` differently from the
+  → Windows/development/Visual-Studio/cl[Visual C Compiler], as the following example shows:
+
+  gh|about-preprocessor|/macros/__VA_ARGS__/compiler-differences.c||
+
+  When preprocessed with the GNU compiler, it prints, as probably desired:
+code {
+P1 = foo | P2 = bar | P3 = baz
+code }
+
+  However, when preprocessed with Microsoft's compiler, it emits the warning *C4003: not enough arguments for function-like macro invocation 'MACRO_WITH_3_PARAMS'* and prints:
+code {
+P1 = foo, bar, baz | P2 =  | P3 =
+code }
+  That is: Microsoft's preprocessor expands everything *into one* parameter of `MACRO_WITH_3_PARAMS`.
+
+  In order for both preprocessors to emit the text, another macro needs to be defined that just passes on what it receivs. This macro (`PASS_ON`) is then applied on a macro name (`MACRO_WITH_3_PARAMS`) so that
+  the macro name dos not get expanded and a second time with the parameters:
+ 
+  gh|about-preprocessor|/macros/__VA_ARGS__/compiler-differences-solved.c||
+
+  With this «solution», both preprocessors now emit:
+code {
+P1 = foo | P2 = bar | P3 = baz
+code }
+
+}
 
 { Simple example
 
@@ -12,7 +62,7 @@ $ Preprocessor: __VA_ARGS__
 
   The following file was preprocessed with the → Windows/development/Visual-Studio/cl[Visual C compiler] (`cl → Windows/development/Visual-Studio/cl/options/E-P-EP[/EP] basic`) and the
   → development/languages/C-C-plus-plus/GCC[GNU compiler] (`gcc → development/languages/C-C-plus-plus/GCC/options/x[-x] c → development/languages/C-C-plus-plus/GCC/options/E[-E] → development/languages/C-C-plus-plus/GCC/options/P_uppercase[-P] basic`)
-  to deomonstrate a difference between their preprocessors.
+  to demonstrate a difference between their preprocessors.
 
   gh|about-cpp|/preprocessor/macros/__VA_ARGS__/basic||
 
