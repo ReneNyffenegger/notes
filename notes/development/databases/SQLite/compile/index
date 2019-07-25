@@ -1,0 +1,40 @@
+$ Compile SQLite
+
+
+{ Windows / Visual Studio
+
+  Apparently, `tclsh.exe` is needed. It can be downloaded from → https://bitbucket.org/tombert/tcltk/downloads/tcltk85-8.5.19-14.tcl85.Win10.x86_64.tgz
+
+  After downloading it, → Windows/dirs/Windows/System32/tar_exe[`tar.exe`] (pre-installed with → Windows/versions/10[Windows Version 10]) can be used to extract `tclsh.exe` and `tcl85.dll`:
+code {
+rem tar -xf tcltk85-8.5.19-14.tcl85.Win10.x86_64.tgz  *tclsh.exe  *tcl85.dll
+rem move  tcltk85-8.5.19-14.tcl85.Win10.x86_64\bin\* %userprofile%\bin
+tar -xf tcltk85-8.5.19-14.tcl85.Win10.x86_64.tgz
+set PATH=%cd%\tcltk85-8.5.19-14.tcl85.Win10.x86_64\bin;%path%
+code }
+
+  Possibly, an `init.tcl` file should now be created under the user's home directory.
+
+  In order to prevent *Error: NMAKE : fatal error U1073: don't know how to make '..\manifest'*:
+code {
+→ Windows/dirs/Windows/System32/fsutil_exe/file[fsutil file] createNew manifest
+fsutil file createNew manifest.uuid
+code }
+
+code {
+mkdir bld
+cd    bld
+
+rem nmake /f ..\Makefile.msc TOP=..
+nmake /f ..\Makefile.msc TOP=.. sqlite3.c
+nmake /f ..\Makefile.msc TOP=.. sqlite3.dll
+nmake /f ..\Makefile.msc TOP=.. sqlite3.exe
+code }
+
+code {
+nmake /f ..\Makefile.msc TOP=.. test
+code }
+  TODO: test creates lots of *fatal error C1083: Cannot open include file: 'tcl.h': No such file or directory*.
+
+
+}
