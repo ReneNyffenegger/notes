@@ -1,13 +1,124 @@
 $ diskpart.exe
 
-`diskpart.exe` can be used to display and configure → Windows/file-system[file system] → Windows/file-system/partition[partitions].
+`diskpart.exe` can be used to display and configure → Windows/file-system[file system] → Windows/file-system/partition[partitions]. It is a command line program and thus can be used
+ in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`].
 
 { list disk
 
-  `list disk` can be used to show if a → hardware/harddisk/index uses a → hardware/harddisk/MBR (column `Gpt` contains no star), or a → hardware/harddisk/GPT (column `Gpt` contains a star).
+ `list disk` shows the disks.
+
+code {
+DISKPART> list disk
+
+  Disk ###  Status         Size     Free     Dyn  Gpt
+  --------  -------------  -------  -------  ---  ---
+  Disk 0    Online          476 GB    14 MB        *
+  Disk 1    Online         1947 MB    12 MB
+code }
+
+
+  `list disk` can be used to show if a → hardware/harddisk/index uses a → hardware/harddisk/MBR[MBR] (column `Gpt` contains no star), or a → hardware/harddisk/GPT (column `Gpt` contains a star).
+
+  Note: the *Free* column (which in the example above shows 14 MB) does not say how much space is free in the → Windows/file-system[file system] but rather how much space is not allocated for a file system.
 
 }
+
+{ select disk #diskpart-select-disk
+
+ `select disk n` shifts focus on the nth disk.
+code {
+DISKPART> select disk 0
+code }
+
+  Selecting a disk is needed, for example, to → #diskpart-list-partition[list a disk's partition].
+
+
+}
+{ list partition #diskpart-list-partition
+
+ `list partition` shows the → Windows/file-system/partition[partitions] of the → #diskpart-select-disk[selected] disk.
+
+}
+{ list volume
+
+  `list volume` shows the volumes.
+
+code {
+DISKPART> list volume
+
+  Volume ###  Ltr  Label        Fs     Type        Size     Status     Info
+  ----------  ---  -----------  -----  ----------  -------  ---------  --------
+  Volume 0     C   OS           NTFS   Partition    475 GB  Healthy    Boot
+  Volume 1         WINRETOOLS   NTFS   Partition    990 MB  Healthy
+  Volume 2         ESP          FAT32  Partition    650 MB  Healthy    System
+  Volume 3     D                FAT    Removable   1935 MB  Healthy
+code }
+
+ `list volume` can be abbreviated with `lis vol`.
+
+}
+{ select volume
+
+code {
+select volume 3
+code }
+
+  With a selected volume, another `list volume` shows a star to the left side of the selected volume.
+
+ `select volume` can be abbreviated with `sel vol`.
+
+}
+{ filesystems
+
+ `filesystems` shows the supported → Windows/file-system[file systems] on a volume.
+
+code {
+DISKPART> filesystems
+
+Current File System
+
+  Type                 : FAT
+  Allocation Unit Size : 32K
+  Flags : 00000000
+
+File Systems Supported for Formatting
+
+  Type                 : NTFS
+  Allocation Unit Sizes: 512, 1024, 2048, 4096 (Default), 8192, 16K, 32K, 64K, 128K, 256K, 512K, 1024K, 2048K
+
+  Type                 : FAT (Default)
+  Allocation Unit Sizes: 32K (Default), 64K
+
+  Type                 : FAT32
+  Allocation Unit Sizes: 512, 1024, 2048, 4096 (Default), 8192, 16K
+
+  Type                 : exFAT
+  Allocation Unit Sizes: 512, 1024, 2048, 4096, 8192, 16K, 32K (Default), 64K, 128K, 256K, 512K, 1024K, 2048K, 4096K, 8192K, 16384K, 32768K
+code }
+
+}
+{ format
+
+ `format` formats the selected volume
+
+code {
+DISKPART> format fs=fat
+code }
+
+}
+
+{ Scripts
+
+  `diskpart` can be invoked with the `/s` command to run scripts:
+code {
+diskpart /s theScript.txt
+code }
+
+}
+
+
 sa:
 
+  The → Linux/shell[Linux shell command `parted`].
 
   → Windows/dirs/Windows/System32/cmd_exe/commands
