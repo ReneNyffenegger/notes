@@ -2,34 +2,21 @@ $ Accessing and calling DLLs from VBA (Visual Basic for Applications)
 
 These are some findings when I experimented with calling a → Windows/development/Portable-Executable/DLL[DLL] from → development/languages/VBA[Visual Basic for Applications].
 
-I created the DLL from → development/languages/C-C-plus-plus/C[c] sources. 
+I created the DLL from → development/languages/C-C-plus-plus/C[C] sources. 
 
 Generally, functions that are exposed by the DLL to be called from VBA need to be declared with the`→ development/languages/C-C-plus-plus/calling-convention#stdcall[__stdcall]` attribute 
 (→ development/languages/C-C-plus-plus/calling-convention).
 
 In the VBA source code, the functions to be called in the DLL are made known to VBA with the → development/languages/VBA/language/statements/declare[`declare` statement].
 
-With the → development/languages/C-C-plus-plus/GCC[GNU compiler] (→ Windows/development/MinGW), I created
-the DLLs in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] like so:
-code {
-gcc -c dll.c
-gcc -shared dll.o -o the.dll -Wl,→ development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[--add-stdcall-alias]
-code }
-The → development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[`--add-stdcall-alias`] → development/languages/C-C-plus-plus/GCC/options/Wl[linker option] is needed to *undecorate*
-the exported function names.
-
-
-With Microsofts Compiler, I created the DLLs like so
-code {
-cl /LD dll.c user32.lib /Fethe.dll /link /def:dll.def
-code }
-I didn't find any option in `cl` to undecorate exported function names, therefore, I needed a `dll.def` file.
-
 The first test was to pass values → development/languages/VBA/Calling-DLLs/byRef-byVal[`byVal` and `byRef`].
 
 In the next test, I tried to → development/languages/VBA/Calling-DLLs/pass-null-pointers[pass null pointers] to the DLL.
 
 This test tried to pass → development/languages/VBA/Calling-DLLs/pointer-to-struct[pointers to structs (`type`)].
+
+→ development/languages/VBA/Calling-DLLs/return-char-array[Returning a `char` array] demonstrates how a character (`char`) array that is returned from a DLL is converted to a multibyte String (that VBA internally uses)
+using the → Windows/development/WinAPI[WinAPI] function `MultiByteToWideChar`.
 
 It is even possible to return an → development/languages/VBA/language/arrays[array] of → development/languages/VBA/language/datatypes/string[strings] from the dll which is
 demonstrated in → development/languages/VBA/Calling-DLLs/return-an-array-of-strings[this test].
@@ -38,6 +25,59 @@ In → development/languages/VBA/Calling-DLLs/callback[this example], I demonstr
 
 → development/languages/VBA/Calling-DLLs/pass-object-and-call-method[This example] tries to pass a
 → development/languages/VBA/language/datatypes/object[VBA object] to a DLL and have the DLL invoke a member method on the class.
+
+{ Compiling the sources
+
+  The sources for these tests are → ReneNyffenegger/VBA-calls-DLL[in my Github project `VBA-calls-DLL`].
+
+  All C sources are named `dll.c` and located in their own subdirectory. The subdirectories also come with a `*.bas` file that then uses the compiled DLL.
+
+  { GNU compiler
+
+    With the → development/languages/C-C-plus-plus/GCC[GNU compiler] (→ Windows/development/MinGW), I created
+    the DLLs in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] like so:
+
+code {
+gcc -Wall -Werror -c dll.c
+gcc -shared dll.o -o the.dll -Wl,→ development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[--add-stdcall-alias]
+code }
+
+    The → development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[`--add-stdcall-alias`] → development/languages/C-C-plus-plus/GCC/options/Wl[linker option] is needed to *undecorate*
+    the exported function names.
+
+    TODO: It is unclear what to do if the VBA code runs in a → development/languages/VBA/language/32-vs-64-bit[32-bit environment] but only a 64-bit → Windows/development/MinGW compiler is available.
+    Using the → development/languages/C-C-plus-plus/GCC/options/m_lowercase[`-m32`] option of gcc resulted in a linker error.
+
+  }
+  { Microsoft's (visual?) compiler
+
+    With Microsofts Compiler, I created the DLLs like so
+code {
+→ Windows/development/Visual-Studio/cl[cl] /LD dll.c user32.lib /Fethe.dll /link /def:dll.def
+code }
+
+    I didn't find any option in `cl` to undecorate exported function names, therefore, I needed a `dll.def` file.
+
+  }
+
+}
+{ Specifying the path to the DLL
+
+  In order for the VBA run time envioronment to find the DLL, the direcotry path to the DLL needs to be either in the → Windows/development/environment-variables#win-envvar-path[`%PATH%` environment variable] or
+  the full path to the dll needs to specified in the → development/languages/VBA/language/statements/declare[`declare` statement].
+
+  The directory path to the DLL can be added to the PATH variable in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] like so
+code {
+C:\Path\do\directory\where\dll\was\compiled> PATH=%CD%;%PATH%
+code }
+
+  Excel can then be started with a variation of
+code {
+C:\Path\do\directory\where\dll\was\compiled> → Windows/dirs/Program-Files/Microsoft-Office/root/OfficeN/EXCEL_EXE["c:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE"]
+code }
+
+
+}
 
 { TODO
 
