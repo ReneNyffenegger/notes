@@ -1,9 +1,22 @@
-$ Accessing and calling DLLs from VBA: returning a char array
+$ Accessing and calling DLLs from VBA: returning a string
 
-This example tries to demonstrate how it is possible to return a character (`char`) array from a DLL and to convert it to a multibyte String (that VBA internally uses)
-using the → Windows/development/WinAPI[WinAPI] function `MultiByteToWideChar`.
+This example tries to explore various ways to return a string from a → Windows/development/Portable-Executable/DLL[DLL] to a
+→ development/languages/VBA[Visual Basic for Application] environment.
 
 { dll.c
+
+  The DLL exposes four functions.
+
+  The first function (`charArray`) eturns a pointer to a `const char` (That is a `const char*`). The VBA code that receives the char-array needs then to convert the single byte array to a multi byte array (taht VBA internally uses to
+  store → development/languages/VBA/language/datatypes/string[strings]) with the WinAPI function `MultiByteToWideChar`.
+
+  The second function (`wcharArray`) returns a wide character array (`const wchar_t*`). It turns out that this is still not sufficient for VBA to be recognized as VBA-String. I *guess* this is because VBA expects a BSTR-string, not just
+  a wide-character string. So, the VBA code has the function `wcharPtrToString` which creates such a string.
+
+  The third function (`bstr`) returns a `BSTR` which is created by the WinAPI function `SysAllocString()`. Although the returned value can now be directly assigned to a
+  → development/languages/VBA/language/datatypes/string[`string`], the String contains the null character that intersperses the letters in the wide charater string.
+
+  The fourth function (`bstr_c`) also returns a `BSTR`, but this time, `SysAllocString` is not given a wide character string but an ordinary C-string. This seems to finally work as intended.
 
   gh|VBA-calls-DLL|/return-char-array/dll.c||
 
@@ -16,6 +29,11 @@ using the → Windows/development/WinAPI[WinAPI] function `MultiByteToWideChar`.
 { dll.def
 
   TODO …
+
+}
+{ TODO
+
+  How is it possible to return a string that contains special characters (such as the smiley etc.)?
 
 }
 sa:

@@ -15,8 +15,7 @@ In the next test, I tried to → development/languages/VBA/Calling-DLLs/pass-nul
 
 This test tried to pass → development/languages/VBA/Calling-DLLs/pointer-to-struct[pointers to structs (`type`)].
 
-→ development/languages/VBA/Calling-DLLs/return-char-array[Returning a `char` array] (commonly referred to as *string*) demonstrates how a character (`char`) array that is returned from a DLL is converted to a multibyte String (that VBA internally uses)
-using the → Windows/development/WinAPI[WinAPI] function `MultiByteToWideChar`.
+→ development/languages/VBA/Calling-DLLs/return-char-array[This example] tries to explore various ways to return a string from a DLL.
 
 It is even possible to return an → development/languages/VBA/language/arrays[array] of → development/languages/VBA/language/datatypes/string[strings] from the dll which is
 demonstrated in → development/languages/VBA/Calling-DLLs/return-an-array-of-strings[this test].
@@ -57,6 +56,15 @@ code {
 code }
 
     I didn't find any option in `cl` to undecorate exported function names, therefore, I needed a `dll.def` file.
+
+  }
+  { Referencing additional libraries
+
+    The → development/languages/VBA/Calling-DLLs/return-char-array[returning a string] example uses the `SysAllocString` → Windows/development/WinAPI[WinAPI] call which is implemented in
+    → Windows/dirs/Windows/System32/oleaut32_dll[`oleaut32.dll`]. Thus, at least with the GNU compiler, `oleaut32.lib` needs to be linked as well:
+code {
+gcc -shared dll.o -loleaut32 -o the.dll -Wl,--add-stdcall-alias
+code }
 
   }
 
