@@ -66,6 +66,13 @@ code }
   → development/databases/SQL-Server/T-SQL/functions/object_id[see here].
 
 }
+{ openquery
+
+ `openquery(LinkedSrv, 'select …')` executes a *pass-through* query on the specified *linked server* (first parameter).
+
+  A new linked server can be added with `sp_addLinkedServer`, the names of the currently added linked servers can be determined with `sp_linkedServers`.
+
+}
 { openrowset
 
   → development/databases/SQL-Server/T-SQL/functions/rowset/openrowset[`openrowset`] allows to query → development/Data[data] from an → development/databases/OLE-DB capable data source.
@@ -83,9 +90,24 @@ code }
 }
 { str
 
-  `str(expr)` / `str(expr, len)` / `str(expr, len, dec-places)`
+ `str(expr)` / `str(expr, len)` / `str(expr, len, dec-places)`
 
   gh|about-MSSQL|/t-sql/functions/str.sql||
+
+}
+{ stuff
+
+  `stuff(string, start_pos, length, replace_string)` replaces `length` characters from `start_pos` in `string` with `replace_string`.
+
+  `stuff` can be used to remove the first `n` characters from a string: `stuff(string, 1, n, '')`.
+
+code {
+select
+  stuff('1234567890', 5, 2, 'abcd'), -- 1234abcd7890
+  stuff('1234567890', 5, 0, 'abcd'), -- 1234abcd567890
+  stuff('1234567890', 5, 2, ''    ), -- 12347890
+  stuff('1234567890', 1, 4, ''    )  -- 567890
+code }
 
 }
 { substring
@@ -94,6 +116,12 @@ code }
 code {
 select substring('1234567890', 5, 3) --> 567
 code }
+
+}
+{ suser_sname
+
+ `suser_sname` returns the login name associated with a security identification number (SID). When called without the optional parameter, it returns the name of the
+  current security context.
 
 }
 { sysdatetime
