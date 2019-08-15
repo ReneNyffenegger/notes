@@ -20,9 +20,37 @@ The `DBI` package defines a generic → development/databases[database] interfac
   → development/languages/R/packages/DBI/dbDataType[`DBI::dbDataType(dbiCon, rObj)`] returns a proposed → development/databases/SQL/data-types[SQL (database) data type] with which an
   → development/languages/R/object[R objects] should be stored on a specific database backend.
 
-  `dbExistsTable(con, tab)` checks if a table exists.
+  { dbExistsTable
 
-  `dbColumnInfo` describes a result set (that is: a `DBIResult`).
+    `dbExistsTable(con, tab)` checks if a table exists.
+
+  }
+  { dbColumnInfo
+
+    `dbColumnInfo` describes a result set (that is: a `DBIResult`).
+
+  }
+  { dbListFields
+
+    `dbListFields(con, 'tab_name')` returns a → development/languages/R/data-structures/vector[vector] that contains the names of the columns of the
+    → development/databases/SQL/table[table] named `*tab_name*.
+
+    Notably, it does *not* return the columns' → development/databases/SQL/data-types[data types] and I didn't find a straight forward method in DBI that would to that.
+    However, the column types of a tables can be queried a bit combersomly with → development/databases/SQL/select[`select * from table`] combined with a
+    → development/databases/SQL/select/limiting-resultset[SQL limit clause that truncates the returned record set to 0 records]:
+code {
+db          <- dbConnect(…)
+
+empty_res   <- dbSendQuery(db_omis_lab, 'select top 0 * from data')
+col_info    <- dbColumnInfo(empty_res)
+dbClearResult(empty_res)
+code }
+
+    Notes:
+      • It seems that `dbSendQuery` cannot be used here.
+      • `col_info` is a → development/languages/R/data-structures/data-frame[data frame] with two columns, named `name` and `type`.
+
+  }
 
 }
 { TODO
