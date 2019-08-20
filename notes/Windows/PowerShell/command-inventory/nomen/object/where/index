@@ -1,0 +1,67 @@
+$ PowerShell cmdLet where-object
+
+The →`where-object` → Windows/PowerShell/language/cmdlet[cmdLet] allows to specify a condition that determines which objects are kept in the → Windows/PowerShell/pipeline[pipeline].
+-
+Object that don't satisfy the specified conditions are discarded from the pipeline, that is, they are not passed to the next → Windows/PowerShell/language/cmdlet[cmdLet] in the pipeline.
+-
+Thus, the `where-object` cmdLet resembles the → development/databases/SQL/where[SQL `where` clause]. Accordingly, an → Windows/PowerShell/language/alias[alias] for → `where-object` is `where`.
+
+{ Ways to construct a where-object command
+
+  There are two methods to construct a `where-object` command:
+    • Comparison statement
+    • → Windows/PowerShell/language/scriptblock[Script block]
+
+}
+{ Example
+
+  The → Windows/PowerShell/command-inventory/nomen/command/get[`get-command` cmdLet] allows to find cmdLets whose verb is → Windows/PowerShell/command-inventory/verbs/format[`format`] with is `-verb` arguemnt:
+code {
+PS C:\> get-command -verb format
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Function        Format-Hex                                         3.1.0.0    Microsoft.PowerShell.Utility
+Function        Format-Volume                                      2.0.0.0    Storage
+Cmdlet          Format-Custom                                      3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-List                                        3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-SecureBootUEFI                              2.0.0.0    SecureBoot
+Cmdlet          Format-Table                                       3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-Wide                                        3.1.0.0    Microsoft.PowerShell.Utility
+code }
+
+  However, I also get the commands whose commandType is Function which I don't want to see. I can exclude them by → Windows/PowerShell/pipeline[pipelining] them into the `where-object`:
+code {
+PS C:\> get-command -verb format | where-object commandType -eq cmdLet
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Cmdlet          Format-Custom                                      3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-List                                        3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-SecureBootUEFI                              2.0.0.0    SecureBoot
+Cmdlet          Format-Table                                       3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-Wide                                        3.1.0.0    Microsoft.PowerShell.Utility
+code }
+
+  I am much happier now with the result. But still, I want to get rid of the `format-secureBootUEFI` cmdLet because it does not fit in the list. So I need to add a second criteria.
+  -
+  It seems that → Windows/PowerShell is not capable of specifying multiple criterias without → Windows/PowerShell/language/scriptblock[script block]. So, I use a script block for the second criteria.
+code {
+PS C:\> get-command -verb format | where-object { $_.commandType -eq 'cmdLet' -and $_.source -match 'PowerShell' }
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Cmdlet          Format-Custom                                      3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-List                                        3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-Table                                       3.1.0.0    Microsoft.PowerShell.Utility
+Cmdlet          Format-Wide                                        3.1.0.0    Microsoft.PowerShell.Utility
+code }
+
+  Note: when using script blocks, the object on which the criterias are performed needs to be referenced by the
+  → Windows/PowerShell/language/variable/automatic/psItem[automatic variable `$_`].
+
+}
+
+sa:
+
+  → Windows/PowerShell/command-inventory/nomen/object
