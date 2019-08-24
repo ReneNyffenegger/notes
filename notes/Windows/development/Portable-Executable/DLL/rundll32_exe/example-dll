@@ -1,0 +1,50 @@
+$ Example dll to demonstrate rundll32.exe
+
+This is an attempt to demonstrate how a → Windows/development/Portable-Executable/DLL can be created whose functions are called in a console (such as → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] or
+→ Windows/PowerShell) via → Windows/development/Portable-Executable/DLL/rundll32_exe[`rundll32.exe`].
+
+{ EntryPoint
+
+  A (32-bit) function that can be called with `rundll32.exe` must be declared with → development/languages/C-C-plus-plus/calling-convention#stdcall[stdcall] calling convention. Apparently,
+  this can be achieved with the `CALLBACK` → development/languages/C-C-plus-plus/preprocessor/macros[macro]:
+code {
+void CALLBACK EntryPoint (HWND hWnd, HINSTANCE hInst, LPSTR  lpszCmdLine, int nCmdShow); // Windows 95 etc.
+void CALLBACK EntryPointW(HWND hWnd, HINSTANCE hInst, LPWSTR lpszCmdLine, int nCmdShow); // Windows NT, 2K XP etc.
+code }
+
+  Under Windows NT and similar, `rundll32.exe` first tries to locate `EntryPointW` (using `LPWSTR`), then `EntryPointA` (using `LPSTR`) and then `EntryPoint` (again using `LPSTR`).
+
+}
+{ Source file
+
+  The following → development/languages/C-C-plus-plus/C source file exposes three functions: `func_1`, `func_1W` and `func_2` according to the EntryPoint specification given above;
+
+  gh|Windows-development|/rundll32.exe/dll.c||
+
+}
+
+{ .def file
+
+  If the source file is compiled with → Windows/development/Visual-Studio/cl[Microsoft's visual compiler], a → Windows/development/Portable-Executable/DLL/export-table/def-file/create-dll[.def file] is needed:
+
+  gh|Windows-development|/rundll32.exe/dll.def||
+
+}
+{ Compiling the source file
+
+  The source file is compiled into a DLL with
+code {
+→ Windows/development/Visual-Studio/cl[cl] /LD dll.c user32.lib → Windows/development/Visual-Studio/cl/options/F/e[/Fe]some.dll /link /def:dll.def
+code }
+
+}
+{ Calling the functions in the DLL
+
+  The functions in the DLL can now be called with rundll32.exe according to the → Windows/development/Portable-Executable/DLL/rundll32_exe#rundll32-syntax[syntax] needed:
+
+code {
+→ Windows/development/Portable-Executable/DLL/rundll32_exe[rundll32] some.dll,func_1 some arguments
+→ Windows/development/Portable-Executable/DLL/rundll32_exe[rundll32] some.dll,func_2 other arguments
+code }
+
+}
