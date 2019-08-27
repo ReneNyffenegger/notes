@@ -1232,7 +1232,7 @@ sub sub_sup { #_{
 sub code { #_{
   my $line = shift;
   return $line unless $pass == 2;
-  $line =~ s{`([^`]+)`}{ <code>$1</code>}g;
+  $line =~ s{`([^`]+)`}{<code>$1</code>}g;
   return $line
 } #_}
 
