@@ -3,7 +3,39 @@ $ tar.exe
 `tar.exe` is the *bsdtar → development/archive-files[archive] tool*.
 With → Windows/versions/10 (build 17063), it comes preinstalled under → Windows/dirs/Windows/System32[`C:\Windows\System32`].
 
+{ Commands
 
+  When `tar.exe` is invoked, one of five commands (aka *mode specifiers*) must be specified with:
+    • `-c` to create an → development/archive-files[archive].
+    • `-r` to add a file to an archive or replace a file in an archive.
+    • `-t` to display the contents of an archive file
+    • `-u` to update an archive (Similar to `-r`, but only replaces files that are newer than those in the archive)
+    • `-x` to extract files from an archive
+
+}
+{ The -f flag
+
+  By default, without specifying a file with `-f`, `tar.exe` tries to operate on a file (device?) named `\\.\tape0`. Of course, on most (if not virtually all) Windows systems, such a file does not exist and
+ `tar.exe` errors out with *tar.exe: Error opening archive: Failed to open '\\.\tape0'*.
+
+  Therefore, it is necessary to specify the → development/archive-files[archive file] with the `-f` option.
+
+  The `-f` can be *appended* to the mode specifier. The following two commands are equivalent:
+code {
+C:\path\to\directory> tar -t -f some.zip
+C:\path\to\directory> tar -tf   some.zip
+code }
+
+
+}
+{ Listing the contents of an archive file
+
+  The contents of an archive file can be displayed with the `-t` command:
+code {
+C:\path\to\directory> tar -tf some.zip
+code }
+
+}
 { Extracting (untarring) a file
 
   In order to extract the contents of a file, the options `-x` and `-f` need to be given. `-f` specifies the filename of the tar file. `-x` tells `tar.exe` to extract all files.
@@ -11,6 +43,12 @@ With → Windows/versions/10 (build 17063), it comes preinstalled under → Wind
 code {
 C:\path\to\directory> tar -xf someFile.tgz
 code }
+
+  { Keep existing files
+
+?   In order to make sure that existing files are not overwritten when files are extracted from an archive, the `-k` flag does that.
+
+  }
 
 }
 { Only extracting patterns
@@ -29,7 +67,7 @@ code {
 C:\path\to\directory> tar -xf someFile.tgz -C %TEMP%
 code }
 
-  If the `-C` option is combined with file names to be actracted, the file names need to be placed *after* the `-C` option:
+  If the `-C` option is combined with file names to be extracted, the file names need to be placed *after* the `-C` option:
 code {
 C:\path\to\directory> tar -xf someFile.tgz -C %TEMP% readme.txt source. …
 code }
