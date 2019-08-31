@@ -1,0 +1,22 @@
+$ Oracle Manageability Monitor Lite Process (MMNL)
+
+The *Manageability Monitor Light process* collects statistics about *active* sessions and stores them in the *Active Session History* (ASH) buffer.
+
+→ development/databases/Oracle/installed/dynamic-performance-views/active/session_history[v$active_session_history] view.
+
+The staticis include values such as
+  • user id,
+  • state,
+  • machine,
+  • SQL text
+ 
+Some data is also collected from → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] and → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`] views.
+
+The ASH is a rolling buffer in memory: new data overwrites old data when the buffer is full. However, before the old data is overwritten, → development/databases/Oracle/architecture/processes/background/MMON takes a snapshot
+and  MMNL flushes (every 10th record of) the ASH buffer into the → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history[`dba_hist_active_session_history`] view in the AWR.
+
+
+MMNL is a → development/databases/Oracle/architecture/processes/background[background process].
+
+sa:
+  → development/databases/Oracle/architecture/processes/background/MMON
