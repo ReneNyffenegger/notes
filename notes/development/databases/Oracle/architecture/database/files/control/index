@@ -7,8 +7,41 @@ The controlfile is a small binary file that stores some important characteristic
   • database name
   • database creation timestamp
   • names and locations (filesystem paths) of → development/databases/Oracle/architecture/database/files/data[data files] and → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files]
+  • (?) last checkpoint SCN
+Additionally, → development/databases/Oracle/tools/RMAN[RMAN] uses the control file to store a history of → development/databases/Oracle/adminstration/backup-recovery[backup] → development/Data/metadata.
 
 The control file is created by the `create database` statement.
+
+A control file might be stored in the *fast recovery area*.
+
+{ Default location of control files
+
+  The default location for control files can be found with
+code {
+select
+   default_value
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/parameter[v$parameter]
+where
+   name = 'control_files';
+code }
+
+}
+
+{ Dictionary views
+
+  Some dictionary views that are related to control files are:
+  table { ll
+
+    → development/databases/Oracle/installed/dynamic-performance-views/database[`v$database`] ☰ This view displays some (most, all?) of the information that is stored in the control file.
+    → development/databases/Oracle/installed/dynamic-performance-views/controlfile[`v$controlfile`] ☰ Shows the physical location of the control files.
+    `v$control_record_section` ☰ Shows the sections that are stored in a control file.
+    → development/databases/Oracle/installed/dynamic-performance-views/parameter[`v$parameter`] ☰ `select value from v$parameter where name = 'control_files'` to get the locations of the control files as specified with the → development/databases/Oracle/adminstration/init-parameters#control_files[`control_files` init parameter].
+
+  table }
+
+}
+
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views/controlfile

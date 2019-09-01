@@ -6,6 +6,84 @@ A backup needs to include all crucial parts of a → development/databases/Oracl
   • the server parameter file
   • control file.
 
+{ Logical and physical backups
+
+  table { ll
+    ~Logical~ ☰ ~Physical~
+
+     Tables, stored procedures etc. ☰ Copies of → development/databases/Oracle/architecture/database/files/data[database files]
+     Extracted with → development/databases/Oracle/tools/Data-Pump ☰ → development/databases/Oracle/tools/RMAN or operating system utilities
+     Slower but finer granularity ☰ Fast but larger granularity
+     Complete transportability ☰ Limited transportability
+
+  table }
+
+}
+{ Whole and partial database backup
+
+  A *whole database backup* is a backup of
+    • every → development/databases/Oracle/architecture/database/files/data[data file]
+    • the → development/databases/Oracle/architecture/database/files/control
+
+  Partial database backup only backs up a limited subset of the data such as
+    • a set of → development/databases/Oracle/architecture/database/logical-structures/tablespace[tablespaces]
+    • a set of → development/databases/Oracle/architecture/database/files/data[data files]
+
+}
+{ Consistent and inconsistent backups
+
+
+  A *whole database backup* is either consistent or inconsistent.
+  
+  { Consistent backup
+
+    In a *consistent* backup, all (read/write) → development/databases/Oracle/architecture/database/files/data[data files] and → development/databases/Oracle/architecture/database/files/control[control files] have
+    the same *checkpoitn SCN*. This guarantees that the files contain all changes up to this SCN.
+
+    A consistent backup can only be taken after a consistent shutdown.
+
+    After *restoring* a consistent backup, *recovery* is not required.
+
+    Databases running in *noarchivelog* mode can only be (securly) backed up in a consistent fashion because they need recovery after restoration and recovery is only possible with archived redo log files.
+
+
+  }
+
+}
+{ Oracle Secure Backup (SBT)
+
+  SBT  offers a centralized tape backup management.
+
+  The SBT interface allows → development/databases/Oracle/tools/RMAN to back up and restore → development/databases/Oracle/architecture/database/files[database files] to and from
+    • tape (almost every tape drive and library in SAN and → hardware/SCSI[SCSI] environments are supported)
+    • internet-based Web Services such as Amazon S3.
+
+
+}
+{ Alternatives to RMAN
+
+  Some (limited) alternatives to RMAN are
+    • → Linux/shell/commands/dd[`dd`]
+    • The → development/databases/Oracle/SQL-Plus command → development/databases/Oracle/SQL-Plus/recover[`recover`]
+
+}
+{ Fast recovery area
+
+  The *fast recovery area* is an (optional) disk location that stores recovery-related files such as
+    • → development/databases/Oracle/architecture/database/files/control[control files]
+    • → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log] copies
+    • archived redo log files
+    • flashback logs
+    • → development/databases/Oracle/tools/RMAN backups.
+
+
+? The fast recover area is either
+    • a database managed directory
+    • a file system
+    • an Oracle ASM disk group
+
+}
+
 sa:
 
   → development/databases/Oracle/tools/RMAN
