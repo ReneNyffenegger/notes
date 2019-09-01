@@ -50,6 +50,84 @@ A backup needs to include all crucial parts of a → development/databases/Oracl
   }
 
 }
+{ Image copies and backup sets
+
+  An image copy is an exact copy of data files, control files and archived redo log files.
+
+  A backup set is a backup in a propriety format.
+
+  Image copies can be created with either → development/databases/Oracle/tools/RMAN or operating system utilities. Backup set can only be created with RMAN.
+    
+
+
+}
+{ Data file recovery
+
+  Data file recovery repairs a lost or damaged current → development/databases/Oracle/architecture/database/files/data[data file] or
+  → development/databases/Oracle/architecture/database/files/control[control file].
+  -
+  It can also recover lost data changes after a → development/databases/Oracle/architecture/database/logical-structures/tablespace went offline without the `offline normal` option.
+
+  In order to perform data file media recovery,
+    • the data file must be offline, or
+    • the database is not open
+
+
+}
+{ Media recovery
+
+  A → development/databases/Oracle/architecture/database cannot be opened if online data needs media recovery.
+
+?  Media recovery is necessary after
+    • restoring a backup of a data file or control file or
+    • if a data file was taken offline without the `offline normal` option
+
+  Media recovery applies archived redo log files to restored backups.
+
+  Media recovery is not an automatic process: it must be started by a user 
+
+}
+{ Instance recovery
+
+  Instance recovery automatically applies changes to online files
+
+}
+{ Complete and incomplete recovery
+
+  { Complete recovery
+
+    Complete recovery applies *all* redo log changes of archived log files and the online redo logs to a backup.
+
+    Compleate recovery is usually performed after a *media failure*.
+
+    Complete recovery is possible on
+      • databases
+      • tablespaces
+      • data files
+
+  }
+  { Incomplete recovery
+
+    An incomplete recovery only applies a part of the available redo log.
+
+    An imcomplete recovery is usually performed after a *human error*.
+
+    In order to perform an incomplete recovery, a backup must be found that is older than the time to which the recovery is intended to be done. Then, the database needs to
+    opened with the `resetlogs` option (to reset the logs which creates a new stream of log sequence numbers starting with 1).
+    
+    Incomplete recovery is also referred to as *database point in time recovery* (DBPITR). → development/databases/Oracle/Features_Options_Management-Packs/Flashback[Flashback Database] might be an alternative to DBPITR
+    if current data files are available.
+
+  }
+}
+{ Data Recovery Advisor
+
+  The *Data Recovery Advisor*
+    • diagnoses data failures,
+    • presents repair options and
+    • carries out and verifies repairs
+
+}
 { Oracle Secure Backup (SBT)
 
   SBT  offers a centralized tape backup management.
