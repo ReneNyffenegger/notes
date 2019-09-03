@@ -1,0 +1,61 @@
+$ RMAN channel
+@ channel
+
+An → development/databases/Oracle/tools/RMAN channel is needed in order to perform → development/databases/Oracle/tools/RMAN operations on a *media manager* (see → development/databases/Oracle/tools/RMAN/media-management-software)
+The channel handles communication between RMAN and the (third party) media manager.
+Such a channel is allocated with the → development/databases/Oracle/tools/RMAN/commands/allocate[RMAN command `allocate`].
+
+? A channel is not needed if RMAN operates on a disk.
+
+
+{ Channel types
+
+  → development/databases/Oracle/tools/RMAN supports the two channel types
+    • → development/databases/Oracle/tools/RMAN/SBT
+    • disk (→ development/databases/Oracle/architecture/database/files/image-copy[image copies])
+}
+{ RMAN commands
+
+code {
+→ development/databases/Oracle/tools/RMAN/commands/configure#rman-configure-channel[configure channel] device type disk maxpiecesize 2G;
+→ development/databases/Oracle/tools/RMAN/commands/configure#rman-configure-channel[configure channel] device type disk format /tmp/%u;
+→ development/databases/Oracle/tools/RMAN/commands/allocate channel chnl_1 device type disk;
+code }
+
+}
+{ Format specifiers ( #rman-channel-format-specifier
+
+  The format specifiers determine the → development/databases/Oracle/tools/RMAN/backup-set/piece#rman-backup-piece-name[name of a backup piece].
+
+code {
+configure channel device type disk format '/u01/backup_df%t_s%s_s%p';
+code }
+
+  The format specifiers are introduced with a percent sign:
+    • `%d` the name of the → development/databases/Oracle/architecture/database
+    • `%t` → development/databases/Oracle/adminstration/backup-recovery/backup time stamp (four characters?)
+    • `%s` → development/databases/Oracle/tools/RMAN/backup-set number
+    • `%p` → development/databases/Oracle/tools/RMAN/backup-set/piece number
+    • `%U` can be used for most purposes in which case → development/databases/Oracle/tools/RMAN creates a unique file name
+
+}
+{ ASM disk location
+
+code {
+configure channel device type disk format '+dgroup1';
+code }
+
+}
+{ Parallel operations
+
+  Ideally, there is one channel for each *tape drive* or *physical disk*.
+
+code {
+configure device type sbt parallelism 4;
+code }
+
+}
+
+
+sa:
+  → development/databases/Oracle/tools/RMAN

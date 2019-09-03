@@ -1,21 +1,78 @@
 $ Oracle: fast recovery area
 @ fast recovery area
 
-The *fast recovery area* is a location on disk where files can be stored that are needed for → development/databases/Oracle/adminstration/backup-recovery/recovery such as:
-  • → development/databases/Oracle/architecture/database/files/control[control files]
-  • → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log] copies
-  • → development/databases/Oracle/architecture/database/files/archived-redo-log[archived redo log files]
-  • → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/flashback-logs.
-  • → development/databases/Oracle/tools/RMAN backups
+{ Location
 
-? The fast recover area is either
-    • a database managed directory
-    • a file system
-    • an Oracle ASM disk group
+  The fast recover area is located at one of the following
+    • a database managed directory (→ development/databases/Oracle/architecture/database/files/managed)
+    • a → Linux/filesystem/filesystems[filesystem]
+    • an → development/databases/Oracle/architecture/database/files/Automatic-Storage-Management/disk-group
 
-→ development/databases/Oracle/adminstration/init-parameters[Initialization paramters] related to the fast recover area are:
-  • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest[`db_recovery_file_dest`]
-  • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest_size[`db_recovery_file_dest_size`]
+   Raw disks are not supported.
+
+   The location is sest with the
+    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest[`db_recovery_file_dest` init parameter]
+
+}
+{ Transient and permanent files
+
+  A file in the *fast recovery area* is either *permanent* or *transient*.
+
+  Files that are used by the → development/databases/Oracle/architecture/instance are *permanent*. Those that are not used are *transient*.
+
+  Transient files will be removed after they have become obsolete as per the → development/databases/Oracle/adminstration/backup-recovery/backup/retention-policy.
+
+}
+{ Files that are stored in the fast recovery area
+
+  
+The *fast recovery area* is a location on disk where files can be stored that are needed for → development/databases/Oracle/adminstration/backup-recovery/recovery such as
+  table { ll
+      ☰ Permanent?
+   Multiplexed copies of the current → development/databases/Oracle/architecture/database/files/control[control files] ☰ ✓
+   → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log] copies ☰ ✓
+   → development/databases/Oracle/architecture/database/files/archived-redo-log[archived redo log files] ☰ ✗
+   Foreign → development/databases/Oracle/architecture/database/files/archived-redo-log[archived redo log files] ☰ ✗
+   → development/databases/Oracle/architecture/database/files/image-copy[Image copies] of → development/databases/Oracle/architecture/database/files/data[data files] and → development/databases/Oracle/architecture/database/files/control[control files] ☰ ✗
+   → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/flashback-logs ☰ 
+   → development/databases/Oracle/tools/RMAN/backup-set/piece[backup pieces] ☰ ✗
+   → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/flashback-logs ☰ ✗
+   ? → development/databases/Oracle/tools/RMAN backups ☰ ?
+table }
+
+}
+{ Size of the fast recovery area
+
+  The fast recovery area should be generously sized: the larger, the more useful it becomse (as is the case with everything, anyway).
+
+  The fast recovery area should have enough room to store a copy of all
+  → development/databases/Oracle/architecture/database/files/data[data files] of a → development/databases/Oracle/architecture/database as well as its
+  incremental backups.
+
+  If available space is an issue, then at least the most important → development/databases/Oracle/architecture/database/logical-structures/tablespace[tablespaces] and
+  → development/databases/Oracle/architecture/database/files/archived-redo-log[archived log files] that are not yet saved on tape should be stored in the FRA.
+  
+    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest_size[`db_recovery_file_dest_size`] (to set the → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/disk-quota)
+
+}
+{ Disabling the fast recovery area
+
+code {
+alter database flashback off
+code }
+
+}
+{ Init parameters
+
+  → development/databases/Oracle/adminstration/init-parameters[Initialization paramters] related to the fast recover area are:
+    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest[`db_recovery_file_dest`]
+    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest_size[`db_recovery_file_dest_size`] (to set the → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/disk-quota)
+    • → development/databases/Oracle/adminstration/init-parameters#db_flashback_retention_target[`db_flashback_retention_target`]
+
+}
+{ Misc
+
+  The fast recovery area was formerly referred to as *flash recovery area*.
 
 
-The fast recovery area was formerly referred to as *flash recovery area*.
+}
