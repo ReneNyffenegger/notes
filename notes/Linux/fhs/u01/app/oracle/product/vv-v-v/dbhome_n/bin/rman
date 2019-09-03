@@ -2,3 +2,60 @@ $ $ORACLE_HOME/bin/rman
 
 `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin[$ORACLE_HOME/bin]/rman` is the → development/databases/Oracle/tools/RMAN client.
 
+{ Starting RMAN #rman-client-start
+
+code {
+$ rman
+$ rman TARGET /
+$ rman TARGET user@db
+code }
+
+  `rman TARGET /` uses OS authentication and implicitely connects with SYSDBA → development/databases/Oracle/security/privileges[privilege].
+  -
+  In order to (explicitely) connect with OS authentication and use a different privilege, this is possible with something like
+code {
+$ rman target '"/ as sysdba"'
+$ rman target '"/ as sysbackup"'
+code }
+
+  In order to use password file authentication:
+code {
+$ rman target '"me@db as sysdba"'
+code }
+
+  Connecting to a → development/databases/Oracle/tools/RMAN/target-database without using a
+  → development/databases/Oracle/tools/RMAN/recovery-catalog:
+code {
+$ rman target / nocatalog
+code }
+
+}
+{ Ending RMAN #rman-client-exit
+
+code {
+RMAN> EXIT
+code}
+
+Note: `exit` is equivalent to `quit`
+
+}
+{ Pipe interface #rman-client-pipe
+
+  It is possible to send commands to `rman` with pipe-messages (→ development/databases/Oracle/installed/packages/dbms/pipe[`dbms_pipe`]).
+
+  The following command creates two pipes: `ORA$RMAN_PFEIFE_IN` and `ORA$RMAN_PFEIFE_OUT` which can be used by an RMAN client to communicate with RMAN:
+code {
+$ rman PIPE pfeife target /
+code }
+
+}
+{ Checking syntax
+
+  If rman is started with the `checksyntax` option, → development/databases/Oracle/tools/RMAN will only parse and check the commands, but not execute them. If it finds an error, it will notify the user with
+  a *RMAN-00558: error encountered while parsing input commands* message.
+code {
+$ rman checksyntax
+RMAN> …
+code }
+
+}
