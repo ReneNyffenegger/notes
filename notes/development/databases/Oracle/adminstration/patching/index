@@ -1,5 +1,239 @@
 $ Patching Oracle
 
+{ OPatch
+
+  OPatch is a set of (→ development/languages/Java based) utilities to apply and rollback patches to or from the Oracle software.
+
+  OPatch is located under → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch[`$ORACLE_HOME/OPatch`]:
+  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch/opatch[`$ORACLE_HOME/OPatch/opatch`]
+
+  Manually patching the software is called *binary patching*.
+
+  Log files are written to → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/cfgtoollogs/opatch[`$ORACLE_HOME/cfgtoollogs/opatch`]
+
+}
+{ OPatchAuto
+
+  OPatchAuto is used for *end-to-end* configuration patching.
+
+  Configuration patching uses a site's configuration information for the patch process. This simplifies most steps in the patching process.
+
+  OPatchAuto peforms the required steps for possibly a sequence of patches to *all* on all nodes in an organization in *one invoction*, thus greatly
+  eliminating the possibility of human errors.
+
+  OPatchAuto is: → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch/opatch[`$ORACLE_HOME/OPatch/opatchauto`]
+
+  OPatchAuto uses → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/srvctl[`srvctl`] to
+     • stop home
+     • start home
+     • get home status
+     • relocate → development/databases/Oracle/architecture/instance
+     • , etc.
+
+
+  { High level phases
+
+   Patching is performed in a sequence of phases. When all phases have been executed on a target node, the patching is completed.
+
+   table { ll
+     Init ☰ Bookeeping operation to initialize internal state needed for correction patching.
+     Shutdown ☰ Life-cycle operation that brings down run-time entities to permit patching.
+     Offline ☰ Configuration change operation to apply the patch content with the system down. Bits application happens here, for instance. So the opatch patch will be recorded to the homes OUI inventory in this phase.
+     Start-up ☰ Life-cycle operation that brings the shutdown entities back up again.
+     Online ☰ Configuration change operation apply patch content that requires that the systems be up. If these configuration changes have a system inventory, they will also be recorded to that system's inventory at this point.
+     Finalize ☰ Book-keeping operation to record that patch operation is complete.
+   table }
+
+  }
+  { Supported targets
+
+    OPatchAuto can apply patches to the following targets
+      • GI Home Shared
+      • GI Home Not Shared
+      • RAC Home Shared
+      • RAC Home Not Shared
+      • SIHA and SIDB
+
+  }
+  { Grid / RAC environment
+
+    { Prerequisites
+
+      A wallet with the necessary password credentials must be provided on the command line.
+      (→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch/auto/core/bin/patchingWallet_sh[`$ORACLE_HOME/OPatch/auto/core/bin/patchingWallet_sh`])
+
+      Node managers must be configured for start and stop operations.
+
+      Check if SSH is installed on each server
 code {
-opatch lsinventory
+rpm –qa | grep ssh.
 code }
+
+      The Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[Oracle home] should be backed up. (→ Linux/shell/commands/zip[`zip`],
+      → Linux/shell/commands/cp[`cp -r`], `tar` …)
+
+    }
+    { Steps
+
+       table { ll
+         Acquire patches required for your installation ☰
+         Review the README.txt file for the patch. ☰
+         Check for patch prerequisites. ☰ `opatchauto -analyze`
+         Apply patch ☰ 
+         Verify if patch was successfully applied to → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[Oracle home] ☰ `opatch -lsinventory`
+         Verify if software runs ok ☰ GI: `crsctl check status crs`, RAC: `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/srvctl[srvctl] status database –d <database>`
+         Troubleshoot application in case of a problem ☰ Review log file found under → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/cfgtoollogs/opatchauto[`$ORACLE_HOME/cfgtoollogs/opatchauto`]) / use `srvctl`
+         Rollback patch if problem not solvable ☰ `opatchauto rollback`
+       table }
+
+    }
+
+  }
+  { Patch file content
+
+code {
+_ Readme.txt (or) Readme.html
+  bundle.xml
+  automation
+          |_____ apply_automation.xml
+  |_____ rollback_automation.xml
+  Sub-patch1
+           |_____ etc/config/inventory.xml
+           |_____ etc/config/actions.xml
+           |_____ files/Subpatch1 'payload'
+  Sub-patch2
+           |_____ etc/config/inventory.xml
+           |_____ etc/config/actions.xml
+           |_____ files/Subpatch1 'payload'
+code }
+
+  }
+
+}
+{ Zero downtime patching (ZDT)
+
+  Zero downtime patching allows to roll out distributed patches to multiple clusters or an entire domain with a *single command*.
+
+}
+{ Process
+
+  { Identify patches
+
+?   Sources of patches might be:
+      • Critical Patch Update
+      • Security Alerts
+      • Third party bulletin
+      • Service Requests
+      • User documentation
+      • blogs
+      • …
+
+    { MOS
+
+      The single source of truth for patching is the Oracle Web site → development/databases/Oracle/adminstration/My-Oracle-Support (MOS, → https://support.oracle.com)
+
+      MOS has a specific tab named *Patches & Updates*. This page allows to search for the desired patch based on the specific configuration.
+
+      A useful search feature is *Recommended Patch Advisor*. It searches for recommended and mandatory patches for
+        • standalone products,
+        • product combinations, or
+        • products for a product stack.
+
+
+    }
+
+
+  }
+
+  { Download patches and latest OPatch utility
+
+    Sources:
+      • Oracle Support Services
+      • My Oracle Support
+      • Oracle Technology Network (OTN)
+
+    The latest OPatch utility can be downloaded from → https://updates.oracle.com/download/6880880.html (See also
+    Doc ID 224346.1 - *OPatch - Where Can I Find the Latest Version of OPatch?*)
+
+  }
+  { Backup to the Oracle Home
+
+    ?
+
+  }
+  { Identify targets
+  
+
+  }
+  { Apply on test system
+
+   In case of a problem: file a SR.
+
+  }
+  { Test patch
+
+  }
+  { Deploy patch
+
+    Apply patch in production.
+
+    Veriy patch application.
+
+  }
+
+}
+{ Integration in Cloud Control
+
+  OPatch can only patch *one* GI or → development/databases/Oracle/Options/real-application-clusters[RAC] at a time. This is still time consuming in a large and heterogenous environment.
+
+  Therefore, Oracle provides a *new patch management solution* that integrates OPatch and → development/databases/Oracle/adminstration/My-Oracle-Support[MOS] with
+  → development/databases/Oracle/tools/Enterprise-Manager/Cloud-Control.
+
+
+}
+{ Types of patches
+
+  table { lll
+
+  Interim patches ☰  ☰ contain a single bug fix or a collection of bug fixes provided as required
+  Interim patches for security bug fixes ☰ ☰ contain customer-specific security bug fixes
+  Diagnostic patches ☰ ☰ intended to help diagnose or verify a fix or a collection of bug fixes
+  Bundle Patch Updates ☰ BPU ☰ a cumulative collection of fixes for a specific product or component
+  Patch Set Updates ☰ PSU ☰ a cumulative collection of high impact, low risk, and proven fixes for a specific product or component and Security Patch Updates
+  Security Patch Updates ☰ SPU ☰ a cumulative collection of security bug fixes. SPUs were formerly known as Critical Patch Updates (CPU).
+  System Patch ☰ ☰ contains several sub-patches in a format that can be used by OPatchAuto.
+  Merge Label Request ☰ MLR ☰ a merge of two or more fixes. MLR creation requires a label for the new set of merged code and a Patch Set Exception
+
+  table }
+
+}
+
+{ Some commands
+
+  Determining already installed patches
+code {
+$ opatch lsinventory
+code }
+
+  Ensure that patch application prerequisites are met:
+code {
+$ opatch apply -report
+code }
+
+  Applying a patch (with id `12345678`):
+code {
+$ opatch apply /u01/download/patch/12345678
+code }
+
+  Applying multiple patches whose locations are stored in a file
+code {
+$ opatch napply  - -phBaseFile  ~/patch-locations
+code }
+  `~/patch-locations` contains (line by line) the paths where a patch is found.
+
+  Rolling back a patch
+code {
+$ opatch rollback -id 12345678
+code }
+
+} 
