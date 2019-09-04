@@ -1,2 +1,22 @@
 $ Oracle architecture: transaction
 @ transaction
+
+{ Committing a transaction
+
+  When a session wishes to → development/databases/Oracle/SQL/TCL/commit the changes it made, the redo log entries that belong to that transactions and that are still stored in the
+  → development/databases/Oracle/architecture/instance/SGA/redo-log-buffer need to be written
+  to disk so that is possible to → development/databases/Oracle/adminstration/backup-recovery/recovery[recovery] the transaction.
+
+  This is necessary because the changes might not yet be written to the → development/databases/Oracle/architecture/database/files/data[data files].
+
+  The redo records are written to disk by the → development/databases/Oracle/architecture/processes/background/LGWR[Log Writer process (LGWR)].
+
+  When LGWR writes the redo entries to the → development/databases/Oracle/architecture/database/files/online-redo-log-files, it also assigns
+  an → development/databases/Oracle/architecture/transaction/SCN to be able to identify them again.
+
+  When LGWR is finished with everything, it notifies the session that the transaction is now securly safed.
+
+  It should be noted that LGWR, in order to reduce I/O, also writes redo log entries of transactions that have not yet been commited.
+  In case of a recovery, these can be rolled back.
+
+}
