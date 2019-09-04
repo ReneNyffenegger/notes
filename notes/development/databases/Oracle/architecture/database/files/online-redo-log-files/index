@@ -1,9 +1,8 @@
 $ Oracle online redo log files
-@ redo log
+@ online redo log file
 
-The *online redo log files* are needed for *instance recovery* and *media recovery*.
+The *online redo log files* are needed for → development/databases/Oracle/adminstration/backup-recovery/recovery/instance and → development/databases/Oracle/adminstration/backup-recovery/recovery/media.
 
-Every → development/databases/Oracle/architecture/database[database] has as least two *online redo log files*. The entirety of these log files are referred to as ~log files~.
 
 The *online redo log file* contains → development/databases/Oracle/architecture/database/redo-data (which is a stream of → development/databases/Oracle/architecture/database/redo-data/record[redo records]).
 
@@ -14,13 +13,24 @@ stored in the → development/databases/Oracle/architecture/database/files/contr
 
 The redo log files might be stored in the → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area.
 
-{ Log file groups
+{ Log file groups and group members
 
-  Usually, the log files are multiplexed, that is: stored redundantly. This protects against corruption of the redo log files themselves.
 
-  Ideally, each group has identical copies of the log files.
+  Every → development/databases/Oracle/architecture/database[database] has as least two → development/databases/Oracle/architecture/database/files/online-redo-log-files/group[redo log file groups].
 
-  → development/databases/Oracle/architecture/database/files/online-redo-log-files/group
+  Each group has at least one → development/databases/Oracle/architecture/database/files/online-redo-log-files/member[member]. Each member is a
+ *physical* file.
+
+  The entirety of these log files (all members) are referred to as ~log files~.
+
+  Exactly *one* group is *current*. This is the gruop to whose members the → development/databases/Oracle/architecture/processes/background/LGWR[Logwriter Process (LGWR)] writes
+  → development/databases/Oracle/architecture/database/redo-data.
+
+  A → development/databases/DBA might decide to have multiple members in a group and store each member on different disks for redundancy reasons. Thus, if one disk fails or one of the members becomes corrupt, there is still
+  another log file with the precious data needed for recovery.
+
+  Each log file group is recorded in → development/databases/Oracle/installed/dynamic-performance-views/log[`v$log`]. All members are recorded in
+  → development/databases/Oracle/installed/dynamic-performance-views/log/file[`v$logfile`].
 
 
 }
