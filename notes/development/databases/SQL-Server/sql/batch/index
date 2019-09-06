@@ -5,6 +5,65 @@ $ SQL Server: sql batch
 → development/databases/SQL-Server/sql/batch/batches-with-logical-errors[batches with logical errors] examine
 the effects of syntactical and logical errors on sql batches.
 
+
+{ Some rules
+
+  { execute statement
+
+    If the first → development/databases/SQL-Server/T-SQL/statements[statement] of a batch calls a → development/databases/SQL-Server/T-SQL/procedures[stored procudure],
+    the → development/databases/SQL-Server/T-SQL/statements/execute[`execute` statement] is *not* required.
+
+  }
+  { Combining create statements
+
+    Some object creation statements cannot be combined with other creation statement *and* need to be the *first statement* in a batch. Those are:
+       • `create default`
+       • `create function`
+       • `create procedure`
+       • `create rule`
+       • `create schema`
+       • `create trigger`
+       • `create view `
+
+    Note that the `create table` statement is absent from this list!
+
+    The following works:
+code {
+create procedure p2 as print 'p2';
+execute p2;
+go
+code }
+
+   The following does not work, it throws the error message *MSG 111, Level 15, State 1… 'CREATE/ALTER PROCEDURE' must be the first statement in a query batch*:
+code {
+drop   procedure if exists p2;
+create procedure p2 as print 'p2';
+execute p2;
+go
+code }
+
+   This does work again:
+code {
+drop   procedure if exists p2;
+create procedure p2 as print 'p2';
+execute p2;
+go
+code }
+
+  This also works
+code {
+drop   procedure if exists p2;
+create procedure p2 as print 'p2';
+execute p2;
+go
+code }
+
+
+  }
+
+
+}
+
 sa:
 
   In → development/databases/SQL-Server/tools-utilities/sqlcmd[sqlcmd], the batch terminator can be changed with the → development/databases/SQL-Server/tools-utilities/sqlcmd#sqlcmd-c[-c option].
