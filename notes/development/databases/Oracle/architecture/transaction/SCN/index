@@ -3,6 +3,44 @@ $ System Change Number (SCN)
 
 The maximum possible value for an SCN (as of → development/databases/Oracle/Releases-and-versions/19c) is 281,474,976,710,656. This is 281 trillion.
 
+{ Views where the SCN is found
+
+  In the → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views (`v$…`)] and the
+  → development/databases/Oracle/installed/data-dictionary[data dictionary], the columns that store SCNs seem to have the form `%CHANGE%#`. Thus, they can be queried with
+code {
+select distinct
+   viw.view_name,
+   viw.column_name,
+-- viw.table_name,
+   com.comments
+from (
+    select 
+       col.owner,
+       regexp_replace(
+       regexp_replace(
+       regexp_replace(col.table_name, '^AWR_[CP]DB_', 'AWR_xDB_')
+                                    , '^G?V_\$'     , 'V$'      )
+                                    , '^(DBA|CDB)_' , 'DBA_'    ) view_name,
+       col.table_name,
+       col.column_name
+   from
+      dba_tab_columns col  join
+      dba_objects     obj on col.owner      = obj.owner      and
+                             col.table_name = obj.Object_name
+   where
+      obj.object_type not in ('SYNONYM') and
+      col.column_name like '%CHANGE%#'
+)                  viw                                left join
+dba_col_comments   com on viw.owner       = com.owner       and 
+                          viw.table_name  = com.table_name  and
+                          viw.column_name = com.column_name
+order by
+   viw.view_name,
+   viw.column_name
+code }
+
+}
+
 
 sa:
   → development/databases/Oracle/architecture/transaction/SCN/checkpoint[Checkpoint SCN]
