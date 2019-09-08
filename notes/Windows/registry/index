@@ -1,49 +1,32 @@
 $ Windows registry
-
-The registry consists of a few trees (»hierarchical database«).
-
-The nodes in the tree are ~keys~, the leaves are ~values~. Thus, a key consists of (potentially zero) keys (which are ~subkeys~ to that key) and of (potentially zero) values.
-
-The ~names of the keys~ are not case sensitive and cannot include the backslash `\` nor the NUL `\0` character and cannot be empty.
-
-The ~names of the values~ can contain the backslash or can be empty.
-
-A key can have an (unnamed) default value. With → Windows/dirs/Windows/System32/reg_exe[`reg`], these need the `/ve` flag.
-
-A key has a 64-bit FILETIME object that contains the `LastWrite` value. The → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Explorer/UserAssist[UserAssist] keys
-maintain timestamps with their data.
-
-Values have ~data~ associated with it. This data is of one of the following types:
-  • REG_SZ: a nul terminated string
-  • REG_EXPAND_SZ: a nul terminated string with the names of → development/environment-variable[environment variables] embeded between percent signs (`%`).
-  • REG_BINARY: A blob
-  • REG_MULTI_SZ: A sequence of nul terminated strings, separated by a space, comma or other delimiter.
-  • REG_DWORD: a 4 byte integer value.
-  • REG_QWORD: a 8 byte integer value
-  • REG_NONE: no data type
-  • REG_LINK: A → development/Unicode string that names a symbolic link
-  • REG_RESOURCE_LIST
-  • REG_RESOURCE_REQUIREMENTS_LIST
-  • REG_FULL_RESOURCE_DESCRIPTOR
-
-Each tree's root key is identified by a constant whose name starts with `HKEY_`:
-  • HKEY_CLASSES_ROOT
-  • HKEY_CURRENT_USER
-  • HKEY_LOCAL_MACHINE
-  • HKEY_USERS
-  • HKEY_PERFORMANCE_DATA
-  • HKEY_CURRENT_CONFIG
-  • HKEY_DYN_DATA
-There is not a *single* root key above these tree's root keys.
+@ registry
 
 Hives are just files some of which are located under → Windows/dirs/Windows/System32/config[`%SystemRoot%\System32\Config`].
 
+{ Registry tree structure
+
+  The registry stores its → development/Data in a → Windows/registry/tree-structure[tree structure].
+
+}
+{ Data types
+
+  The data that is stored in the registry is constraint to a few → Windows/registry/data-types[data types].
+
+}
 { Command line manipulation
 
-Adding a default value to a key:
+  → Windows/dirs/Windows/System32/reg_exe[`reg`] allows to query the registry or chane values in the registry in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe].
+  -
+  For example, the following command adds a default value to a → Windows/registry/tree-structure/key:
 code {
 reg add "HKEY_CLASSES_ROOT\path\to\key" /t REG_SZ /ve /d "The value inserted"
 code }
+
+  See also the → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] → development/tools/scripts/personal/regQuery_bat[`regQuery.bat`]:
+  it can be used in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] to query a specific value under a given key.
+
+  The batch file → development/tools/scripts/personal/regat_bat[`regat.bat`] can be used in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] to open the registry
+  (→ Windows/dirs/Windows/regedit_exe[`regedit.exe`]) at a given → Windows/registry/tree-structure/key.
 
 }
 { WinAPI
@@ -70,23 +53,18 @@ sa:
 
   → Windows/registry/tree[Registry tree]
 
-  → Windows/dirs/Windows/System32/reg_exe[`reg`] allows to query the registry or chane values in the registry in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe].
 
   → Windows/PowerShell/examples/registry[Access the registry with PowerShell]
   
   → Windows/registry/regedit, →Windows/registry/Configuring-Windows-with-registry
   -
-  → Windows/dirs/Windows/System32/regini_exe
+  → Windows/dirs/Windows/System32/regini_exe[`regini.exe`] is the registry initializer.
 
   → development/languages/Perl/modules/Win32/TieRegistry
 
   → Windows/registry/Add-item-to-desktop-right-click-menu
 
   → Windows/Appearance/Mouse#mouse-registry[Mouse related] registry keys.
-
-  → development/tools/scripts/personal/regat_bat[`regat.bat`] can be used in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] to open the registry (`regedit.exe`) at a given key.
-
-  → development/tools/scripts/personal/regQuery_bat[`regQuery.bat`] ban be used in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] to query a specific value under a given key.
 
   → development/databases/SQL-Server[SQL Server] has the stored procedure → https://github.com/ReneNyffenegger/temp-SQL-Server/blob/master/xp_regRead.sql[`xp_regread`] that allows to read the registry.
 

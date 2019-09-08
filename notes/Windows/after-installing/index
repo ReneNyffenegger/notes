@@ -10,9 +10,24 @@ $ After installing Windows
   2019-04-01: There was no such key and an according change didn't seem necessary.
 
 }
-{ Start powershell as administrator
+{ Activate Windows
+  Or something like
+code {
+C:\> → Windows/dirs/Windows/System32/slmgr_vbs[slmgr.vbs] → Windows/dirs/Windows/System32/slmgr_vbs#win-reinstall-product-key[/ipk] → Windows/settings/product-key[xxxxx-xxxxx-xxxxx-xxxxx-xxxxx]
+code }
+  After issuing the command above, Settings->Activation told me: *A known error with Windows activation is: We can't activate Windows on this device as we can't connect to your organization's activation server.* (or something
+  similar to that). So, I had also to enter the following to fix that:
+code {
+C:\> slmgr.vbs /dlv
+code }
 
-  If a powershell is needed with *administrator privileges*, the `start-process` → Windows/PowerShell/language/cmdlet[cmdlet] can be used:
+
+  TODO: Does it have something to do with → Windows/dirs/Windows/System32/changepk_exe[changepk.exe] or → Windows/dirs/Windows/System32/slui_exe (under → Windows/dirs/Windows/System32)?
+
+}
+{ Start PowerShell as administrator
+
+  If a PowerShell is needed with *administrator privileges*, the `start-process` → Windows/PowerShell/language/cmdlet[cmdlet] can be used:
 code {
 start-process powershell -verb runAs
 code }
@@ -416,13 +431,13 @@ code }
   }
   { autorun.bat
 
-
     Assign a → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] to be run when cmd.exe is started (Value of → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor#reg-cmd-exe-autorun[`autorun`]
     under → Windows/registry[registry] key
   → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Command-Processor[`HKEY_CURRENT_USER\Software\Microsoft\Command Processor`]).
 
 code {
-new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
+PS C:\> # new-itemProperty -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:userprofile)\github\lib\scripts\autorun.bat" -force
+PS C:\>   → Windows/PowerShell/command-inventory/noun/itemProperty/new[new-itemProperty] -path 'hkcu:\Software\Microsoft\Command Processor' -name autorun -value "$($env:github_top_root)\lib\scripts\autorun.bat" -force
 code }
 
     The → https://github.com/ReneNyffenegger/scripts-and-utilities/blob/master/autorun.bat[`autorun.bat`] was installed previously in *Clone github repositories*.
@@ -626,6 +641,12 @@ code {
 C:\> net user john johnsPassword /add
 code }
 
+  When logged in as that user, change the desktop background image:
+code {
+PS:\> set-→ Windows/PowerShell/command-inventory/noun/itemProperty[itemProperty] -path '→ Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel/Desktop[HKEY_CURRENT_USER\Control Panel\Desktop]' -name → Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel/Desktop#reg-deskop-wallpaper[wallpaper] -value $env:userProfile\Pictures\IMG_2104.JPG
+PS:\> → Windows/dirs/Windows/System32/rundll32_exe[rundll32.exe] → Windows/dirs/Windows/System32/user32_dll[user32.dll],UpdatePerUserSystemParameters
+code }
+
 }
 { Misc
 
@@ -767,16 +788,6 @@ code }
 
   Remove unnecessary directories under → Windows/dirs/Users/username[`%UserProfile%`].
 
-  Activate Windows
-  -
-  Does it have something to do with → Windows/dirs/Windows/System32/changepk_exe[changepk.exe] or → Windows/dirs/Windows/System32/slui_exe(under → Windows/dirs/Windows/System32)?
-  -
-  Can it be done with → Windows/dirs/Windows/System32/slmgr_vbs[`slmgr.vbs`]? Possibly with the `/ato` option?
-  -
-  Or something like
-code {
-slmgr.vbs /ipk → Windows/settings/product-key[xxxxx-xxxxx-xxxxx-xxxxx-xxxxx]
-code }
 
   What is auto-run? Why is *OneDrive.exe* started?
 
