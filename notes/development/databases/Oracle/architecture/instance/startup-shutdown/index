@@ -1,0 +1,73 @@
+$ Oracle instance: startup and shutdown
+
+An → development/databases/Oracle/architecture/instance is started in phases:
+  • shutdown (No processes running at all)
+  • nomount (instance initialized)
+  • mount (→ development/databases/Oracle/architecture/database/files/control opened)
+  • open (→ development/databases/Oracle/architecture/database opened)
+
+A shutdown has the same phases in reverse order.
+
+{ Shutdown -> nomount
+
+  The following steps are performed when an idle (shutdown) instance is broght to *nomount*:
+    • A → development/databases/Oracle/architecture/database/files/server-parameter-file is searched.
+    • The → development/databases/Oracle/architecture/instance/SGA is sized according to the values found in the parameter file
+    • The → development/databases/Oracle/architecture/processes/background[background processes] are started
+    • The → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log is opened
+
+  An instance needs to be in the nomount state to
+    • create a new → development/databases/Oracle/architecture/database
+    • for some → development/databases/Oracle/adminstration/backup-recovery[backup and recovery] operations
+
+}
+{ Nomount -> mount
+
+  In order to mount a database, the → development/databases/Oracle/architecture/instance opens the
+  → development/databases/Oracle/architecture/database/files/control as specified in the
+  → development/databases/Oracle/adminstration/init-parameters#control_files[`control_files` init parameter].
+
+  A mounted database is closed for ordinary users. Only adminsitrators have access to it for a restricted set of operations.
+
+}
+{ mount -> open
+
+  The control file that were opened in the previous step records the locations of the
+  → development/databases/Oracle/architecture/database/files/data[data files] that belong to a
+  → development/databases/Oracle/architecture/database. This information is now needed to
+  open these data files.
+
+  The steps to open a mounted database are:
+    • the *online* data files that belong to a non-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/undo are opened
+    • An → development/databases/Oracle/architecture/database/logical-structures/tablespace/undo is acquired
+    • The → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] are opened
+
+  It's possible to open a database in read only mode.
+
+}
+{ Shutdown
+
+  { Shutdown modes
+
+    A shutdown can e performed with the following modes
+      • `shutdown abort` 
+      • `shutdown immediate`
+      • `shutdown transactional`
+      • `shutdown normal`
+
+    In any of these modes, no new connections are possible.
+    -
+    With `shutdown normal`, the instance waits for all connected users to disconnect and then shuts down.
+    -
+    With `shutdown transactional`, the instances waits for all active transactions to finish and then shuts down. It does not allow a new transaction.
+    -
+    With `shutdown immediate`, the instance terminates any executing SQL statements, rolls transactions back, disconnects users and then shuts down.
+    -
+    A `shutdown abort` just terminates the instance.
+
+    All shutdown modes except `shutdown abort` perform a checkpoint. Therefore, after a `shutdown abort`,
+    → development/databases/Oracle/adminstration/backup-recovery/recovery/instance is required to startup and reopen a database.
+
+  }
+
+}
