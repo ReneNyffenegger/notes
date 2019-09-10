@@ -41,6 +41,39 @@ code }
 
 }
 
+{ Queries
+
+  { Find the SCN in the fixed tables
+
+code {
+select
+   addr,
+   to_number(addr, rpad('x', 16, 'x')) addr_,
+   ksmfsnam,
+   ksmfsadr,
+   to_number(ksmfsadr, rpad('x', 16, 'x')) ksmfsadr_,
+   ksmfssiz,
+   ksmfstyp
+from
+   x$ksmfsv  fixed_variables
+where
+   ksmfsnam = 'kcsgscn_' -- SCN
+;
+code }
+
+  }
+  { Use oradebug
+
+    With → development/databases/Oracle/tools/oradebug, the value of the SCN might be found like so
+code {
+oradebug → development/databases/Oracle/tools/oradebug/setmypid[setmypid]
+oradebug → development/databases/Oracle/tools/oradebug/dumpvar[dumpvar] → development/databases/Oracle/architecture/instance/SGA[sga] kcsgscn
+code }
+
+  }
+
+}
+
 
 sa:
   → development/databases/Oracle/architecture/transaction/SCN/checkpoint[Checkpoint SCN]

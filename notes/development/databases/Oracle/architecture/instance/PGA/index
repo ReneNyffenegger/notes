@@ -1,20 +1,64 @@
 $ Oracle Program Global Area
 @ PGA
 
-The PGA is (non-shared) memory that is used by both → development/databases/Oracle/architecture/processes/server[server] and
-→ development/databases/Oracle/architecture/processes/background[background] → development/databases/Oracle/architecture/processes[processes].
+The PGA is (non-shared) memory that is used by → development/databases/Oracle/architecture/processes/server[server] (and
+→ development/databases/Oracle/architecture/processes/background[background]?) → development/databases/Oracle/architecture/processes[processes].
 
 A PGA consists of
   • stack space (session variables, arrays …)
   • hash area (for *hash joins*)
   • bitmap merge area (to merge data from scans of multiple bitmap indexes)
-  • User Global Area (UGA) (in dedicated server environments)
+  • User Global Area (→ development/databases/Oracle/architecture/instance/UGA) (in dedicated server environments)
   • SQL work area (sort area?), used by → development/databases/Oracle/SQL/select/group-by[`group by`] and → development/databases/Oracle/SQL/select/order-by[`order by`]
   • Session memory (Logon information
   • Private SQL area (Parsed SQL statements, session specific information for processing)
 
 In shared server environments (as opposed to non-dedicated server environments), the UGA moves into the → development/databases/Oracle/architecture/instance/SGA/Large-Pool because multiple clients share the
 same → development/databases/Oracle/architecture/processes/server[server process].
+
+Because the memory of the PGA is not shared between processes, there is no need to protected its data structures with *latches*.
+
+
+{ Queries
+
+code {
+select
+   name,
+   case when unit = 'bytes' then round(value / power(1024, 2),2) else value end value,
+   case unit 
+        when 'bytes'   then 'MB'
+        when 'percent' then '%'
+        else  unit
+   end unit,
+   con_id
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/pga/stat[v$pgastat]
+order by
+   name;
+code }
+  Names that are found with this query are
+    • MGA allocated (under PGA)
+    • PGA memory freed back to OS
+    • aggregate PGA auto target
+    • aggregate PGA target parameter
+    • bytes processed
+    • cache hit percentage
+    • extra bytes read/written
+    • global memory bound
+    • max processes count
+    • maximum MGA allocated
+    • maximum PGA allocated
+    • maximum PGA used for auto workareas
+    • maximum PGA used for manual workareas
+    • over allocation count
+    • process count
+    • recompute count (total)
+    • total PGA allocated
+
+
+  The memory chunks of the PGA are selectable from `x$ksmpp` (which has the same structure as `x$ksmsp`).
+
+}
 
 sa:
   → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache#buffer-cache-direct-path
@@ -23,3 +67,5 @@ sa:
 
  The → development/databases/Oracle/adminstration/init-parameters#pga_aggregate_limit[`pga_aggregate_limit`] and
  The → development/databases/Oracle/adminstration/init-parameters#pga_aggregate_target[`pga_aggregate_target`] init parameters.
+
+ → development/databases/Oracle/tools/oradebug/dumpvar[oradebug dumpvar pga …]
