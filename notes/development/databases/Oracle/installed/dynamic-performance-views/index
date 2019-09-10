@@ -1,7 +1,39 @@
 $ Oracle dynamic performance views
 @ dynamic performance views
 
-Oracle's dynamic performance views are created by → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catalog_sql
+*Dynamic performance views* are views that query their data mainly from → development/databases/Oracle/installed/fixed-views[dynamic performance (`x$`) tables].
+
+{ Creation of the dynamic performance views
+
+  Oracle's dynamic performance views are created by → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catalog_sql
+
+}
+{ v$ and gv$ views #gv_views
+
+  For most dynamic performance views, two versions exist: one that starts with the prefix `v$…` and one that starts with `gv$…`. The `g` stands for *global*. These `gv$` views are relevant for
+  → development/databases/Oracle/Options/real-application-clusters[RAC] environments and are used to query information for *all* → development/databases/Oracle/architecture/instance[instances] in the RAC network. So, they have
+  an additional `inst_id`.
+
+  In fact, the `v$` views have basically the following form
+code {
+create view v$XYZ as
+select
+   col_1,
+   col_2,
+   col_3,
+   …
+from
+   gv$XYZ
+where
+   inst_id = → development/databases/Oracle/SQL/functions/sys_context#sys_contect_userenv[USERENV]('Instance');
+code }
+
+}
+{ v$fixed_view_definition
+
+  The dynamic performance views and their definition can be queryed from → development/databases/Oracle/installed/dynamic-performance-views/fixed/view_definition[`v$fixed_view_definition`].
+
+}
 
 table { ll
 
@@ -15,6 +47,7 @@ table { ll
  v$archive_gap ☰ lists sequence numbers of the archived los that are known to be missing for each thread on a (physical?) standby database (highest gap only). 
  v$archive_process ☰ provides information on the archive processes. It can be used to find out if an → http://www.adp-gmbh.ch/ora/concepts/processes/arch.html[ARCH] process is active or not. 
  → development/databases/Oracle/installed/dynamic-performance-views/ash_info[v$ash_info] ☰
+ → development/databases/Oracle/installed/dynamic-performance-views/bgprocess[v$bgprocess] ☰ → development/databases/Oracle/architecture/processes/background[Background processes]
  → development/databases/Oracle/installed/dynamic-performance-views/bh[v$bh] ☰ describes each block in the → http://www.adp-gmbh.ch/ora/concepts/cache.html[database buffer cache].
  → development/databases/Oracle/installed/dynamic-performance-views/buffer_pool ☰
  → development/databases/Oracle/installed/dynamic-performance-views/controlfile[v$controlfile] ☰ shows the location of → development/databases/Oracle/architecture/database/files/control[control files].
