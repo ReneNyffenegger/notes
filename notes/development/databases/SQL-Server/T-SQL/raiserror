@@ -22,12 +22,30 @@ code }
 { String concatenation
 
   In `raiserror`, the message string cannot be concatenated with `+`. Instead, a → development/languages/printf[`printf`] approach needs to be used:
-gh|about-MSSQL|/t-sql/functions/raiserror/string-concatenation.sql||
+  gh|about-MSSQL|/t-sql/functions/raiserror/string-concatenation.sql||
 
 }
 { Use within functions
 
   `raisError` cannot be used within user defined functions (*Invalid use of a side-effecting operator 'RAISERROR' within a function*).
+
+}
+{ Exiting an SQL script #raisError-exit-sql-script
+
+ *If* loged in with the *sysadmin* role (admin), `raisError()` can be used to completely exit an SQL script so that it also skips
+  subsequent → development/databases/SQL-Server/sql/batch[SQL batches]. In order for this to work, the severity level needs to be at least 20 and the `with log` option needs to be used.
+
+  In the following example, an SQL script uses → development/databases/SQL-Server/T-SQL/functions#t-sql-db_name[`db_name()`] to verify if it is connected to a
+  → development/databases/SQL-Server/administration/database named `TQ84_DB`. If this is not the case, the executing process is terminated (See generated message).
+  -
+  Note, that also the next batch which would print `I am in another batch` is not executed (because the session is terminated).
+
+  gh|about-MSSQL|/t-sql/functions/raiserror/exit-SQL-script.sql||
+
+  Because this method requires *sysadmin* privileges, another way to achieve a similar result might be
+  → development/databases/SQL-Server/T-SQL/statements/set/noexec[`set noexec on`].
+
+  More details in → https://stackoverflow.com/a/804811/180275[this Stackoverflow answer].
 
 }
 sa:
