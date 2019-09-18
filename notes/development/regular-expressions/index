@@ -1,6 +1,268 @@
 $ Regular expressions
 @ regular expressions
 
+A *regular expression* (aka regex) is a set of rules that put any imaginable character string into one of two groups:
+  • either the string follows the rule set, or
+  • it doesn't.
+The string is said to *match* the regular expression *if* it follows the rules.
+-
+Thus, these rules specify a *pattern* of text. For example, it's possible to define a regex that can be used to determine if some text is a phone number or an email addresses.
+
+With regular expressions, its also possible to extract some matched (sub-)string from the text or replace the matched text with other text.
+
+The regular expression itself is a character string.
+
+{ Some rules
+
+  { Most characters match themselves
+
+    A basic rule of regular expressions is that most characters match themselves.
+
+    table { lll
+      Regexp ☰ text     ☰ matches?
+      `p`    ☰ `p`      ☰ ✓
+      `p`    ☰ `pear`   ☰ ✓
+      `p`    ☰ `apple`  ☰ ✓
+      `p`    ☰ `banana` ☰ ✗
+      `ppl`  ☰ `p`      ☰ ✗
+      `ppl`  ☰ `pear`   ☰ ✗
+      `ppl`  ☰ `people` ☰ ✗
+      `ppl`  ☰ `apple`  ☰ ✓
+    table }
+
+    Note: it is sufficient for `text` to *contain* the regular expression in order to match it.
+
+  }
+  { Meta characters
+
+    *Meta characters* are characters that are used to create or specify regular expression rules. Thus, they have a special meaning and don't match themselves.
+
+    Some common meta characters are:
+      • The dot: `.`
+      • Caret and dollar sign: `^` `$`
+      • Star, plus and question mark: `*` `+` `?`
+      • parantheses and braces: `(` `)` `{` `}` `[` `]`
+      • Backslash: `\`
+      • Vertical bar: `|`
+
+    In order to match such a meta character, they need to be escaped with the meta character backslash: `\`
+
+  }
+  { Meta character: dot
+
+    The dot (`.`) matches *any* single character except a → development/line-break[new line] (`\n`).
+
+    table { lll
+      Regexp ☰ text     ☰ matches?
+     `.`     ☰ `q`       ☰ ✓        
+     `.`     ☰ `foo`     ☰ ✓ 
+     `ba.`   ☰ `foo`     ☰ ✗
+     `ba.`   ☰ `bar`     ☰ ✓
+     `ba.`   ☰ `baz`     ☰ ✓
+     `ba.`   ☰ `qabanti` ☰ ✓
+     `b.r`   ☰ `bar`     ☰ ✓
+     `b.r`   ☰ `baz`     ☰ ✗
+     `...`   ☰ `p`       ☰ ✗
+     `...`   ☰ `pq`      ☰ ✗
+     `...`   ☰ `pqr`     ☰ ✓
+     `...`   ☰ `pqrs`    ☰ ✓
+     `...`   ☰ `pqrst`   ☰ ✓
+
+    table }
+
+  }
+  { Meta characters: caret and dollar
+
+   The caret and the dollar sign match a *position* rather than a character: the caret matches the position *beginning of string*, the dollar sign matches the position *end of string*.
+
+   table { lll
+     Regexp ☰ text             ☰ matches?
+    `two`   ☰ `one two three`  ☰ ✓
+    `^two`  ☰ `one two three`  ☰ ✗
+    `two$`  ☰ `one two three`  ☰ ✗
+    `two$`  ☰ `one two`        ☰ ✓
+    `^two`  ☰ `one two`        ☰ ✗
+    `^two`  ☰ `two three`      ☰ ✓
+    `^t..`  ☰ `two three`      ☰ ✓
+    `^t..`  ☰ `two`            ☰ ✓
+    `^t..`  ☰ `the good`       ☰ ✓
+    `^t..`  ☰ `t`              ☰ ✗
+    `^t..`  ☰ `xyz`            ☰ ✗
+   table }
+   
+
+  }
+  { Meta characters: star, plus, question mark, curly braces
+
+    The meta characters `*` `+` `?` and `{` `}` are *quantifiying* meta characters. They control how *often* the *preceeding* character (or atom, to be defined later) are matched.
+
+    `*` means to match it 0, 1 or more times.
+    -
+    `+` matches 1 or more times
+    -
+    `?` matches 0 or 1 times
+    -
+    `{n}` matches excactly `n` times.
+    -
+    `{n,m}` matches between `n` and `m` times.
+    -
+    `{n,}` matches at least `n` times
+    -
+    `{,m}` matches at most `m` times
+
+   table { lll
+     Regexp    ☰ text     ☰ matches?
+    `x+`       ☰ `foo`    ☰ ✗
+    `x+`       ☰ `xyz`    ☰ ✓
+    `x+`       ☰ `axis`   ☰ ✓
+    `x*`       ☰ `axis`   ☰ ✓
+    `x*`       ☰ `apple`  ☰ ✓
+    `x?`       ☰ `apple`  ☰ ✓
+    `x+`       ☰ `apple`  ☰ ✗
+    `x{3}`     ☰ `axis`   ☰ ✗
+    `x{3}`     ☰ `exxon`  ☰ ✗
+    `x{3}`     ☰ `axxxr`  ☰ ✓
+    `x{3}`     ☰ `axxxqr` ☰ ✓
+    `Aq{2,3}Z` ☰ `AqZ`    ☰ ✗
+    `Aq{2,3}Z` ☰ `AqqZ`   ☰ ✓
+    `Aq{2,3}Z` ☰ `AqqqZ`  ☰ ✓
+    `Aq{2,3}Z` ☰ `AqqqqZ` ☰ ✗
+   table }
+
+  }
+  { Meta characters: backslash to escape following meta character
+
+   One of the uses of the backslash (`\`) is to escape the following meta character in order to make it match the literal character rather than meaning of the meta character.
+
+   table { lll
+     Regexp   ☰ text       ☰ matches?
+     `a.c`    ☰ `abc`      ☰ ✓
+     `a.c`    ☰ `a.c`      ☰ ✓
+     `a\.c`   ☰ `a.c`      ☰ ✓
+     `a\.c`   ☰ `abc`      ☰ ✗
+     `bla$`   ☰ `bla bla`  ☰ ✓
+     `bla$`   ☰ `more bla$`☰ ✗
+     `bla\$`  ☰ `more bla$`☰ ✓
+   table }
+
+  }
+  { Meta characters: square brackets to define a set of characters
+
+    Square brackes (`[…]`) defines a *set of characters* that match any character that is in this set. For example, `[aeiou]` matches (one) lowercase-vowel.
+
+    Such a set of characters is especially useful when combined with one of the *quantifers*.
+
+   table { lll
+     Regexp      ☰  text    ☰ matches?
+    `[aeiou]`    ☰ `xyz`    ☰ ✗
+    `[aeiou]`    ☰ `one`    ☰ ✓
+    `[aeiou]`    ☰ `two`    ☰ ✓
+    `[aeiou]{2}` ☰ `two`    ☰ ✗
+    `[aeiou]{2}` ☰ `three`  ☰ ✓
+   table }
+
+    If the first character in the square brackets is a caret, it negates the set of characters. `[^aeiou]` matches any non-lowercase-vowel).
+   table { lll
+     Regexp     ☰ text     ☰ matches?
+    `[^aeiou]`  ☰ `X`      ☰ ✓
+    `[^aeiou]`  ☰ `e`      ☰ ✗
+    `[^aeiou]`  ☰ `ef`     ☰ ✓
+    `^[^aeiou]$`☰ `ef`     ☰ ✗
+    `^[^aeiou]$`☰ `i``     ☰ ✓
+   table }
+
+  }
+  { Meta characters: parantheses to create a sequece
+
+    Parantheses create a sequence of characters or embedded sequences. As with square brackets, such sequences are especially useful with quantifiers.
+
+   table { lll
+     Regexp        ☰ text              ☰ matches?
+    `(xyz){2,}`    ☰`xxyyzz`           ☰ ✗
+    `(xyz){2,}`    ☰`one xyz`          ☰ ✗
+    `(xyz){2,}`    ☰`two xyzxyz!`      ☰ ✓
+    `(xyz){2,}`    ☰`three xyzxyzxyz.` ☰ ✓
+   table }
+
+  }
+  { Matching «special» characters
+
+    A backslash followed by a `n`, `r`, `t` or `f` match some special characters:
+    table { ll
+     `\n` ☰ New line
+     `\r` ☰ Carriage return
+     `\t` ☰ Tabulator (→ development/Unicode/ASCII 9)
+     `\f` ☰ Form feed
+    table }
+
+  }
+  { Meta characteres: backslash for special groups of characters
+
+    The backslash followed by some specific character matches some predefined character set.
+
+    table { ll
+         ☰ is equivalent to
+    `\d` ☰ `[1234567890]` or `[0-9]`
+    `\w` ☰ `[A-Za-z0-9_]`
+    `\s` ☰ `[\t\r\n\f]` (that is: any whitespace character) 
+
+    table }
+
+    If the backslashed character is uppercase, it negates the meaning of its lowercase cousin. Thus `\D` is equivalent to `[^0-9]`, etc.
+
+   table { lll
+     Regexp ☰ text       ☰ matches?
+    `\d{3}` ☰ `42`       ☰ ✗
+    `\d{3}` ☰ `123`      ☰ ✓
+    `\D{3}` ☰ `42`       ☰ ✓
+    `\D{3}` ☰ `ab`       ☰ ✗
+    `\D{3}` ☰ `abc`      ☰ ✓
+    `\w\d`  ☰ `4a`       ☰ ✗
+    `\w\d`  ☰ `a4`       ☰ ✓
+   table }
+
+  }
+  { Meta characters: vertical bar
+
+    The vertical bar seperates two (sub-) regular expressions. At least one of these two regular expressions need to match in order for the complate regular expression to match.
+
+    Because the vertical bar has a low precedence, it is often used within parentheses.
+
+   table { lll
+     Regexp               ☰ text     ☰ matches?
+    `\d{3}|[^aeiou]{2}`   ☰ `12`     ☰ ✗
+    `\d{3}|[^aeiou]{2}`   ☰ `a`      ☰ ✗
+    `\d{3}|[^aeiou]{2}`   ☰ `a123`   ☰ ✓
+    `\d{3}|[^aeiou]{2}`   ☰ `ee99`   ☰ ✓
+    `\d{3}|[^aeiou]{2}`   ☰ `ff99`   ☰ ✗
+    `(\d|\w){2}`          ☰ `1a`     ☰ ✗
+    `(\d|[xyz]){2}`       ☰ `1`      ☰ ✗
+    `(\d|[xyz]){2}`       ☰ `1x`     ☰ ✓
+    `(\d|[xyz]){2}`       ☰ `2y`     ☰ ✓
+    `(\d|[xyz]){2}`       ☰ `xy`     ☰ ✓
+    `(\d|[xyz]){2}`       ☰ `ay`     ☰ ✗
+   table }
+
+  }
+  { Matching word boundaries
+
+    Such as `^` and `$` match the beginning or end of a entire string, there is a notation to match the beginning or end of a word: `\b`. Such a *word boundary* is (usually) between
+    a `\w` and a `\W` or `^` or `$`. Like `^` and `$`, the word boundary matches a position rather than one (or more) characters. Technically, this is referred to as *zero-width assertion*.
+
+    table { lll
+     Regexp               ☰ text        ☰ matches?
+    `\bxyz`               ☰ `xyz one`   ☰ ✓
+    `\bxyz`               ☰ `one xyz`   ☰ ✓
+    `\bxyz`               ☰ `blaxyz`    ☰ ✗
+    `\bxyz`               ☰ `xyzbla`    ☰ ✓
+    `\bxyz\b`             ☰ `blaxyzbla` ☰ ✗
+    table }
+
+    Note that some regular expression dialects use `\<` and `\> to match on the left or right side of a word.
+
+  }
+
+}
 { Some examples in a few environments
 
   → development/vim/script/regular_expressions[Vim]
@@ -11,7 +273,7 @@ $ Regular expressions
 
   → development/languages/Perl/modules/DBD/SQLite/regexp
 
-  → development/languages/Python/standard-library/re[Python's standard library re]
+  → development/languages/Python/standard-library/re[Python's standard library `re`]
 
   → Companies-Products/SAS[SAS] functions for → Companies-Products/SAS/programming/regular-expressions[regular expressions]: → Companies-Products/SAS/programming/functions/prxchange and
   → Companies-Products/SAS/programming/functions/prxmatch, → Companies-Products/SAS/programming/functions/prxmatch etc.
