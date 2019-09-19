@@ -22,10 +22,22 @@ where
   name = 'Fixed Size';
 code }
 
+}
+{ Accessing fixed SGA memory with x$ksmmem
+
   The → development/databases/Oracle/installed/fixed-views[fixed table] `x$ksmmem` allows to query each address aligned on 8 byte boundaries of the fixed SGA. Thus, the size of the fixed SGA is equal to
 code {
 select
-   8 * count(*)
+   8 * count(*) -- 8 bytes per record on 64 bit matchins
+from
+   x$ksmmem;
+code }
+
+  Of course, the same value is also obtained with
+code {
+select
+   max(to_number(x$ksmmem.addr, lpad('X', 16, 'X'))) -
+   min(to_number(x$ksmmem.addr, lpad('X', 16, 'X'))) + 8
 from
    x$ksmmem;
 code }
