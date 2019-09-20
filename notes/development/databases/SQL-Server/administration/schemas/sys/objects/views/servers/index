@@ -20,27 +20,34 @@ sp_dropserver 'srv_foo'
 go
 code }
 
-code {
-sp_addserver 'srv_foo',local
-go
-code }
 
-?  However, starting with SQL Server 2014, these statements result in the error message *Feature "sp_addserver" is no longer supported. Replace remote servers by using linked servers.*
+?  However, starting with SQL Server 2014, these statements result in the error message *Feature "sp_addserver" is no longer supported.
+Replace remote servers by using linked servers.*
+
 
   }
   { Adding linked servers
 
 code {
-exec sp_addlinkedserver @server = 'SRV_FOO'
-go
-
-exec sp_addlinkedsrvlogin 'SRV_FOO'
-                         ,'false'
-                         , null
-                         ,'rene'         # user name
-                         ,'SecretGarden' # password
+exec sp_addlinkedserver
+    @server     = 'SrvName\InstName',
+    @srvproduct = 'SQL Server';
 go
 code }
+
+code {
+exec sp_addLinkedSrvLogin
+    @rmtSrvName  = 'SrvName\InstName',
+    @useSelf     =  false,
+    @rmtUser     = 'theGreatToby',
+    @rmtPassword = 'ENTER PASSWORD'
+go
+code }
+
+code {
+select * from [SrvName\InstName].db.sch.tab;
+code }
+
 
   }
   { sp_linkedservers
