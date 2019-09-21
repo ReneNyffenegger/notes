@@ -43,15 +43,23 @@ code }
 
 { Queries
 
-  { Find the SCN in the fixed tables
+  { The SCN in v$database
 
 code {
+select CURRENT_SCN from → development/databases/Oracle/installed/dynamic-performance-views/database[v$database];
+code }
+
+  }
+  { Find the SCN in the fixed tables
+   
+
+    The current value of the SCN can also be found in x$ tables.
+
+    First, we need to get the address of the memory location where the SCN is stored:
+code {
 select
-   addr,
-   to_number(addr, rpad('x', 16, 'x')) addr_,
-   ksmfsnam,
-   ksmfsadr,
-   to_number(ksmfsadr, rpad('x', 16, 'x')) ksmfsadr_,
+   ksmfsadr                                  addr_of_SCN_value_hex,
+   to_number(ksmfsadr, rpad('x', 16, 'x'))   addr_of_SCN_value_int,
    ksmfssiz,
    ksmfstyp
 from
@@ -59,6 +67,16 @@ from
 where
    ksmfsnam = 'kcsgscn_' -- SCN
 ;
+code }
+
+   With this address, we can query `x$ksmmmem` which gives direct access to the memory of the → development/databases/Oracle/architecture/instance/SGA/fixed:
+code {
+select
+   to_number(ksmmmval, 'XXXXXXXXXXXXXXXX') as current_scn
+from
+   x$ksmmem
+where
+   addr=hextoraw('00007FF718801D20');
 code }
 
   }
