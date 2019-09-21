@@ -55,9 +55,11 @@ code }
 
     The current value of the SCN can also be found in x$ tables.
 
-    First, we need to get the address of the memory location where the SCN is stored:
+    First, we need to get the address of the memory location where the SCN is stored. `x$ksmfsv` ehibits a list of pointers that point to values.
+    We're interested in `kcsgscn_`:
 code {
 select
+   addr                                      addr_of_pointer,
    ksmfsadr                                  addr_of_SCN_value_hex,
    to_number(ksmfsadr, rpad('x', 16, 'x'))   addr_of_SCN_value_int,
    ksmfssiz,
@@ -77,6 +79,16 @@ from
    x$ksmmem
 where
    addr=hextoraw('00007FF718801D20');
+code }
+
+   I wanted to join these two → development/databases/Oracle/SQL/select[`select` statements] but the join crashed the session.
+
+   The SCN is also exposed in `x$kccdi` (kernel cache database information?), the same fixed table that also `v$database` queries from:
+code {
+select
+   dicur_scn as current_SCN
+from
+   x$kccdi;
 code }
 
   }
