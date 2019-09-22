@@ -15,14 +15,42 @@ SCNs are also used to guarantee that replicated transactions are applied to the 
   The SCNs of databases that communicate on a database links are synchronized: the database with the lower SCN adjusts its SCN to the SCN of the database with the higher SCN.
 
 }
-{ Maximum value
+{ Maximum physical value
 
 ? As of → development/databases/Oracle/Releases-and-versions/19c, the SCN is stored in 48 bits. Thus the maximum possible value for an SCN is 281,474,976,710,656 (=2⁴⁸ ≈ 2.8*10¹⁴). This is 281 trillion.
   If compatibility is set to 12.2, the number of bits is even increased to 2⁶³.
 
-  However, there is also a ~soft limit~ (aka *RSL* = reasonable SCN limit) which increases by 16384 (= 2¹⁴) per second, starting at 1988-01-01. With compatibility=12.2, the RSL is 98304 SCNs per second since 2008-01-01.
-  -
+
+}
+{ Maximum soft value
+
+  However, there is also a ~soft limit~ (aka *RSL* = reasonable SCN limit) which increases by *n* SCNs per second. The value of *n* is stored in the (hidden) → development/databases/Oracle/adminstration/init-parameters[parameter]
+ `_max_reasonable_scn_rate`:
+code {
+select
+   instVal.ksppstvl   instance_value
+from
+   x$ksppi   param                                             join
+   x$ksppsv  instVal on  param.indx    = instVal.indx     and
+                         param.inst_id = instVal.inst_id
+where
+   param.inst_id = userenv('instance')          and
+   param.ksppinm = '_max_reasonable_scn_rate';
+code }
+
+rem {
+  16384 (= 2¹⁴) per second, starting at 1988-01-01. With compatibility=12.2, the RSL is 98304 SCNs per second since 2008-01-01.
+rem }
+
+
+}
+{ Headroom
+
   The *SCN headroom* is the difference between the RSL and the actual SCN.
+
+  TODO: The (hidden) → development/databases/Oracle/adminstration/init-parameters[parameter] `_low_scn_headroom_warning_threshold_days` (*low SCN headroom warning threshold in days*) seems to indicate that is possible to be
+  warned when head room becomes tight.
+
 
 }
 { Views where the SCN is found
@@ -126,6 +154,8 @@ code }
 
 }
 
-
 sa:
+
   → development/databases/Oracle/architecture/transaction/SCN/checkpoint[Checkpoint SCN]
+
+  → development/databases/Oracle/installed/packages/dbms/scn[`dbms_scn`]
