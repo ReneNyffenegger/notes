@@ -1,58 +1,113 @@
 $ SQLite: date and time related functions
 
 Although → development/databases/SQLite[SQLite] does not have an explicit → development/databases/SQLite/datatypes/date-time[date or time data type], it
-has five functions that are related to date and time:
-  • `time     (     expr, …)`
-  • `date     (     expr, …)`
-  • `datetime (     expr, …)`
-  • `julianday(     expr, …)`
-  • `strftime (fmt, expr, …)`
+has five → development/databases/SQLite/functions[functions] that are related to date and time:
+table { lll
+   ~Function~                                       ☰  ~Default format~               ☰ ~Returned → development/databases/SQLite/datatypes/[data type]~
+   `time     (        datetimestring, modifiers… )` ☰ `%H:%M:%S`                      ☰  text
+   `date     (        datetimestring, modifiers… )` ☰ `%Y-%m-%d`                      ☰  text
+   `datetime (        datetimestring, modifiers… )` ☰ `%H:%M:%S` `%Y-%M-%d`           ☰  text
+   `julianday(        datetimestring, modifiers… )` ☰ `%J`                            ☰  real
+   `strftime (format, datetimestring, modifiers… )` ☰ As per `format`                 ☰  text
+table }
 
-The first four differ from the last one that they use a default format for the returned value while `strftime` allows to explicitely define the
+The first four differ from the last one in that they use a default format for the returned value while `strftime` allows (and requires) to explicitely define the
 returned format.
 -
-Another difference is that `julianday` returns a value in the → development/databases/SQLite/datatypes[datatype] `real` while `strftime('%J', …)` returns a value
+Another difference is that `julianday` returns a value in the → development/databases/SQLite/datatypes[datatype] `real` while the others (even `strftime('%J', …)`) returns a value
 as `text`.
 
-The formats used for the four functions is displayed in the following table:
-
-table { lll
-   ~Function~                ☰  ~Default format~     ☰ ~How format is printed~
-   `time     (   , str, … )` ☰ `%H:%M:%S`            ☰ `hh:mm:ss`
-   `date     (   , str, … )` ☰ `%Y-%m-%d`            ☰ `yyyy-mm-dd`
-   `datetime (   , str, … )` ☰ `%H:%M:%S` `%Y-%M-%d` ☰ `yyyy-mm-dd hh:mm:ss`
-   `julianday(   , str, … )` ☰ `%J`                  ☰ `dddd.dddd`
-table }
 
 Thus, the following to expressions are equivalent:
 code {
-date('now')
-strftime('%Y-%m-%d', 'now')
+select date    (            'now');
+select strftime('%Y-%m-%d', 'now');
 code }
 
-{ time
+{ datetimestring
 
-  gh|about-sqlite|/functions/date-time/time.sql||
+  The `datetimestring` specifies a point in time on which the function is applied.
+
+  The arguably simplest datetimestring is `'now'`: it specifies the current → misc/UTC[UTC] date and time. The following example shows how the same date-time is formatted differently
+  with the `time`, `date` and `datetime` functions. It also demonstrates how `strftime` is used to return a user defined format:
+  gh|about-sqlite|/functions/date-time/now.sql||
+
+  The complete list of datetimestrings is:
+  table { lll
+    ~datetimestring~ ☰ ~→ misc/ISO/8601[ISO 8601] compliant~ ☰ ~comment~
+    `YYYY-MM-DD` ☰  ☰ Year, month and day of month.
+    `YYYY-MM-DD HH:MM` ☰  ☰ As above, plus hours and minutes
+    `YYYY-MM-DD HH:MM:SS` ☰  ☰ As above, plus seconds
+    `YYYY-MM-DD HH:MM:SS.SSS` ☰  ☰ As above, plus fractions of seconds
+    `YYYY-MM-DDTHH:MM` ☰  ✓ ☰ Note the `T` between the day (`DD`) and the hour (`HH`).
+    `YYYY-MM-DDTHH:MM:SS` ☰ ✓ ☰
+    `YYYY-MM-DDTHH:MM:SS.SSS` ☰  ✓ ☰
+    `HH:MM` ☰  ☰ Hours and minuts only
+    `HH:MM:SS` ☰  ☰ As above, plus seconds
+    `HH:MM:SS.SSS` ☰  ☰ As above, plus fractional seconds
+    `now` ☰  ☰ Current date, time, fractional seconds, in UTC.
+    `DDDDDDDDDD ` ☰  ☰  → Wissenschaft/misc/Bestimmung-von-Daten#julianischer-tag[Julian day number]
+  table }
+
+  The following example uses `strftime` to render the same date (which is specified by the datetimestring `'2018-03-05'`) in a British, American and Swiss format
+  gh|about-sqlite|/functions/date-time/strftime-datetimestring.sql||
 
 }
-{ datetime
+{ Modifiers
 
-  gh|about-sqlite|/functions/date-time/datetime.sql||
+  All functions allow to modify the date time that was specified with the datetimestring.
+
+  One modifier is `localtime`. This modifier interprets a date value as UTC and converts it to local time. Thus, it might be useful to print the current date and time in local time:
+  -
+  The following example prints `now` in UTC and localtime. Because the computer on which it was run is configured with UTC+2 (see → Linux/shell/commands/date#sh-date-time-zone[`date +%z`]), there is a (positive) 2 hour difference between the UTC and localtime
+  in the result:
+  gh|about-sqlite|/functions/date-time/now-localtime.sql||
+
+  Other modifiers allow to add or subtract units of periods:
+  gh|about-sqlite|/functions/date-time/add-subtract-period.sql||
+
+  A nice features is the combination of modifiers:
+  gh|about-sqlite|/functions/date-time/modifier-combination.sql||
 
 }
-{ date
-  gh|about-sqlite|/functions/date-time/date.sql||
+{ Modifier unixepoch
+
+  A special modifier is `'unixepoch'`. It interprets *datetimestring* as *seconds per 1970-01-01*. In the following example, the `datetime` of `0` and a calculated one are shown:
+  gh|about-sqlite|/functions/date-time/unixepoch.sql||
+
 }
-{ strftime #sqlite-strftime
-  gh|about-sqlite|/functions/date-time/strftime.sql||
+{ Weekday
+
+  Another interesting modifier is `'weekday n'` which returns the next date that falls on the given weekday (`0` = Sunday):
+  gh|about-sqlite|/functions/date-time/weekday.sql||
+
 }
 { julianday #sqlite-julianday
 
+ `julianday(…)` returns a number (a → development/databases/SQLite/datatypes/real[real]) that specifies the (fractional) days since the start of the *proleptic Gregorian calendar* (noon of November 24th, 4714 B.C).
   gh|about-sqlite|/functions/date-time/julianday.sql||
 
   See also → Wissenschaft/misc/Bestimmung-von-Daten#julianischer-tag
 
 }
+{ Returning a Julian Day or a Unix Epoch
+
+  The two `strftime` format strings `%J` and `%s` a Julian Day or a Unix Epoch, respectively. Note, although the returned values are numerical in nature, their
+  → development/databases/SQLite/datatypes[data type] is `text`. However, the data type of `julianday()` is `real`:
+  gh|about-sqlite|/functions/date-time/strftime-julian-day_unix-epoch.sql||
+
+}
+{ datetimestring DDDDD
+
+  A datetimestring that consists of numbers is interpreted as Julian Day *unless* followed by the modifier `'unixepoch`:
+  gh|about-sqlite|/functions/date-time/formatstring-DDDDD.sql||
+
+}
+
+{ strftime #sqlite-strftime
+  gh|about-sqlite|/functions/date-time/strftime.sql||
+}
+
 
 
 sa:
