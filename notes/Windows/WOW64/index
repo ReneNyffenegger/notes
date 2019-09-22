@@ -1,15 +1,30 @@
 
 WOW64 = *→ Windows on Windows 64 bit*.
 
-Purpose: allow 32 bit applications to run on a 64 bit Windows environment.
+Purpose: WOW64 is an *emulator* that allows 32 bit applications to run on a 64 bit Windows system.
 
-→ Windows/development/Portable-Executable/DLL[DLLs]:
-  • `Wow64.dll`
-  • `Wow64win.dll` (Entry points for 32 bit applications)
-  • `Wow64cpu.dll` (switch → hardware/CPUs/x86[CPU] between 32 and 64 bit)
-  • `Ntdll.dell`
-  •  etc.
+The emulator runs in *user mode* and provides an interface between the 32-bit version of `Ntdll.dll` and the kernel of the processor, and it intercepts kernel calls. 
 
+
+{ Involved DLLs
+
+  → Windows/development/Portable-Executable/DLL[DLLs]:
+  table { lll
+     ☰ comment ☰ platform
+    → Windows/dirs/Windows/System32/wow64_dll[`wow64.dll`] ☰ Core infrastructure for the emulation / thunks for the → Windows/dirs/Windows/System32/ntoskrnl_exe[`ntoskrnl.exe`] entry-point functions. ☰ all
+    → Windows/dirs/Windows/System32/wow64win_dll[`Wow64win.dll`] ☰ Entry points for → Windows/dirs/Windows/System32/win32k_sys[`win32k.sys`] for 32 bit applications ☰ all
+    → Windows/dirs/Windows/System32/wow64cpu_dll[`wow64cpu.dll`] ☰ supports running x86 executables on x64 / switch → hardware/CPUs/x86[CPU] between 32 and 64 bit ☰ x64
+    `IA32Exec.bin`☰ x86 software emulator ☰ Intel Itanium
+    `Wowia32x.dll` ☰  Interface between `IA32Exec.bin` and WOW64 ☰ Intel Itanium only
+    `xtajit.dll` ☰ x86 software emulator ☰ ARM64
+    `wowarmw.dll` ☰ Running ARM32 programs on ARM64 ☰ ARM64
+    `Ntdll.dell`☰ ☰
+     etc. ? ☰ ☰
+  table }
+
+  These DLLs as well as the 64-bit version of → Windows/dirs/Windows/System32/ntdll_dll[`ntdll.dll`] are the only 64-bit binaries that can be loaded into a 32-bit Windows/development/process[process].
+
+}
 { Environment variables
 
   The values of some → development/endianness[environment variables] are dependent on the bitness of process that uses them.
@@ -32,3 +47,5 @@ sa:
   → Windows/registry[Registry] key → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Wow6432Node[`HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node`]
 
   → Windows/dirs/Windows/System32/cmd_exe/tasks/determine-if-32-or-64-bit-Windows
+
+  The Windows/development/WinAPI function `IsWow64Process` (→ Windows/versions/10: `IsWow64Process2`) allows a 32-bit appliction to check if it runs under WOW64.
