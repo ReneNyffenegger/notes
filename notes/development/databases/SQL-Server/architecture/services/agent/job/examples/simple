@@ -1,0 +1,98 @@
+$ Simple example for creating and scheduling SQL Server Agent jobs
+
+{ A table
+
+  We create a → development/databases/SQL-Server/objects/table[table] with one column only: `dt_insert`. When the job executes, it will insert the timestamp of its execution into this table.
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/table.sql||
+
+}
+{ Stored procedure
+
+  The following → development/databases/SQL-Server/T-SQL/procedures[stored procedure] will be called by our job. It contains the
+  → development/databases/SQL-Server/sql/DML/insert[`insert` statement] that creates the record in `tq84_job_example_tab`.
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/insert-proc.sql||
+
+}
+{ Add the job
+
+  A → development/databases/SQL-Server/architecture/services/agent/job[job] is created with `→ development/databases/SQL-Server/administration/system-databases/msdb[msdb].dbo.as_add_job`.
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/add-job.sql||
+
+  In order to add a job, The → development/databases/SQL-Server/architecture/services/agent[SQL Server Agent] services needs to be running. This can be verified with
+code {
+exec → development/databases/SQL-Server/administration/system-databases/master[master].sys.xp_servicecontrol N'querystate', N'SQLserverAgent'
+code }
+
+  If the service is found to be stopped, it can be started with
+code {
+exec master.sys.xp_servicecontrol N'start', N'SQLserverAgent'
+code }
+
+
+  After a job was added, the job is shown in → development/databases/SQL-Server/Management-Studio[Management Studio (SSMS)] in the *Object Explorer* under
+     *SQL Server Agent* -> *Jobs*.
+
+}
+[ Add one or more job steps
+
+  A → development/databases/SQL-Server/architecture/services/agent/job[job] by itself doesn't do much. It is a container of *job steps*. It's these job steps that actually
+  define what will be executed.
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/add-jobstep.sql||
+
+}
+{ Add a schedule
+
+  A schedule defines when, how often and which periods etc. a job is executed. Unfortunately, it's quite unintuitive, imho, how such a schedule is defined:
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/add-schedule.sql||
+
+}
+{ Attach the job to the schedule
+
+  A schedule can be used for multiple jobs. So, a job needs to be attached to a schedule:
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/attach-schedule.sql||
+
+}
+{ Add a job execution server
+
+  We need to specify a server on which the jobs are run:
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/add-jobserver.sql||
+
+}
+{ Query information about the job
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/query-job-info.sql||
+
+}
+{ Query job history
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/query-job-history.sql||
+
+}
+{ Qyery job steps
+
+  Some information about job steps is stored in `msdb.dbo.sysjobsteps`:
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/query-job-steps.sql||
+
+}
+{ Clean up
+
+
+  gh|about-MSSQL|/architecture/services/agent/jobs/examples/simple/clean-up.sql||
+
+}
+{ TODO
+
+code {
+exec msdb..sp_help_job @job_name = 'tq84_job_example_job', @job_aspect = 'job'
+exec msdb..sp_help_job @job_name = 'tq84_job_example_job', @job_aspect = 'schedules'
+exec msdb..sp_help_job @job_name = 'tq84_job_example_job', @job_aspect = 'steps'
+exec msdb..sp_help_job @job_name = 'tq84_job_example_job', @job_aspect = 'targets'
+
+code }
+
+}
