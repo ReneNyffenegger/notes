@@ -1,5 +1,7 @@
 $ .NET
 
+.NET is a software development platforms that supports multiple → Microsoft/dot-net/languages[languages].
+
 → Microsoft/dot-net/assembly
 
 { App models
@@ -62,6 +64,9 @@ $ .NET
     → Windows/dirs/Windows/Microsoft_NET/Framework64/System_Core_dll[`System.Core.dll`].
 
     A *Common Type System* (CTS) defines a set of *data types* that are shared by CTS-compliant languages.
+    -
+    CLS is a subset of the CTS. This means that all of the rules in the CTS also apply to the CLS, unless the CLS rules are more strict.
+
 
   }
   { .NET Framework
@@ -94,31 +99,46 @@ $ .NET
     Microsoft thinks that *new* .NET applications should be based on .NET Core.
 
   }
+  { Common Language Runtime (CLR)
+
+    Usually, CLR refers to the *runtime* of the → Microsoft/dot-net/implementations/Framework.
+
+    CLR is the virtual machine of the .NET Framework which executes all programs written for .NET. It offers
+      • memory management (allocation, garbage collector, …)
+      • type safety
+      • exception handlin
+      • security (CAS: Code Access Security, CV: Code verification)
+      • thread management
+
+    A CLR converts *managed code* (intermediate language) into *machine code* and then executes it (*IL to native translation*).
+
+    These features make .NET programs *managed*.
+
+    Some examples of runtimes for different → Microsoft/dot-net/implementations are
+    table { ll
+
+      .NET Framework ☰ Common Language Runtime (CLR)
+      .NET Core ☰ Core Common Language Runtime (CoreCLR) 
+      → development/Universal-Windows-Platform[UWP] ☰ .NET Native, a *Ahead of Time* compiler.
+      ? ☰ Mono runtime
+
+    table }
+
+    .NET Core uses CoreCLR.
+
+    CLR implements the VES.
+
+  }
   { CoreCLR
 
     CoreCLR is the runtime used as part of .NET core.
 
+    Originally, CoreCLR was the runtime of *Silverlight*.
+
   }
-  { Common Intermediate Language code (CIL)
+  { CoreRT
 
-    CIL is a an intermediate language that is abstracted from the hardware. It defines a (CPU and platform-independent, stack based, object-oriented) binary instruction set within
-    the Common Language Infrastructure (CLI) specification.
-
-    CIL is the product of a .NET compiler.
-
-    CIL instructions are executed by a CLI-compatible runtime environment (such as the *Common Language Runtime*).
-
-    When CIL is executed, the (platform-specific) VES compiles the CIL to *machine language* (just-in-time compilation).
-    -
-    It is also possible to use ahead-of-time compilation (→ Windows/dirs/Windows/Microsoft_NET/Framework64/vn_n_n/ngen_exe[`ngen.exe`]).
-
-    Compiled CIL code is stored in → Microsoft/dot-net/assembly[CLI assemblies].
-
-    CIL was formerly called *Microsoft intermediate language* (MSIL).
-
-   *Roslyn* is the code name for a *.NET compiler platform* that features a compiler for C# and Visual Basic .NET. These compilers create CIL from the respective source files.
-
-    RyuJIT compiles CIL into byte code.
+    CoreRT is neither a virtual machine nor does it have a JIT. It has a garbage collector, though.
 
   }
   { Common Language Interface (CLI)
@@ -135,7 +155,7 @@ $ .NET
 
     The VES loads and executes CLI-compatible programs, using the metadata to combine separately generated pieces of code at runtime.
 
-    The *.NET Framework* is Microsoft's original implementation of the CLI.
+    The *.NET Framework* is Microsoft's original → Microsoft/dot-net/implementations[implementation] of the CLI.
 
     table { ll
       Specification (?) ☰ .NET Framework implementation
@@ -160,26 +180,58 @@ $ .NET
       • …
 
   }
-  { Common Language Runtime (CLR)
+  { Managed code
 
-    CLR is the virtual machine of the .NET Framework which runs all programs written for .NET. It offers
-      • memory management
-      • type safety
-      • exception handlin
-      • garbage collection
-      • security
-      • thread management
+    Managed code is called *managed* because its executcion is managed by a runtime (CLR).
 
-    These features make .NET programs *managed*.
+    Managed code is written in .NET languages such as
+      • C#
+      • F#
+      • Visual Basic
+      • etc. …
 
-    .NET Core uses CoreCLR.
+    The respective compilers then produce *intermediate language* (IL).
 
-    CLR implements the VES.
+    { Interoperability
+
+      It is possible to call unmanaged code from manged code. This feature is referred to as *interoperability* (or *interop*).
+
+    }
+
+
+  }
+  { (Common) Intermediate language (IL, CIL)
+
+    Intermediate language is the product of a high-level .NET language compiler.
+
+    The *intermediate language* is also referred to as *Common Intermediate Language* (CIL).
+    -
+    CIL was formerly called *Microsoft intermediate language* (MSIL).
+
+    CIL is abstracted from the hardware. It defines a (CPU and platform-independent, stack based, object-oriented) binary instruction set within
+    the Common Language Infrastructure (CLI) specification.
+
+    CIL code is taken by a CLR which then *Just-in-Time* compiles it (aka JIT-ing). The product of JIT-ing is machine code that can be executed on a CPU.
+
+    CIL instructions are executed by a CLI-compatible runtime environment (such as the *Common Language Runtime*).
+
+    When CIL is executed, the (platform-specific) VES compiles the CIL to *machine language* (just-in-time compilation).
+    -
+    It is also possible to use ahead-of-time compilation (→ Windows/dirs/Windows/Microsoft_NET/Framework64/vn_n_n/ngen_exe[`ngen.exe`]).
+
+    Compiled CIL code is stored in → Microsoft/dot-net/assembly[CLI assemblies].
+
+   *Roslyn* is the code name for a *.NET compiler platform* that features a compiler for C# and Visual Basic .NET. These compilers create CIL from the respective source files.
+
+    RyuJIT compiles CIL into byte code.
+
+    → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/ildasm_exe[`ildasm.exe`] is an IL disassembler.
+
 
   }
   { .NET implemenations
 
-     The four primary implementations are:
+     The four primary → Microsoft/dot-net/implementations[implementations] are:
      table { ll
         .NET Framework ☰ The *original* framework, first released in 2002. Won't probably have a version 5.0
         .NET Core ☰ Re-implementation of .NET Framework. .NET Framework will be merged into .NET Core
@@ -190,7 +242,6 @@ $ .NET
   }
   { .NET Standard
 
-    .NET Standard is a list of APIs that must be present in a .NET implementation to claim compliant to a given .NET Standard version.
 
 ?   .NET Standard is a library that combines the APIs of .NET Framework, .NET Core and Xamarin.
 
@@ -207,6 +258,8 @@ $ .NET
   { Mono
 
 ?   Mono started as an open source alternative to .NET Framework and is the original cross-platform implementation of .NET
+
+    Mono is typically run with a Just-in-Time compiler but also has a ahead-of-time compiler (static compilation).
 
 ?   Mono is the runtime used as part of Xamarin.
 
@@ -246,11 +299,78 @@ $ .NET
     ASP.NET Core is a re-implementation of ASP.NET. It runs on multiple platforms (OS X, → Windows, → Linux).
 
   }
+  { JIT
+
+    The *Just-in-time* compiler translates IL to machine code that runs on a CPU. Thus, it is similar to a AOT (Ahead-of-Time) compiler.
+    However, the JIT translates code when needed and on the same machine that the machine code eventually runs.
+
+  }
+  { Tools
+
+    Some tools that run on all → Microsoft/dot-net/implementations are
+      • → Windows/development/Microsoft-Build-Engine[MSBuild]
+      • NuGet (package manager)
+      • CAKE, FAKE (Open source orchestration tools)
+      • Project system (based on .csproj, .vbproj or .fsproj files)
+      • .NET language compilers
+
+  }
   { .NET Native
 
-     A Ahead of Time compiler for UWP.
+     A (Ahead-of-Time) compiler (that produces machine code) on the developer's machine.
 
-  } 
+     UWP was the first application framework that was supported by .NET Native.
+
+  }
+  { NGEN
+
+    NGEN = *Native image GENeration*.
+
+    NGEN compiles code typically at installation time.
+
+   → Windows/dirs/Windows/Microsoft_NET/Framework64/vn_n_n/ngen_exe[`ngen.exe`]
+
+  }
+  { Namespaces
+
+    Parts of namespace names are delimited by a dot (`.`).
+
+    The `using` directive removes the necessity to specify the full namespace for every class.
+
+    The *root* namespace is referred to with `global` (for example`global::System`).
+
+
+  }
+  { Common Type System CTS
+
+    The Common Type System (CTS) is a standard (ECMA 335, Common Language Infrastructure (CLI), Partitions I to VI) that specifies how type definitions and specific values of types are represented in computer memory.
+    -
+    This standard allows .NET languages to share data.
+
+    A type is either
+      • a value type
+      • a reference type (similar to pointers)
+
+    Common types
+      • Classes
+      • Structures
+      • Enumerations
+      • Interfaces
+      • Delegates
+
+
+  }
+  { Misc
+
+    → https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+
+  }
+
+}
+{ Misc
+
+
+  .NET is always fully capitalized. .Net is wrong.
 
 }
 
@@ -263,3 +383,5 @@ sa:
 
 links:
   Martin Willey: → https://martinwilley.com/blog/2017/02/18/VS2017NetVersions.html[.NET versions]
+
+  → https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/dotnet-standards.md[.NET Standards]
