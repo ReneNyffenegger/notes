@@ -1,14 +1,64 @@
 $ SQL Server: set quoted_identifier
 
-When a → development/databases/SQL-Server/T-SQL/procedures[stored procedure] is created, the currently set value of `quoted_identifier` is stored with the procedure. When the procedure
-is executed, it runs with this value (rather than the one that is active when the procedure is executed).
--
-The same applies to the setting → development/databases/SQL-Server/T-SQL/statements/set/ansi_nulls[`ansi_nulls`] as well.
+{ Interpretation of quotation marks
 
-Get current value for `quoted_identifier`:
+  The value of `quoted_identifier` controls how `"quoted text"` is interpreted. If `quoted_identifier` is `on`, `"quoted text"` is taken to be an *identifier* (which is essentially the same
+  as `[quoted text]`. If `quoted_identifier` is set to `off`, `"quoted text"` is interpreted as string (and is essentially the same thing as `'quoted text'`).
+
+  gh|about-MSSQL|/t-sql/statements/set/quoted_identifier/strings-vs-identifiers.sql||
+
+}
+{ Get current value of quoted_identifier
+
+  The current setting of `quoted_identifier` is encoded in the → development/databases/SQL-Server/T-SQL/variables/atat/options[`@@options`] variable:
+  code {
+select case when → development/databases/SQL-Server/T-SQL/variables/atat/options[@@options] & power(2, 8) > 0 then 'yes' else 'no' end;
+  code }
+
+}
+{ Value of quoted_identifier not retained across SQL batches #quoted_identifier-sql-batch
+
+  The following demonstration shows that the value of `quoted_identifier` is not retained across → development/databases/SQL-Server/sql/batch[SQL batches].
+
+  In the first batch, `quoted_identifier` is set to `off` but after the `go` which initiates the second batch, the value is `on` again:
+  gh|about-MSSQL|/t-sql/statements/set/quoted_identifier/sql-batch.sql||
+
+}
+{ Value determined at parse time of SQL batch
+
+  The value of `quoted_identifier` is determined at parse time of an SQL batch, not at compile time. This value is valid for the entire SQL batch. The last encountered setting wins.
+
+  The following example demonstrates that `quoted_identifier` is `off` for the entire batch altough it *seems* to be switched off, on and off again:
+  gh|about-MSSQL|/t-sql/statements/set/quoted_identifier/parse-time.sql||
+
+}
+{ Filtered index
+
+  The value of `quoted_identifier` must be `on` when a *filtered index* is created:
+  gh|about-MSSQL|/t-sql/statements/set/quoted_identifier/filtered-index.sql||
+
+}
+{ Current value of quoted_identifier stored with stored procedure when creating it
+
+  When a → development/databases/SQL-Server/T-SQL/procedures[stored procedure] is created, the currently set value of `quoted_identifier` is stored with the procedure. When the procedure
+  is executed, it runs with this value (rather than the one that is active when the procedure is executed).
+
+  This is reflected in → development/databases/SQL-Server/administration/schemas/sys/objects/views/sql_modules[`sys.sql_modules`]:
 code {
-select case when → development/databases/SQL-Server/T-SQL/variables/atat/options/[@@options] & power(2,  8) > 0 then 'yes' else 'no' end;
+select
+   uses_quoted_identifier
+from
+   sys.sql_modules
+where
+   object_id = …
 code }
+  
 
+  The same applies to the setting → development/databases/SQL-Server/T-SQL/statements/set/ansi_nulls[`ansi_nulls`] as well.
+
+}
 sa:
   The → development/databases/SQL-Server/T-SQL/statements/set[T-SQL `set` statement]
+
+  → development/databases/SQL-Server/tools-utilities/sqlcmd[`sqlcmd`], by default, sets `quoted_identifier` to `off`. This can be changed with the
+  → development/databases/SQL-Server/tools-utilities/sqlcmd#sqlcmd-quoted_identifier[`-I` option of `sqlcmd`].
