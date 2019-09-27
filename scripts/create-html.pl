@@ -461,7 +461,7 @@ sub process_page { #_{
 
     } #_}
 
-    if (not $in_code and $line =~ /(.*)" *(\[ *(.+) *\])? *$/) { #_{ End Quote
+    if (not $in_code and not $in_table and $line =~ /(.*)" *(\[ *(.+) *\])? *$/) { #_{ End Quote
 
       my $q_text = $1;
       my $source = $3;
