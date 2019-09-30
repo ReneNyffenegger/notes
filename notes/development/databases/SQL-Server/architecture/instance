@@ -1,37 +1,49 @@
 $ SQL Server instance
 @ instance
 
-A computer (or generally an → development/databases/SQL-Server installation) can have zero, one or more instances of → development/databases/SQL-Server[SQL Server] installed.
+A computer (or generally an → development/databases/SQL-Server installation) can have zero, one or more *instances* of → development/databases/SQL-Server[SQL Server] installed.
 
-An instance contains one or more → development/databases/SQL-Server/administration/database[databases].
+{ Componenents
 
-System level information about an instance is recorded in the *master* → development/databases/SQL-Server/administration/system-databases[system database].
+  An instance consists of one or more components:
+   • Database Engine Server
+   • → development/databases/SQL-Server/Analysis-Services server
+   • → development/databases/SQL-Server/Reporting-Services server
+  
+ It seems that with SQL Server 2017, Reporting Services has become an SQL Server independent component.
 
-Each instance is a → Windows/services[Windows service] that runs (a seperate copy) of → Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn/sqlservr_exe[`sqlservr.exe`]
-(See also → development/databases/SQL-Server/architecture/services[SQL Server services]).
+ { Database Engine Server
 
-{ Default instances
+  A *Database Engine Server* consists of one or more → development/databases/SQL-Server/administration/database[databases] where the actual data is stored.
 
-  One of the instances that are running on a computer can be the *default* instance.
+  System level information about an instance is recorded in the *master* → development/databases/SQL-Server/administration/system-databases[system database].
 
-  A default instance has no name.
+  Each instance is a → Windows/services[Windows service] that runs (a seperate copy) of → Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn/sqlservr_exe[`sqlservr.exe`]
+  (See also → development/databases/SQL-Server/architecture/services[SQL Server services]).
+
+ }
+
+}
+{ Instance names
+
+  At most one of the isntalled instances is a ~default instance~. The other instances are identified by an ~instance name~. 
 
   When a client tries to connect to a computer without specifying an instance name, it will be connected to the default instance.
 
 }
-
 { Instance IDs #mssql-instance-id
 
-  During SQL Server Setup, an instance ID is generated for each *server component*.
+ *Instance IDs* are required to locate instance-dependent data in the → Windows/registry and the → Windows/file-system. These Instance IDs are created
+  for each *component* (Database Enginde Server, Analysis Services, …) when a new instance is created with *SQL Server Setup* (→ Windows/dirs/Program-Files/Microsoft-SQL-Server/version/Setup-Bootstrap/SQLyyyy#sql-server-bootstrap-setup_exe[`setup.exe`]).
 
-  The (default) instance ID is a combination of
-    • *ID Prefix*,
+  The (default) instance ID consists of 
+    • *ID Prefix* (that identifies the component),
     • a two digit → development/databases/SQL-Server/versions[version] code,
     • an optional underscore and minor version,
     • a dot (`.`)
-    • an instance name.
+    • an instance name (which is `MSSQLSERVER` for default instances).
 
-  SQL Server 2017, for example, comes with the following three components
+  SQL Server 2016, for example, comes with the following three component prefixes:
   table { ll
     ~Component~ ☰ ~ID Prefix~
     Database Engine ☰ `MSSQL`
@@ -40,8 +52,9 @@ Each instance is a → Windows/services[Windows service] that runs (a seperate c
   table }
 
   Examples IDs:
-    • `MSSQL14.MSSQLSERVER` is the default instance of SQL Server 2017
-    • `MSSQL14.TQ84` is a named instance of SQL Server 2017
+    • `MSSQL14.MSSQLSERVER` is the default instance id of unnamed SQL Server 2017 instance
+    • `MSSQL14.TQ84` is the instance id of SQL Server 2017 Database Engine whose instance name is `TQ84`
+    • `MSAS14.TQ84` is the instance id of → development/databases/SQL-Server/Analysis-Services 2017 whose instance name is `TQ84`
 
   The name of an instance id appears in an SQL Server's directory structure under
   → Windows/dirs/Program-Files/Microsoft-SQL-Server/instance-id[`%programfiles%\Microsoft SQL Server\instance-id`].
