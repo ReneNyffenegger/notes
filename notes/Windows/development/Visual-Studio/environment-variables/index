@@ -9,12 +9,17 @@ The *Visual Studio environment variables* are needed for the → Windows/develop
 
   { Visual Studio 2017 and later
 
-     Beginning with Visual Studio 2017, this `%VSxxxCOMNTOOLS%` is not set globally anymore. Instead, the installer comes with
+     Beginning with Visual Studio 2017, the Visual Studio environment variables are set by → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools/VsDevCmd_bat[`VsDevCmd.bat`] (which
+     extends the functionality of `vsvars32.bat` of earlier Visual Studio versions).
+
+     The directory where `VsDevCmd.bat` is located can be determined with 
      → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer/vswhere_exe[`vswhere.exe`], which is (by default) located under
-     → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer[`C:\Program Files (x86)\Microsoft Visual Studio\Installer`]
-     -
-     Also, `vsvars32.bat` is replaced with → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools/VsDevCmd_bat[`VsDevCmd.bat`] (which seems to have more options).
-     -
+     → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/Installer[`C:\Program Files (x86)\Microsoft Visual Studio\Installer`]:
+code {
+C:\> "%programfiles(x86)%\Microsoft Visual Studio\Installer\vswhere" -latest -property installationPath
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community
+code }
+
      Now, with a combination of `vswhere.exe` and → Windows/dirs/Windows/System32/cmd_exe/commands/for/f[`for /f`], it is possible to call `VsDevCmd.bat` in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe]:
 code {
 C:\> for /f "usebackq delims=#" %a in (`"%programfiles(x86)%\Microsoft Visual Studio\Installer\vswhere" -latest -property installationPath`) do "%a\Common7\Tools\VsDevCmd.bat"
@@ -23,6 +28,8 @@ C:\> for /f "usebackq delims=#" %a in (`"%programfiles(x86)%\Microsoft Visual St
 ** Copyright (c) 2017 Microsoft Corporation
 **********************************************************************
 code }
+
+     I have created the simple → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] → development/tools/scripts/personal/vsenv_bat[`vsenv.bat`] that does exactly this.
 
     `VsDevCmd.bat` among others also sets the `VSxxxCOMNTOOLS` environment variable.
 
@@ -51,7 +58,7 @@ code }
     → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools[`Commont7\Tools`] directory under
     the respective → Windows/development/Visual-Studio#vs-installation-root[installation root].
 
-    With `%VSxxxCOMNTOOLS%`, it possible to locate and run `vsvars32.bat`, a batch file that sets the necessary environment variables.
+    With `%VSxxxCOMNTOOLS%`, it's possible to locate and run `vsvars32.bat`, a → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch file] that sets the necessary environment variables.
     -
     Note the apostrophes when using this variable because of the spaces in the path that the variable points at:
 code {
@@ -136,7 +143,7 @@ table { lll
    VSINSTALLDIR                  ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition[`C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\`] ☰ The Visual Studio installation root-directory. Note the similarity to `%VCINSTALLDIR%`
    VCINSTALLDIR                  ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC[`%VSINSTALLDIR%VC\`] ☰  The `VC` directory below `%VSINSTALLDIR%`, it contains the C and C++ specific parts of a Visual Studio installation.
    VSxxxCOMNTOOLS                ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/Tools[`%VSINSTALLDIR%Common7\Tools\`] ☰  `xxx` corresponds to `%VisualStudioVersion%` *without dot*.
-   DevEnvDir                     ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/IDE[`%VSINSTALLDIR%Common7\IDE\`] ☰ 
+   DevEnvDir                     ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/IDE[`%VSINSTALLDIR%Common7\IDE\`] ☰ Contains Visual Studio IDE related exes etc, such as → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/IDE/devenv_exe[`devenv.exe`].
    VCIDEInstallDir               ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/IDE/VC[`%DevEnvDir%VC`] ☰ 
    VCToolsInstallDir             ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version[`%VCINSTALLDIR%Tools\MSVC\%VCToolsVersion%\`] ☰ 
    VCToolsRedistDir              ☰ → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Redist/MSVC/version[`%VCINSTALLDIR%Redist\MSVC]\x.y.z` ☰ 

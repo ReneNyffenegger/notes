@@ -18,6 +18,47 @@ $obj = new-object → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[prog.id]
 code }
 
 }
+{ Instantiating an object from a DLL #ps-new-object-dll
+
+  The following simple example tries to demonstrate how a class from a → Windows/development/Portable-Executable/DLL can be used in → Windows/PowerShell.
+
+  First, we need to create such a DLL. Here's the → development/languages/C-Sharp source code:
+  gh|about-PowerShell|/cmdlets/object/new/cs-class/obj.cs||
+
+  The source code is compiled into a DLL (`-target:library`):
+code {
+PS C:\path\to\somewhere > csc -nologo -target:library .\obj.cs
+code }
+
+   In order to use the class, the DLL needs to be added to the current → Windows/PowerShell session:
+code {
+PS C:\path\to\somewhere > → Windows/PowerShell/command-inventory/noun/type/add[add-type] -path 'obj.dll'
+code }
+
+   Static methods can be called without instantiating a class.
+code {
+PS C:\path\to\somewhere > [TQ84.Obj]::twice(21)
+code }
+
+  However, member methods require an object, which is what `new-object` creates.
+  -
+  When the object is created, its constructor is automatically called. Because the constructor contains a `System.Console.WriteLine` statement, *Obj's constructor was called* is printed.
+code {
+PS C:\path\to\somewhere > $obj_1 = new-object TQ84.Obj one
+Obj's constructor was called
+PS C:\path\to\somewhere > $obj_2 = new-object TQ84.Obj two
+Obj's constructor was called
+code }
+
+   Now, that the objects have been created, we can use them:
+code {
+PS C:\path\to\somewhere > $obj_1.saySomeThing('eins')
+one says eins
+PS C:\path\to\somewhere > $obj_2.saySomeThing('zwei')
+two says zwei
+code }
+
+}
 
 sa:
 

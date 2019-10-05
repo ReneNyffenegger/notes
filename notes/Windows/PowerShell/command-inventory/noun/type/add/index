@@ -2,5 +2,44 @@ $ PowerShell cmdLet add-type
 
 The `add-type` → Windows/PowerShell/language/cmdlet[cmdLet] allows to load → Microsoft/dot-net framework classes.
 
+Assemblies that were loaded into a → Windows/PowerShell cannot be unloaded anymore and consequenctly, there is no `remove-type` → Windows/PowerShell/language/cmdlet[cmdLet]. There is no other way to get rid of such assemblies from memory but to
+restart PowerShell.
+
+{ Adding a DLL to a PowerShell session
+
+  The following simple example tries to demonstrate how a DLL can be added to → Windows/PowerShell session.
+
+  First, we need to create a → Windows/development/Portable-Executable/DLL. We create it from the following source code
+  gh|about-PowerShell|/cmdlets/type/add/tq84_type.cs||
+
+  This source is compiled into a DLL with `csc.exe`, the → development/languages/C-Sharp compiler:
+code {
+PS C:\path\to\somewhere> csc -nologo -target:library .\tq84_type.cs
+code }
+
+   The DLL can now be added to the current PowerShell session with the `add-type` → Windows/PowerShell/language/cmdlet[cmdLet]:
+code {
+PS C:\path\to\somewhere> add-type -path 'tq84_type.dll'
+code }
+
+   We verify if the DLL was actually loaded. The following statement reports it as being loaded:
+code {
+PS C:\path\to\somewhere> [AppDomain]::CurrentDomain.GetAssemblies()
+code }
+
+   Now that the DLL is loaded, we can use its functionality. Static methods can be invoked without
+   creating an object:
+code {
+PS C:\path\to\somewhere> [TQ84.T]::twice(21)
+42
+code }
+
+   In order to invoke member methods, an instance of the class needs to be created. This can be done with
+   → Windows/PowerShell/command-inventory/noun/object/new#ps-new-object-dll[`new-object '….dll'`]
+
+
+}
+
+
 sa:
   → Windows/PowerShell/command-inventory/noun/type
