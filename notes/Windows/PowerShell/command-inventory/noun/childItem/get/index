@@ -1,4 +1,37 @@
 $ PowerShell cmdLet get-childItem
 
+code {
+get-childItem
+get-childItem -path p:\ath\to\dir
+get-childItem -path p:\ath\to\dir        -filter  *.txt
+get-childItem -path p:\ath\to\dir\*      -include *.txt                 # Note the star
+get-childItem -path p:\ath\to\dir\*      -exclude *.dll,*.exe
+get-childItem -path p:\ath\to\dir\a*\b*
+get-childItem  …                         -recurse
+get-childItem  …                         -attributes …
+get-childItem  …                         -force                         # also return hidden files
+get-childItem  …                         -hidden                        # return hidden files only
+get-childItem  …                         -readOnly                      # return read-only files only
+get-childItem  …                         -system                        # return system files only
+get-childItem  …                         -directory                     # return directories only
+get-childItem  …                         -name                          # return strings rather than filesystem, registry or certificate objects
+code }
+
+
+{ List files that were modified in the last 24 hours
+
+  The following → Windows/PowerShell/pipeline shows files (not directories) that were modified during the last 24 hours.
+
+  The → Windows/PowerShell/command-inventory/noun/object/forEach[`forEach-object`] part is required to transform the returned objects into strings.
+
+code {
+get-childItem -recurse -attributes !directory | → Windows/PowerShell/command-inventory/noun/object/where[where-object] { → Windows/PowerShell/language/variable/automatic/psItem[$_].lastWriteTime → Windows/PowerShell/language/operator/comparison[-gt] (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).addDays(-1) } | forEach-object { $_.toString() }
+code }
+
+}
+
 sa:
   → Windows/PowerShell/command-inventory/noun/childItem
+
+links:
+  Thomas Lee's → https://tfl09.blogspot.com/2012/02/get-childitem-and-theinclude-and-filter.html[`-filter` vs `-include` in get-childItem]
