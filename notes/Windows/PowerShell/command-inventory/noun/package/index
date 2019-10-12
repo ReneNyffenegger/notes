@@ -1,0 +1,48 @@
+$ Powershell command noun: package
+
+Commands related to the → Windows/PowerShell[PowerShell] command noun `package`:
+  • → Windows/PowerShell/command-inventory/noun/package/find[`find-package`]
+  • `get-package` (gets all packages that were installed with *PackageManagment*)
+  • `install-package`
+  • `save-package`
+  • `uninstall-package`
+
+rem {
+
+{ Installing the first package
+
+  First: we check which packages are already installed. Because no package was installed so far with *PackageManagment*, the → Windows/PowerShell/language/cmdlet[cmdLet] returns an empty list:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/package/get[`get-package`]
+code }
+
+  We want to install `Microsoft.Data.Sqlite`:
+code {
+PS C:\> $pkg = find-package -name Microsoft.Data.Sqlite
+PS C:\> $pkg
+
+Name                           Version          Source           Summary
+----                           -------          ------           -------
+Microsoft.Data.Sqlite          3.0.0            nuget.org        SQLite implementation of the System.Data.Common provider model.…
+code }
+
+  Because the package is not from a trusted source, I need to add the `-force` option (or I'd be asked to confirm if I want to install the packge when `install-package` is executed).
+  -
+  Also, I am not using an elevated PowerShell prompt, so the package cannot be installed into `\C:\Program Files\PackageManagement\NuGet\Packages`. I need to run the command with `scope currentUser`:
+code {
+PS C:\> $pkg.fromTrustedSource
+False
+PS C:\> install-package -force -scope currentUser -verbose $pkg
+install-package : Dependency loop detected for package 'Microsoft.Data.Sqlite'.
+code }
+  
+
+}
+
+rem }
+
+sa:
+
+  The → Windows/PowerShell/command-inventory/noun/packageProvider[cmdLet noun `packageProvider`]
+
+ → Windows/PowerShell/command-inventory/noun

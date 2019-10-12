@@ -1,0 +1,75 @@
+$ PowerShell: objects
+
+A fundamental concept in → Windows/PowerShell is that of objects. Objects are assigned to → Windows/PowerShell/language/variable[variables] and objects flow through a → Windows/PowerShell/pipeline.
+
+{ An object is typed
+
+  Each object has a type that can be determined with `$obj.GetType()`:
+
+code {
+PS C:\Users\Rene> $curDir = get-item .
+PS C:\Users\Rene> $curDir.GetType()
+
+IsPublic IsSerial Name           BaseType
+-------- -------- ----           --------
+True     False    → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[DirectoryInfo]  → Microsoft/dot-net/namespaces-classes/System/IO/FileSystemInfo[System.IO.FileSystemInfo]
+code }
+
+
+   PowerShell also allows to create → Windows/development/COM/object[COM objects]. Such object's type is `System.MarshalByRefObject.__ComObject`:
+PS C:\Users\Rene> $comObj = new-object -comObject shell.application
+PS C:\Users\Rene> $comObj.GetType()
+
+IsPublic IsSerial Name           BaseType
+-------- -------- ----           --------
+True     False    → Microsoft/dot-net/namespaces-classes/System/__ComObject[__ComObject]    → Microsoft/dot-net/namespaces-classes/System/MarshalByRefObject[System.MarshalByRefObject]
+
+   Of course, `$obj.GetType()` also returnes an object whose type is → Microsoft/dot-net/namespaces-classes/System/RuntimeType[`System.RuntimeType`]:
+code {
+PS C:\Users\Rene> $typ = $curDir.GetType()
+PS C:\Users\Rene> $typ.GetType().FullName
+System.RuntimeType
+code }
+
+}
+{ Properties and methods
+
+  As is the case in most → development/languages[programming languages], an object exposes properties and methods.
+
+  The names, member types and definitions of these properties and methods can be seen by → Windows/PowerShell/pipeline[piping] an object into → Windows/PowerShell/command-inventory/noun/member/get[`get-member`]:
+code {
+PS C:\Users\Rene> $curDir | get-member
+…
+code }
+
+  In order to restrict the output to properties, the `get-member` option `-memberType` can be used:
+code {
+PS C:\Users\Rene> $curDir | get-member -memberType properties
+
+   TypeName: System.IO.DirectoryInfo
+Name                MemberType     Definition
+----                ----------     ----------
+…
+FullName            Property       string FullName {get;}
+LastAccessTime      Property       datetime LastAccessTime {get;set;}
+LastAccessTimeUtc   Property       datetime LastAccessTimeUtc {get;set;}
+…
+code }
+
+  In order to see the properties' *values*, the object can be piped into → Windows/PowerShell/command-inventory/noun/object/select[`select-object`]:
+code {
+PS C:\Users\Rene> $curDir | select-object -property *
+…
+FullName            : C:\Users\Rene
+…
+LastAccessTime      : 10/12/2019 9:09:47 AM
+LastAccessTimeUtc   : 10/12/2019 7:09:47 AM
+…
+code }
+
+   The `-property` flag is not even required so that the command can be abbreviated  with
+code {
+PS C:\Users\Rene> $curDir | select-object *
+code }
+
+}
