@@ -1,0 +1,33 @@
+$ PowerShell functions: begin, process and end blocks
+
+A PowerShell function can contain a `begin`, `process` and `end` block each of which is a list of → Windows/PowerShell/language/statement[statements].
+-
+These blocks are invoked when the respective function participates in a → Windows/PowerShell/pipeline.
+
+The `begin` block is invoked before the first → Windows/PowerShell/language/object within the pipeline is processed by the function. Similarly, the `end` block is invoked after
+the last object has been processed.
+-
+The `process` block is invoked for each object as it is processed by the function.
+
+Within the `process` block, the → Windows/PowerShell/language/variable/automatic[automatic variable `$input`] refers to the objects in the pipeline. If there is no `process` block, the `$input` variable is an array in the `end` block that contains
+all objects that were passed from the pipeline. This is because the `process` block removes the object from the `$input` variable.
+
+{ Simple demonstration
+
+  The following simple → Windows/PowerShell script tries to demonstrate the basic functionalities of these blocks.
+
+  Two functions are defined, one with all three blocks, and another where the `process` block is missing.
+
+  After defining the functions, two pipelines are created where some objects are piped into the two functions. It can be seen that the `$input` variable is filled in the function without the
+ `process` block, but is empty in the function with the `process` block.
+
+  gh|about-PowerShell|/language/function/begin-process-end-block/with-without-process.ps1||
+
+}
+{ Function to sum up the elements of an array
+
+  With these blocks, it's possible to create a function into which the elements of an → Windows/PowerShell/language/type/array[array] can be piped and then sums up the individual elements of that array:
+  
+  gh|about-PowerShell|/language/function/begin-process-end-block/sum.ps1||
+
+}
