@@ -1,12 +1,45 @@
 $ VBA: byVal vs byRef
 
-{ Default depends on paranthesis used
+A → development/languages/VBA/language/subs-and-functions/parameters[function or sub parameter] can be defined as `byRef` or `byVal`.
 
-  The following example shows that paranthesis influence the behaviour of the parameters passed.
+A parameter that is defined as `byVal` gets a copy of the value with which the function was invoked. Because it is a copy, the function can change the value of the
+parameter without taking an affect outside of the function.
 
-  With paranthesis, the parameters are passed `byVal`, without paranthesis, they're passed `byRef`.
+However, a parameter that is defined as `byRef` is not a copy but a *reference*. Thus, it allows the function to change the respective variable in the context of the
+calling function.
+
+{ Demonstration
+
+  The following simple → development/languages/VBA[VBA] code snippet tries to demonstrate the difference between `byVal` and `byRef` parameters:
+
+  gh|about-VBA|/language/subs-and-functions/byVal-byRef/difference.bas||
+
+}
+{ Default depends on way of calling function
+
+  If a parameter is neither defined as `byRef` or `byVal`, it depends on the way how the function or sub is called if the paramter treated as `byRef` or `byVal`
+
+  table { lll
+    ~How the sub/function is called~ ☰ ~Parameters are~ ☰ ~Comment~
+    `subName(param1, …`)             ☰ `byVal`          ☰  With parentheses, the parameters are passed `byVal`
+    `subName param1, …`              ☰ `byRef`          ☰  Without parentheses, the parameters are passed `byRef`
+    `call subName(param1, …)`        ☰ `byRef`          ☰  With a → development/languages/VBA/language/statements/call[`call`] statement, the parameters are passed `byRef` (even though parentheses are used)
+  table }
 
   gh|about-VBA|/language/subs-and-functions/byVal-byRef/default.bas||
+
+}
+{ Compile error: ByRef argument type mismatch
+
+  If parameters that are defined `byRef` get their value from a variable when the sub/function is called, the development/languages/VBA/language/datatypes[data type] of the parameter
+  and the variable must be equal, otherise a *ByRef argument type mismatch* error is thrown:
+  gh|about-VBA|/language/subs-and-functions/byVal-byRef/img/compile-error.png||
+
+  Such an error can be forced with the following VBA snippet:
+  gh|about-VBA|/language/subs-and-functions/byVal-byRef/compile-error.bas||
+
+  Note, the line that reads `call s(42)` does not cause this error, although `42` has a different data type as the parameter. This is because the value for the parameter is now provided
+  from a constant rather than a variable.
 
 }
 
