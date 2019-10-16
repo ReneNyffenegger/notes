@@ -2,8 +2,59 @@ $ PowerShell: new-object psObject
 
 `new-object psObject` creates a → Windows/PowerShell/language/type/hash-table[hash like] → Windows/PowerShell/command-inventory/noun/object[object].
 
-The following example creates a new object with → Windows/PowerShell/command-inventory/noun/object/new[`new-object`]. It turns out that the created type is a `System.Management.Automation.PSCustomObject`.
+The following example creates a new object with → Windows/PowerShell/command-inventory/noun/object/new[`new-object`].
+It turns out that the created type is a
+→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`].
+-
 Two members are added (→ Windows/PowerShell/command-inventory/noun/member/add[`add-member`]). Finally, the added values are echoed with
 → Windows/PowerShell/command-inventory/noun/output/write[`write-output`].
 gh|about-PowerShell|/cmdlets/object/new/psObject/hash-like-object.ps1||
 
+{ Creating a custom object from a hash table #ps-new-object-ht-2-custObj
+
+  A → Windows/PowerShell/language/type/hash-table[hash table] can be turned into a custom object like so:
+code {
+PS C:\> $hashTable = @{key_1 = 'foo'; key_2 = 'bar'; key_3 = 'baz' }
+PS C:\> $hashTable
+
+Name                           Value
+----                           -----
+key_1                          foo
+key_3                          baz
+key_2                          bar
+
+PS C:\> $hashTable | → Windows/PowerShell/command-inventory/noun/member/get[get-member] -memberType properties
+
+   TypeName: → Microsoft/dot-net/namespaces-classes/System/Collections/Hashtable[System.Collections.Hashtable]
+
+Name           MemberType Definition
+----           ---------- ----------
+      …
+Keys           Property   System.Collections.ICollection Keys {get;}
+      …
+Values         Property   System.Collections.ICollection Values {get;}
+
+PS C:\> $custObj   = new-object psObject -property $hashTable
+PS C:\> $custObj
+
+key_1 key_3 key_2
+----- ----- -----
+foo   baz   bar
+
+PS C:\> $custObj | get-member -memberType properties
+
+   TypeName: → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[System.Management.Automation.PSCustomObject]
+
+Name  MemberType   Definition
+----  ----------   ----------
+key_1 NoteProperty string key_1=foo
+key_2 NoteProperty string key_2=bar
+key_3 NoteProperty string key_3=baz
+code }
+
+  It is even simpler (and as some sources on the internet seem to claim also faster) to use the `[psCustomObject]` → Windows/PowerShell/language/object/type/accelerators[type accelerator]:
+code {
+PS C:\> $anotherObj = [psCustomObject] @{ K1 = 'one'; K2 = 'two'; K3 = 'three' }
+code }
+
+}
