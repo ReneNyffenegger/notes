@@ -1,12 +1,41 @@
 $ Windows environment variables
 
-There are four types of Windows environment variables:
-  • ~System~, found in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`]
-  • ~User~, found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKCU\Environment`]
-  • ~Volatile~, found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment[`HKCU\Volatile Environment`]
-  • ~Process~
+{ Four types of environment variables
 
-table { llll
+  There are four types of Windows environment variables
+  table { ll
+    System   ☰ Found in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`]
+    User     ☰ Found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKCU\Environment`]
+    Volatile ☰ found in the registry under → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment[`HKCU\Volatile Environment`]
+    Process~ ☰
+  table }
+
+}
+{ Querying environment variables (.NET)
+
+  The currently set environment variables are exposed in the static method `GetEnvironmentVariables` in the → Microsoft/dot-net/namespaces-classes[.NET class] → Microsoft/dot-net/namespaces-classes/System/Environment[`System.Environment`].
+  -
+  When used in → Windows/PowerShell, the metod returns a → Microsoft/dot-net/namespaces-classes/System/Collections/Hashtable[`System.Collections.Hashtable`] (see also → Windows/PowerShell/language/type/hash-table[hash tables in PowerShell):
+code {
+PS C:\> [System.Environment]::GetEnvironmentVariables()
+Name                           Value
+----                           -----
+SESSIONNAME                    Console
+ProgramFiles(x86)              C:\Program Files (x86)
+USERDNSDOMAIN                  TQ84.LOCAL
+…
+code }
+
+  The value of a particular environment variable can be queried with `GetEnvironmentVariable(varName)`, again in PowerShell:
+code {
+PS C:\> [System.Environment]::GetEnvironmentVariable('SystemDrive')
+C:
+code }
+
+}
+{ Common variables
+
+  table { llll
 
   ~Variable~ ☰ ~Possible value~ ☰ ☰ ~→ Windows/registry[registry]~
   ALLUSERSPROFILE ☰ → Windows/dirs/ProgramData[C:\ProgramData] ☰  ☰ Same value as `%ProgramData%` (at least on → Windows/versions/10)
@@ -49,23 +78,25 @@ table { llll
   USERPROFILE ☰ → Windows/dirs/Users/username[C:\Users\Rene] ☰ Compare with `%HOMEDRIVE%%HOMEPATH%` ☰ → Windows/registry/tree/HKEY_CURRENT_USER/Volatile-Environment[`HKCU\Volatile Environment`]
   windir ☰ → Windows/dirs/Windows[C:\Windows] ☰  ☰ 
 
-table }
+  table }
 
-Unclear is where the values defined for
-  • ALLUSERSPROFILE
-  • CommonProgramFiles
-  • CommonProgramFiles(x86) 
-  • CommonProgramW6432
-  • COMPUTERNAME
-  • FPS_BROWSER_APP_PROFILE_STRING
-  • FPS_BROWSER_USER_PROFILE_STRING
-  • ProgramData
-  • ProgramFiles
-  • ProgramFiles(x86) 
-  • ProgramW6432
-  • PUBLIC
-  • SystemDrive
-  • SystemRoot
+  Unclear is where the values defined for
+    • ALLUSERSPROFILE
+    • CommonProgramFiles
+    • CommonProgramFiles(x86) 
+    • CommonProgramW6432
+    • COMPUTERNAME
+    • FPS_BROWSER_APP_PROFILE_STRING
+    • FPS_BROWSER_USER_PROFILE_STRING
+    • ProgramData
+    • ProgramFiles
+    • ProgramFiles(x86) 
+    • ProgramW6432
+    • PUBLIC
+    • SystemDrive
+    • SystemRoot
+
+}
 
 { PATH #win-envvar-path
 
