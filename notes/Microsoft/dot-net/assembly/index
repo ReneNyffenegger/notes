@@ -15,10 +15,53 @@ An assembly contains instructions that are executable in the .NET runtime (as op
 
 One or more assemblies can be packed into a *library*.
 
+{ Assembly identity and strong name #assembly-name
+
+  An *assembly identity* consists of an
+    • assembly name (not fully qualified, obviously)
+    • culture (→ development/web/RFC#rfc1766[RFC 1766] format)
+    • version number
+    • processor architecture (starting with .NET Framework 2.0)
+
+  If the assembly identitity is augmented with the follwing information, it becomes a *strong name*:
+    • public key
+    • digital signature
+
+  A strong name is required for an application to be put into the → Microsoft/dot-net/assembly/Global-Assembly-Cache.
+  -
+  A strong name can be given to an assembly with → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/sn_exe[`sn.exe`].
+
+    In → Windows/PowerShell, some of these characteristics can be determined like so:
+code {
+PS C:\> [System.Reflection.Assembly] $assembly = $true.psObject.GetType().Assembly
+PS C:\> $assembly.FullName
+
+System.Management.Automation, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+
+PS C:\> [System.Reflection.AssemblyName] $name = [System.Reflection.AssemblyName]::GetAssemblyName($assembly.Location)
+PS C:\> $name.CultureInfo
+
+LCID             Name             DisplayName
+----             ----             -----------
+127                               Invariant Language (Invariant Country)
+
+PS C:\> $name.ProcessorArchitecture
+
+MSIL
+
+PS C:\> $name.Version
+
+Major  Minor  Build  Revision
+-----  -----  -----  --------
+7      0      0      0
+code }
+
+
+}
 { Assembly manifest
 
   Every assembly contains an *assembly manifest* which acts as a table of content for the assembly. The manifest stores:
-    • The assembly's identity (that is: name, version, culture and public key token)
+    • The → #assembly-name[assembly's identity]
     • A file table with the name of all files that make up an assembly (other .exe, .dlls or ressource files, bitmaps, readme files etc)
     • An assembly reference list
 

@@ -1,0 +1,46 @@
+$ PowerShell cmdLet unblock-file
+
+`unblock-file` removes a file's *Zone.Identifier* alternate data stream whose value of 3 (?) indicates that the file was downloaded from the internet and is possibly unsafe to run.
+-
+After unblocking a file, it can be run even if → Windows/PowerShell/command-inventory/noun/executionPolicy[execution policy] is set to *RemoteSigned*.
+
+{ Demonstration
+
+code {
+PS C:\> $dll = 'C:\oracle\18c\ODP.NET\managed\common\Oracle.ManagedDataAccess.dll'
+PS C:\> add-type -path $dll
+add-type : Could not load file or assembly 'file:///C:\oracle\18c\ODP.NET\managed\common\Oracle.ManagedDataAccess.dll'
+or one of its dependencies. Operation is not supported. (Exception from HRESULT: 0x80131515)
+…
+code }
+
+
+  Verifying if the → Windows/development/Portable-Executable/DLL has the *Zone.Identifier* alternate stream which causes the error:j
+PS C:\> (get-item $dll -stream zone.identifier -errorAction silentlyContinue).length
+103
+code }
+
+  Open the DLL's property dialog:
+code {
+PS C:\> (new-object -com shell.application).nameSpace((split-path $dll)).parseName((split-path -leaf $dll)).invokeVerb('properties')
+code }
+
+  gh|about-PowerShell|/cmdlets/file/unblock/before.png||
+
+  Unblock the DLL
+code {
+PS C:\> unblock-file $dll
+PS C:\> (get-item $dll -stream zone.identifier -errorAction silentlyContinue).length
+0
+PS C:\> (new-object -com shell.application).nameSpace((split-path $dll)).parseName((split-path -leaf $dll)).invokeVerb('properties')
+code }
+  gh|about-PowerShell|/cmdlets/file/unblock/after.png||
+
+code {
+PS C:\> add-type -path $dll
+code }
+
+}
+
+sa:
+  → Windows/PowerShell/command-inventory/noun/file
