@@ -1,2 +1,50 @@
 $ SQL Server: sp_configure
--
+
+Change or display *global configuration setting*.
+
+{ Displaying current values
+
+  When executed without parameters, `sp_configure` shows configurable seetings along with their allowed value range and currently set value. Depending on the value of `show advanced options`, *advanced options* are included or excluded
+  from the result set.
+
+  The names and values of such settings can alternatively be queried from → development/databases/SQL-Server/administration/schemas/sys/objects/views/configurations[`sys.configurations`].
+
+}
+{ Changing a setting
+
+code {
+exec sp_configure 'clr enabled'
+-- name                                minimum     maximum     config_value run_value
+-- ----------------------------------- ----------- ----------- ------------ -----------
+-- clr enabled                         0           1           0            0
+
+exec sp_configure 'clr enabled', 1
+--
+-- Configuration option 'clr enabled' changed from 0 to 1. Run the RECONFIGURE statement to install.
+
+exec sp_configure 'clr enabled'
+-- name                                minimum     maximum     config_value run_value
+-- ----------------------------------- ----------- ----------- ------------ -----------
+-- clr enabled                         0           1           1            0
+
+reconfigure
+--
+-- Commands completed successfully.
+
+exec sp_configure 'clr enabled'
+-- name                                minimum     maximum     config_value run_value
+-- ----------------------------------- ----------- ----------- ------------ -----------
+-- clr enabled                         0           1           1            1
+code }
+
+}
+{ Changing database configuration settings
+
+  Settings that pertain to a → development/databases/SQL-Server/administration/database rather than a server can be changed with the
+  `→ development/databases/SQL-Server/T-SQL/statements/alter/database[alter database] scoped configuration …` → development/databases/SQL-Server/T-SQL/statements[statement].
+
+}
+
+sa:
+
+  → development/databases/SQL-Server/T-SQL/statements/reconfigure[`reconfigure`]
