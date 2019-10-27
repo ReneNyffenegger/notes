@@ -1,7 +1,27 @@
 $ PowerShell cmdLet select-object
 
-→ Windows/PowerShell/command-inventory/noun/object/select/unique[`select-object -unique`]
 
+{ -property
+
+  The `-property` option specifies the names of the properties that are to be sent down further the → Windows/PowerShell/pipeline.
+
+  If `-property` is used, the `select-object` → Windows/PowerShell/language/cmdlet[cmdLet] creates a new → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`PSCustomObject`] with the stated property names and
+  the respective values copied from the received objects. `select-object` then sends the new `PSCustomObject` further down the pipeline.
+
+  In the following simple pipeline, the output of → Windows/PowerShell/command-inventory/noun/process/get[`get-process`] (which are → Microsoft/dot-net/namespaces-classes/System/Diagnostics/Process[`System.Diagnostic.Process`] objects)
+  are just piped into a → Windows/PowerShell/command-inventory/noun/object/forEach[`forEach-object`] cmdLet in order to print the object's type with `GetType()`. As expected, it prints `System.Diagnostics.Process`:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/get[get-process] | → Windows/PowerShell/command-inventory/noun/object/forEach[forEach-object] { → Windows/PowerShell/language/variable/automatic/psItem[$_].GetType().FullName } | → Windows/PowerShell/command-inventory/noun/unique/get[get-unique]
+→ Microsoft/dot-net/namespaces-classes/System/Diagnostics/Process[System.Diagnostics.Process]
+code }
+
+  However, if I add a `select-object` into the pipeline to filter a few properties, I get a `PSCustomObject`:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/get[get-process] | select-object -property id, processName |→ Windows/PowerShell/command-inventory/noun/object/forEach[forEach-object] { → Windows/PowerShell/language/variable/automatic/psItem[$_].GetType().FullName } | → Windows/PowerShell/command-inventory/noun/unique/get[get-unique]
+→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[System.Management.Automation.PSCustomObject]
+code }
+
+}
 { -expandProperty
 
   `-expandProperty propertyName` turns the property whose name is `propertyName` into a string.
@@ -16,5 +36,7 @@ $ PowerShell cmdLet select-object
 }
 
 sa:
+
+  → Windows/PowerShell/command-inventory/noun/object/select/unique[`select-object -unique`]
 
   → Windows/PowerShell/command-inventory/noun/object
