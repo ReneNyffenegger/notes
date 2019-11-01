@@ -28,7 +28,7 @@ exec sp_configure 'clr enabled'
 -- ----------------------------------- ----------- ----------- ------------ -----------
 -- clr enabled                         0           1           1            0
 
-reconfigure
+→ development/databases/SQL-Server/T-SQL/statements/reconfigure[reconfigure]
 --
 -- Commands completed successfully.
 
@@ -37,6 +37,34 @@ exec sp_configure 'clr enabled'
 -- ----------------------------------- ----------- ----------- ------------ -----------
 -- clr enabled                         0           1           1            1
 code }
+
+}
+{ Msg 15123… The configuration option '…' does not exist, or it may be an advanced option.
+
+  Some options can only be changed if the option *show advanced options* is set to 1.
+  This is demonstrated with the following statements.
+
+  First, we set *show advanced options* to 0:
+code {
+exec sp_configure 'show advanced options', 0
+→ development/databases/SQL-Server/T-SQL/statements/reconfigure[reconfigure];
+code }
+ 
+   Then we try to change the *clr srict security* option. Because *show advanced options* is turned off, it throws an error:
+code {
+exec sp_configure 'clr strict security', 0;
+-- Msg 15123, Level 16, State 1, Procedure sp_configure, Line 62 …
+-- The configuration option 'clr strict security' does not exist, or it may be an advanced option.
+code }
+
+  After enabling *show advanced options*, the *clr strict security* option can also be changed:
+code {
+exec sp_configure 'show advanced options', 1
+reconfigure
+exec sp_configure 'clr strict security', 0;
+reconfigure
+code }
+
 
 }
 { Changing database configuration settings
