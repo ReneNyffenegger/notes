@@ -1,0 +1,39 @@
+$ Signing a .NET assembly
+
+When an → Microsoft/dot-net/assembly is signed, a hash is taken from its relevant parts and encrypted with a private key. The encrypted hash and the public key are then stored within the assembly. The assembly thus becomes a
+→ Microsoft/dot-net/assembly/index#assembly-name[strong named assembly].
+
+A signed assembly can then be referenced from another assembly or exe, either at compile time (`csc … /reference:assmbly.dll`) or at run time (`Assembly.Load(… public_key_token)`).
+
+A strong named assembly can only reference other strong named assemblies because otherwise they'd become insecure.
+
+
+
+rem { 
+When the → Microsoft/dot-net/Common-Language-Runtime[CLR] loads a strong named assembly, it also takes the hash from its relevant parts and also decrypts the encrypted hash that it finds in the assembly with the public key. If those
+two hashes are not equal, the CLR refuses to execute the assembly.
+rem }
+
+{ Display public key and public key token of signed assembly
+
+  The public key and public key token of a signed assembly can be shown with the → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/sn_exe[`sn.exe`] command line tool:
+code {
+PS P:\rojects\xyz> → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/sn_exe#sn_exe_Tp[sn -Tp] .\tq84_asmb.dll
+
+…
+
+Public key (hash algorithm: sha1):
+0024000004800000940000000602000000240000525341310004000001000100ed039243282431
+4878e77c50dfae27cfc940ada2682700590334af38485a0644c65775b6ee7a8b8d532486d59017
+6d3d9f84cde5eafd5547f0067dbc09ef3ae3add1f3d3cca52b4f851fdf386c6bab06f4e858619a
+5e15491f04d82e379c778af321aee86aac3ebf74bc18584f03b5e34935c9ed3c99d16660a8d0b0
+2a7725a9
+
+Public key token is 203fb045f5c12ec9
+code }
+
+}
+
+sa:
+  → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/sn_exe[`sn.exe`],
+  → Windows/dirs/Program-Files-x86/Windows-Kits/n/bin/version/signtool_exe[`signtool.exe`]

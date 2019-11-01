@@ -1,3 +1,71 @@
 $ sn.exe
 
 .NET Framework → Microsoft/dot-net/assembly#assembly-name[strong name] utility
+
+{ Create a key pair
+
+  `sn -k` creates a public/private key pair and stores it in the indicated file. The content of the file will be binary.
+
+code {
+C:\> sn -k PubPriv.snk
+…
+Key pair written to PubPriv.snk
+code }
+
+}
+{ Extract public key
+
+  `sn -p` extracts the public key from the previously created file and stores it in a seperate file.
+
+code {
+C:\> sn -p PubPriv.snk Pub.snk
+…
+Public key written to Pub.snk
+code }
+
+}
+{ Display public key and public key token
+
+  The primary key in `Pub.snk` can be displayed with `sn -tp` in a non-binary form:
+code {
+C:\> sn -tp Pub.snk
+…
+Public key (hash algorithm: sha1):
+002400000480000094000000060200000024000052534131000400000100010069314ca642a372
+189c7e79ed1981b9564480d4004034c2fd24240e38943c87394405f5fe1874d61d439f302eecf2
+5b26c79e0af25fd4ec6787c8fe4f3f771a7ef6ab0535f55611e274005943efb3f1cec85c95b748
+93bf8632cd70582056fb00e0e3c38f8a4aab30a5b10c98bb975ff1eeea2dd4c82b66d89ba45e54
+5bdecd9a
+
+Public key token is bf748149358f9d4d
+code }
+
+}
+{ Verify strong name in an assembly
+
+code {
+C:\> sn -v myAssembly.dll
+…
+myAssembly.dll does not represent a strongly named assembly
+code }
+
+code {
+C:\> sn -v anotherAssembly.dll
+…
+Assembly 'anotherAssembly.dll' is valid
+code }
+
+
+? Sometimes, `-v` needs to be executed as administrator or in an elevated prompt.
+
+}
+{ Display public key of a signed assembly #sn_exe_Tp
+
+  Similarly to `-tp`, the public key that is stored in a → Microsoft/dot-net/assembly/signed[signed assembly] can be shown with
+code {
+C:\> sn -Tp assebly.dll
+code }
+
+}
+sa:
+  → Windows/dirs/Program-Files-x86/Windows-Kits/n/bin/version/signtool_exe[`signtool.exe`]
