@@ -80,6 +80,34 @@ code }
   
 
 }
+{ Show referenced assemblies
+
+  In → Windows/PowerShell, the assemblies that an assembly references can be shown like so:
+code {
+PS C:\> $asmbl = [→ Microsoft/dot-net/namespaces-classes/System/Reflection/Assembly[System.Reflection.Assembly]]::LoadFrom("P:\ath\to\the\assembly.dll")
+PS C:\> $asmbl.GetReferencedAssemblies()
+
+Version        Name
+-------        ----
+4.0.0.0        mscorlib
+4.0.0.0        System.Data
+1.0.0.0        YetAnotherAssembly
+4.0.0.0        System
+
+PS C:\> $asmbl.GetReferencedAssemblies().forEach( {$_.FullName} )
+mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+YetAnotherAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=aab5e62e1b5f9c79
+System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+code }
+
+  Alternatively, referenced assemblies can also be shown with the IL disassembler → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/ildasm_exe[`isldasm.exe`]:
+code {
+C:\> ildasm P:\ath\to\the\assembly.dll
+code }
+  After ildadsm has opened the assmbly, the referenced assemblies are shown when opening *Manifest*: they are labelled with `.assembly extern …`.
+
+}
 { Mixed-mode assemblies
 
   Assemblies that were created with the C++/CLI compiler are referred to as *mixed-mode assemblies* because the contain both native and managed code.
