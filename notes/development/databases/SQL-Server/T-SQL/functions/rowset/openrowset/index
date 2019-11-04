@@ -48,6 +48,26 @@ code }
    → Windows/registry under the key → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Microsoft-SQL-Server/_instance-name_/Providers[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SQL Server\instance name\Providers`].
 
 }
+{ openrowset(table …)
+
+  Some → development/databases/SQL-Server/administration/schemas/sys/objects/views[`sys.…` views] select from `openrowset(table …)`. For example, the definition of
+  → development/databases/SQL-Server/administration/schemas/sys/objects/views/user_token[`sys.user_token`] is:
+code {
+→ development/databases/SQL-Server/T-SQL/statements/execute[exec] → development/databases/SQL-Server/administration/schemas/sys/objects/stored-procedures/sp_helptext[sp_helptext] 'sys.user_token'
+
+CREATE VIEW sys.user_token AS  
+ SELECT * FROM OpenRowset(TABLE USERROLES)  
+code }
+
+  It is unclear to me, what exactly `openrowset(table userroles)` does. When trying to exectute `select * from openRowset(table userroles)`, → development/databases/SQL-Server just reports the error message
+  *Msg 102… Incorrect syntax near 'TABLE'*
+
+  → http://improve.dk/[Mark S. Rasmussen] has also → http://improve.dk/exploring-the-sys-system_internals_partition_columns-ti-field[investigated this openrowset(table…) syntax] - and comes to the conclusion that
+  "
+    The OPENROWSET(TABLE RSCPROP, x) obviously performs some dark magic. 
+  "
+
+}
 
 sa:
   → development/databases/SQL-Server/T-SQL/functions
