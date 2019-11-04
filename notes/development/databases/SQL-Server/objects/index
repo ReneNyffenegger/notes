@@ -24,14 +24,24 @@ code {
 select * from  db..obj;
 code }
 
+  An object name without schema information is first searched in the user's default schema. If not found there, it is searched in the dbo schema. If still not found, an error is thrown.
+
 }
 
-{ Showing defitions of objects #mssql-show-obj-definition
+{ Showing definitions of objects #mssql-show-obj-definition
+
+  Some objects (notably views or stored procedures) have a definition.
 
   There are a few possibilites to show an object's definition:
     • The → development/databases/SQL-Server/T-SQL/functions/object_definition[`object_definition()` function]
     • The → development/databases/SQL-Server/administration/schemas/sys/objects/views/sql_modules[`sys.sql_modules` view]
     • → development/databases/SQL-Server/administration/schemas/sys/objects/stored-procedures/sp_helptext[The `sp_helptext` system stored procedure]
+
+  → development/databases/SQL-Server/T-SQL/functions/object_definition[`object_definition(@obj_id)`] works hand in hand with `object_id()`:
+code {
+select object_definition(object_id('→ development/databases/SQL-Server/administration/schemas/sys/objects/views/all_objects[sys.all_objects]'));
+select object_definition(object_id('sp_msForEachDB'));
+code }
 
 }
 { Object ID
@@ -43,16 +53,8 @@ select object_id('sys.all_objects')
 code }
 
 }
-{ Object definition
 
-  Some objects (notably views or stored procedures) have a definition. This definition can be queried
-  with → development/databases/SQL-Server/T-SQL/functions/object_definition[`object_definition(@obj_id)`], for example:
-code {
-select object_definition(object_id('→ development/databases/SQL-Server/administration/schemas/sys/objects/views/all_objects[sys.all_objects]'));
-select object_definition(object_id('sp_msForEachDB'));
-code }
 
-}
 { sys.all_objects
 
   → development/databases/SQL-Server/administration/schemas/sys/objects/views/all_objects[`sys.all_objects`] shows all schema scoped user defined objects *and* system objects.
