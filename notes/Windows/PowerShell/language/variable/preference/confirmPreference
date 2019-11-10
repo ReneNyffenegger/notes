@@ -1,2 +1,44 @@
 $ PowerShell: the preference variable $confirmPreference
--
+
+Each → Windows/PowerShell command (→ Windows/PowerShell/language/cmdlet[cmdLets], → Windows/PowerShell/language/alias[aliases] etc.) is assigned a
+→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/ConfirmImpact[`System.Management.Automation.ConfirmImpact`] enum-value. The possible values of `ConfirmImpact` are:
+  • None
+  • Low
+  • Medium
+  • High
+
+For a given command, such as for example → Windows/PowerShell/command-inventory/noun/process/stop[`stop-process`], the respective value can be determined like so:
+code {
+PS C:\> $stopProcMeta = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Management/Automation/CommandMetadata[System.Management.Automation.CommandMetadata](→ Windows/PowerShell/command-inventory/noun/command/get[get-command] stop-process)
+PS C:\> $stopProcMeta.ConfirmImpact
+Medium
+code }
+
+Now, if the value of the → Windows/PowerShell/language/variable/preference[preference variable] `$confirmPreference` is lower than that of a command, the command requires the user to confirm the required action.
+
+I try to demonstrate that in the following example. By default, the value of `$confirmPreference` is `High`:
+code {
+PS C:\> $confirmPreference
+High
+code }
+
+Because the value of `ConfirmImpact` of `stop-process` is `Medium` only, I can use `stop-process` without being asked for confirmation:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/start[start-process] notepad
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/stop[stop-process] -name notepad
+code }
+
+However, If I set the value of `$confirmPreference` to `Medium`, I will be asked to confirm the killing of a process:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/start[start-process] notepad
+PS C:\> $confirmPreference = 'medium'
+PS C:\> → Windows/PowerShell/command-inventory/noun/process/stop[stop-process] -name notepad
+
+Confirm
+Are you sure you want to perform this action?
+Performing the operation "Stop-Process" on target "notepad (37468)".
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"):
+code }
+
+links:
+  → https://devblogs.microsoft.com/powershell/confirmpreference/[PowerShell Team: ConfirmPreference]
