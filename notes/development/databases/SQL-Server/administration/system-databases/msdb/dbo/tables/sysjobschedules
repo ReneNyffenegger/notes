@@ -1,0 +1,31 @@
+$ msdb.dbo.sysjobschedules
+
+`sysjobschedules` connects jobs (`msdb.dbo.sysjobs`) and and schedules (→ development/databases/SQL-Server/administration/system-databases/msdb/dbo/tables/sysschedules[`msdb.dbo.sysschedules`]).
+
+code {
+select
+   job.name                     job_name,
+   j2s.next_run_date,
+   j2s.next_run_time,
+   sch.enabled,
+   sch.date_created,
+   sch.date_modified,
+   sch.active_start_date,
+   sch.active_start_time,
+   sch.active_end_date,
+   sch.active_end_time,
+   sch.name                     schedule_name,
+   suser_sname(sch.owner_sid)   schedule_owner,
+   sch.freq_type,
+   sch.freq_interval,
+   sch.freq_subday_type,
+   sch.freq_subday_interval,
+   sch.freq_recurrence_factor,
+   sch.version_number
+from
+   msdb.dbo.sysjobs          job                                        join
+   msdb.dbo.sysjobschedules  j2s on job.job_id      = j2s.job_id        join
+   msdb.dbo.sysschedules     sch on j2s.schedule_id = sch.schedule_id
+code }
+
+  
