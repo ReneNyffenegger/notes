@@ -548,6 +548,7 @@ sub process_page { #_{
     if ($in_code) { #_{ in code
       dbg('in code');
        if ($pass == 2) {
+         $line = replace_external_link($line);
          $line = notes::replace_notes_link($line, $input_filename_os);
          print $out "$line\n";
        }
@@ -945,7 +946,14 @@ sub process_index { #_{
                       lc($notes::index{$b}{title})
                      } keys %notes::index) {
 
-    print $html "<a href='$page$notes::html_suffix'>$notes::index{$page}{title}</a><br>\n";
+
+    my $title = $notes::index{$page}{title};
+    $title =~ s/&/&amp;/g;
+    $title =~ s/</&lt;/g;
+    $title =~ s/>/&gt;/g;
+
+#   print $html "<a href='$page$notes::html_suffix'>$notes::index{$page}{title}</a><br>\n";
+    print $html "<a href='$page$notes::html_suffix'>$title</a><br>\n";
 
   }
 
@@ -1015,6 +1023,10 @@ sub open_html { #_{
   if ($meta_robots_no_index) {
     $meta_robots = "\n<meta name=\"robots\" content=\"noindex\">";
   }
+
+  $title =~ s/&/&amp;/g;
+  $title =~ s/</&lt;/g;
+  $title =~ s/>/&gt;/g;
 
   print $out qq{<!DOCTYPE html>
 <html>
