@@ -1,5 +1,85 @@
 $ System.Management.Automation.PSObject (class)
 
+Each → Windows/PowerShell/language/object[PowerShell object] is an instance of `System.Management.Automation.PSObject`. `PSObject` has a field `_immediateBaseObject` that contains a reference to the object (which can by any
+→ Microsoft/dot-net object) that is manipulated through the PowerShell object.
+
+{ PSObject, its BaseObject and PSCustomObject
+
+
+  In the → https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/MshObject.cs[source code], `PSObject` has the following interesting snippets (*heavily* redacted by me for brevity) that
+  I believe shed some light on how `PSObject` and `PSCustomObject` play together.
+
+  In `PSObject`, the field `_immediateBaseObject` contains a reference to the object that a → Windows/PowerShell/language/object[PowerShell object] is storing (via `PSObject`).
+
+  If the constructor of `PSObject` is called with an object (`public PSObject(object obj)`), the reference of `_immediateBaseObject` is set to that object by calling `CommonInitialization(obj)`.
+  -
+  However, if the constructor without argument (`public PSObject()`) is used to initialize a `PSObject` instance, `CommonInitialization()` is called with `PSCustomObject.SelfInstance`. This expression refers to
+  the `PSCustomObject` singleton(?). Thus, `_immediateBaseObject` is initialized with a reference to `PSCustomObject`
+  (see also → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject#PSCustomObject-definition[definition of `PSCustomObject`]).
+
+  In summary, `PSCustomObject` is used to intialize the *base object* of `PSObject` in absence of any other .NET object. This indicates that the `PSObject` is just used to store one or more `NoteProperty` (?).
+
+code {
+public class PSObject : IFormattable, IComparable, ISerializable, IDynamicMetaObjectProvider
+{
+    /// This is the main field in the class representing
+    /// the System.Object we are encapsulating.
+    private object _immediateBaseObject;
+
+
+    /// Initializes a new instance of PSObject with an PSCustomObject BaseObject.
+    public PSObject()
+    {
+        CommonInitialization(PSCustomObject.SelfInstance);
+    }
+
+    /// Initializes a new instance of PSObject wrapping obj (accessible through BaseObject).
+    public PSObject(object obj)
+    {
+        CommonInitialization(obj);
+    }
+
+    private void CommonInitialization(object obj)
+    {
+        if (obj is PSCustomObject)
+        {
+            this.ImmediateBaseObjectIsEmpty = true;
+        }
+
+        _immediateBaseObject = obj;
+    }
+
+
+    /// Gets the object we are directly wrapping.
+    ///    If the ImmediateBaseObject is another PSObject,
+    ///    that PSObject will be returned.
+    public object ImmediateBaseObject => _immediateBaseObject;
+
+
+    /// Gets the object we are wrapping.
+    ///    If the ImmediateBaseObject is another PSObject, this property
+    ///    will return its BaseObject.
+    public object BaseObject
+    {
+        get
+        {
+            object returnValue;
+            PSObject mshObj = this;
+            do
+            {
+                returnValue = mshObj._immediateBaseObject;
+                mshObj = returnValue as PSObject;
+            } while (mshObj != null);
+
+            return returnValue;
+        }
+    }
+
+
+}
+code }
+
+}
 { Difference to System.Management.Automation.PSCustomObject
 
   Jason Shirk provided a → https://stackoverflow.com/a/35965784/180275[helpful answer on StackOverflow] regarding the difference between a `PSObject` and a `PSCustomObject`. I believe the gist of his answer is the following:
