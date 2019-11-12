@@ -3,6 +3,8 @@ $ System.Management.Automation.PSObject (class)
 Each → Windows/PowerShell/language/object[PowerShell object] is an instance of `System.Management.Automation.PSObject`. `PSObject` has a field `_immediateBaseObject` that contains a reference to the object (which can by any
 → Microsoft/dot-net object) that is manipulated through the PowerShell object.
 
+A `PSObject`'s  → #PSObject-public-properties[public properties] can be accessed from a PowerShell object via its `psObject` property: `$MyPowerShellObject.psObject`.
+
 { PSObject, its base object and PSCustomObject #PSObject-BaseObject-and-PSCustomObject
 
 
@@ -23,7 +25,7 @@ code {
 public class PSObject : IFormattable, IComparable, ISerializable, IDynamicMetaObjectProvider
 {
     /// This is the main field in the class representing
-    /// the System.Object we are encapsulating.
+    /// the → Microsoft/dot-net/namespaces-classes/System/Object[System.Object] we are encapsulating.
     private object _immediateBaseObject;
 
 
@@ -75,8 +77,44 @@ public class PSObject : IFormattable, IComparable, ISerializable, IDynamicMetaOb
         }
     }
 
+}
+code }
 
 }
+{ Public properties #PSObject-public-properties
+
+  The `PSObject` class exhibits six `public` properties:
+code {
+//  Gets the member collection.
+    public PSMemberInfoCollection<PSMemberInfo> Members …
+
+//  Gets the Property collection, or the members that are actually properties.
+    public PSMemberInfoCollection<PSPropertyInfo> Properties …
+
+//  Gets the Method collection, or the members that are actually methods.
+    public PSMemberInfoCollection<PSMethodInfo> Methods
+
+//  Gets the object we are directly wrapping.
+// (If the ImmediateBaseObject is another PSObject, that PSObject will be returned.)
+    public object ImmediateBaseObject => _immediateBaseObject;
+
+//  Gets the object we are wrapping
+// (If the ImmediateBaseObject is another PSObject, this property will return its BaseObject.)
+    public object BaseObject …
+
+//  Gets the type names collection initially containing the object type hierarchy.
+    public Collection<string> TypeNames …
+code }
+
+  These properties can be accessed via a → Windows/PowerShell/language/object[PowerShell object's] `psObject` member:
+code {
+PS C:\> $obj = → Windows/PowerShell/command-inventory/noun/date/get[get-date]
+PS C:\> $obj.psObject.Members
+PS C:\> $obj.psObject.Properties
+PS C:\> $obj.psObject.Methods
+PS C:\> $obj.psObject.ImmediateBaseObject
+PS C:\> $obj.psObject.BaseObject
+PS C:\> $obj.psObject.TypeNames
 code }
 
 }
@@ -88,6 +126,22 @@ code }
   ( → Microsoft/dot-net, → Windows/Management-Instrumentation[WMI], → Windows/development/COM[COM], ADSI, *property bags* etc…)
 
   If the wrapped object is a property bag, the property bag is stored in a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`] object.
+
+}
+{ TODO: fields
+
+  The class has also the following interesting fields that should eventually be described:
+code {
+private WeakReference<TypeTable> _typeTable;
+private AdapterSet _adapterSet;
+private PSMemberInfoInternalCollection<PSMemberInfo> _instanceMembers;
+private PSMemberInfoIntegratingCollection<PSMemberInfo> _members;
+private PSMemberInfoIntegratingCollection<PSPropertyInfo> _properties;
+private PSMemberInfoIntegratingCollection<PSMethodInfo> _methods;
+
+private PSObjectFlags _flags;
+code }
+
 
 }
 
