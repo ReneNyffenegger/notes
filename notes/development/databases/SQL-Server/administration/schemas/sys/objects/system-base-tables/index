@@ -4,52 +4,101 @@ $ SQL Server: system base tables
 The *system base tables* reside in the → development/databases/SQL-Server/administration/schemas/sys[sys schema]. Most of the base tables are found in all
 → development/databases/SQL-Server/administration/database[databases], but some are only in the → development/databases/SQL-Server/administration/system-databases/master[master database].
 
+A list of these tables can be queried from → development/databases/SQL-Server/administration/schemas/sys/objects/views/sysobjects[`sys.sysobjects`]:
+code {
+select *
+from
+   sys.sysobjects
+where
+   xtype = 'S'
+order by
+   name;
+code }
+
+
 A → development/databases/SQL-Server/administration/dedicated-administrator-connection[dedicated administrator connection] is needed to be able to select from them.
 
-table { lll
 
-                       ☰ ☰ In → development/databases/SQL-Server/administration/system-databases/master[master] only?
-  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysschobjs[sysschobjs] ☰ → development/databases/SQL-Server/objects[Objects] in a database ☰ ✗
+table { lll
+                   ☰ ☰ In → development/databases/SQL-Server/administration/system-databases/master[master] only?
+  sysallocunits    ☰ Storage allocation units ☰ ✗
+  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysasymkeys[sysasymkeys] ☰ Asymmetric keys ☰ ✗
+  sysaudacts ☰ ☰ ?
   sysbinobjs	     ☰ Service Broker entities ☰ ✗
+  sysbinsubobjs ☰ ☰ ?
+  sysbrickfiles ☰ ☰ ?
+  syscerts         ☰ Certificates ☰ ✗
+  syschildinsts ☰ ☰ ?
+  sysclones ☰ ☰ ?
   sysclsobjs	     ☰ Classified entities ☰ ✗
-  sysnsobjs        ☰ Namespace-scoped entities, used to store → development/XML collection entities. ☰ ✗
   → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/syscolpars[syscolpars] ☰ Column names of → development/databases/SQL-Server/objects/table[tables], views and → development/databases/SQL-Server/T-SQL/user-defined-functions/table-valued[table-valued functions] as well as parameter names of → development/databases/SQL-Server/T-SQL/procedures[stored procedures] and → development/databases/SQL-Server/T-SQL/user-defined-functions[functions]. ☰ ✗
-  systypedsubobjs  ☰ Typed subentities (currently only parameters for partition functions) ☰ ✗
+  syscompfragments ☰ ☰ ?
+  sysconvgroup     ☰ Sservice instance in Service Broker. ☰ ✗
+  syscscolsegments ☰ ☰ ?
+  syscsdictionaries ☰ ☰ ?
+  syscsrowgroups ☰ ☰ ?
+  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysdbfiles[sysdbfiles] ☰ ? ☰ ✗
+  sysdbfrag ☰ ☰ ?
+  sysdbreg         ☰ Registered → development/databases/SQL-Server/administration/database[databases] ☰ ✓
+  sysdercv         ☰ Receiving endpoints of a Service Broker conversation ☰ ✗
+  sysdesend        ☰ Sending endpoints of a Service Broker conversation ☰ ✗
+  sysendpts        ☰ Endpoint created in the server. ☰ ✓
+  sysextendedrecoveryforks ☰ ☰ ?
+  sysextfileformats ☰ ☰ ?
+  sysextsources ☰ ☰ ?
+  sysexttables ☰ ☰ ?
+  sysfgfrag ☰ ☰ ?
+  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysfiles1[sysfiles1] ☰ lists the physical files for a → development/databases/SQL-Server/administration/database.
+ ☰ ✗
+  sysfoqueues ☰ ☰ ?
+  sysfos ☰ ☰ ?
+  sysftinds        ☰ Full-text indeces ☰ ✗
+  sysftproperties ☰ ☰ ?
+  sysftsemanticsdb ☰ ☰ ?
+  sysftstops ☰ ☰ ?
+  sysguidrefs      ☰ GUIDs classified ID reference. ☰ ✗
   sysidxstats      ☰ Index statistics (tables and indexed views) ☰ ✗
   sysiscols        ☰ Persisted indices and statistics columns ☰ ✗
-  sysscalartypes   ☰ Types (user-defined and system types) ☰ ✗
-  sysdbreg         ☰ Registered → development/databases/SQL-Server/administration/database[databases] ☰ ✓
-  sysxsrvs         ☰ Lists local, linked and remote servers ☰ ✓
-  sysrmtlgns       ☰ Remote login mappings, used to map incoming logins that claim to be coming from a corresponding server to an actual local login. ☰ ✓
   syslnklgns       ☰ Linked login mapping, used by remote procedure calls and distributed queries that emanate from a local server out to a corresponding linked server. ☰ ✓
-  sysxlgns         ☰ Server principals ☰ ✓
-  sysdbfiles       ☰ ? ☰ ✗
-  sysusermsgs      ☰ User-defined error messages ☰ ✓
-  sysprivs         ☰ Database- or server-level permissions. (Server-level permissions are stored in the master database). ☰ ✗
-  sysowners        ☰ Each row represents a database principal. ☰ ✗
-  sysobjkeycrypts  ☰ Symmetric keys, encryption or cryptographic property associated with an object. ☰ ✗
-  syscerts         ☰ Certificates ☰ ✗
-  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysasymkeys[sysasymkeys] ☰ Asymmetric keys ☰ ✗
-  sysftinds        ☰ Full-text indeces ☰ ✗
-  sysxprops        ☰ Extended properties ☰ ✗
-  sysallocunits    ☰ Storage allocation units ☰ ✗
-  sysrowsets       ☰ Partition rowsets for an index or a heap ☰ ✗
-  sysrowsetrefs    ☰ Indeces to rowset references ☰ ✗
   syslogshippers   ☰ Database mirroring witnesses ☰ ✓
-  sysremsvcbinds   ☰ Remote service bindings ☰ ✗
-  sysconvgroup     ☰ Sservice instance in Service Broker. ☰ ✗
-  sysxmitqueue     ☰ Service Broker transmission queues ☰ ✗
-  sysdesend        ☰ Sending endpoints of a Service Broker conversation ☰ ✗
-  sysdercv         ☰ Receiving endpoints of a Service Broker conversation ☰ ✗
-  sysendpts        ☰ Endpoint created in the server. ☰ ✓
-  syswebmethods    ☰ SOAP-methods defined on a SOAP-enabled HTTP endpoint that is created in the server. ☰ ✓
+  sysmatrixageforget ☰ ☰ ?
+  sysmatrixages ☰ ☰ ?
+  sysmatrixbricks ☰ ☰ ?
+  sysmatrixconfig ☰ ☰ ?
+  sysmatrixmanagers ☰ ☰ ?
+  sysmultiobjrefs  ☰ general N-to-N references ☰ ✗
+  sysmultiobjvalues ☰ ☰ ?
+  sysnsobjs        ☰ Namespace-scoped entities, used to store → development/XML collection entities. ☰ ✗
+  sysobjkeycrypts  ☰ Symmetric keys, encryption or cryptographic property associated with an object. ☰ ✗
+  sysobjvalues     ☰ general value properties of entities ☰ ✗
+  sysowners        ☰ Each row represents a database principal. ☰ ✗
+  sysphfg ☰ ☰ ?
+  syspriorities ☰ ☰ ?
+  sysprivs         ☰ Database- or server-level permissions. (Server-level permissions are stored in the master database). ☰ ✗
+  syspru ☰ ☰ ?
   sysqnames        ☰ Namespace or qualified name to a 4-byte ID token. ☰ ✗
+  sysremsvcbinds   ☰ Remote service bindings ☰ ✗
+  sysrmtlgns       ☰ Remote login mappings, used to map incoming logins that claim to be coming from a corresponding server to an actual local login. ☰ ✓
+  sysrowsetrefs    ☰ Indeces to rowset references ☰ ✗
+  sysrowsets       ☰ Partition rowsets for an index or a heap ☰ ✗
+  sysrscols ☰ ☰ ?
+  sysrts ☰ ☰ ?
+  sysscalartypes   ☰ Types (user-defined and system types) ☰ ✗
+  → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysschobjs[sysschobjs] ☰ → development/databases/SQL-Server/objects[Objects] in a database ☰ ✗
+  sysseobjvalues ☰ ☰ ?
+  syssingleobjrefs ☰ general N-to-1 references ☰ ✗
+  syssoftobjrefs ☰ ☰ ?
+  syssqlguides ☰ ☰ ?
+  systypedsubobjs  ☰ Typed subentities (currently only parameters for partition functions) ☰ ✗
+  sysusermsgs      ☰ User-defined error messages ☰ ✓
+  syswebmethods    ☰ SOAP-methods defined on a SOAP-enabled HTTP endpoint that is created in the server. ☰ ✓
+  sysxlgns         ☰ Server principals ☰ ✓
+  sysxmitbody ☰ ☰ ?
+  sysxmitqueue     ☰ Service Broker transmission queues ☰ ✗
   sysxmlcomponent  ☰ XML schema components ☰ ✗
   sysxmlfacet      ☰ XML facets (restriction) of XML type definition ☰ ✗
   sysxmlplacement  ☰ XML placements for XML components. ☰ ✗
-  syssingleobjrefs ☰ general N-to-1 references ☰ ✗
-  sysmultiobjrefs  ☰ general N-to-N references ☰ ✗
-  sysobjvalues     ☰ general value properties of entities ☰ ✗
-  sysguidrefs      ☰ GUIDs classified ID reference. ☰ ✗
+  sysxprops        ☰ Extended properties ☰ ✗
+  sysxsrvs         ☰ Lists local, linked and remote servers ☰ ✓
 
 table } 

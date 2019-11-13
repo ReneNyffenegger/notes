@@ -1,13 +1,50 @@
 $ SQL Server: resource (system database)
 @ resource
 
-The resource database (physically) stores (among others?) → development/databases/SQL-Server/T-SQL/procedures/system[system stored procedures].
+The resource database (physically) stores system objects (such as → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables[system base tables]
+and → development/databases/SQL-Server/T-SQL/procedures/system[system stored procedures]) that come with → development/databases/SQL-Server.
+-
+Noteably, the resource database is not intended to nor does it store user → development/Data or → development/Data/metadata.
 
+In the system base table → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysdbreg[`master.sys.sysdbreg`], the resource database is listed with the
+`name = 'mssqlsystemresource'` and/or `id=32767`.
+
+The resource database is read only.
+
+The database file (→ Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn/mssqlsystemresource_mdf[`mssqlsystemresource.mdf`]) and its log file
+(`mssqlsystemresource.mdl`) are located in the → Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn[`%programfiles%\Microsoft SQL Server\MSSQLnn.INSTANCENAME\MSSQL\Binn`] directory.
 
 { Timestamp of last update / version
 
   Last update: → development/databases/SQL-Server/T-SQL/functions/serverproperty[`serverproperty('ResourceLastUpdateDateTime')`]
 
   Version : → development/databases/SQL-Server/T-SQL/functions/serverproperty[`serverproperty('ResourceVersion')`]
+
+}
+{ Showing content of resource database
+
+   Mladen Prajdić  → https://weblogs.sqlteam.com/mladenp/2007/03/12/60132/[blogged how it is possible to make the content of resource database visible:
+
+   The → development/databases/SQL-Server/architecture/instance needs to be stopped.
+
+   The database file and its log file need to be copied:
+code {
+C:\Program Files\Microsoft SQL Server\MSSQL14.MSSQLSERVER\MSSQL>copy Binn\mssqlsystemresource.?df DATA
+Binn\mssqlsystemresource.ldf
+Binn\mssqlsystemresource.mdf
+        2 file(s) copied.
+code }
+
+  The instance is started again and the «new» database created:
+code {
+use master
+go
+
+create database [resource_copy] on
+  ( filename = N'C:\Program Files\Microsoft SQL Server\MSSQL14.MSSQLSERVER\MSSQL\DATA\mssqlsystemresource.mdf' ),
+  ( filename = N'C:\Program Files\Microsoft SQL Server\MSSQL14.MSSQLSERVER\MSSQL\DATa\mssqlsystemresource.ldf' )
+for attach
+go
+code }
 
 }
