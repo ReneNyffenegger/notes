@@ -7,7 +7,7 @@ A *connection string* specifies how a *data store* (aka data source?) can be con
 
   The connection string format is based on → development/databases/ODBC connection strings: it consists of key/value pairs.
 
-  Each key/value pair is seperated from its neighbouring key/value pair by a semicolon (`;`).
+  Each key/value pair is separated from its neighbouring key/value pair by a semicolon (`;`).
 
   In a key/value pair, the (name of the) key is seperated from its value by an equal sign (`=`).
 
@@ -19,14 +19,62 @@ keyOne=valOne;keyTow=ValTwo;…
 code }
 
 }
-{ Provider
+{ Common key names
+
+  Commonly seen key names are
+    • Provider (see below)
+    • Data Source
+    • User ID
+    • Password
+    • Integrated Security (which names the *authentication service* for TGTs - Ticket Granting Tickets)
+    • Initial Catalog (which usually refers to the name of the *database* (or *schema* on → development/databases/Oracle/) that is to be connected to)
+    • General Timeout
+    • Mode (for example to open a read-only connection)
+    • Extended Properties (see below)
+
+  Microsoft's complete list of keys is → https://docs.microsoft.com/en-us/openspecs/sql_server_protocols/ms-oledbstr/fe6b6a03-77a2-4054-bfef-b2074ff4d4bf[here].
+
+}
+{ Key: Provider #ole-db-connection-string-key-provider
 
   An important key is `provider`. It needs to be set to the value of an → development/databases/OLE-DB/provider[OLE DB provider's]
-  → Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID/CLSID-OLE-DB-provider#reg-clsid-oledb-provider_VersionIndependentProgID[Version independent Prog ID] or version dependent → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[Prog ID].
+  → Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID/CLSID-OLE-DB-provider#reg-clsid-oledb-provider_VersionIndependentProgID[Version independent Prog ID] or version dependent → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[Prog ID]
+  (for example `Microsoft.ACE.OLEDB.12.0`).
 
   The system automatically chooses the most recently installed provider if the version independent Prog ID is chosen.
 
   If the connection string is missing a `provider` key, the provider defaults to `MSDASQL` which is the OLE DB Provider for → development/databases/ODBC.
+
+}
+{ Key: Extended Properties
+
+  The value for the key `Extended Properties` is passed to the respective → development/databases/OLE-DB/provider[OLE DB Provider].
+
+  If this value itself consists of key/value pairs that are separated by a semicolon, the value must be enclosed in quotes.
+  -
+  For example, the → development/databases/OLE-DB/provider/Microsoft-Access-database-engine[OLE DB provider for Microsoft Access database engine] allows to specify a few options when connecting to
+  → Microsoft/Office/Excel. In the following connection string, the single quotes around `Excel 12.0. XML;HDR=YES;IMEX=1` make sure that the complete value is passed to the provider (rather than parsed by the OLE DB framework).
+code {
+Provider=Microsoft.ACE.OLEDB.12.0;Data Source=P:\ath\to\workbook.xlsx; Extended Properties='Excel 12.0 Xml;HDR=YES;IMEX=1';
+code }
+
+  I *assume* that non-standard key/value pairs are passed to a provider anyway (that is, without using the `Extended Properties` key). The following connection string seems to be equivalent:
+code {
+Provider=Microsoft.ACE.OLEDB.12.0;Data Source=P:\ath\to\workbook.xlsx; Excel 12.0 Xml;HDR=YES;IMEX=1';
+code }
+
+}
+{ Values without a key #ole-db-connection-string-key-less-value
+
+  Although → https://docs.microsoft.com/en-us/openspecs/sql_server_protocols/ms-oledbstr/774039da-09c1-4b24-b53b-8f9ae019830c[Microsoft's OLE DB connection string specification] states that a connection string consists
+  of key/value pairs, it still seems possible that, at least in the case of the → development/databases/OLE-DB/provider/Microsoft-Access-database-engine[OLE DB Provider for Microsoft Access database engine], it is
+  possible to have a value *without* a key name.
+  -
+  Consider the following connection string:
+code {
+Provider=Microsoft.ACE.OLEDB.12.0;Data Source=P:\ath\to\workbook.xlsx; Excel 12.0 Xml;HDR=YES;IMEX=1';
+code }
+  Clearly, the value `Excel 12.0` does not have a corresponding key value.j
 
 }
 
