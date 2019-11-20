@@ -1,0 +1,42 @@
+$ PowerShell: Office COM object might leave running process even after calling .Quit()
+
+When an Office → Windows/development/COM automation object is created, it might leave a running → Windows/development/process[process] after calling `.quit()`. This is demonstrated in the following example.
+
+First, we verify that there is no running → Microsoft/Office/Excel[Excel] process:
+code {
+PS C:\> get-process excel 2>→ Windows/PowerShell/language/variable/automatic/null[$null]
+code }
+
+The Excel COM-object is created:
+code {
+PS C:\> $excel = → Windows/PowerShell/command-inventory/noun/object/new[new-object] -com excel.application
+PS C:\> $excel.visible = → Windows/PowerShell/language/variable/automatic/true-false[$true]
+code }
+
+Calling `quit()` on the object makes the GUI of the application disappear:
+code {
+PS C:\> $excel.quit()
+code }
+
+However, the process is still running:
+code {
+PS C:\> get-process excel 2>→ Windows/PowerShell/language/variable/automatic/null[$null]
+
+Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+   1029      52   120980      83156       1.91  11276   1 EXCEL
+code }
+
+Setting the → Windows/PowerShell/language/variable[variable] `$excel` to `$null` doesn't eliminate the process, either:
+code {
+PS C:\> $excel = $null
+PS C:\> get-process excel 2>→ Windows/PowerShell/language/variable/automatic/null[$null]
+
+…
+code }
+
+Only removing the variable `$excel` kills the process:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/variable/remove[remove-variable] excel
+PS C:\> get-process excel 2>→ Windows/PowerShell/language/variable/automatic/null[$null]
+code }
