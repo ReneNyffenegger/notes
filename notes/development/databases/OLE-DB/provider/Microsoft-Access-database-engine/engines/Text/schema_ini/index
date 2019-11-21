@@ -1,8 +1,27 @@
 $ Microsoft OLE DB Provider for Microsoft Access database engine: schema.ini
 
+A `schema.ini` file is need in all but the most rudimentary cases when a → development/Data/exchange/formats/CSV file or other text file is read with the
+→ development/databases/OLE-DB/provider[OLE DB provider] for → development/databases/OLE-DB/provider/Microsoft-Access-database-engine[Microsoft Access database engine]. The file specifies
+some characteritics of the file(s) to be read.
 
 { Options
 
+  { colNameHeader #colNameHeader
+
+   Setting `colNameHeader` to `true` specifies that a the text file has a header with the names of the data columns. Setting it to `false` indicates that there is no header at all.
+
+   The default is taken from the
+   → Windows/registry/tree-structure/value[registry value]
+   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Office/application_version/Access-Connectivity-Engine/Engines/Text#FirstRowHasNames[`FirstRowHasNames`]
+   under the
+   → Windows/registry/tree-structure/key[registry key]
+   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Office/application_version/Access-Connectivity-Engine/Engines/Text[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\14.0\Access Connectivity Engine\Engines\Text`].
+
+code {
+colNameHeader=[true|false]
+code }
+
+  }
   { format
 
     The `format` option specifies how field values are seperated one from another. They can be separated by a specific character or by using a fixed width for each column
@@ -20,20 +39,24 @@ format=fixedLength
 code }
 
   }
-  { colNameHeader #colNameHeader
+  { textDelimiter
 
-   Setting `colNameHeader` to `true` specifies that a the text file has a header with the names of the data columns. Setting it to `false` indicates that there is no header at all.
+   `textDelimiter=X` specifies the character with which a text can be enclosed that contains characters that are also used as field-delimiter.
 
-   The default is taken from the
-   → Windows/registry/tree-structure/value[registry value]
-   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Office/application_version/Access-Connectivity-Engine/Engines/Text#FirstRowHasNames[`FirstRowHasNames`]
-   under the
-   → Windows/registry/tree-structure/key[registry key]
-   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Office/application_version/Access-Connectivity-Engine/Engines/Text[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Office\14.0\Access Connectivity Engine\Engines\Text`].
-
+    For example, the value *He said: yes* in a delimited file whose field-delimiter is the colon (`:`) might be enclosed with a single apostrophe (`'`), like so:
 code {
-colNameHeader=[true|false]
+foo:some text
+baz:more text
+bar:'he said:yes'
 code }
+
+   In order to parse such a file, the following two options need to be set:
+code {
+format=delimited(:)
+textDelimiter='
+code }
+
+  The default of textDelimiter is the double apostrophe (`"`).
 
   }
   { MaxScanRows
@@ -95,16 +118,14 @@ code }
 code {
 ; Customer data
 [customers.csv]
-# cusomers is delivered with a haeder
+# customers is delivered with a haeder
 colNameHeader=true
 code }
 
-  The following is not correct and causes an error:
+  Either of the following two lines is not correct and causes an error:
 code {
 [customers.csv]     ; Customer data
-colNameHeader=true  # cusomers is delivered with a haeder
+colNameHeader=true  # customers is delivered with a haeder
 code }
 
 }
-
-
