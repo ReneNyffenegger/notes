@@ -1,5 +1,28 @@
 $ SQL Server: login
 
+{ Create a login with a password
+
+  Create a login with a password and grand unlimited access on a → development/databases/SQL-Server/administration/database.
+
+code {
+create login [foo-bar-baz] with password = 'X$!…'
+
+--
+-- MUST go to database!
+--
+use tq84_db;
+
+create user user_01 for login [foo-bar-baz] 
+ 
+grant control on database::tq84 to user_01;
+code }
+
+}
+
+{ Create login with Windows authentication
+
+  Create a login with *Windows authentication* and grant (only) select on (only) a table.
+
 code {
 create login [domain\user.name] from windows;
 
@@ -13,6 +36,9 @@ from
 where
    name = 'domain\user.name'
 
+--
+-- MUST go to database!
+--
 use tq84_db;
 
 create user rene for login [domain\user.name]
@@ -30,3 +56,5 @@ where
    
 grant select on some_table to rene;
 code }
+
+}
