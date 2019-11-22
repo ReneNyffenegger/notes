@@ -1,29 +1,46 @@
 $ v$session
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/blocked-blocking.sql||
+Each record in `v$session` shows information about a «current» session.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/distinct_values.sql||
+{ Search for session by operating system user and/or program name
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/find-my-interesting-sessions.sql||
+ `v$sessions` records the operating system user name and the program name with which he/she connects to → development/databases/Oracle in the columns `username` and `program`.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/joins.sql||
+  The Oracle user name that a user used to connect to Oracle is recorded in `username`.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/module-action.sql||
+  With this information, it is possible to find an «interesting» session:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/find-my-interesting-sessions.sql||
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/module_hash.sql||
+}
+{ Blocking sessions
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/pdml-pddl-pq_status.sql||
+  If a sesssion cannot continue with the current execution because it is blocked by another session, the blocked session records the
+  instance and session id of the blocking session in the columns `blocking_instance` and `blocking_session`.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/programs.sql||
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/blocked-blocking.sql||
 
+}
 { audsid
 
-  The column audsid can be joined with sys_context('userenv','SESSIONID') to find out which session is the "own one". Alternatively, dbms_support.mysid can be used. 
+  The column audsid can be joined with `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv','SESSIONID')` to find out which session is the "own one".
+
+  Alternatively, → development/databases/Oracle/installed/packages/dbms/support#dbms_support-mysid[`dbms_support.mysid`] can be used: `where sid = sys.dbms_support.mysid`.
+
+  → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identifying one's own session]
 
 }
 { module, action
 
-  The fields module and action of v$session can be set with dbms_application_info.set_module. (See v$session_longops for an example. 
+  The values of the columns `module` and `action` of `v$session` can be set with `→ development/databases/Oracle/installed/packages/dbms/application_info[dbms_application_info].set_module`.
+  (See → development/databases/Oracle/installed/dynamic-performance-views/session/longops[`v$session_longops`] for an example).
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module-action.sql||
+
+}
+{ module_hash
+
+  It turns out that the value of `module_hash` is equal to `ora_hash(module)`. Thus, the following → /development/databases/Oracle/SQL/select[`select` statement] does not return a record:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module_hash.sql||
 
 }
 { client_info
@@ -31,6 +48,18 @@ gh|oracle-patterns|/Installed/dynamic-performance-views/session/programs.sql||
   The field client_info can be set with dbms_application_info.set_client_info
 
   RMAN sets it to something that can be queried with `client_info like '%rman%'`
+
+}
+{ Joins
+
+  Some → development/databases/Oracle/installed/dynamic-performance-views[v$ views] that can be joined to include:
+    • → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/transaction[`v$transaction`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/sql/command[`v$sql_command`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/px/session[`v$px_session`]
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/joins.sql||
 
 }
 { sid
@@ -54,10 +83,21 @@ gh|oracle-patterns|/Installed/dynamic-performance-views/session/programs.sql||
   What a session is wating for can be queried with → development/databases/Oracle/installed/dynamic-performance-views/session/wait
 
 }
+{ TODO
 
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/distinct_values.sql||
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/pdml-pddl-pq_status.sql||
+
+  { Some programs that might be seen connected to Oracle
+
+    gh|oracle-patterns|/Installed/dynamic-performance-views/session/programs.sql||
+
+  }
+
+}
+ 
 sa:
-
-  → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identifying one's own session]
 
   → development/databases/Oracle/installed/dynamic-performance-views/[Oracle Dynamic Performance Views]
 
