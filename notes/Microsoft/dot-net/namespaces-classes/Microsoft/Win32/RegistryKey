@@ -1,7 +1,26 @@
 $ Microsoft.Win32.RegistryKey (class)
--
 
-`Microsoft.Win32.RegistryKey` is the class that is returned by the → Windows/PowerShell/command-inventory/noun/item/get[`get-item`] for → Windows/registry/tree-structure/key[registry keys].
+
+{ C-Sharp: read value from registry
+
+  A given → Windows/registry/tree-structure/key[registry key] is represented by an instance of `Microsoft.Win32.RegistryKey` key. The reference to a key is obtained by calling
+ `CreateSubKey(keyName)`, *even* if the key already exists. This is demonstrated by the following example.
+
+  The example reads the value of `PATH` in the registry keys → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`]
+  and → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKEY_CURRENT_USER\Environment`]. These values contain the → Windows/development/environment-variables[Windows environment variables], seperatated by a semicolon.
+  -
+  Therefore, the values are split with the  → Microsoft/dot-net/namespaces-classes/System/String/Split[`String.Split()`] method and individually printed to the Console.
+
+  Because a → Windows/user-account[user] might not have the necessary rights to access
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment`],
+  the respective access is guarded by a `try … catch` block that specifically catches `UnauthorizedAccessException`.
+
+  gh|.NET-API|/Microsoft/Win32/RegistryKey/readPath.cs||
+
+}
+{ PowerShell: get-item registryKey
+
+  `Microsoft.Win32.RegistryKey` is the class that is returned by the → Windows/PowerShell/command-inventory/noun/item/get[`get-item`] for → Windows/registry/tree-structure/key[registry keys].
 code {
 
 PS C:\> $regKey = get-item HKCU:\Environment
@@ -9,3 +28,5 @@ PS C:\> $regKey.GetType().FullName
 Microsoft.Win32.RegistryKey
 PS C:\> $regKey.getValue('PATH')
 code }
+
+}
