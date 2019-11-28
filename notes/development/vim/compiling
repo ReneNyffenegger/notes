@@ -32,12 +32,23 @@ code }
    Apparently, vim → https://github.com/vim/vim/issues/5241[cannot be built with MinGW] anymore and → Windows/development/MinGW/w64[MinGW-w64] should be used instead.
 
    The makefile requires to have a `mkdir` in the path that understands the `-p` option. Unfortunately, the → Windows/dirs/Windows/System32/cmd_exe/commands/mkdir[`mkdir`] that comes with
-   → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] does not. 
+   → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] does not.
 
 code {
 → Windows/dirs/Windows/System32/cmd_exe/commands/cd[cd] → development/vim/sources/src[src]
 mingw32-make -f → development/vim/sources/src/Make_ming_mak[Make_ming.mak]
 code }
+
+  { Missing sed
+
+   Also, → development/languages/sed[sed] is required to determine the of → development/languages/C-C-plus-plus/GCC/options/m_lowercase/arch[`-march`] option value (see below). If sed is not installed, this value can be specied to the makefile like so:
+code {
+mingw32-make -f → development/vim/sources/src/Make_ming_mak[Make_ming.mak] ARCH=x86-64
+code }
+
+    The required value for `ARCH` can be found with `gcc → development/languages/C-C-plus-plus/GCC/options/dumpmachine[-dumpmachine]`. It prints something like `x86_64-w64-mingw32`. The relevant porition is the text before the first hyphen (`x86_64`).
+
+  }
 
  }
  { Rtools / Windows 10
@@ -93,7 +104,7 @@ code }
 
   `sed` is needed  to extract the CPU model from the → development/misc/target-triplet in → development/vim/sources/src/Make_cyg_ming_mak[`Make_cyg_ming.mak`]:
 code {
-ARCH := $(shell $(CC) → development/languages/C-C-plus-plus/GCC/options/dumpmachine[`-dumpmachine`] | sed -e 's/-.*//' -e 's/_/-/' -e 's/^mingw32$$/i686/')
+ARCH := $(shell $(CC) → development/languages/C-C-plus-plus/GCC/options/dumpmachine[-dumpmachine] | sed -e 's/-.*//' -e 's/_/-/' -e 's/^mingw32$$/i686/')
 code }
 
 
