@@ -7,6 +7,33 @@ A (repetitive) sequence of ex commands can be stored in a
 
 `:profile file [pattern]` profiles the performance of plugins.
 
+{ Adding an EX-command
+
+  The new EX-command needs to be added to → development/vim/sources/src/ex_cmds_h[`ex_cmds.h`]:
+code {
+EXCMD(CMD_myexcmd,	"myexcmd",	ex_myexcmd,
+	EX_EXTRA|EX_NOTRLCOM|EX_SBOXOK|EX_CMDWIN,
+	ADDR_NONE),
+code }
+
+  The C function that handles the command needs to be put into a source file (for example
+  → development/vim/sources/src/eval_c[`eval.c`]):
+code {
+    void
+ex_myexcmd(exarg_T *eap) {
+    …
+}
+code }
+
+  The function definition needts to be added to a `.pro` file (stored below `src/proto`), for example into `src/proto/eval.pro`.
+code {
+void ex_myexcmd(exarg_T *eap);
+code }
+
+  Note, apparently, the `*.pro` files are auto-generated. I have not yet found out, when this takes place or how I can trigger such an autogeneration.
+
+}
+
 sa:
 
   → development/vim/sources/src/ex_docmd_c[src/ex_docmd.c] contains functions for executing an ex command line.
