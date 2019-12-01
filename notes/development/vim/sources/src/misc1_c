@@ -1,5 +1,30 @@
-$ vim: src/misc1.c
+$ VIM src/misc1.c
 
 `misc1.c` contains functions that *didn't seem to fit elsewhere*. Compare with → development/vim/sources/src/misc2_c[misc2.c].
 
-? `static char_u	*homedir` stores the value that is expanded with `$HOME`.
+
+{ vim_getenv() #vim-src-misc1_vim_getenv
+
+ `vim_getenv` is → development/vim[VIM's] version of `getenv()`.
+
+  The three variables → development/vim/script/vimscript/variables#vim-three-special-dollar-variables[`$HOME`, `$VIM` and `$VIMRUNTIME`] are treated specially.
+
+}
+{ init_homedir() #vim-src-misc1_init_homedir
+
+ `init_homedir` tries to determine the value for VIM's → development/vim/script/vimscript/variables/HOME[`$HOME`] variable.
+
+  The value of `$HOME` will be set to that of the → development/environment-variable[environment variable] `HOME`, if available.
+
+  On → Windows, there is typically no `HOME` environment variable. Therefore, if `init_homedir` finds no `HOME` environment variable on Windows,
+  it tries to assign the concatenatino of `HOMEDRIVE` and `HOMEPATH` to `PATH`. If this still fails, the value of → Windows/dirs/Users/username[`%USERPROFILE%`] is assigned, etc.
+  -
+  If *all* failes, the value `C:\` will be assigned.
+
+  The value that was determined is assigned to the global variable static char_u	*homedir` (externally defined in → development/vim/sources/src/globals_h[globals.h]).
+
+ `init_homedir()` might be called again if `encoding` changes.
+
+  The code of `init_homedir` is duplicated in → development/vim/sources/src/dosinst_c[`dosinst.c`] (to be kept in sync…)
+
+}
