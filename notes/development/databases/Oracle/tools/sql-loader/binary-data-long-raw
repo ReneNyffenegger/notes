@@ -1,0 +1,48 @@
+$ Oracle: SQL Loader example: Load binary data (long raw)
+
+This example tries to demonstrate how binary data (images) can be loaded into a → development/databases/Oracle/SQL/data-types/raw[long raw] column with → development/databases/Oracle/tools/sql-loader.
+
+{ Creating the table
+
+  First, we need to have a destination table:
+  gh|Oracle-Patterns|/SQLLoader/binary-data/create_table_long_raw.sql||
+
+}
+{ Control files
+
+  Apparently, in order to load a `long raw` with → development/databases/Oracle/tools/sql-loader, each file needs its own → development/databases/Oracle/tools/sql-loader/control-file[control file]. (If this is not the case, I didn't find out
+  how it would be possible otherwise).
+
+  When loading binary data that is greater then 64 KB, we have to find out the number of pieces that are smaller than 64 KB that, when concatenated, will result in the file that we're trying to load.
+  -
+  The first file, `Binary-code.jpg`, is 197,303 bytes large. This is equal to 4*49258 bytes. Therefore, we use the specificers `concatenate 4` and `"fix 49258"` in the control file. We also have to set the file size
+  for the column `image` (`raw(197032)`).
+
+  Because the other columns are filled with data that pertains to the image loaded, we specify them as `constant`.
+ 
+  The resulting control file is:
+  gh|Oracle-Patterns|/SQLLoader/binary-data/load_long_raw_Binary-code.ctl||
+
+  Similarly, for `Eschenbergturm.jpg` whose size is 179,395 (= 5 * 35789) bytes, we get the following control file:
+  gh|Oracle-Patterns|/SQLLoader/binary-data/load_long_raw_Eschenbergturm.ctl||
+
+  Finally, the third file we load is `Oracle-Buildings.jpg` (size = 67,083 = 19 * 14057 bytes) and the corresponding control file is:
+  gh|Oracle-Patterns|/SQLLoader/binary-data/load_long_raw_Oracle-Buildings.ctl||
+
+}
+{ Loading the data
+
+  Now, with these control files, we can load the data into the prepared table:
+code {
+sqlldr control=load_long_raw_Binary-code.ctl      userid=rene/rene@ORA18
+sqlldr control=load_long_raw_Eschenbergturm.ctl   userid=rene/rene@ORA18
+sqlldr control=load_long_raw_Oracle-Buildings.ctl userid=rene/rene@ORA18
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/tools/sql-loader/binary-data[Loading binary data into blobs]
+
+  → development/databases/Oracle/tools/sql-loader/examples[Other SQL Loader examples]
