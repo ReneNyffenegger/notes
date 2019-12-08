@@ -14,3 +14,37 @@ Functions for dealing with the → development/vim/sources/runtime[runtime direc
   The → development/vim/sources/src/vim_h#vim-src-vim_h-DOSO[`DOSO_*`] macros.
 
 }
+{ do_in_path() #vim-src-scriptfile-do_in_path
+
+ Find the file `name` in all directories of `path` and invokes `callback` if found.
+
+ `name` can contain wildcards.
+
+ `flags`:
+    • `DIP_ALL` - source all files, otherwise only the first one.
+    • `DIP_DIR` - find directories instead of files.
+    • `DIP_ERR` - give an error message if there is no match.
+ 
+  Returns `FAIL` if no file could be sourced, `OK` otherwise.
+
+}
+{ do_in_path_and_pp() #vim-src-scriptfile-do_in_path_and_pp
+
+ Finds a *file name* in a given `path` using → #vim-src-scriptfile-do_in_path[`do_in_path()`].
+
+ When found, calls the given → development/languages/C-C-plus-plus/C/language/datatypes/pointer/function[callback function].
+
+ If `flags` has `DIP_ALL` repeat for all matches, otherwise only the first one is used.
+
+ Returns OK when at least one match found, FAIL otherwise.
+ 
+ If `name` is `NULL` calls callback for each entry in `path`. Cookie is
+ passed by reference in this case, setting it to NULL indicates that callback
+ has done its job.
+
+}
+{ do_in_runtimepath()
+
+  Calls → #vim-src-scriptfile-do_in_path_and_pp[`do_in_path_and_pp()`] with `p_rtp` for `path`.
+
+}
