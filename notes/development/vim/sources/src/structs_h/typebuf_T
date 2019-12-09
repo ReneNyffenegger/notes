@@ -1,0 +1,26 @@
+$ VIM struct: typebuf_T
+
+The `typebuf_T` struct is used for the type-ahead buffer.
+
+The head of the buffer may contain the result of mappings, abbreviations
+and @a commands.  The length of this part is `typebuf.tb_maplen`.
+
+code {
+typedef struct
+{
+    char_u     *tb_buf;         // buffer for typed characters (that are not consumed yet?)
+    char_u     *tb_noremap;     // mapping flags for characters in tb_buf[]
+    int         tb_buflen;      // size of tb_buf[]
+    int         tb_off;         // current position in tb_buf[] (the first valid character)0
+    int         tb_len;         // number of valid bytes in tb_buf[] 
+                                //(typebuf.tb_buf[typebuf.tb_off + typebuf.tb_len - 1] is the last valid char,
+                                // typebuf.tb_buf[typebuf.tb_off + typebuf.tb_len] must be NUL)
+    int         tb_maplen;      // nr of mapped bytes in tb_buf[]
+    int         tb_silent;      // nr of silently mapped bytes in tb_buf[] (The part where <silent> applies)
+    int         tb_no_abbr_cnt; // nr of bytes without abbrev. in tb_buf[]
+    int         tb_change_cnt;  // nr of time tb_buf was changed; never zero
+} typebuf_T;
+code }
+
+sa:
+  The function `typebuf_init()` in → development/vim/sources/src/getchar_c[`getchar.c`].
