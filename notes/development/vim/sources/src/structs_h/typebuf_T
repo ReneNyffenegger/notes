@@ -2,13 +2,26 @@ $ VIM struct: typebuf_T
 
 The `typebuf_T` struct is used for the typeahead buffer.
 
+An «instance» of `typebuf_T` is stored in the global variable `typebuf` (declared in → development/vim/sources/src/globals_h[`globals.h`]).
+-
+A static array of `typebuf_T` is found in → development/vim/sources/src/getchar_c[`getchar.c`]:
+code {
+static typebuf_T saved_typebuf[NSCRIPT];
+code }
+
 The head of the buffer may contain the result of mappings, abbreviations
-and @a commands.  The length of this part is `typebuf.tb_maplen`.
+and `@a` commands. The length of this part is `typebuf.tb_maplen`.
 
 code {
 typedef struct
 {
     char_u     *tb_buf;         // buffer for typed characters (that are not consumed yet?)
+                                //
+                                //    tb_buf has three parts:
+                                //      - room in front (for result of mappings)
+                                //      - the middle for typeahead and
+                                //      - room for new characters (which needs to be 3 * (MAXMAPLEN+4)) for the Amiga
+                                //
     char_u     *tb_noremap;     // mapping flags for characters in tb_buf[]
     int         tb_buflen;      // size of tb_buf[]
     int         tb_off;         // current position in tb_buf[] (the first valid character)0
