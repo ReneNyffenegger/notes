@@ -13,7 +13,15 @@ $ VIM: src/ui.c
 
 }
 
-{ Functions to manipulate the input buffer
+{ Input buffer #vim-input-buffer
+
+  The input buffer is a simple `char_u` array:
+code {
+static char_u inbuf[INBUFLEN + MAX_KEY_CODE_LEN];
+code }
+
+  The variable `inbufcount` has the number of characters stored in the input buffer.
+  If `inbufcount == 0`, the input buffer is empty and #vim-src-ui-vim_is_input_buf_empty[`vim_is_input_buf_empty()`] returns `TRUE`.
 
   Functions to manipulate the *input buffer* are
     • `vim_is_input_buf_full()`
@@ -23,14 +31,22 @@ $ VIM: src/ui.c
 
   These functions are used by `gui_*` calls when the keyboard input is handled by a GUI.
 
-  See also → development/vim/sources/src/getchar_c#vim-src-getchar-input_available[`input_available()`].
+  See also → development/vim/sources/src/getchar_c#vim-src-getchar-input_available[`input_available()`], → development/vim/script/vimscript/functions/feedkeys[`feedkeys()`],
+  the macro `USE_INPUT_BUF`.
+
+  TODO: What is the relationship to the typeahead buffer (→ development/vim/sources/src/structs_h/typebuf_T[`typebuf_T`])?
 
   { add_to_input_buf(…) #vim-src-ui-add_to_input_buf
 
     Adds the given bytes to the *input buffer*.
 
     In a Windows-GUI VIM, this functions is (among others?) called from
-    → development/vim/sources/src/gui_w32_c#vim-src-gui_w32-_OnChar[`_OnChar()`].
+    → development/vim/sources/src/gui_w32_c#vim-src-gui_w32-_OnChar[`_OnChar()`] (which itself is called after receiving a `WM_CHAR` notification in the Windows Procedure → development/vim/sources/src/gui_w32_c#vim-src-gui_w32-WndProc[`_WndProc()`].
+
+  }
+  { vim_is_input_buf_empty() #vim-src-ui-vim_is_input_buf_empty
+
+    Returns true if `inbufcount == 0` (which indicates that the input buffer is empty).
 
   }
   { trash_input_buf()
