@@ -194,84 +194,6 @@ code }
 
 }
 
-{ windef.h
-
-
-code {
-typedef unsigned long       DWORD;
-typedef int                 BOOL;
-typedef unsigned char       BYTE;
-typedef unsigned short      WORD;
-
-typedef float               FLOAT;
-typedef FLOAT              *PFLOAT;
-typedef BOOL               *PBOOL;
-typedef BOOL               *LPBOOL;
-typedef BYTE               *PBYTE;
-typedef BYTE               *LPBYTE;
-typedef int                *PINT;
-typedef int                *LPINT;
-typedef WORD               *PWORD;
-typedef WORD               *LPWORD;
-typedef long               *LPLONG;
-typedef DWORD              *PDWORD;
-typedef DWORD              *LPDWORD;
-typedef void               *LPVOID;
-typedef const void         *LPCVOID;
-
-typedef int                 INT;
-typedef unsigned int        UINT;
-typedef unsigned int       *PUINT;
-
-typedef WORD                ATOM;
-
-typedef DWORD COLORREF;
-code }
-
-  { WINAPI #wintdef_h_WINAPI
-
-  Most (if not all) → Windows/development/WinAPI[WinAPI] functions use the → development/languages/C-C-plus-plus/calling-convention#stdcall[stdcall] calling conventions. The macro `WINAPI` reflect that.
-
-code {
-#define CALLBACK __stdcall
-#define WINAPI   __stdcall
-code }
-
-  }
-
-code {
-struct HACCEL__       { int unused; }; typedef struct HACCEL__       *HACCEL;
-struct HBITMAP__      { int unused; }; typedef struct HBITMAP__      *HBITMAP;
-struct HBRUSH__       { int unused; }; typedef struct HBRUSH__       *HBRUSH;
-struct HCOLORSPACE__  { int unused; }; typedef struct HCOLORSPACE__  *HCOLORSPACE;
-struct HDC__          { int unused; }; typedef struct HDC__          *HDC;
-struct HGLRC__        { int unused; }; typedef struct HGLRC__        *HGLRC;
-struct HDESK__        { int unused; }; typedef struct HDESK__        *HDESK;
-struct HENHMETAFILE__ { int unused; }; typedef struct HENHMETAFILE__ *HENHMETAFILE;
-struct HFONT__        { int unused; }; typedef struct HFONT__        *HFONT;
-struct HICON__        { int unused; }; typedef struct HICON__        *HICON;
-struct HMENU__        { int unused; }; typedef struct HMENU__        *HMENU;
-struct HMETAFILE__    { int unused; }; typedef struct HMETAFILE__    *HMETAFILE;
-struct HINSTANCE__    { int unused; }; typedef struct HINSTANCE__    *HINSTANCE;
-
-typedef HINSTANCE HMODULE;
-
-struct HPALETTE__      { int unused; }; typedef struct HPALETTE__      *HPALETTE;
-struct HPEN__          { int unused; }; typedef struct HPEN__          *HPEN;
-struct HRGN__          { int unused; }; typedef struct HRGN__          *HRGN;
-struct HRSRC__         { int unused; }; typedef struct HRSRC__         *HRSRC;
-struct HSTR__          { int unused; }; typedef struct HSTR__          *HSTR;
-struct HTASK__         { int unused; }; typedef struct HTASK__         *HTASK;
-struct HWINSTA__       { int unused; }; typedef struct HWINSTA__       *HWINSTA;
-struct HKL__           { int unused; }; typedef struct HKL__           *HKL;
-struct HMONITOR__      { int unused; }; typedef struct HMONITOR__      *HMONITOR;
-struct HWINEVENTHOOK__ { int unused; }; typedef struct HWINEVENTHOOK__ *HWINEVENTHOOK;
-struct HUMPD__         { int unused; }; typedef struct HUMPD__          *HUMPD;
-
-code }
-
-}
-
 { winnt.h #winnt_h
 
 code {
@@ -316,6 +238,30 @@ code {
 code }
 
    `winnt.h` also defines → Windows/development/WinAPI/data-types/Definition-of-TCHAR-and-TEXT-depending-on-UNICODE[`TCHAR` and `TEXT` depending on the value of `UNICODE`].
+
+  { DECLARE_HANDLE #winnt-h-DECLARE_HANDLE
+
+   `winnt.h` defines the macro `DECLARE_HANDLE(name)` with which it is possble to create «handle types», such as → #windef-h-HWND[`HWND`].
+
+   The macro depends on the value of `STRICT`.
+
+code {
+#ifdef STRICT
+
+  typedef void *HANDLE;
+  #define DECLARE_HANDLE(name) struct name##__{int unused;}; typedef struct name##__ *name
+
+#else
+
+  typedef PVOID HANDLE;
+  #define DECLARE_HANDLE(name) typedef HANDLE name
+
+#endif
+
+typedef HANDLE *PHANDLE;
+code }
+
+  }
 
   { LCID #winnt_LCID
 
@@ -408,6 +354,108 @@ code }
   }
 
 }
+
+{ windef.h
+
+  { Windows data types
+
+   `windef.h` defines the Windows(?) data types:
+code {
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+
+typedef float               FLOAT;
+typedef FLOAT              *PFLOAT;
+typedef BOOL               *PBOOL;
+typedef BOOL               *LPBOOL;
+typedef BYTE               *PBYTE;
+typedef BYTE               *LPBYTE;
+typedef int                *PINT;
+typedef int                *LPINT;
+typedef WORD               *PWORD;
+typedef WORD               *LPWORD;
+typedef long               *LPLONG;
+typedef DWORD              *PDWORD;
+typedef DWORD              *LPDWORD;
+typedef void               *LPVOID;
+typedef const void         *LPCVOID;
+
+typedef int                 INT;
+typedef unsigned int        UINT;
+typedef unsigned int       *PUINT;
+
+typedef WORD                ATOM;
+
+typedef DWORD COLORREF;
+code }
+
+  }
+
+  { WINAPI #wintdef_h_WINAPI
+
+  Most (if not all) → Windows/development/WinAPI[WinAPI] functions use the → development/languages/C-C-plus-plus/calling-convention#stdcall[stdcall] calling conventions. The macro `WINAPI` reflects that.
+
+code {
+#define CALLBACK __stdcall
+#define WINAPI   __stdcall
+code }
+
+  }
+  { HWND #windef-h-HWND
+
+    With the macro → #winnt-h-DECLARE_HANDLE[`DECLARE_HANDLE(name)`], `windef.h` declares the handle HWND:
+code {
+DECLARE_HANDLE            (HWND);
+code }
+
+   This results (if `STRICT` is enabled) in
+code {
+struct HWND__{int unused;}; typedef struct HWND__ *HWND;
+code }
+
+    See also: In WPF, the class → Microsoft/dot-net/namespaces-classes/System/Windows/Media/Visual[`System.Windows.Media.Visual`] probably comes closest to the concept of a `HWND`.
+
+  }
+  { More handles
+
+    Similarly to `HWND`, more handles, as follows, are created:
+code {
+struct HACCEL__       { int unused; }; typedef struct HACCEL__       *HACCEL;
+struct HBITMAP__      { int unused; }; typedef struct HBITMAP__      *HBITMAP;
+struct HBRUSH__       { int unused; }; typedef struct HBRUSH__       *HBRUSH;
+struct HCOLORSPACE__  { int unused; }; typedef struct HCOLORSPACE__  *HCOLORSPACE;
+struct HDC__          { int unused; }; typedef struct HDC__          *HDC;
+struct HGLRC__        { int unused; }; typedef struct HGLRC__        *HGLRC;
+struct HDESK__        { int unused; }; typedef struct HDESK__        *HDESK;
+struct HENHMETAFILE__ { int unused; }; typedef struct HENHMETAFILE__ *HENHMETAFILE;
+struct HFONT__        { int unused; }; typedef struct HFONT__        *HFONT;
+struct HICON__        { int unused; }; typedef struct HICON__        *HICON;
+struct HMENU__        { int unused; }; typedef struct HMENU__        *HMENU;
+struct HMETAFILE__    { int unused; }; typedef struct HMETAFILE__    *HMETAFILE;
+struct HINSTANCE__    { int unused; }; typedef struct HINSTANCE__    *HINSTANCE;
+
+typedef HINSTANCE HMODULE;
+
+struct HPALETTE__      { int unused; }; typedef struct HPALETTE__      *HPALETTE;
+struct HPEN__          { int unused; }; typedef struct HPEN__          *HPEN;
+struct HRGN__          { int unused; }; typedef struct HRGN__          *HRGN;
+struct HRSRC__         { int unused; }; typedef struct HRSRC__         *HRSRC;
+struct HSTR__          { int unused; }; typedef struct HSTR__          *HSTR;
+struct HTASK__         { int unused; }; typedef struct HTASK__         *HTASK;
+struct HWINSTA__       { int unused; }; typedef struct HWINSTA__       *HWINSTA;
+struct HKL__           { int unused; }; typedef struct HKL__           *HKL;
+struct HMONITOR__      { int unused; }; typedef struct HMONITOR__      *HMONITOR;
+struct HWINEVENTHOOK__ { int unused; }; typedef struct HWINEVENTHOOK__ *HWINEVENTHOOK;
+struct HUMPD__         { int unused; }; typedef struct HUMPD__          *HUMPD;
+
+code }
+
+  }
+
+}
+
 
 { WinBase.h
 
