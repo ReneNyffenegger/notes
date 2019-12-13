@@ -1,0 +1,18 @@
+$ VIM: first_autopat / last_autopat
+
+`first_autopat` and `last_autopat` are both arrays that store a pointers to → development/vim/sources/src/autocmd_c/AutoPat[`AutoPat`] structs for each
+→ development/vim/events[event]:
+code {
+static → development/vim/sources/src/autocmd_c/AutoPat[AutoPat] *first_autopat[NUM_EVENTS] = {NULL, … };
+static → development/vim/sources/src/autocmd_c/AutoPat[AutoPat] *last_autopat [NUM_EVENTS] = {NULL, … };
+code }
+
+An `AutoPat` has the member `next` which points to another `AutoPat` or `NULL`. This allows to create a linked list.
+
+An `AutoPat` also has the member to a (linked list) of → development/vim/sources/src/autocmd_c/AutoCmd[`AutoCmd`]. Each `AutoCmd` stores a command (`char_u *cmd`). These commands are executed 
+if the `AutoPat` that the `AutoCmd` hangs on matches the conditions stored in the `AutoPat`.
+
+Each element of the `last_autopat` array points to tha last `AutoPat` in an event's linked list of `AutoPat`.
+
+The general design of these linked lists is depicted in the following graphic:
+gh|vim-source-notes|/src/autocmd.c/img/first_autopat-last_autopat.png||
