@@ -1,0 +1,51 @@
+$ src/Tasks/Microsoft.Common.CurrenVersion.targets
+
+This file defines the steps in the standard build process for .NET projects.
+
+It contains all the steps that are common among the different → Microsoft/dot-net/languages, such as
+Visual Basic and Visual → development/languages/C-Sharp[C#].
+
+{ CoreBuildDependsOn
+
+  Of particular interest is the `<PropertyGroup>` that defines `CoreBuildDependsOn`, the targets that the target *CoreBuild* depends on.
+code {
+<PropertyGroup>
+    <CoreBuildDependsOn>
+      BuildOnlySettings;
+      PrepareForBuild;
+      PreBuildEvent;
+      ResolveReferences;
+      PrepareResources;
+      ResolveKeySource;
+      Compile;
+      ExportWindowsMDFile;
+      UnmanagedUnregistration;
+      GenerateSerializationAssemblies;
+      CreateSatelliteAssemblies;
+      GenerateManifests;
+      GetTargetPath;
+      PrepareForRun;
+      UnmanagedRegistration;
+      IncrementalClean;
+      PostBuildEvent
+    </CoreBuildDependsOn>
+  </PropertyGroup>
+code }
+
+  This value is later used in the target *CoreBuild* like so:
+code {
+  <Target
+      Name="CoreBuild"
+      DependsOnTargets="$(CoreBuildDependsOn)">
+
+      …
+
+  </Target>
+code }
+
+
+}
+
+
+links:
+  → https://github.com/microsoft/msbuild/blob/master/src/Tasks/Microsoft.Common.CurrentVersion.targets
