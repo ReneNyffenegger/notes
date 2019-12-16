@@ -1,0 +1,31 @@
+$ VIM struct: match_T
+
+`match_T` is used for highlighting:
+  • `hlsearch`
+  • `:match`
+  • matches defined by match functions
+
+`:match` and match functions defined a different pattern for each → development/vim/editing/windows[window].
+
+code {
+typedef struct
+{
+    regmmatch_T rm;         // points to the regexp program; contains last
+                            // found match (may continue in next line)
+    buf_T       *buf;       // the buffer to search for a match
+    linenr_T    lnum;       // the line to search for a match
+    int         attr;       // attributes to be used for a match
+    int         attr_cur;   // attributes currently active in win_line()
+    linenr_T    first_lnum; // first lnum to search for multi-line pat
+    colnr_T     startcol;   // in win_line() points to char where HL starts
+    colnr_T     endcol;     // in win_line() points to char where HL ends
+    int         is_addpos;  // position specified directly by
+                            // matchaddpos(). TRUE/FALSE
+#ifdef FEAT_RELTIME
+    proftime_T  tm;         // for a time limit
+#endif
+} match_T;
+code }
+
+sa:
+  The global variable `screen_search_hl` (→ development/vim/sources/src/globals_h[`globals.h`])

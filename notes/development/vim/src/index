@@ -102,6 +102,7 @@ table }
     `FTOFF_FILE` ☰
     `FTPLUGIN_FILE` ☰ 
     `FTPLUGOF_FILE` ☰
+    `GLOBAL_IME` ☰ if defined `vim_WindowProc()` (= `MyWindowProc`) calls `global_ime_DefWindowProc()`, otherwise `DefWindowProcW()`.
     `HAVE_DUP` ☰ If `dup()` is available
     `HAVE_TRY_EXCEPT` ☰ Used in Windows environment for `__try` and `__except`?
     `HAVE_ST_MODE` ☰ if `stat.st_mode` is available
@@ -153,6 +154,11 @@ table }
 }
 { TODO
 
+  { Keyboard handling
+
+    The global variable `mod_mask` is set by `vgetc()` to the set of *modifiers* that are held down based on the `MOD_MASK_…` symboles that are read first.
+
+  }
   { Buffers
 
     There seem to be some buffer types:
@@ -202,6 +208,22 @@ table }
       • → development/vim/sources/src/drawscreen_c[`drawscreen.c`]
       • → development/vim/sources/src/drawline_c[`drawline.c`]
       • → development/vim/sources/src/screen_c[`screen.c`]
+
+    Global variables that are used in concjunction with the screen, defined in → development/vim/sources/src/globals_h[`globals.h`] are
+    table { ll
+      `long Columns` and `Rows`                 ☰ Number of columns/rows on the screen
+      `char_u *ScreenLines`                     ☰ Characters on the screen
+      `u8char_T* ScreenLinesUC`                 ☰ Decoded UTF-8 characters
+      `unsigned short *ScreenAttrs`             ☰ These characters' attributes
+      `unsigned *LineOffset`                    ☰
+      `int screen_Rows` and `screen_columns`    ☰ actual size of `ScreenLines`
+      `char_u   LineWraps`                      ☰
+      `u8char_T* ScreenLinesC`                  ☰ Composing characters
+      `char_u *current_ScreenLine`              ☰ Buffer for one screen line (? characters and attributres)
+      `int screen_cur_row` and `screen_cur_col` ☰ Last known cursor position, mostly used by `windgoto()` and `screen_char()`
+      `→ development/vim/sources/src/structs_h/match_T[match_T] screen_search_hl` ☰ used for `hlsearch` highlight matching
+      `→ development/vim/sources/src/structs_h/foldinfo_T[foldinfo_T] win_foldinfo ☰ info for `foldcolumn`
+    table }
 
   }
   { K_…
