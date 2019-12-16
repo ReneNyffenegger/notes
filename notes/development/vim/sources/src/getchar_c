@@ -4,6 +4,22 @@ Functions related with getting a character from the user/mapping/redo/…
 -
 Manipulations with redo buffer and stuff buffer mappings and abbreviations
 
+{ buffheader_T variables #vim-src-getchar-buffheader_T-variables
+
+  `getchar.c` declares some variables whose type is → development/vim/sources/src/structs_h/buffheader_T[`buffheader_T`].
+
+code {
+static buffheader_T redobuff     = {{NULL, {NUL}}, NULL, 0, 0};
+static buffheader_T old_redobuff = {{NULL, {NUL}}, NULL, 0, 0};
+static buffheader_T recordbuff   = {{NULL, {NUL}}, NULL, 0, 0};
+
+…
+
+static buffheader_T readbuf1     = {{NULL, {NUL}}, NULL, 0, 0};// First read ahead buffer. Used for translated commands.
+static buffheader_T readbuf2     = {{NULL, {NUL}}, NULL, 0, 0};// Second read ahead buffer. Used for redo.
+code }
+
+}
 { vgetc()
 
   Get the next input character.
@@ -24,6 +40,25 @@ Manipulations with redo buffer and stuff buffer mappings and abbreviations
   Get a «byte»
 
 }
+{ ins_typebuf() #vim-src-getchar-ins_typebuf
+
+  Inserts a string at a given position (`offset`) into the *typeahead buffer*.
+
+}
+{ flush_buffers() #vim-src-getchar-flush_buffers
+
+ `flush_buffers()` removes the contents of the *stuff buffer* and the mapped characters in the *typeahead buffer*.
+
+  → development/vim/sources/src/vim_h[`vim.h`] define the enum `flush_buffers_T` which specifies the possible arguments for `flush_buffers()`:
+code {
+typedef enum {
+    FLUSH_MINIMAL,
+    FLUSH_TYPEAHEAD, // flush current typebuf contents
+    FLUSH_INPUT      // flush typebuf and inchar() input
+} flush_buffers_T;
+code }
+
+}
 { inchar()
 
  `inchar()` gets one character from a script file or the keyboard.
@@ -36,5 +71,20 @@ Manipulations with redo buffer and stuff buffer mappings and abbreviations
   Normally the input buffer would be sufficient, but the `server_to_input_buf()`
   or `feedkeys()` may insert characters in the typeahead buffer while we are
   waiting for input to arrive.
+
+}
+{ read_readbuffers() #vim-src-getchar-read_readbuffers
+
+  Gets one byte from the *read buffers*.
+
+}
+{ stuffcharReadbuff()
+
+  Appends a character to the *stuff buffer* by calling
+code {
+add_char_buff(&readbuf1, c);
+code }
+
+  In the declaration of `readbuf1`, the variable is called *First read ahead buffer. Used for translated commands.*
 
 }

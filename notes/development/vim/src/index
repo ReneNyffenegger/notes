@@ -8,12 +8,15 @@ table { ll
 
   → development/vim/sources/src/ascii_h[ascii.h] ☰ 
   → development/vim/sources/src/autocmd_c[autocmd.c] ☰ autocommands
-  buffer.c ☰ manipulating → development/vim/editing/buffers[buffers] (loaded files)
+  → development/vim/sources/src/buffer_c[buffer.c] ☰ manipulating → development/vim/editing/buffers[buffers] (loaded files)
   → development/vim/sources/src/create_cmdidxs_vim[create_cmdidxs.vim] ☰ Creates → development/vim/sources/src/ex_cmdidxs_h[ex_cmdidxs.h]
   diff.c ☰  diff mode (vimdiff)
   → development/vim/sources/src/digraph_c[digraph.c] ☰ → development/vim/editing/digraphs[digraphs]
   → development/vim/sources/src/dosinst_c[dosinst.c] ☰
-  → development/vim/sources/src/eval_c[eval.c] ☰ Expression evaluation
+  → development/vim/sources/src/drawline_c[drawline.c] ☰ middle level for screen drawing/painting
+  → development/vim/sources/src/drawscreen_c[drawscreen.c] ☰ top level for screen drawing/painting
+  → development/vim/sources/src/edit_c[edit.c] ☰ functions for → development/vim/editing/modes/insert
+  → development/vim/sources/src/eval_c[eval.c] ☰ expression evaluation
   → development/vim/sources/src/evalfunc_c[evalfunc.] ☰ → development/vim/script/vimscript/functions[Built-in VIM functions.
   → development/vim/sources/src/ex_docmd_c[ex_docmd.c] ☰ Functions for executing an → development/vim/commands[ex command line]. (Function `do_cmdline()`)
   → development/vim/sources/src/ex_cmds_h[ex_cmds.h] ☰ defines → development/vim/commands
@@ -30,6 +33,7 @@ table { ll
   → development/vim/sources/src/globals_h[globals.h] ☰ Definition of global variables.
   → development/vim/sources/src/gui_w32_c[gui_w32.c] ☰ GUI support for Microsoft Windows, aka Win32.
   indent.c ☰ C and Lisp indentation
+  → development/vim/sources/src/keymap_h[keymap.h] ☰ Keycode defintions for special keys (`K_…`)
   mark.c ☰  marks
   mbyte.c ☰  multi-byte character handling
   → development/vim/sources/src/main_c[main.c] ☰ defines → development/languages/C-C-plus-plus/C/main[`main`]
@@ -51,7 +55,7 @@ table { ll
   quickfix.c ☰ quickfix commands (":make", ":cn")
   → development/vim/sources/src/regexp_h[regexp.h] ☰
   → development/vim/sources/src/regexp_c[regexp.c] ☰ → development/regular-expressions
-  screen.c ☰ updating the windows (`update_screen()` calls `win_update()` for every window which calls `win_line()` for every line.
+  → development/vim/sources/src/screen_c[screen.c] ☰ updating the windows (`update_screen()` calls `win_update()` for every window which calls `win_line()` for every line.
   → development/vim/sources/src/scriptfile_c[scriptfile.c] ☰ Functions for dealing with the → development/vim/sources/runtime[runtime directories/files].
   search.c ☰ pattern searching
   → development/vim/sources/src/sign_c[sign.c] ☰ signs
@@ -60,6 +64,7 @@ table { ll
   → development/vim/sources/src/syntax_c[syntax.c] ☰ → development/vim/syntax[Syntax] and other highlighting.
   tag.c ☰ tags
   term.c ☰ terminal handling, termcap codes
+  → development/vim/sources/src/terminal_c[terminal.c] ☰ terminal window support
   → development/vim/sources/src/testing_c[testing.c] ☰ Support for tests
   undo.c ☰ undo and redo
   → development/vim/sources/src/ui_c[ui.c] ☰ functions for the *user interface*: → hardware/keyboard input, clipboard, input buffer
@@ -146,11 +151,74 @@ table }
   }
 
 }
+{ TODO
+
+  { Buffers
+
+    There seem to be some buffer types:
+      • → development/vim/sources/src/ui_c#vim-input-buffer[input buffer]
+      • stuff buffer (? A command that is translated into another command, like `D` -> `d$`, or to redo a command (`.`))
+      • typeahead buffer (stores text that is already obtainexd but not yet used, and results of mappings, and is used for the `:normal` command. represented by a → development/vim/sources/src/structs_h/typebuf_T[`typebuf_T`] struct.
+      • read buffer (compare → development/vim/sources/src/edit_c#vim-src-edit-stuff_inserted[`stuff_inserted()`], → development/vim/sources/src/getchar_c#vim-src-getchar-read_readbuffers[`read_readbuffers()`])
+      • redo buffer (? to redo the last change)
+      • recording buffer (for the `q` command)
+      • … ?
+
+    The → development/vim/sources/src/structs_h/buffheader_T[`buffheader_T`] struct and some → development/vim/sources/src/getchar_c#vim-src-getchar-buffheader_T-variables[variables of this struct in `getchar.c`].
+
+    The contents of the *stuff buffer* and the mapped characters in the *typeahead buffer* is removed in the function
+    → development/vim/sources/src/getchar_c#vim-src-getchar-flush_buffers[`flush_buffers()`].
+
+    Structs:
+       • → development/vim/sources/src/structs_h/buffblock_T[`buffblock_T`] is used to store *one block* of the stuff/redo/recording buffers.
+       • → development/vim/sources/src/structs_h/buffheader_T[`buffheader_T`] is used for the *stuff buffer* and the *redo buffer*.
+       • → development/vim/sources/src/structs_h/typebuf_T[`typebuf_T`] is used for the *typeahead buffer*.
+       • → development/vim/sources/src/structs_h/tasave_T[`tasave_T`] holds the saved *typeahead* (for `save_typeahead()`).
+
+    The input buffer seems to be filled mainly with characters that are typed on a keyboard (see for example → development/vim/sources/src/gui_w32_c#vim-src-gui_w32-_OnChar[`_OnChar` in `gui_w32.c`].
+    -
+    As per two comment in → development/vim/sources/src/gui_c[`gui.c`] (`gui_send_mouse_event()` and `gui_drag_scrollbar()`), the input buffer seems also able to store *mouse events* and scrollbar draging information.
+
+   `typebuf.tb_buf` (whose middle part has room for *typeahead*.
+
+    As per a comment in → development/vim/sources/src/getchar_c[`getchar.c`] (`save_typeahead`), there are *three kinds of typeahead*.
+
+    → development/vim/sources/src/getchar_c#vim-src-getchar-ins_typebuf[`ins_typebuf()`] inserts a string into the *typeahead buffer*.
+
+?  `feedkeys()` or `server_to_input_buf()` might insert characters into the *typeahead buffer* (while wating for input to arrive).
+
+    → development/vim/sources/src/ex_docmd_c[`ex_docmd.c`] has the interesting comment
+    "
+	    Execute from the typeahead buffer.
+      -
+	    Continue until the stuff buffer is empty and all added characters
+	    have been consumed.
+    "
+
+  }
+  { Screen
+
+    There are three levels for screen drawing/painting, from top to bottom:
+      • → development/vim/sources/src/drawscreen_c[`drawscreen.c`]
+      • → development/vim/sources/src/drawline_c[`drawline.c`]
+      • → development/vim/sources/src/screen_c[`screen.c`]
+
+  }
+  { K_…
+
+   `K_SPECIAL` introduces a special key (in a buffer?) and is followed by two bytes.
+   -
+   A literal `K_SPECIAL` is stored as `K_SPECIAL KS_SPECIAL` `KE_FILLER`.
+
+  }
+
+}
 
 
-→ development/vim/src/xxd/xxd_c[xxd/xxd.c]
-
-→ development/vim/src/GvimExt/gvimext_cpp[GvimExt/gvimext.cpp]
 
 sa:
   `src\README.txt`, `:help development`
+
+  → development/vim/src/xxd/xxd_c[xxd/xxd.c]
+
+  → development/vim/src/GvimExt/gvimext_cpp[GvimExt/gvimext.cpp]

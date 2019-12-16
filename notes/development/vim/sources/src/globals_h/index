@@ -2,8 +2,40 @@ $ vim - src/globals.h
 
 `globals.h` contains the definition of global variables.
 
-`homedir` stores the value of → development/vim/script/vimscript/variables/HOME[`$HOME`], see → development/vim/sources/src/misc1_c#vim-src-misc1_init_homedir[`init_homedir()`].
+{ The EXTERN macro
 
+  These global variables are prefixed with the macro `EXTERN`, for example
+code {
+EXTERN schar_T	*ScreenLines INIT(= NULL);
+code }
+
+  The → development/vim/sources/src/main_c[`main.c`] defines `EXTERN` before it includes → development/vim/sources/src/vim_h[`vim.h`] which in turn includes `globals.h`.
+
+  Thus, when `main.c` is compiled, the global variables are defined.
+
+  Howerver, `globals.h` also contains
+code {
+#ifndef EXTERN
+# define EXTERN extern
+# define INIT(x)
+#else
+# ifndef INIT
+#  define INIT(x) x
+#  define DO_INIT
+   …
+# endif
+#endif
+code }
+
+  This allows to externally declare all global variables for all other compilation units.
+
+}
+{ homedir
+
+ `homedir` stores the value of → development/vim/script/vimscript/variables/HOME[`$HOME`],
+  see → development/vim/sources/src/misc1_c#vim-src-misc1_init_homedir[`init_homedir()`].
+
+}
 { Windows (win_T) strucures
 
   Vim stores the characteristics of → development/vim/editing/windows[windows] in `win_T` structures.
