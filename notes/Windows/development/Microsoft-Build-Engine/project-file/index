@@ -12,7 +12,7 @@ Project files can be evaluated (or run) on the command line (→ Windows/dirs/Wi
 
 { Most simple project file
 
-  A project file (with suffix `.csproj`) needs at least a `<Project>` and a `<Target>` tag and a `Name` attribute.
+  A project file (with suffix `.csproj`) needs at least a `<Project>` and a `<Target>` tag with a `Name` attribute.
   -
   Thus the (possibly) *most simple* project file becomes
   gh|about-MSBuild|/project-files/most-simple/file.csproj||
@@ -61,7 +61,7 @@ code }
 }
 { Targets
 
-  A `<Target>` allows to bundle multiple tasks. A project file might contain mutliple targets.
+  A `<Target>` allows to bundle multiple tasks. A project file might contain multiple targets. When running MS Build, it determines which targets it invokes.
 
   The following project file defines three targets. By default, (only) the first target es executed:
   gh|about-MSBuild|/project-files/Target/simple/proj.csproj||
@@ -144,5 +144,37 @@ code {
 code }
 
   Typically, a task implements the `ITask` interface.
+
+}
+{ MS Build SDKs
+
+  MS Build 15.0 introduced an SDK-style(?) XML format: the SDK used is indicated with the value of the `Sdk` attribute of the `<Project>` tag:
+code {
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  …
+</Project>
+code }
+
+  Apparently, with such an Sdk, MS build, creates an in-memory(?) version of the `.csproj` where it implicitely places two `<Import>` tags into the `.csproj` file and removes the `Sdk` attribute from the `<Project>` tag.
+  -
+  This in-memory version then becomes something like
+code {
+<Project DefaultTargets="Build">
+  <Import Project="Sdk.props"   Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+   …
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+</Project>
+code }
+
+  These two `<Import>` statements reference two files that are found below the directory `→ Windows/dirs/Program-Files/dotnet/sdk/v_v_v/Sdks[`C:\Program Files\dotnet\sdk\SDK-VERSION\Sdks]\SDK.NAME\Sdk`: `Sdk.props` and `Sdk.targets`.
+  -
+  It is the content of these two files that is imported in the respective place.
+
+  Of course, the imported text also contains `<Import>` tags so that it becomes quite hard to track what is actually produced.
+  -
+  Luckily, `msbuild.exe` allows to show the content of the preprocessed project file with the `-pp` option which names the file to be written:
+code {
+C:\> msbuild -pp:preprocessed.xml
+code }
 
 }
