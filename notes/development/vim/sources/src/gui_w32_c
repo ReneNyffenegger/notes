@@ -13,11 +13,32 @@ Among others, this file handles Windows messages such as `WM_KEYDOWN`, `WM_SYSKE
  `gui_mch_init` is called from → development/vim/sources/src/gui_c#vim-src-gui-gui_start[`gui_start()`].
 
 }
+{ gui_mch_wait_for_chars()
+
+  GUI input routine called by `gui_wait_for_chars()`.
+
+  Waits for a character from the keyboard.
+
+  Returns `OK` if a character was found to be available within the given time, `FAIL` otherwise.
+
+  TODO: this is the function that calls `MsgWaitForMultipleObjects(0, NULL, FALSE, 100, QS_ALLINPUT)`.
+
+}
 { _WndProc() #vim-src-gui_w32-WndProc
 
  `_WndProc()` is the Window procedure for gvim's main window.
 
  `WM_CHAR` messages are handled by → #vim-src-gui_w32-_OnChar[`_OnChar()`].
+
+} 
+{ process_message() #vim-src-gui_w32-process_message
+
+  Handle a single windows message.
+
+  If the message is `WM_KEYDOWN` or `WM_SYSKEYDOWN` and the virtual keycode is `VK_CANCEL` (= ESC?), then
+    • `trash_input_buf()` is called,
+    • `ctrl_break_was_pressed` is set to `TRUE` (TODO: however, it seems that this variable is only queried in `terminal.c` which doesn't seem to play a role in a gui-vim).
+    • `Ctrl_C` is added to the input buffer (`add_to_input_buf`).
 
 }
 { _TextAreaWndProc()

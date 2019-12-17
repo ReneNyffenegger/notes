@@ -54,9 +54,39 @@ code }
   }
   { trash_input_buf()
 
-   `trash_input_buf()` is called when *ctrl-C* is pressed (and `ctrl_c_interrupts` is `TRUE`?).
+   `trash_input_buf()` is called when *ctrl-C* is pressed (and `ctrl_c_interrupts` is `TRUE`?) (but see also the handling of `VK_CANCEL` in → development/vim/sources/src/gui_w32_c#vim-src-gui_w32-process_message[`process_message()`])
 
     The function erases the entire input buffer.
 
   }
+}
+{ inchar_loop()
+
+  Common code for `mch_inchar()` and `gui_inchar()`: Wait for a while or
+  indefinitely until characters are available, dealing with timers and
+  messages on channels.
+ 
+  `buf` may be NULL if the available characters are not to be returned, only
+  check if they are available.
+ 
+  Return the number of characters that are available.
+  -
+  If `wtime == 0` do not wait for characters.
+  -
+  If `wtime == n` wait a short time for characters.
+  -
+  If `wtime == -1` wait forever for characters.
+
+  The parameter `wait_func` is a function pointer. In a GUI compilation, `wait_func` seems to be point to `gui_wait_for_chars_or_timer()`.
+
+}
+{ ui_wait_for_chars_or_timer()
+
+   Wait for a timer to fire or `wait_func` (a function pointer) to return non-zero.
+
+   Returns `OK` when something was read.
+
+   Returns `FAIL` when it timed out or was interrupted.
+
+   The function is only defined if at least one of the macros `FEAT_TIMERS` or `PROTO` is defined.
 }
