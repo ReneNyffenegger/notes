@@ -35,15 +35,26 @@ code }
   Returns the modifiers in the global "mod_mask".
 
 }
-{ safe_vgetc()
+{ safe_vgetc() #vim-src-getchar-safe_vgetc
 
   Like `vgetc()`, but never returns a `NUL` when called recursively, get a key
   directly from the user (ignoring typeahead).
 
-}
-{ vgetorpeek()
+  If there is no new character after → development/vim/options/updatetime, `safe_vgetc` returns `K_CURSORHOLD`.
 
-  Get a «byte»
+}
+{ vgetorpeek(int advance) #vim-src_getchar-vgetorpeek
+
+  Get a «byte».
+
+  If `advance` is `TRUE`:
+     •  the character is *really* gotten
+     • `KeyTyped` is set to `TRUE` if the key comes from the keyboard
+     • `KeyStuffed` is set(?) to `TRUE` if the character comes from the stuff buffer
+
+  If `advance` is `FALSE`, it is only checked whtere a character is available. If not, `NUL` is returned.
+
+  TODO: function might call `handle_mapping`.
 
 }
 { ins_typebuf() #vim-src-getchar-ins_typebuf
@@ -51,10 +62,11 @@ code }
   Inserts a string at a given position (`offset`) into the *typeahead buffer*.
 
 }
-{ inchar()
+{ inchar() #vim-src-getchar-inchar
 
   Gets a character either from a script file or the keyboard
   
+  Compare with the similarly sounding function → development/vim/sources/src/ui_c#vim-src-ui-inchar_loop[`inchar_loop()`]
 
 }
 { flush_buffers() #vim-src-getchar-flush_buffers
