@@ -1,0 +1,39 @@
+$ Docker on Windows: presence of cexecsvc service indicates being inside a container
+
+When using → development/tools/Docker/Windows[Docker on Windows], it is possible to check if an envioronment is running inside a → development/tools/Docker/container by testing for the presence of the
+→ Windows/services[Windows service] *cexecsvc*. If such a service is present, it indicates that the environment is indeed running inside a container.
+
+The following example starts in a non-container envioronment where no cexecsvc service is running. Then, a new container is created (→ development/tools/Docker/commands/run[`docker run …`]) and inside the container,
+using → Windows/dirs/Windows/System32/sc_exe[`sc.exe`], we find that this service is available (and running):
+code {
+C:\> → Windows/dirs/Windows/System32/sc_exe[sc] query cexecsvc
+[SC] EnumQueryServicesStatus:OpenService FAILED 1060:
+
+The specified service does not exist as an installed service.
+
+C:\> → development/tools/Docker/commands/run[docker run] -it mcr.microsoft.com/windows/nanoserver:1809 → Windows/dirs/Windows/System32/cmd_exe[cmd.exe]
+C:\> → Windows/dirs/Windows/System32/sc_exe[sc] query cexecsvc
+
+SERVICE_NAME: cexecsvc
+        TYPE               : 10  WIN32_OWN_PROCESS
+        STATE              : 4  RUNNING
+                                (STOPPABLE, NOT_PAUSABLE, IGNORES_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+code }
+
+Alternatively, we can also look up the service in the → Windows/registry[registry]:
+code {
+C:\> → Windows/dirs/Windows/System32/reg_exe[reg] query → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services[HKLM\System\CurrentControlSet\Services]\cexecsvc
+    DependOnService    REG_MULTI_SZ    condrv\0ProfSvc\0nsi
+    Description    REG_SZ    @%→ Windows/dirs/Windows/System32/cexecsvc_exe[systemroot%\system32\cexecsvc.exe],-101
+    DisplayName    REG_SZ    @%→ Windows/dirs/Windows/System32/cexecsvc_exe[systemroot%\system32\cexecsvc.exe],-100
+    ErrorControl    REG_DWORD    0x1
+    ImagePath    REG_EXPAND_SZ    → Windows/dirs/Windows/System32/cexecsvc_exe[%systemroot%\system32\cexecsvc.exe]
+    ObjectName    REG_SZ    LocalSystem
+    ServiceSidType    REG_DWORD    0x1
+    Start    REG_DWORD    0x2
+    Type    REG_DWORD    0x10
+code }

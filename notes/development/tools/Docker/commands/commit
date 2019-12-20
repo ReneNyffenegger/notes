@@ -1,0 +1,57 @@
+$ docker commit
+
+`docker commit` creates a new → development/tools/Docker/image from a modified → development/tools/Docker/container.
+
+  Create a new → development/tools/Docker/container:
+code {
+C:\> → development/tools/Docker/commands/run[docker run] -it mcr.microsoft.com/windows/nanoserver:1809 → Windows/dirs/Windows/System32/cmd_exe[cmd.exe]
+code }
+
+  Inside the container, create a file:
+code {
+C:\>→ Windows/dirs/Windows/System32/cmd_exe/commands/date /t > date-time.txt
+
+C:\>→ Windows/dirs/Windows/System32/cmd_exe/commands/time /t >> date-time.txt
+
+C:\>→ Windows/dirs/Windows/System32/cmd_exe/commands/type date-time.txt
+Fri 12/20/2019
+02:05 PM
+
+C:\> → Windows/dirs/Windows/System32/cmd_exe/commands/exit
+code }
+
+In order to create an image, we first need to determine the container's id:
+code {
+C:\> → development/tools/Docker/commands/ps[docker ps] -a
+> docker ps -a
+CONTAINER ID        IMAGE                                       COMMAND                   CREATED             STATUS                      PORTS               NAMES
+282465b50140        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"                 31 minutes ago      Exited (0) 3 seconds ago                        fervent_nightingale
+83926cacc71d        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"                 About an hour ago   Exited (0) 31 minutes ago                       musing_morse
+  …
+code }
+
+Use `docker commit` to create a new → development/tools/Docker/image, named *a_new_image*. Note that image names need to be lowercase:
+code {
+C:\> docker commit 282465b50140 a_new_image
+sha256:a80b39c04ea8c61277418ce6561e6d479596eaa5862ea27cd74a2565b53b8d06
+code }
+
+View the available images:
+code {
+C:\> → development/tools/Docker/commands/images[docker images]
+REPOSITORY                             TAG                 IMAGE ID            CREATED             SIZE
+a_new_image                            latest              a80b39c04ea8        35 seconds ago      253MB
+hello-world                            latest              16464c76a19c        9 days ago          251MB
+mcr.microsoft.com/windows/nanoserver   1809                c897e7c62e1e        3 weeks ago         251MB
+  …
+code }
+
+Run the newly created container:
+code {
+C:\> → development/tools/Docker/commands/run[docker run] a_new_image cmd.exe → Windows/dirs/Windows/System32/cmd_exe/options/c_k[/c] type date-time.txt 
+Fri 12/20/2019
+02:05 PM
+code }
+
+links:
+  Much of this page was inspired (even copied) from → https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/run-your-first-container[Get started: Run your first Windows container].

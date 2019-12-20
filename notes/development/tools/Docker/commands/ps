@@ -1,0 +1,68 @@
+$ docker ps
+
+{ Display running containers
+
+  `docker ps` lists *running* → development/tools/Docker/container[containers].
+  -
+  In this example, no container is running, so an empty list is returned:
+code {
+C:\> docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+code }
+
+  Start a new container:
+code {
+C:\> → development/tools/Docker/commands/run[docker run] -it mcr.microsoft.com/windows/nanoserver:1809 → Windows/dirs/Windows/System32/cmd_exe[cmd.exe]
+C:\>
+code }
+
+  This (running) new container can now be seen with `docker ps` in *another* console or terminal (or → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] or → Windows/PowerShell on Windows):
+code {
+C:\> docker ps
+CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
+8b0d27e6dd49        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"           5 minutes ago       Up 5 minutes                            infallible_haslett
+code }
+
+}
+{ Display all containers
+
+  In order to see all containers, running and previously running, `docker ps -a` can be used:
+code {
+C:\> docker ps -a
+CONTAINER ID        IMAGE                                       COMMAND                   CREATED             STATUS                         PORTS               NAMES
+8b0d27e6dd49        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"                 7 minutes ago       Up 7 minutes                                       infallible_haslett
+04f949ba4462        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"                 23 minutes ago      Exited (9009) 21 minutes ago                       musing_haibt
+5811d62cf83f        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"                 20 hours ago        Exited (0) 20 hours ago                            thirsty_turing
+299444befdee        hello-world                                 "cmd /C 'type C:\\hel…"   20 hours ago        Exited (0) 20 hours ago                            adoring_babbage
+f33e6b639326        hello-world                                 "cmd /C 'type C:\\hel…"   21 hours ago        Exited (0) 21 hours ago                            upbeat_bartik
+ada3b521615d        hello-world                                 "cmd /C 'type C:\\hel…"   21 hours ago        Exited (0) 21 hours ago                            nifty_cray
+code }
+
+}
+{ Filtering containers
+
+  The result set of `docker ps` can be filtered with `docker ps … -filter "key=value":
+code {
+C:\> docker ps -a --filter "exited=9009"
+CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS                         PORTS               NAMES
+04f949ba4462        mcr.microsoft.com/windows/nanoserver:1809   "cmd.exe"           26 minutes ago      Exited (9009) 24 minutes ago                       musing_haibt
+code }
+
+  Possible `key` names are
+  table { ll
+    id ☰ The id of a container
+    name ☰ The name of a container
+    label ☰ ?
+    exited ☰ the exit code of a container, useful only with `-a`
+    status ☰ `created`, `restarting`, `running`, `removing`, `paused`, `exited` or `dead`
+    ancestor ☰ `<image-name>`, `<image-name>:<tag>`, `<image-id>` or `<image@digest>`.
+    before / since ☰ finds containers that were created before or after a container that is identified by its id or name
+    volume ☰
+    network ☰
+    publish / expose ☰
+    health ☰ `starting`, `healthy`, `unhealthy` or `none`
+    isolation ☰ Only on → development/tools/Docker/Windows[Windows], one of `default`, `process`, `hyperv`
+    is-task ☰ `true` or `false`
+  table }
+
+}
