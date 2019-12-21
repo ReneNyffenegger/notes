@@ -1,0 +1,202 @@
+
+A Dockerfile contains instructions that specify how to build an → development/tools/Docker/image. The image is built with the → development/tools/Docker/commands/build[`docker build`] command.
+
+{ Format of a Dockefile
+
+  A dockerfile contains instructructions with arguments. Typically (but not necessarily), these arguements are written in uppercase letters.
+
+code {
+INSTRUCTION arguments
+code }
+
+  With the execption of `ARG`, a Dockefile must begin with a `FROM` instruction (which specifies the *parent image* from which a new image is built.
+
+  Dockefiles allows *comments*: they are like those in shell script, → development/languages/Python or → Windows/PowerShell: they start with a `#` and continue to the end of the line.
+
+ *Parser directives* look like a special form of comments:
+code {
+# directive=value
+code }
+
+}
+{ Instructions
+
+  { FROM
+
+   `FROM` initializes a new build stage and sets the Base Image for subsequent instruction.
+code {
+FROM → development/tools/Docker/image[<image>]
+# or
+FROM → development/tools/Docker/image[<image>] AS <name>
+# or
+FROM <image>[@<digest>] [AS <name>]
+code }
+
+    Using `ARG`:
+code {
+ARG env=prod
+FROM im:${env}
+coce }
+
+  }
+  { RUN
+
+    Executes a command in the current image and commits the result.
+
+    The commited result is used as next «current image» in the next step.
+
+code {
+RUN <command> # shell form, executed using → Linux/fhs/bin/sh[/bin/sh -c command] (Linux) or → Windows/dirs/Windows/System32/cmd_exe[cmd.exe /s /c command]
+RUN ["executable", "argument-one", "argument-two", …]
+code }
+
+  }
+  { CMD
+
+   `CMD` provides defaults for for the resulting container.
+
+    At most one `CMD` instruction is allowed in a Dockerfile.
+
+  }
+  { ENTRYPOINT
+
+   `ENTRYPOINT` configures a container that will run as an executable.
+
+    Both, `CMD` and `ENTRYPOINT` define the commands that will be exectued when running a container.
+
+  }
+  { LABEL #dockerfile-label
+
+   `LABEL` adds metadata as a key/value pair to an image.
+
+    Such added information can be viewed with → development/tools/Docker/commands/inspect[`docker inspect`].
+
+code {
+LABEL version=42.0
+LABLE description=Hello world
+code }
+
+  }
+  { MAINTAINER
+
+   `MAINTAINER` sets the *Author* field of the generated image. This command is deprecated in favour of `LABEL`.
+
+  }
+  { EXPOSE #dockerfie-expose
+
+   `EXPOSE` documents a → development/web/TCP-IP (default) or UDP port for a container.
+
+    When running  the → development/tools/Docker/container, this or these ports are
+    published with the `-p` or `-P` command line option in → development/tools/Docker/commands/run[`docker run`].
+
+code {
+EXPOSE 80  # TCP/IP 
+code }
+
+code {
+EXPOSE 80/tcp
+EXPOSE 67/udp
+code }
+
+  }
+  { ENV
+
+   `ENV` sets an → development/environment-variable[environment variable].
+
+code {
+ENV version=4.2
+code }
+
+  }
+  { COPY / ADD
+
+   `COPY` and `ADD` copy files and directories from outside a container into the container.
+
+    Paths are interpreted as relative to the source of the context of the build.
+
+   `ADD` allows the source to be an → development/web/URI-URL-URN-IRI-URC#url. Also, `ADD` handles → development/archive-files → https://stackoverflow.com/a/24958548/180275[differently]
+
+code {
+#    source      destination
+#    ----------  -----------
+COPY README.txt  /dev
+COPY *.cs        /dev/src
+code }
+
+code {
+#    source      destination
+#    ----------  -----------
+ADD  README.txt  /dev
+ADD  *.cs        /dev/src
+code }
+
+    Docker on → Linux additionally has the `--chown` parameter to specify a owning → /Linux/user[user] and a → Linux/group[group] for the copied file:
+code {
+ADD --chown=rene:dev *.cs /dev/src
+code }
+
+  }
+  { VOLUME
+
+   `VOLUME` creates a mount point.
+
+  }
+  { USER
+
+   `USER` controls which user and group will be running the commands that were specified with `RUN`, `CMD` and `ENTRYPOINT`.
+
+  }
+  { WORKDIR
+
+   `WORKDIR` sets the directory for subsequent `RUN`, `CMD`, `ENTRYPOINT`, `COPY` and `ADD` commands.
+
+code {
+WORKDIR /dev/src
+code }
+
+  }
+  { ARG
+
+   `ARG` defines a variable whose value can be set when building the container with → development/tools/Docker/commands/build[`docker build`] (`--build-arg VAR=value`).
+code {
+ARG VAR
+code }
+
+    Predefined ARG variables are:`HTTP_PROXY`, `HTTPS_PROXY`, `FTP_PROXY` and `NO_PROXY`. These variables are also available in a lowercase version.
+       • `
+
+    Build time variables can be queried with → development/tools/Docker/commands/history[`docker history`].
+
+  }
+  { SCOPE
+
+    …
+
+  }
+  { ONBUILD
+
+   `ONBUILD` defines an instruction that is triggered when the built image is used as a base for another image.
+
+  }
+  { STOPSIGNAL
+
+    …
+
+  }
+  { HEALTHCHECK
+
+    …
+
+  }
+  { SHELL
+
+   `SHELL` allows to override the default shell (`/bin/sh -c`, `cmd.exe /s /c`).
+
+code {
+SHELL ["powershell", "-command"]
+RUN powershell-cmdLet
+code }
+
+  }
+
+}
