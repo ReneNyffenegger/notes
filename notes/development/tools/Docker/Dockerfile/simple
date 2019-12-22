@@ -1,0 +1,41 @@
+$ Simple Dockerfile example
+
+The following *simple* → development/tools/Docker/Dockerfile tries to demonstrate a few basic Dockerfile instructions:
+gh|about-Dockerfile|/Dockerfile/simple/Dockerfile||
+
+First, it uses the → development/tools/Docker/Dockerfile#dockerfile-FROM[`FROM`] instruction (which, apart from the → development/tools/Docker/Dockerfile#dockerfile-ARG[`ARG`] instruction]) must be the first instruction
+in a Dockerfile. The `FROM` instruction defines the base → development/tools/Docker/image upon which we want to build our new image.
+-
+In this example, I chose the (what I believe to be) smallest Windows base image for Docker.
+
+The → development/tools/Docker/Dockerfile#dockerfile-WORKDIR[`WORKDIR`] instruction specifies the (image-) directory where we will operate. Because the base image does not have a `C:\Work` directory, it will be created.
+-
+Also, when we run a container on our created image, the working directory will be in the directory specified with `WORKDIR`.
+
+The → development/tools/Docker/Dockerfile#dockerfile-COPY-ADD[`COPY`] instruction allows to copy a file from the host into the image, specifically to the directory that we specified with `WORKDIR`.
+-
+The file we copy, `someCommands.bat` will be the → Windows/dirs/Windows/System32/cmd_exe/batch-files that we want to execute when the image is → development/tools/Docker/commands/run[run].
+-
+The content of `someCommands.bat` is:
+gh|about-Dockerfile|/Dockerfile/simple/someCommands.bat||
+
+The → development/tools/Docker/Dockerfile#dockerfile-ENV[`ENV`] instruction creates an → development/environment-variable[environment variable] and assigns a value to it. `someCommands.bat` will → Windows/dirs/Windows/System32/cmd_exe/commands/echo[`echo`]
+this value.
+
+I also `ADD` and `COPY` a → development/archive-files/zip[zip] and a tar file in order to demonstrate the difference between `ADD` and `COPY`. `COPY` always copies files without trying to expand them. `ADD` also copies files, except for tar files,
+which will be extracted.
+
+With this Dockerfile, we can create an example with → development/tools/Docker/commands/build[`docker build`]:
+code {
+P:\ath\to\example> docker build -t simple-Dockerfile-example .
+code }
+
+After building the image, we see it like so:
+code {
+P:\ath\to\example> → development/tools/Docker/commands/images[docker images]
+code }
+
+Finally, we can run the image:
+code {
+P:\ath\to\example> → development/tools/Docker/commands/run[docker run] simple-Dockerfile-example
+code}
