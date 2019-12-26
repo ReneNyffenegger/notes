@@ -7,6 +7,26 @@ $ VIM: src/normal.c
 
  { nv_cmd / nv_cmds
 
+
+code {
+static const struct nv_cmd
+{
+    int         cmd_char;       // (first) command character
+    nv_func_T   cmd_func;       // function for this command
+    short_u     cmd_flags;      // NV_ flags
+    short       cmd_arg;        // value for ca.arg (The type of ca is → development/vim/sources/src/structs_h/cmdarg_T[cmdarg_T])
+} nv_cmds[] =
+
+{
+    {NUL,	nv_error,	0,			0},
+    {Ctrl_A,	nv_addsub,	0,			0},
+    {Ctrl_B,	nv_page,	NV_STS,			BACKWARD},
+     …
+};
+code }
+
+code }
+
  `nv_cmd` is a `struct` that essentially stores a → development/languages/C-C-plus-plus/C/language/datatypes/pointer/function[function pointer]
   and some flags for *one* → development/vim/editing/modes/normal[normal] or → development/vim/editing/modes/visual[visual] mode command.
   -
@@ -14,7 +34,8 @@ $ VIM: src/normal.c
 
  `nv_cmds` is an array of `nv_cmd` which stores *all* possible normal or visual mode commands.
 
-   The function pointer is called within the function `normal_cmd()`.
+  The function pointer is called within the function `normal_cmd()`.
+
 
 }
 { nv_colon
