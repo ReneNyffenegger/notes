@@ -1,5 +1,23 @@
 $ VIM: runtime/menu.vim
 
-`$VIMRUNTIME/menu.vim` is sourced if `:→ development/vim/commands/filetype#vim-filetype-on[filetype on]` is executed in vim with a GUI.
+A general prerequisite for using `menu.vim` is that `FEAT_MENU` is defined.
 
-This file is also sourced if `M` is included in `guioptions`. Apparently, otherwise, *even* if using → development/vim/editing/start-up/command-line-options#vim-cmd-line-opt-u[`-U NONE -u NONE`], `menu.vim` would be sourced.
+It is sourced from the function → development/vim/sources/src/gui_c#vim-src-gui-gui_init[`gui_init()`] in → development/vim/sources/src/gui_c[`gui.c`].
+
+? `$VIMRUNTIME/menu.vim` is (also?) sourced if `:→ development/vim/commands/filetype#vim-filetype-on[filetype on]` is executed in vim with a GUI.
+
+This file is not sourced if `M` is included in `guioptions`. Apparently, otherwise, *even* if using → development/vim/editing/start-up/command-line-options#vim-cmd-line-opt-u[`-U NONE -u NONE`], `menu.vim` would be sourced.
+
+The path of `menu.vim` is stored in the macro `SYS_MENU_FILE` which is defined in one of the `os_*.h` file, for example in
+→ development/vim/sources/src/os_dos_h[`os_dos.h`]:
+code {
+#ifdef FEAT_GUI
+  …
+# ifndef SYS_MENU_FILE
+#  define SYS_MENU_FILE		"$VIMRUNTIME\\menu.vim"
+# endif
+#endif
+code }
+
+sa:
+  The `FEAT_MENU` macro.
