@@ -3,7 +3,7 @@ $ VIM: src/auto/pathdef.c
 This file is generated during the *make* process (if `PATHDEF` is defined?).
 
 
-The file defines the following variables (that are declared in → development/vim/sources/src/globals_h[`globals.h`]:
+The file defines the following variables (that are declared in → development/vim/sources/src/globals_h#vim-src-globals_h-pathdef_c[`globals.h`]:
    • `default_vim_dir`
    • `default_vimruntime_dir`
    • `all_cflags`
@@ -13,4 +13,34 @@ The file defines the following variables (that are declared in → development/v
 
 On Unix environments, the file seems to be generated using → development/vim/sources/src/pathdef_sh[pathdef.sh].
 
-When using → development/vim/sources/src/Make_cyg_ming_mak[`src/Make_cyg_ming.mak`], the file is generated in `$(OUTDIR)` rather than `auto`.
+{ Make_cyg_ming.mak
+
+  When using → development/vim/sources/src/Make_cyg_ming_mak[`src/Make_cyg_ming.mak`], the file is generated in `$(OUTDIR)` (for example `src/gobjx86-64\pathdef.c`) rather than `auto`.
+  
+  The content of `pathdef.c` is generated with simple → Windows/dirs/Windows/System32/cmd_exe/commands/echo[`echo`] statments (white space edited by me for legibility): 
+code {
+PATHDEF_SRC = $(OUTDIR)/pathdef.c
+…
+@echo /* pathdef.c */ > $(PATHDEF_SRC)
+@echo #include "vim.h"                                                                                                                                                                               >> $(PATHDEF_SRC)
+@echo char_u *default_vim_dir        = (char_u *)"$(VIMRCLOC)";                                                                                                                                      >> $(PATHDEF_SRC)
+@echo char_u *default_vimruntime_dir = (char_u *)"$(VIMRUNTIMEDIR)";                                                                                                                                 >> $(PATHDEF_SRC)
+@echo char_u *all_cflags             = (char_u *)"$(CC) $(CFLAGS)";                                                                                                                                  >> $(PATHDEF_SRC)
+@echo char_u *all_lflags             = (char_u *)"$(CC) $(CFLAGS) $(LFLAGS) -o $(TARGET) $(LIB) -lole32 -luuid $(LUA_LIB) $(MZSCHEME_LIBDIR) $(MZSCHEME_LIB) $(PYTHONLIB) $(PYTHON3LIB) $(RUBYLIB)"; >> $(PATHDEF_SRC)
+@echo char_u *compiled_user          = (char_u *)"$(USERNAME)";                                                                                                                                      >> $(PATHDEF_SRC)
+@echo char_u *compiled_sys           = (char_u *)"$(USERDOMAIN)";                                                                                                                                    >> $(PATHDEF_SRC)
+code }
+
+  After creating `pathdef.c`, its content might look like:
+  code {
+#include "→ development/vim/sources/src/vim_h[vim.h]" 
+char_u *default_vim_dir = (char_u *)""; 
+char_u *default_vimruntime_dir = (char_u *)""; 
+char_u *all_cflags = (char_u *)"gcc -I. -Iproto -DWIN32 -DWINVER=0x0600 -D_WIN32_WINNT=0x0600 -DHAVE_PATHDEF -DFEAT_HUGE -DHAVE_STDINT_H -DMS_WIN64 -DHAVE_GETTEXT -DHAVE_LOCALE_H -DDYNAMIC_GETTEXT -DFEAT_CSCOPE -DFEAT_NETBEANS_INTG -DFEAT_JOB_CHANNEL -DFEAT_TERMINAL -DFEAT_SOUND -DFEAT_DIRECTX -DDYNAMIC_DIRECTX -DFEAT_DIRECTX_COLOR_EMOJI -DFEAT_GUI_MSWIN -DFEAT_CLIPBOARD -DFEAT_MBYTE_IME -DDYNAMIC_IME -DDYNAMIC_ICONV -pipe -march=x86-64 -Wall -DFEAT_XPM_W32 -I xpm/x64/include -I xpm/x64/../include -O3 -fomit-frame-pointer -freg-struct-return"; 
+char_u *all_lflags = (char_u *)"gcc -I. -Iproto -DWIN32 -DWINVER=0x0600 -D_WIN32_WINNT=0x0600 -DHAVE_PATHDEF -DFEAT_HUGE -DHAVE_STDINT_H -DMS_WIN64 -DHAVE_GETTEXT -DHAVE_LOCALE_H -DDYNAMIC_GETTEXT -DFEAT_CSCOPE -DFEAT_NETBEANS_INTG -DFEAT_JOB_CHANNEL -DFEAT_TERMINAL -DFEAT_SOUND -DFEAT_DIRECTX -DDYNAMIC_DIRECTX -DFEAT_DIRECTX_COLOR_EMOJI -DFEAT_GUI_MSWIN -DFEAT_CLIPBOARD -DFEAT_MBYTE_IME -DDYNAMIC_IME -DDYNAMIC_ICONV -pipe -march=x86-64 -Wall -DFEAT_XPM_W32 -I xpm/x64/include -I xpm/x64/../include -O3 -fomit-frame-pointer -freg-struct-return -s -municode -mwindows -o gvim.exe -lkernel32 -luser32 -lgdi32 -ladvapi32 -lcomdlg32 -lcomctl32 -lnetapi32 -lversion -lwsock32 -ld2d1 -ldwrite -Lxpm/x64/lib -lXpm -lwinmm -lole32 -luuid      "; 
+char_u *compiled_user = (char_u *)"Rene"; 
+char_u *compiled_sys = (char_u *)"TQ84DOMN"; 
+  code }
+
+
+}
