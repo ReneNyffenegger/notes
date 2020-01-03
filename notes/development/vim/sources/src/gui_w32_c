@@ -13,13 +13,18 @@ Among others, this file handles Windows messages such as `WM_KEYDOWN`, `WM_SYSKE
  `gui_mch_init` is called from → development/vim/sources/src/gui_c#vim-src-gui-gui_start[`gui_start()`].
 
 }
-{ gui_mch_wait_for_chars()
+{ gui_mch_wait_for_chars(int wtime) #vim-src-gui_w32-gui_mch_wait_for_chars
 
-  GUI input routine called by `gui_wait_for_chars()`.
+  This function is called by `gui_wait_for_chars()` and Waits for a character from the keyboard. If `wtime` is `-`, it waits until a character is pressed. If `wtime` is greater than `0`, it waits at most `wtime` milliseconds.
 
-  Waits for a character from the keyboard.
+  Returns `OK` if a character was found to be available within the given time (`wtime`), `FAIL` otherwise.
 
-  Returns `OK` if a character was found to be available within the given time, `FAIL` otherwise.
+  If `wtime > 0`, it uses the → Windows/development/WinAPI function `SetTimer()` to call → #vim-src-gui_w32-_OnTimer[`_OnTimer`] after `wtime` milliseconds.
+  -
+  When `_OnTimer` is triggered, it sets `s_wait_timer` to `TRUE`.
+
+ `gui_wait_for_chars` than enters a loop that is exited either when `s_wait_timer` was set to `TRUE` or when a character was pressed.
+
 
   TODO: this is the function that calls `MsgWaitForMultipleObjects(0, NULL, FALSE, 100, QS_ALLINPUT)`.
 
@@ -79,6 +84,12 @@ code }
  `_OnSetFocus` calls `gui_focus_change(TRUE)` which in turn uses → development/vim/sources/src/ui_c#vim-src-ui-add_to_input_buf[`add_to_input_buf()` to insert
   the triplet `CSI`, `KS_EXTRA`, `KE_FOCUSGAINED` to the *input buffer*.
 
+}
+{ _OnTimer #vim-src-gui_w32-_OnTimer
+
+  This function basically sets the `static` variable `s_wait_timer` to `TRUE` to indicate to the loop in → #vim-src-gui_w32-gui_mch_wait_for_chars[`gui_mch_wait_for_chars()`] that the duration that that function is supposed to wait for a character
+  has expired.
+  
 }
 { get_work_area()
 
