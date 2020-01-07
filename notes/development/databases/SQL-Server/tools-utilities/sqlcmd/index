@@ -104,11 +104,14 @@ code }
 }
 { Writing output to a file
 
-  An output file can be stated with the `-o` option
-
+  An output file can be stated with the `-o` option:
 code {
 C:\> sqlcmd -S Hostname\InstanceName -i f:\project\some\script.sql -o f:\project\output\file.dat
 code }
+
+  Alternatively, the `:out` statement can be used *within* an SQL script to specify a log file. The following script assumes that the
+  → Windows/development/environment-variables/TEMP-TMP[environment variable `TEMP`] is already set when `sqlcmd` is invoked:
+  gh|about-MSSQL|/tools/sqlcmd/out.sql||
 
 }
 { Set quoted_identifier on #sqlcmd-quoted_identifier
@@ -157,6 +160,17 @@ code }
   { Predefined scripting variables
 
     gh|about-MSSQL|/tools/sqlcmd/scripting-variables/predefined.sql||
+
+  }
+  { Environment variables
+
+    Environment variables that were already set when `sqlcmd.exe` is invoked can also be used in scripts:
+code {
+C:\> → Windows/dirs/Windows/System32/cmd_exe/commands/set TXT=Hello World
+C:\> sqlcmd -S … -d … 
+1> print("$(TXT), I am $(→ Windows/development/environment-variables/USERNAME[username])");
+2> → development/databases/SQL-Server/sql/go
+code }
 
   }
 }
@@ -212,8 +226,7 @@ code }
   }
   { exit-with-errorcode.sql
 
-    This script `:exit`s with a specific errorcode
-
+    This script exits with a specific error code:
     gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/exit-with-errorcode.sql||
 
   }
@@ -224,6 +237,19 @@ code }
     gh|about-MSSQL|/tools/sqlcmd/check-errorlevel/run-sql-scripts.bat||
 
   }
+}
+{ sqlcmd statments are executed before the script content is run
+
+  It should be noted that sqlcmd statements are executed *before* the script is run as a → development/databases/SQL-Server/sql/batch[batch].
+  Particularly, variable assignments using `:setVar` might lead to unexpected results if used in an → development/databases/SQL-Server/T-SQL/statements/if[`if` statement]:
+  gh|about-MSSQL|/tools/sqlcmd/preprocessed.sql||
+
+  This script prints
+code {
+This text is printed
+second assignment
+code }
+
 }
 { sqlcmd mode in management studio
 
