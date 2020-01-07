@@ -1,0 +1,29 @@
+$ sqlcmd: on error exit
+
+The → development/databases/SQL-Server/tools-utilities/sqlcmd statement `:on error exit` instructs sqlcmd to immediatly stop executing a script when an → development/databases/SQL-Server/sql[SQL] or
+a → development/databases/SQL-Server/T-SQL statement is erroneous.
+
+This behaviour is demonstrated with the following simple example script:
+gh|about-MSSQL|/tools/sqlcmd/on-error-exit.sql||
+
+When the script is run, it cannot create the view `tq84_vw_two` because the underlying table `tq84_tab_two` does not exist. Because of the `:on error exit` statment, the script prints, when executed, the following:
+code {
+P:\ath\to\script> sqlcmd -d … -i on-error-exit.sql
+creating tq84_tab_one
+creating tq84_vw_one
+creating tq84_vw_two
+Msg 208, Level 16, State 1, Server OMIS-NC-08, Procedure tq84_vw_two, Line 2
+Invalid object name 'tq84_tab_two'.
+code }
+
+It is possible to overwrite this behaviour with the `-V` command line option of sqlcmd which allows to specify a *minimum error severity level*. As the severity level of the failed `create view` statement is 16, we specify a number greater than that.
+With `-V20`, the script is not aborted (although the view is not created):
+code {
+P:\ath\to\script> sqlcmd -d … -i on-error-exit.sql -V 20
+creating tq84_tab_one
+creating tq84_vw_one
+creating tq84_vw_two
+Msg 208, Level 16, State 1, Server OMIS-NC-08, Procedure tq84_vw_two, Line 2
+Invalid object name 'tq84_tab_two'.
+creating tq84_tab_two
+code }
