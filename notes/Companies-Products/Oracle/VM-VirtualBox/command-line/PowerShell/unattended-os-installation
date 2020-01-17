@@ -1,0 +1,144 @@
+$ VirtualBox: unattended OS installation
+
+{ Variables
+
+  Before the unattended installation is started, a few varaibles are dfined.
+
+  gh|about-VirtualBox|/command-line/PowerShell/create-vm/variables.ps1||
+
+}
+{ Remove last creation
+
+  I already might have created a → Companies-Products/Oracle/VM-VirtualBox/virtual-machine with the same name, especially when testing this scenario. So delete this 
+
+  gh|about-VirtualBox|/command-line/PowerShell/create-vm/remove-vm.ps1||
+
+}
+{ Detect OS of given .iso
+
+  gh|about-VirtualBox|/command-line/PowerShell/create-vm/detect.ps1||
+
+}
+{ Create the virtual machine
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/createvm.ps1||
+
+}
+{ Add a hard disk
+
+  A hard disk is needed. The `--size` parameter is in Mega-Bytes, thus the following command
+  creates a 32GB virtual hard disk.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/create-hd.ps1||
+
+}
+{ Add SATA controller and 
+
+  The hard disk needs a → hardware/SATA storage controller to which it can be attached. 
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/create-sata.ps1||
+
+}
+{ Add IDE controller and virtual DVD drive
+
+  The `.iso` file with the OS to be installed needs to be mounted via an IDE controller.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/create-ide.ps1||
+
+}
+{ Enable APIC
+
+  I/O → hardware/APIC[APIC] is enabled for the → hardware/PC/motherboard of the virtual machine.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/enable-apic.ps1||
+
+}
+{ Specify boot order of devices
+
+  Configure the boot device order for the VM.
+
+  A virtual machine has 4 slots from which it tries to boot from. The following command specifies their order:
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/boot-device-order.ps1||
+
+}
+{ Memory
+
+  → hardware/memory[Memory] is needed by both, the → hardware/RAM and video processor. Their sizes can be specified in one go with the `--memory` and `--vram` options of `VBoxManage modifyvm`:
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/allocate-memory.ps1||
+
+}
+{ Specify (host) location of a shared folder
+
+  In order to be able to exchange files between the guest and the host, the (already existing) folder on the host is specified:
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/prepare-shared-folder.ps1||
+
+}
+{ Enable cliboard content sharing
+
+  Allow → Windows/clipboard[clipboard] content to be shared between host and guest in both directions.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/clipboard-mode.ps1||
+
+}
+{ VBoxSVGA
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/vboxsvga.ps1||
+
+}
+{ Specify an unattended installation
+
+  I specify the desire for an unattended installation of the operating system.
+
+  The `--post-install-command` specifies a command to be executed by `A:\VBOXPOST.CMD` after it has executed `E:\vboxadditions\VBoxWindowsAdditions.exe /S`.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/install.ps1||
+
+}
+{ List virtual machines
+
+  The new virtual machine is shown to be registered.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/list-vms.ps1||
+
+}
+{ Remove menues
+
+  I don't want any menues in the the window that shows the content of the virtual machine.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/remove-menues.ps1||
+
+}
+{ Start the virtual machine
+
+  The unattended installation is triggered by starting the unattended installation.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/start-vm.ps1||
+
+}
+{ Specify the size of the screen
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/video-mode-hint.ps1||
+
+  I also tried the following commands to specify the screen size, yet without any positive result:
+code {
+VBoxManage setextradata $vmName CustomVideoMode             1600x900x32
+VBoxManage controlvm    $vmName setvideomodehint            1920 1080 32
+VBoxManage controlvm    $vmName setscreenlayout primary 0 0 1600 1200 24
+code }
+
+}
+{ Wait for installation to be finished
+
+  The following command waits until the specified property is set. It is supposed to be set *after* the installation of the VirtualBox is finished. However, in my environment, it turned out that the property
+  was always set before Windows was installed. So, the idea is good, but the implementation is imperfect.
+
+  gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/wait-for.ps1||
+
+  The property that was set is also visible with
+code {
+VBoxManage guestproperty enumerate $vmName 
+code }
+
+}
