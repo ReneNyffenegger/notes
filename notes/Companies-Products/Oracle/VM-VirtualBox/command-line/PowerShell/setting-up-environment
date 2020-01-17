@@ -1,0 +1,121 @@
+$ VirtualBox: setting up an individual environment on a guest virtual machine with Powershell
+
+After creating a guest → Companies-Products/Oracle/VM-VirtualBox/virtual-machine (for example with an → Companies-Products/Oracle/VM-VirtualBox/command-line/PowerShell/unattended-os-installation[unattended OS installation]), it needs to be configured
+so as to be usable for its user or users.
+
+When seeting up such an environment, I'd like to automate as many tasks as possible. For this purpose, I found the (command line command) → Windows/dirs/Program-Files/Oracle/VirtualBox/VBoxManage_exe[`VBoxManage`] executable to be an invaluable tool.
+With `VBoxManage`, the guest can be administered and configured to quite an extent.
+
+I hope, this article can demonstrate some basic usages and features of `VBoxManage`.
+
+{ Variables
+
+  In addition to the → Companies-Products/Oracle/VM-VirtualBox/command-line/PowerShell/unattended-os-installation#vbox-unattended-variables[variables that were needed for the creation of the virtual machine], I also need to specify
+  the following two variables:
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/variables-clone.ps1||
+
+}
+{ Create a clone
+
+  I don't want to work on a pristine installation of a OS, so I clone the virtual machine.
+
+  Before I can create the clone, the «original» virtual machine should be shut down. This is possible with
+code {
+C:\> → Windows/dirs/Windows/System32/shutdown_exe[shutdown] -s -t 0
+t
+code }
+
+  Unfortunately, I didn't find a way to automate this, I had to manually shut it down. (It is supposed to be possible with `VBoxManage controlvm $vmName acpipowerbutton`, but it never worked on my machine).
+
+  This is also a good occasion to close the open → evelopment/web/browser/Edge[Edge browser].
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/create-clone.ps1||
+
+}
+{ Start up the cloned VM
+
+  Start the cloned virtual machine.
+
+  As the OS was shutdown, it also boots up.
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/start-clone.ps1||
+
+}
+{ Run executables in System32 directory
+
+  An executable in the → Windows/dirs/Windows/System32[`C:\Windows\System32`] directory can be run like so:
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/run-ipconfig.ps1||
+
+}
+{ Run executables with arguments
+
+  It turns out, running executables that need to be given arguments is not as straightforward.
+  
+  I am not sure what the first argument (`WHATISTHIS`) is good for. I guess it is a UNIX thingy.
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/run-cmd-with-arguments.ps1||
+
+}
+{ Run executables in other directories
+
+  Executables that are not located in `C:\Windows\System32`, such as → Windows/dirs/Windows/System32/WindowsPowerShell/vn_m/powershell_exe[`powershell_exe`], need be specified with their full path:
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/run-powershell.ps1||
+
+}
+{ Mapping a drive
+
+  With the ability to call executables and passing parameters, we're able to
+  mount (→ Windows/dirs/Windows/System32/net_exe/use[map with `net use`]) a shared folder to a letter.
+
+  When I created the virtual machine, I already specified the → Companies-Products/Oracle/VM-VirtualBox/command-line/PowerShell/unattended-os-installation#vbox-unattended-shared-folder[(host) location for a shared folder]. This shared folder
+  is accessible under the virtual server `\\vboxsvr`:
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/map-drive.ps1||
+
+}
+{ Run batch file via mapped/shared folder
+
+  On the guest, I can now use this mapped/shared folder to run → Windows/dirs/Windows/System32/cmd_exe/batch-files[batch files] that are physically located on the hos:
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/run-batch-file.ps1||
+
+}
+{ Create a directory
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/create-directory.ps1||
+
+}
+{ Copy file(s) from the host to the guest
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/copy-from-host-to-guest.ps1||
+
+}
+{ Run the copied batch file
+
+  Execute the copied batch file.
+  -
+  It produces `anotherBatchFile.log`.
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/run-copied-batch-file.ps1||
+
+}
+{ Copy file(s) from the guest to the host
+
+  The log file that was produced is now copied from the guest to the host:
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/copy-from-guest-to-host.ps1||
+
+}
+{ Take a snapshot
+
+  I take a snapshot in case I mess somthing up.
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/take-snapshot.ps1||
+
+}
+{ Revert to a snapshot
+
+  As far as I can tell, the way to revert to a previous snapshot seems to be:
+
+  gh|about-VirtualBox|/command-line/PowerShell/setting-up-environment/revert-to-snapshot.ps1||
+
+}
