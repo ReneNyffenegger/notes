@@ -2,7 +2,21 @@ $ wininit.exe
 
 The »Windows Start-Up Application«
 
-`wininit.exe` is started by *BOOTMGR* (the 
+`wininit.exe` is started by *BOOTMGR*.
 
-`wininit.exe` starts (among others?) the → Windows/dirs/Windows/System32/services_exe[Service Control Manager (`services.exe`)].
-
+Some tasks that `wininit.exe` performs include
+  • Create event `Global\FirstLogonCheck` (which is used by → Windows/dirs/Windows/System32/winlogon_exe[`winlogon.exe`] to determine which winlogon was first?)
+  • Create a `WinlogonLogoff` event
+  • Create a periodic timer queue which allows the *kernel debugger* to break into any user-mode → Windows/development/process[process] (unless `NoDebugThread` is set in → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon[`HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon`])
+  • Assign value to the → Windows/development/environment-variables/COMPUTERNAME[environment variable `COMPUTERNAME`]
+  • Update and configure → development/web/TCP-IP information such as domain name and host name.
+  • Assign values to environment variables `USERPROFILE` (what value excactly), `ALLUSERSPROFILE`, `PUBLIC` and `ProgramData`
+  • Create → Windows/dirs/Windows/Temp[`%SystemRoot%\Temp`]
+  • If session 0 is an interactive session, *Desktop Window Manager* (DWM) and font loading is initiated(?)
+  • The *initial terminal* is created. This terminal consists of a window station (named *Winsta0*) and two Desktops (Winlogon and Default) for → Windows/development/process[processes] that run in session 0.
+  • The *Local Security Authority* (LSA) machine encryption key is initialized.
+  • The → Windows/dirs/Windows/System32/services_exe[Service Control Manager (`services.exe`)] is started.
+  • The *Local Security Authority Subsystem Service* (→ Windows/dirs/Windows/System32/lsass_exe[`lsass.exe`]) is created.
+  • If *credential guard* is enabled, the *Isolated LSA Trustlet* (→ Windows/dirs/Windows/System32/LsaIso_exe[`lsaiso.exe`]) is started.
+  • If a setup is required or this is the first → Windows/booting[booting up], the setup program is launched.
+  • It waits until either a *shutdown* is requested or one of the created processes crashes (unless → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon#DontWatchSysProcs[`DontWatchSysProcs`] is set in the → Windows/registry)
