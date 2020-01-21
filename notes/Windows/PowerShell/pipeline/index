@@ -3,6 +3,29 @@ $ Powershell: pipelines
 
 Contrary to other → Linux/shell[shells], PowerShell pipes → Windows/PowerShell/language/object[objects] rather than text from one → Windows/PowerShell/command-inventory/noun/command[command] to another.
 
+{ The power of pipelines
+
+  The power of pipelines can best be demonstrated with a simple example:
+code {
+PS:\> → Windows/PowerShell/command-inventory/noun/service/get[get-service] | → Windows/PowerShell/command-inventory/noun/object/where[where-object] displayName → Windows/PowerShell/language/operator/comparison/match_notmatch[-match] '^SQL Server' | → Windows/PowerShell/command-inventory/noun/service/set[set-service] -startupType manual
+code }
+
+  The first cmdLet (`get-service`) produces a set (actually an → Windows/PowerShell/language/type/array[array]) of objects that each represents a
+  → Windows/services[Windows service]. (Technically, the objects in the array have the → Microsoft/dot-net type → Microsoft/dot-net/namespaces-classes/System/ServiceProcess/ServiceController[`System.ServiceProcess.ServiceController`]).
+
+  The `|` symbol indicates that these objects should be passed (aka piped) to the next cmdLet, rather than printed to the screen.
+
+  The next cmdLet is `where-object`. It applies a required condition to the objects it receives, in our case, that the value of `displayName` matches the → development/regular-expressions[regular expression] `^SQL Server`. Object that satisfy this
+  condition are (most probably) services that are related to → development/databases/SQL-Server. The cmdLet only passes the objects with the satisfied condition on.
+  -
+ `displayName` is a member of the `ServiceController` object.
+
+  Because there is yet another `|` symbol in the pipeline, PowerShell pipes the remaining object to the next cmdLet, `set-service`, to change the services'
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/_driver_name_#reg-services-start[startup type] to *manual*.
+
+  Such pipelines are powerful because they allow to work on a set of objects (such as services) simultanously. Thus, they reduce human error and safe time because tasks are automatable.
+
+}
 { Pipeline parameter binding
 
   A (non-beginning) command within a pipeline needs to know which *parameter* will get the object from the previous command.

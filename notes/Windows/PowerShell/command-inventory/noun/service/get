@@ -3,26 +3,45 @@ $ PowerShell cmdLet get-service
 `get-service` returns a list of installed → Windows/services[services] on a system, regardless if the service is running or stopped.
 The → Windows/PowerShell/language/object[objects] in this list have the → Microsoft/dot-net type → Microsoft/dot-net/namespaces-classes/System/ServiceProcess/ServiceController[`System.ServiceProcess.ServiceController`].
 
-Show installed services with → Windows/PowerShell[PowerShell]:
+{ Show installed services
+
+  The simple invocation of the `get-service` → Windows/PowerShell/language/cmdlet allows to show installed services in → Windows/PowerShell[PowerShell]:
 code {
 PS C:\> get-service
 code }
 
-Limit result set to *running* services only:
+}
+{ Show running services only:
+
+  By piping the result of `get-service` through → Windows/PowerShell/command-inventory/noun/object/where[where-object], the returned set of services can be limited to a specific criteria, for example only *running* services:
 code {
-PS C:\> get-service | → Windows/PowerShell/command-inventory/noun/object/where[where-object] Status -eq    Running
+PS C:\> get-service | → Windows/PowerShell/command-inventory/noun/object/where[where-object] status -eq    running
 code }
 
-Show services whose name matches a specific text:
+}
+{ Show services whose name matches a specific text
+
+  Another often seen criteria is a services name
+
 code {
 PS C:\> get-service | → Windows/PowerShell/command-inventory/noun/object/where[where-object] name   -match sql
 code }
 
-Same thing, but shorter:
+  Same thing, but shorter:
 code {
 PS C:\> get-service *sql*
 code }
 
+}
+{ Show startup type as well
+
+  By default, PowerShell does not include the serivces's startup type with `get-service`. It needs to be explicitely requested with the
+  → Windows/PowerShell/command-inventory/noun/object/select[`select-object`] cmdLet:
+code {
+PS C:\> get-service *sql* | select-object status, name, starttype
+code }
+
+}
 
 sa:
 
