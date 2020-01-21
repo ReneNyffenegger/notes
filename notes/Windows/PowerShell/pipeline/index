@@ -15,15 +15,24 @@ code }
 
   The `|` symbol indicates that these objects should be passed (aka piped) to the next cmdLet, rather than printed to the screen.
 
-  The next cmdLet is `where-object`. It applies a required condition to the objects it receives, in our case, that the value of `displayName` matches the → development/regular-expressions[regular expression] `^SQL Server`. Object that satisfy this
-  condition are (most probably) services that are related to → development/databases/SQL-Server. The cmdLet only passes the objects with the satisfied condition on.
+  The next cmdLet is `where-object`. It applies a required condition to the objects it receives, in our case, that the value of `displayName` (which is a member
+  of the `ServiceController` object) matches the → development/regular-expressions[regular expression] `^SQL Server`.
   -
- `displayName` is a member of the `ServiceController` object.
+  Object that satisfy this condition are (most probably) services that are related to → development/databases/SQL-Server.
+  -
+  The cmdLet discards objects that do not satisfy this condition.
 
   Because there is yet another `|` symbol in the pipeline, PowerShell pipes the remaining object to the next cmdLet, `set-service`, to change the services'
   → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/_driver_name_#reg-services-start[startup type] to *manual*.
 
   Such pipelines are powerful because they allow to work on a set of objects (such as services) simultanously. Thus, they reduce human error and safe time because tasks are automatable.
+
+}
+{ Last cmdlet
+
+  PowerShell automatically pipes the objects of the last cmdLet of a pipeline into the → Windows/PowerShell/command-inventory/noun/default/out[`out-default` cmdlet].
+
+  By default, `out-default` invokes `out-host` for a stream of strings.
 
 }
 { Pipeline parameter binding
@@ -36,13 +45,6 @@ code }
     • *ByValue*
     • *ByPropertyName*
     
-}
-{ Last cmdlet
-
-  PowerShell automatically pipes the last command of a pipeline into the → Windows/PowerShell/command-inventory/noun/default/out[`out-default` cmdlet].
-
-  By default, `out-default` invokes `out-host` for a stream of strings.
-
 }
 { Removing objects from the pipeline
 
