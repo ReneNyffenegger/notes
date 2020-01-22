@@ -1,9 +1,12 @@
 $ PowerShell cmdLet format-table
 
-The `format-table` → Windows/PowerShell/language/cmdlet[cmdLet] pivotizes the property values of the objects that are → Windows/PowerShell/pipeline[pipelined] into this cmdLet. That is, the values of *one* object are displayed in
-the *same* row rather than each separatly on its onw line.
--
-For example, the output of → Windows/PowerShell/command-inventory/noun/host/get[`get-host`] might be:
+{ Render property-values in table
+
+  The `format-table` → Windows/PowerShell/language/cmdlet[cmdLet] pivotizes the property-values of the
+  → Windows/PowerShell/language/object[objects] that are → Windows/PowerShell/pipeline[pipelined] into this cmdLet. That is, the values of *one* object are displayed in
+  the *same* row rather than each separatly on its onw line.
+
+  For example, the output of → Windows/PowerShell/command-inventory/noun/host/get[`get-host`] might be:
 code {
 PS C:\> get-host
 
@@ -20,7 +23,7 @@ IsRunspacePushed : False
 Runspace         : System.Management.Automation.Runspaces.LocalRunspace
 code }
 
-However, if → Windows/PowerShell/pipeline[pipelined] through `format-table`, it becomes:
+  However, if → Windows/PowerShell/pipeline[pipelined] through `format-table`, it becomes:
 code {
 PS C:\Users\OMIS.Rene\github\temp\PowerShell\cmdLets\format-table> get-host | format-table
 
@@ -29,6 +32,62 @@ Name        Version       InstanceId                           UI               
 ConsoleHost 5.1.17763.134 c5b6e84b-4f84-4b83-8521-f49a41517b1c System.Management.Automation.Internal.Host.InternalHostUserInterface en-US          en-US
 code }
 
+}
+{ Types involved
+
+  The `format-table` cmdLet involves quite a few types to achieve the desired formatting, which I try to demonstrate with the following snippets.
+
+  First, I assign the result of → Windows/PowerShell/command-inventory/noun/process/get[`get-process`] to a → Windows/PowerShell/language/variable. Thus, I am sure that I have a stable set of objects:
+code {
+PS C:\> $procs = get-process
+code }
+
+  I then → Windows/PowerShell/pipeline[pipe] the → Windows/PowerShell/language/object[objects] that are stored in `$procs` through `format-table` and assign the result to another variable:
+code {
+PS C:\> $formatted = $procs | format-table
+code }
+
+  I count the number of objects in both variables. Since both variables are actually → Windows/PowerShell/language/type/array[arrays], I can use the `length` property:
+code {
+PS C:\> $procs.length
+483
+PS C:\> $formatted.length
+487
+code }
+
+  It turns out that the `format-table` returns 4 objects more than was piped into it. It seems a reasonable assumption that the additional objects are added at the beginning and/or end. Let's investigate:
+
+  The first object:
+code {
+PS C:\> $formatted[0].GetType().FullName
+→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/FormatStartData[Microsoft.PowerShell.Commands.Internal.Format.FormatStartData]
+code }
+
+  The second object
+code {
+PS C:\> $formatted[1].GetType().FullName
+→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/GroupStartData[Microsoft.PowerShell.Commands.Internal.Format.GroupStartData]
+code }
+
+  The third object
+code {
+PS C:\> $formatted[2].GetType().FullName
+→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/FormatEntryData[Microsoft.PowerShell.Commands.Internal.Format.FormatEntryData]
+code }
+
+  The second last object
+code {
+PS C:\> $formatted[-2].GetType().FullName
+→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/GroupEndData[Microsoft.PowerShell.Commands.Internal.Format.GroupEndData]
+code }
+
+  And the last object
+code {
+PS C:\> $formatted[-1].GetType().FullName
+→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/FormatEndData[Microsoft.PowerShell.Commands.Internal.Format.FormatEndData]
+code }
+
+}
 
 sa:
 
