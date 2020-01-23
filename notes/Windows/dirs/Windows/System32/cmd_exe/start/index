@@ -1,0 +1,30 @@
+$ Starting cmd.exe
+
+{ Using the/a shortcut file
+
+  → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] can be started by pressing `Win+R` (the Windows key), then typing the three letters `cmd` and hitting the `ENTER` key.
+
+  This method will (typically) find a shortcut (`.lnk) file that is located in
+  `→ Windows/dirs/Users/username/AppData/Roaming/Microsoft/Windows/Start-Menu/Programs[`%APPDATA%\Microsoft\Windows\Start Menu\Programs]\Command Prompt.lnk`.
+
+}
+{ Changing the initial directory
+
+  If cmd.exe is started using this shortcut file, the initial directory is determined by the `.lnk` file's property *Start In*.
+
+  The *property* dialog, that shows the available propertes and their values, is opened by pressing `alt+enter` with the `.lnk` file selected in *explorer*:
+  gh|Windows-Pics|/Users/username/AppData/Roaming/Microsoft/Windows/Start-Menu/Programs/Command-Prompt.lnk/start-in-empty.png||
+
+  In this picture, the *Start In* value is empty, thus when `cmd.exe` is started, its initial directory will be → Windows/dirs/Windows/System32[`C:\Windows\System32`].
+
+  This directory can obviously be changed by entering a new directory in the dialog box. However, it is also possible (and imho less error prone and less time consuming) to change
+  the initial directory with → Windows/PowerShell):
+code {
+$sh  = → Windows/PowerShell/command-inventory/noun/object/new[new-object] -com wScript.shell
+$lnk = $sh.createShortcut("$env:appdata\Microsoft\Windows\Start Menu\Programs\Command Prompt.lnk")
+$lnk.workingDirectory = '%homedrive%%homepath%'
+$lnk.save()
+code }
+
+
+}
