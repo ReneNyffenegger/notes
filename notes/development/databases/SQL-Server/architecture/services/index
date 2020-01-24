@@ -2,7 +2,7 @@ $ SQL Server: services
 @ services
 
 table { llll
-     ☰ ~Executable~ ☰ ~Account name~ ☰
+   ☰ ~Executable~ ☰ ~Account name~ ☰
   
    SQL Server Database Engine ☰ → Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn/sqlservr_exe[`sqlservr.exe`] ☰ NT Service\MSSQLSERVER ☰ 
    → development/databases/SQL-Server/architecture/services/agent[SQL Server Agent] ☰ → Windows/dirs/Program-Files/Microsoft-SQL-Server/MSSQLnn_INSTANCENAME/MSSQL/Binn/SQLAGENT_EXE[`SQLAGENT.EXE`] ☰ NT Service\SQLSERVERAGENT ☰  Executes scheduled administrative tasks (known as *jobs* and *alerts* in SQL Server 2017).
@@ -20,6 +20,18 @@ table { llll
 
 table }
 
+{ Find SQL Server services with PowerShell
+
+  → Windows/services[Services] that are related to → development/databases/SQL-Server *seem* to have a → Windows/services#windows-service-names[display name] that starts with *SQL Server*.
+  Thus, in → Windows/PowerShell, this set of services can be queried with the following → Windows/PowerShell/pipeline
+code {
+→ Windows/PowerShell/command-inventory/noun/service/get[get-service] | → Windows/PowerShell/command-inventory/noun/object/where[where-object] displayName → Windows/PowerShell/language/operator/comparison/match_notmatch[-match] '^SQL Server' | → Windows/PowerShell/command-inventory/noun/table/format[format-table] -autosize
+code }
+
+  Note the caret (`^`) in the → Windows/PowerShell/language/operator/comparison/match_notmatch[`-match`] operator that specifies to match the
+  → development/regular-expressions#regexp-vertical-bar[beginning of the text]. Thus, Services like `postgresql-x64-11 - PostgreSQL Server 11`, that would otherwise match, are excluded from the result set.
+
+}
 { Service states
 
   The state of a service is displayed in → Windows/dirs/Windows/SysWOW64/SQLServerManagernn_msc[Configuration Manager] and
