@@ -1,4 +1,5 @@
 $ Windows security identifiers (SID)
+@ SID
 
 A SID is a variable length binary value that is used to identify entities (security prinicpals) that somehow act in a Windows system. Such entities include
   • → Windows/user-account[users]
@@ -34,6 +35,7 @@ A name is just a more readable representation of a SID. The Sysinternal tool →
       • 4 (`SECURITY_NON_UNIQUE_AUTHORITY`) is not used
       • 5 (`SECURITY_NT_AUTHORITY`) owns → Windows/user-account[accounts] that are managed by the NT security subsystem.
       • 9 (`SECURITY_RESOURCE_MANAGER_AUTHORITY`) …
+      • 16 (`SECURITY_MANDATORY_LABEL_AUTHORITY`), see → Windows/development/process#win-process-integrity-level[process integrity levels]
 
   }
   { Subauthority identifiers
@@ -43,6 +45,14 @@ A name is just a more readable representation of a SID. The Sysinternal tool →
     The last subauthority identifier is a *relative identifier* (RID)
 
     The subauthority identifiers except the relative identifier identify a → Windows/user-account/domain.
+
+    → Windows/development/WinAPI/data-types#winnt_h[`winnt.h`] has the following note concerning RIDs:
+    "
+      the relative identifier values (RIDs) determine which security
+      boundaries the SID is allowed to cross.  Before adding new RIDs,
+      a determination needs to be made regarding which range they should
+      be added to in order to ensure proper *SID filtering*
+    "
 
   }
 
@@ -56,7 +66,7 @@ code {
 → Windows/dirs/Windows/System32/whoami_exe#win-whoami-user[whoami] /user
 code }
 
-  The RID for the administrator account is 500 and for the guest account is 5001.
+  The RID for the administrator account is 500 and for the guest account is 501.
 
 }
 { Relative identifiers (RIDs)
@@ -68,7 +78,7 @@ code }
 
   Each user's SIDs is unique accross all Windows installations.
   
-  That said, some SIDs are *well known* and equal on all systems.
+  That said, some SIDs are *well known* and equal on all systems or start with a well known prefix.
   -
   Here are a few of them
     • `S-1-0-0`: The *null/nobody SID* (used when SID is unknown)
@@ -77,18 +87,50 @@ code }
     • `S-1-2-1`: *Console Logon*
     • `S-1-3-0`: *Creator owner id*
     • `S-1-3-1`: *Creator group id*
-    • `S-1-3-2`: *Creator owner server*
-    • `S-1-3-3`: *Creator owner group*
+    • `S-1-3-2`: *Creator owner server id*
+    • `S-1-3-3`: *Creator owner group id*
     • `S-1-3-4`: *Owner rights*
+    • `S-1-5-1`: Dialup
     • `S-1-5-2`: The *Network group*, which represents users who have logged on to a machine from the network.
+    • `S-1-5-3`: Batch
+    • `S-1-5-4`: Interactgive
+    • `S-1-5-5-x-y`: a *logon → Windows/development/session[session]*. x and y are randomly generated. See `→ Windows/dirs/Windows/System32/whoami_exe#win-whoami-logonid[whoami /logonid]`.
+    • `S-1-5-6`: Service (compare with `S-1-5-80…`)
+    • `S-1-5-7`: *Anonymous logon*
+    • `S-1-5-8`: *Proxy*
+    • `S-1-5-9`: *Enterproce DC (EDC)*, aka → Windows/user-account/domain#windows-domain-controller[domain controller] account
+    • `S-1-5-10`: *self*
+    • `S-1-5-11`: User that is authenticated somewhere.
+    • `S-1-5-12`: Running rectricted code
+    • `S-1-5-13`: Running on → Windows/Remote-Desktop-Services[Terminal Server]
+    • `S-1-5-14`: Remote logon
+    • `S-1-5-15`: This organization
+    • `S-1-5-17`: IUser
     • `S-1-5-18`: *Local System* (the SID for the *local system account*).
     • `S-1-5-19`: *Local Service*
     • `S-1-5-20`: *Network Service*
-    • `S-1-5-5-x-y`: a *logon → Windows/development/session[session]*. x and y are randomly generated. See `→ Windows/dirs/Windows/System32/whoami_exe#win-whoami-logonid[whoami /logonid]`.
-    • `S-1-5-80`: *all → Windows/services[services]*
-    • `S-1-5-32-544: → Windows/user-account/group/Administrators[`BUILTIN\Administrators`]
+    • `S-1-5-21-…`: User accounts (and also domains?)
+    • `S-1-5-32-…`: SIDs that pertain to the `BUILTIN` domain
+    • `S-1-5-32-544`: → Windows/user-account/group/Administrators[`BUILTIN\Administrators`]
     • `S-1-5-32-546`: The *Guests group*
+    • `S-1-5-80`: *all → Windows/services[services]*
+    • `S-1-15-3-…`: All *capability SIDs* start with `S-1-15-3`.
 
+
+}
+{ Capability SIDs #capabilty-sid
+
+
+  A *capability SID* grants access to a specific resource. Such resources include documents, cameras, locations etc.
+
+  In order for an application to access a given resource, it needs to have the associated capability SID, otherwise, the requested access is denied.
+
+  Capability SIDs start with `S-1-15-3-…`.
+
+  Capability SIDs that the system is aware of are stored in the Registry value `AllCachedCapabilities` under
+   → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/SecurityManager/CapabilityClasses#AllCachedCapabilities[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SecurityManager\CapabilityClasses`].
+
+  Capability SIDs don't resolve into friendly names.
 
 }
 
@@ -98,6 +140,7 @@ sa:
   SIDs are found in the → Windows/registry in
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/ProfileList[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList`]
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY/Policy/Accounts[`HKEY_LOCAL_MACHINE\SECURITY\Policy\Accounts`] (`S-1-5-18` is missing under this key)
+    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Group-Policy[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Group Policy`]
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/IdentityStore/Cache[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IdentityStore\Cache`]
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/bam/State/UserSettings[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings`]
     • The keyes under the → Windows/registry/tree-structure/hive[hive] → Windows/registry/tree/HKEY_USERS[`HKEY_USERS`]
