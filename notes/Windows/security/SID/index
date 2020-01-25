@@ -1,44 +1,53 @@
 $ Windows security identifiers (SID)
 
-A SID is a variable-length numeric value with the following parts:
-  • `R`: structure revision number (Always 1)
-  • `A`: authority value (48 bits), which identifies the issuer and owner of the SID (usually a local Windows system or a domain)
-  • `S₁`, `S₂` … `Sₙ`: a list of subauthority identifiers, each 32 bit.
+A SID is a variable length binary value that is used to identify entities (security prinicpals) that somehow act in a Windows system. Such entities include
+  • → Windows/user-account[users]
+  • local and domain → Windows/user-account/group[groups]
+  • computers
+  • → Windows/user-account/domain[domains]
+  • domain members
+  • → Windows/services[services]
+  • … ?
 
-The last subauthority identifier (`Sₙ`) is the *relative identifier* (RID).
--
-The subauthority identifiers except the relative identifier identify a domain.
+With their identifying property, SIDs are fundamental for → Windows/security[Windows security].
 
-When represented as string, the SID starts with `S-` and the parts are separated by a hyphen (thus it becomes something like
-`S-R-A-S₁-S₂-S₃-S₄`)
+In theory (and practice?), SIDs are supposed to be unique.
 
-A name is just a more readable representation of a SID. The Sysinternal tool → https://docs.microsoft.com/en-us/sysinternals/downloads/psgetsid[PsGetSid] is able to translate between
-SIDs and names.
+A name is just a more readable representation of a SID. The Sysinternal tool → https://docs.microsoft.com/en-us/sysinternals/downloads/psgetsid[PsGetSid] is able to translate between SIDs and names.
 
-Windows recognizes users (and his → Windows/development/process[processes]) and other *security principals* by the user's SID.
 
-SIDs are fundamental for Windows security.
+{ Textual representation of SIDs
 
-{ Authorities
+  Typically, a textual representation of a SID might look like this: `S-1-5-21-2761044393-2226150802-3019316526-1224` although shorter ones are possible, like `S-1-5-18`.
 
-  The authority value identifies they system that owns the SID.
+  A Textual representation of a SID always starts with `S-1-`. The `S` stands for *SID` and the `1` is the *structure revision number*. There is only one revision: `1`.
 
-  0 (`SECURITY_NULL_SID_AUTHORITY`) is the owner of the *null account SID* `S-1-0-0`.
+  { Security Authority
 
-  1 (`SECURITY_WORLD_SID_AUTHORITY`, *everyone group*) also has one SID only: `S-1-1-0`.
+    The third part represents the *identifier authority* which identifies the agent that issued and owns the SID:
 
-  2 (`SECURITY_LOCAL_SID_AUTHORITY`, *local group*) also has one SID only: `S-1-2-0`.
+    The possible values are:
+      • 0 (`SECURITY_NULL_SID_AUTHORITY`) is the owner of the *null account SID* `S-1-0-0`.
+      • 1 (`SECURITY_WORLD_SID_AUTHORITY`, *everyone group*) also has one SID only: `S-1-1-0`.
+      • 2 (`SECURITY_LOCAL_SID_AUTHORITY`, *local group*) also has one SID only: `S-1-2-0`.
+      • 3 (`SECURITY_CREATOR_SID_AUTHORITY`): SIDs `S-1-3-0` through `S-1-3-5`)
+      • 4 (`SECURITY_NON_UNIQUE_AUTHORITY`) is not used
+      • 5 (`SECURITY_NT_AUTHORITY`) owns → Windows/user-account[accounts] that are managed by the NT security subsystem.
+      • 9 (`SECURITY_RESOURCE_MANAGER_AUTHORITY`) …
 
-  3 (`SECURITY_CREATOR_SID_AUTHORITY`): SIDs `S-1-3-0` through `S-1-3-5`)
+  }
+  { Subauthority identifiers
 
-  4 (`SECURITY_NON_UNIQUE_AUTHORITY`) is not used
+    The following numbers, if present, are subauthority idientifiers.
 
-  5 (`SECURITY_NT_AUTHORITY`) owns → Windows/user-account[accounts] that are managed by the NT security subsystem.
+    The last subauthority identifier is a *relative identifier* (RID)
 
-  9 (`SECURITY_RESOURCE_MANAGER_AUTHORITY`) …
+    The subauthority identifiers except the relative identifier identify a → Windows/user-account/domain.
+
+  }
 
 }
-{ User accounts
+{ User accounts etc.
 
   The SIDs of → Windows/user-account[user accounts] always start with `S-1-5-21-…` and has an RID that is greater or equal to 1000.
 
@@ -46,6 +55,8 @@ SIDs are fundamental for Windows security.
 code {
 → Windows/dirs/Windows/System32/whoami_exe#win-whoami-user[whoami] /user
 code }
+
+  The RID for the administrator account is 500 and for the guest account is 5001.
 
 }
 { Relative identifiers (RIDs)
@@ -56,10 +67,12 @@ code }
 { Well known SIDs
 
   Each user's SIDs is unique accross all Windows installations.
+  
+  That said, some SIDs are *well known* and equal on all systems.
   -
-  That said, some SIDs are *well known*, here are a few of them
-    • `S-1-0-0`: The *null SID*
-    • `S-1-1-0`: World, which is the group that *all* → Windows/user-account[users] belong to.
+  Here are a few of them
+    • `S-1-0-0`: The *null/nobody SID* (used when SID is unknown)
+    • `S-1-1-0`: World, which is the group that *all* (except anonymous) → Windows/user-account[users] belong to.
     • `S-1-2-0`: *Local*
     • `S-1-2-1`: *Console Logon*
     • `S-1-3-0`: *Creator owner id*
@@ -67,14 +80,12 @@ code }
     • `S-1-3-2`: *Creator owner server*
     • `S-1-3-3`: *Creator owner group*
     • `S-1-3-4`: *Owner rights*
-    • `S-1-4`: *Non unique Authority*
-    • `S-1-5`: *NT Authority*
-    • `S-1-5-18`: *Local System*
+    • `S-1-5-2`: The *Network group*, which represents users who have logged on to a machine from the network.
+    • `S-1-5-18`: *Local System* (the SID for the *local system account*).
     • `S-1-5-19`: *Local Service*
     • `S-1-5-20`: *Network Service*
     • `S-1-5-5-x-y`: a *logon → Windows/development/session[session]*. x and y are randomly generated. See `→ Windows/dirs/Windows/System32/whoami_exe#win-whoami-logonid[whoami /logonid]`.
     • `S-1-5-80`: *all → Windows/services[services]*
-    • `S-1-5-18`: The SID for the *local system account*.
     • `S-1-5-32-544: → Windows/user-account/group/Administrators[`BUILTIN\Administrators`]
     • `S-1-5-32-546`: The *Guests group*
 
@@ -85,8 +96,12 @@ sa:
   The computer's SID is stored in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY/SAM/Domains/Account[`HKEY_LOCAL_MACHINE\SECURITY\SAM\Domains\Account`]
   
   SIDs are found in the → Windows/registry in
+    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/ProfileList[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList`]
+    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY/Policy/Accounts[`HKEY_LOCAL_MACHINE\SECURITY\Policy\Accounts`] (`S-1-5-18` is missing under this key)
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/IdentityStore/Cache[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\IdentityStore\Cache`]
-    • …
+    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/bam/State/UserSettings[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings`]
+    • The keyes under the → Windows/registry/tree-structure/hive[hive] → Windows/registry/tree/HKEY_USERS[`HKEY_USERS`]
+    • …(?)
 
   The authority 16 identifies a process's → Windows/development/process#win-process-integrity-level[integrity level].
 
