@@ -1,0 +1,46 @@
+$ Calling a DLL from C-Sharp (C#)
+
+This is an attempt at summing up the results of some experiments that I conducted that aimed at calling a → Windows/development/Portable-Executable/DLL from → development/languages/C-Sharp.
+
+{ callee.c
+
+  First, we need some → development/languages/C-C-plus-plus/C code that implements the functionality of the DLL we want to call.
+
+  For demonstration purposes, it is sufficient to create *one* (simple) function:
+
+  gh|about-C-Sharp|/call-dll/platform-bitness/callee.c||
+
+  Because I am interested in how 32-bit and 64-bit DLLs can be called from → Microsoft/dot-net programs, I will create two versions of the DLL: `callee_x86.dll` and `callee_x64.dll`.
+
+}
+{ caller.cs
+
+  Then, we also need the C-Sharp source code that calls the function that was defined in the DLL. Of particular interest is
+  the → Microsoft/dot-net/namespaces-classes[.NET namespace] → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices[`System.Runtime.InteropServices`] which allows
+  to associate an identifier with a function in a DLL.
+
+  The source code uses the → development/languages/C-Sharp/compiler/options/define[definition] of `CALLEE_x68` to determine which of the DLLs should be used to call.
+
+  gh|about-C-Sharp|/call-dll/platform-bitness/callee.c||
+
+}
+{ Makefile
+
+  The following Makefile creates 6 → Windows/development/Portable-Executable/EXE[executable] for any combination of the two DLLs and three → development/languages/C-Sharp/compiler/options/platform[`-platform`] options for
+  the → development/languages/C-Sharp/compiler[C# compiler] (`anycpu`, `x64`, `x86`). These executables are created with the following → development/make[makefile]:
+  gh|about-C-Sharp|/call-dll/platform-bitness/Makefile||
+
+  The six executables that the makefile produces are:
+  table { ll
+    ~name~ ☰ Runs OK?
+    `caller_any__callee_x64.exe` ☰ ✓
+    `caller_any__callee_x86.exe` ☰ ✗
+    `caller_x64__callee_x64.exe` ☰ ✓
+    `caller_x64__callee_x86.exe` ☰ ✗
+    `caller_x86__callee_x64.exe` ☰ ✗
+    `caller_x86__callee_x86.exe` ☰ ✓
+  table }
+
+  The exectuables that didn't run threw an exceptioNn: *Unhandled Exception: System.BadImageFormatException: An attempt was made to load a program with an incorrect format.*
+
+}
