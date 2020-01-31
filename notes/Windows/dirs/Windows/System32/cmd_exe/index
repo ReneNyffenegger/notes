@@ -58,16 +58,73 @@ C:\> help findstr
 code }
 
 }
+{ Executing programs and internal commands
+
+  The two main usages of `cmd.exe` is to start programs (→ Windows/development/Portable-Executable/EXE[executables]) or execute → Windows/dirs/Windows/System32/cmd_exe/commands[built-in (internal) commands].
+  -
+  The difference between executables and built-in commands is that executables can also be started without `cmd.exe` while the built-in commands require a running `cmd.exe` to inteprete and run them.
+
+  If `cmd.exe` is run *interactively*, `cmd.exe` lets the user enter a line of text. As soon as the user hits enter, `cmd.exe` tries to execute what the user has entered. The first word of the entered
+  line is the name of the executable or command to be executed, the remaining words are considered parameters to the command.
+
+  The command or executable might produce text (which it writes to → development/stdin-stdout-stderr[stdout]). If this is the case, `cmd.exe` reads stdout an prints it back in the console.
+
+  For example, → Windows/dirs/Windows/System32/cmd_exe/commands/echo[`echo`] is a built in command that simply prints the passed parameters:
+code {
+C:\> echo Hello world
+code }
+
+  → Windows/dirs/Windows/System32/PING_EXE[`ping.exe`], on the other hand, is an executable. Like built-in commands, executables are identified by their first word. In the following execution of `ping`, the word `localhost` is passed as a paramter to `ping`:
+code {
+C:\> ping localhost
+Pinging pc3.tq84 [::1] with 32 bytes of data:
+Reply from ::1: time<1ms
+…
+code }
+
+  Note: the name of the executable is → Windows/dirs/Windows/System32/PING_EXE[`PING.EXE`], not `ping`. So, why is it that `cmd.exe` still is able to find the «correct» executable?
+  -
+  Answer: it is possible because `cmd.exe` consults the values of the → Windows/development/environment-variables/PATHEXT[`PATHEXT` environment variable]. It consists of a list of suffixes, separated by semicolons, that are added to the
+ (supposed) name of the executable if `cmd.exe` is not able to locate the the executable by the given name at first.
+
+  An other suffix this is present in `PATHEXT` by default is `.msc`. Thus, the *device manager* (whose complete name is → Windows/dirs/Windows/System32/devmgmt_msc[`devmgmt.msc`]) can be opened like so:
+code {
+C:\> devmgmt
+code }
+
+  At this point, it should be noted that `cmd.exe` is able to locate the directories where the `.exe` or `.msc` are located by the value of the environment variable
+  → Windows/development/environment-variables/PATH[`PATH`]. This value consists of a set of directories, separated by semicolons. When `cmd.exe` tries to located an executable, it tries to search
+  them in these specified directories.
+
+  A convinient way to determine what `cmd.exe` would execute is → Windows/dirs/Windows/System32/where_exe[`where.exe`] (which itself is an executable). For example, if called with the argument `services`, it (typically) responds
+  with two files:
+code {
+C:\> where services
+C:\Windows\System32\services.exe
+C:\Windows\System32\services.msc
+code }
+
+  This is because `PATHEXT` contains both suffixes, `.exe` *and* `.msc`, and reports both. However, if executed on the command line, only the first one that is found will actually be executed.
+
+  If the first word of the entered text is neither a built-in command nor an executable, `cmd.exe` responds like so:
+code {
+C:\> doesNotExist foo bar
+'doesNotExist' is not recognized as an internal or external command,
+operable program or batch file.
+code }
+
+  { TODO
+
+    → Windows/registry/Configuring-Windows-with-registry#assoc_file_types.
+
+  }
+
+}
 { Changing the appearance of cmd.exe
 
   The color of a cmd.exe session can be adjusted with → Windows/dirs/Windows/System32/cmd_exe/commands/color[`color`].
 
   The text can be cleared with → Windows/dirs/Windows/System32/cmd_exe/commands/cls[`cls`].
-
-}
-{ Starting a program without suffix
-
-  → Windows/development/environment-variables/PATHEXT[`%PATHEXT%`], → Windows/registry/Configuring-Windows-with-registry#assoc_file_types.
 
 }
 { Configuring cmd.exe
@@ -182,23 +239,6 @@ code }
     WmiMgmt.msc                ☰ Windows management instrumentation (WMI)
 
   table }
-  
-  { Some programs
-
-  `write`: open *wordpad*. (Compare with `notepad`).
-
-  `calc`: simple calculator
-
-  `psr`: *Problem steps recorder*: capture actions (mouse movements etc.) on the screen for later replay.
-
-  → Windows/dirs/Windows/System32/Taskmgr_exe[`taskmgr.exe`]
-
-  `control`: open → Windows/control-panel[control panel]
-
-  → Windows/dirs/Windows/System32/mstsc_exe[`mstsc`]: open *remote desktop connection* dialog box
-
-  }
-
 
 }
 
