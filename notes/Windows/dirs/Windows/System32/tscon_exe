@@ -1,6 +1,41 @@
 $ tscon.exe
 
-*Session Connection Utility*. The *ts* probably stands for *terminal server*.
+*Session Connection Utility*. The *ts* stands for → Windows/Remote-Desktop-Services[Terminal Server] (now being called Remote Desktop Services).
+
+{ Example: Switching between user sessions in the command line #tscon-switch-between-sessions
+
+  Although the primary focus of `tscon.exe` and → Windows/dirs/Windows/System32/tsdiscon_exe[`tsdiscon.exe`] is Remote Desktop Services, it is possible to use these
+  command line tools to switch between → Windows/development/session[sessions].
+
+  The initial position is that only one user (besides *services*) is connected (and has a session), which can be queryed with `query session`:
+code {
+C:\> → Windows/dirs/Windows/System32/query_exe[query] session
+ SESSIONNAME       USERNAME                 ID  STATE   TYPE        DEVICE
+ services                                    0  Disc
+>console           Rene                      1  Active
+code }
+
+  So, we want to login with an additional → Windows/user-account[user] and its seperate session. This is possible with `tsdiscon.exe`. `tsdiscon` does not log out the that is executing this command, but
+  it locks his account and gotes to the logon-screen. With the logon screen, we're able to start the second user session:
+code {
+C:\> → Windows/dirs/Windows/System32/tsdiscon_exe[tsdiscon]
+code }
+  
+  Now, with another user logged in, we can query the sessions again:
+code {
+C:\> → Windows/dirs/Windows/System32/query_exe[query] session
+ SESSIONNAME       USERNAME                 ID  STATE   TYPE        DEVICE
+ services                                    0  Disc
+                   Rene                      1  Disc
+>console           AnotherUser               2  Active
+code }
+
+  With `tscon`, we can switch back to the first session, without logging out the currently active session:
+code {
+C:\> tscon 1 /password:secretGarden
+code }
+
+}
 
 sa:
   → Windows/dirs/Windows/System32/tsdiscon_exe, the session disconnection utility
