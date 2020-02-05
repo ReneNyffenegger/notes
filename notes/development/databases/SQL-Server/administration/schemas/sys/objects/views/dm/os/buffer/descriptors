@@ -1,0 +1,51 @@
+$ SQL Server - sys.dm_os_buffer_descriptors
+@ sys.dm_os_buffer_descriptors
+
+`sys.dm_os_buffer_descriptors` reveals the content of the → development/databases/SQL-Server/architecture/memory-management/buffer-cache[buffer cache (aka buffer pool)].
+
+code {
+select 
+   db_name(buf.database_id) db,
+   buf.file_id,
+   buf.page_id,
+   buf.page_level,
+-- alo.type                  allocation_type_id,
+   alo.type_desc             allocation_type,
+   buf.page_type,
+   alo.data_space_id,
+   alo.total_pages,
+   alo.used_pages,
+   alo.data_pages,
+-- buf.allocation_unit_id,
+   buf.row_count,
+  buf.free_space_in_bytes,
+   buf.is_modified,
+   buf.numa_node,
+   buf.read_microsec,
+   buf.is_in_bpool_extension,
+   alo.container_id
+from
+   sys.dm_os_buffer_descriptors  buf     join
+   → development/databases/SQL-Server/administration/schemas/sys/objects/views/allocation_units[sys.allocation_units]          alo on buf.allocation_unit_id = alo.allocation_unit_id
+code }
+
+{ page types
+
+  code {
+select
+-- count(*),
+   page_type
+from
+   sys.dm_os_buffer_descriptors
+group by
+   page_type
+order by
+   page_type
+--
+-- DATA_PAGE
+-- IAM_PAGE
+-- INDEX_PAGE
+-- TEXT_MIX_PAGE
+code }
+
+}
