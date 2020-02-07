@@ -1,0 +1,44 @@
+$ SQL Sever: PolyBase
+@ PolyBase
+
+PolyBase was added to → development/databases/SQL-Server in → development/databases/SQL-Server/versions/2016[version 2016]. It then allowed to query data that was stored
+in → development/Apache/Hadoop/HDFS and file systems such as HortonWorks, Cloudera Azure Blob Storage using standard T-SQL queries.
+
+→ development/databases/SQL-Server/versions/2019 extended the capabilities of PolyBase with connectors to query data from
+  • SQL Server (which seems a no brainer)
+  • Azure SQL DB
+  • Azure SQL DW
+  • Azure Cosmos DB
+  • → development/databases/Oracle
+  • Teradata
+  • MongoDB
+  • Any data source that is accessible via → development/databases/ODBC 
+
+{ Push down optimazation
+
+ *Push down optimazation* tries to execute most work on the source system rather than the → development/databases/SQL-Server/architecture/instance[SQL Server instance] because it can reduce the amount of data that needs to be transmitted
+  over the network. This notably includes operations such as
+    • projections
+    • → development/databases/SQL/select/join[`join` statement]
+    • predicate filtering (→ development/databases/SQL/where[`where` clause] of an → development/databases/SQL/statement)
+    • calulating → development/databases/SQL/select/group-by/aggregate-functions[aggregates]
+    • → development/databases/SQL-Server/sql/select/top-n[Top-n queries]
+
+
+}
+{ Linked Server vs PolyBase
+
+  table { ll
+
+    ~Linked server~ ☰ ~PolyBase~
+    → development/databases/SQL-Server/architecture/instance[Instance] wide ☰ → development/databases/SQL-Server/administration/database[Database] wide
+    Requires an → development/databases/OLE-DB/provider ☰ Uses → development/databases/ODBC
+    Read/write operations ☰ Read-only (limitation might be lifted in future)
+    Single threaded ☰ ?
+    Separate configuration required for each instance in *Always On Availability Group* ☰ No separate configuration required
+
+  table }
+
+}
+sa:
+  PolyBase might render traditional → development/Data/warehouse/ETL dead because of *data virtualization*.
