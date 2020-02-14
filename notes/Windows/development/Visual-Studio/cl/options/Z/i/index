@@ -1,0 +1,72 @@
+$ cl /Zi
+
+`cl /Zi` creates a → Windows/development/Debugging/symbol-files[symbol file]. The name of the symbol file can be specified with the `-Fd` option.
+
+The creation of a symbol file is demonstrated with the following simple example.
+
+{ Source files
+
+  An executable is produced from the following three source files, of which one is a → development/languages/C-C-plus-plus/C/header-files[header file] that is
+  included by the two other c files.
+
+  { func.c
+
+    A simple function is defined in `func.c`:
+    gh|about-cl|/options/Z/i/func.c|| 
+
+  }
+  { main.c
+
+   `main.c` contains the → development/languages/C-C-plus-plus/C/main[`main()`] function and uses `func()` to calculate a result.
+    gh|about-cl|/options/Z/i/main.c|| 
+
+  }
+
+  { func.h
+
+    The headerfile that declares `func`:
+    gh|about-cl|/options/Z/i/func.h|| 
+
+  }
+
+}
+{ Compiling the sources
+
+  On the command line, the sources can be compiled into object files and symbol files like so:
+code {
+cl /Zi /c main.c /Fd:main.pdb
+cl /Zi /c func.c /Fd:func.pdb
+code }
+
+  After creating the object files, they can be linked like so
+code {
+link main.obj func.obj /out:prog.exe /DEBUG
+code }
+
+  Apparently, the `/DEBUG` option is essential for the linker to produce the symbol files.
+
+  The `.pdb` files that were created in the compilation step don't need to given as arguments to the linker because their name is also found in the object file.
+
+}
+{ Makefile
+
+  Of course, these commands can also be put into a
+  → development/make[Makefile]:
+
+  gh|about-cl|/options/Z/i/Makefile|| 
+
+}
+{ TODO
+
+  These steps also produces an `.ilk` file.
+
+}
+
+
+
+sa:
+
+  The `/ZI` (uppercase i) also creates a symbol file, but with support for *edit and continue*.
+
+  → Windows/development/Visual-Studio/cl/options
+
