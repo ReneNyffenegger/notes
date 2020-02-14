@@ -1,0 +1,73 @@
+$ Symbol Files
+
+
+
+The extension of symbol files is → development/filename-extensions#pdb[`.pdb`] (at least when produced by the Visual C++ linker).
+
+{ Content of a PDB file
+
+  A PDB file contains
+    • Public symbols (functions, static and global variables)
+    • The object files that were used to create the executable, and their respective section
+    • Frame pointer optimization (FPO) information
+    • Type information (variables, structs …)
+    • Source file name and line number
+
+}
+{ Generating PDB files
+
+  In order to generate PDB files, → Windows/development/Visual-Studio/cl[`cl`] needs to be invoked with either the `/Zi` or `/ZI` → Windows/development/Visual-Studio/cl/options[option] and
+  the linker with the `/DEBUG` option.
+
+  The PDB is created in the same directory as the created executable.
+
+}
+{ _NT_SYMBOL_PATH
+
+  The `_NT_SYMBOL_PATH` → development/environment-variable[environment variable] is used by all(?) debugging tools to find symbol servers and symbol files.
+
+  The format is:
+code {
+srv*[local cache]*[private symbol server]*https://msdl.microsoft.com/download/symbols
+code }
+
+   or less abstract
+code {
+srv*c:\symbols*https://msdl.microsoft.com/download/symbols
+code }
+
+  With this value, the symbols are downoaded to `c:\symbols`.
+  
+
+}
+{ Windows Version
+
+  Symbol files must match the → Windows/versions[Windows version] of the Windows installation where they're used.
+
+}
+{ Misc
+
+  These PDB files have nothing to do with → development/databases/Oracle[Oracle's] plugable databases which are also abbreviated with PDB.
+ 
+}
+{ TODO
+
+  Symbol files have fully qualified path references to the source files. If the source files are moved to different location, the `.srcpath` command of WinDbg needs to be used to specify the new location.
+
+  The WinDbg command `.sympath` seems to specify the location for symbol files.
+
+}
+
+sa:
+  The `/pdb` and `/pdbstripped` linker option. (Apparently, the `/DEBUG` flag is essential for the linke to produce a PDB file.
+  -
+  The `Fd` compiler option names the pdb file for object files.
+
+  The *debugging tools*
+  → Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/pdbcopy_exe[`pdbcopy`] and
+  → Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/symchk_exe[`symchck`].
+
+  The DIA (Debug Interface Access) SDK, under → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition[%VSINSTALLDIR%\DIA SDK].
+
+  → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/VC/Tools/MSVC/version/bin[`mspdbcmf.exe`], the FastLink To Full PDB Converter
+

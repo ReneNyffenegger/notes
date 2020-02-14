@@ -1,0 +1,168 @@
+$ windbg.exe
+
+*Windows GUI symbolic debugger*
+
+`windbg.exe` is the GUI version of CDB/NTSD and KD/NTKD.
+
+{ Commands
+
+code {
+.sympath srv*
+.reload
+x notepad!*
+code }
+
+  { Simple debugging session
+
+  { Show specific symbols in a module
+
+  Show symbols in the notepad module that contain `main`:
+code {
+0:000> x notepad!*main*
+00007ff6`3d17ac68 notepad!__mainCRTStartup (void)
+00007ff6`3d17b8e3 notepad!__mainCRTStartup$filt$0 (void)
+00007ff6`3d17cf68 notepad!_imp___getmainargs = <no type information>
+00007ff6`3d164238 notepad!WinMain (<no parameter info>)
+00007ff6`3d17ac50 notepad!WinMainCRTStartup (<no parameter info>)
+code }
+
+  }
+  { Put a breakpoint on a function
+
+code {
+bu notepad!WinMain
+code }
+
+  }
+  { Show breakpoints
+
+code {
+bl
+code }
+
+  }
+  { run debuggee
+
+code {
+g
+code }
+
+  }
+  { Show loaded modules
+
+code {
+lm
+code }
+
+  }
+  { View stack trace
+
+code {
+k
+code }
+
+  }
+  { Run again
+
+code {
+g
+code }
+
+  }
+  { Break into running applcation
+
+    Menu *Debug -> Break* or keyboard shortcut `ctrl+break`.
+
+  }
+  { Set another breakpoint
+
+code {
+bu ntdll!ZwWriteFile
+code }
+
+  }
+  { Start running again
+
+code {
+g
+code }
+
+  }
+  { Wait for breakpoint
+
+    Go to notepad and save the document. The breakpoint will be hit.
+
+  }
+  { Quit debugging and detach from application
+
+code {
+qd
+code }
+
+  }
+  
+  }
+
+  { Symbol related
+
+code {
+
+  Set or append to the symbol file path
+code {
+symset  p:\ath\to\a\dir
+symset+ p:\ath\to\another\dir
+code }
+
+  Set the symbol path to the Microsoft symbol store.
+code {
+.symfix
+code }
+
+
+  The following command turns on *symbol loading diagnostics* to trouble shoot symbol file related issues
+code {
+!sym noisy
+code }
+
+code }
+
+  }
+
+  { Thread related
+
+    { Show all threads in process
+
+code {
+~
+code }
+
+    }
+
+    { Look at stack trace of another thread
+
+code {
+~0s
+k
+code }
+
+    }
+
+  }
+
+}
+{ Some keyboard shortcuts
+
+
+  `ctrl+e` opens an executable for debugging.
+
+}
+{ WinDbg Preview
+
+  WinDbg Preview uses the same → Windows/dirs/Windows/System32/dbgeng_dll[debugging engine (`dbgeng.dll`)
+  as Windbg. However, it comes with more modern visuals, a scripting environment and a few more improvements.
+
+}
+
+sa:
+
+  → Windows/development/WinAPI/Debugging
