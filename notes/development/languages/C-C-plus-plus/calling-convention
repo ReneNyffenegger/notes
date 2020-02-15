@@ -2,48 +2,67 @@
 The calling convention states how arguments (parameters) are passed to a function and how the caller receives a return value. Amont others, the convention regulates if those values
 are passed via CPU registers and/or via the stack and which registers are guaranteed to preserve their values accross function calls.
 
-{ stdcall #stdcall
+{ x68 calling conventions
 
-  Function arguments are passed (pushed) from right to left. Stack is cleaned up by callee.
+  { stdcall #stdcall
 
-  Return value is passed through the `eax` register (→ development/languages/assembler/x86[x86 assembler]).
+    Function arguments are passed (pushed) from right to left. Stack is cleaned up by callee.
 
-  Stdcall is the default calling convention for the 32-bit → Windows/development/WinAPI (after *pascal* was abandoned) and should apparently also be used
-  for → Windows/development/Portable-Executable/DLL/export-table[exported functions in DLLs].
+    Return value is passed through the `eax` register (→ development/languages/assembler/x86[x86 assembler]).
 
+    Stdcall is the default calling convention for the 32-bit → Windows/development/WinAPI (after *pascal* was abandoned) and should apparently also be used
+    for → Windows/development/Portable-Executable/DLL/export-table[exported functions in DLLs].
+
+  }
+  { cdecl #cdecl
+
+    The default (native) calling convention for → development/languages/C-C-plus-plus[C and C++] programs. cdecl is short for → development/languages/C-C-plus-plus/C[c] declaration.
+
+    Caller pushes arguments on stack and cleans up stack.
+    -
+    Cleaning up the stack causes larger programs than those with stdcall.
+
+    cdecl is required for variadic function arguments (vararg).
+
+  }
+  { fastcall
+
+    Some values passed via registers
+
+    The 64-bit WinAPI is similar to the 32-bit WinAPI fastcall. The first four parameters are passed in `rcx`, `rdx`, `r8` and `r9` (from right to left). Additional parameters are stored on the
+    stack.
+
+  }
+  { pascal
+
+    The pascal calling convention differs from stdcall in that the function arguments are pushed left to right.
+
+  }
+  { Name decoration #c-func-name-decoration
+
+    Both, MSVC and → Windows/development/MinGW[MinGW] *decorate* stdcall and cdecl function names by prefixing them with an underscore.
+    Additionally, stdcall function names will be followed by an at-sign and the number of bytes of the function parameters.
+
+    Apparently, with the → development/languages/C-C-plus-plus/GCC/linker/options/kill-at[linker option `--kill-at`], the suffixes are not created for stdcall DLL functions.
+    -
+    With → development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[`--add-stdcall-alias`], the function is exported with and without this suffix.
+
+  }
 }
-{ cdecl #cdecl
+{ x64
 
-  The default (native) calling convention for → development/languages/C-C-plus-plus[C and C++] programs. cdecl is short for → development/languages/C-C-plus-plus/C[c] declaration.
-  
-  Caller pushes arguments on stack and cleans up stack.
-  -
-  Cleaning up the stack causes larger programs than those with stdcall.
+  Unlike the x86, on a x64, there is only *one* calling convention. It takes advantage of the increased number of → development/languages/assembler/x86/registers[registers] that are available.
 
-  cdecl is required for variadic function arguments (vararg).
+  The rules are
+    • The first four integer or pointer parameters are passed in the `rcx`, `rdx`, `r8` and `r9` registers.
+    • The first four floating-point parameters are passed in the first four SSE registers, `xmm0` - `xmm3`
+    • The caller reserves space on the stack for arguments passed in registers. The called function can use this space to spill the contents of registers to the stack
+    • Any additional arguments are passed on the stack
+    • An integer or pointer return value is returned in the `rax` register; a → development/IEEE/754[floating-point] return value is returned in `xmm0`.
+    • `rax`, `rcx`, `rdx` and `r8` through `r11` are volatile
+    • `rbx`, `rbp`, `rdi`, `rsi` and `r12` through `r15` are nonvolatile.
 
-}
-{ fastcall
-
-  Some values passed via registers
-
-  The 64-bit WinAPI is similar to the 32-bit WinAPI fastcall. The first four parameters are passed in `rcx`, `rdx`, `r8` and `r9` (from right to left). Additional parameters are stored on the
-  stack.
-
-}
-{ pascal
-
-  The pascal calling convention differs from stdcall in that the function arguments are pushed left to right.
-
-}
-{ Name decoration #c-func-name-decoration
-
-  Both, MSVC and → Windows/development/MinGW[MinGW] *decorate* stdcall and cdecl function names by prefixing them with an underscore.
-  Additionally, stdcall function names will be followed by an at-sign and the number of bytes of the function parameters.
-
-  Apparently, with the → development/languages/C-C-plus-plus/GCC/linker/options/kill-at[linker option `--kill-at`], the suffixes are not created for stdcall DLL functions.
-  -
-  With → development/languages/C-C-plus-plus/GCC/linker/options/add-stdcall-alias[`--add-stdcall-alias`], the function is exported with and without this suffix.
+  In → development/languages/C-C-plus-plus/CPP, the `this` pointer is implicietely passed as *first argument*
 
 }
 

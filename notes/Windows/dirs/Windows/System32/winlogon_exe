@@ -2,8 +2,30 @@ $ winlogon.exe
 
 The *Windows Logon Application*.
 
-`winlogon.exe` handles the → Windows/security/ctrl-alt-delete[Ctrl-Alt-Delete] keyboard sequence (aka Secure Authentication Sequence or SAS).
+`winlogon.exe` is a user-mode → Windows/development/process that manages the interactive logon and logoff of
+→ Windows/user-account[users] and handles the → Windows/security/ctrl-alt-delete[Ctrl-Alt-Delete] keyboard sequence (aka Secure Authentication Sequence or SAS).
 
 `winlogon.exe` queries → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon#reg-userinit[`Userinit`] under the → Windows/registry[registry] key
 → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`] whose default
 value is `→ Windows/dirs/Windows/System32/userinit_exe[C:\Windows\system32\userinit.exe]`.
+
+{ Debugging winlogon.exe
+
+ 
+`winlogon.exe` can be debugged by setting the value of `Debugger` under
+ → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Image-File-Execution-Options/progName_exe[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Image File Execution Options\winlogon.exe`] to
+code {
+→ Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/ntsd_exe[ntsd] -d -x -g
+code }
+
+  `-d` passes control to the kernel debugger.
+  -
+  `-x` causes the debugger to capture access violations as second chance exceptions
+  -
+  `-g` causes the WinLogon process to run after the attachment
+
+  
+  Additionally, the value of `GlobalFlag` under the already mentioned → Windows/registry/tree-structure/key[registry key] should be set to `0x000400F0` which sets
+  sets heap checking and `FLG_ENABLE_KDEBUG_SYMBOL_LOAD`.
+
+}
