@@ -9,6 +9,28 @@ $ SQL Server: sys.all_objects
   gh|about-MSSQL|/administration/schemas/sys/objects/views/all_objects/select.sql||
 
 }
+{ Definition of all_objects
+
+  `sp_helptext 'sys.all_objects'` returns
+code {
+CREATE VIEW sys.all_objects AS
+	SELECT 
+		o.name, o.id AS object_id, r.indepid AS principal_id,
+		o.nsid AS schema_id, o.pid AS parent_object_id,
+		convert(char(2), case o.type when 'ET' then 'U' else o.type end) AS type,
+		n.name AS type_desc,
+		o.created AS create_date, o.modified AS modify_date,
+		convert(bit, o.status & 1) AS is_ms_shipped,        -- OBJALL_MSSHIPPED
+		convert(bit, o.status & 16) AS is_published,        -- OBJALL_RPL_PUBLISHED
+		convert(bit, o.status & 64) AS is_schema_published	-- OBJALL_RPL_PUB_SCHONLY
+	FROM → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysschobjs[sys.sysschobjs$] o
+	LEFT JOIN sys.syssingleobjrefs r ON r.depid = o.id AND r.class = 97 AND r.depsubid = 0	-- SRC_OBJOWNER
+	LEFT JOIN → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/syspalnames[sys.syspalnames] n ON n.class = 'OBTY' AND n.value = o.type
+	WHERE o.nsclass not in (20,21)        -- excluding DDL trigger
+		AND HAS_ACCESS('AO', o.id) = 1
+code }
+
+}
 
 sa:
   The → development/databases/SQL-Server/administration/schemas/sys[sys schema]

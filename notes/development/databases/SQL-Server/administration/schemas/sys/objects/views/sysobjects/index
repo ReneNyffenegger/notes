@@ -14,6 +14,66 @@ $ SQL Server: sys.sysobjects
   A value of `'S'` in `xtype` indicates a → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables[system base table].
 
 }
+{ Definition
+
+  The definition of `sys.sysobjects` is (`sp_helptext 'sp_helptext'`):
+code {
+CREATE VIEW sys.sysobjects AS
+	SELECT name, 
+		id,
+		xtype = type collate catalog_default,
+		uid = convert(smallint, nsid),
+		info = convert(smallint, 0),
+		status = convert(int, 0),
+		base_schema_ver = convert(int, 0),
+		replinfo = convert(int, 0),
+		parent_obj = pid,
+		crdate = created,
+		ftcatid = convert(smallint, 
+			case type when 'U' then OBJECTPROPERTY(id, 'TableFulltextCatalogId')
+			else 0 end),
+		schema_ver = convert(int, 0),
+		stats_schema_ver = convert(int, 0),
+		type = convert(char(2), 
+			case type when 'UQ' then 'K' when 'PK' then 'K' when 'ET' then 'U'
+			else type collate catalog_default end),
+		userstat = convert(smallint, 
+			case type when 'S' then 1 when 'U' then 1 when 'ET' then 1
+			else 0 end),
+		sysstat = convert(smallint, 
+			case type when 'S' then 1 when 'V' then 2 when 'U' then 3 when 'P' then 4 when 'RF' then 4
+			when 'X' then 4 when 'D' then 6 when 'R' then 7 when 'TR' then 8
+			when 'PK' then 9 when 'UQ' then 9 when 'C' then 10 when 'F' then 11
+			else 0 end),
+		indexdel = convert(smallint, 0),
+		refdate = created,
+		version = convert(int, 0),
+		deltrig = convert(int,
+			case type when 'U' then OBJECTPROPERTY(id,'TableDeleteTrigger')
+			when 'TR' then pid else 0 end),
+		instrig = convert(int, 
+			case type when 'U' then OBJECTPROPERTY(id,'TableInsertTrigger')
+			else 0 end),
+		updtrig = convert(int,
+			case type when 'U' then OBJECTPROPERTY(id,'TableUpdateTrigger')
+			else 0 end),
+		seltrig = convert(int, 0),
+		category = convert(int, 
+			case when type = 'D' and pid <> 0 then 2048 
+			else 0 end
+			+ 
+			case when type = 'P' and (status & 256) <> 0 then 16 
+			else 0 end -- is_auto_executed
+			+ (status & 1)*2 + (status & 16)*2), -- is_ms_shipped * 2 + is_published * 32
+		cache = convert(smallint, 0)
+	FROM → development/databases/SQL-Server/administration/schemas/sys/objects/system-base-tables/sysschobjs[sys.sysschobjs$]
+	WHERE nsclass = 0 -- x_eonc_Standard
+	AND pclass = 1 -- x_eunc_Object
+	AND has_access('MO', id) = 1
+
+code }
+
+}
 
 sa:
   → development/databases/SQL-Server/administration/schemas/sys/objects/views/_object_views
