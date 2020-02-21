@@ -26,9 +26,13 @@ SQL Server is part of the *Microsoft data platform*.
 
   SQL Server Profiler
 
-  Database Tuning Advisor
+  Database Engine Tuning Advisor (→ Windows/dirs/Program-Files-x86/Microsoft-SQL-Server/version/Tools/Binn/DTA_EXE, → Windows/dirs/Program-Files-x86/Microsoft-SQL-Server/version/Tools/Binn/DTASHELL_EXE, → Windows/dirs/Program-Files-x86/Microsoft-SQL-Server/version/Tools/Binn/dtaengine_exe)
 
   The → Microsoft/dot-net/namespaces-classes/Microsoft/SqlServer/Management[`Microsoft.SqlServer.Management`] namespace provides functionality for SQL Server management.
+
+  Data Quality Client
+
+  → development/databases/SQL-Server/Data-Tools[SQL Server Data Tools (SSDT)]
 
 }
 { Server Mode (?)
@@ -54,6 +58,36 @@ SQL Server is part of the *Microsoft data platform*.
   
 
   It is possible to grant or deny access to data in external tables to/from users by adding them to *Active Directory Users and Groups*.
+
+}
+{ Backing up the database
+
+code {
+backup database[$(db)] to disk='$(backup_file)'
+code }
+
+}
+{ XML
+
+code {
+:xml on
+select …
+code }
+
+}
+{ Things to get used to
+
+  If both sides of a division are integers, the result is also an integer. That is `select 9/4` results in 2.
+
+  The → development/databases/SQL-Server/sql/select/aggregate[aggregate function] `avg()`, if applied on an
+  → development/databases/SQL-Server/T-SQL/data-types/integer[integer] data type → development/databases/SQL-Server/sql/select/aggregate/avg/beware-of-integers[returns an integer].
+
+}
+{ R
+
+  → Windows/dirs/Program-Files/Microsoft-SQL-Server/version/R_SERVER/library/RevoScaleR/rxLibs/x64/RegisterRExt_exe#sql-server-enable-r-package-mgmt
+
+  → development/databases/SQL-Server/administration/schemas/sys/objects/stored-procedures/sp_execute_external_script[`sp_execute_external_script`]
 
 }
 { TODO
@@ -122,9 +156,6 @@ c:\> → development/databases/SQL-Server/tools-utilities/sqlcmd
 exec dbo.my_procedure $(name), $(bla)
 go
 code }
-
-
-
 
 Equivalent of → development/databases/Oracle/installed/packages/dbms/lock[`dbms_lock.sleep`]: `waitfor`.
 
@@ -355,13 +386,6 @@ table }
     these object complement the functionality of → development/databases/SQL-Server/Management-Studio[Management Studio].
 
   }
-  { Four part naming syntax
-
-code {
-server.database.databaseSchema.databaseObject  
-code }
-
-  }
   { Schemas
 
     Schemas can be owned by any *database principal*.
@@ -418,35 +442,166 @@ code }
 
   }
 
-}
-{ Backing up the database
+  { Components
 
-code {
-backup database[$(db)] to disk='$(backup_file)'
-code }
+    SQL Server compenents are
+      • SQL Server Database Engine
+      • → development/databases/SQL-Server/Analysis-Services[Analysis Services (SSAS)]
+      • → development/databases/SQL-Server/Reporting-Services[Reporting Services (SSRS)]
+      • → development/databases/SQL-Server/Integration-Services[Integration Services (SSIS)]
+      • Master Data Services (For Master Data Management)
+      • Machine Learning Services (In-Database)
+      • Machine Learning Server (Standalone)
 
-}
-{ XML
+    }
+    { Features that support High Availability
 
-code {
-:xml on
-select …
-code }
+      Features that support HA include
+       • Log shipping
+       • Database mirroring
+       • Backup compression
+       • Database snapshot
+       • Always On failover cluster instances
+       • Always On availability groups
+       • Basic availability groups
+       • Automatic read write connection re-routing
+       • Online page and file restore
+       • Online index create and rebuild
+       • Resumable online index rebuilds
+       • Online schema change
+       • Fast recovery
+       • Accelerated database recovery
+       • Mirrored backups
+       • Hot add memory and CPU
+       • Database recovery advisor
+       • Encrypted backup
+       • Hybrid backup to Windows Azure (backup to URL)
+       • Cluster-less availability group
+       • Failover servers for disaster recovery
+       • Failover servers for high availability
+       • Failover servers for disaster recovery in Azure
 
-}
-{ Things to get used to
+    }
+    { Scalability and performance feeatures
 
-  If both sides of a division are integers, the result is also an integer. That is `select 9/4` results in 2.
+      Scalability and performance features include
+        • Columnstore
+        • Large object binaries in clustered columnstore indexes
+        • Online non-clustered columnstore index rebuild
+        • In-Memory Database: In-Memory OLTP
+        • In-Memory Database: hybrid buffer pool
+        • In-Memory Database: memory-optimized tempdb metadata
+        • In-Memory Database: persistent memory support
+        • Stretch database
+        • Multi-instance support
+        • Table and index partitioning
+        • Data compression
+        • Resource governor
+        • Partitioned table parallelism
+        • Multiple filestream containers
+        • NUMA aware and large page memory and buffer array allocation
+        • Buffer pool extension
+        • IO resource governance
+        • Read-ahead
+        • Advanced scanning
+        • Delayed durability
+        • Intelligent Database: automatic tuning
+        • Intelligent Database: batch mode for row store
+        • Intelligent Database: row mode memory grant feedback
+        • Intelligent Database: approximate count distinct
+        • Intelligent Database: table variable deferred compilation
+        • Intelligent Database: scalar UDF inlining
+        • Batch mode adaptive joins
+        • Batch mode memory grant feedback
+        • Interleaved execution for multi-statement table valued functions
+        • Bulk insert improvements
 
-  The → development/databases/SQL-Server/sql/select/aggregate[aggregate function] `avg()`, if applied on an
-  → development/databases/SQL-Server/T-SQL/data-types/integer[integer] data type → development/databases/SQL-Server/sql/select/aggregate/avg/beware-of-integers[returns an integer].
+    }
+    { Security features
 
-}
-{ R
+      → development/databases/SQL-Server/administration/security[Security] features include
+         • Row-level security
+         • Always Encrypted
+         • Always Encrypted with Secure Enclaves
+         • Dynamic data masking
+         • Server audit
+         • Database audit
+         • Transparent database encryption
+         • Extensible key management
+         • User-defined roles
+         • Contained databases
+         • Encryption for backups
+         • Data classification and auditing
 
-  → Windows/dirs/Program-Files/Microsoft-SQL-Server/version/R_SERVER/library/RevoScaleR/rxLibs/x64/RegisterRExt_exe#sql-server-enable-r-package-mgmt
+    }
+    { Replication features
 
-  → development/databases/SQL-Server/administration/schemas/sys/objects/stored-procedures/sp_execute_external_script[`sp_execute_external_script`]
+      Replication features include
+        • Heterogeneous subscribers
+        • Merge replication
+        • Oracle publishing
+        • Peer to peer transactional replication
+        • Snapshot replication
+        • SQL Server change tracking
+        • Transactional replication
+        • Transactional replication to Azure
+        • Transactional replication updateable subscription
+
+    } 
+    { Management tools
+
+       Management tools include
+           • SQL Management Objects (SMO)
+           • SQL Assessment API
+           • SQL Vulnerability Assessment
+           • SQL Configuration Manager
+           • SQL CMD (Command Prompt tool)
+           • Distributed Replay - Admin Tool
+           • Distribute Replay - Client
+           • Distributed Replay - Controller
+           • SQL Profiler
+           • → development/databases/SQL-Server/architecture/services/agent
+           • Microsoft System Center Operations Manager Management Pack
+           • Database Tuning Advisor (DTA)
+    }
+    { RDBMS manageability
+
+      RDBMS manageability features include
+        • User instances
+        • LocalDB
+        • Dedicated admin connection
+        • SysPrep support 1
+        • PowerShell scripting support2
+        • Support for data-tier application component operations - extract, deploy, upgrade, delete
+        • Policy automation (check on schedule and change)
+        • Performance data collector
+        • Able to enroll as a managed instance in multi-instance management
+        • Standard performance reports
+        • Plan guides and plan freezing for plan guides
+        • Direct query of indexed views (using NOEXPAND hint)
+        • Direct query SQL Server Analysis Services
+        • Automatic indexed views maintenance
+        • Distributed partitioned views
+        • Parallel indexed operations
+        • Automatic use of indexed view by query optimizer
+        • Parallel consistency check
+        • SQL Server Utility Control Point
+        • Buffer pool extension
+        • Master instance for big data cluster
+        • Compatibility certification
+
+    }
+    { Development tools
+
+      Development tools include
+         • Microsoft Visual Studio integration
+         • Intellisense (Transact-SQL and MDX)
+         • → development/databases/SQL-Server/Data-Tools[SQL Server Data Tools (SSDT)]
+         • → development/Data/OLAP/MDX edit, debug, and design tools
+
+    }
+
+  }
 
 }
 
