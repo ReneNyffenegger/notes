@@ -1,6 +1,7 @@
 $ Windows: access token
+@ access token
 
-When a → Windows/user-account[user] logs on, Windows creates an *access token* for this user.
+When a → Windows/user-account[user] logs on, Windows creates an *access token* for this user. It is used to store a user's identity and privileges.
 
 Such an access token stores the following information
   • The user's → Windows/security/SID[SID] (security identifier)
@@ -16,9 +17,58 @@ Such an access token stores the following information
   • Current impersonation levels
   • Other statistics
 
+An access token is a → Windows/kernel/objects[kernel object]
+
+{ Primary and impersonation access tokens
+
+  There are two types of access tokens:
+    • primary
+    • impersonation
+
+  { Primary access tokens
+
+    The access token that is created when a user logged on, is the *primary* access token. It is created by the *Local Security Authority* (LSA).
+  
+    When the (logged-on) user starts a → Windows/development/process or a → Windows/development/process/thread, the primary access token is copied and the copy is attached to that process or thread.
+
+  }
+  { Impersonation access tokens
+
+    Impersonation access tokens are typically used in client-server environments where a thread needs to run in a different security context than that of the process that started the thread.
+
+
+  }
+
+}
+{ TODO
+
+  It appears that the definition of an access token is stored in the struct `TOKEN_ACCESS_INFORMATION`, found in → Windows/development/WinAPI/data-types/index#winnt_h[`winnt.h`]:
+code {
+typedef struct _TOKEN_ACCESS_INFORMATION {
+    PSID_AND_ATTRIBUTES_HASH SidHash;
+    PSID_AND_ATTRIBUTES_HASH RestrictedSidHash;
+    PTOKEN_PRIVILEGES Privileges;
+    LUID AuthenticationId;
+    TOKEN_TYPE TokenType;
+    SECURITY_IMPERSONATION_LEVEL ImpersonationLevel;
+    TOKEN_MANDATORY_POLICY MandatoryPolicy;
+    DWORD Flags;
+    DWORD AppContainerNumber;
+    PSID PackageSid;
+    PSID_AND_ATTRIBUTES_HASH CapabilitiesHash;
+    PSID TrustLevelSid;
+    PSECURITY_ATTRIBUTES_OPAQUE SecurityAttributes;
+} TOKEN_ACCESS_INFORMATION, *PTOKEN_ACCESS_INFORMATION;
+code }
+
+}
 
 sa:
 
   → Windows/security/privileges[Privileges]
 
   The Sysinternals tools *LogonSessions*.
+
+
+links:
+  → https://github.com/jborean93/PSAccessToken[PSAccessToken] is a → Windows/PowerShell module that can query, edit, and create Windows Access Tokens
