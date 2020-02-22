@@ -1,0 +1,39 @@
+$ SQL Server: In-Memory OLTP
+
+{ TODO
+
+
+  Memory optimized table:
+code {
+create table mem_opt (
+  id  int identity primary key nonclustered,
+  txt nvarchar(max)
+)
+with (memory_optimized=on);
+code }
+
+
+  Non durable table:
+code {
+create table non_dur(
+  id  int identity primary key nonclustered,
+  txt nvarchar(max)
+)
+with (
+   memory_optimized=on,
+   durability=schema_only
+);
+code }
+
+  Memory-optimized table type:
+code {
+create type dbo.tt_table1 as table (
+   id           int identity,
+   txt          nvarchar(max),
+   is_transient bit not null default (0),
+   index ix_c1 hash (c1) with (bucket_count=1024)
+)
+with (memory_optimized=on)
+code }
+
+}
