@@ -1,5 +1,72 @@
 $ CSS: order of application of the transform property
 
-gh|about-CSS|/properties/transform/order/img/observer-is-on-elem.png||
 
-gh|about-CSS|/properties/transform/order/img/observer-is-on-parent.png||
+Here is a series of four CSS `transform` instructions for an → development/web/CSS/element:
+code {
+transform         : scale(0.6)
+                    translate(260px, 120px)
+                    rotate(-25deg)
+                    translate(-200px,  -30px)
+                  ;
+code }
+
+On Stackoverflow, there is quite a debate if these instructions are applied → https://stackoverflow.com/questions/27635272[from left to right or from right to left].
+-
+The answer, of course as so often, is: it depends. More accuratly, it depends on where the *observer* is located. If the observer is located *on the element* and undergoes the same transformations as the element,
+then the transformations are applied left to right.
+-
+However, if the observer is located on the element's parent → development/web/CSS/element, then the transformations are applied from right to left.
+
+I try to demenstrate in the following.
+
+{ Observer is on the element 
+
+  The following picture shows how the element is transformed from its initial position to the final position.
+  
+  The initial position is is a box with the label `T0`. On this position, the `sacle(0.6)` transformation is applied. Hence, the element shrinks to the element that is now labeled `T1`.
+
+  The next instruction is `translate(260px, 120px)`. Thus the element moves by what the observer believes to be 260px/120px. *But*: the observer was also shrunk in the last translation, so in actuality, the real
+  distance, as observed from an outside observer, is 40 percent less: 156px and 72px.
+
+  The element is then rotated by 25 degrees, resulting in `T3`. The rotation is about the point that is localized by `transform-origin`, which is in the middle of the element.
+
+  Finally, the element is translated again. Because the element (and the observer) are now rotated, the direction of the translation is from the element's new orientation.
+
+  The steps as produced:
+  gh|about-CSS|/properties/transform/order/img/observer-is-on-elem.png||
+
+}
+{ Observer is on the parent
+
+  Things are in complete opposite order if the observer is on the element's parent node (in this example, the → development/web/HTML/tags/body[`<body>`] element).
+
+  The element labeled `T0` is located exactly the same as in the previous steps. Now, the transormations are applied in opposite order and *without moving or shrinking the observer*.
+
+  First, the element is translated 200px to the right and 30px to the top, resulting in `T1`.
+
+  Then it is roated, resulting in `T2`. Note, that this time, the element is rotated about the center of the `T0`. This is a direct consequence of the observer not being involved in the translations.
+
+  Again, a translation moves the element to `T3` and as in the previous step, the rotation does not affect the coordinate system of the translation.
+
+  Finally, the element is shrunk to `T4`. The center of the shinking is again in the center of `T0`.
+
+  gh|about-CSS|/properties/transform/order/img/observer-is-on-parent.png||
+
+}
+{ HTML documents
+
+  These pictures were created with the following two HTML document:
+
+  { observer-is-on-elem.html
+
+    gh|about-CSS|/properties/transform/order/observer-is-on-elem.html||
+
+  }
+  { observer-is-on-parent.html
+
+    gh|about-CSS|/properties/transform/order/observer-is-on-parent.html||
+
+  }
+
+}
+
