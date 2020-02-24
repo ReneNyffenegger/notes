@@ -25,9 +25,192 @@ $ Javascript: objects
 
 
 }
+{ Ordinary vs exotic objects
+
+  An object is either
+    • ordinary, or
+    • exotic
+
+}
+{ Internal slots and methods
+
+  TODO:
+    • Are internal slots and methods the same thing?
+    • …
+
+  Internal slots (of all (ordinary?) objects?):
+  table { ll
+  `[[Extensible]]` ☰ A Boolean-valued slot that all *ordinary objects* have, which is most of the time(?) initially set to `true`. As soon as set to `false`, it is no longer possible to add properties to the object or to modify the `[[Prototype]]` internal slot.
+  `[[Prototype]]` ☰ A slot that all *ordinary objects* have. Its value is either `null` or an object. In a *Module Namespace Exotic Object*, this value is always `null`. In a → development/languages/JavaScript/objects/global[global object], its value is implementation defined.
+  table }
+
+  → development/languages/JavaScript/objects/Function[Function objects] also have the following internal slots:
+  table { ll
+    `[[ConstructorKind]]` ☰
+    `[[ECMAScriptCode]]` ☰ 
+    `[[Environment]]` ☰
+    `[[FormalParameters]]` ☰
+    `[[HomeObject]]` ☰ The object whose `[[GetPrototypeOf]]` provides the object where `super` property lookup begins
+    `[[IsClassConstructor]]` ☰ If `true`, calling `[[Call]]` will throw a `TypeError` exception
+    `[[Realm]]` ☰ Every built-in function object has a `[[Realm]]` internal slot whose value is the Realm Record of the realm for which the object was initially created.
+    `[[ScriptOrModule]]` ☰ which refers to either the *script* or *module* where the function was created.
+    `[[Strict]]` ☰ signifies a *strict* function if `true` 
+    `[[SourceText]]` ☰ A sequence of → development/Unicode → development/Unicode/Codepoints[code points] representing the source code for the function
+    `[[ThisMode]]` ☰ How `this` references are interpreted. (Can be *lexical*, *strict* or *global*
+  table }
+
+  Internal methods of a Function object include
+  table { ll
+    `[[Call]]` ☰  TODO: The *Proxy exotic object* below. The → development/languages/JavaScript/objects/global[global object] does not have a `[[Call]]` internal method.
+  table }
+
+  Bound function exotic objects do not have the internal slots of ordinary function objects. Instead, they come with
+  table { ll
+    `[[BoundTargetFunction]]` ☰ the wrapped function object.
+    `[[BoundThis]]` ☰
+    `[[BoundArguments]]` ☰
+  table }
+
+  String exotic objects (or just String objects) have the internal slots of ordinary objects plus the following internal slots (methods?):
+  table { ll
+
+    `[[DefineOwnProperty]]` ☰ 
+    `[[GetOwnProperty]]` ☰ 
+    `[[OwnPropertyKeys]]` ☰ 
+
+  table }
+
+  An *Integer-Indexed exotic object* has the same internal slots as an ordinary object pus
+  table { ll
+     `[[ViewedArrayBuffer]]` ☰
+     `[[ArrayLength]]` ☰
+     `[[ByteOffset]]` ☰
+     `[[ContentType]]` ☰
+     `[[TypedArrayName]]  ` ☰
+  table }
+
+  Argument objects have the same internal slots as ordinary objects plus
+  table { ll
+   `[[ParameterMap]]` ☰ (???) For ordinary argument objects, `[[ParameterMap]]` whose value is always `undefined`
+  table }
+
+  An *ArgGetter* and *ArgSetter* function is an (anonymous) built-in function with the following two internal slots
+  table { ll
+    `[[Env]]` ☰
+    `[[Name]]` ☰
+  table }
+
+
+  A *Module Namespace Exotic Object* have these internal slots:
+  table { ll
+    `[[Module]]` ☰
+    `[[Exports]]` ☰
+    `[[Prototype]]` ☰ Always `null`
+  table }
+
+  *For-in iterator instances*
+  table { ll
+   `[[Object]]` ☰
+   `[[ObjectWasVisited]]` ☰
+   `[[VisitedKeys]]` ☰
+   `[[RemainingKeys]]` ☰
+  table }
+
+  RegExp String iterator instances:
+  table { ll
+    `[[IteratingRegExp]]` ☰
+    `[[IteratedString]]` ☰
+    `[[Global]]` ☰
+    `[[Unicode]]` ☰
+    `[[Done]]` ☰
+  table }
+
+  Array Iterator instances
+  table { ll
+    `[[IteratedArrayLike]]` ☰
+    `[[ArrayLikeNextIndex]]` ☰
+    `[[ArrayLikeIterationKind]]` ☰
+  table }
+
+  { Proxy exotic objects
+   
+    table { ll
+      ~Internal method~ ☰ ~Handler method~
+     `[[GetPrototypeOf]]` ☰ `getPrototypeOf`
+     `[[SetPrototypeOf]]` ☰ `setPrototypeOf`
+     `[[IsExtensible]]` ☰ `isExtensible`
+     `[[PreventExtensions]]` ☰ `preventExtensions`
+     `[[GetOwnProperty]]` ☰ `getOwnPropertyDescriptor`
+     `[[DefineOwnProperty]]` ☰ `defineProperty`
+     `[[HasProperty]]` ☰ `has`
+     `[[Get]]` ☰ `get`
+     `[[Set]]` ☰ `set`
+     `[[Delete]]` ☰ `deleteProperty`
+     `[[OwnPropertyKeys]]` ☰ `ownKeys`
+     `[[Call]]` ☰ `apply`
+     `[[Construct]]` ☰ `construct`
+    table }
+
+
+
+  }
+
+  { What about these?
+
+   
+    What about these *internal slots*:
+    table { ll
+      `[[ArrayLength]]` ☰
+      `[[BooleanData]]` ☰
+      `[[Class]]` ☰
+      `[[ErrorData]]` ☰
+      `[[DateValue]]` ☰
+      `[[IteratedString]]` ☰
+      `[[NumberData]]` ☰
+      `[[OriginalFlags]]` ☰ Used in *RegExp* objects, might contain the flags `s`, `i`, `m`, `u`.
+      `[[OriginalSource]]` ☰ Used in *RegExp* objects
+      `[[ProxyHandler]]` ☰
+      `[[ProxyTarget]]` ☰
+      `[[RegExpMatcher]]` ☰
+      `[[StringData]]` ☰
+      `[[StringNextIndex]]` ☰
+      `[[SymbolData]]` ☰ The Symbol value represented by a Symbol object
+    table }
+
+  What about these *internal methods*:
+  table { ll
+     `[[Construct]]` ☰ which the → development/languages/JavaScript/objects/global[global object] does not have. TODO: *Proxy exotic objects* above.
+     `[[DefineOwnProperty]]` ☰ For example found in the *String exotic object*
+     `[[Delete]]` ☰
+     `[[IsExtensible]]` ☰
+     `[[Get]]` ☰
+     `[[GetOwnProperty]]` ☰ For example found in the *String exotic object*
+     `[[HasProperty]]` ☰
+     `[[OwnPropertyKeys]]` ☰ For example found in the *String exotic object*
+     `[[PreventExtensions]]` ☰
+     `[[Set]]` ☰
+     `[[SetPrototypeOf]]` ☰
+  table }
+
+  }
+
+
+}
 { Built-in objects
 
-→ development/languages/JavaScript/objects/Array (Compare with Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array).
+  Many built-in objects are functions and can be called with arguments.
+  -
+  Some of the built-in objects are also *constructors* (which are intended to be used with the `new` operator).
+
+  ? Unless specified otherwise, a built-in object that is callable as a function is a built-in function object with the characteristics described in 9.3
+
+  Unless specified otherwise, the `[[Extensible]]` internal slot of a built-in object initially has the value `true`.
+
+  Every built-in function object has a `[[Realm]]` internal slot whose value is the Realm Record of the realm for which the object was initially created.
+
+→ development/languages/JavaScript/objects/Array
+  -
+  Compare with the *typed arrays* Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array.
 
 arguments
 
@@ -96,5 +279,43 @@ WeakMap
 WeakSet
 
 WebAssembly (WebAssembly.Module, WebAssembly.Instance, WebAssembly.Memory, WebAssembly.Table, WebAssembly.CompileError, WebAssembly.LinkError, WebAssembly.RuntimeError)
+
+}
+{ Intrinsic objects
+
+  Some *intrinsic objects* include
+  table { ll
+
+    `%ArrayIteratorPrototype%` ☰
+    `%Boolean%` ☰ The intrinsic object for the Boolean constructor
+    `%BigInt64Array%` ☰
+    `%eval%` ☰ The intrinsic object for the `eval()` function.
+    `%Error.prototype%` ☰
+    `%Float32Array%` ☰
+    `%Float64Array%` ☰
+    `%ForInIteratorPrototype%` ☰
+    `%Function.prototype%` ☰ ?
+    `%Int8Array%` ☰
+    `%Int16Array%` ☰
+    `%Int32Array%` ☰
+    `%IteratorPrototype%` ☰
+    `%Number%` ☰
+    `%Object.prototype%` ☰
+    `%ObjectPrototype%` ☰
+    `%ObjProto_toString%` ☰
+    `%MapPrototype%` ☰
+    `%RegExpStringIteratorPrototype%` ☰
+    `%TypedArray%` ☰
+    `%Uint8Array%` ☰
+    `%Uint8ClampedArray%` ☰
+    `%BigUint64Array%` ☰
+    `%Uint16Array%` ☰
+    `%Uint32Array%` ☰
+    `%String%` ☰
+    `%Symbol%` ☰ The initial value of `Symbol.prototype.constructor`
+    `%SymbolPrototype%` ☰
+
+
+  table }
 
 }
