@@ -8,14 +8,16 @@
 
   An object's identity can be queried with → development/languages/Python/built-in-functions/id[`id(obj)`].
 
-  Identities of an object can be compared with → development/languages/Python/operators/is[`is`].
+  The Identities of two object can be compared with the → development/languages/Python/operators/is[`is` operator].
+
+? Each object belongs to a module.
 
 
 }
 { Packages and modules #python-packages-modules
 
   Analogy:
-   • Packages correspond to directories. Seperator is `.` (rather than `/`).
+   • Packages correspond to directories. Separator is `.` (rather than `/`).
    • Modules correspond to files within those directories.
   However, there is no need for packages and modules to actually exist as files or directories.
 
@@ -28,6 +30,70 @@
   Code within one module can access code in another module by → development/languages/Python/statements/import[importing] it.
 
   See also → development/languages/Python/standard-library/sys#python-sys-modules[sys.modules].
+
+}
+{ __builtins__
+
+ `__builtins__` is a *module* that is loaded when a Python interpreter is started up:
+code {
+>>> → development/languages/python/built-in-functions/type(__builtins__)
+<class 'module'>
+code }
+
+  This module contains Python's «built-in» stuff, such as → development/languages/Python/built-in-functions[built-in functions] or exceptions.
+  
+  The module's content can be browsed with → development/languages/Python/built-in-functions/dir[`dir()`] (which itself is located in the `__builtins__` module):
+code {
+>>> → development/languages/Python/built-in-functions/dir[`__builtins__.dir(`](__builtins__)
+['ArithmeticError', 'AssertionError', 'AttributeError', 'BaseException', 'BlockingIOError', 'BrokenPipeError', 'BufferError', 'BytesWarning', 'ChildProcessError',
+'ConnectionAbortedError', 'ConnectionError', 'ConnectionRefusedError', 'ConnectionResetError', 'DeprecationWarning', 'EOFError', 'Ellipsis', 'EnvironmentError', 'Exception', 'False', 'FileExistsError',
+'FileNotFoundError', 'FloatingPointError', 'FutureWarning', 'GeneratorExit', 'IOError', 'ImportError', 'ImportWarning', 'IndentationError', 'IndexError', 'InterruptedError', 'IsADirectoryError', 'KeyError',
+'KeyboardInterrupt', 'LookupError', 'MemoryError', 'ModuleNotFoundError', 'NameError', 'None', 'NotADirectoryError', 'NotImplemented', 'NotImplementedError', 'OSError', 'OverflowError', 'PendingDeprecationWarning',
+'PermissionError', 'ProcessLookupError', 'RecursionError', 'ReferenceError', 'ResourceWarning', 'RuntimeError', 'RuntimeWarning', 'StopAsyncIteration', 'StopIteration', 'SyntaxError', 'SyntaxWarning',
+'SystemError', 'SystemExit', 'TabError', 'TimeoutError', 'True', 'TypeError', 'UnboundLocalError', 'UnicodeDecodeError', 'UnicodeEncodeError', 'UnicodeError', 'UnicodeTranslateError', 'UnicodeWarning',
+'UserWarning', 'ValueError', 'Warning', 'WindowsError', 'ZeroDivisionError', '_', '__build_class__', '__debug__', '__doc__', '__import__', '__loader__', '__name__', '__package__', '__spec__', 'abs', 'all', 'any',
+'ascii', 'bin', 'bool', 'breakpoint', 'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict', 'dir', 'divmod', 'enumerate', 'eval', 'exec', 'exit',
+'filter', 'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash', 'help', 'hex', 'id', 'input', 'int', 'isinstance', 'issubclass', 'iter', ' len', 'license', 'list', 'locals', 'map', 'max',
+'memoryview', 'min', 'next', 'object', 'oct', 'open', 'ord', 'pow', 'print', 'property', 'quit', 'range', 'repr', 'reversed', 'round', 'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super', 'tuple',
+'type', 'vars', 'zip']
+code }
+
+}
+{ Scopes and namespaces
+
+  A *namespace* maps names to objects and are typically implemented using Python-dictionaries.
+
+  Some namespaces include
+    • Names of → development/languages/Python/built-in-functions[built-in functions]
+    • Names of exceptions
+    • A module's global name
+    • The local names in a function's invocation
+
+  A Python statement executes in a (nested) *scope* which determines how identifiers are resolved so that it is not always necessary to write `ns.ident` to refer to `ident` in namespace `ns`.
+  -
+  The order of searching is:
+  table { ll
+    Innermost (local) scope ☰ This scope contains the *local* names
+    Scopes of call-chain ☰ If an identifier is not found in the innermost scope, the interpreter tries to resolve them by going up the call-chain (call-stack, if you will)
+    Current module's global names ☰ If still not found, the current module's global names are tried. This is also the scope where *globally* declared names live.
+   `__builtins__` ☰ As a last resort, the `__builtins__` (and others?) namespace is searched.
+  table }
+
+  With the exception of using the → development/languages/Python/statements/global[`global`] or → development/languages/Python/statements/nonlocal[`nonlocal`] statement, all identifiers are created in the namespace that
+  is associated with the local scope, noteably by
+  → development/languages/Python/operators/assignment[assigning] a value to non existing name or when using the → development/languages/Python/statements/import[`import`] statement.
+
+  The name of the scope in which *top-level code* executes is `'__main__'`.
+
+
+}
+{ Attributes
+
+  Attributes may be read-only or writeable.
+  -
+  The value of writeable attributes can be changed with the assignment operator, and writeable attributes can be removed with → development/languages/Python/statements/del[`del()` statement]. (TODO: can they also be removed
+  with the → development/languages/Python/built-in-functions/delattr[`delattr()` built-in function]?)
+
 
 }
 { UTF-8 Source code
