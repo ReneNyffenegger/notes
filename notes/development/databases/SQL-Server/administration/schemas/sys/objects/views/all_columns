@@ -1,0 +1,30 @@
+$ SQL Server: sys.all_columns
+@ sys.all_columns
+
+`sys.all_columns` can be used to query about columns, their → development/databases/SQL-Server/T-SQL/data-types[data types], precisions etc.
+
+The following query joins with `sys.all_views` to select the colums from `sys.all_columns`:
+code {
+select
+   sc.name                    schema_name,
+   vw.name                    view_name,
+-- cl.column_id,
+   cl.name                    column_name,
+   tp.name                    data_type,
+   cl.max_length,
+   cl.precision
+from
+   sys.all_columns cl                                     join
+   sys.all_views   vw on vw.object_id    = cl.object_id   join
+   sys.schemas     sc on vw.schema_id    = sc.schema_id   join
+   sys.systypes    tp on cl.user_type_id = tp.xusertype
+where
+   vw.name = 'all_columns'
+order by
+   sc.name,
+   vw.name,
+   cl.column_id;
+code }
+
+sa:
+  → development/databases/SQL-Server/administration/schemas/sys/objects/views/columns[`sys.columns`]

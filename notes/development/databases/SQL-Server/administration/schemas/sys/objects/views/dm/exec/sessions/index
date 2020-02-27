@@ -1,0 +1,73 @@
+$ SQL Server - sys.dm_exec_sessions
+@ sys.dm_exec_sessions
+
+code {
+select
+   ses.session_id,
+   ses.login_time,
+   ses.host_name,
+   ses.program_name,
+   ses.host_process_id,
+   ses.client_version,
+   ses.client_interface_name,
+   ses.security_id, -- suser_sname(ses.security_id) == ses.login_name (?)
+   ses.login_name,
+   ses.nt_domain,
+   ses.nt_user_name,
+   ses.status,
+   ses.context_info, -- T-SQL Statement: set context_info 0xDEADBEEF;
+   ses.cpu_time,
+   ses.memory_usage,
+   ses.total_scheduled_time,
+   ses.total_elapsed_time,
+   ses.endpoint_id,
+   ses.last_request_start_time,
+   ses.last_request_end_time,
+   ses.reads,
+   ses.writes,
+   ses.logical_reads,
+   ses.is_user_process,
+   ses.text_size,
+   ses.language,
+   ses.date_format,
+   ses.date_first,
+   ses.quoted_identifier,
+   ses.arithabort,
+-- Settings for session:
+   ses.ansi_null_dflt_on,
+   ses.ansi_defaults,
+   ses.ansi_warnings,
+   ses.ansi_padding,
+   ses.ansi_nulls,
+   ses.concat_null_yields_null,
+   ------------------------------------
+   case ses.transaction_isolation_level
+        when 0 then 'unspecified'
+		when 1 then 'read uncommitted'
+		when 2 then 'read comitted'
+		when 3 then 'repeatable read'
+		when 4 then 'serializable'
+		when 5 then 'snapshot'
+		else        '?'
+   end                               trx_isolation_lvl,
+   ----------------------------------------------------
+   ses.lock_timeout,
+   ses.deadlock_priority,
+   ses.row_count,
+   ses.prev_error,
+   ses.original_security_id,
+   ses.original_login_name,
+   ses.last_successful_logon,
+   ses.last_unsuccessful_logon,
+   ses.unsuccessful_logons,
+   ses.group_id,
+   ses.database_id,
+   ses.authenticating_database_id,
+   ses.open_transaction_count
+from
+   sys.dm_exec_sessions  ses;
+code }
+
+sa:
+  Each connection (record in → development/databases/SQL-Server/administration/schemas/sys/objects/views/dm_exec_connections[`sys.dm_exec_connections`]) is associated with a session (`dm_exec_sessions`) but not every session
+  has a connection.
