@@ -7,7 +7,7 @@ In *CPython*, `id()` returns the address of the object in → Linux/memory[memor
 
 { type
 
-  `id()` returns an integer:
+ `id()` returns an → development/languages/Python/types/int[`int`]:
   gh|about-python|/builtin-functions/id/type.py||
 
 }
@@ -15,5 +15,49 @@ In *CPython*, `id()` returns the address of the object in → Linux/memory[memor
 
   Of course, the function `id` has an *id*, too:
   gh|about-python|/builtin-functions/id/id_id.py||
+
+}
+{ id(42)
+
+  In *CPython*, there seems to be a memory location even for literals, such as `42` or `0`.
+
+  In the following example, the *id* of `42` is 2012990016, the *id* of `0` is 2012989344.
+code {
+>>> id(42)
+2012990016
+>>> forty_two=42
+>>> id(forty_two)
+2012990016
+>>> num42=42
+>>> id(num42)
+2012990016
+>>> id(0)
+2012989344
+>>> zero=0
+>>> id(zero)
+2012989344
+>>> num0=0
+>>> id(num0)
+2012989344
+code }
+
+  How can that be?
+ 
+  The answer is found in the → https://docs.python.org/3/c-api/long.html[Python's C API reference manual on Integer objects]:
+  "
+     The current implementation keeps an array of integer objects for all
+     integers between -5 and 256, when you create an int in that range you
+     actually just get back a reference to the existing object
+  "
+
+  So, with that information, we verify that the number `257` does not come with its «own» id:
+code {
+>>> two_hundred_and_fifty_seven = 257
+>>> num_257                     = 257
+>>> id(two_hundred_and_fifty_seven)
+17055472
+>>> id(num_257)
+17055504
+code }
 
 }
