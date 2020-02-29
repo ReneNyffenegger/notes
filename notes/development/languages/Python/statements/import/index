@@ -42,12 +42,90 @@ The `import` statement searches the directories in → development/languages/Pyt
 }
 { Packages (modules stored in directories and subdirectories)
 
-  gh|about-python|/statements/import/dirs-and-subdirs/tq84_dir/mod_one.py||
-  gh|about-python|/statements/import/dirs-and-subdirs/tq84_dir/mod_two.py||
+  Modules, that semantically belong together, can be stored in their own directory (or sub directories). This helps to recognize their relationship and reduces namespace cluttering when importing them.
 
-  gh|about-python|/statements/import/dirs-and-subdirs/go.py||
+  This is demonstrated with the following two files, `mod_one.py` and `mod_two.py`, where are both stored in a directory `tq84_dir`.
 
+  { Imported files
 
+   `tq84_dir/mod_one.py`:
+    gh|about-python|/statements/import/dirs-and-subdirs/tq84_dir/mod_one.py||
+
+   `tq84_dir/mod_two.py`:
+    gh|about-python|/statements/import/dirs-and-subdirs/tq84_dir/mod_two.py||
+
+  }
+  { Importing these files
+
+    Before doing anythin, I store the names of the current local scope in the variable `global_names` so that I can compare it with the names in the current local scope after executing the `import` stateemnt:
+code {
+>>> global_names = dir()
+>>> print(global_names)
+['__annotations__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__']
+code }
+
+    I now execute the an `import` statement. In contrast to the previous examples, this time, the name `tq84_dir` refers to a file system directory rather than a file name:
+code {
+import tq84_dir
+code }
+
+    I perform a diff between the names that are stored in `global_names` and those that are now present in the *current local scope* and store the result in `new_names`:
+code {
+>>> new_names = list(set(dir()) - set(global_names))
+>>> print(new_names)
+['tq84_dir', 'global_names']
+code }
+
+    It turns out that importing the `tq84_dir` module (package) has created a corresponding new name (`tq84_dir`) in the current local scope.
+    -
+   (`global_names` was created after the first call of → development/languages/Python/built-in-functions/dir[`dir()`] executed, hence it is also reported)
+  
+    The type of `tq84_dir` is *module*:
+code {
+>>> print(→ development/languages/Python/built-in-functions/type('tq84_dir'))
+<class 'module'>
+code }
+
+   As before, I store the list of attributes that are present in the `tq84_dir` module in a variable to be able to diff it later.
+code {
+>>> tq84_names_init = dir(tq84_dir)
+code }
+
+   Although the directory contains two files (sub modules?), they are not yet loaded (imported):
+code {
+>>> print(tq84_names_init)
+['__doc__', '__file__', '__loader__', '__name__', '__package__', '__path__', '__spec__']
+code }
+
+   It's about time to import `mod_one.py` and check how it influences the namespace of `tq84_dir`:
+code {
+>>> import tq84_dir.mod_one
+>>> tq84_names_1 = dir(tq84_dir)
+>>> new_names = list(set(tq84_names_1) - set(tq84_names_init))
+>>> print(new_names)(
+['mod_one']
+code }
+
+   Same thing with `mod_two.py`:
+code {
+>>> import tq84_dir.mod_two
+>>> tq84_names_2 = dir(tq84_dir)
+>>> new_names = list(set(tq84_names_2) - set(tq84_names_1))
+>>> print(new_names)
+['mod_two']
+code }
+
+   Finally, I call the functions that were defined in these package-modules:
+code {
+>>> tq84_dir.mod_one.func()
+I was defined in mod_one
+>>> tq84_dir.mod_two.func()
+I was defined in mod_two
+code }
+
+   These statements are also recorded → https://github.com/ReneNyffenegger/about-python/blob/master/statements/import/dirs-and-subdirs/go.py[here].
+
+  }
 
 }
 { import executes an imported package's __init__.py
