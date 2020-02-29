@@ -1,69 +1,127 @@
 $ Data Vault modelling
 
+Data Vault modelling is a combination of *star schema* and third normal form (3NF).
+
+The alleged advantages of Data Vault modelling are
+  • flexibility
+  • scalability
+
+{ Versions
+
+  Data Vault 1.0 was instroduced by Linstedt in 1990.
+
+  Data Vault 2.0 was presented by Linstedt in 2013 as an extension to 1.0 mainly in order to
+    • improve performance when interacting with → development/databases/NoSQL and → development/Big-Data systems
+    • follow → development/Software-design/methods/Agile[agile] and → development/Software-design/methods/Agile/Scrum best pracitices
+    • handle *unstructured* data
+    • focus  on pattern based, automation, generation, and → development/Software-design/CMMI level 5
+
+  An important difference between 1.0 and 2.0 is the elimination of 8sequence keys* in favor of *hash keys* which is generated from a business key using a
+  hash algorithm such as → development/security/SHA-1[SHA-1] or MD5.
+
+}
 { Three types of tables
 
-  Data vauld modelling does not differentiate between dimension tables (master data) and fact tables (transactional data).
+  Data vault modelling does not differentiate between dimension tables (master data) and fact tables (transactional data).
   Instead, it diffentiates between hub, satellite and link tables.
 
-{ Hub tables #hub-tables
 
-  A hub table represents a *master data entity*, such as customer, vendor, sale, products…
+  table { lll
+    ~Entity type~ ☰ ~Content~ ☰ ~what it addresses~
+    Hub ☰ Business keys ☰ Business driven → development/Enterprise/Integration/data[data integration] from different source systems
+    Links ☰ associations / transactions ☰ absorb structural changes
+    Satellites ☰ Data describing business keys in hubs or links ☰ Data history (auditability, traceability)
 
-  A record in a hub table consists *only* of:
-    • a business key (which usually is the primary key from the data source system)
-    • a load date
-    • a machine sequence (surrogate key)
-    • a record source
+  table }
 
-  It does *not* have
-    • business attributes (That is: there is no descriptive information)
-    • → development/databases/SQL/table/constraint/foreign-key[foreign keys]
+  { Hub tables #hub-tables
+
+    A hub table represents a *master data entity*, such as customer, vendor, sale, products…
+
+    A record in a hub table consists *only* of:
+      • a business key (which usually is the → development/databases/SQL/table/constraint/primary-key from the data source system)
+      • a load date (which is not part of the primary key). The naming convention for a load date is `LDTS`, `LDDTS` or `LDTM`.
+      • a machine sequence (surrogate key)
+      • a record source (which is not part of the primary key): This record source identifies the *first data source* that provided the business key. The naming convention for a record source column is `R`, `RSRC` or `RS`
+
+    The *business key* uniquely identifies an *entity*.
+
+    It does *not* have
+      • business attributes (That is: there is no descriptive information)
+      • → development/databases/SQL/table/constraint/foreign-key[foreign keys]
+
+    Hubs are colored *blue*.
 
 
-  Hubs are colored *blue*.
+    { Definition
 
-}
+      Dan Linsted defines a *hub entity* as
+      "
+        A UNIQUE List of business Keys
+      "
 
-{ Satellite tables #satellite-tables
+      I believe what he actually means is *a list of unique business keys*.
 
-  All business attributes (the descriptive information) for a business key are stored in satellite tables.
+    }
+    { Last seen date
 
-  A foreign key in the satellite table references the → development/databases/SQL/table/constraint/primary-key (surrogate key?) in the hub table.
-  -
-  A hub table is referenced by one or more hub tables.
-  - 
-  Sometimes, when there are attributes that are thought not to change over time, they
-  are stored in a different satellite table than data that is thought to change over time.
-  -
-  Additionally, data from different source system could be stored in different satellite tables.
+      Data Vault 1.0 had a *last seen date* for a business key in a hub table.
 
-  A satellite table has a `valid_from` (or effective date), but no `valid_to` (or expiration date). Thus,
-  the dreaded(?) *updates* (in an »insert only environment«) can be reduced (or omitted?)
-  -
-  This `valid_from` is not a »business date«, it rather defines when the record was loaded.
-  -
-  Usually, the `valid_from` attribute will be part of the → → development/databases/SQL/table/constraint/primary-key of the satellite table.
+      In Data Vault 2.0, these are not allowed anymore (mostly because of performance reasons when they need to be updated - but also because there
+      are platforms that don't updates at all).
 
-  Satellite tables are colored *red*.
+    }
 
-}
+  }
 
-{ Links #links
+  { Links #links
 
-  Relationships are modelled as links, which in fact are *many to many* relationships between hub tables (*even* if the
-  relationship  a 1:1 or 1:n !)
+    Relationships are modelled as links, which in fact are *many to many* relationships between hub tables (*even* if the
+    relationship  a 1:1 or 1:n !)
 
-  Like hub tables, link tables do not contain descriptive information.
+    A link references two or more hubs (foreign key - primary keys).
 
-  With the *many to many* approach, it is hoped to be more flexible (really …?).
+    Like hub tables, link tables do not contain descriptive information.
+    -
+    In fact, they don't even a notion of or attribute *begin date* or *end data* (except if the link is a *non-historized link*)
+    -
+    The factual and temporal data is stored in the satellite tables.
 
-  Yet, the burden of vaildating the correct cardinality and relationships (especially in 1:1 and 1:n ones) is put on
-  the → development/Data/warehouse/ETL job.
+    With the *many to many* approach, it is hoped to be more flexible (really …?).
 
-  Like hub tables, link tables have a *load date* as well that is not part of the primary key.
+    Yet, the burden of vaildating the correct cardinality and relationships (especially in 1:1 and 1:n ones) is put on
+    the → development/Data/warehouse/ETL job.
 
-  Link tables are colored *green*.
-}
+    Like hub tables, link tables have a *load date* as well that is not part of the primary key.
+
+    Link tables are colored *green*.
+  }
+
+  { Satellite tables #satellite-tables
+
+    A satellite stores (the descriptive) → development/Data for a business key or link and and tracks it as it changes in the source system. Changed data about an entity that is identified by a business key entails
+    a new record in a satelitte table.
+
+    A foreign key in the satellite table references the → development/databases/SQL/table/constraint/primary-key (surrogate key?) in the hub table (or link table).
+    -
+    A hub table is referenced by one or more satellite tables.
+    -
+    Sometimes, when there are attributes that are thought not to change over time, they
+    are stored in a different satellite table than data that is thought to change over time.
+    -
+    Additionally, data from different source system could be stored in different satellite tables.
+
+    A satellite table has a `valid_from` (or effective date), but no `valid_to` (or expiration date). Thus,
+    the dreaded(?) *updates* (in an »insert only environment«) can be reduced (or omitted?)
+    -
+    This `valid_from` is not a »business date«, it rather defines when the record was loaded.
+    -
+    Usually, the `valid_from` attribute will be part of the → development/databases/SQL/table/constraint/primary-key of the satellite table.
+
+    Satellite tables are colored *red*.
+
+  }
+
 
 }
 { Cost of the flexibility
@@ -77,6 +135,32 @@ $ Data Vault modelling
   In order to handle these problems, *point in-time tables* were proposed. And these are exactly the problem: who's going to maintain them?
 
 }
+{ Reducing joins
+
+  Because join operations are costly in Data Vault, there are two constructs to reduce joins in queries:
+    • Point-in-time tables
+    • Bridge tables
+
+  Both techniques are based on snapshots of data and are located in the *business data vault side*.
+
+  { Point-in-Time (PIT) tables
+  
+    In order to improve performance, there are so called *Point-in-time* or *PIT* tables.
+
+    Linstedt defines PIT tables as
+    "
+      A structure which sustains integrity of joins across time to all the Satellites that are connected to the Hub [or Link]
+    " [ Supercharge Your Data Warehouse, 2010-2011 ]
+  
+  }
+  { Bridge tables
+  
+    …
+ 
+  }
+}
+
+
 
 sa:
   → development/Data/warehousing/modelling/index
@@ -86,3 +170,15 @@ sa:
   → http://learndatavault.com/[Learn Data Vault]
 
   → development/Data/warehousing/sources/2011-Schnider-Wehner-Welker_Data-Warehousing-mit-Oracle
+
+  { Other related modelling aproaches
+
+    Data vault is just a flavor of *ensemble modelling*, another flavor is *anchor modelling*.
+
+    The concept of *hub entity* is named differently in different flavors:
+      • *focal* in Focal Point
+      • *anchor table* in Achnor modelling
+      • *head* in Head & Version
+      • *hub* in Hyperagility
+
+  }
