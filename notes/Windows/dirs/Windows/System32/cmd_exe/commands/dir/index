@@ -1,8 +1,37 @@
 $ cmd.exe - dir
 @ dir
 
-Show the files and → Windows/file-system/directories[directories] in a given directory or the current directory
+`dir` lists files and → Windows/file-system/directories[directories] in a given directory or the current directory:
 
+{ Options
+
+  `dir` accepts the following options:
+  table { ll
+  
+    `/A`,  `/Ax`, `/A-x` ☰ `/A`: Show all files, `/Ax`: include files with attribute `x` in listing, `/A-x`: exclude files with attribute `x` (→ #cmd-exe-dir-attr[See below] for `x`)
+    `/B`  ☰ Use *bare format*, that is: only show file and directory name, without their sizes and/or creation date
+    `/C`, `/-C` ☰ Show, don't show thousand separator in file sizes (`/C` is default)
+    `/D`, `/W` ☰ Wide (multi-column) format. `/D` sorts file first in left most column, `/W` sorts from top to bottom, then from left to right
+    `/L` ☰ Print file names in lowercase
+    `/-N` ☰ Show filenames to the left (`/N` is default)
+    `/Ox` ☰ Sort files according to → #cmd-exe-dir-sort[criterion `x`]
+    `/P` ☰ Paginate output
+    `/Q` ☰ Print file owner
+    `/R` ☰ Include alternate data streams of file
+    `/T:x` ☰ Specify displayed time field (`x`) for displaying or sorting (`c`: creation, `a`: last acess, `w`: last written) 
+    `/X` ☰ Show short file names
+    `/4` ☰ Use 4-digit year (is this not the default anyway.
+
+  table }
+
+{
+{ Environment variable DIRCMD #cmd-exe-dircmd
+
+  The → Windows/development/environment-variables[environment variable] `DIRCMD` controls the default options given to `dir`.
+
+  It might be set, for example, to `/ogn /a` to always show the directories first and sort by file/directory name and to show *all* (including hidden) files.
+
+}
 { Sort files and directories #cmd-exe-dir-sort
 
  `dir /ox` sorts the listed files. `x` specifies the sorting criteria:
@@ -21,6 +50,26 @@ C:\Users\Rene> dir /o-d
 code }
 
 }
+{ Include / exclude files with specific attributes #cmd-exe-dir-attr
+  
+  `/Ax` includes, `/A-x` excludes files with a given attribute `x`. `/A` shows *all* files, no matter what their attributes.
+
+  The possible values for `x` are:
+  table { ll
+    `d` ☰ Directories
+    `h` ☰ Hidden files
+    `s` ☰ System files
+    `l` ☰ Reparse points
+    `r` ☰ Read-only files
+    `a` ☰ Files ready for archiving
+    `i` ☰ Not content indexed files
+    `o` ☰ Offline files
+  table }
+
+  Attributes can be set or removed with → Windows/dirs/Windows/System32/attrib_exe[`attrib.exe`].
+
+
+}
 { Display owner of files and directories
 
   The owner of files and directories is shown with `/q`:
@@ -32,13 +81,6 @@ code }
 { Show junctions #cmd-exe-dir-al
 
   `dir /al` shows junctions (aka *reparse points*).
-
-}
-{ Environment variable DIRCMD #cmd-exe-dircmd
-
-  The → Windows/development/environment-variables[environment variable] `DIRCMD` controls the default options given to `dir`.
-
-  It might be set, for example, to `/ogn /a` to always show the directories first and sort by file/directory name and to show *all* (including hidden) files.
 
 }
 
