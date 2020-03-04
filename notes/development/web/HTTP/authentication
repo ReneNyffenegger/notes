@@ -1,5 +1,58 @@
 $ HTTP authentication
 
+{ Header fields
+
+  → development/web/HTTP/header[Header] fields that are used for HTTP authentication include
+    • `Authorization`
+    • `Proxy-Authenticate`
+    • `Proxy-Authorization`
+    • `WWW-Authenticate`
+
+}
+{ The 'Basic' Authentication Scheme
+
+  The *Basic Authentication Scheme* protects so called *realms*. A realm is identified by a string (text) and consists of one or more resources. In order to access the resources
+  that belong to a realm, the user needs to provide a user id/password  → development/security/credential pair.
+
+  In order for this authentication scheme to be considered secure, it needs to be combined with an external secure
+  system such as → development/security/cryptography/TLS.
+
+  A → development/web/Proxy might use a similar challenge using the 407 → development/web/HTTP/status-code[status code] and the `Proxy-Authentication` → development/web/HTTP/header[header] field.
+
+  { Possible exchange of headers between user agent and web server
+
+  Initial HTTP request:
+code {
+GET /some/protected/resource HTTP/1.1
+… more headers
+code }
+
+  The webserver answers with
+code {
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic Realm="name of the realm"
+… more headers (irrelevant for authenticaton )
+
+<html> …
+</html>
+code }
+
+  The User Agent displays a message box to enter username and password.
+  -
+  A character-string consisting of username and password, separated by a colon (`:`) is → development/Base64[Base 64 encoded] and sent with the `Authorization` header:
+code {
+GET /some/protected/resource HTTP/1.1
+…
+Authorization: Basic dXNlcjpwYXNzd29yZA==
+…
+code }
+  
+  The webserver decodes the encoded username and password. If correct, it serves the requested resource
+
+  }
+
+
+}
 { OAuth
 
   The OAuth 2.0 authorization framework enables a third-party application to
@@ -15,7 +68,9 @@ sa:
   → development/web/HTTP
 
   → development/web/RFC → development/web/RFC#rfc-7615
+  -
   → development/web/RFC → development/web/RFC#rfc-7616
-  → development/web/RFC → development/web/RFC#rfc-7617
+  -
+  → development/web/RFC → development/web/RFC#rfc-7617[RFC 7617]  The 'Basic' HTTP Authentication Scheme
 
   → development/security/authentication
