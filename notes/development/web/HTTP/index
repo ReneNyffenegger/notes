@@ -1,8 +1,104 @@
 
-{ User Agent #http-user-agent
+{ Initial goals and history
 
-  TODO: gone → development/web/HTTP/User-Agent[here].
+  The HTTP protocol was initialize developed to create the network service that allow documents link with each other. This linking feature was referred to
+  as *hypertext*. (The initial letters HT in both, HTTP and → development/web/HTML stands for *Hyper Text*.)
 
+  Over time, the standard has evolved to adadpt and satisfy the needs of a truly *World Wide Web* so that in the age of YouTube and other non-textual services, the aspect of *HyperText* has become
+  less important than in the origins of HTTP.
+
+}
+{ Client-Server Architecture
+
+  HTTP has a classical *Client-Server Architecture* at its core.
+
+  The *HTTP Server* has a set of *resources* (such as → development/web/HTML documents etc) that it serves when requested by a *HTTP Client*.
+
+  These resources are identified by an → development/web/URI-URL-URN-IRI-URC#uri[URI] (Uniform Resource Identifier).
+
+  In order to obtain such a resource, the client initiates a → development/web/TCP-IP[TCP] (HTTP 3: UDP?) connection to the server. After establishing such a connection,
+  the client sends a request → development/web/HTTP/header that contains the URI of the desired resource.
+
+  The server answers the request by sending a request header followed by the resource body.
+
+  A particular feature of the request/response → development/web/HTTP/header[headers] is that they are exchanged in (mostly) human readable text.
+
+  A HTTP client is also referred to as → development/web/HTTP/User-Agent[user agent], a HTTP server as a → web/webserver[web server].
+
+
+}
+{ Possible Request-Response exchange
+
+  The following two headers try to give an idea how a HTTP request-response exchange might be executed.
+
+  { Request
+
+    The → development/web/HTTP/User-Agent[user agent] requests a resource by sending a HTTP request to a → web/webserver[web server]. The desired
+    URI is *http://rene.nyffenegger.ch/notes/development/web/HTTP*
+
+    So the client contacts the the server (renenyffenegger.ch) and sends a header that might look like.
+code {
+GET /notes/development/web/HTTP/header HTTP/1.1
+host: renenyffenegger.ch
+user-agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0
+accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+accept-language: de
+accept-encoding: gzip, deflate
+referer: www.google.com
+accept-charset: *
+x-forwarded-for: …
+x-forwarded-host: …
+x-forwarded-server: …
+connection: close
+
+code }
+
+    In the request header, the first line is the *request line* that specifies the *request method* (in this example `GET`), the URI and the protocol Version (`HTTP/1.1`).
+
+    The request line is followed by *header fields*, each of which has a name that is seperated from its value by a colon (`:`).
+
+    The header extends to the first empty line.
+
+  }
+  { Response
+
+    The web server returns the requested resource along with a header.
+
+    The body of the resource is separated from the header by an empty line.
+
+    The first line of the response is a *status line* that consists of
+      • HTTP Version (Format: `HTTP M/m`, M = Major number, m = minor number)
+      • A three-digit → development/web/HTTP/status-code
+      • A character string that describes the status code
+
+  A potential response header from a → web/webserver might be:
+code {
+HTTP/1.0 200 OK
+Date: Wed, 4 Mar 2020 21:18:13 GMT
+Content-Type: text/html; charset=UTF-8
+Content-Length: …
+
+<html>
+  …
+</htm>
+code }
+
+  }
+
+}
+{ Proxies
+
+  At times, there is a need for a user agent to request the desired resources indirectly, using a proxy.
+
+  Such a proxy is contacted by the user agent and forwards the user agent's request to the web server, thus acting on behalf of the user agent.
+  
+  The web server sends its responses also to the proxy which then relays them to the user agent.
+
+  A proxy minimally changes some portions of the exchanged messages, usually in their headers.
+  -
+ (A proxy that does not change the messages is referred to as *tunnel*).
+
+  A special kind of proxy is the so called *captive portal* (aka interception proxy or transparent proxy) because a captive portal is not actively chosen by the user agent.
 
 }
 { Debugging/Monitoring/Proxying HTTP traffic
@@ -71,3 +167,5 @@ sa:
   → development/languages/VBA/Useful-object-libraries/Windows-HTTP-Services
 
   The → Microsoft/dot-net class → Microsoft/dot-net/namespaces-classes/System/Net/HttpWebRequest[`System.Net.HttpWebRequest`]
+
+  → development/languages/VBA/Useful-object-libraries/Windows-HTTP-Services
