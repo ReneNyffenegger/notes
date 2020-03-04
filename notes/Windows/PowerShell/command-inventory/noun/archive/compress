@@ -1,5 +1,58 @@
 $ PowerShell cmdLet compress-archive
--
+
+The ~maximum size~ of zip files that `compress-archive` can create is 2MB (which is a limitation of
+the class → Microsoft/dot-net/namespaces-classes/System/IO/Compression/ZipFile[`System.Io.Compression.ZipFile`] that `compress-archive` internally uses).
+
+{ -path vs -literalPath
+
+ `compress-archive` has the two parameters `-path` and `-literalPath` to specifiy the files to be compressed.
+
+  They differ in that `-literalPath` does not expand (or accept) wild cards characers (`*` and `?`)..
+
+  Both parameters accept an → Windows/PowerShell/language/type/array of strings.
+
+  In order to use `-literalPath`, it needs to be specified explicitely. (`-path` is the default (and first) parameter for `compress-archive`).
+
+}
+{ -compressionLevel
+
+  The parameter `-compressionLevel` can be given one of three options:
+    • `fastests`
+    • `optimal` (default)
+    • `noCompression`
+
+}
+{ -update / -force
+
+  If the specified zip file already exists, `-update` or `-force` determine what happens to the zip file.
+
+ `-force` will create a new zip file.
+
+ `-update` adds the specified files to the zip files. If they're already in the zip file, they're updated if the zip's version of the file is older than that with which they're updated.
+
+}
+{ Example
+
+  The following command creates `project`.zip` that contains all `view-*.sql`, `table-*.sql` files that are found in the current directory, plus the `readme.txt` file that also needs to be in the current directory.
+
+  The command uses the → Windows/PowerShell#ps-line-continuation[line continuation character] (backtick) to make it visually easier for the read to see what's being added.
+
+  Note that the first parameter by default is `-path` which accepts an array of strings. So, the *commas* (before `table-*.sql` and `readme.txt`) are necessary to tell `compress-archive` that they belong to this parameter.
+  -
+ `project.zip` is not prepended by a comma, which indicates that this is the second parameter.
+
+
+code {
+PS C:\> compress-archive    `
+   view-*.sql               `
+ , table-*.sql              `
+ , readme.txt               `
+   project.zip              `
+  -force
+code }
+
+
+}
 
 sa:
 
