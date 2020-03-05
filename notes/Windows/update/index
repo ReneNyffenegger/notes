@@ -1,5 +1,72 @@
 $ Windows Update
 
+{ Quick Fix Engineering (QFE) update #qfe-update
+
+  A *Quick Fix Engineering* (QFE) update is a small system-wide update that is applied to the → Windows Operating System and its components
+  such as the *Internet Explorer (IE)*, Windows Server Roles and features.
+
+  Any (so called) non-inbox software, such as → Microsoft/Office, Exchange Server etc. are distributed differently.
+
+}
+{ Querying the update history
+
+  { Quick Fix Engineering updatesj
+
+   *Quick Fix Engineering* updates can be reported  with th e → Windows/PowerShell/command-inventory/noun/hotfix/get[PowerShell `get-hotfix` cmdLet]:
+
+code {
+PS C:\Windows\system32> get-hotfix
+
+Source        Description      HotFixID      InstalledBy          InstalledOn
+------        -----------      --------      -----------          -----------
+DESKTOP-1S... Update           KB4534131     NT AUTHORITY\SYSTEM  2/22/2020 12:00:00 AM
+DESKTOP-1S... Update           KB4465065     NT AUTHORITY\SYSTEM  7/27/2019 12:00:00 AM
+DESKTOP-1S... Update           KB4470502                          1/8/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4470788                          1/8/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4480979                          1/8/2019 12:00:00 AM
+DESKTOP-1S... Update           KB4486153     NT AUTHORITY\SYSTEM  2/1/2020 12:00:00 AM
+DESKTOP-1S... Update           KB4486159     NT AUTHORITY\SYSTEM  2/3/2020 12:00:00 AM
+DESKTOP-1S... Security Update  KB4504369     NT AUTHORITY\SYSTEM  7/27/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4509095     NT AUTHORITY\SYSTEM  7/27/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4512577     NT AUTHORITY\SYSTEM  9/27/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4516115     NT AUTHORITY\SYSTEM  9/27/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4521862     NT AUTHORITY\SYSTEM  10/21/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4523204     NT AUTHORITY\SYSTEM  11/13/2019 12:00:00 AM
+DESKTOP-1S... Security Update  KB4537759     NT AUTHORITY\SYSTEM  2/22/2020 12:00:00 AM
+DESKTOP-1S... Security Update  KB4532691     NT AUTHORITY\SYSTEM  2/22/2020 12:00:00 AM
+code }
+
+  More or less the same result can be obtained with → Windows/dirs/Windows/System32/wbem/WMIC_exe[`wmic.exe`]:
+code {
+C:\> wmic qfe list
+…
+code }
+
+
+  }
+  { Reporting all updates
+
+    The → Windows/development/COM/object (?) `Microsoft.Update.Session` allows to query the update history of applications (as opposed to QFE updates:
+code {
+PS C:\> $wuSess   = → Windows/PowerShell/command-inventory/noun/object/new[new-object] -comObject Microsoft.Update.Session
+PS C:\> $wuSearch = $wuSess.createUpdateSearcher()
+PS C:\> $wuSearch.search("isInstalled=1").updates | select-object lastDeploymentChangeTime, title
+
+LastDeploymentChangeTime Title
+------------------------ -----
+5/16/2019 12:00:00 AM    2019-02 Update for Windows 10 Version 1809 for x64-based Systems (KB4465065)
+8/13/2019 12:00:00 AM    Microsoft .NET Framework 4.8 Language Packs for Windows 10 Version 1809 for x64 (KB4087642)
+2/11/2020 12:00:00 AM    Windows Malicious Software Removal Tool x64 - February 2020 (KB890830)
+2/11/2020 12:00:00 AM    2020-02 Cumulative Update for .NET Framework 3.5, 4.7.2 and 4.8 for Windows 10 Version 1809 for x64 (KB4538122)
+2/11/2020 12:00:00 AM    2020-02 Security Update for Adobe Flash Player for Windows 10 Version 1809 for x64-based Systems (KB4537759)
+3/4/2020 12:00:00 AM     Update for Windows Defender Antivirus antimalware platform - KB4052623 (Version 4.18.2001.10)
+2/11/2020 12:00:00 AM    2020-02 Cumulative Update for Windows 10 Version 1809 for x64-based Systems (KB4532691)
+2/18/2020 12:00:00 AM    2019-12 Update for Windows 10 Version 1809 for x64-based Systems (KB4023057)
+code }
+
+  }
+
+}
 { Log Files #windows-update-log-files
 
   { Directories
@@ -18,7 +85,6 @@ $ Windows Update
 
   }
 
-
 }
 sa:
 
@@ -27,6 +93,8 @@ sa:
     • → Windows/dirs/Windows/System32/UsoClient_exe[`UsoClient.exe`]
     • → Windows/dirs/Windows/System32/wusa_exe[`wusa.exe`]
 
+  → Windows/dirs/Windows/System32/wuapi_dll[`wuapi.dll`] hosts the *Windows Update Client API*.
+
   The → Windows/services/installed/wuauserv[wuauserv service]
 
   The → Windows/registry[registry] keys
@@ -34,3 +102,6 @@ sa:
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/WindowsUpdate[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate`]
 
   The console program → Windows/dirs/Windows/System32/systeminfo_exe[`systeminfo.exe`] prints a section named *Hotfix(s)*.
+
+links:
+  Microsoft Technet: → https://social.technet.microsoft.com/wiki/contents/articles/4197.windows-how-to-list-all-of-the-windows-and-software-updates-applied-to-a-computer.aspx[How to List All of the Windows and Software Updates Applied to a Computer]

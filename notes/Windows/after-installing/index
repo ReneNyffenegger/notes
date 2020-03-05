@@ -1,13 +1,31 @@
 $ After installing Windows
 
+rem {
+{ Create a System Recovery Disc (?)
+
+  A *System Recovery Disc* might be useful.
+
+  Apparently, a *System Recovery Disc* can be created with → Windows/dirs/Windows/System32/recdisc_exe[`recdisc.exe`].
+
+}
+rem }
 { Change execution policy of PowerShell
 
-  Change the value of `ExecutionPolicy` under
-  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/PowerShell/1/ShellIds/Microsoft_PowerShell[`HKEY_CURRENT_USER\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell`]
-  in order to be able to run → Windows/PowerShell[PowerShell] scripts and not receive error
-  → Windows/PowerShell/script-cannot-be-loaded-because-running-scripts-is-disabled-on-this-system[script cannot be loaded because running scripts is disabled on this system] anymore.
+  In order to be able to run → Windows/PowerShell scripts, the *execution policy* for PowerShell needs to be changed.
 
-  2019-04-01: There was no such key and an according change didn't seem necessary.
+  Without chaning this policy, trying to execute a script results in the error message:
+  → Windows/PowerShell/script-cannot-be-loaded-because-running-scripts-is-disabled-on-this-system[script cannot be loaded because running scripts is disabled on this system].
+
+  The current value of the execution policy is found in the → Windows/registry/tree-structure/key[registry key] 
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/PowerShell/1/ShellIds/Microsoft_PowerShell[`HKEY_CURRENT_USER\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell`]
+ (value `ExecutionPolicy`). This value should be set to `RemoteSigned`.
+
+  Interestingly, PowerShell provides the → Windows/PowerShell/command-inventory/noun/executionPolicy/set[`set-executionPolicy` cmdLet] that does exactly that:
+code {
+set-executionPolicy removeSigned -scope currentUser
+code }
+
+  *2019-04-01* it turned out that the mentioned key does not exist after a fresh installation of Windows - but it is crated with the cmdLet.
 
 }
 { Activate Windows
@@ -23,6 +41,14 @@ code }
 
 
   TODO: Does it have something to do with → Windows/dirs/Windows/System32/changepk_exe[changepk.exe] or → Windows/dirs/Windows/System32/slui_exe (under → Windows/dirs/Windows/System32)?
+
+}
+{ Check hostname
+
+  Is hostname ok?
+code {
+PS:\> → Windows/dirs/Windows/System32/HOSTNAME_EXE[hostname]
+code }
 
 }
 { Start PowerShell as administrator

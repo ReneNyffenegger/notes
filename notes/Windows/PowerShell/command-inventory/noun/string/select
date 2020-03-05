@@ -4,10 +4,45 @@ $ PowerShell cmdLet select-string
   → Windows/PowerShell/pipeline[piped] into `select-string` need to be either be → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`] objects or
   have a `ToString()` method.
 
+{ Simulating the Linux strings functionality #select-string-strings
+
+  The following example tries to *approximately* simulate the `strings` → Linux/shell/commands[Linux command line command].
+
+  The task I have given myself is to extract the words with *excactly 5 letters* from the following file (named `text`):
+  gh|about-PowerShell|/cmdlets/string/select/strings/text||
+
+  Of course, these words are `three`, `seven` and `eight`.
+
+  This can be achieved with the following → Windows/PowerShell/pipeline
+  gh|about-PowerShell|/cmdlets/string/select/strings/strings.ps1||
+
+  Explanation: first, the text of the file is read with → Windows/PowerShell/command-inventory/noun/content/get[`get-content`] and then
+  piped into `select-string`.
+  -
+  The pattern that matches exactly 5 times is `\b\w{5}\b`:
+    • `\b` matches a → development/regular-expressions#regexp-word-boundary[word boundary]
+    • `\w` matches any letter (and digits)
+    • `{5}` specifies to match the previous atom exactly five times
+  -
+ `select-string` is given the `-allMatches` option because there are lines where this pattern matches multiple times and I want to capture them all.
+
+  The result of this `select-string` operation is processed in a → Windows/PowerShell/language/statement/foreach[`foreach` statement] that iterates
+  over each line that matched at least once. This line is assigned to `$matchedLine`.
+
+  In order to find the matched words, another `foreach` statement that iterates over `$matchedLine.matches` and assigns each match to `$matchedWord`.
+
+  Finally, the line number and the matched word can then be printed:
+code {
+1: three
+3: seven
+3: eight
+code }
+
+}
 { Recursive search for a pattern (grep -R) #select-string-recursively
 
   The following → Windows/PowerShell/pipeline tries to demonstrate how `select-string`, in conjunction with → Windows/PowerShell/command-inventory/noun/childItem/get[`get-childItem`] might be used to
-  recursively search for text patterns in and below files of a given directory. Thus, it sort of does what is known in the Linux/shell universe as → Linux/shell/commands/grep[`grep -R`].
+  recursively search for text patterns in files that are located in and below a given directory. Thus, it sort of does what is known in the Linux/shell universe as → Linux/shell/commands/grep[`grep -R`].
 
   gh|about-PowerShell|/cmdlets/string/select/grep-recursively.ps1||
 
