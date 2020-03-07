@@ -1,8 +1,25 @@
 $ ntdll.dll
 
-`ntdll.dll` provides the *native API* (the *syscall* interface) to the → Windows/kernel.
+`ntdll.dll` exports the *native API* (the *syscall* interface).
 
-Applications usually don't directly call functions within this → Windows/development/Portable-Executable/DLL[DLL] directly.
+Native API functions start with `Nt` and/or `Zw`. In the `ntdll.dll`, `NtXYZ()` and `ZwXYZ()` are doing the same.
+
+Applications usually don't directly call functions within this → Windows/development/Portable-Executable/DLL[DLL] directly, they are linked against one of the four
+→ Windows/development/WinAPI DLLs → Windows/dirs/Windows/System32/advapi32_dll[advapi32.dll], → Windows/dirs/Windows/System32/gdi32_dll[gdi32.dll] and
+  → Windows/dirs/Windows/System32/user32_dll[`user32.dll`].
+
+The native API is also referred to as
+  • native system services (Microsoft's documentation)
+  • system calls
+
+An application (or more typically these *four special dlls*) call these `NtXYZ()` and `ZwXYZ()` functions in `ntdll.dll` in user mode. `ntdll.dll` then forwards these
+calls to functions with the same name in → Windows/dirs/Windows/System32/ntoskrnl_exe[`ntoskrnl.exe`] which runs in kernel mode.
+-
+In `ntoskrnl.exe`, however, `NtXYZ()` and `ZwXYZ()` are different.
+
+The native API is not entirely documented because Microsoft expects a developer to use the functionality of ntdll via the documented
+→ Windows/development/WinAPI.
+
 
 Most of the exported symbols of this DLL start with `Nt` (such as `NtCreateFile`).
 
@@ -12,5 +29,14 @@ Most of the exported symbols of this DLL start with `Nt` (such as `NtCreateFile`
   • perform interprocess communication
   • etc.
 
+→ https://www.geoffchappell.com/studies/windows/win32/ntdll/index.htm?tx=1,5,20[Geoff Chappell] points out that
+"
+  Many functions that NTDLL exports are simply re-exported as → Windows/dirs/Windows/System32/kernel32_dll[KERNEL32] or → Windows/dirs/Windows/System32/advapi32_dll[ADVAPI32] functions.
+  Put another way, some KERNEL32 and ADVAPI32 functions have no code in those DLLs but instead appear in the export directory of those DLLs only as forwards to NTDLL.
+  For many more NTDLL functions, there is some KERNEL32 or ADVAPI32 function whose code in those DLLs just repackages the NTDLL function, e.g., to change the arguments sligthly.
+"
+
+
 sa:
   ? The VTL-1 version of `ntdll.dl` is → Windows/dirs/Windows/System32/iumdll[`iumdll.dll`].
+
