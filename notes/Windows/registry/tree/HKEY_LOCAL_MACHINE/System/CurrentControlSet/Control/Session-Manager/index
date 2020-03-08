@@ -12,11 +12,57 @@ $ Registry: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager
   See → Windows/dirs/Windows/System32/autochk_exe
 
 }
-{ GlobalFlag
+{ GlobalFlag #system-global-flag
 
  `GlobalFlag` is a `DWORD` where each bit corresponds to advanced internal system diagnostic and troubleshooting features that can be turned on or off.
 
   These values can be enabled or disabled with → Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/gflags_exe[`gflags.exe`].
+
+     maintain objects list ☰  ☰ This flag must be set to see *local opened files*, see → Windows/dirs/Windows/System32/openfiles_exe[`openfiles.exe`]. It can also be set/disabled with `openfiles.exe /local [on|off]`.
+
+  Some Global Flags include:
+  table { llllll
+
+    Buffer DbgPrint Output   ☰ `FLG_DISABLE_DBGPRINT` ☰ `0x08000000` ☰ `ddp` ☰ R,K ☰ suppresses debugger output from DbgPrint, DbgPrintEx, KdPrint and KdPrintEx
+    Create kernel mode stack trace database ☰ `FLG_KERNEL_STACK_TRACE_DB` ☰ `0x2000` ☰ `kst` ☰ R ☰ creates a run-time stack trace database of kernel operations, such as resource objects and object management operations (requires checked build of Windows)
+    Create user mode stack trace database ☰ `FLG_USER_STACK_TRACE_DB` ☰ `0x1000` ☰ `ust` ☰ R,K,I ☰ creates a run-time stack trace database (individual processes or system wide)
+    Debug initial command ☰ `FLG_DEBUG_INITIAL_COMMAND` ☰ `0x04` ☰ `dic` ☰ R ☰  debugs the Client Server Run-time Subsystem (→ Windows/dirs/Windows/System32/csrss_exe[CSRSS]) and the → Windows/dirs/Windows/System32/winlogon_exe[WinLogon] process.
+    Debug WinLogon ☰ `FLG_DEBUG_INITIAL_COMMAND_EX` ☰ `0x04000000` ☰ `dwl` ☰ R ☰
+    Disable heap coalesce on free ☰ `FLG_HEAP_DISABLE_COALESCING` ☰ `0x00200000` ☰ `dhc` ☰ R,K,I ☰  leave adjacent blocks of heap memory separate when they are freed
+    Disable paging of kernel stacks ☰ `FLG_DISABLE_PAGE_KERNEL_STACKS` ☰ `0x080000` ☰ `dps` ☰ R ☰ prevent paging of the kernel-mode stacks of inactive threads.
+    Disable protected DLL verification ☰ `FLG_DISABLE_PROTDLLS` ☰ `0x80000000` ☰ `dpd` ☰ R,K,I ☰ has no effect on Windows
+    Disable stack extension ☰ `FLG_DISABLE_STACK_EXTENSION` ☰ `0x010000` ☰ `dse` ☰ I ☰  prevent the kernel from extending the stacks of the threads in the process beyond the initial committed memory
+    Early critical section event creation ☰ `FLG_CRITSEC_EVENT_CREATION` ☰ `0x10000000` ☰ `cse` ☰ R,K,I ☰ create event handles when a critical section is initialized, rather than waiting until the event is needed.
+    Enable application verifier ☰ `FLG_APPLICATION_VERIFIER` ☰ `0x0100` ☰ `vrf` ☰ R,K,I ☰ page heap verification, lock checks, and handle checks.
+    Enable bad handles detection ☰ `FLG_ENABLE_HANDLE_EXCEPTIONS` ☰ `0x40000000` ☰ `bhd` ☰ R,K ☰  raise a user-mode exception (`STATUS_INVALID_HANDLE`) whenever a user-mode process passes an invalid handle to the Object Manager.
+    Enable close exception ☰ `FLG_ENABLE_CLOSE_EXCEPTIONS` ☰ `0x400000` ☰ `ece` ☰ R,K ☰
+    Enable debugging of Win32 subsystem ☰ `FLG_ENABLE_CSRDEBUG` ☰ `0x020000` ☰ `d32` ☰ R ☰ debugs the Client Server Run-time Subsystem (→ Windows/dirs/Windows/System32/csrss_exe[`csrss.exe`]) in the NTSD debugger.
+    Enable exception logging ☰ `FLG_ENABLE_EXCEPTION_LOGGING` ☰ `0x800000` ☰ `eel` ☰ R,K ☰  create a log of exception records in the kernel run-time library which can be read by a kernel debugger
+    Enable heap free checking ☰ `FLG_HEAP_ENABLE_FREE_CHECK` ☰ `0x20` ☰ `hfc` ☰ R,K,I ☰ validate each heap allocation when it is freed.
+    Enable heap parameter checking ☰ `FLG_HEAP_VALIDATE_PARAMETERS` ☰ `0x40` ☰ `hpc` ☰ R,K,I ☰ verifies selected aspects of the heap whenever a heap function is called.
+    Enable heap tagging ☰ `FLG_HEAP_ENABLE_TAGGING` ☰ `0x0800` ☰ `htg` ☰ R,K,I ☰ assign unique tags to heap allocations.
+    Enable heap tagging by DLL ☰ `FLG_HEAP_ENABLE_TAG_BY_DLL` ☰ `0x8000` ☰ `htd` ☰ R,K,I ☰ assign a unique tag to heap allocations created by the same DLL.
+    Enable heap tail checking ☰ `FLG_HEAP_ENABLE_TAIL_CHECK` ☰ `0x10` ☰ `htc` ☰ R,K,I ☰ check for buffer overruns when the heap is freed.
+    Enable heap validation on call ☰ `FLG_HEAP_VALIDATE_ALL` ☰ `0x80` ☰ `hvc` ☰ R,K,I ☰ validate the entire heap each time a heap function is called.
+    Enable loading of kernel debugger symbols ☰ `FLG_ENABLE_KDEBUG_SYMBOL_LOAD` ☰ `0x040000` ☰ `ksl` ☰ R,K ☰ load kernel symbols into the kernel memory space the next time Windows starts.
+    Enable object handle type tagging ☰ `FLG_ENABLE_HANDLE_TYPE_TAGGING` ☰ `0x01000000` ☰ `eot` ☰ R,K ☰ has no effect on Windows
+    Enable page heap ☰ `FLG_HEAP_PAGE_ALLOCS` ☰ `0x02000000` ☰ `hpa` ☰ R,K,I ☰ turn on page heap verification
+    Enable pool tagging (Windows 2000 and Windows XP only) ☰ `FLG_POOL_ENABLE_TAGGING` ☰ `0x0400` ☰ `ptg` ☰ R ☰  collect data and calculates statistics about pool memory allocations sorted by pool tag value.
+    Enable system critical breaks ☰ `FLG_ENABLE_SYSTEM_CRIT_BREAKS` ☰ `0x100000` ☰ `scb` ☰ R, K, I☰ forces a system break into the debugger.
+  Load image using large pages if possible ☰ ☰ ☰ `lpg` ☰ I☰ directs the system to use large pages (4 MB) rather than the standard small pages (4 KB) when mapping binaries into the process address space
+    Maintain a list of objects for each type ☰ `FLG_MAINTAIN_OBJECT_TYPELIST` ☰ `0x4000` ☰ `otl` ☰ R ☰ collects and maintains a list of active objects by object type, for example, event, mutex, and semaphore.
+    Enable silent process exit monitoring ☰ `FLG_MONITOR_SILENT_PROCESS_EXIT` ☰ `0x200` ☰  ☰ R☰  enable silent exit monitoring for a process.
+    Object Reference Tracing☰  ☰ ☰ ☰ R, K ☰
+    Show loader snaps ☰ `FLG_SHOW_LDR_SNAPS` ☰ `0x02` ☰ `sls` ☰ R,K,I ☰  capture detailed information about the loading and unloading of executable images and their supporting library modules
+    Special Pool ☰ ☰ ☰ spp ☰ R,K☰ configure Windows to request memory allocations from a reserved memory pool when the memory is allocated with a specified pool tag or is within a specified size range.
+    Stop on exception ☰ `FLG_STOP_ON_EXCEPTION` ☰ `0x01` ☰ `soe` ☰ R,K,I ☰  cause the kernel to break into the kernel debugger whenever a kernel-mode exception occurs.
+    Stop on hung GUI ☰ `FLG_STOP_ON_HUNG_GUI` ☰ `0x08` ☰ `shg` ☰ K☰ Has no effect on Windows
+    Stop on unhandled user-mode exception ☰ `FLG_STOP_ON_UNHANDLED_EXCEPTION` ☰ `0x20000000` ☰ `sue` ☰ R,K,I☰  cause a break into the kernel debugger whenever an unhandled user-mode exception occurs.
+  table }
+
+   See also the → https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/gflags-flag-table[GFlags Flag Table on Microsoft's documentation]
+
+
 
 }
 
