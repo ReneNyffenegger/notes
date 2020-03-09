@@ -50,6 +50,11 @@ code }
   TODO: Does it have something to do with → Windows/dirs/Windows/System32/changepk_exe[changepk.exe] or → Windows/dirs/Windows/System32/slui_exe (under → Windows/dirs/Windows/System32)?
 
 }
+{ Active webRequest-invoke
+
+  What needs to be done in order for `webRequest-invoke` to work?
+
+}
 { Check hostname
 
   Is hostname ok?
@@ -205,13 +210,19 @@ code }
 } 
 { Determine folders
 
-  { Download foldor
+  { Download folder
 
     Stuff to be downloaded might go into the → Windows/dirs/Users/username/Downloads[Downloads] directory. The location of the download directory can be determined in
     → Windows/dirs/_known-folders#win-known-folder-ps[Powershell by accessing the WinApi function `SHGetKnownFolderPath`]. After running the linked script, the download
     folder can be assigned to a variables with
 code {
 PS C:\> $downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9164-39C4925E467B}'))
+code }
+
+  2020-03-09: On Windows 7, I had to set the download folder variable like so:
+code {
+$downloadFolder = "$($env:homedrive)$($env:homepath)\Downloads\"
+→ Windows/PowerShell/command-inventory/noun/path/test[test-path] $downloadFolder
 code }
 
   }
@@ -224,7 +235,7 @@ code {
 # $binPath = "$env:userprofile\bin"
 # $binPath = "$($env:homedrive)$($env:homepath)\bin"
 $binPath = "$home\bin"
-mkdir $binPath
+→ Windows/PowerShell/language/variable/automatic/null[$null] = mkdir $binPath
 code }
 
   Add the newly created directory to the `PATH` → development/environment-variable[environment variable]:
@@ -341,15 +352,16 @@ code }
 }
 { Install git
 
-    Install git → development/version-control-systems/git[git].
+    Install → development/version-control-systems/git[git].
 
-    Download end extract the self extracting executable:
+    Download end extract the self extracting executable. Find newest version number → https://github.com/git-for-windows/git/releases[here].
 code {
 $ua = new-object system.net.webClient
 [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
 
 if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v2.22.0.windows.1/Git-2.22.0-64-bit.exe", "$($env:homedrive)$($env:homepath)Download\Git.exe")
+  $gitVersion = '2.25.1'
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe", "$($downloadFolder)Git.exe")
 
   # LFS Git does not seem necessary enymore
   # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
