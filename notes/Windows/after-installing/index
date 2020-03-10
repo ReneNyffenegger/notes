@@ -20,7 +20,7 @@ rem }
 
   In order to be able to run → Windows/PowerShell scripts, the *execution policy* for PowerShell needs to be changed.
 
-  Without chaning this policy, trying to execute a script results in the error message:
+  Without changing this policy, trying to execute a script results in the error message:
   → Windows/PowerShell/script-cannot-be-loaded-because-running-scripts-is-disabled-on-this-system[script cannot be loaded because running scripts is disabled on this system].
 
   The current value of the execution policy is found in the → Windows/registry/tree-structure/key[registry key] 
@@ -32,7 +32,15 @@ code {
 set-executionPolicy removeSigned -scope currentUser
 code }
 
-  *2019-04-01* it turned out that the mentioned key does not exist after a fresh installation of Windows - but it is crated with the cmdLet.
+  *2019-04-01* it turned out that the mentioned key does not exist after a fresh installation of Windows - but it is created with the cmdLet.
+
+  *2020-03-09* On a Windows 7 (PowerShell 2.0) installation, the option `removeSigned` was not understood. I had to change it to `bypass`.
+
+  { TODO
+
+    Should → https://github.com/PowerShell/PowerShell/releases[the newest PowerShell version installed, anyway]?
+
+  }
 
 }
 { Activate Windows
@@ -359,23 +367,30 @@ code {
 $ua = new-object system.net.webClient
 [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
 
+$gitVersion = '2.25.1'
 if ([environment]::is64BitOperatingSystem) {
-  $gitVersion = '2.25.1'
   $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe", "$($downloadFolder)Git.exe")
 
   # LFS Git does not seem necessary enymore
   # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
 
-& "$($env:homedrive)$($env:homepath)Download\Git.exe"
-
 #
 # TODO does the downloaded file really need to have the *amd64* thingy?
 #
-  $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.1/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
+  $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
 
 } else {
-  echo "64 bit expected"
+  # echo "64 bit expected"
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-32-bit.exe", "$($downloadFolder)Git.exe")
 }
+
+#
+#  /SP-                Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setp
+#  /SUPPRESSMSGBOXES   Supress message boxes
+#
+#    See https://jrsoftware.org/ishelp/index.php?topic=setupcmdline
+#
+& "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT
 code }
 
     Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
