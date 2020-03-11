@@ -9,11 +9,53 @@ Because I once had to work in a Windows environment where I was not allowed to i
 → development/databases[database], but needed a database anyway, I was forced to write such an SQLite wrapper so that I could store my data in a database.
 
 The sources are hosted in → https://github.com/ReneNyffenegger/winsqlite3.dll-PowerShell[this Github repository] and consist of
-  • → Windows/dirs/Windows/System32/winsqlite3_dll/PInvoke_ps1[`PInvoke.ps1`]: the wrappers for SQLite API
-  • → Windows/dirs/Windows/System32/winsqlite3_dll/classes.ps1[`classes.ps1`]: two classes, `sqliteDB` and `sqliteStmt`
-  • `test.ps1`: a simple script to the functionality of the previous to files
+  • `PInvoke.ps1` : the wrappers for SQLite API
+  • `classes.ps1`: two classes, `sqliteDB` and `sqliteStmt`
+  • `test/simple.ps1`: a simple script to test and demonstrate the functionality of the previous to files
+
+{ Simple test script
+
+  The following test script tries to demonstrate how the two classes `sqliteDB` and `sqliteStmt` can be used to
+    • create an SQLite database
+    • create a table
+    • insert values into the table with bind variables
+    • select some of the values from the able
+    • finalize a statement
+    • close a database
+
+  gh|winsqlite3.dll-PowerShell|/test/simple.ps1||
+
+}
 
 { PInvoke.ps1
 
+ `PInvoke.ps` creates a the .NET class `sqlstmt` that consists of → Microsoft/dot-net#dot-net-clr[P/Invoke] wrappers for the SQLite API.
+
+  These wrappers all look similar to
+code {
+[DllImport("winsqlite3.dll", EntryPoint="sqlite3_bind_null")]
+ public static extern IntPtr bind_null (
+        IntPtr    stmt,
+        IntPtr    index
+ );
+code }
+
+  The source code is → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/PInvoke_ps1[here]
+
+}
+{ classes.ps1
+
+ `classes.ps` defines the two PowerShell classes `sqliteDB` and `sqliteStmt`.
+
+  It also defines two helper functions, `charPtrToString` and `strToCharPtr` which were needed because the SQLite API requires strings to be passed on the heap.
+ (I am not sure if it was *really* necessary, but I found no other working way than this hack).
+
+  The source code is → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/classes_ps1[here]
+
+}
+{ TODO
+
+ `sqliteStmt` should probably implement → Microsoft/dot-net/namespaces-classes/System/Collections/IEnumerable[`System.Collections.IEnumerable`] so that it is possible to iterate over
+  a select statement with a → Windows/PowerShell/language/statement/foreach[`foreach` statement]. 
 
 }
