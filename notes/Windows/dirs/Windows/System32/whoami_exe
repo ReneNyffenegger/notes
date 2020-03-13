@@ -8,19 +8,60 @@ $ whoami.exe
   • → Windows/security/privileges[privileges] (`/priv`)
   • logon identifier
 
+{ Command line options
 
-If executed without option, `whoami.exe` finally tells me, who I am (in NTLM format)
+  { Display information about the current user
+
+    table { ll
+    ~Option~ ☰ ~OUtput~ ☰ ~Example~ ☰ ~Comment~
+    `/UPN` ☰ User Principal Name  format. ☰ `r.nyffenegger@tq84.xyz`
+    `/FQDN` ☰ Fully Qualified Distinguished Name  format. ☰ `CN=R.NYFFENEGGER,OU=Users,OU=Switzerland,OU=Europe,DC=tq84,DC=xyz`
+    `/LOGONID` ☰ Logon ID of the current user. ☰ `S-1-5-5-0-1952528`
+    `/USER`☰  ☰ see below ☰ Can be combined with `/FO`
+    table }
+
+  }
+  { Display other information
+
+
+    table { ll
+
+    `/GROUPS` ☰ group membership for current user, type of account, security identifiers (SID) and attributes.
+    `/CLAIMS` ☰ claims for current user, including claim name, flags, type and values.
+    `/PRIV` ☰ Splays security privileges of the current user.
+    `/ALL` ☰ All of the above?
+
+    table }
+
+  }
+  { Other options
+
+    table { ll 
+
+     `/FO fmt` ☰ output format. possible values for `fmt` are: `table`, `list` and `csv` (the default being `table`)
+     `/NH` ☰ print outout without header.
+
+    table }
+
+
+  }
+
+  If executed without option, `whoami.exe` tells me, who I am (in NTLM format)
 code {
 C:\> whoami
 tq84\rene.nyffenegger
 code }
+
+}
 
 { /logonid #win-whoami-logonid
 
   Displays the → Windows/security/SID/S-1-5-5-x-y_logon[logon SID] for the → Windows/development/session[current session].
 
 code {
-whoami /logonid
+C:\> whoami /logonid
+
+S-1-5-5-0-1952528
 code }
 
 }
@@ -29,7 +70,11 @@ code }
   Displays the username (`Domain\Username` format) and the → Windows/user-account[user's] → Windows/security/SID[SID].
 
 code {
-whoami /user
+C:\> whoami /user
+
+User Name          SID
+================== ============================================
+tq84\r.nyffenegger S-1-5-21-123457890-1234578912-345678901-1418
 code }
 
 }
@@ -41,5 +86,19 @@ code }
 { /priv
 
   `whoami /priv` displays the → Windows/security/privileges[security privileges] of the current user.
+ 
+code {
+C:\Users\r.nyffenegger> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name          Description                          State
+======================= ==================================== ========
+SeShutdownPrivilege     Shut down the system                 Disabled
+SeChangeNotifyPrivilege Bypass traverse checking             Enabled
+SeUndockPrivilege       Remove computer from docking station Disabled
+SeTimeZonePrivilege     Change the time zone                 Disabled
+code }
 
 }
