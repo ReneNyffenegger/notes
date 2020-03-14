@@ -18,6 +18,7 @@ $ cmd.exe - dir
     `/P` ☰ Paginate output
     `/Q` ☰ Print file owner
     `/R` ☰ Include alternate data streams of file
+    `/S` ☰ Inlude subdirectories
     `/T:x` ☰ Specify displayed time field (`x`) for displaying or sorting (`c`: creation, `a`: last acess, `w`: last written) 
     `/X` ☰ Show short file names
     `/4` ☰ Use 4-digit year (is this not the default anyway.
@@ -68,6 +69,25 @@ code }
 
   Attributes can be set or removed with → Windows/dirs/Windows/System32/attrib_exe[`attrib.exe`].
 
+
+}
+{ Recursively searching for files that match a wildcard
+
+  In order to search for files that match a given wildcard in *and below* the current directory, the `/s` option must be used:
+code {
+C:\Users\Rene> dir /s *quarter*.xls*
+code }
+
+  However, unfortunately, I find the output quite unreadable because it is cluttered with directory names and file attributes that I am (usually) not interested in.
+  The option `/b` (bare format) only prints (absolute) filenames, which makes the reading of the result much easier:
+code {
+C:\Users\Rene> dir /s /b *quarter*.xls*
+code }
+
+  In → Windows/PowerShell, the effect of `dir /s /b` can be achieved by using a variant of a → Windows/PowerShell/pipeline like so:
+code {
+PS C:\Users\Rene> → Windows/PowerShell/command-inventory/noun/childItem/get[get-childItem] -recurse -filter *quarter*.xls* | → Windows/PowerShell/command-inventory/noun/object/select[select-object] fullname
+code }
 
 }
 { Display owner of files and directories
