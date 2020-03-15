@@ -1,0 +1,47 @@
+$ SQL: comments
+
+The → misc/ISO/9075[SQL standard] defines two kinds of comments:
+  • *Simple comments* (→ misc/ISO/9075/features[Feature] E161) and
+  • *Bracketed comments* (Feature T351)
+
+
+A ~simple comment~ starts with two hyphens (`--`) and extends to the next → development/line-break[new line] or end of statement, whichever is first.
+
+A ~Bracketed comment~ starts with a `/*` and extends to the next `*/`.
+
+In a comment that is introduced by a `--`, the `/*` is not recognized as a comment introducer.
+-
+Similarly, within `/* … */` the `--` does not comment out a the `*/`.
+
+The following snippet tries to demonstrate all combinations. `T` is SQL text, `c` is comment:
+code {
+TTT TTTT TT -- ccc ccc
+
+TTT /* cc ccc
+cc cccc
+-- */ ccc ccc
+ccc */ TTT
+
+/* ccc ccc
+ccc 
+ccc -- */ TTT
+
+-- /* ccc ccc
+TTT TTTT
+TTT -- */ ccc
+code }
+
+With these rules, its possible to comment out or in a block of code while testing SQL statements:
+code {
+-- /*
+This text is not a comment.
+By just removing the two hyphens
+at the beginning, it turns
+into a comment.
+-- */
+code }
+
+
+The statement parser considers comments to be equivalent to → development/line-break[new lines].
+
+I *believe* that the standard can be interpreted to mean that bracketed comments can be nested.
