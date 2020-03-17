@@ -238,7 +238,7 @@ code }
   → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International[`HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International`].
 
 } 
-{ create variables for installation
+{ Create variables, functions etc for installation
 
   { Download folder
 
@@ -267,13 +267,15 @@ code }
 
   Add the newly created directory to the `PATH` → development/environment-variable[environment variable]:
 code {
-$userPath = [environment]::getEnvironmentVariable("PATH", "user")
-[environment]::setEnvironmentVariable("PATH", "$binPath;$userPath", "user") 
+# $userPath = [environment]::getEnvironmentVariable("PATH", "user")
+# [environment]::setEnvironmentVariable("PATH", "$binPath;$userPath", "user") 
+addDirToPath $binPath
 code }
 
   }
   { User Agent
 
+    Create a → development/web/HTTP/User-Agent[User Agent] to download files from the internet.
 code {
 $ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
 code }
@@ -281,6 +283,21 @@ code }
   Prevent error: *The request was aborted: Could not create SSL/TLS secure channel.*
 code {
 [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+code }
+
+  }
+  { Function addDirToPath
+
+    A function to add directories to the → Windows/development/environment-variables/PATH[`PATH` environment variable].
+
+    Because the change in the → Windows/registry does not take immediate effect, the function also modifes the variable directly.
+
+code {
+function addDirToPath($dir) {
+   $userPath = [environment]::getEnvironmentVariable('PATH', 'user')
+   $env:PATH = "$dir;$userPath"
+   [environment]::setEnvironmentVariable('PATH', $env:PATH, 'user')
+}
 code }
 
 
@@ -491,8 +508,17 @@ code }
 { Clone localgit
 
 code {
-git clone e:\git $env:userprofile\localgit
+# git clone e:\git $env:userprofile\localgit
+git clone e:\git $git_work_dir
 code }
+
+  { Add new script directory to path environment variable
+
+code {
+addDirToPath $git_work_dir
+code }
+
+  }
 
 }
 { Clone github script repository
@@ -501,11 +527,10 @@ code {
 git clone https://github.com/ReneNyffenegger/scripts-and-utilities $env:userprofile/github/lib/scripts
 code }
 
-  { Add new github script path variables
+  { Add new script directory to path envioronment variable
 
 code {
-$userPath = [environment]::getEnvironmentVariable("PATH", "user"    )
-[environment]::setEnvironmentVariable("PATH", "$env:userprofile\localgit\scripts;$env:userprofile\github\lib\scripts;$userPath", "user") 
+addDirToPath "$($env:github_top_root)lib\scripts"
 code }
 
   }
