@@ -90,6 +90,16 @@ code {
 start-process powershell -verb runAs
 code }
 
+ *2020-03-17* this is now in the `admin` function in the → development/tools/scripts/personal/profile_ps1[`profile.ps1` script].
+
+  { TODO
+
+    How do I determine if I am currently running → Windows/PowerShell as Administrator?
+
+    Is it possible with `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
+
+  }
+
 }
 { Change default keyboard layout
 
@@ -228,7 +238,7 @@ code }
   → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International[`HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International`].
 
 } 
-{ Determine folders
+{ create variables for installation
 
   { Download folder
 
@@ -252,14 +262,27 @@ code {
 # $binPath = "$env:userprofile\bin"
 # $binPath = "$($env:homedrive)$($env:homepath)\bin"
 $binPath = "$home\bin"
-→ Windows/PowerShell/language/variable/automatic/null[$null] = mkdir $binPath
-code }
+→ Windows/PowerShell/language/variable/automatic/null[$null] = mkdir $binPath -errorAction silentlyContinue
+$null = mkdir $binPathcode }
 
   Add the newly created directory to the `PATH` → development/environment-variable[environment variable]:
 code {
 $userPath = [environment]::getEnvironmentVariable("PATH", "user"    )
 [environment]::setEnvironmentVariable("PATH", "$binPath;$userPath", "user") 
 code }
+
+  }
+  { User Agent
+
+code {
+$ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
+code }
+
+  Prevent error: *The request was aborted: Could not create SSL/TLS secure channel.*
+code {
+[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+code }
+
 
   }
 }
@@ -314,6 +337,18 @@ switch ( $computerInfo.adminPasswordStatus ) {
   default  { 'unable to determine' }
 }
 code }
+
+}
+{ Install newest PowerShell release
+
+  Find newset release → https://github.com/PowerShell/PowerShell/releases[here]
+
+code {
+$ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.0.0/PowerShell-7.0.0-win-x64.zip' , "$downloadFolder\PowerShell.zip")
+→ Windows/PowerShell/command-inventory/noun/archive/expand[expand-archive] $downloadFolder\PowerShell.zip $binPath\PowerShell7
+code }
+
+
 
 }
 { Install Perl
@@ -804,9 +839,6 @@ code }
   (or under → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Policies/System[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System`]?)
   be set to `1`?
 
-  How do I determine if I started → Windows/PowerShell as Administrator?
-  -
-  Try `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
 
   How do I → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/FileSystem#reg-long-paths-enabled[enable long paths]?
 
