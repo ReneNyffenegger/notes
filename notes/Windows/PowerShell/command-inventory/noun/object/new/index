@@ -3,19 +3,41 @@ $ PowerShell cmdLet new-object
 `new-object` creates a new → Windows/PowerShell/command-inventory/noun/object[PowerShell object] which represents either a
 → Microsoft/dot-net[.NET] or a → Windows/development/COM/object
 
+
 The `new-object` → Windows/PowerShell/language/cmdlet[cmdLet] cannot be → Windows/PowerShell/pipeline[piped] into.
 
 { Creating a .NET object
 
-  An instance of a → Microsoft/dot-net object is created by specifying the *type of a .NET Framework class*. The optional `-typeName` argument can be used to explicitely mark the argument as a type name:
+  An instance of a → Microsoft/dot-net object is created by specifying the *type of a .NET Framework class*. The optional `-typeName` argument can be used to explicitely mark the argument as a type name.
+
+  Under the hood, `new-object` creates a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`] object whose
+  member `_immediateBaseObject` is a reference to the actual object that is created.
+ 
 code {
 $webClient = new-object → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
 code }
+
+  { Constructor
 
   If the .NET object to be created does not provide a *default constructor*, the arguments to the constructor need to be passed after the type name:
 code {
 $txt = new-object System.String 'Hello world'
 code }
+
+  }
+  { psObject
+
+  A special meaning has the name `psObject`: it creates a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`] object, one of the
+  most important, if not the most important object type in PowerShell:
+code {
+PS C:\> $obj = new-object psObject
+PS C:\> $obj.GetType().FullName
+System.Management.Automation.PSCustomObject
+code }
+
+  With `new-object psObject`, PowerShell also crates a `PSObject` with the `_immediateBaseObject` referencing the `PSCustomObject`.
+
+  }
 
 }
 { Creating a COM object
@@ -24,6 +46,34 @@ code }
 code {
 $obj = new-object -comObject → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[prog.id]
 code }
+
+}
+{ Creating an object from inline C-Sharp code
+
+  The → Windows/PowerShell/command-inventory/noun/type/add[`add-type`] cmdLet allows to compile → development/languages/C-Sharp classes that then can be
+  created in PowerShell:
+  gh|about-PowerShell|/cmdlets/object/new/inline-c-sharp.ps1||
+
+}
+{ -property
+
+  The `-property` option takes an object that implements the → Microsoft/dot-net/namespaces-classes/System/Collections/IDictionary[`System.Collections.IDictionary`] interface.
+  -
+  An object with such an interface can be created with the → Windows/PowerShell/language/type/hash-table#ps-create-hash-table[`@{ … }`] syntax (which creates a → Windows/PowerShell/language/type/hash-table.
+
+  { psObject
+
+    In the following example, a Powershell custom object is created with the property names and values of the hash table (`$probs`) that is first created:
+    gh|about-PowerShell|/cmdlets/object/new/property-ps.ps1||
+
+  }
+  { .NET class
+
+    This example is similar to the previous one, but this time a «real» → Microsoft/dot-net class is created. This class already has the two properties `num` and `txt`.
+    Thus, the member type of the properties is *property* as opposed to *noteProperty* in `psObject` objects:
+    gh|about-PowerShell|/cmdlets/object/new/property-dotNet.ps1||
+
+  }
 
 }
 { Instantiating an object from a DLL #ps-new-object-dll
@@ -90,4 +140,4 @@ sa:
 
   → Windows/PowerShell/command-inventory/noun/object
 
-  → Windows/PowerShell/language/object[Object creation in POwerShell]
+  → Windows/PowerShell/language/object/creation[Object creation in PowerShell]
