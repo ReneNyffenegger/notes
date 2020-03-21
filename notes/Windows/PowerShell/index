@@ -41,6 +41,65 @@ code }
   → Windows/PowerShell/language/variable/automatic[automatic] variable → Windows/PowerShell/language/variable/automatic/PsVersionTable[`$psVersionTable`].
  
 }
+{ (Some interesting) command line options/parameters
+
+  If PowerShell is invoked with no options (but values are present in the command line), the default options is `-file`.
+
+  { Execute command(s) (-c)
+
+  `-c statment(s)` creates a new process in which to execute one or more → Windows/PowerShell/language/statement[PowerShell statement(s)]:
+
+  The value for `-c` can be:
+    • a string, or
+    • a → Windows/PowerShell/language/scriptblock, or
+    • `-` (the commands are read from → development/stdin-stdout-stderr[stdin]
+
+code {
+powershell -c 'write-host going to loop; foreach ($i in 1..10) { $i }; write-host loop is finished'
+code }
+
+   After the statemens have finished, the new process is terminated unless the `-noExit` parameter is also specified:
+code {
+PS C:\> → Windows/PowerShell/language/variable/automatic/PID[$PID] 
+95420
+PS C:\> pwsh -c '$PID'
+87390
+PS C:\> $PID
+95420
+PS C:\> pwsh -noExit -c '$PID'
+14464
+PS C:\> $PID
+14464
+PS C:\> exit
+PS C:\> $PID
+95420
+code }
+    
+   Note: it seems that the `-noExit` parameter needs be *before* the `-c` parameter.
+
+
+  }
+  { -wd (initial working directory)
+
+  `-wd` sets the initial working directory.
+
+  }
+  { -noLogo (hide startup banner)
+
+   `-noLogo` hides the startup banner.
+
+  }
+  { Specifying boolean values
+
+    Switchable options can be given a boolean value with the following syntax:
+code {
+pwsh … {-all:$false}
+code }
+
+  }
+  
+
+}
 { 32-bit vs 64-bit executable #ps-32-64
 
   On a 64-bit → Windows installation, the 32-bit executable of Powershell is located under `→ Windows/dirs/Windows/SysWOW64[C:\Windows\SysWOW64]\WindowsPowerShell\v1.0\powershell.exe` while the 64-bit executable is found at
