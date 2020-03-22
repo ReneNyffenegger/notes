@@ -2,4 +2,19 @@ $ System.Management.Automation.PathInfo (class)
 
 A `System.Management.Automation.PathInfo` object represents a *path* (such as a → Windows/file-system[file system] path or a → Windows/registry/tree-structure/key[registry key] name).
 
-A `PathInfo` object is returned in → Windows/PowerShell by the → Windows/PowerShell/command-inventory/noun/location/get[`get-location`] cmdLet.
+A `PathInfo` object is returned in → Windows/PowerShell by → Windows/PowerShell/language/cmdlet[cmdLets] such as → Windows/PowerShell/command-inventory/noun/location/get[`get-location`],
+→ Windows/PowerShell/command-inventory/noun/path/resolve[`resolve-path`] or the automatic variable → Windows/PowerShell/language/variable/automatic/pwd[`$pwd`].
+
+Sometimes (I have not figured out when exactly), the `ToString()` method of `PathInfo` prepends the path with some → Windows/PowerShell/language/provider[provider] related information
+(for example `Microsoft.PowerShell.Core\FileSystem::`) which can be, frankly, quite a nuisance.
+-
+In order to get rid of this prefix, the `providerPath` property must be used:
+code {
+"Current directory is: → Windows/PowerShell/language/variable/automatic/pwd[$pwd]"
+#
+# Current directory is: Microsoft.PowerShell.Core\FileSystem::P:\ath\to\directory
+
+"Current directory is: $($pwd.providerPath)"
+#
+# Current directory is: P:\ath\to\directory
+code }
