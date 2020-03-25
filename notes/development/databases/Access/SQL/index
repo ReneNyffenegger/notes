@@ -72,14 +72,58 @@ dateSerial(year, month, day)
 code }
 
 }
+{ No CASE WHEN … expression
 
+  There is no `case when … then` expression in Access-SQL.
+  -
+  Instead, `iif` should be used:
+code {
+iif (condition, expr-if-true, expr-if-false)
+code }
+
+  If more than one conditional needs to be tested, the `switch(…)` function can be used:
+code {
+switch(
+   condition-1, value-if-true-1
+ , condition-2, value-if-true-2
+   …
+ , condition-n, value-if-true-n
+)
+code }
+
+}
 { LIKE operator
 
   Access doesn't use the percent sign (`%`) as wild character in a `like` expression. Instead, it uses an asterisk (star): `*`.
 
-  `#` matches a digit (0-9)
+ `#` matches a digit (0-9)
 
   And there are characters lists that resemble those of → development/regular-expressions[regular expressions]: `[a-f]` and `[!a-f]` (the latter meaning a character that is not in the range `a` through `f`.
+
+}
+{ Selecting records with GUIDs
+
+  A textual representation of a development/UUID-GUID[GUID] can be converted into «real» GUID with `guidFromString("{…}")`. `guidFromString()` returns an array of → development/languages/VBA/language/datatypes/byte[bytes]:
+code {
+? → development/languages/VBA/functions/typeName(guidFromString("{A7CC3DA6-ABFB-E911-81A1-005056938A20}"))
+Byte()
+code }
+
+  The → development/languages/VBA/language/arrays#vba-array-size[size of this byte array] is 16 (as expected):
+code {
+g =guidFromString("{A7CC3DA6-ABFB-E911-81A1-005056938A20}")
+? → development/languages/VBA/functions#vba-ubound[ubound](g) - lbound(g) + 1
+ 16 
+code }
+
+  So, a record that is identified by a GUID can be selected like so:
+code {
+select *
+from
+   tab
+where
+   id = guidFromString('{A7CC3DA6-ABFB-E911-81A1-005056938A20}')
+code }
 
 }
 { Action queries #access-action-queries
@@ -92,10 +136,6 @@ code }
 }
 { TODO
 
-  There is no `case when … then` statement in Access-SQL. Instread, `iif` should be used:
-code {
-iif (condition, expr-if-true, expr-if-false)
-code }
 
   The `transform` statement allows crosstab queries (= Pivot queries?)
 
