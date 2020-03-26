@@ -1,12 +1,89 @@
-$ SSL/TSL
+$ SSL/TLS
 
-SSL and → development/security/cryptography/TLS provide → development/security/authentication[authentication] and encryption over insecure networks.
+SSL and TLS provide → development/security/authentication[authentication] and encryption over insecure networks.
 -
 It is the basis for → development/web/HTTPS
 
+SSL is the predecessor of TLS.
 
-SSL is the predecessor of → development/security/cryptography/TLS (See → development/security/cryptography/SSL-TSL)
+{ History
 
+  SSL is called TLS since version 3. (SSL 1.0 -> SSL 2.0 -> SSL 3.0 -> TLS 1.0 -> TLS 1.1 -> TLS 1.2 -> TLS 1.3). TLS 1.0 is sometimes called SSL 3.1.
+
+  TLS 1.3 is specified in → development/web/RFC#rfc-8446[RFC 8446]. Version 1.2 is specified in RFC 5246.
+
+  TLS 1.3 is not directly compatible with previous versions of TLS. However, clients and servers can negotiate a common version with which they want to communicate.
+
+
+}
+{ Goal/purpose of TLS
+
+  TLS allows two parties («endpoints») to create a *secure channel* in which → development/Data can be exchanged between them.
+
+"
+  TLS allows client/server applications to communicate
+  over the Internet in a way that is designed to prevent eavesdropping,
+  tampering, and message forgery.
+" [ https://tools.ietf.org/html/rfc8446[RFC-4886] ]
+
+  The endpoint that initiates the connection is the *client* the other the *server*.
+
+  The three main properties of the channel are
+  table { ll
+    → development/security/authentication[Authentication] ☰ The server is always authenticated, the client is optionally authenticated.
+    Confidentiality ☰ Data transmitted in the channel can only be read by the channel's endpoints.
+    Integrity ☰ Trying to modify transmitted data by a third party won't go unnoticed by the endpoint.
+
+  table }
+
+
+}
+{ Handshake and record protocol
+
+  TLS consists of two main components/protocols:
+    • Handshake protocol
+    • Record protocol
+
+  { Handshake
+
+    The handshake goes through three phases:
+      • Key exchange (ClientHello message; after this phase, everything is encrypted)
+      • Server parameters
+      • Authentication
+
+    table { ll
+      ~Client~ ☰ ~Server~
+      ClientHello message ☰
+      ☰ ServerHello message with SSL options
+      ☰ Certificate message with the → development/security/cryptography/Public-key-cryptography[public key] of its own → development/security/cryptography/Public-key-certificate[certificate]
+      ☰ ServerHelloDone message
+      ClientKeyExchange message with *session key* that is encrypted with the server's public key ☰
+      ChangeCipherSpec message to start using *session key* for hashing and encrypting messages ☰
+      ClientFinished message ☰
+      ☰ ServerFinished message
+
+    table }
+
+  }
+
+}
+{ Key exchange modes
+
+  There are three basic key exchange modes in TLS:
+    • (EC)DHE (Diffie-Hellman over either finite fields or elliptic curves)
+    • PSK-only
+    • PSK with (EC)DHE
+
+  PSK = Pre Shared Key
+
+}
+{ Relationship to SSH #ssl-vs-ssh
+
+  Note to self: don't confuse SSL with → development/security/SSH[SSH]. Both allow to create a *tunnel* to exchange data in encrypted form with checked intergrity.
+  
+  But SSL uses → development/security/cryptography/X_509 certificates while SSH uses their own format.
+
+}
 { SSL certificate
 
   Three types of certficates:
@@ -34,30 +111,18 @@ SSL is the predecessor of → development/security/cryptography/TLS (See → dev
      • `*.pfx`
 
 }
-{ History
-
-  SSL is called → development/security/cryptography/TLS[TLS] since version 3. (SSL 1.0 -> SSL 2.0 -> SSL 3.0 -> TLS 1.0 -> TLS 1.1 -> TLS 1.2). TLS 1.0 is sometimes called SSL 3.1.
-
-}
-
-{ Relationship to SSH #ssl-vs-ssh
-
-  Note: don't confuse SSL with → development/security/SSH[SSH]. Both allow to create a *tunnel* to exchange data in encrypted form with checked intergrity.
-  
-  But SSL uses → development/security/cryptography/X_509 certificates while SSH uses their own format.
-
-}
 
 sa:
   → development/security/cryptography/X_509
-
-  The value of `DefaultSecureProtocols` under the → Windows/registry[registry] key
-  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Internet-Settings/WinHttp[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\WinHttp`]
 
   → development/web/HTTPS
 
   The registry keys
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Policies/Microsoft/Cryptography/Configuration/SSL[`HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL`]
     • → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/SecurityProviders/SCHANNEL/Protocols[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols`]
+    • → Windows/registry key → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/_NETFramework/_version[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework\<VERSION>`] (Values → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/_NETFramework/_version#SchUseStrongCrypto[`SchUseStrongCrypto`] and → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/_NETFramework/_version#SystemDefaultTlsVersions[`SystemDefaultTlsVersions`])
+    • → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Internet-Settings/WinHttp[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\WinHttp`] (value of `DefaultSecureProtocols`)
+
+  The → Microsoft/dot-net class → Microsoft/dot-net/namespaces-classes/System/Net/Security/SslStream[`System.Net.Security.SslStream`].
 
   → Linux/fhs/etc/ssl/certs
