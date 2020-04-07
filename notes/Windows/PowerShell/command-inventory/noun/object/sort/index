@@ -8,6 +8,56 @@ Duplicates can optionally be removed from the sorted output by using the `-uniqu
 Using `-top n` or `-bottom n` only returns the first `n` objects from the head or last `n` object from the tail of the sorted result. (This is somewhat similar to using
 → development/databases/SQL-Server/sql/select/top-n[`top n` queries] in → development/databases/SQL).
 
+{ Sorting a hash table
+
+  In order to sort the key/value pairs in a → Windows/PowerShell/language/type/hash-table with `sort-object`, the hash table's method `GetEnumerator()` (See Microsoft/dot-net/namespaces-classes/System/Collections/IEnumerable[`System.Collections.IEnumerable`])
+  needs to be used.
+  -
+  This is because a hash table is *one* object which is meaningless to be sorted.
+
+  The following example tries to demontrate how a hash table is used to count word occurences and than to display the number of occurences for each word in ascending order.
+
+  We need a hashtable (`$words`):
+code {
+$words = @{}
+code }
+
+  Counting the words. Each new word creates a new key/value pair with the key being the word and the value being 0 (which is the default value for an integer).
+  -
+  The `++` → Windows/PowerShell/language/operator increments the value of each word that is seen:
+code {  
+→ Windows/PowerShell/language/statement/foreach ($word in 'two', 'four', 'one', 'four', 'four', 'three', 'four', 'three', 'two', 'three') {
+   $words[$word]++
+}
+code }
+
+  After the words have been counted, `$words` can be inspected with an arbitrary order of key(name)/value parirs:
+code {
+$words
+
+Name          Value
+----          -----
+one           1
+three         3
+two           2
+four          4
+code }
+  
+ `sort-object` is now used to sort the entries in the hash table according to their value:
+code {
+$words.GetEnumerator() | sort-object -property value
+
+Name          Value
+----          -----
+one           1
+two           2
+three         3
+four          4
+code }
+
+
+
+}
 
 sa:
   → Windows/PowerShell/command-inventory/noun/object

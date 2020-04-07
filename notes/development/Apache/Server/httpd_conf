@@ -1,0 +1,106 @@
+$ httpd.conf
+
+`httpd.conf` is the (default) name for the configuration file for the → development/Apache/Server. This configuration file contains *directives*.
+-
+A directive is typically one line, but can be extended over multiple lines with the line continuation character `\` (as last character on the line).
+
+Comments can be placed with the `#` symbol.
+
+When the webserver is started, the default name and location can be overridden with the `-f` option.
+
+When a setting in `httpd.conf` is changed, the web server needs to be restarted for the changes to take effect.
+
+{ Scope of directives
+
+  By default, a directive controls the behavior of the entire server. However, a directive's scope can be limited in scope with one of the following *sections*:
+    • `<Directory>`
+    • `<DirectoryMatch>`
+    • `<Files>`
+    • `<FilesMatch>`
+    • `<Location>`
+    • `<LocationMatch>`
+    • `<VirtualHost>`
+
+  In addition, directives that effect directories (and subdirectories) only can be placed into → development/Apache/Server/htaccess[`.htaccess`] files (if a corresponding `AllowOverride` directive
+  allows to override a setting in `.htaccess`).
+
+
+}
+{ Checking validity of syntax
+
+  The `-t` option of `httpd` allows to check the validity of a configuration file like syntax or if referenced file paths are present on the file system:
+code {
+$ apache/bin/httpd -t
+Syntax OK
+code }
+
+  Alternatively, its also possible to check the syntax with `apachectl configtest`.
+
+}
+{ Some excerpts
+
+  Some excerpts from my httpd.conf file that I wish I could remember…
+
+code {
+Listen 80
+
+ServerRoot "C:/Users/rene/xampp/apache"
+…
+DocumentRoot "C:/Users/rene/htdocs"
+<Directory "C:/Users/rene/htdocs">
+
+  #
+  # Options: either
+  #  - None      , or
+  #  - All       , or
+  #  - any combination of
+  #    - Indexes
+  #    - Includes
+  #    - FollowSymLinks
+  #    - SymLinksifOwnerMatch
+  #    - ExecCGI
+  #    - MultiViews            (Not included with All)
+  #
+
+    Options Indexes FollowSymLinks Includes ExecCGI
+
+  #
+  # AllowOverride controls the set of directives that
+  # can be placed in a → development/Apache/Server/htaccess file.
+  #
+    AllowOverride All
+
+  #
+  # Who is allowed to access this server
+  #
+    Require all granted
+</Directory>
+
+
+<IfModule dir_module>
+  #
+  # Which file is served if URL is a directory:
+  #
+    DirectoryIndex index.php index.html \
+                   index.htm
+</IfModule>
+
+
+<Files ".ht*">
+  #
+  # Prevent → development/Apache/Server/htaccess and .htpasswd
+  # from being served
+  #
+    Require all denied
+</Files>
+
+#
+#  Allow to execute <?php … ?> snippets in
+#  HTML documents.
+#
+AddType application/x-httpd-php .html .htm  
+code }
+
+  The `DocumentRoot` can be queried in → development/web/php with → `development/web/php/snippets/_SERVER[$_SERVER]['DOCUMENT_ROOT']`.
+
+}
