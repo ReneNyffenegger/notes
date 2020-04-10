@@ -1064,7 +1064,12 @@ sub close_html { #_{
 
   print $out "</div>\n"; # screen-only
   print $out "</body>
-</html>";
+</html>
+<?php
+require_once('/home/httpd/vhosts/renenyffenegger.ch/php/web-request-database.php');
+insert_webrequest();
+?>
+";
 
   close ($out);
 
