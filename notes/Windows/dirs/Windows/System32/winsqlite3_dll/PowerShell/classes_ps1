@@ -13,6 +13,7 @@ More information about this project is → Windows/dirs/Windows/System32/winsqli
     `prepareStmt($sqlStmt)` ☰ creates an `sqliteStmt` instance for the SQL stement `$sqlStmt`. Returns `$null` if parsing fails.
     `close()` ☰ Closes the database.
     `last_insert_rowid()` ☰ Returns the last inserted → development/databases/SQLite/tables/rowid. See the → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test#ps-sqlite-test-last_insert_rowid[`last_insert_rowid()` test].
+    `nextStmt()` ☰ is a *hidden* method that wraps `sqlite3_next_stmt()`. It is used in `close()` to `finalize()` the remaning open statement handles before closing the database.
     `version()` ☰ Returns the version of the SQLite engine.
   table }
 
@@ -25,7 +26,7 @@ More information about this project is → Windows/dirs/Windows/System32/winsqli
     `reset()` ☰ calls `sqlite3_reset()`
     `col($index)` ☰ For select statements: returns the value of the column `$index` of the *current record*
     `bindArrayStepReset($bindValues)` ☰ binds the values in the array `$bindValues` and then calls `step()` and `reset()`. This method is typically used for `insert` statements.
-    `finalize()` ☰ Must/should(?) be called when done with the statement
+    `finalize()` ☰ Must/should(?) be called when done with the statement. This method is called by `[sqliteDB]::close)` for all open statements so that the database can be closed - but can also be called explicitely for used statements.
 
   table }
 
