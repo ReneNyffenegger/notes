@@ -8,7 +8,7 @@ table { llll
 
  → Windows/PowerShell/language/variable/preference/confirmPreference[`$ConfirmPreference`] ☰ ☰ High ☰ → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ConfirmImpact[`System.Management.Automation.ConfirmImpact`]
  `$DebugPreference`           ☰ ☰ SilentlyContinue ☰ → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ActionPreference[`System.Management.Automation.ActionPreference`]
- `$ErrorActionPreference`     ☰ ☰ Continue ☰ `System.Management.Automation.ActionPreference`
+ `$ErrorActionPreference`     ☰ Controls how → Windows/PowerShell reacts to a → Windows/PowerShell/language/error-handling#ps-error-types[non-terminating error] ☰ Continue ☰ → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ActionPreference[`System.Management.Automation.ActionPreference`]
  `$ErrorView`                 ☰ ☰ NormalView ☰ → Microsoft/dot-net/namespaces-classes/System/String[`System.String`]
  `$FormatEnumerationLimit`    ☰ ☰ 4 ☰ → Microsoft/dot-net/namespaces-classes/System/Int32[`System.Int32`]
  → Windows/PowerShell/language/variable/preference/informationPreference[`$InformationPreference`] ☰ ☰ SilentlyContinue ☰ → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ActionPreference[`System.Management.Automation.ActionPreference`]
@@ -37,6 +37,38 @@ table { llll
   `$WarningPreference` ☰ Determines what happens with strings in the *warning stream* (as for example placed into this stream with the → Windows/PowerShell/command-inventory/noun/warning/write[`write-warning`] cmdLet. ☰ Continue ☰ → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ActionPreference[`System.Management.Automation.ActionPreference`]
   `$WhatIfPreference` ☰ ☰ 0 ☰ `System.Boolean`
 table }
+
+{ $errorActionPreference
+
+  The following simple script tries to demonstrate the effect of the value of the `$errorActionPreference` variable. It tries to open three → Windows/registry/tree-structure/key[registry keys]. The second one,
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM/SAM[`HKEY_LOCAL_MACHINE\SAM\SAM`] requires *SYSTEM* privleges to be opened. Because in most cases, these privileges are not granted to an ordinary user, this key
+  cannot be opened.
+
+  The thre statements that try to open the registry key are guarded by → Windows/PowerShell/language/statement/try-catch-finally[`try` … `catch`] statements.
+
+  gh|about-PowerShell|/language/variable/preference/errorActionPreference.ps1||
+
+  When the script is run with the default of `$errorActionPreference` (continue), an error message is written and the script continues to also open the third key.
+code {
+PS:\> .\errorActionPreference.ps1
+Opened HKEY_LOCAL_MACHINE\SOFTWARE
+get-item : Requested registry access is not allowed.
+At …
+  […]
+
+Opened
+Opened HKEY_LOCAL_MACHINE\SYSTEM
+code }
+  
+  However, if the value of `$errorActionPreference` is set to stop, the error is caught in the exception handler and the third key is not opened.
+code {
+PS:\> $ErrorActionPreference='stop'
+PS:\> .\errorActionPreference.ps1
+Opened HKEY_LOCAL_MACHINE\SOFTWARE
+Caught error Requested registry access is not allowed.
+code }
+
+}
 
 sa:
   → Windows/PowerShell/language/variable[Variables]
