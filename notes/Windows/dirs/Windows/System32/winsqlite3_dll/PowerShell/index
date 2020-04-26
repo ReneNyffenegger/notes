@@ -65,8 +65,6 @@ code }
 }
 { TODO
 
-  → development/databases/SQLite/datatypes/blob[Blobs] should be supported when inserting or selecting values.
-
   The method `bindArrayStepReset()` currently needs to be called with *one* parameter (which is an array)
  `$stmt.bindArrayStepReset( ( $val_1, $val_2, $val_3 ) )`. It would be nice if the method could be called with multiples
   arguments: `$stmt.bindArrayStepReset( $val_1, $val_2, $val_3 )`.
@@ -75,6 +73,11 @@ code }
 
  `sqliteStmt` should probably implement → Microsoft/dot-net/namespaces-classes/System/Collections/IEnumerable[`System.Collections.IEnumerable`] so that it is possible to iterate over
   a select statement with a → Windows/PowerShell/language/statement/foreach[`foreach` statement]. 
+
+  The currently implemented blob interface only supports 32-bit lengths (`sqlite3_bind_blob()`). Sooner or later, `sqlite3_bind_blob64()` will probably be necessary.
+  -
+  However, it's not clear if this at all possible because there is only a `sqlite3_column_bytes()` function, and it returns an `int`. There should be, imho, a function that returns a 64-bit number when determining
+  the size of a blob.
 
 }
 { Done
@@ -100,5 +103,7 @@ code }
   2020-04-24: Implemented `sqlite3_next_stmt()` and the corresponding (hidden) method `[sqliteStmt]::nextStmt`. This allows to iterate over all open statements and then finalize them in the `[sqliteDB]::close()` method.
   -
   The test case for this functionality is → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test#ps-sqlite-test-close-db-with-open-stmts[here].
+
+  2020-04-26: Added support for → development/databases/SQLite/datatypes/blob[Blobs] (Version 0.08)
 
 }
