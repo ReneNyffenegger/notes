@@ -1,30 +1,69 @@
 $ Encoding and decoding base 64 with c++
 
-  `base64.cpp` contains two simple C++ functions to encode and decode string from/to → development/Base64: `base64_encode` and `base64_decode`.
+This is a simple library to → development/Base64 encode and decode → development/Data with → development/languages/C-C-plus-plus[C++].
 
-  `test.cpp` can be used to test the functionality.
+{ Interface version 2.0
 
-  The source code is on → https://github.com/ReneNyffenegger/cpp-base64[github].
+  This is the proposed interface for the version 2.0 of this library (as of 2020-04-29).
 
-{ base64.cpp
+  { base64_encode
 
-  gh|cpp-base64|/base64.cpp||
+   `base64_encode()` comes in two overloaded versions:
+code {
+std::string base64_encode(std::string const& s, bool url = false);
+std::string base64_encode(unsigned char const*, unsigned int len, bool url = false);
+code }
+  
+    Both of these functions encode data as Base 64 and return the encoded string as a `std::string`.
+      
+    The parameter `url` determines if the encoded string can be used in → development/web/URI-URL-URN-IRI-URC#url[URLs]: if `url` is set to `true`, the encoded string will contain `-`, `_` and `+` instead of
+   `+`, `/` and `=`.
+
+    The parameter `len` is needed for the second version because the length of an `unsigned char const*` is not determined if the data contains null values.
+
+  }
+  { base64_encode_pem / base64_encode_mime
+
+code {
+std::string base64_encode_pem (std::string const& s);
+std::string base64_encode_mime(std::string const& s);
+code }
+
+    These two functions also encode data as Base 64. Additionally, they insert a line break after each 64th (pem) and 76th (mime) encoded characters.
+
+  }
+  { base64_decode
+
+   `base64_decode()` decodes an encoded string.
+
+code {
+std::string base64_decode(std::string const& s, bool remove_linebreaks = false);
+code }
+
+    The parameter `remove_linebreaks` needs to be set to `true` if the encoded string is expected to contain → development/line-break[line breaks], for example because they were encoded with
+   `base64_encode_pem()` or `base64_encode_mime()`.
+
+  }
 
 }
-{ base64.h
+{ Source files
 
-  gh|cpp-base64|/base64.h||
+  The source code is hosted on → https://github.com/ReneNyffenegger/cpp-base64[github]. The repository consists of the following files
+  table { ll
+  
+    → #cpp-base64-cpp[`base64.cpp`] and → #cpp-base64-h[`base64.h`] ☰ The two files that are required to encode end decode data with and from Base64.
+    → development/Base64/Encoding-and-decoding-base-64-with-cpp/test[`test.cpp`] ☰ A program that uses `base64.cpp` and verifies that the implemented functionality is correct.
+    → https://github.com/ReneNyffenegger/cpp-base64/blob/master/test-google.cpp[`test-google.cpp`] ☰ A test file that can be used with a Google test suite (`#include <gtest/gtest.h>`).
+    → https://github.com/ReneNyffenegger/cpp-base64/blob/master/measure-time.cpp[`measure-time.cpp`] ☰ Also uses `base64.cpp` to encode and decode a *lorep ipsum* text and to measure the time it takes to do so.
+    → https://github.com/ReneNyffenegger/cpp-base64/blob/master/wsjcpp.yml[`wsjcpp.yml`] ☰  This file is apparently used for or as a *source file manager*.
+    → https://github.com/ReneNyffenegger/cpp-base64/blob/master/compile-and-run-test[`compile-and-run-test`] ☰ A shell script that uses the → development/languages/C-C-plus-plus/GCC[GNU C++ compiler] to compile `test.cpp` and run it.
 
-}
-{ test.cpp
+  table }
 
-  This is a simple test case that encodes and decodes a few strings and then checks if both versions are equal. Additionally, it also checks the string's decoded version with their expected value.
+ `base64.cpp` contains two simple C++ functions to encode and decode string from/to → development/Base64: `base64_encode` and `base64_decode`.
 
-  The program exits with 1 if the test is not successful and with 0 otherwise.
+  → development/Base64/Encoding-and-decoding-base-64-with-cpp/test[`test.cpp`] can be used to test the functionality.
 
-  gh|cpp-base64|/test.cpp||
-
-  See also → https://github.com/ReneNyffenegger/cpp-base64/blob/master/measure-time.cpp[`measure-time.cpp`].
 
 }
 { Contributions
@@ -33,7 +72,7 @@ $ Encoding and decoding base 64 with c++
 
   → https://github.com/minastaros[minastaros] for improving the code and adding test cases. (Version `1.01.00`)
 
-  → https://github.com/sea-kg[Evgenii Sopov] provided → development/Base64/wsjcpp_yml[`wsjcpp.yml`]. This file is apparently used for or as a *source file manager*.
+  → https://github.com/sea-kg[Evgenii Sopov] provided → development/Base64/wsjcpp_yml[`wsjcpp.yml`].
 
   → https://github.com/khiemdoan[Khiem Doan] added the correct → development/languages/C-C-plus-plus/C/header-files[headerfile]: `<cctype>` rather than `<iostream>`, which is sufficient for `isalnum()`.
   -
@@ -52,6 +91,18 @@ $ Encoding and decoding base 64 with c++
 
   Francisco Ruiz and → https://github.com/huangxinV587[huangxinV587] both suggested that I use a lookup function to find the position of an encodeded character in `base64_chars` in order to
   improveperformance. I have merged their code into one version and given the lookup function the name `pos_of_char()`.
+
+  → https://github.com/JomaCorpFX[JomaCorpFX] provided the main functionality for `base64_encode_pem()`, `base64_encode_mime()` and the `url` parameter in `base64_encode()`.
+
+}
+{ base64.cpp #cpp-base64-cpp
+
+  gh|cpp-base64|/base64.cpp||
+
+}
+{ base64.h #cpp-base64-h
+
+  gh|cpp-base64|/base64.h||
 
 }
 { Usages
