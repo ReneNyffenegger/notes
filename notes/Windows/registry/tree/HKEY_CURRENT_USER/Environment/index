@@ -6,5 +6,24 @@ PS> echo [environment]::getEnvironmentVariable("PATH", "user" )
 PS> [environment]::setEnvironmentVariable("SOME_VAR", "some value", "user") 
 code }
 
+{ Changing the value in the registry #hkcu-environment-SendMessage
+
+  If the value is changed directly in the registry, a `→ Windows/dirs/Windows/System32/user32_dll/SendMessage[SendMessage](HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment")` should be executed in order for the changes to take effect.
+
+  In → Windows/PowerShell, this is possible with something like the following
+code {
+( → Windows/PowerShell/command-inventory/noun/type/add[add-type] -passThru -name dummy -memberDefinition '
+  [DllImport("user32.dll", CharSet=CharSet.Auto)]
+   public static extern int SendMessage(
+      IntPtr     hWnd,
+      UInt32     uMsg,
+      UIntPtr    wParam,
+      String     lParam    // Note, this parameter is actually an IntPtr. This construct passes `Environment` as a string.
+   );
+'
+)::SendMessage(0xffff, 0x001A, [UIntPtr]::Zero,  "Environment")
+code }
+}
+
 sa:
   → Windows/registry/environment-variables

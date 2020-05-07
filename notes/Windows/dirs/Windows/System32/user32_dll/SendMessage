@@ -1,0 +1,30 @@
+$ user32.dll: SendMessage
+
+{ Sending message from PowerShell
+
+code {
+add-type -name user32 -namespace '' -memberDefinition '
+[DllImport("user32.dll", CharSet=CharSet.Auto)]
+    public static extern Int32 SendMessage(
+            IntPtr  hWnd,
+            UInt32  msg,
+            UIntPtr wParam,
+            IntPtr  lParam
+    );'
+code }
+}
+
+  After adding the `user32` type, its (only) `static` method `SendMessage` can be invoked like so:
+code {
+[user32]::SendMessage(…)
+code }
+
+  If the fourth parameter is a string, it needs to be declared as such. See for example → Windows/registry/tree/HKEY_CURRENT_USER/Environment#hkcu-environment-SendMessage[`SendMessage(HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment")`] after
+  changing a value in the → Windows/registry in → Windows/registry/tree/HKEY_CURRENT_USER/Environment[`HKEY_CURRENT_USER\Environment`].
+
+}
+
+sa:
+  → development/languages/VBA/Win-API/examples/SendMessage[Calling `SendMessage()` from VBA]
+
+  → Windows/PowerShell/examples/writing-into-notepad-with-SendMessage
