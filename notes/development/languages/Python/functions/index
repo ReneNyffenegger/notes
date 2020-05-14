@@ -1,4 +1,5 @@
 $ Python functions
+@ function
 
 { Return a tuple
 
@@ -13,11 +14,46 @@ $ Python functions
   See also → development/languages/Python/objects/callable[callable objects].
 
 }
-{ Global/local variables in a function
+{ Global/local variables in a function / symbol tables #py-func-symbol-tables
 
-  A → development/languages/Python/variables[variable] that is only referenced in a → development/languages/Python/functions[function], but not assigned to, is implicitely a global variable.
+  When the Python interpreter executes a function, it creates a symbol table for the function for the duration of the execution. This symbol table stores the
+  local → development/languages/Python/variables[variables] and the → development/languages/Python/functions/parameters[function parameters].
 
-  In order to make explicitely mark a variable in a function as global, the → development/languages/Python/statements/global[`global` statement] must be used.
+  If a value is assigned to a variable in a function, a new local variable is created and stored in the symbol table.
+
+  If a variable is referenced in a function, the interpreter first tries to look it up in the current function's symbol table. If it doesn't exist there, it tries to look it up in the
+  symbol table of the enclosing namespace, and so on until it reaches the global symbol table and lastly the symbol table of → development/languages/Python/dunders/__builtins__[built in names].
+
+  If a value is assigned to variable after referencing it, a `UnboundLocalError` exception is thrown (local variable … referenced before assignment).
+ 
+  In order to mark a variable in a function as global, the → development/languages/Python/statements/global[`global` statement] must be used.
+
+  The current symbol table is returned by the → development/languages/Python/built-in-functions/locals[`locals()`] built-in function, as is demonstrated by the following snippet:
+  gh|about-Python|/functions/locals.py||
+
+  This snippet, when executed, prints
+code {
+p1  = foo
+p2  = bar
+var = baz
+code }
+
+  Note also that a → development/languages/Python/statements/def[`def` statement] inserts the name of the function that is being defined into the (then) current symbol table.
+
+}
+{ Functions without return statement #py-func-no-return
+
+  A function that is left without explicitly returning a value with the → development/languages/Python/statements/return[`return` statement] implicitely returns `None`.
+
+  gh|about-Python|/functions/no-return.py||
+
+  This snippet prints
+code {
+p = 42
+None
+code }
+
+  In this example, the → development/languages/Python/built-in-functions/print[`print()`] function is needed because `None` is otherwise omitted by the interpreter.
 
 }
 
