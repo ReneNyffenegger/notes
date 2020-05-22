@@ -1,15 +1,10 @@
 $ CPython: Include/object.h
 
-*Object and type object interface*
+*→ development/languages/Python/objects[Object] and type object interface*
 
 { PyObject #PyObject
 
  `PyObject` stores an → development/languages/Python/objects[Python object's] *reference counter* (`ob_refcnt`) and a *type pointer* (`ob_type`).
-
-→ development/languages/Python/objects[Objects]
-
-}
-
 
 code {
 typedef struct _object {
@@ -21,6 +16,7 @@ code }
 
   If `Py_TRACE_REFS` is defined when compiing the sources, the macro `_PyObject_HEAD_EXTRA` is used to dfine a doubly-linked list of all live heap objects. If `Py_TRACE_REFS` is not defined, `_PyObject_HEAD_EXTRA` evaluates to nothing.
 
+}
 { PyVarObject #PyVarObject
 
 code {
@@ -31,6 +27,32 @@ typedef struct {
 code }
 
 }
+{ PyType_Slot
+
+code {
+typedef struct{
+    int slot;    /* slot id, see below */
+    void *pfunc; /* function pointer */
+} PyType_Slot;
+code }
+
+}
+{ PyType_Spec
+
+code {
+typedef struct{
+    const char* name;
+    int basicsize;
+    int itemsize;
+    unsigned int flags;
+    PyType_Slot *slots; /* terminated by slot==0. */
+} PyType_Spec;
+code }
+
+}
 
 links:
   → https://github.com/python/cpython/blob/master/Include/object.h[`Include/object.h` on github]
+
+sa:
+  → development/languages/Python/CPython/sources/Include/cpython/object_h[`Include/cpython/object.h`]
