@@ -1,0 +1,76 @@
+$ VBA: Beware of dim … as new …
+
+→ development/languages/VBA/language/statements/dim#vba-dim-as-new[`dim obj as new someClass`] can be used to declare and initialize an object-→ development/languages/VBA/language/variables[variable] in one statement.
+-
+However, the use of `dim obj as new class` is a bit surprising, which I try to demonstrate with the following example:
+
+{ X.cls
+
+  This source file defines a simle class:
+
+  gh|about-VBA|language/classes/constructor-destructor/beware-of-dim-as-new/X.cls||
+
+}
+{ main.bas
+
+  This source file uses the class `X`. There are three loops wiht three iterations, respectively.
+
+  In the first two loops, the class is initialized in each iteration. In the last loop, however, the class is initialized only once.
+
+  In addition to that strange, imho, behaviour, the class is initialized when it is first referenced, not when the execution reaches the `dim … as new …` statement.
+
+  gh|about-VBA|language/classes/constructor-destructor/beware-of-dim-as-new/main.bas||
+
+}
+{ Output
+
+  The example prints
+code {
+main
+--------- start loops ----------
+--------- loop_1 ---------------
+  class_initialize was called
+  i = 1
+  value = 43
+  class_initialize was called
+  class_terminate was called
+  i = 2
+  value = 43
+  class_initialize was called
+  class_terminate was called
+  i = 3
+  value = 43
+  class_terminate was called
+--------- loop_2 ---------------
+  i = 1
+  class_initialize was called
+  value = 43
+  i = 2
+  class_initialize was called
+  class_terminate was called
+  value = 43
+  i = 3
+  class_initialize was called
+  class_terminate was called
+  value = 43
+  class_terminate was called
+--------- loop_3 ---------------
+  i = 1
+  class_initialize was called
+  value = 43
+  i = 2
+  value = 44
+  i = 3
+  value = 45
+  class_terminate was called
+--------- loops finished -------
+next statement: print y.value
+  class_initialize was called
+  value = 43
+  class_terminate was called
+code }
+
+}
+
+sa:
+  → development/languages/VBA/language/classes[Classes/objects in VBA]
