@@ -1,6 +1,48 @@
 $ Python: dict
 @ dict
 
+A dict is a → development/languages/Python/objects/containers.
+
+{ Creating a dict
+
+  A dictionary can be created with *curly braces* that contain the items.
+  -
+  The items are seperated by commas.
+  -
+  Each item consists of the key separated from the value by a colon (`:`):
+  gh|about-python|/types/dict/create-curly-braces.py||
+
+  A dict can be created from a → development/languages/Python/iterable/sequence whose items are sequences themselves that provide the key/value pairs.
+  gh|about-python|/types/dict/create-from-sequence.py||
+
+  If the keys are → development/languages/Python/types/string[strings], a dict can be with *keyword arguments*:
+  gh|about-python|/types/dict/create-keyword-arguments.py||
+
+  A dict can also be created with a → #py-dict-comprehension[dict comprehension].
+
+}
+{ Looking up values/elements
+
+  The value for a key can be looked up with square brackets `dict[key]`. If the key does not exist, the interpreter raises a
+ `KeyError` → development/languages/Python/exception-handling[exception].
+  gh|about-Python|/types/dict/lookup/square-brackets.py||
+
+  Alternatively, a value can also be looked up with the `get` → development/languages/Python/class/methods.
+  -
+  It comes in two forms: `dict.get(key)` and `dict.get(key, defaultValue)`. The first variant returns `None` if the key does not exist, the second one
+  returns `defaultValue` if the key does not exist.
+  gh|about-Python|/types/dict/lookup/get.py||
+
+}
+{ A dict is a mapping, not a sequence
+
+  Although a dict implements
+  → development/languages/Python/dunders/__getitem__[`__getitem__()`] and → development/languages/Python/dunders/__len__[`__len__()`], it is considered a mapping type rather than a
+  → development/languages/Python/iterable/sequence type.
+
+  This is because the items a dict contains are looked up with immutable keys rather than integers.
+
+}
 { Check if a given key exists
 
   The `in` operator returns true if a given key exists in a dictionary and false otherwise:
@@ -9,22 +51,73 @@ $ Python: dict
 }
 { Getting keys of a dictionary
 
-  `keys()` returns a list that contains a dictionary's keys:
+ `keys()` returns a → development/languages/Python/types/list that contains a dictionary's keys:
   gh|about-python|/types/dict/keys.py||
 
-}
-{ Getting keys and values of a dictionary
+ `list()` also returns a list of the dictionary's keys. The returned list is ordered according to the insertion of the elements into the dictionary:
+  gh|about-python|/types/dict/list.py||
 
-  `items()` can be used to extract both keys and values from a dictionary:
+}
+{ Iterating over keys and values of a dictionary
+
+ `items()` can be used to iterate over keys and values from a dictionary:
   gh|about-python|/types/dict/items.py||
 
 }
-{ Misc
+{ Removing keys from a dict
 
-  Although `dict` provides `__getitem__()` and `__len__()`, it is considered to be a *mapping* rather than a sequence.
+  A key/value pair can be removed from a dict with → development/languages/Python/built-in-functions/del#py-del-list[`del(dct[ix])`].
+
+}
+{ Allowed key types
+
+  A dict only allows immutable → development/languages/Python/objects[objects] as keys.
+  -
+  Therefore, → development/languages/Python/types/tuple[tuples] are allowed as keys, but not → development/languages/Python/types/list[lists].
+
+  Using a tuple as a key:
+code {
+>>> x = {(1,2,3): 'foo'}
+>>> x[(1,2,3)]
+'foo'
+code }
+  
+  Trying to use a list as a key:
+code {
+>>> y = {[1,2,3]: 'bar'}
+…
+TypeError: unhashable type: 'list'
+code }
+
+}
+{ Dict comprehension #py-dict-comprehension
+
+  A dictionary can be created with a *dict comprehension*.
+
+  gh|about-python|/types/dict/comprehension.py||
+
+  Compare with → development/languages/Python/types/list/comprehension[list comprehensions].
+
+}
+{ Implementation of dicts
+
+  A dict is implemented as a resizable hash table which is claimed to have better performance than a B-tree when looking up elements. In fact,
+  this takes a constant time: `O(1)`.
 
 }
 sa:
   → development/languages/Python/types/dict/add[Adding key-value pairs to a dictionary]
 
+  → development/languages/Python/objects/copy#py-copy-dict[Copying a dictionary] (rather than aliasing it).
+
+  Using the → development/languages/Python/types/dict/update[`update()`] method of a `dict` to update it from the key/value pairs from another `dict`.
+
   → development/languages/Python/types/dict/merge[Merge two dictionaries]
+
+  → development/languages/Python/standard-library/collections/OrderedDict[`collections.OrderedDict`] is a subclass of `dict` that remembers in what order its entries were added.
+  -
+  `collections.defaultdict` is a subclass of `dict` that calls a factory function to supply missing values
+  -
+  `collections.Counter` is a subclass of `dict` that counts *hashable* → development/languages/Python/objects[objects].
+
+  → development/languages/Python/types/set[Sets] might also be → development/languages/Python/types/set#py-set-create[created] with curly braces.

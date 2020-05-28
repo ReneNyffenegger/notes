@@ -1,0 +1,32 @@
+
+CPython is the reference implementation for → development/languages/Python.
+
+{ High Level view of the CPython front-end
+
+  → https://eli.thegreenplace.net[eli Bendersky's] article on → https://eli.thegreenplace.net/2010/09/18/python-internals-symbol-tables-part-1[Symbol tables] lists the four main actions of the CPython front-end as follows:
+    • (1) Parse source code into a parse tree
+    • (2) Transform parse tree into an Abstract Syntax Tree
+    • (3) Transform AST into a Control Flow Graph
+    • (4) Emit → development/languages/Python/internals/bytecode based on the Control Flow Graph
+
+}
+
+{ Global Interpreter Lock #py-gil
+
+  The *Global Interpreter Lock* (GIL) makes sure that in any given Python process, at most one thread access the byte code at any one time.
+
+ `sys.setswitchinterval()` determines how frequently Python's virtual machine switches between threads.
+
+  See also the → development/languages/Python/standard-library/threading[`threading`] module.
+
+}
+
+sa:
+
+  CPythons development model can be enabled with the → development/languages/Python/command-line/options[command line option] `-X dev`. This changes the following features:
+    •  Add default warning filter, as `-W` default
+    •  Install debug hooks on memory allocators: see the `PyMem_SetupDebugHooks()` C function
+    •  Enable the faulthandler module to dump the Python traceback on a crash
+    •  Enable asyncio debug mode
+    •  Set the dev_mode attribute of `sys.flags` to `True`
+    •  io.IOBase destructor logs close() exceptions

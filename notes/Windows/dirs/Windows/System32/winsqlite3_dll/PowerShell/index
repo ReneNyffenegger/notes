@@ -9,10 +9,11 @@ Because I once had to work in a Windows environment where I was not allowed to i
 → development/databases[database], but needed a database anyway, I was forced to write such an SQLite wrapper so that I could store my → development/Data in a database.
 
 The sources are hosted in → https://github.com/ReneNyffenegger/winsqlite3.dll-PowerShell[this Github repository] and consist of
-  • `PInvoke.ps1` : the wrappers for SQLite API
-  • `classes.ps1` : two classes, `sqliteDB` and `sqliteStmt`
+  • → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/PInvoke_ps1[`PInvoke.ps1`] : the wrappers for SQLite API
+  • → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/classes_ps1[`classes.ps1`] : two classes, `sqliteDB` and `sqliteStmt`
   • `kernel32.ps1` : for `GetModuleHandle` and `GetProcAddress`
-  • `test/*` : Some tests (such as `test/simple.ps1` to test and demonstrate the functionality of the previous three files
+  • `test/*` : Some → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test[tests] (such as `test/simple.ps1`) to test and demonstrate the functionality of the previous three files
+  • `init.ps1`: A simple script that → Windows/PowerShell/language/operator/dot[sources] the first three files that are required to use this library.
 
 { Simple test script
 
@@ -64,9 +65,19 @@ code }
 }
 { TODO
 
+  The method `bindArrayStepReset()` currently needs to be called with *one* parameter (which is an array)
+ `$stmt.bindArrayStepReset( ( $val_1, $val_2, $val_3 ) )`. It would be nice if the method could be called with multiples
+  arguments: `$stmt.bindArrayStepReset( $val_1, $val_2, $val_3 )`.
+
+  The value of `$handle` in the `sqliteStmt` class might be set to `0` when its `finalize()` method is called.
 
  `sqliteStmt` should probably implement → Microsoft/dot-net/namespaces-classes/System/Collections/IEnumerable[`System.Collections.IEnumerable`] so that it is possible to iterate over
   a select statement with a → Windows/PowerShell/language/statement/foreach[`foreach` statement]. 
+
+  The currently implemented blob interface only supports 32-bit lengths (`sqlite3_bind_blob()`). Sooner or later, `sqlite3_bind_blob64()` will probably be necessary.
+  -
+  However, it's not clear if this at all possible because there is only a `sqlite3_column_bytes()` function, and it returns an `int`. There should be, imho, a function that returns a 64-bit number when determining
+  the size of a blob.
 
 }
 { Done
@@ -84,5 +95,15 @@ code }
   2020-04-17: Added support for → Microsoft/dot-net/namespaces-classes/System/Boolean[`System.Boolean`] (`[Bool]`) in the `bind` method of → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/classes_ps1[classes.ps1].
   → Windows/PowerShell/language/variable/automatic/true-false[`$true`] is inserted as the (32-bit) integer `1`, `$false` as `0`. Also added the respective tests in
   → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test#ps-sqlite-test-datatypes[`datatypes.ps1` test script].
+
+  2020-04-20: Version 0.06: Added better support for → development/Unicode/UTF-8. The respective test case is → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test#ps-sqlite-test-encoding[here].
+
+  2020-04-24: Added → https://github.com/ReneNyffenegger/winsqlite3.dll-PowerShell/blob/master/init.ps1[`init.ps1`]
+
+  2020-04-24: Implemented `sqlite3_next_stmt()` and the corresponding (hidden) method `[sqliteStmt]::nextStmt`. This allows to iterate over all open statements and then finalize them in the `[sqliteDB]::close()` method.
+  -
+  The test case for this functionality is → Windows/dirs/Windows/System32/winsqlite3_dll/PowerShell/test#ps-sqlite-test-close-db-with-open-stmts[here].
+
+  2020-04-26: Added support for → development/databases/SQLite/datatypes/blob[Blobs] (Version 0.08)
 
 }

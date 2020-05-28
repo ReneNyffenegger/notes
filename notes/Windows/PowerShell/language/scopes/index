@@ -1,0 +1,86 @@
+$ PowerShell: scopes
+
+The following → Windows/PowerShell items exist in a scope:
+  • Windows/PowerShell/language/variable[variables]
+  • Windows/PowerShell/language/alias[aliases]
+  • Windows/PowerShell/language/function[functions]
+  • Windows/PowerShell/language/provider/drive[drives]
+
+{ Scopes have a hierarchy
+
+  Scopes can nest, that is: a scope can contain other scopes.
+
+  The containing scope is referred to as the *parent scope*, the contained scope as its *child scope*.
+
+  The root of all scopes is the *global scope*.
+
+  An item in a child scope that has the same name as an item in one of its parent scopes hides that item.
+
+}
+{ Accesing items in a parent scope
+
+  Within a child scope, it's possible to acess items of its parent scope unless the item is explicitely marked as private (with the `:private` → #scope-modifier[scope modifier]).
+
+}
+{ Modifying items
+
+  An item can be modified in the scope in which it was created.
+
+? In a child scope, an item can be modified if the scope is explicitely stated.
+
+}
+{ Creating a new scope #ps-create-scope
+
+  A new scope can be created
+    • by running a script with the → Windows/PowerShell/language/operator/call[call operator (`&`)]
+    • by executing a → Windows/PowerShell/language/function
+    • by starting a session
+    • by starting a new PowerShell instance
+
+  When a new scope is created, PowerShell fills it with some items:
+    • → Windows/PowerShell/language/alias[Aliases] with the *AllScope* option
+    • → Windows/PowerShell/language/variable[Variables] with the *AllScope* option
+    • Some Windows/PowerShell/language/variable/automatic
+
+}
+{ Scope modifiers #scope-modifiers
+
+  table { ll
+    `global:` ☰
+    `local:` ☰
+    `private:` ☰
+    `script:` ☰
+    `using:` ☰
+    `workflow:` ☰
+    `global:` ☰
+  table }
+
+  Scope modifiers are applicable to
+     • Windows/PowerShell/language/variable[variables]
+     • Windows/PowerShell/language/alias[aliases]
+     • Windows/PowerShell/language/function[functions]
+
+  For example, in order to access a global variable, this is possible with
+code {
+$global:var = 'value'
+code }
+
+  In addition, the PSDrive → Windows/PowerShell/language/provider adds the following *variable namespaces*:
+  table { ll
+    `alias:` ☰
+    `env:` ☰ to access → Windows/development/environment-variables[environment variables]
+    `function:` ☰
+    `variable:` ☰
+  table }
+
+}
+{ Example
+
+  The following example tries to demonstrate the `:global` and `:script` modifiers in a → Windows/PowerShell/language/function:
+  gh|about-PowerShell|/language/scope/function.ps1||
+
+}
+
+
+sa:
+  The → Windows/PowerShell/language/operator/dot[dot sourcing operator (`.`) can be used to create items in the current scope.

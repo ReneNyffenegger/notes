@@ -1,0 +1,50 @@
+$ Python: statement with
+@ with
+
+code {
+with expr:
+     …
+
+with expr as obj:
+     …
+code }
+
+The `with` statement expects the → development/languages/Python/expressions[expression] `expr` to evaluate to an → development/languages/Python/objects that implements the two
+→ development/languages/Python/dunders[dunders] `→ development/languages/Python/dunders/__enter__[__enter__](self)` and `→ development/languages/Python/dunders/__exit__[__exit__](self, type, value, traceback)`.
+
+`__enter__(self)` is called on the object that `expr` evaluates to. The object that `__enter__()` returns is assigned to the → development/languages/Python/variables `obj`.
+
+When the `with` block is exited, the Python interpreter calls `__exit__(…)` on the object that `expr` evaluated to.
+
+Typically, `__enter__` acquires a resource and `__exit__` releases it. Thus, when a resource is used in a `with` statement, we're sure that the resource will be released when the `with` block is left. A well known example are files:
+code {
+with → development/languages/Python/built-in-functions/open[open](…) as f:
+     … do something with f
+
+# file will be closed here.
+code }
+
+{ Simple demonstration
+
+  The following simple script tries to demonstrate how `with` works behind the scenes:
+  gh|about-python|/statements/with/demo.py||
+
+  When executed, the script prints
+code {
+Going to use with statement:
+__init__, ident = xyz
+xyz: __enter__
+__init__, ident = created in __enter__
+I am created in __enter__
+xyz: __exit__
+Finished with with statement
+code }
+
+}
+
+sa:
+
+  → development/languages/Python/standard-library/contextlib/contextmanager[`contextmanager`] (in the → development/languages/Python/standard-library `contextlib`) is a → development/languages/Python/functions/decorators that turns a
+  → development/languages/Python/functions into a → development/languages/Python/objects/context-manager.
+
+  → development/languages/Python/statements
