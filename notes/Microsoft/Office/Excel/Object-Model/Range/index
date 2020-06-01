@@ -5,8 +5,9 @@ A `Range` object can be obtained by using one of the two properties `→ Microso
 
 The method → Microsoft/Office/Excel/Object-Model/Application[`application.inputBox`] allows a user to select a range with the mouse and pass the selected range to a VBA program.
 
-An individual → Microsoft/Office/Excel/Object-Model/Range/cell[cell] is referred to by a range.
+Each of the four edges (borders) of a range is represented by a → Microsoft/Office/Excel/Object-Model/Border object.
 
+An individual → Microsoft/Office/Excel/Object-Model/Range/cell[cell] is referred to by a range.
 
 { default member #excel-range-default-member
 
@@ -86,7 +87,6 @@ code }
 
   Apparently, `numberFormat` can be used to change the → Microsoft/Office/Excel/data-types[data type] of the underlying → Microsoft/Office/Excel/Object-Model/Range/cell[cells].
 
- `rng.numberFormat = "@"` seems to change it to → development/languages/VBA/language/datatypes/string[string].
 
   { Formatting dates
 
@@ -98,6 +98,18 @@ code }
      *Note*: the `mm` is interpreted as a two digit month number *unless* it follows a `hh` or preceedes an `ss` formatting instruction!
      -
      That is: a minute by itself cannot be displayed.
+
+  }
+  { Inserting numbers (especially with leading zeroes) as text #excel-insert-number-as-text
+
+   `rng.numberFormat = "@"` changes the data type of the content of a range to → Microsoft/Office/Excel/data-types/text. This allows to insert text that represents numbers, especially such with leading zeroes, as text, which left-aligns them.
+
+    When doing that, Excel still believes this is an → Microsoft/Office/Excel/data-types/error[error] and displays a → Microsoft/Office/Excel/data-types/error#excel-green-triangle[green triangle] in the cell. To turn that triangle off,
+    the `ignore` property of `errors(xlNumberAsText)` needs to be set to `true`.
+
+    gh|about-MS-Office-object-model|/Excel/Range/numberFormat-insert-number-as-string.bas||
+
+    gh|about-MS-Office-object-model|/Excel/Range/numberFormat-insert-number-as-string.png||
 
   }
 
@@ -126,6 +138,11 @@ code }
   that the text in the columns is visble.
 
   gh|about-MS-Office-object-model|/Excel/Range/autofit.bas||
+
+  In order to set the width of a column to an arbitrary value, `columnWidth` can be used:
+code {
+columns(7).columnWidth = 3
+code }
 
 }
 { Dump array into cells #excel-range-dump-array
@@ -156,6 +173,15 @@ code }
   `clearContents` deletes the content of a range.
   
   It might be used in conjunction with `→ Microsoft/Office/Excel/Object-Model/Worksheet#excel-worksheet-usedRange[worksheet.usedRange]`.
+
+}
+{ noteText() #excel-range-noteText
+
+ `.noteText(txt)` seems to be a shorthand to insert a → Microsoft/Office/Excel/Object-Model/Comment[comment].
+
+code {
+cells(4,5).noteText("some comment")
+code }
 
 }
 
