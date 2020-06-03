@@ -363,7 +363,7 @@ sub process_page { #_{
 
     if ($line =~ /^\s*table\s*}\s*$/) {  #_{ End table
 
-      die unless $in_table;
+      die "expected to be in table" unless $in_table;
       dbg('end table');
       $last_thing_was_blocky_paragraph = 1;
 
