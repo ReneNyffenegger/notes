@@ -1,0 +1,33 @@
+$ Registry: HKEY_CURRENT_USER\Software\Microsoft\Office\{version}\{name}\Security\Trusted Documents\TrustRecords
+
+The → Windows/registry key `HKEY_CURRENT_USER\Software\Microsoft\Office\{version}\{name}\Security\Trusted Documents\TrustRecords` stores values whose names corespond to file paths of
+→ Microsoft/Office documents and whose values are arrays of 24 bytes (→ Windows/registry/data-types[REG_BINARY]):
+  • The first 8 bytes correspond to a `FILETYPE` (See also → Windows/registry/scripts/FILETIME-to-Unixtime_ps1[`FILETIME-to-Unixtime.ps1`])
+  • The meaning of the next 12 bytes is unclear to me
+  • The final 4 bytes determine if the execution of macros is allowd in the respective Office document. (The value `ff ff ff 7f` allows it.)
+
+In this registry key, `{version}` corresponds to a two-digit → Microsoft/Office/versions[Office version number], `{name}` is one of
+Access,
+→ Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Office/application_version/Excel[Excel],
+PowerPoint or
+→ Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Office/application_version/Word[Word]
+
+Note: the value-names need to have a forward slash in their path names. A references to → Windows/dirs/Users/username[`c:/users/username`] needs to be replaced with `%USERPROFILE%`.
+
+{ Adding a document to this registry key
+
+  The following → Windows/PowerShell script adds a document to this registry key:
+  gh|about-Windows-Registry|HKEY_CURRENT_USER/Software/Microsoft/Office/application_version/application_name/Security/Trusted Documents/TrustRecords/add-document.ps1||
+
+  When exectued, the script needs to be given two arguments: the Office-application-name (Word, Excel…) and the document name
+code {
+PS … > add-document.ps1 Word P:\ath\to\document.docm
+code }
+
+
+}
+
+sa:
+  → Microsoft/Office/security/Trust-Center/Trusted-Locations[Trusted Locations]
+
+  → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Office/application_version/Word/Security/Trusted-Documents/TrustRecords[`HKEY_CURRENT_USER\Software\Microsoft\Office\{version}\Word\Security\Trusted Documents\TrustRecords`]
