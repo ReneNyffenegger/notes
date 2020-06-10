@@ -5,10 +5,10 @@ $ VBScript MS-Office App Creator
   table { ll
 
     → #createOfficeApp[`createOfficeApp(prod, fileName)`] ☰ Creates an Office document (`.docm`, `xlsx` or `.accdb`, depending on the value of `prod`)
-    `insertModule(app, moduleFilePath, moduleName, moduleType)` ☰ Add a → development/languages/VBA/language/module[VBA module] to the application.
-    `addReference(app, guid, major, minor)` ☰ Add a reference to a → Windows/development/COM/type-library[type library] aka typelib.
-    `currentDir()` ☰ Returns the path of the current directory with a trailing back slash (`\`)
-    `replaceThisWorksheetModuleMOdule(app, moduleFilePath)` ☰ Set the content of an Excel's `ThisWorksheet`
+    → #insertModule[`insertModule(app, moduleFilePath, moduleName, moduleType)`] ☰ Add a → development/languages/VBA/language/module[VBA module] to the application.
+    → #addReference[`addReference(app, guid, major, minor)`] ☰ Add a reference to a → Windows/development/COM/type-library aka typelib.
+    → #currentDir[`currentDir()`] ☰ Returns the path of the current directory with a trailing back slash (`\`)
+    → #replaceThisWorksheetModuleMOdule[`replaceThisWorksheetModuleMOdule(app, moduleFilePath)`] ☰ Set the content of an Excel's `ThisWorksheet`
 
   table }
 
@@ -27,6 +27,48 @@ set acc = createOfficeApp("access", "p:\ath\to\access\database.accdb")
 code }
 
   }
+  { insertModule #insertMOdule
+
+  `insertModule(app, moduleFilePath, moduleName, moduleType)` inserts a → /development/languages/VBA/language/module[VBA module].
+
+    `app` must be an application object
+      • → Microsoft/Office/Word/Object-Model/Application[`Word.Application`],
+      • → Microsoft/Office/Excel/Object-Model/Application[`Excel.Application`] or
+      • `Access.Application`
+     -
+     For Word and Excel documents, the required application object is obtained by using the `.application` property on the object that is retruned by `createOfficeApp(…)`.
+
+    `moduleFilePath` is a string that locates the file path of the module that is to be inserted.
+
+    `moduleName` is the name that will be assigned to the inserted module. If there is already a module with this name, it will be replaced.
+
+    `moduleType` is an integer that describes what type of module is to be inserted. The possible values are `1` and `2`. They correspond to the constants `vbext_ct_StdModule` and `vbext_ct_ClassModule`.
+
+  }
+  { addReference #addReference
+
+   `addReference(app, guid, major, minor)` adds a reference to a → Windows/development/COM/type-library aka typelib. (See for example → Microsoft/Office/Visual-Basic-Editor/Object-Model#vbe-add-reference[Adding a reference to a library programmatically]).
+
+   `app` has the same meaning as in → #insertMOdule[`insertModule(…)`]
+
+   `guid` is the → development/UUID-GUID[GUID] the uniquely identifies the type library whose reference is to be added.
+
+   `major` and `minor` specify the type library's version.
+
+  }
+  { currentDir #currentDir
+
+   `currentDir()` returns the current directory with a trailing backslash (`\`) so that it can be easily concatenated with the relative path names of files, especially in conjunctino with inserting modules 
+   (→ #insertModule[`insertModule()`])
+
+  }
+  { replaceThisWorksheetModuleMOdule #replaceThisWorksheetModuleMOdule
+
+   `replaceThisWorksheetModuleMOdule(app, moduleFilePath)` is quite similar to `insertModule()` but can only be used for an Excel application in order to insert a `ThisWorksheet` module.
+
+    See → Microsoft/Office/VBScript-App-Creator/examples/Excel/workbook_open[this example] that demonstrates this function.
+
+  }
 
 }
 { Source code
@@ -35,14 +77,22 @@ code }
   gh|VBS-MS-Office-App-Creator|/create-MS-Office-app.vbs||
 
 }
-{ Examples
+{ Examples #office-app-creator-examples
 
-  → Microsoft/Office/VBScript-App-Creator/examples/Access[Access]
+  The three *simple* examples for → Microsoft/Office/VBScript-App-Creator/examples/Access[Access],
+  → Microsoft/Office/VBScript-App-Creator/examples/Excel/simple[Excel] and
+  → Microsoft/Office/VBScript-App-Creator/examples/Word[Word] are very similar: The create the respective Office document and
+  insert a module, named `functions.bas` which has one `sub`, named `main` which calls `msgBox()` to demonstrate that the sub was called.
+  -
+  When done with the creation of the document, this `main()` sub is called.
 
-  Excel: → Microsoft/Office/VBScript-App-Creator/examples/Excel/simple[(simple)],
-  → Microsoft/Office/VBScript-App-Creator/examples/Excel/workbook_open[`workbook_open()`)] and
-  → Microsoft/Office/VBScript-App-Creator/examples/Excel/add-module[add/replace modules]
+  Generally, these examples need to be executed on the command line with
+code {
+P:\ath\to\example\dir> → Windows/dirs/Windows/System32/cscript_exe[script] create.wsf
+code }
 
-  → Microsoft/Office/VBScript-App-Creator/examples/Word[Word (simple)]
+  For Excel, there are alse these two additional examples: → Microsoft/Office/VBScript-App-Creator/examples/Excel/workbook_open[`workbook_open()`)] and
+  → Microsoft/Office/VBScript-App-Creator/examples/Excel/add-module[add/replace modules].
+
 
 }
