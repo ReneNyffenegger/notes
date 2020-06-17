@@ -83,11 +83,26 @@ code }
   gh|about-MS-Office-object-model|/Excel/Range/name.bas||
 
 }
-{ numberFormat
+{ numberFormat #excel-range-numberFormat
 
-  Apparently, `numberFormat` can be used to change the → Microsoft/Office/Excel/data-types[data type] of the underlying → Microsoft/Office/Excel/Object-Model/Range/cell[cells].
+ `numberFormat` specifies how the → development/Data of a range's underlying → Microsoft/Office/Excel/Object-Model/Range/cell[cells] is formatted.
+  
+ `numberFormat` is technically a → development/languages/VBA/language/datatypes/variant but seems to always be a → development/languages/VBA/language/datatypes/string that corresponds to the *Format Cells* dialog
+ (to be opened with right-click on a cell/range or via *Ribbon-Home* -> *Number*).
 
+? It seems that the value of numberFormat is only considered if the → Microsoft/Office/Excel/data-types[data type] of the cell is → Microsoft/Office/Excel/data-types/number.
 
+  Some possible values for `numberFormat` are
+    • `General`
+    • `0.00`
+    • `0.00;[Red]0.00`
+    • `0.00_ ;-0.00`
+    • `0.00_ ;[Red]-0.00`
+    • `d/mm/yy;@`
+    • `h:mm:ss;@`
+    • etc.
+
+  
   { Formatting dates
 
     A number might be formatted according to → misc/ISO/8601 like so
@@ -95,14 +110,14 @@ code {
 selection.numberFormat = "yyyy-mm-dd hh:mm:ss"
 code }
 
-     *Note*: the `mm` is interpreted as a two digit month number *unless* it follows a `hh` or preceedes an `ss` formatting instruction!
+     *Note*: the `mm` is interpreted as a two digit month number *unless* it follows a `hh` or preceedes an `ss` formatting instruction.
      -
-     That is: a minute by itself cannot be displayed.
+     That is: a minute by itself cannot be displayed!
 
   }
   { Inserting numbers (especially with leading zeroes) as text #excel-insert-number-as-text
 
-   `rng.numberFormat = "@"` changes the data type of the content of a range to → Microsoft/Office/Excel/data-types/text. This allows to insert text that represents numbers, especially such with leading zeroes, as text, which left-aligns them.
+   `rng.numberFormat = "@"` changes the data type of the content of a range to → Microsoft/Office/Excel/data-types/text. This allows to insert text that represent numbers, especially such with leading zeroes, as text, which left-aligns them.
 
     When doing that, Excel still believes this is an → Microsoft/Office/Excel/data-types/error[error] and displays a → Microsoft/Office/Excel/data-types/error#excel-green-triangle[green triangle] in the cell. To turn that triangle off,
     the `ignore` property of `errors(xlNumberAsText)` needs to be set to `true`.
