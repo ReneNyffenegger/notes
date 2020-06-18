@@ -24,6 +24,21 @@ code }
 { Timezones
 
   The following simple → Windows/PowerShell/pipeline[PowerShell pipeline] can be used to format the output of `tzutil.exe /l` to display the time zones in a tabular outout:
+code {
+$rowNum = 0
+
+tzutil /l | → Windows/PowerShell/command-inventory/noun/object/forEach[foreach-object] {
+
+   $line = $_
+
+   → Windows/PowerShell/language/statement/switch ($rowNum++ % 3) {
+      0 {  $T = $line             }
+      1 {  $U = $line             }
+      2 { '{0,-65} {1}' -f $T, $U }
+   }
+}
+code }
+
   table { ll
     (UTC-12:00) International Date Line West ☰ Dateline Standard Time
     (UTC-11:00) Coordinated Universal Time-11 ☰ UTC-11
