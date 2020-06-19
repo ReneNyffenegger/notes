@@ -1,18 +1,47 @@
 $ PowerShell cmdLet get-itemProperty
 
+`get-itemProperty` returns an → Windows/PowerShell/command-inventory/noun/item[`item's`] property. Typically, such properties are those of files and directorys (such as `lastWriteTime`, `attributes` etc.).
+
+When accessing the → Windows/registry, a → Windows/registry/tree-structure/value[value] is considered to be a property of a → Windows/registry/tree-structure/key[registry key] (which is the `item`). Therefore, registry values need to be queried
+are accessed in → Windows/PowerShell with `get-itemProperty`. (See also → Windows/PowerShell/examples/registry[accessing the registry with PowerShell]).
+
 { Returned data type
 
-  Normally, `get-itemProperty` returns a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`] object.
-  -
-  In the special ase that `get-itemProperty` is used on a file or directory, without specifying the `-name` parameter, the cmdLet returns
+ `get-itemProperty` returns a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`] object or,
+  in the special case that `get-itemProperty` is used on a file or directory, without specifying the `-name` parameter) a
   → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System.IO.FileInfo`] or
-  → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`], respectively.
+  → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`] object, respectively.
 
   Sometimes, if just the value of → Windows/registry/tree-structure/key[registry key] is needed, it's easier to use
   → Windows/PowerShell/command-inventory/noun/itemPropertyValue/get[`get-itemPropertyValue`].
 
   gh|about-PowerShell|/cmdlets/itemProperty/get/data-type.ps1||
 
+  { returning psCustomObject
+
+    When `get-itemProperty` returns a `psCustomObject`, this object has the (additional) properties: `psPath`, `psParentpath`, `psChildname`, `psDrive`, `psProvider` (See also
+    → Windows/PowerShell/language/object/member#item-related-properties[`item` related properties]).
+
+    Therefore, if `get-itemProperty` is used to display a → Windows/registry/tree-structure/value[registry value], more information is printed than is probably needed:
+code {
+PS C:\> get-itemProperty → Windows/registry/tree/HKEY_CURRENT_USER/Environment[hkcu:\Environment] -name PATH
+Path         : C:\Users\rene\bin;c:\users\rene\MinGW64\bin;…
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\Environment
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER
+PSChildName  : Environment
+PSDrive      : HKCU
+PSProvider   : Microsoft.PowerShell.Core\Registry
+code }
+
+    So, in order to only get a value, the value name (which becomes a property in the `PSCustomObject` that is returned) needs to be queried:
+code {
+PS C:\> (get-itemProperty → Windows/registry/tree/HKEY_CURRENT_USER/Environment[hkcu:\Environment] -name PATH).PATH
+C:\Users\rene\bin;c:\users\rene\MinGW64\bin;…
+code }
+
+  }
+
 }
+
 sa:
   → Windows/PowerShell/command-inventory/noun/itemProperty
