@@ -4,21 +4,32 @@ $ PowerShell cmdLet remove-item
 
 { Delete a file if it exists
 
-  → Windows/PowerShell/command-inventory/noun/path/test[`test-path`] determines if a file exists. Compbined with an → Windows/PowerShell/language/statement/if[`if` statement`], a file can be deleted
-  if it exists like so:
+  If `remove-item` is used to delete a file that does not exist, → Windows/PowerShell answers with a *Cannot find path … because it does not exist* error message.
+
+  In order to suppress this error message, → Windows/PowerShell/command-inventory/noun/path/test[`test-path`] can be used to determine if a file exists. Combined with an → Windows/PowerShell/language/statement/if[`if` statement`],
+  this results in something like:
 code {
 if (test-path foo.txt) {
   remove-item foo.txt
 }
 code }
 
-  Of course, even easier is this:
+  Of course, even easier is to ignore the potential error message with the `-errorAction` option:
 code {
 remove-item foo.txt -errorAction ignore
 code }
   
 }
+{ Delete directories and subdirectories
 
+  In order to delete a directory with its subdirectories, both, the `-recurse` and the `-force` option need to be specified:
+code {
+remove-item subDir -force -recurse
+code }
+
+  Without `-force`, the cmdLet write the error message *Directory … cannot be removed because it is not empty*.
+
+}
 { Aliases
 
   → Windows/PowerShell/language/alias[Aliases] for `remove-item` are `erase` and `del`.
