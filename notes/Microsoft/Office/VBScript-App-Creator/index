@@ -5,13 +5,13 @@ from the command line (→ Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] or �
 
 The source code is → #office-app-creator-source-code[here (`create-MS-Office-app.vbs`)] or on → https://github.com/ReneNyffenegger/VBS-MS-Office-App-Creator[github].
 
-
 { Subs and Functions
 
   table { ll
 
-    → #createOfficeApp[`createOfficeApp(prod, fileName)`] ☰ Creates an Office document (`.docm`, `.xlsx`, `.xlsb` or `.accdb`, depending on the value of `prod` and or → development/filename-extensions[extension] of `fileName`)
-    → #insertModule[`insertModule(app, moduleFilePath, moduleName, moduleType)`] ☰ Add a → development/languages/VBA/language/module[VBA module] to the application.
+    → #createOfficeApp[`createOfficeApp(prod, fileName)`] ☰ Creates an Office document (`.docm`, `.xlsx`, `.xlsb` or `.accdb`, depending on the value of `prod` and or → development/filename-extensions[extension] of `fileName`). If the document alread exists, it is deleted.
+    → #openOfficeApp[`openOfficeApp(prod, fileName)`] ☰ Opens an Office document. Unlike `createOfficeApp()`, no attempt is made to delete it it exists.
+    → #insertModule[`insertModule(app, moduleFilePath, moduleName, moduleType)`] ☰ Add a → development/languages/VBA/language/module[VBA module] to the application. If module with same name already exists, it is replaced.
     → #addReference[`addReference(app, guid, major, minor)`] ☰ Add a reference to a → Windows/development/COM/type-library aka typelib.
     → #currentDir[`currentDir()`] ☰ Returns the path of the current directory with a trailing back slash (`\`)
     → #replaceThisWorksheetModuleMOdule[`replaceThisWorksheetModuleMOdule(app, moduleFilePath)`] ☰ Set the content of an Excel's `ThisWorksheet`
@@ -33,9 +33,21 @@ set acc = createOfficeApp("access", "p:\ath\to\access\database.accdb")
 code }
 
   }
+  { openOfficeApp #openOfficeApp
+
+   `openOfficeApp(prod, fileName)` opens an Office document for further manipulation.
+
+    The meaning of the parameters of `openOfficeApp(prod, fileName)` are the same as those of → #createOfficeApp[`createOfficeApp(prod, filename)`].
+
+    Currently (version 0.03), only `prod = excel` is implemented.
+code {
+set xls = openOfficeApp("excel"  , "p:\ath\to\excel\worksheet.xlsm")
+code }
+
+  }
   { insertModule #insertMOdule
 
-  `insertModule(app, moduleFilePath, moduleName, moduleType)` inserts a → development/languages/VBA/language/module[VBA module].
+   `insertModule(app, moduleFilePath, moduleName, moduleType)` inserts a → development/languages/VBA/language/module[VBA module].
 
     `app` must be an application object
       • → Microsoft/Office/Word/Object-Model/Application[`Word.Application`],
@@ -49,6 +61,8 @@ code }
     `moduleName` is the name that will be assigned to the inserted module. If there is already a module with this name, it will be replaced.
 
     `moduleType` is an integer that describes what type of module is to be inserted. The possible values are `1` and `2`. They correspond to the constants `vbext_ct_StdModule` and `vbext_ct_ClassModule`.
+    
+     An → #office-app-creator-examples[example] that demonstrate how `insertModule()` replaces a module is → Microsoft/Office/VBScript-App-Creator/examples/Excel/add-module[here].
 
   }
   { addReference #addReference
@@ -106,6 +120,7 @@ code }
   table { ll
     0.01 ☰ Initial version
     0.02 ☰ Excel: Determine file format value based on extension of filename (which allows to save `.xlsm` and `.xlsb` files). This change was needed to create a → Windows/dirs/Users/username/AppData/Roaming/Microsoft/Excel/XLSTART/Personal_xlsb Workbook (2020-06-19).
+    0.03 ☰ Add → #openOfficeApp[`openOfficeApp()`] (2020-06-27)
   table }
 
 }
