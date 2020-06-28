@@ -10,6 +10,72 @@ When the webserver is started, the default name and location of the `httpd.conf`
 
 When a setting in `httpd.conf` is changed, the web server needs to be restarted for the changes to take effect.
 
+{ ServerRoot
+
+  The `ServerRoot` directive specifies the directory under which the server's configuration, error and log files will be written.
+  
+  TODO: Does it also specify the directory where `LoadModule` searches for modules?
+
+  With an XAMPP installation, this directive might look like this:
+code {
+ServerRoot "C:/Users/rene/xampp/apache"
+code }
+
+  For example, the location of the error log file (below `ServerRoot`) is controlled with the `ErrorLog` directive:
+code {
+ErrorLog "logs/error.log"
+code }
+
+}
+{ Listen
+
+ `Listen` specifies the port which the server will listen for HTTP requests:
+code {
+Listen 80
+code }
+
+}
+{ DocumentRoot
+
+ `DocumentRoot` specifies the top directory from where documents are served to the client.
+code {
+DocumentRoot "C:/Users/rene/web/httpsdocs"
+code }
+
+  The `DocumentRoot` directive might go hand in hand with a `<Directory` directive:
+code {
+<Directory "C:/Users/rene/web/httpsdocs">
+    Options       Indexes FollowSymLinks Includes ExecCGI
+    AllowOverride All
+    Require       all granted
+</Directory>
+code }
+
+  The value of `DocumentRoot` can be queried in → development/web/php with `→ development/web/php/snippets/_SERVER[$_SERVER]['DOCUMENT_ROOT']`.
+
+}
+{ LoadModule / IfModule
+
+ `LoadModule` loads a *Dynamic Shared Object (DSO)*.
+code {
+LoadModule dir_module modules/mod_dir.so
+code }
+
+  Directives that need to be executed only if a module was loaded, can be placed within the `<IfModule …>` directive:
+code {
+<IfModule dir_module>
+    DirectoryIndex index index.php index.html
+</IfModule>
+code }
+
+  An `<IfModule …>` test can be negated with an exclamation mark:
+code {
+<IfModule !moduleName>…
+code }
+
+  `IfModule …>` tests can be nested.
+
+}
 { Scope of directives
 
   By default, a directive controls the behavior of the entire server. However, a directive's scope can be limited in scope with one of the following *sections*:
@@ -47,6 +113,7 @@ Listen 80
 ServerRoot "C:/Users/rene/xampp/apache"
 …
 DocumentRoot "C:/Users/rene/htdocs"
+
 <Directory "C:/Users/rene/htdocs">
 
   #
@@ -81,8 +148,7 @@ DocumentRoot "C:/Users/rene/htdocs"
   #
   # Which file is served if URL is a directory:
   #
-    DirectoryIndex index.php index.html \
-                   index.htm
+    DirectoryIndex index.php index.html index.htm
 </IfModule>
 
 
@@ -101,6 +167,5 @@ DocumentRoot "C:/Users/rene/htdocs"
 AddType application/x-httpd-php .html .htm  
 code }
 
-  The `DocumentRoot` can be queried in → development/web/php with `→ development/web/php/snippets/_SERVER[$_SERVER]['DOCUMENT_ROOT']`.
 
 }
