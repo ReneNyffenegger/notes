@@ -15,7 +15,7 @@ table { llll
   s2359 ☰ ☰ `PM` ☰ 
   sCountry ☰ ☰ `United States` ☰ 
   sCurrency ☰ Currency symbol ☰ `$` ☰ 
-  sDate ☰ ☰ `/` ☰ 
+  sDate ☰ ☰ `/` ☰ These (up to 4, including NULL) characters that separate day, month and year. (Deprecated in favour of `sShortDate`)
   sDecimal ☰ Decimal Symbol ☰ `.` ☰ 
   sGrouping ☰ Digit grouping ☰ `3;0` ☰ 
   sLanguage ☰                  ☰ `ENU` ☰ 
@@ -27,7 +27,7 @@ table { llll
   sNativeDigits ☰ Standard digits ☰ `0123456789` ☰ Can for example be set to Chinese digits (`〇一二三四五六七八九`)
   sNegativeSign ☰                 ☰ `-` ☰ 
   sPositiveSign ☰                 ☰  ☰ 
-  sShortDate    ☰ Short date format ☰ `M/d/yyyy` ☰ 
+  sShortDate    ☰ *Short date* format ☰ `M/d/yyyy` ☰ 
   sThousand     ☰ ☰ `,` ☰ 
   sTime         ☰ ☰ `:` ☰ 
   sTimeFormat ☰ Long time format ☰ `h:mm:ss tt` ☰ 
@@ -36,8 +36,8 @@ table { llll
   iCalendarType ☰ ☰ `1` ☰ 
   iCountry ☰ ☰ `1` ☰ 
   iCurrDigits ☰ Number of digits after decimal (Currency) ☰ `2` ☰ `(→ Windows/PowerShell/command-inventory/noun/culture/get[get-culture]).NumberFormat.CurrencyDecimalDigits`
-  iCurrency ☰ Positive currency format ☰ `0` ☰ 
-  iDate ☰ ☰ `0` ☰ 
+  iCurrency ☰ Positive currency format ☰ `0` ☰ How `x` currenty units are displaed: 0 = `$x`, 
+  iDate ☰ ☰ `0` ☰ The *short-date* format ordering specifier: `0` = month, day, year; `1` = day, month, year, `2` = year, month, day. (`sShortDate` is preferred over `iDate`).
   iDigits ☰ Number of digits after decimal ☰ `2` ☰ 
   NumShape ☰ Use native digits ☰ `1` ☰ `1` = Never
   iFirstDayOfWeek ☰ ☰ `6` ☰  `0` = Monday, … `6` = Sunday
@@ -71,14 +71,26 @@ table }
 }
 { Modifying some settings in a PowerShell script
 
-  The following → Windows/PowerShell script changes some of format settings that are specified in this registry key:
-  gh|about-Windows-Registry|/HKEY_CURRENT_USER/Control Panel/International/set.ps1||
+  { with get/set-culture
 
-  I am not sure what the best way is to apply the modifications after the script is run. Maybe somthing like the following:
+    The PowerShell cmdLet nount → Windows/PowerShell/command-inventory/noun/culture[`culture`] can be used to modify some (all) values in this registry key:
+    gh|about-Windows-Registry|/HKEY_CURRENT_USER/Control Panel/International/culture.ps1||
+
+  }
+  { With set-itemProperty
+
+    Of course, it is also possible to directly change the values with → Windows/PowerShell/command-inventory/noun/itemProperty/set[`set-itemProperty`].
+
+    The following → Windows/PowerShell script changes some of format settings that are specified in this registry key:
+    gh|about-Windows-Registry|/HKEY_CURRENT_USER/Control Panel/International/set.ps1||
+
+    I am not sure what the best way is to apply the modifications after the script is run. Maybe somthing like the following:
 code {
 → Windows/PowerShell/command-inventory/noun/process/get[get-process] → Windows/dirs/Windows/explorer_exe[explorer] | → Windows/PowerShell/command-inventory/noun/process/stop[stop-process]
 explorer
 code }
+
+  }
 
 }
 
@@ -91,3 +103,6 @@ sa:
   → Windows/settings/international[International settings]
 
   → Windows/registry/tree/HKEY_CURRENT_USER/Control-Panel[`HKEY_CURRENT_USER\Control Panel`]
+
+links:
+  The → https://docs.microsoft.com/en-us/windows/win32/intl/locale-information-constants[`LOCALE_…` constants
