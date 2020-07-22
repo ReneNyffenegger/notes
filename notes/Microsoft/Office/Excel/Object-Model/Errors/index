@@ -3,13 +3,14 @@ $ Office Object Model: Excel - Errors
 
 { Item(…)
 
-  `….Errors.Item(ix).Value` returns true if the the error that is identified by the index `ix` is present. `ix` is a value of the `xlErrorChecks` enumeration:
+ `….errors.item(ix).value` returns → development/languages/VBA/language/datatypes/boolean[`true`] if the the error that is identified by the index `ix` is present. `ix` is a value of the `xlErrorChecks` enumeration:
   table { lrl
    `xlEmptyCellReferences` ☰ 7 ☰ The cell contains a formula referring to empty cells.
    `xlEvaluateToError` ☰ 1 ☰  The cell evaluates to an error value.
    `xlInconsistentFormula` ☰ 4 ☰ The cell contains an inconsistent formula for a region.
    `xlInconsistentListFormula` ☰ 9 ☰ The cell contains an inconsistent formula for a list.
    `xlListDataValidation` ☰ 8 ☰ The cell contains a value inconsistent with list data validation.
+   `xlMisleadingFormat` ☰ 10 ☰ (This member is not documented on the → https://docs.microsoft.com/en-us/office/vba/api/excel.xlerrorchecks[respective Micrsoft documentation page]).
    `xlNumberAsText` ☰ 3 ☰ The cell contains a number stored as text.
    `xlOmittedCells` ☰ 5 ☰ The cell contains a formula omitting a cell for a region.
    `xlTextDate` ☰ 2 ☰   The cell contains a text date with 2-digit years.
@@ -21,10 +22,40 @@ code {
 False
 code }
 
+
+}
+{ No Count property / no iteration possible
+
+  Note that the `Errors` object, unlike many other «plural» objects, does not have a `.count` property and that it cannot be iterated over with a
+  → development/languages/VBA/language/statements/for#vba-for-each[`for each`] statement.
+
+}
+{ Example
+
+  The following example creates a cel with a *Misleading format* error and tries to detect it with → development/languages/VBA[Visual Basic for Applications]:
+  gh|about-MS-Office-object-model|/Excel/Errors/xlMisleadingFormat.bas||
+
+  gh|about-MS-Office-object-model|/Excel/Errors/img/xlMisleadingFormat.png||
+
+  When run, the `debug.output` statement prints
+code {
+Misleading format error found in $B$1
+code }
+
+}
+{ Ignoring errors in the immediate
+
+  I find it easier to ignore errors with the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window instead of using the mouse:
+code {
+activeCell.errors(xlInconsistentFormula).ignore = true
+code }
+
 }
 
 sa:
 
   The → Microsoft/Office/Excel/data-types/error[Excel error data type].
+
+  → Microsoft/Office/Excel/Object-Model/Range/cell/errors[Errors in Cells]
 
   → Microsoft/Office/Excel/Object-Model

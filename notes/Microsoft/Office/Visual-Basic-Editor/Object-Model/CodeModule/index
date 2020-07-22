@@ -1,6 +1,36 @@
 $ VB Editor Object Model: CodeModule
 
+The `codeModule` object represents the source code that is associated witha form, class or document and allows to change the source code programmatically.
+
+In the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window, a reference to a code module might be found with an expression such as
+code {
+application.VBE.activeVBProject.vbComponents("module10").codeModule.
+code }
+
+For example, the following sequence changes the text of the third line:
+code {
+→ development/languages/VBA/language/statements/set cm = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
+cm.replaceLine 3, " ' This line was changed programmatically"
+code }
+
+Note that the numbering is not zero-based: the first line is identified by line number 1.
+
+The property `.countOfLines` evaluates to the number of lines in the source code.
+
+The method `.addFromString "some text"` inserts a line, contrary to what one might expect by its name, at the top of source code.
+-
+In order to append a line to the source code, `insertLines` needs to be used:
+code {
+set cm = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
+cm.insertLines cm.countOfLines + 1, "' This line was added at " & format(now, "yyyy-mm-dd hh:nn:ss")
+code }
+
+Unfortunately, `cm` looses the reference to the code module object after executing `cm.insertLines`
+
 sa:
+
+  A *code module* might be associated with multiple → Microsoft/Office/Visual-Basic-Editor/Object-Model/CodePane[code panes].
+
   → Microsoft/Office/Visual-Basic-Editor/Object-Model/VBComponent[`vbComponent`]
 
   The → Microsoft/Office/Visual-Basic-Editor/Object-Model[VB Editor object model]
