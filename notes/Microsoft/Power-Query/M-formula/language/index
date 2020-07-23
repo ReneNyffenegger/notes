@@ -101,3 +101,76 @@ code }
   M's evaluation model resembles that of → Microsoft/Office/Excel where values in cells are calculated in order of their dependencies to other cells.
 
 }
+{ Interesting function
+
+code {
+File.Contents(path as text, optional options as nullable record) as binary
+code }
+
+  `File.Contents` return a file's content as `binary`. This is needed, for example, to open an → Microsoft/Office/Excel/Object-Model/Workbook[Excel Workbook] and transform it to a `table` with `Excel.Workbook`:
+code {
+  Excel.Workbook(workbook as binary, optional useHeaders as nullable logical, optional delayTypes as nullable logical) as table
+code }
+
+   `Table.PromoteHeaders` is used if a table's first row contains column names:
+code {
+Table.PromoteHeaders(table as table, optional options as nullable record) as table
+code }
+
+
+   `Excel.CurrentWorkbook()` returns the current Excel workbook.
+code {
+Excel.CurrentWorkbook() as table
+code }
+  `Excel.CurrentWorkbook()` can be used to refer to → Microsoft/Office/Excel/Object-Model/Range#excel-range-name[named ranges] to get values for processing:
+code {
+var = Excel.CurrentWorkbook(){[Name="rangeName"]}[Content]{0}[Column1],
+code }
+
+code {
+Table.TransformColumnTypes(table as table, typeTransformations as list, optional culture as nullable text) as table
+code }
+
+  
+code {
+Table.FromRecords({
+     [a = 1, b = 2],
+     [a = 3, b = 4]
+ }),
+code }
+
+  `Table.SelectRows` seems to kind of the equivalent of the → development/databases/SQL `where` clause.
+code {
+Table.SelectRows(table as table, condition as function) as table
+code }
+  The following line seems to correspond to `select * from allRows where colXYZ = 'value ABC'`:
+code {
+selectedRows = Table.SelectRows(allRows, each ([colXYZ] = "value ABC")),
+code }
+  Compare with `Table.RemoveRows`
+
+  `Table.SelectColumns()` / `Table.RemoveColumns()`
+code {
+Table.SelectColumns(table as table, columns as any, optional missingField as nullable number) as table
+Table.RemoveColumns(table as table, columns as any, optional missingField as nullable number) as table
+code }
+
+code {
+Table.AddColumn(table as table, newColumnName as text, columnGenerator as function, optional columnType as nullable type) as table
+code }
+
+  Add a column named `added` that contains the sum of `val one` and `val two`:
+code {
+sumAdded = Table.AddColumn(inputTable, "added", each [val one] + [val two], type number),
+code }
+
+  Concatenate two text columns:
+code {
+concatAdded = Table.AddColumn(inputTable, "concatenated", each Text.Combine({[txt one], " ", [txt two]}), type text),
+code }
+
+code {
+Table.ReorderColumns(table as table, columnOrder as list, optional missingField as nullable number) as table
+code }
+
+}
