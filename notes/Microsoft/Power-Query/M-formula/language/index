@@ -48,8 +48,14 @@ code }
 }
 { Comments
 
-  M has → development/languages/C-C-plus-plus[C / C++] like comments: `/* … */` and `// …`
+  M has → development/languages/C-C-plus-plus[C / C++] like comments:
+code {
+/*
+   This is
+   a multi line comment.
+*/
 
+// This comment extends to the end of the line.
 }
 { Escape character
 
@@ -57,7 +63,7 @@ code }
   table { ll
     `#(cr)` / `#(lf)` / `#(cr,lf)` ☰ carriage return / line feed / carriage return line ffedc
     `#(tab)` ☰ tabulator
-    `#(263a) ☰ arbitrary → development/Unicode character (for example: 0x263a = ☺)
+    `#(263a)` ☰ arbitrary → development/Unicode character (for example: 0x263a = ☺)
 
   table }
 
@@ -72,28 +78,94 @@ code }
 
   Primitive types also include the *abstract types*: `function`, `table`, `any` and `none`.
 
+? Strings must be enclosed in double quotes, single quotes do not denote a string.
+
 }
 { Structured data values (Lists, records and tables)
 
-  `{1, 1, 2, 3, 5, 8, 13}` is a list (of the first fibonacci numbers)
+  { Lists
+
+    A list is denoted by curly braces. The follwing snippet is a list of the first fibonacci numbers:
+code {
+{1, 1, 2, 3, 5, 8, 13}
+code }
+
+
+  }
+  { Records
 
   `[ fld_1 = 42, fld_2 = "hello world" ]` is a record, whose two fields are `fld_1` and `fld_2`.
  
    A table organizes values in columns and rows.
+
+  }
+  { Tables
+
 code {
 #table(
-   {"col_1","col_2"},
-  {
-   {    42 ,    11 },
-   {    17 ,    32 }
-  }
-)
+  {"col_1","col_2"}, {
+  {    42 ,    11 },
+  {    17 ,    32 }
+})
 code }
+
+  }
+
+}
+{ Looking up values in lists or tables
+
+  
+   { Positional index operator
+
+    Individual items in a list can be looked up by the *positional index operator* (`{n}`), which accesses the (zero-based) item `n`
+code {
+[
+   fibonacci = {1, 1, 2, 3, 5, 8, 13, 21, 34},
+   five      =  fibonacci{4} // fifth item is 5
+]
+code }
+
+  }
+  { Accessing values in list of records
+
+
+code {
+[  
+  results =   
+  {   
+      [   
+          year       = 2019,   
+          val_one    =   42,
+          val_two    =   99
+      ],  
+      [   
+          year       = 2020
+          val_one    =   47
+          val_two    =  103
+      ]   
+  },  
+  sum_val_one = results{0}[val_one] + 
+                results{1}[val_one] // equals 42 + 47
+]  
+code }
+
+  }
 
 }
 { Functions
 
-  `(a, b) => a * b` is a function that multiplies two values.
+  A function takes a set of (input) values and prodcues a single result value.
+
+ `(a, b) => a * b` is a function that multiplies two values.
+
+  { each
+
+    The `each` keyword is used to create simple functions that take the underscore (`_`) parameter.
+
+    `each [XYZ]` is equal to `_[XYZ]` which is equal to `(_) => _[XYZ]`
+
+  }
+
 
 }
 { Evaluation model
@@ -130,7 +202,6 @@ code }
 code {
 Table.TransformColumnTypes(table as table, typeTransformations as list, optional culture as nullable text) as table
 code }
-
   
 code {
 Table.FromRecords({
