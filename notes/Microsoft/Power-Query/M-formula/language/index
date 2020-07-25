@@ -46,6 +46,20 @@ code }
    `type`, `#binary`, `#date`, `#datetime`, `#datetimezone`, `#duration`, `#infinity`, `#nan`, `#sections`, `#shared`, `#table` and `#time`.
 
 }
+{ Immutable values
+
+  Values are immutable. The following is not possible, it produces a *cyclic reference was encountered during evaluation*:
+code  {
+let
+   a = 4,
+   a = a + 1,
+   b = a * 2
+in
+   a
+code }
+
+
+}
 { Comments
 
   M has → development/languages/C-C-plus-plus[C / C++] like comments:
@@ -94,12 +108,19 @@ code }
   }
   { Records
 
-  `[ fld_1 = 42, fld_2 = "hello world" ]` is a record, whose two fields are `fld_1` and `fld_2`.
- 
-   A table organizes values in columns and rows.
+    The following is a record, whose two fields are `fld_1` and `fld_2`.
+
+code {
+[ 
+   fld_1 = 42,
+   fld_2 = "hello world"
+]
+code }
 
   }
   { Tables
+
+   A table organizes values in columns and rows.
 
 code {
 #table(
@@ -173,7 +194,7 @@ code }
   M's evaluation model resembles that of → Microsoft/Office/Excel where values in cells are calculated in order of their dependencies to other cells.
 
 }
-{ Interesting function
+{ Interesting functions
 
 code {
 File.Contents(path as text, optional options as nullable record) as binary
@@ -203,12 +224,6 @@ code {
 Table.TransformColumnTypes(table as table, typeTransformations as list, optional culture as nullable text) as table
 code }
   
-code {
-Table.FromRecords({
-     [a = 1, b = 2],
-     [a = 3, b = 4]
- }),
-code }
 
   `Table.SelectRows` seems to kind of the equivalent of the → development/databases/SQL `where` clause.
 code {
@@ -243,5 +258,207 @@ code }
 code {
 Table.ReorderColumns(table as table, columnOrder as list, optional missingField as nullable number) as table
 code }
+
+  Create a table
+code {
+#table (
+  columns as any, // Typically a list of column names, but can also be a table type, a number of columns or null.
+  rows    as any  // A list where each element is itself a list that corresonds to a row
+)
+code }
+
+  { map equivalent
+
+    `List.Transform` is formula-M's equivalent of the → science/computer/Programming-paradigm/Functional-programming/First-class-function/map[`map`] function that is commonly found in
+    → science/computer/Programming-paradigm/Functional-programming[functional programming languages].
+code {
+List.Transform(list as list, transform as function) as list
+code }
+
+  
+code {
+List.Transform(list as list, transform as function) as list
+code }
+
+   The following snippet doubles every element in the list
+code {
+List.Transform (
+  { 11, 3, 29 },
+   each 2 * _
+)
+code }
+
+  `List.Transform` can be used to create lists (rows) from a list. The produced rows can then be returned as a table
+code {
+let
+   numbers = {5, 1, 6, 4, 2, 3},
+   rows    =  List.Transform(
+                   numbers,
+                   each { _ , _*3 , _*_ }
+              ),
+   table   = #table (
+                {"num", "times 3", "squared"},
+                  rows
+              )
+in
+   table
+code }
+
+  }
+  { Eval
+  
+code {
+Expression.Evaluate(document as text, optional environment as nullable record) as any 
+code }
+
+   The following evaluates to 42:
+code {
+Expression.Evaluate( " 7*6 " )
+code }
+
+  Passing «symbols» (?) to `Expression.Evaluate`:
+code {
+Expression.Evaluate(
+"
+  f ( {11, 22, val_3 })
+",
+  [ f     = List.Sum ,
+    val_3 = 9
+  ]
+)
+code }
+ 
+
+  }
+  { Record.FieldValues
+
+   `Record.FieldValues` gets values (not the names) from a record.
+code {
+Record.FieldValues(record as record) as list
+code }
+    
+
+    The following evaluates to `{42, "Hello World", "foo, bar, baz"}`.
+code {
+Record.FieldValues([
+   num = 42,
+   txt = "Hello World",
+   val = "foo, bar, baz"
+])
+code }
+ 
+?  `Record.FieldValues` might be used to in `Table.FromList`, but I am not sure what its purpose exactly is:
+code {
+Table.FromList (
+  { 
+    [ txt  = "one"  , num = 1 , meta = "foo" ],
+    [ WHAT = "two"  , THE = 2 , HECK = "bar" ], // Note the differing record labels!
+    [ txt  = "three", num = 3 , meta = "baz" ],
+    [ txt  = "four" , num = 4 , meta = "last"]
+  },
+   Record.FieldValues,    // Function
+  {"txt", "num", "meta"}
+)
+code }
+
+  }
+
+  { Date and time related
+
+  `DateTime.LocalNow()` evaluates to the current date and time on the system.
+code {
+DateTime.LocalNow() as datetime
+code }
+
+    When interested in the data part of a date time, `DateTime.Date()` is the thing to be used
+code {
+DateTime.Date(dateTime as any) as nullable date 
+code }
+   
+  }
+  { Getting data from the internet
+
+code {
+Web.Contents(url as text, optional options as nullable record) as binary
+code }
+
+  }
+  { Table.FromList
+
+code {
+Table.FromList(
+      list as list,
+      optional splitter    as nullable function,
+      optional columns     as any,
+      optional default     as any,
+      optional extraValues as nullable number) as table 
+code }
+
+    By default, `Table.FromList` assums the given list a list of text that contains commas where the text needs to be split. Thus, it is almost predestined to read
+    → development/Data/exchange/formats/CSV[CSV] files. The following snippet produes a 4 rows, 3 columns table:
+code {
+Table.FromList ( { "one,1,foo", "two,2,bar", "three,3,baz", "four,4,last" })
+code }
+
+    But compare also with `Csv.Document()`.
+
+  }
+  { Table.FromRecords
+
+
+code {
+Table.FromRecords({
+     [a = 1, b = 2],
+     [a = 3, b = 4]
+ }),
+code }
+
+
+  }
+  { TODO
+
+   { Create a list of dates
+code {
+// Found at https://blog.crossjoin.co.uk/2016/06/03/creating-tables-in-power-bipower-query-m-code-using-table/
+
+let
+  DateList   = List.Dates(#date(2020,1,1), 500, #duration(1,0,0,0)),
+  AddColumns = List.Transform(
+     DateList,
+     each {_, Date.Month(_), Date.Year(_)}
+  ),
+  DateTable = #table(
+                  type table[Date=date, Month=number, Year=number],
+                  AddColumns
+  
+            )
+in
+  DateTable
+
+  }
+code }
+
+code 
+// Found at https://blog.crossjoin.co.uk/2016/06/03/creating-tables-in-power-bipower-query-m-code-using-table/
+
+let
+   Source = {
+       Number.From(#date(2015,1,1))..Number.From(#date(2020,12,31))
+   },
+   ConvertToTable = Table.TransformColumnTypes(
+         Table.FromList(
+             Source,
+             Splitter.SplitByNothing(),
+           {"DateKey"},
+             null,
+             ExtraValues.Error
+         ),
+        { {"DateKey", type date}})
+in
+   ConvertToTable
+code }
+
+
+  }
 
 }
