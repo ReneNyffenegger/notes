@@ -387,26 +387,30 @@ code }
 
 code {
 #
-#   Strawberry recommends to put into path without spaces... let's see, if it
-#   is possible nevertheless…
+#   Strawberry recommends to put into path without spaces.
+#   $env:programFiles contains spaces and I seem to remember
+#   that I was able to successfully install Perl below that
+#   directory
 #
-$strawberryPerlDestDir="$env:programFiles\StrawberryPerl"
+# $strawberryPerlDestDir="$env:programFiles\StrawberryPerl"
+  $strawberryPerlDestDir="$home\StrawberryPerl"
 $eatOutput = mkdir $strawberryPerlDestDir
 
 $ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
 # [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
 
+$perlVersion='5.30.3.1'
 if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-64bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
+  $ua.downloadFile("http://strawberryperl.com/download/$perlVersion/strawberry-perl-$perlVersion-64bit-PDL.zip" , "$downloadFolder\StrawberryPerl.zip")
 } else {
-  $ua.downloadFile("http://strawberryperl.com/download/5.28.1.1/strawberry-perl-5.28.1.1-32bit-PDL.zip" , "$home\Downloads\StrawberryPerl.zip")
+  $ua.downloadFile("http://strawberryperl.com/download/$perlVersion/strawberry-perl-$perlVersion-32bit-PDL.zip" , "$downloadFolder\StrawberryPerl.zip")
 }
 
 #
 # Unzip zip file with COM object shell.application
 #
 $shell = new-object -comObject shell.application
-$shell.nameSpace($strawberryPerlDestDir).copyHere($shell.nameSpace("$home\Downloads\StrawberryPerl.zip").items())
+$shell.nameSpace($strawberryPerlDestDir).copyHere($shell.nameSpace("$downloadFolder\StrawberryPerl.zip").items())
 
 #
 # Other dissapointing trials to unzip zipfile were:
@@ -424,12 +428,42 @@ rm $home\Downloads\StrawberryPerl.zip
 #     set HOME=%~dp0data
 #
 
-$systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
-[environment]::setEnvironmentVariable("PATH"          , "$strawberryPerlDestDir\perl\site\bin;$strawberryPerlDestDir\perl\bin;$strawberryPerlDestDir\c\bin;$systemPath", "machine") 
+$envTarget = 'user' # or 'machine'
 
-[environment]::setEnvironmentVariable("PLPLOT_LIB"    , "$strawberryPerlDestDir\c\share\plplot", "machine") 
-[environment]::setEnvironmentVariable("PLPLOT_DRV_DIR", "$strawberryPerlDestDir\c\share\plplot", "machine") 
+$envPath = [environment]::getEnvironmentVariable('PATH', $envTarget)
+[environment]::setEnvironmentVariable('PATH'          , "$strawberryPerlDestDir\perl\site\bin;$strawberryPerlDestDir\perl\bin;$strawberryPerlDestDir\c\bin;$envPath", $envTarget) 
+
+[environment]::setEnvironmentVariable('PLPLOT_LIB'    , "$strawberryPerlDestDir\c\share\plplot", $envTarget) 
+[environment]::setEnvironmentVariable('PLPLOT_DRV_DIR', "$strawberryPerlDestDir\c\share\plplot", $envTarget) 
 code }
+
+  { Associate .pl extension with Perl executable
+
+code {
+$null new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
+
+#
+# TODO: In Zicke, the .pl key was already existent with a default
+# value of 'pl_auto_file' and a subkey, named 'PersistentHandler'
+# and default value '{5e941d80-bf96-11cd-b579-08002b30bfeb}'
+#
+new-item -path HKCR:\.pl
+set-item -path HKCR:\.pl -value PerlScript
+
+
+#
+# Did not work in Zicke:
+#
+# new-item -path HKCR:\PerlScript
+
+  new-item -path HKCU:\Software\Classes\PerlScript
+  new-item -path HKCU:\Software\Classes\PerlScript\shell
+  new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
+  new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
+  set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
+code }
+
+  }
 
 }
 { Install git
