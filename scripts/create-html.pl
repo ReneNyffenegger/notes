@@ -308,7 +308,7 @@ sub process_page { #_{
 
   while ($line = <$f>) { #_{
 
-    print "ntw: $next_t_with_gap, ltwc: $last_thing_was_blocky_paragraph, it: $in_text, q: $in_quote, line: $line" if $debug;
+    print "ntw: $next_t_with_gap, ltwc: $last_thing_was_blocky_paragraph, it: $in_text, itbl: $in_table, ic: $in_code, q: $in_quote, h: $h_level, line: $line" if $debug;
 
     chomp $line;
 
@@ -427,7 +427,7 @@ sub process_page { #_{
 
       dbg ('Starting code');
 
-      die "In code, line = $." if $in_code;
+      die "In code [input_filename_os $input_filename_os], line = $." if $in_code;
       $in_code = 1;
 
       blocky_paragraph_start($out, $pass, \$in_text, $ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap);
@@ -441,11 +441,11 @@ sub process_page { #_{
 
 
       if ($in_quote) {
-        dbg('found \", ending quote');
+        dbg('found ", ending quote');
         end_quote($out, '', \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, '', $input_filename_os);
       }
       else {
-        dbg('found \", starting quote');
+        dbg('found ", starting quote');
         start_quote($out, '', \$in_quote, \$in_text, \$ul, \$next_t_with_gap, \$empty_line_sets_next_t_with_gap, \$last_thing_was_blocky_paragraph, $input_filename_os);
       }
       next;
@@ -461,6 +461,7 @@ sub process_page { #_{
 
     } #_}
 
+    dbg("*** in_code = $in_code, in_table = $in_table, line = $line");
     if (not $in_code and not $in_table and $line =~ /(.*)" *(\[ *(.+) *\])? *$/) { #_{ End Quote
 
       my $q_text = $1;
@@ -631,6 +632,7 @@ sub process_page { #_{
 
     if ($line =~ /^\s*}\s*$/) { #_{ End of section
 
+      dbg('Found } ending section');
       end_section($out, \$in_text, \$h_level, \$last_thing_was_blocky_paragraph);
       next;
 
@@ -878,9 +880,9 @@ sub process_page { #_{
 
   close_html($out, $wp) if $pass == 2;
 
-  die "In quote"  if $in_quote; 
-  die "In code"   if $in_code;
-  die "In table"  if $in_table;
+  die "In quote [$input_filename_os]"  if $in_quote;
+  die "In code [$input_filename_os]"   if $in_code;
+  die "In table [$input_filename_os]"  if $in_table;
   #_}
 
 
