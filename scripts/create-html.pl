@@ -28,12 +28,16 @@ my $debug = 0;
 # $| = 1;
 
 my $temp_dir;
-if ($^O eq 'MSWin32') {
-  $temp_dir = 'c:/temp/';
-}
-else {
-  $temp_dir = '/tmp/';
-}
+#
+# 2020-08-19: the following does not really make sense, does it:
+#
+# if ($^O eq 'MSWin32') {
+#   $temp_dir = 'c:/temp/';
+# }
+# else {
+#   $temp_dir = '/tmp/';
+# }
+$temp_dir = $ENV{TMP} . '/';
 
 my $verbose = 0;
 print "$0 -> Getopt::Long::GetOptions\n" if $debug;
