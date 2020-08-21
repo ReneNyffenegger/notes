@@ -1,7 +1,7 @@
-$ Office Object Model: Excel - AutoFilter
+$ Excel Object Model: AutoFilter
 @ AutoFilter
 
-An `AutoFilter` object allows to hide or show rows based on criterias put on the values in the cells of these rows. Thus, it somewhat corresponds to an
+An `AutoFilter` object allows to hide or show rows based on criterias put on the values in the → Microsoft/Office/Excel/Object-Model/Range/cell[cells] of these rows. Thus, it somewhat corresponds to an
 → development/databases/SQL/where[SQL's `where` clause].
 
 { Basic example
@@ -17,6 +17,43 @@ An `AutoFilter` object allows to hide or show rows based on criterias put on the
   The only record that satisfies the selected criteria is the second one:
   gh|about-MS-Office-object-model|/Excel/AutoFilter/img/basics.png||
 
+}
+{ At most one autoFilter per worksheet
+
+  → Microsoft/Office/Excel allows at most one active `autoFilter` per → Microsoft/Office/Excel/Object-Model/Worksheet. If the autofilter is active can be queried in → development/languages/VBA with an expression similar to
+code {
+not → Microsoft/Office/Excel/Object-Model/Application/index#excel-application-active-objects[activeSheet.autoFilter] is nothing
+code }
+  This expression evaluates to → development/languages/VBA/language/datatypes/boolean[`true`] if an auto filter is in place and to `false` if not.
+  -
+  In the *Data* tab of the → Microsoft/Office/Excel/GUI/Ribbon[Ribbon], the → Microsoft/Office/Excel/GUI/Ribbon/tabs/Data/Sort-and-Filter/Filter[Filter] symbol is highlighted if there is an active auto filter.
+
+  Note that an autofilter can be active even if no rows are filtered or any criterias were defined.
+
+? If multiple regions (→ Microsoft/Office/Excel/Object-Model/Range[ranges]) need to be filtered, → Microsoft/Office/Excel/Object-Model/ListObject[list objects (aka tables)] might be used.
+  
+
+}
+{ Showing all records with VBA
+
+  In order to show all records that might previously have been filtered, the `showAllData` method can be used:
+code {
+activeSheet.showAllData
+code }
+
+  This is effectivaly the same as clicking → Microsoft/Office/Excel/GUI/Ribbon/tabs/Data/Sort-and-Filter/Clear[Data -> Sort & filter -> Clear] on the
+  → Microsoft/Office/Excel/GUI/Ribbon[Ribbon].
+
+}
+{ Required header
+
+  As far as I see it, a header is required for an `autoFilter`, at least when defining it.
+
+}
+{ Problems with sum function
+
+  When using the `=sum(…)` → Microsoft/Office/Excel/Object-Model/WorksheetFunction[worksheet function] right below (and adjacent) to the filtered → Microsoft/Office/Excel/Object-Model/Range[range], it seems that Excel tries to incluce this `sum()` into
+  the range (and thus is hidden after applying a criteria to the filter).
 
 }
 
@@ -25,5 +62,7 @@ sa:
   The `ctrl-shift+L` → Microsoft/Office/Excel#excel-key-shortcut[keyboard shortcut] turns on autofiltering.
 
   → Microsoft/Office/Excel/Object-Model/Range/advancedFilter[`range.advancedFilter`]
+
+  → Microsoft/Office/Excel/functions/criteria[Worksheet functions that use criterias]
 
   → Microsoft/Office/Excel/Object-Model
