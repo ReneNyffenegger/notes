@@ -1,5 +1,39 @@
 $ Registry: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts
 
+{ TODO
+
+  { Calculating hash for UserChoice\Hash
+
+    Apparently, Windows calculates a hash after assingning a default application that handles files with a given file extension. This hash is stored in the value `Hash` under the subkey `UserChoice`.
+
+     → https://stackoverflow.com/questions/17946282[this Stackoverflow question] has some insteresting answers and notes concerning this hash, such as:
+  "
+    Microsoft decided in Windows 8 (probably for security reasons) that users
+    should be able to set default programs only via the built in GUI. I.e. by
+    design, you are not supposed to be able to set default handlers in a script
+    or programmatically.
+  "
+
+     Another answer lays out the algorithm for calculating the hash like so:
+code {
+extension  = “.txt”                                          ; The file extension
+sid        = “S-1-5-21-463486358-3398762107-1964875780-1001” ; The → Windows/security/SID of the current → Windows/user-account[user]0
+progid     = “txtfile”                                       ; The → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[ProgId] of the desired association
+regdate    = “01d3442a29887400”                              ; The timestamp of the UserChoice → Windows/registry/tree-structure/key[registry key]
+experience = “a microsoft secret string”                     ; A static string (this is a dummy example, not the real string
+
+hash       =  → development/Base64[Base64](MicrosoftHash(MD5(toLower(extension, sid, progid, regdate, experience))))
+code }
+
+   This stackoverflow also links to → https://kolbi.cz/blog/2017/10/25/setuserfta-userchoice-hash-defeated-set-file-type-associations-per-user[this page] where an → Windows/development/Portable-Executable/EXE[.exe] can be downloaded
+   that apparently is able to calculate this hash.
+
+   → https://github.com/DanysysTeam/SFTA[This github repository (Dansys/SFTA)] contains a PureBasic program that seems to indicate that `experience` is `User Choice set via Windows User Experience`.
+
+  }
+
+}
+
 sa:
 
   → Windows/settings/Apps/Default-apps/Choose-default-apps-by-file-type

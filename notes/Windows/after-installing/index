@@ -249,13 +249,18 @@ code }
 
     Stuff to be downloaded might go into the → Windows/dirs/Users/username/Downloads[Downloads] directory.
 
-    The location of the download directory can be determined With the WinAPI function `SHGetKnownFolderPath`.
+    The location of the download directory can be determined with the → Windows/development/WinAPI function `SHGetKnownFolderPath`.
     -
     In PowerShell, this function can be → Windows/dirs/_known-folders#win-known-folder-ps[accessed by running this P/Invoke class]. After running the linked script, the download
     folder name can be assigned to a → Windows/PowerShell/language/variable[variable] with
 code {
 PS C:\> $downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9164-39C4925E467B}'))
 code }
+
+    It seems easier, however, to directly set the variable like so:
+ code {
+ $downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
+ code }
 
   }
   { Function addDirToPath
@@ -266,9 +271,11 @@ code }
 
 code {
 function addDirToPath($dir) {
-   $userPath = [environment]::getEnvironmentVariable('PATH', 'user')
-   $env:PATH = "$dir;$userPath"
-   [environment]::setEnvironmentVariable('PATH', $env:PATH, 'user')
+   $userPath   = [environment]::getEnvironmentVariable('PATH', 'user'  )
+   $systemPath = [environment]::getEnvironmentVariable('PATH', 'system')
+
+   [environment]::setEnvironmentVariable('PATH', "dir;$userPath", 'user')
+   $env:PATH = "$systemPath;dir;$userPath"
 }
 code }
 
@@ -279,8 +286,6 @@ code }
   -
   With → Windows/PowerShell[PowerShell]:
 code {
-# $binPath = "$env:userprofile\bin"
-# $binPath = "$($env:homedrive)$($env:homepath)\bin"
 $binPath = "$home\bin"
 → Windows/PowerShell/language/variable/automatic/null[$null] = mkdir $binPath -errorAction silentlyContinue
 code }
@@ -396,20 +401,17 @@ code }
 
   Install a *portable* → development/languages/Perl[Perl]. Strawberry's portable Perl claims that it does not need admin privileges.
 
+  Strawberry recommends to put into path without spaces. However,  the value of`$env:programFiles` is → Windows/dirs/Program-Files[`C:\Program Files`] which contains spaces - and I seem to remember
+  that I was able to successfully install Perl below that directory.
+
 code {
-#
-#   Strawberry recommends to put into path without spaces.
-#   $env:programFiles contains spaces and I seem to remember
-#   that I was able to successfully install Perl below that
-#   directory
-#
 # $strawberryPerlDestDir="$env:programFiles\StrawberryPerl"
   $strawberryPerlDestDir="$home\StrawberryPerl"
-$eatOutput = mkdir $strawberryPerlDestDir
+$null = mkdir $strawberryPerlDestDir
 
-$ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
-# [net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
-
+#
+# Find perl version under strawberryperl.com/releases.html
+#
 $perlVersion='5.30.3.1'
 if ([environment]::is64BitOperatingSystem) {
   $ua.downloadFile("http://strawberryperl.com/download/$perlVersion/strawberry-perl-$perlVersion-64bit-PDL.zip" , "$downloadFolder\StrawberryPerl.zip")
@@ -441,14 +443,20 @@ rm $home\Downloads\StrawberryPerl.zip
 
 $envTarget = 'user' # or 'machine'
 
-$envPath = [environment]::getEnvironmentVariable('PATH', $envTarget)
-[environment]::setEnvironmentVariable('PATH'          , "$strawberryPerlDestDir\perl\site\bin;$strawberryPerlDestDir\perl\bin;$strawberryPerlDestDir\c\bin;$envPath", $envTarget) 
+addDirToPath $strawberryPerlDestDir\perl\site\bin
+addDirToPath $strawberryPerlDestDir\perl\bin
+addDirToPath $strawberryPerlDestDir\c\bin
+# $envPath = [environment]::getEnvironmentVariable('PATH', $envTarget)
+# [environment]::setEnvironmentVariable('PATH'          , "$strawberryPerlDestDir\perl\site\bin;$strawberryPerlDestDir\perl\bin;$strawberryPerlDestDir\c\bin;$envPath", $envTarget) 
 
 [environment]::setEnvironmentVariable('PLPLOT_LIB'    , "$strawberryPerlDestDir\c\share\plplot", $envTarget) 
 [environment]::setEnvironmentVariable('PLPLOT_DRV_DIR', "$strawberryPerlDestDir\c\share\plplot", $envTarget) 
 code }
 
   { Associate .pl extension with Perl executable
+
+    Before proceeding with the following snippets, first check if the → Windows/registry/tree-structure/key[registry key]
+    `→ Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Explorer/FileExts[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts]\.pl` already exists.jw
 
 code {
 $null = new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
@@ -458,7 +466,7 @@ $null = new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
 # value of 'pl_auto_file' and a subkey, named 'PersistentHandler'
 # and default value '{5e941d80-bf96-11cd-b579-08002b30bfeb}'
 #
-new-item -path HKCR:\.pl
+$null = new-item -path HKCR:\.pl
 set-item -path HKCR:\.pl -value PerlScript
 
 # Alternatively:
@@ -471,11 +479,11 @@ set-item -path HKCU:\Software\Classes\.pl -value PerlScript
 #
 # new-item -path HKCR:\PerlScript
 
-  new-item -path HKCU:\Software\Classes\PerlScript
-  new-item -path HKCU:\Software\Classes\PerlScript\shell
-  new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
-  new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
-  set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
+$null new-item -path HKCU:\Software\Classes\PerlScript
+$null new-item -path HKCU:\Software\Classes\PerlScript\shell
+$null new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
+$null new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
+$null set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
 code }
 
   }
@@ -505,12 +513,15 @@ code }
 
     Download end extract the self extracting executable. Find newest version number → https://github.com/git-for-windows/git/releases[here].
 code {
-$ua = new-object system.net.webClient
-[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+$gitVersion = '2.28.0'  # Find newest version number under https://github.com/git-for-windows/git
 
-$gitVersion = '2.25.1'
 if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe", "$($downloadFolder)Git.exe")
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe"    , "$($downloadFolder)Git.exe")
+
+#
+# There would also be a .tar.bz2 file:
+#
+# $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.tar.bz2", "$($downloadFolder)Git.exe")
 
   # LFS Git does not seem necessary enymore
   # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
@@ -518,21 +529,24 @@ if ([environment]::is64BitOperatingSystem) {
 #
 # TODO does the downloaded file really need to have the *amd64* thingy?
 #
-  $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
+# $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
 
 } else {
   # echo "64 bit expected"
   $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-32-bit.exe", "$($downloadFolder)Git.exe")
 }
-
-#
-#  /SP-                Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setp
-#  /SUPPRESSMSGBOXES   Supress message boxes
-#
-#    See https://jrsoftware.org/ishelp/index.php?topic=setupcmdline
-#
-& "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT
 code }
+
+  Run the downloaded executable (which installes the git executable under → Windows/dirs/Program-Files/Git/cmd).
+code {
+& "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT /CURRENTUSER
+code }
+
+  The meaning of the used command line flags is (see → https://jrsoftware.org/ishelp/index.php?topic=setupcmdline):
+  table { ll
+   `/SP-`               ☰ Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setup
+   `/SUPPRESSMSGBOXES`  ☰ Supress message boxes
+   table }
 
     Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
 code {
@@ -545,21 +559,26 @@ git config --global user.email "…"
 git config --global user.name  "René Nyffenegger"
 code }
 
+   For some reason that is beyond my intelligence, `core.autocrlf` seems to be `true` by default. Therefore, set it to `false`:
+code {
+git config --global core.autocrlf false
+code }
+
   { Add github_root and github_top_root variables
 
     Add the environment variables `github_top_root` and `github_root`
 code {
-[environment]::setEnvironmentVariable("github_top_root", "$env:userprofile\github\"       , "user")
-[environment]::setEnvironmentVariable("github_root"    , "$env:userprofile\github\github\", "user")
-[environment]::setEnvironmentVariable("git_work_dir"   , "$env:userprofile\localgit\"     , "user")
+[environment]::setEnvironmentVariable("github_top_root", "$home\github\"       , "user")
+[environment]::setEnvironmentVariable("github_root"    , "$home\github\github\", "user")
+[environment]::setEnvironmentVariable("git_work_dir"   , "$home\localgit\"     , "user")
 code }
 
 
    Because the change does not take effect in the current session, the variables also need to be set manually:
 code {
-$env:github_top_root = "$env:userprofile\github\"
-$env:github_root     = "$env:userprofile\github\github\"
-$env:git_work_dir    = "$env:userprofile\localgit\"
+$env:github_top_root = "$home\github\"
+$env:github_root     = "$home\github\github\"
+$env:git_work_dir    = "$home\localgit\"
 code }
 
 
@@ -585,35 +604,39 @@ code }
   }
 
 }
-{ Clone localgit
+{ Clone some git repositories
+
+  { localgit
 
 code {
 # git clone e:\git $env:userprofile\localgit
-git clone e:\git $git_work_dir
+git clone e:\git $env:git_work_dir
 code }
 
-  { Add new script directory to path environment variable
+    { Add new script directory to path environment variable
 
 code {
 addDirToPath $git_work_dir
 code }
 
+    }
+  
   }
-
-}
-{ Clone github script repository
+  { github script repository
 
 code {
 git clone https://github.com/ReneNyffenegger/scripts-and-utilities $env:userprofile/github/lib/scripts
 code }
 
-  { Add new script directory to path envioronment variable
+    { Add new script directory to path envioronment variable
 
 code {
 addDirToPath "$($env:github_top_root)lib\scripts"
 code }
 
-  }
+    }
+
+   }
 
 }
 { Configure cmd.exe
