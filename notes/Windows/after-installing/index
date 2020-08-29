@@ -721,7 +721,7 @@ code }
 
 Edit `feature.h` to match preferences.
 
-Find the short path of the perl directory because → Windows/dirs/Program-Files[C:\Program Files] contains spaces:
+If Perl is installed under → Windows/dirs/Program-Files[C:\Program Files] (which contains spaces), the installation directory's short name needs to be determined:
 code {
 $fso = new-object -comObject scripting.fileSystemObject
 $perlShortPath = $fso.getFolder("$env:programFiles\StrawberryPerl\perl").shortPath
@@ -732,8 +732,16 @@ it prevents the make file from trying to invoke → development/languages/sed[se
 
 Define `XPM=no` to prevent *fatal error: xpm.h: no such file or directory*.
 
+The option `TERMINAL=yes` builds vim with *terminal support* (winpty, `:help terminal`)
+
+   Using short path:
 code {
 gmake -f Make_ming.mak PERL=$perlShortPath DYNAMIC_PERL=yes PERL_VER=528 ARCH=native XPM=no
+code }
+
+  Alternative build-execution using the variable `$strawberryPerlDestDir`:
+code {
+gmake -f Make_ming.mak PERL=$($strawberryPerlDestDir -replace '\\', '/')/perl DYNAMIC_PERL=yes PERL_VER=530 ARCH=x86-64 TERMINAL=yes
 code }
 
 code {
@@ -745,17 +753,12 @@ code }
  
    Set the `VIMRUNTIME` environment variable
 code {
-[environment]::setEnvironmentVariable("VIMRUNTIME", "$($env:github_top_root)vim\runtime", "user") 
+[environment]::setEnvironmentVariable('VIMRUNTIME', "$($env:github_top_root)vim\runtime", 'user') 
 code }
 
    Clone `.vim`
 code {
-git clone https://github.com/ReneNyffenegger/.vim $env:userprofile\vimfiles
-code }
-
-   TODO: build with *terminal support* (winpty, `:help terminal`)
-code {
-gmake -f … TERMINAL=yes
+git clone https://github.com/ReneNyffenegger/.vim $home\vimfiles
 code }
 
   }
