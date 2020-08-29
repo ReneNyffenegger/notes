@@ -271,11 +271,11 @@ code }
 
 code {
 function addDirToPath($dir) {
-   $userPath   = [environment]::getEnvironmentVariable('PATH', 'user'  )
-   $systemPath = [environment]::getEnvironmentVariable('PATH', 'system')
+   $userPath   = [environment]::getEnvironmentVariable('PATH', 'user'   )
+   $systemPath = [environment]::getEnvironmentVariable('PATH', 'machine')
 
-   [environment]::setEnvironmentVariable('PATH', "dir;$userPath", 'user')
-   $env:PATH = "$systemPath;dir;$userPath"
+   [environment]::setEnvironmentVariable('PATH', "$dir;$userPath", 'user')
+   $env:PATH = "$systemPath;$dir;$userPath"
 }
 code }
 
@@ -293,7 +293,7 @@ code }
   Add the newly created directory to the `PATH` → development/environment-variable[environment variable]:
 code {
 # $userPath = [environment]::getEnvironmentVariable("PATH", "user")
-# [environment]::setEnvironmentVariable("PATH", "$binPath;$userPath", "user") 
+# [environment]::setEnvironmentVariable("PATH", "$binPath;$userPath", 'user') 
 addDirToPath $binPath
 code }
 
@@ -616,7 +616,7 @@ code }
     { Add new script directory to path environment variable
 
 code {
-addDirToPath $git_work_dir
+addDirToPath "$($env:git_work_dir)scripts"
 code }
 
     }
@@ -625,7 +625,8 @@ code }
   { github script repository
 
 code {
-git clone https://github.com/ReneNyffenegger/scripts-and-utilities $env:userprofile/github/lib/scripts
+# git clone https://github.com/ReneNyffenegger/scripts-and-utilities $env:userprofile/github/lib/scripts
+git clone https://github.com/ReneNyffenegger/scripts-and-utilities "$($env:github_top_root)lib\scripts"
 code }
 
     { Add new script directory to path envioronment variable
@@ -714,7 +715,8 @@ code }
 code {
 cd $env:github_top_root
 git clone https://github.com/vim/vim
-cd $env:github_top_root\vim\src
+# cd $env:github_top_root\vim\src
+cd vim\src
 code }
 
 Edit `feature.h` to match preferences.
