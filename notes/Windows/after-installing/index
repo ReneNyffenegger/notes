@@ -125,7 +125,7 @@ code {
 #    Remove entire key `HKCU\Keyboard Layout\Substitutes' and add an empty one
 #
   remove-item        -path 'HKCU:\Keyboard Layout\Substitutes'
-  $eatMe = new-item  -path 'HKCU:\Keyboard Layout\Substitutes'
+  $eatMe = → Windows/PowerShell/command-inventory/noun/item/new[new-item]  -path 'HKCU:\Keyboard Layout\Substitutes'
 
 #
 # Remove HKCU\Keyboard Laoyout\Preload
@@ -173,8 +173,8 @@ code {
  
   remove-item        -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000100'
   remove-item        -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000101'
-  $eatMe = new-item  -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000100'
-  $eatMe = new-item  -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000101'
+  $eatMe = → Windows/PowerShell/command-inventory/noun/item/new[new-item]  -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000100'
+  $eatMe = → Windows/PowerShell/command-inventory/noun/item/new[new-item]  -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000101'
 
   $eatMe = new-itemProperty -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000100' -name 'Virtual Key'   -value $valVK_9                 -propertyType binary
   $eatMe = new-itemProperty -path 'HKCU:\Control Panel\Input Method\Hot Keys\00000100' -name 'Key Modifiers' -value $valKeyModifiers         -propertyType binary
@@ -263,9 +263,9 @@ PS C:\> $downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9
 code }
 
     It seems easier, however, to directly set the variable like so:
- code {
- $downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
- code }
+code {
+$downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
+code }
 
   }
   { Function addDirToPath
@@ -335,9 +335,14 @@ code }
   { Chrome
 
     As per → https://superuser.com/a/577602/16610[this superuser answer], Chrome  can be silently installed by
-    downloading the → http://dl.google.com/chrome/install/375.126/chrome_installer.exe[Downloading th echrome installer] and then useing the following switches:
+    downloading the → http://dl.google.com/chrome/install/375.126/chrome_installer.exe[Downloading the chrome installer] and then useing the following switches:
 code {
 chrome_installer.exe /silent /install
+code }
+
+    Alternatively, it seems it can be installed with → Windows/Chocolatey with
+code {
+→ Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] install googlechrome
 code }
 
   }
@@ -378,6 +383,10 @@ code }
   -
   What about → Windows/dirs/Windows/System32/lusrmgr_msc
 
+  Check if Administrator is already activated:
+code {
+→ Windows/dirs/Windows/System32/net_exe/user[net user] administrator | Windows/dirs/Windows/System32/findstr_exe[findstr] /c:"Account active"
+code }
 
   In → Windows/dirs/Windows/System32/cmd_exe[cmd.exe].
 code {
@@ -488,8 +497,8 @@ $null = new-item -path HKCR:\.pl
 set-item -path HKCR:\.pl -value PerlScript
 
 # Alternatively:
-new-item -path HKCU:\Software\Classes\.pl
-set-item -path HKCU:\Software\Classes\.pl -value PerlScript
+→ Windows/PowerShell/command-inventory/noun/item/new[new-item] -path HKCU:\Software\Classes\.pl
+→ Windows/PowerShell/command-inventory/noun/item/new[set-item] -path HKCU:\Software\Classes\.pl -value PerlScript
 
 
 #
@@ -497,11 +506,11 @@ set-item -path HKCU:\Software\Classes\.pl -value PerlScript
 #
 # new-item -path HKCR:\PerlScript
 
-$null new-item -path HKCU:\Software\Classes\PerlScript
-$null new-item -path HKCU:\Software\Classes\PerlScript\shell
-$null new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
-$null new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
-$null set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
+$null = new-item -path HKCU:\Software\Classes\PerlScript
+$null = new-item -path HKCU:\Software\Classes\PerlScript\shell
+$null = new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
+$null = new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
+$null = set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
 code }
 
   }
