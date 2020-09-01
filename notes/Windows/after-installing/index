@@ -340,12 +340,91 @@ code {
 chrome_installer.exe /silent /install
 code }
 
-    Alternatively, it seems it can be installed with → Windows/Chocolatey with
+    Alternatively, it seems it can be installed from an elevated command shell with → Windows/Chocolatey with
 code {
 → Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] install googlechrome
 code }
 
   }
+  { Firefox
+
+ { Configure Firefox
+
+   Create a → development/web/browser/Firefox/profile-folder[Profile folder] with a fixed name:
+   -
+   → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[`%APPDATA%\Mozilla\Firefox\Profiles\tq84`].
+
+   Make the → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/profiles_ini[`profiles.ini`] file point to this *fixed* profile filder by copying the following
+   into → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/profiles_ini[`%APPDATA%\Mozilla\Firefox\profiles.ini`]:
+code {
+[General]
+StartWithLastProfile=1
+
+[Profile0]
+Name=default
+IsRelative=1
+Path=→ Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[Profiles/tq84]
+Default=1
+code }
+
+   TODO: This might also be achieved by using the `-CreateProfile` command line option of FireFox.
+
+ }
+ { Configure Firefox - Addons
+
+   → http://bernaerts.dyndns.org/linux/74-ubuntu/271-ubuntu-firefox-thunderbird-addon-commandline[Install addons from command line] says to
+     • Download XPI (=zip) archive
+     • Find UID in archive
+     • Extract XPI to *extensions\UID* directory (under → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[profile directory])
+
+
+Does `user.js` need to contain something like:
+code {
+user_pref("extensions.autoDisableScopes", 14);
+code }
+
+    { vimium
+
+     Install → https://addons.mozilla.org/de/firefox/addon/vimium-ff[Vimium-FF] (and compare with → https://github.com/philc/vimium[vimium]).
+
+     Download → https://addons.mozilla.org/firefox/downloads/file/1192087[the xpi file (file number = 1192087)].
+code {
+#
+#  1 - Download xpi archive (and rename to zip in one go)
+#
+$ua = new-object system.net.webClient
+
+# mkdir "$env:appdata\Mozilla\Firefox\Profiles\tq84\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}"
+  mkdir "$env:appdata\Mozilla\Firefox\Extensions\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}"
+
+# $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087", "$env:appdata\Mozilla\Firefox\Profiles\tq84\\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi")
+  $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087", "$env:appdata\Mozilla\Extensions\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi")
+# $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087/vimium_ff-1.64.3-fx.xpi" , "$env:appdata\Mozilla\Firefox\Profiles\tq84\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi"
+)
+
+#
+#   2- Unzip xpi archive
+#
+$shell = new-object -comObject shell.application
+mkdir $env:temp\vimium
+$shell.nameSpace("$env:temp\vimium").copyHere($shell.nameSpace("$env:temp\vimium.zip").items())
+code }
+
+     }
+     { UserAgent Switcher
+
+       Install → https://github.com/ray-lothian/UserAgent-Switcher/[UserAgent-Switcher]
+
+       Download → https://github.com/chrispederick/user-agent-switcher/blob/master/development/builds/user-agent-switcher.xpi[xpi]
+
+     }
+     { Add blocker
+
+       → https://addons.mozilla.org/de/firefox/addon/ublock-origin/[U Origin Plus]
+
+     }
+   }
+ }
 
 }
 { Download Sysinternal tools
@@ -416,7 +495,7 @@ code }
 }
 { Install newest PowerShell release
 
-  Find newset release → https://github.com/PowerShell/PowerShell/releases[here]
+  Find newest release → https://github.com/PowerShell/PowerShell/releases[here]
 
 code {
 $ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.0.0/PowerShell-7.0.0-win-x64.zip' , "$downloadFolder\PowerShell.zip")
@@ -494,11 +573,11 @@ $null = new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
 # and default value '{5e941d80-bf96-11cd-b579-08002b30bfeb}'
 #
 $null = new-item -path HKCR:\.pl
-set-item -path HKCR:\.pl -value PerlScript
+→ Windows/PowerShell/command-inventory/noun/item/set[set-item] -path HKCR:\.pl -value PerlScript
 
 # Alternatively:
 → Windows/PowerShell/command-inventory/noun/item/new[new-item] -path HKCU:\Software\Classes\.pl
-→ Windows/PowerShell/command-inventory/noun/item/new[set-item] -path HKCU:\Software\Classes\.pl -value PerlScript
+→ Windows/PowerShell/command-inventory/noun/item/set[set-item] -path HKCU:\Software\Classes\.pl -value PerlScript
 
 
 #
@@ -510,7 +589,8 @@ $null = new-item -path HKCU:\Software\Classes\PerlScript
 $null = new-item -path HKCU:\Software\Classes\PerlScript\shell
 $null = new-item -path HKCU:\Software\Classes\PerlScript\shell\Open
 $null = new-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command
-$null = set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
+# $null = set-item -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" `"%1`""
+$null = → Windows/PowerShell/command-inventory/noun/item/set[set-item] -path HKCU:\Software\Classes\PerlScript\shell\Open\Command -value "`"$strawberryPerlDestDir\perl\bin\perl.exe`" %1 %*"
 code }
 
   }
@@ -1170,90 +1250,6 @@ code }
 code {
 PS C:\> enable-windowsOptionalFeature -online -featureName Microsoft-Windows-Subsystem-Linux
 code }
-
- }
- { Install Firefox
-
- }
- { Configure Firefox
-
-   Create a → development/web/browser/Firefox/profile-folder[Profile folder] with a fixed name:
-   -
-   → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[`%APPDATA%\Mozilla\Firefox\Profiles\tq84`].
-
-   Make the → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/profiles_ini[`profiles.ini`] file point to this *fixed* profile filder by copying the following
-   into → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/profiles_ini[`%APPDATA%\Mozilla\Firefox\profiles.ini`]:
-code {
-[General]
-StartWithLastProfile=1
-
-[Profile0]
-Name=default
-IsRelative=1
-Path=→ Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[Profiles/tq84]
-Default=1
-code }
-
-   TODO: This might also be achieved by using the `-CreateProfile` command line option of FireFox.
-
- }
- { Configure Firefox - Addons
-
-   → http://bernaerts.dyndns.org/linux/74-ubuntu/271-ubuntu-firefox-thunderbird-addon-commandline[Install addons from command line] says to
-     • Download XPI (=zip) archive
-     • Find UID in archive
-     • Extract XPI to *extensions\UID* directory (under → Windows/dirs/Users/username/AppData/Roaming/Mozilla/Firefox/Profiles/_profile_[profile directory])
-
-
-Does `user.js` need to contain something like:
-code {
-user_pref("extensions.autoDisableScopes", 14);
-code }
-
-     
-
-   { vimium
-
-     Install → https://addons.mozilla.org/de/firefox/addon/vimium-ff[Vimium-FF] (and compare with → https://github.com/philc/vimium[vimium]).
-
-     Download → https://addons.mozilla.org/firefox/downloads/file/1192087[the xpi file (file number = 1192087)].
-code {
-#
-#  1 - Download xpi archive (and rename to zip in one go)
-#
-$ua = new-object system.net.webClient
-
-# mkdir "$env:appdata\Mozilla\Firefox\Profiles\tq84\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}"
-  mkdir "$env:appdata\Mozilla\Firefox\Extensions\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}"
-
-# $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087", "$env:appdata\Mozilla\Firefox\Profiles\tq84\\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi")
-  $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087", "$env:appdata\Mozilla\Extensions\{EC8030F7-C20A-464F-9B0E-13A3A9E97384}\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi")
-# $ua.downloadFile("https://addons.mozilla.org/firefox/downloads/file/1192087/vimium_ff-1.64.3-fx.xpi" , "$env:appdata\Mozilla\Firefox\Profiles\tq84\{d7742d87-e61d-4b78-b8a1-b469842139fa}.xpi"
-)
-
-#
-#   2- Unzip xpi archive
-#
-$shell = new-object -comObject shell.application
-mkdir $env:temp\vimium
-$shell.nameSpace("$env:temp\vimium").copyHere($shell.nameSpace("$env:temp\vimium.zip").items())
-
-code }
-
-   }
-
-   { UserAgent Switcher
-
-     Install → https://github.com/ray-lothian/UserAgent-Switcher/[UserAgent-Switcher]
-
-     Download → https://github.com/chrispederick/user-agent-switcher/blob/master/development/builds/user-agent-switcher.xpi[xpi]
-
-   }
-   { Add blocker
-
-     → https://addons.mozilla.org/de/firefox/addon/ublock-origin/[U Origin Plus]
-
-   }
 
  }
  { JDK
