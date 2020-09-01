@@ -60,21 +60,6 @@ code }
   → development/tools/scripts/personal/profile_ps1#profile-install[Install] the profile script → development/tools/scripts/personal/profile_ps1[`profile.ps`].
 
 }
-{ Activate Windows
-  Or something like
-code {
-C:\> → Windows/dirs/Windows/System32/slmgr_vbs[slmgr.vbs] → Windows/dirs/Windows/System32/slmgr_vbs#win-reinstall-product-key[/ipk] → Windows/settings/product-key[xxxxx-xxxxx-xxxxx-xxxxx-xxxxx]
-code }
-  After issuing the command above, Settings->Activation told me: *A known error with Windows activation is: We can't activate Windows on this device as we can't connect to your organization's activation server.* (or something
-  similar to that). So, I had also to enter the following to fix that:
-code {
-C:\> slmgr.vbs /dlv
-code }
-
-
-  TODO: Does it have something to do with → Windows/dirs/Windows/System32/changepk_exe[changepk.exe] or → Windows/dirs/Windows/System32/slui_exe (under → Windows/dirs/Windows/System32)?
-
-}
 { Check hostname
 
   Is hostname ok?
@@ -96,7 +81,48 @@ code }
 
     How do I determine if I am currently running → Windows/PowerShell as Administrator?
 
-    Is it possible with `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`.
+    Is it possible with `→ Windows/dirs/Windows/System32/whoami_exe[whoami] /priv`?
+
+  }
+
+}
+{ Activate Windows
+
+  Check current license state and, if available, expiration date:
+code {
+PS C:\users\rene> → Windows/dirs/Windows/System32/_xscript_exe[cscript] -nologo $env:→ Windows/development/environment-variables/windir[windir]\system32\→ Windows/dirs/Windows/System32/slmgr_vbs -xpr
+Windows(R), Professional edition:
+    Windows is in Notification mode
+code }
+
+  Uninstall previous product key
+code {
+PS C:\users\rene> → Windows/dirs/Windows/System32/_xscript_exe[cscript] -nologo $env:→ Windows/development/environment-variables/windir[windir]\system32\→ Windows/dirs/Windows/System32/slmgr_vbs -upk
+Uninstalled product key successfully.
+code }
+
+
+  Activate new product key
+code {
+PS C:\users\rene> → Windows/dirs/Windows/System32/_xscript_exe[cscript] -nologo $env:→ Windows/development/environment-variables/windir[windir]\system32\→ Windows/dirs/Windows/System32/slmgr_vbs → Windows/dirs/Windows/System32/slmgr_vbs#win-reinstall-product-key[-ipk] → Windows/settings/product-key[xxxxx-xxxxx-xxxxx-xxxxx-xxxxx]
+Installed product key xxxxx-xxxxx-xxxxx-xxxxx-xxxxx successfully.
+code }
+
+  In a previous attempt to execute this command, Settings->Activation told me: *A known error with Windows activation is: We can't activate Windows on this device as we can't connect to your organization's activation server.*
+  (or something similar to that). So, I had also to enter the following to fix that:
+code {
+… slmgr.vbs /dlv
+code }
+
+  Check current license state again
+code {
+PS C:\users\rene> → Windows/dirs/Windows/System32/_xscript_exe[cscript] -nologo $env:→ Windows/development/environment-variables/windir[windir]\system32\→ Windows/dirs/Windows/System32/slmgr_vbs -xpr
+    The machine is permanently activated.
+code }
+
+  { TODO
+
+     Does `slmgr.vbs` have something to do with → Windows/dirs/Windows/System32/changepk_exe[`changepk.exe`] or → Windows/dirs/Windows/System32/slui_exe[`slui.exe`] (under → Windows/dirs/Windows/System32)?
 
   }
 
