@@ -48,6 +48,25 @@ get-windowsUpdate
 install-windowsUpdate
 code }
   
+  { Feature Update
+
+    Performing a feature udpate, for example from 1909 to 2003, can be exectued like so:
+code {
+$destDir = "$env:temp\FeatureUpdate"
+mkdir $destDir
+
+$webClient =  new-object System.Net.WebClient
+$exe       = "$destDir\Win10Upgrade.exe"
+
+$webClient.DownloadFile('https://go.microsoft.com/fwlink/?LinkID=799445', $exe)
+
+start-process -FilePath $exe -ArgumentList '/quietinstall /skipeula /auto upgrade /copylogs $destDir' 
+
+# check if still running:
+get-process Windows10UpgraderApp
+code }
+
+  }
 
 }
 { Quick Fix Engineering (QFE) update #qfe-update
