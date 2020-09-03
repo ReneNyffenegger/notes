@@ -43,7 +43,7 @@ code }
 
   In order to be able to use WSL 2, the *Virtual Machine Platform* → Windows/optional-features[optional feature]:
 code {
-C:\users\rene> → Windows/dirs/Windows/System32/wsl_exe[wsl] --set-defult-version 2
+C:\users\rene> → Windows/dirs/Windows/System32/wsl_exe[wsl] --set-default-version 2
 Please enable the Virtual Machine Platform Windows feature and ensure virtualization is enabled in the → hardware/BIOS
 For information please visit → https://aka.ms/wsl2-install
 code }
@@ -53,6 +53,66 @@ code {
 C:\users\rene> → Windows/dirs/Windows/System32/Dism_exe[dism] /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 code }
 
+  However, I still receive an error:
+code {
+C:\users\rene> → Windows/dirs/Windows/System32/wsl_exe[wsl] --set-default-version 2
+Error: 0x1bc
+For information on key differences with WSL 2 please visit → https://aka.ms/wsl2
+code }
+
+  → https://github.com/microsoft/WSL/issues/5651[This thread] seems to contain some information on how to get around this issue. It is suggested that the kernel needs to be installed into
+  ­ → Windows/dirs/Windows/System32/lxss/tools[`C:\Windows\System32\lxss\tools`]:
+code {
+rem → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi -outFile WSLUpdate.msi -useBasicParsing
+    → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi                        -useBasicParsing
+rem → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package WSLUpdate.msi     /quiet
+    → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package wsl_upate_x64.msi /quiet
+code }
+
+  Installing the kernel seemed to work, setting the default version to 2 works now:
+code {
+C:\users\rene> → Windows/dirs/Windows/System32/wsl_exe[wsl] --set-default-version 2
+For information on key differences with WSL 2 please visit → https://aka.ms/wsl2
+code }
+
+
+}
+{ Install distro
+
+  Download links for the distros can be found → https://docs.microsoft.com/en-us/windows/wsl/install-manual[here] and → https://docs.microsoft.com/en-us/windows/wsl/install-win10[here].
+
+code {
+    $ProgressPreference = 'SilentlyContinue'   ## Does this make the download time shorter???
+rem invoke-webRequest -Uri https://aka.ms/wsl-ubuntu-1604    -outFile Ubuntu.appx -useBasicParsing
+    invoke-webRequest -Uri https://aka.ms/wsl-kali-linux-new -outFile kali.appx   -useBasicParsing
+
+    add-→ Windows/PowerShell/command-inventory/noun/appxPackage[appxPackage] .\kali.appx
+code }
+
+  Unfortunately, even after executing `add-appxPackage …`, there is no distribution installed:
+code {
+C:\Users\Rene> wsl
+Windows Subsystem for Linux has no installed distributions.
+Distributions can be installed by visiting the Microsoft Store:
+https://aka.ms/wslstore
+code }
+
+}
+{ Reset password
+
+  In Windows (not Linux!) command line
+code {
+C:\users\rene> debian config --default-user root
+C:\users\rene> debian
+root@DESKTOP-1SDJMCL:~# passwd rene
+…
+root@DESKTOP-1SDJMCL:~# exit
+C:\users\rene> debian config --default-user rene
+
+
+code }
+
+  Replace `debian` with the name of the distro for which the password needs to be reset.
 
 }
 { TODO
@@ -74,7 +134,12 @@ code }
 }
 
 sa:
-
+ 
   → Windows/dirs/Windows/System32/lxss[`%SYSTEMROOT%\System32\lxss`]
 
   → Windows/dirs/Windows/System32/wslapi_dll[`wslapi.dll`]
+
+links:
+  → https://dev.to/smashse/wsl-chocolatey-powershell-winget-1d6p[Anderson Gama's blog] was quite helpful to demonstrate how the kernel can be installed from the command line.
+
+  → https://wiki.ubuntu.com/WSL has some hints on using WSL 2 and also has links to → Linux/X Servers that can be used with WSL.
