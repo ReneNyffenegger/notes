@@ -36,11 +36,6 @@ code }
 
   *2020-03-09* On a Windows 7 (PowerShell 2.0) installation, the option `removeSigned` was not understood. I had to change it to `bypass`.
 
-  { TODO
-
-    Should → https://github.com/PowerShell/PowerShell/releases[the newest PowerShell version installed, anyway]?
-
-  }
 
 }
 { Activate webRequest-invoke
@@ -523,11 +518,26 @@ code }
 }
 { Install newest PowerShell release
 
-  Find newest release → https://github.com/PowerShell/PowerShell/releases[here]
+  Should → https://github.com/PowerShell/PowerShell/releases[the newest PowerShell version installed, anyway]?
 
 code {
-$ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.0.0/PowerShell-7.0.0-win-x64.zip' , "$downloadFolder\PowerShell.zip")
-→ Windows/PowerShell/command-inventory/noun/archive/expand[expand-archive] $downloadFolder\PowerShell.zip $binPath\PowerShell7
+# $ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.0.3/PowerShell-7.0.3-win-x64.zip'                     , "$downloadFolder/PowerShell.zip")
+  $ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.1.0-preview.6/PowerShell-7.1.0-preview.6-win-x64.zip' , "$downloadFolder/PowerShell.zip")
+
+$newestPsDir = "$binPath/PowerShell7"
+if (test-path $newestPsDir) {
+   remove-item -recurse $newestPsDir
+}
+
+→ Windows/PowerShell/command-inventory/noun/archive/expand[expand-archive] $downloadFolder/PowerShell.zip $newestPsDir
+code }
+
+code {
+addDirToPath $newestPsDir
+code }
+
+code {
+remove-item "$downloadFolder/PowerShell.zip"
 code }
 
 }
@@ -535,7 +545,7 @@ code }
 
   Install a *portable* → development/languages/Perl[Perl]. Strawberry's portable Perl claims that it does not need admin privileges.
 
-  Strawberry recommends to put into path without spaces. However,  the value of`$env:programFiles` is → Windows/dirs/Program-Files[`C:\Program Files`] which contains spaces - and I seem to remember
+  Strawberry recommends to put into path without spaces. However,  the value of `$env:programFiles` is → Windows/dirs/Program-Files[`C:\Program Files`] which contains spaces - and I seem to remember
   that I was able to successfully install Perl below that directory.
 
 code {

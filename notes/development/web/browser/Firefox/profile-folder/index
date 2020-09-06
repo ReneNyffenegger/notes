@@ -54,7 +54,7 @@ table { ll
   saved-telemetry-pings ☰ 
   sessionstore-backups ☰ 
   storage ☰ 
-  addons.json ☰ 
+  → development/web/browser/Firefox/profile-folder/addons_json ☰ 
   addonStartup.json.lz4 ☰ 
   AlternateServices.txt ☰ 
   blocklist.xml ☰ 
@@ -88,7 +88,8 @@ table { ll
   sessionCheckpoints.json ☰ 
   shield-preference-experiments.json ☰ 
   shield-recipe-client.json ☰ 
-  SiteSecurityServiceState.txt ☰ 
+  SiteSecurityServiceState.txt ☰ stores HSTS information («supercookies»)
+                     
   storage.sqlite ☰ 
   Telemetry.FailedProfileLocks.txt ☰ 
   times.json ☰ 
@@ -98,6 +99,394 @@ table { ll
   xulstore.json ☰ toolbar and window size/positions
 
 table }
+
+}
+{ SQLite databases
+
+  { content-prefs.sqlite
+
+code {
+CREATE TABLE groups (
+   id                  INTEGER PRIMARY KEY,
+   name                TEXT NOT NULL
+)
+
+CREATE INDEX groups_idx ON groups(name)
+code }
+
+code {
+CREATE TABLE settings (
+    id                 INTEGER PRIMARY KEY,
+    name               TEXT NOT NULL
+)
+
+CREATE INDEX settings_idx ON settings(name)
+code }
+
+
+code {
+CREATE TABLE prefs (
+   id                  INTEGER PRIMARY KEY,
+   groupID             INTEGER          REFERENCES groups(id),
+   settingID           INTEGER NOT NULL REFERENCES settings(id),
+   value               BLOB,
+   timestamp           INTEGER NOT NULL DEFAULT 0
+)
+
+CREATE INDEX prefs_idx ON prefs(timestamp, groupID, settingID)
+code }
+
+  }
+
+  { cookies.sqlite
+
+code {
+CREATE TABLE moz_cookies (
+   id                  INTEGER PRIMARY KEY,
+   originAttributes    TEXT NOT NULL DEFAULT '',
+   name                TEXT,
+   value               TEXT,
+   host                TEXT,
+   path                TEXT,
+   expiry              INTEGER,
+   lastAccessed        INTEGER,
+   creationTime        INTEGER,
+   isSecure            INTEGER,
+   isHttpOnly          INTEGER,
+   inBrowserElement    INTEGER DEFAULT 0,
+   sameSite            INTEGER DEFAULT 0,
+   rawSameSite         INTEGER DEFAULT 0,
+   schemeMap           INTEGER DEFAULT 0,
+   CONSTRAINT          moz_uniqueid UNIQUE (name, host, path, originAttributes)
+)
+code }
+
+  }
+
+  { favicons.sqlite
+
+code {
+CREATE TABLE moz_icons (
+   id                  INTEGER PRIMARY KEY,
+   icon_url            TEXT    NOT NULL,
+   fixed_icon_url_hash INTEGER NOT NULL,
+   width               INTEGER NOT NULL DEFAULT 0,
+   root                INTEGER NOT NULL DEFAULT 0,
+   color               INTEGER,
+   expire_ms           INTEGER NOT NULL DEFAULT 0,
+   data BLOB
+)
+
+CREATE INDEX moz_icons_iconurlhashindex ON moz_icons (fixed_icon_url_hash)
+code }
+
+code {
+CREATE TABLE moz_pages_w_icons (
+   id                  INTEGER PRIMARY KEY,
+   page_url            TEXT NOT NULL,
+   page_url_hash       INTEGER NOT NULL
+)
+
+CREATE INDEX moz_pages_w_icons_urlhashindex ON moz_pages_w_icons (page_url_hash)
+code }
+
+code {
+CREATE TABLE moz_icons_to_pages (
+   page_id             INTEGER NOT NULL,
+   icon_id             INTEGER NOT NULL,
+   PRIMARY KEY (page_id, icon_id),
+   FOREIGN KEY (page_id) REFERENCES moz_pages_w_icons ON DELETE CASCADE,
+   FOREIGN KEY (icon_id) REFERENCES moz_icons         ON DELETE CASCADE
+) WITHOUT ROWID
+code }
+
+
+  }
+
+  { formhistory.sqlite
+
+code {
+CREATE TABLE moz_formhistory (
+   id                  INTEGER PRIMARY KEY,
+   fieldname           TEXT NOT NULL,
+   value               TEXT NOT NULL,
+   timesUsed           INTEGER,
+   firstUsed           INTEGER,
+   lastUsed            INTEGER,
+   guid                TEXT
+)
+
+CREATE INDEX moz_formhistory_index          ON moz_formhistory(fieldname)
+CREATE INDEX moz_formhistory_lastused_index ON moz_formhistory(lastUsed)
+CREATE INDEX moz_formhistory_guid_index     ON moz_formhistory(guid)
+code }
+
+code {
+CREATE TABLE moz_deleted_formhistory (
+   id                  INTEGER PRIMARY KEY,
+   timeDeleted         INTEGER,
+   guid                TEXT
+)
+code }
+
+  }
+
+  { permissions.sqlite
+
+code {
+CREATE TABLE moz_perms (
+   id                  INTEGER PRIMARY KEY,
+   origin              TEXT,
+   type                TEXT,
+   permission          INTEGER,
+   expireType          INTEGER,
+   expireTime          INTEGER,
+   modificationTime    INTEGER
+)
+code }
+
+code {
+CREATE TABLE moz_hosts (
+   id                  INTEGER PRIMARY KEY,
+   host                TEXT,
+   type                TEXT,
+   permission          INTEGER,
+   expireType          INTEGER,
+   expireTime          INTEGER,
+   modificationTime    INTEGER,
+   isInBrowserElement  INTEGER
+)
+code }
+
+  }
+  { places.sqlite
+
+code {
+CREATE TABLE moz_origins (
+   id                  INTEGER PRIMARY KEY,
+   prefix              TEXT NOT NULL,
+   host                TEXT NOT NULL,
+   frecency            INTEGER NOT NULL,
+   UNIQUE (prefix, host)
+)
+code }
+
+
+code {
+CREATE TABLE moz_places (
+   id                  INTEGER PRIMARY KEY,
+   url                 LONGVARCHAR,
+   title               LONGVARCHAR,
+   rev_host            LONGVARCHAR,
+   visit_count         INTEGER DEFAULT  0,
+   hidden              INTEGER DEFAULT  0 NOT NULL,
+   typed               INTEGER DEFAULT  0 NOT NULL,
+   frecency            INTEGER DEFAULT -1 NOT NULL,
+   last_visit_date     INTEGER,
+   guid                TEXT,
+   foreign_count       INTEGER DEFAULT  0 NOT NULL,
+   url_hash            INTEGER DEFAULT  0 NOT NULL,
+   description         TEXT,
+   preview_image_url   TEXT,
+   origin_id           INTEGER REFERENCES moz_origins(id)
+)
+
+CREATE        INDEX moz_places_url_hashindex      ON moz_places (url_hash)
+CREATE        INDEX moz_places_hostindex          ON moz_places (rev_host)
+CREATE        INDEX moz_places_visitcount         ON moz_places (visit_count)
+CREATE        INDEX moz_places_frecencyindex      ON moz_places (frecency)
+CREATE        INDEX moz_places_lastvisitdateindex ON moz_places (last_visit_date)
+CREATE UNIQUE INDEX moz_places_guid_uniqueindex   ON moz_places (guid)
+CREATE        INDEX moz_places_originidindex      ON moz_places (origin_id)
+code }
+
+code {
+CREATE TABLE moz_historyvisits (
+   id                  INTEGER PRIMARY KEY,
+   from_visit          INTEGER,
+   place_id            INTEGER,
+   visit_date          INTEGER,
+   visit_type          INTEGER,
+   session             INTEGER
+)
+
+CREATE INDEX moz_historyvisits_placedateindex ON moz_historyvisits (place_id, visit_date)
+CREATE INDEX moz_historyvisits_fromindex      ON moz_historyvisits (from_visit)
+CREATE INDEX moz_historyvisits_dateindex      ON moz_historyvisits (visit_date)
+code }
+
+code {
+CREATE TABLE moz_inputhistory (
+   place_id            INTEGER     NOT NULL,
+   input               LONGVARCHAR NOT NULL,
+   use_count           INTEGER,
+   PRIMARY KEY (place_id, input)
+)
+code }
+
+code {
+CREATE TABLE moz_bookmarks (
+   id                  INTEGER PRIMARY KEY,
+   type                INTEGER,
+   fk                  INTEGER DEFAULT NULL,
+   parent              INTEGER,
+   position            INTEGER,
+   title               LONGVARCHAR,
+   keyword_id          INTEGER,
+   folder_type         TEXT,
+   dateAdded           INTEGER,
+   lastModified        INTEGER,
+   guid                TEXT,
+   syncStatus          INTEGER NOT NULL DEFAULT 0,
+   syncChangeCounter   INTEGER NOT NULL DEFAULT 1
+)
+
+CREATE        INDEX moz_bookmarks_itemindex             ON moz_bookmarks (fk, type)
+CREATE        INDEX moz_bookmarks_parentindex           ON moz_bookmarks (parent, position)
+CREATE        INDEX moz_bookmarks_itemlastmodifiedindex ON moz_bookmarks (fk, lastModified)
+CREATE        INDEX moz_bookmarks_dateaddedindex        ON moz_bookmarks (dateAdded)
+CREATE UNIQUE INDEX moz_bookmarks_guid_uniqueindex      ON moz_bookmarks (guid)
+code }
+
+code {
+CREATE TABLE moz_bookmarks_deleted (
+   guid                TEXT PRIMARY KEY,
+   dateRemoved         INTEGER NOT NULL DEFAULT 0
+)
+code }
+
+code {
+CREATE TABLE moz_keywords (
+   id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+   keyword             TEXT UNIQUE,
+   place_id            INTEGER,
+   post_data           TEXT
+)
+
+CREATE UNIQUE INDEX moz_keywords_placepostdata_uniqueindex ON moz_keywords (place_id, post_data)
+code }
+
+
+code {
+CREATE TABLE moz_anno_attributes (
+   id                  INTEGER PRIMARY KEY,
+   name                VARCHAR(32) UNIQUE NOT NULL
+)
+
+code }
+
+code {
+CREATE TABLE moz_annos (
+   id                  INTEGER PRIMARY KEY,
+   place_id            INTEGER NOT NULL,
+   anno_attribute_id   INTEGER,
+   content             LONGVARCHAR,
+   flags               INTEGER DEFAULT 0,
+   expiration          INTEGER DEFAULT 0,
+   type                INTEGER DEFAULT 0,
+   dateAdded           INTEGER DEFAULT 0,
+   lastModified        INTEGER DEFAULT 0
+)
+
+CREATE UNIQUE INDEX moz_annos_placeattributeindex ON moz_annos (place_id, anno_attribute_id)
+code }
+
+
+code {
+CREATE TABLE moz_items_annos (
+   id                  INTEGER PRIMARY KEY,
+   item_id             INTEGER NOT NULL,
+   anno_attribute_id   INTEGER,
+   content             LONGVARCHAR,
+   flags               INTEGER DEFAULT 0,
+   expiration          INTEGER DEFAULT 0,
+   type                INTEGER DEFAULT 0,
+   dateAdded           INTEGER DEFAULT 0,
+   lastModified        INTEGER DEFAULT 0
+)
+
+CREATE UNIQUE INDEX moz_items_annos_itemattributeindex ON moz_items_annos (item_id, anno_attribute_id)
+code }
+
+code {
+CREATE TABLE moz_meta (
+   key                 TEXT PRIMARY KEY,
+   value NOT NULL
+) WITHOUT ROWID
+code }
+
+
+  }
+
+  { protections.sqlite
+
+code {
+CREATE TABLE events (
+   id                  INTEGER PRIMARY KEY,
+   type                INTEGER NOT NULL,
+   count               INTEGER NOT NULL,
+   timestamp           DATE
+)
+code }
+
+  }
+
+  { storage.sqlite
+
+code {
+CREATE TABLE database (
+   cache_version INTEGER NOT NULL DEFAULT 0
+)
+code }
+
+code {
+CREATE TABLE cache (
+   valid               INTEGER NOT NULL DEFAULT 0,
+   build_id            TEXT NOT NULL DEFAULT ''
+)
+code }
+
+code {
+CREATE TABLE repository (
+   id                  INTEGER PRIMARY KEY,
+   name                TEXT NOT NULL
+)
+code }
+
+code {
+CREATE TABLE origin (
+   repository_id       INTEGER NOT NULL,
+   origin              TEXT    NOT NULL,
+   group_              TEXT    NOT NULL,
+   client_usages       TEXT    NOT NULL,
+   usage               INTEGER NOT NULL,
+   last_access_time    INTEGER NOT NULL,
+   accessed            INTEGER NOT NULL,
+   persisted           INTEGER NOT NULL,
+   PRIMARY KEY (repository_id, origin),
+   FOREIGN KEY (repository_id) REFERENCES repository(id)
+)
+code }
+
+  }
+
+  { webappsstore.sqlite
+
+code {
+CREATE TABLE webappsstore2 (
+   originAttributes    TEXT,
+   originKey           TEXT,
+   scope               TEXT,
+   key                 TEXT,
+   value               TEXT
+)
+code }
+
+code {
+CREATE UNIQUE INDEX origin_key_index ON webappsstore2(originAttributes, originKey, key)
+code }
+
+  }
 
 }
 
