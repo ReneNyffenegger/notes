@@ -1,0 +1,24 @@
+$ PowerShell: determine which application is preventing an USB drive from being ejected
+
+When trying to eject an external → hardware/USB drive («Safely remove hardware and eject media»), Windows might respond with the message ~Problem Ejecting USB Mass Storage Device~
+(This device is currently in use. Close any programs or windows that might be using the device, and then try again):
+gh|about-PowerShell|/examples/Problem-Ejecting-USB-Mass-Storage-Device/img/msgBox.png||
+
+Unfortunately, the message does not reveal which program or application uses the USB drive. With → Windows/PowerShell, it is possible to determine this application with the
+→ Windows/PowerShell/command-inventory/noun/winEvent/get[`get-winEvent` cmdLet]:
+gh|about-PowerShell|/examples/Problem-Ejecting-USB-Mass-Storage-Device/readEventLog.ps1||
+
+This simple → Windows/PowerShell/pipeline might print something like
+code {
+TimeGenerated       Message
+-------------       -------
+2020-09-07 10:36:50 The application → Windows/dirs/ProgramData/Microsoft/Windows-Defender/Platform/_version_/MsMpEng_exe[\Device\HarddiskVolume2\ProgramData\Microsoft\Windows Defender\Platform\4.18.2008.9-0\MsMpEng.exe] with process id 2684 stopped the removal or ejection for the device USB\VID_0480&PID_A200\20160603001495C.
+code }
+
+{ Same thing, but with the event viewer
+
+  BTW, this information can also be determined with the → Windows/dirs/Windows/System32/eventvwr_exe[Event viewer (`eventvwr.exe`)]
+  by going to *Windows Logs* -> *System* -> *Filter Current Log* and the setting the *Event ID* to 225:
+  gh|about-PowerShell|/examples/Problem-Ejecting-USB-Mass-Storage-Device/img/eventVwr_filter-current-log.png||
+
+}
