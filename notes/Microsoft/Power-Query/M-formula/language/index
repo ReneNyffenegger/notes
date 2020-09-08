@@ -6,7 +6,7 @@ Usually, the *Power Query M formula language* is referred to simply *M*.
 
 The language resembles F#.
 
-Surprisingly, the language is als case sensitive.
+Surprisingly, the language is also case sensitive.
 
 { let expression
 
@@ -15,13 +15,13 @@ let
     variableName    = expression,
     anotherVariable = anotherExpression
 in
-    yetAnotherVariable (?)
+    yetAnotherVariable
 code }
 
 }
 { Variable names
 
-  It's possible to defined variable names that contain spaces. They are used with the special `#"…"` syntax:
+  It's possible to define variable names that contain spaces. They are used with the special `#"…"` syntax:
 code {
 let
    #"foo bar baz"  = …
@@ -102,7 +102,7 @@ code }
 
     A list is denoted by curly braces. The following snippet is a list of the first fibonacci numbers:
 code {
- { 1, 1, 2, 3, 5, 8, 13 }
+{ 1, 1, 2, 3, 5, 8, 13 }
 code }
 
 
@@ -203,7 +203,7 @@ code }
 
   `File.Contents` return a file's content as `binary`. This is needed, for example, to open an → Microsoft/Office/Excel/Object-Model/Workbook[Excel Workbook] and transform it to a `table` with `Excel.Workbook`:
 code {
-  Excel.Workbook(workbook as binary, optional useHeaders as nullable logical, optional delayTypes as nullable logical) as table
+Excel.Workbook(workbook as binary, optional useHeaders as nullable logical, optional delayTypes as nullable logical) as table
 code }
 
 
@@ -269,7 +269,7 @@ code }
    The following snippet doubles every element in the list
 code {
 List.Transform (
-  { 11, 3, 29 },
+{ 11, 3, 29 },
    each 2 * _
 )
 code }
@@ -394,7 +394,9 @@ Table.FromList(
       optional splitter    as nullable function,
       optional columns     as any,
       optional default     as any,
-      optional extraValues as nullable number) as table 
+      optional extraValues as nullable number
+)
+as table 
 code }
 
     By default, `Table.FromList` assums the given list a list of text that contains commas where the text needs to be split. Thus, it is almost predestined to read
@@ -427,6 +429,21 @@ code }
    `Table.PromoteHeaders` is used if a table's first row contains column names:
 code {
 Table.PromoteHeaders(table as table, optional options as nullable record) as table
+code }
+
+  }
+  { Table.Group #m-table-group
+
+   `Table.Group` is used to aggregate records (think the → development/databases/SQL/select/group-by[SQL `group by` clause]).
+code {
+Table.Group(
+            table             as          table,       // Data to be aggregated
+            key               as          any,         // Non aggregated columns
+            aggregatedColumns as          list,        //
+   optional groupKind         as nullable number,
+   optional comparer          as nullable function
+)
+as table 
 code }
 
   }
