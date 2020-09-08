@@ -9,6 +9,51 @@ code }
 
 `$VIMRUNTIME/filetype.vim` is run when `:→ development/vim/commands/filetype#vim-filetype-on[filetype on]` is executed.
 
-
-? If it's not possible to detect tye file type by its name (mostly suffix), then vim uses
+? If it's not possible to detect tye file type by its name (mostly suffix), then Vim uses
 → development/vim/runtime/scripts_vim[`$VIMRUNTIME/scripts.vim`] to determine a file type.
+
+{ Rough content of filetype.vim
+
+  The content of `filetype.vim` roughly looks like so:
+code {
+
+if exists("did_load_filetypes")
+  finish
+endif
+let did_load_filetypes = 1
+
+
+augroup filetypedetect
+
+… 
+… Stuff about ignored extensions etc.
+…
+
+au BufNewFile,BufRead $VIMRUNTIME/doc/*.txt   setf help
+au BufNewFile,BufRead *.inp                   call → development/vim/sources/runtime/autoload/dist/ft_vim[dist#ft]#Check_inp()
+au BufNewFile,BufRead *.8th                   setf 8th
+
+… etc. etc.
+
+augroup END
+
+" Source the user-specified filetype file, for backwards compatibility with Vim 5.x.
+if exists("myfiletypefile") && filereadable(expand(myfiletypefile))
+   execute "source " . myfiletypefile
+endif
+
+
+augroup filetypedetect
+
+au BufNewFile,BufRead *
+	\ if !did_filetype() && expand("<amatch>") !~ g:ft_ignore_pat
+	\ | runtime! scripts.vim | endif
+au StdinReadPost * if !did_filetype() | runtime! scripts.vim | endif
+
+
+…
+… Extra checks for when no filetype has been detected now.
+…
+code }
+
+}
