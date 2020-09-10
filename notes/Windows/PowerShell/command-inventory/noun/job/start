@@ -14,7 +14,7 @@ var= | using:var=changed
 code }
 
 }
-{ Working directory for jobs
+{ Working directory for jobs ps-start-job-wd
 
   A job's *working directory* is set to → Windows/dirs/Users/username/Documents[`$home\Documents`] (Windows Powershell) or → Windows/PowerShell/language/variable/automatic/home[`$home`] (PowerShell Core).
   -
@@ -26,6 +26,36 @@ code }
   gh|about-PowerShell|/cmdlets/job/start/current-directory.ps1||
 
   PowerShell 7 finally comes with the new option `-workingDirectory` which allows to change the initial working directory for a background job.
+
+}
+{ Passing parameters to a scheduled cmdLet
+
+  The following command tries to use `start-job` to schedule a download of a resource and storing it to an aribitrary file, using the `-outFile` parameter:
+code{
+start-job → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] http://server.xyz/path/to/resource.pdf -outFile downloadedFile.pdf
+code }
+
+  However, this results in the error message *Start-Job : Parameter set cannot be resolved using the specified named parameters*. This is becouse `start-job` (rather than `invoke-webRequest`) tries
+  to interprete the `-outfile` parameter.
+
+  In order to pass a paramter to a scheduled cmdLet, a → Windows/PowerShell/language/scriptblock must be used:
+code{
+start-job -scriptBlock { → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] http://server.xyz/path/to/resource.pdf -outFile downloadedFile.pdf }
+code }
+
+  The `-scriptBlock` parameter is not necessary:
+code{
+start-job { → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] http://server.xyz/path/to/resource.pdf -outFile downloadedFile.pdf }
+code }
+
+  Of course, if using a script block to download a resource, absolute paths or the → #ps-start-job-wd[working direcotry] should be specifed in order to download the file to a
+  non-default location.
+  -
+  The following command combinas the `using` → Windows/PowerShell/language/scopes[scope] with the → Windows/PowerShell/language/variable/automatic/pwd[`$pwd` automatic variable] to download
+  a resource to the current directory:
+code {
+start-job  { invoke-webRequest https//server.xyz/path/to/resource.pdf -outFile $using:→ Windows/PowerShell/language/variable/automatic/pwd[pwd]\downloadedFile.pdf }
+code }
 
 }
 
