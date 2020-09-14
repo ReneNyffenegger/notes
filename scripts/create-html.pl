@@ -313,7 +313,6 @@ sub process_page { #_{
   while ($line = <$f>) { #_{
 
     print "ntw: $next_t_with_gap, ltwc: $last_thing_was_blocky_paragraph, it: $in_text, itbl: $in_table, ic: $in_code, q: $in_quote, h: $h_level, line: $line" if $debug;
-
     chomp $line;
 
     if ($line =~ /^\s*rem\s*}\s*$/) {  #_{ End remark
@@ -583,7 +582,10 @@ sub process_page { #_{
           $line = bold_italic($line);
           $line = bible_verse($line);
 
-          print $out $line;
+        #
+        # 2020-09-14: note the trailing space. This was necessary because of quotes that weren't indented.
+        #
+          print $out "$line ";
         }
       }
       next;
