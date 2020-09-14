@@ -813,8 +813,6 @@ sub process_page { #_{
 
           print ("dirname_os = $dirname_os\n");
 
-          print ("dirname_os = $dirname_os\n");
-
         print "gh: $url\n";
         if ($path =~ m!/([^//]+\.(png|jpg|jpeg|gif))$!) {
 
