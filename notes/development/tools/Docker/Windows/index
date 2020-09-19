@@ -46,6 +46,82 @@ hello-world         latest              16464c76a19c        8 days ago          
 code }
 
 }
+{ Installing Docker
+
+  { Chocolatey #docker-install-chocolatey
+
+    With → Windows/Chocolatey, Docker can be installed with one of the following commands:
+code {
+→ Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] install -y docker-desktop
+→ Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] install -y docker-toolbox
+code }
+
+   In → https://stefanscherer.github.io/how-to-install-docker-the-chocolatey-way[How to install Docker the Chocolatey way], Stefan Scherer points out, that `docker-desktop` is the preferred
+   package for → Windows/versions/10 Enterprise while `docker-toolbox` is used for Windows 7 or Windows 10 Home.
+
+  }
+
+  { Starting Desktop Container
+
+  After installing Docker with Chocolatey, Docker Desktop can be started with
+code {
+C:\Users\Rene> "\Program Files\Docker\Docker\Docker Desktop.exe"
+code }
+
+  The → Windows/user-account[user] that tries to start Docker Desktop needs to be *docker-users* → Windows/user-account/group[group], otherwise, an
+ *Access denied* message is shown:
+  gh|about-Docker|/Windows/img/Docker-Desktop_Access-denied.png||
+
+  }
+  { Getting started
+
+    When *Docker Desktop* is started the first time, it leads the user through a *getting started* process.
+
+    In order to complete the getting started process, → development/version-control-systems/git[Git] is needed.
+
+code {
+git clone https://github.com/docker/getting-started.git
+code }
+
+code {
+cd getting-started
+code }
+
+  In an elevated prompt (or being assigned to the *docker-users* group?):
+code {
+docker build -t docker101tutorial .
+code }
+
+code {
+docker run -d -p 80:80 --name docker-tutorial docker101tutorial
+code }
+  gh|about-Docker|/Windows/img/getting-started_Windows-Defender-Firewall.png||
+
+  Open `localhost` in a → development/web/browser:
+  gh|about-Docker|/Windows/img/getting-started_localhost.png||
+
+  Share the created image on *Docker Hub* (requires an account there)
+code {
+docker tag  docker101tutorial %username%/docker101tutorial
+docker push                   %username%/docker101tutorial
+code }
+
+  View newly created → development/tools/Docker/image:
+code {
+C:\users\rene\getting-started> docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+docker101tutorial   latest              818a346d4e4e        8 minutes ago       27.3MB
+<none>              <none>              f1457fda2233        8 minutes ago       85.5MB
+<none>              <none>              45955d190cf3        8 minutes ago       224MB
+<none>              <none>              a0b974633fad        8 minutes ago       72MB
+node                12-alpine           1f52b7199ba6        2 days ago          89.3MB
+python              alpine              0f03316d4a27        10 days ago         42.7MB
+nginx               alpine              6f715d38cfe0        5 weeks ago         22.1MB
+code }
+
+
+  }
+}
 sa:
   → development/tools/Docker/Windows/cexecsvc[Presence of cexecsvc service indicates being inside a container]
 
