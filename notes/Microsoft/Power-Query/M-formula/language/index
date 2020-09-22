@@ -464,6 +464,35 @@ code }
 
 
   }
+  { Select data with SQL with Value.Native #m-value-native
+
+    The function `Value.Native` allows to select data from a → development/databases[database] with → development/databases/SQL[SQL].
+code {
+Value.NativeQuery(
+             target     as any ,
+             query      as text,
+    optional parameters as any ,
+    optional options    as nullable record
+) as any
+code }
+
+    Because native qeuries may alter → development/Data in the database and are therefore potentially unsafe so that their execution needs to be approved of.
+    -
+    In Excel, under → Microsoft/Office/Excel/GUI/Ribbon/tabs/Data/Get-and-Transform-Data/Get-Data/Query-Options/Security[Data -> Get & Transform Data -> Get Data -> Query Options : Security] there is a setting to
+    that allows to approve all native queries.
+
+
+    The following example select from an → development/databases/Access[MS Access] database:
+code {
+let
+    accdbBinary = File.Contents("P:\ath\to\db.accdb"),
+    accdb       = Access.Database(accdbBinary, [CreateNavigationProperties=true]),
+    result      = Value.NativeQuery(accdb, "select * from country")
+in
+    result
+code }
+
+  }
   { TODO
 
    { Create a list of dates
