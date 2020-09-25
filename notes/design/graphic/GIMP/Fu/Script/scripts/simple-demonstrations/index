@@ -115,14 +115,24 @@ P:\ath\to\source> → Windows/dirs/Windows/System32/cmd_exe/commands/type functi
 code }
 
 }
-{ Writing (debug) messages
+{ Writing (debug) messages with (gimp-message) #gimp-message
 
-  `(gimp-message …)` writes messages, however with the prefix warning.
+ `(gimp-message …)` writes messages, however with the prefix warning.
 
-   In → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], the string needs to be quoted with four apostrophes:
+  By default, these messages seem to go to a message box. This is of course less than desirable. Apparently, in order to redirect
+  output to the console, the `-s` (or also `-c`?) → design/graphic/GIMP#gimp-command-line-arguments[command line argument] must be used.
+  -
+  Alternatively, the message stream can also be redirected with `(gimp-message-set-handler 1)`.
+
+   In → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], the string needs to be quoted with four apostrophes or `\"` (see
+   → Windows/dirs/Windows/System32/cmd_exe/parse-command-line/exe[Splitting command line into arguments when executing an exe]).
 code {
 C:\> "C:\Program Files\GIMP 2\bin\gimp-2.10.exe" -i -s -b "(gimp-message """"foo"""")(gimp-quit TRUE)"
 script-fu.exe-Warning: foo
+code }
+
+code {
+"C:\Program Files\GIMP 2\bin\gimp-2.10.exe" -i -b "(begin (gimp-message-set-handler 1) (gimp-message \"hello world\") (gimp-message (number->string 42)) (gimp-quit 0) )"
 code }
 
 }

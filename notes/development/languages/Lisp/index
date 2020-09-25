@@ -1,13 +1,221 @@
 
+The name Lisp, which originally was spelled with upper case letters (LISP), derives from *LISt Processor*.
+-
+The source code of a Lisp program constists of lists.
+
 In Lisp, everything is either
   • an atom, or
   • a list
 
 A list contains atoms or other lists. These elements are put within parenthesis and separated with commas.
 
-Atoms are literals like 42, "Hello World" or names of variables or functions.
+Atoms are literals like `42`, `"Hello World"` or symbols (names of variables or functions).
+
+A *symbol* is a string of (latin?) letters and digits.
 
 Unless instructed otherwise, a list triggers a function call, the first argument being the name of the function.
+
+{ S-expressions and lists
+
+ *S-expression* stands for *symbolic expression* and is sometimes abbreviated as *sexpr*.
+
+  An S-expression is either
+    • an *atom*, or
+    • `(x . y)` where both `x` and `y` are S-expressions.
+
+
+  A *list* is similarly defined as
+    • an empty list (denoted as `()`), or
+    • a *cons cell* that consists of two elements, both of which are lists.
+  
+
+ `(a b c)` is just a short hand notation for `(a . (b . (z . NIL)))`
+
+  A list may contain code or → development/Data.
+
+ `NIL` is the special end-of-list object, sometimes also expressed as `()`. (In *Scheme*, `NIL` seems to be represented as `nil`).
+
+  See also *M-expressions* which stands for meta-expression.
+
+}
+{ cons (data structure)
+
+  A *cons* is a data structure that contains two values.
+
+  The cons' first value is its *car*, the second value its *cdr).
+
+}
+{ cons (function)
+
+ `(cons A B)` is the function to create a *cons* (denoted with the S-expression `(x . y)`?).
+code {
+> (cons 1 2)
+(1 . 2)
+code }
+
+}
+{ car / cdr (functions)
+
+  `car` evaluates to the first element in a list.
+
+code {
+> (car (cons (cons 1 2) (cons 3 4)))
+(1 . 2)
+code}
+
+ `cdr` evaluates to the second element in a list (in the liturature typically referred to as «the rest»)
+code {
+> (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
+((3 . 4) . 5)
+code }
+
+}
+{ list (data structure)
+
+  A *cons* is also a *list* if its *cdr* is
+    • `nil` or
+    •  a list
+
+  { Examples of lists
+
+    The cdr is `nil`:
+code {
+(cons 3 nil)
+code }
+
+  The cdr of the outer cons is a list (as per previous example):
+code {
+(cons 2 (cons 3 nil))
+code }
+
+  Because the definition of a list is recursive, this can be extended ad infinitum: 
+code {
+(cons 1 (cons 2 (cons 3 nil)))
+code }
+
+  }
+}
+{ (list …)
+
+ `list` is the function to create lists
+code {
+> (list 1 2 3 4 5)
+(1 2 3 4 5)
+code }
+
+}
+{ Representing cons
+
+  A cons is represented with with a pair of parentheses that contains its values, that are themselves separated by a dot.
+
+  A simple cons:
+code {
+> (cons 1 2)
+(1 . 2)
+code }
+
+  A cons whose car is a cons:
+code {
+> (cons (cons 1 2) 3)
+((1 . 2) . 3)
+code }
+
+  The dot and the parenthesis around the cdr are omitted when its *cdr* is
+    • a cons-cell, or
+    • `nil`
+
+  There is no such rule that is dependent on cons' car.
+
+  There are nine combination how cons-cell can be constructed:
+  { atom | atom
+
+code {
+> (cons 1 2)
+(1 . 2)
+code }
+
+  }
+  { atom | cons
+
+code {
+> (cons 1 (cons 2 3))
+(1 2 . 3)
+code }
+
+  }
+  { atom | nil
+
+code {
+> (cons 1 nil)
+(1)
+code }
+
+  }
+  { cons | atom
+
+code {
+> (cons (cons 1 2) 3)
+((1 . 2) . 3)
+code }
+
+  }
+  { cons | cons
+
+code {
+> (cons (cons 1 2) (cons 3 4))
+((1 . 2) 3 . 4)
+code }
+
+  }
+  { cons | nil
+
+code {
+> (cons (cons 1 2) nil)
+((1 . 2))
+code }
+
+  }
+  { nil | atom
+
+code {
+> (cons nil 1)
+(() . 1)
+code }
+
+  }
+  { nil | cons
+
+code {
+> (cons nil (cons 1 2))
+(() 1 . 2)
+code }
+
+  }
+  { nil | nil
+
+code {
+> (cons nil nil)
+(())
+code }
+
+  }
+
+}
+{ (cadr X)
+
+`(cadr X)` is an abreviation («syntactic sugar) for `(car (cdr X))`:
+code {
+> (car (cdr (list 1 2 3 4)))
+2
+code }
+
+  Same same, but shorter:
+code {
+> (cadr (list 1 2 3 4))
+2
+code }
+
+}
 
 sa:
   Other → development/languages[programming languages] etc.
