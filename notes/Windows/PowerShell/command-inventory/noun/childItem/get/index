@@ -11,7 +11,7 @@ get-childItem -path p:\ath\to\dir\*      -include *.txt                 # Note t
 get-childItem -path p:\ath\to\dir\*      -exclude *.dll,*.exe
 get-childItem -path p:\ath\to\dir\a*\b*
 get-childItem  …                         -recurse
-get-childItem  …                         -attributes …
+get-childItem  …                         → #get-childItem-attributes[-attributes] …
 get-childItem  …                         -force                         # also return hidden files
 get-childItem  …                         -hidden                        # return hidden files only
 get-childItem  …                         -readOnly                      # return read-only files only
@@ -21,16 +21,6 @@ get-childItem  …                         -name                          # retu
 code }
 
 
-{ Returned type of get-childItem
-
-  If `get-childItem` is used in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
-  → Windows/PowerShell/language/type/array of → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`] and
-  → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System.IO.FileInfo`] objects, both of which derive from
-  → Microsoft/dot-net/namespaces-classes/System/IO/FileSystemInfo[`System.IO.FileSystemInfo`].
-
-  If used in a drive that accesses the → Windows/registry, it returns an array of → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] objects.
-
-}
 { List files that were modified in the last 24 hours
 
   The following → Windows/PowerShell/pipeline shows files (not directories) that were modified during the last 24 hours.
@@ -48,6 +38,33 @@ code }
 code {
 get-childItem | → Windows/PowerShell/command-inventory/noun/object/sort[sort-object] { $_.lastWriteTime }
 code }
+
+}
+{ List or exlude items with specific attributes (such as files, directories etc.) #get-childItem-attributes
+
+  The `-attributes` option allows to only list or excludeitems with a given set of attributes. The list of attributes that can be specified is that of
+  → Microsoft/dot-net/namespaces-classes/System/IO/FileAttributes[`System.IO.FileAttributes`].
+
+  For example, to list only directories, the following would do
+code {
+get-childItem -attributes directory
+code }
+
+  The type given to the `-attributes` option is a `→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/FlagsExpression-T[System.Managment.Automation.FlagsExpression]<→ Microsoft/dot-net/namespaces-classes/System/IO/FileAttributes[System.IO.FileAttribute]>`, thus, by the power of `FlagsExpression`, the `FileAttribute` flags
+  can be combined:
+code {
+get-childItem -attributes !directory+!system+encrypted, !directory+!system+compressed
+code }
+
+}
+{ Returned type of get-childItem
+
+  If `get-childItem` is used in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
+  → Windows/PowerShell/language/type/array of → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`] and
+  → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System.IO.FileInfo`] objects, both of which derive from
+  → Microsoft/dot-net/namespaces-classes/System/IO/FileSystemInfo[`System.IO.FileSystemInfo`].
+
+  If used in a drive that accesses the → Windows/registry, it returns an array of → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] objects.
 
 }
 { Aliases
