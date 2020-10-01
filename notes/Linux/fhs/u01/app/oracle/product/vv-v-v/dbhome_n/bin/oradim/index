@@ -1,0 +1,138 @@
+
+
+`oradim` is used to manage → development/databases/Oracle/architecture/instance[instances] and services.
+
+`-SPFILE`: see → development/databases/Oracle/architecture/database/files/server-parameter-file
+
+{  Create an instance
+
+code {
+-NEW -SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid | -SRVC srvc | -ASMSRVC srvc | -MGMTDBSRVC srvc | -IOSSRVC srvc | -APXSRVC srvc
+[-SYSPWD pass]
+[-STARTMODE auto|manual]
+[-SRVCSTART system|demand] [-PFILE file | -SPFILE]
+[-MAXUSERS maxusers]
+[-SHUTMODE normal|immediate|abort]
+[-TIMEOUT secs]
+[-RUNAS osusr/ospass]
+code }
+
+}
+{ Edit an instance
+
+code {
+-EDIT -SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid
+ [-SYSPWD pass]
+ [-STARTMODE auto|manual]
+ [-SRVCSTART system|demand]
+ [-PFILE file | -SPFILE]
+ [-SHUTMODE normal|immediate|abort]
+ [-SHUTTYPE srvc|inst]
+ [-RUNAS osusr/ospass]
+code }
+
+}
+
+{ Delete instances
+
+code {
+-DELETE -SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid| -SRVC srvc | -ASMSRVC srvc | -MGMTDBSRVC srvc | -IOSSRVC srvc | -APXSRVC srvc
+code }
+
+}
+{ Start up services and/or instances
+
+code {
+-STARTUP -SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid
+[-SYSPWD pass]
+[-STARTTYPE srvc|inst|srvc,inst]
+[-PFILE filename | -SPFILE]
+code }
+
+  Start both, the → development/databases/Oracle/architecture/instance and its corresponding service:
+code {
+PS P:\ora> oradim -startup -sid ORA19 -starttype srvc,inst
+code }
+
+}
+
+{ Shut down services and/or instances
+
+code {
+-SHUTDOWN
+-SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid
+[-SYSPWD pass]
+[-SHUTTYPE srvc|inst|srvc,inst]
+[-SHUTMODE normal|immediate|abort]
+code }
+
+
+code {
+$env:ORACLE_SID='ORA19'
+code }
+
+  Connecting to a database/instance:
+code {
+PS P:\ora> sqlplus / as sysdba
+…
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+…
+code }
+
+  Stop the instance:
+code {
+PS P:\ora> oradim -shutdown -sid $env:ORACLE_SID -shuttype inst -shutmode immediate
+code }
+
+  Instance is stopped («idle»):
+code {
+PS P:\ora> sqlplus / as sysdba
+…
+Connected to an idle instance.
+code }
+
+  Although instance is stopped, the corresponding Oracle service is still running:
+code {
+PS P:\ora> (→ Windows/PowerShell/command-inventory/noun/service/get[get-service] OracleService$env:ORACLE_SID).status
+Running
+code }
+
+  Use `-shuttype srvc` to stop the service as well. Note that using `-shutmode` does not make sense when stoping a service.
+code {
+PS P:\ora> oradim -shutdown -sid $env:ORACLE_SID -shuttype srvc
+PS P:\ora> (get-service OracleService$env:ORACLE_SID).status
+Stopped
+code }
+
+  Trying to connect to database again:
+code {
+PS P:\ora> sqlplus -L / as sysdba
+…
+ERROR:
+ORA-12560: TNS:protocol adapter error
+…
+SP2-0751: Unable to connect to Oracle.  Exiting SQL*Plus
+code }
+
+}
+
+{ Manipulate ACLs
+
+code {
+-ACL -setperm|-addperm|-removeperm  dbfiles|diag|registry
+-USER username
+-OBJTYPE file|dir|registry
+-OBJPATH object-path
+-RECURSE true|false
+[-HOST hostname]
+code }
+
+}
+{ Manipulate FAMILY settings
+
+code {
+-FAMILY -set|-delete value [-SID sid | -ASMSID sid | -MGMTDBSID sid | -IOSSID sid | -APXSID sid ]
+code }
+
+}
