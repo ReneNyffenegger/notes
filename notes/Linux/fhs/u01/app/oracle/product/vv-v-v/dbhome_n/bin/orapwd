@@ -1,3 +1,83 @@
 $ $ORACLE_HOME/bin/orapwd
 
 `$ORACLE_HOME/bin/orapwd` is used to create a new *password file* that contains the SYS user password.
+
+{ Usage 1
+
+code {
+Usage 1: orapwd file=<fname> force={y|n} asm={y|n}
+          dbuniquename=<dbname> format={12|12.2}
+          delete={y|n} input_file=<input-fname>
+          'sys={y | password | external(<sys-external-name>)
+                | global(<sys-directory-DN>)}'
+          'sysbackup={y | password | external(<sysbackup-external-name>)
+                      | global(<sysbackup-directory-DN>)}'
+          'sysdg={y | password | external(<sysdg-external-name>)
+                  | global(<sysdg-directory-DN>)}'
+          'syskm={y | password | external(<syskm-external-name>)
+                  | global(<syskm-directory-DN>)}'
+code }
+
+}
+{ Usage 2
+
+code {
+orapwd describe file=<fname>
+code }
+
+}
+{ Examples
+
+  In → Windows/PowerShell:
+code {
+orapwd file=$env:ORACLE_HOME/database/PWD$env:ORACLE_SID.ora password=pwFilePw/42
+code }
+
+
+  The → https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/getting-started-with-database-administration.html[Oracle documentation] lists the following examples
+
+  Create a password file that is located in an ASM Disk Group…
+code {
+orapwd FILE='+DATA/orcl/orapworcl' DBUNIQUENAME='orcl' FORMAT=12.2
+code }
+
+
+  … or in the file system:
+code {
+orapwd FILE='/u01/oracle/dbs/orapworcl' FORMAT=12.2
+code }
+  
+  Reset the password for SYS
+code {
+orapwd FILE='/u01/oracle/dbs/orapworcl' SYS=Y INPUT_FILE='/u01/oracle/dbs/orapworcl' FORCE=y
+code }
+
+  Describing a password file
+code {
+orapwd DESCRIBE FILE='orapworcl'
+code }
+
+  Add a SYSBACKUP entry:
+code {
+orapwd FILE='+DATA/orcl/orapworcl' DBUNIQUENAME='orcl' SYSBACKUP=password FORMAT=12.2
+code }
+
+   … with external authentication for SYS and SYSKM
+code {
+orapwd FILE='+DATA/orcl/orapworcl' DBUNIQUENAME='orcl' FORMAT=12.2 sys=external('KerberosUserSYS@example.com') syskm=external('KerberosUserSYSKM@example.com')
+code }
+
+  Migrate a legacy database password File to 12c format:
+code {
+orapwd FILE='/u01/oracle/dbs/orapworcl' FORMAT=12.2 INPUT_FILE='/u01/oracle/dbs/orapworcl' FORCE
+code }
+
+
+
+}
+
+sa:
+
+code {
+select * from → development/databases/Oracle/installed/dynamic-performance-views/pwfile_users;
+code }
