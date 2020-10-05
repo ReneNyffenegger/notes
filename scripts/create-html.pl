@@ -580,6 +580,7 @@ sub process_page { #_{
           $line = replace_external_link($line);
           $line = notes::replace_notes_link($line, $input_filename_os);
           $line = bold_italic($line);
+          $line = sub_sup($line);
           $line = bible_verse($line);
 
         #
@@ -1316,6 +1317,7 @@ sub start_quote { #_{
   
   if ($pass == 2) {
     $q_text = bold_italic($q_text);
+    $q_text = sub_sup($q_text);
     print $out "<blockquote>$q_text";
   }
   $$empty_line_sets_next_t_with_gap_ref = 1;
