@@ -19,11 +19,37 @@ $ Vim: variables
 }
 { TODO
 
-  Global variables might be stored in the → development/vim/editing/viminfo[viminfo file].
 
   A special (→ development/environment-variable[environment]) variable is `VIMINIT` (and `EXINIT`?): it/they(?) influences which → development/vim/vimrc[vimrc / initialization file] is read at startup
   (→ development/vim/sources/src/main_c#vim-src-main-source_startup_scripts[`source_startup_scripts()`]).
 
+  { Global (g:) variables
+
+    Global variables might be stored in the → development/vim/editing/viminfo[viminfo file].
+
+    { g:filetype_*
+
+      It seems that the `g:filetype_*` variables are used in → development/vim/sources/runtime/autoload/dist/ft_vim[`runtime/autoload/dist/ft.vim`].
+
+      For example, `g:filetype_sql` can be set define a filetype to be used for `*.sql` files. This variable is used in the mentioned `ft.vim` file like so:
+code {
+func dist#ft#SQL()
+  if exists("g:filetype_sql")
+    exe "setf " . g:filetype_sql
+  else
+    setf sql
+  endif
+endfunc
+code }
+
+      `dist#ft#SQL` is called by an *autocommand* that is defined in → development/vim/runtime/filetype_vim[`$VIMRUNTIME/filetype.vim`]:
+code {
+→ development/vim/commands/autocmd[au] BufNewFile,BufRead *.sql                   call → development/vim/sources/runtime/autoload/dist/ft_vim[dist#ft]#SQL()
+code }
+
+    }
+
+  }
   { v: variables
 
     `set_vim_var_string` (→ development/vim/sources/src/misc1_c[eval.c])
