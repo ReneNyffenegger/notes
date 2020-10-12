@@ -167,6 +167,41 @@ code }
    I needed to set `DIRECTX` to no because otherwise, the compiler didn't find `dwrite_2.h`.
 
  }
+ { Create a Vim DLL
+
+   In → development/vim/sources/src/Make_cyg_ming_mak[`src/Make_cyg_ming.mak`], the macro (define) `VIMDLL` must be set to `yes` (the line is already commented and needs to be un-commented).
+
+   Then, the sources need to be compiled, as outlined above. This will create`vim.exe`, `gvim.exe` and `vim64.dll` (at least when I tried it).
+
+   I had some success to execute the → Windows/development/Portable-Executable/DLL in → Windows/PowerShell like so:
+
+code {
+cd P:\ath\to\vim\src
+
+add-type -TypeDefinition @'
+
+using System;
+using System.Runtime.InteropServices;
+
+public static class vimDll {
+
+    [DllImport("vim64.dll", EntryPoint = "VimMain", CharSet = CharSet.Ansi
+//    , CallingConvention=CallingConvention.Cdecl
+     )]
+     public static extern int VimMain(
+        int argc, 
+       [MarshalAs(UnmanagedType.LPArray, ArraySubType=UnmanagedType.LPWStr)] string[] argv
+     );
+}
+'@
+ 
+
+$env:path="→ Windows/PowerShell/language/variable/automatic/pwd[$pwd];$env:→ Windows/development/environment-variables/PATH[path]"
+[string[]] $a = @("This text seems not to be considered at all.")
+[vimDll]::VimMain(1,  $a)
+code }
+
+ }
 
 }
 { Make options
