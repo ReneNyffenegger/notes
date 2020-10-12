@@ -5,7 +5,7 @@ A subsystem exposes a subset of the *base Windows executive system services* to 
 
 There are a few possible subsystems:
   • native, used for device drivers and native Windows → Windows/development/process[processes]
-  • GUI
+  • → Windows/development/Portable-Executable/subsystem/GUI[GUI]
   • → Windows/development/Portable-Executable/subsystem/console[Console]
   • OS2 CUI
   • Posix CUI
@@ -32,6 +32,31 @@ When linking, the subsystem is indicated with the → Windows/development/Visual
   → development/languages/C-C-plus-plus/GCC/options/m_lowercase/console[`-mconsole`] option.
 
 }
+{ Determining the substystem in a running Exe or DDL
+
+  The → development/vim sources contain the function → development/vim/sources/src/os_win32_c#vim-src-os_win32-mch_is_gui_executable[`mch_is_gui_executable()`] in
+  → development/vim/sources/src/os_win32_c[`src/os_win32.c`] that determines the subsystem of the running vim executable/→ Windows/development/Portable-Executable/DLL:
+code {
+    int
+mch_is_gui_executable(void)
+{
+    PBYTE		pImage = (PBYTE)GetModuleHandle(NULL);
+    PIMAGE_DOS_HEADER	pDOS = (PIMAGE_DOS_HEADER)pImage;
+    PIMAGE_NT_HEADERS	pPE;
+
+    if (pDOS->e_magic != IMAGE_DOS_SIGNATURE)
+	return FALSE;
+    pPE = (PIMAGE_NT_HEADERS)(pImage + pDOS->e_lfanew);
+    if (pPE->Signature != IMAGE_NT_SIGNATURE)
+	return FALSE;
+    if (pPE->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI)
+	return TRUE;
+    return FALSE;
+}
+code }
+
+}
+
 sa:
   → Windows/versions[Windows 10, version 1607] comes with a *Windows Subsystem for Linux* (developers only). This is not a »real« subsystem like Console or GUI.
 
@@ -39,6 +64,3 @@ sa:
   -
   See also value → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/SubSystems#reg-subsystem-required[`Required`] under → Windows/registry[registry] key
 → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/SubSystems[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\SubSystems`].
-
-
-
