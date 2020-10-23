@@ -14,6 +14,39 @@ The currently active worksheet can be found with → Microsoft/Office/Excel/Obje
     • the characters `\`, `/`, `?`, `*`, `[` and `]` are not allowed
     • the name cannot be empty (blank)
 
+
+  { Name vs. Codename
+
+    A worksheet also has a `.codeName` property (as also have other objects such as a → Microsoft/Office/Excel/Object-Model/Chart[`chart`]).
+
+    These values are equal when the object is created but may be changed independently from each other.
+
+    Apparently, the idea of code names is to use it in → development/languages/VBA like so (assuming that the `codename` property value of a sheet is `figures`):
+code {
+figures.cells(3, 2) = "Year 2019"
+code }
+
+
+  After creating a new → Microsoft/Office/Excel/Object-Model/Workbook:
+code {
+sheet1.name = "bar" ' Changes name of tab
+sheet1.name = "baz" ' Change it again
+? worksheets("bar").codeName ' Evaluates to "sheet1"
+
+'
+'  Change code name of sheet is not possible at run time, so the
+'  following line throws Run-time error 32183: Application-defined or object-defined error.
+'
+activeWorkbook.→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBProject[vbProject].→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBComponent[VBComponents]("Sheet1").name = "NewCodeNameForTheSheet"
+
+'
+'  Use new code name:
+'
+? newCodeNameForTheSheet.name ' Evaluates to "bar"
+code }
+
+  }
+
 }
 { usedRange #excel-worksheet-usedRange
 
@@ -102,36 +135,6 @@ rem }
 code {
 → Microsoft/Office/Excel/Object-Model/Chart[activeSheet.chartObjects]("fooChart"). …
 code }
-
-  { Name vs. Codename
-
-    A worksheet (as well as other objects such as a → Microsoft/Office/Excel/Object-Model/Chart[`chart`]) has a `.name` and a `.codeName` property. These values are equal when
-    the object is created but may be changed independently from each other.
-
-    Apparently, the idea of code names is to use it in → development/languages/VBA like so (assuming that the code name of a sheet is `figures`):
-code {
-figures.cells(3, 2) = "Year 2019"
-code }
-
-
-  After creating a new → Microsoft/Office/Excel/Object-Model/Workbook:
-code {
-sheet1.name = "bar" ' Changes name of tab
-sheet1.name = "baz" ' Change it again
-? worksheets("bar").codeName ' Evaluates to "sheet1"
-
-'
-'  Change code name of sheet:
-'
-activeWorkbook.→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBProject[vbProject].→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBComponent[VBComponents]("Sheet1").name = "NewCodeNameForTheSheet"
-
-'
-'  Use new code name:
-'
-? newCodeNameForTheSheet.name ' Evaluates to "bar"
-code }
-
-  }
 
 }
 
