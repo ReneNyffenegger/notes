@@ -1,0 +1,51 @@
+$ ADODB.Command: execute
+
+`command.execute` executes the *action* (typically an → development/databases/SQL/statement[SQL statement]) for which its
+→ development/databases/ADO/objects/command[`command`] object was parametrized.
+
+code {
+cmd.execute(recordsAffected, parameters, options)
+code }
+
+All three parameters of `execute` are optional.
+
+`execute()` returns a → development/databases/ADO/objects/recordSet[`recordSet` object].
+
+? Apparently, by default, an execution is not performed within a → development/databases/SQL/transaction.
+
+{ Basic sequence of steps to execute a command
+
+  The following steps are required to execute a → development/databases/ADO/objects/command[`command`]. The language
+  in which those are written is → development/languages/VBA[Visual Basic for Applications]:
+code {
+→ development/languages/VBA/language/statements/dim[dim] conn  as → development/databases/ADO/objects/connection[adodb.connection]
+ 
+conn.open "→ development/databases/OLE-DB/provider[provider]=...;...;..."
+   
+dim cmd as new → development/databases/ADO/objects/command[adodb.command]
+    
+→ development/languages/VBA/language/statements/set[set] cmd.activeConnection = conn
+cmd.commandType          = adCmdText
+cmd.commandText          = "update table set col_1 = :val_1, col_2 = :val_2 where col_3 = :val_3"
+
+dim param as → development/databases/ADO/objects/parameter[adodb.parameter]
+
+set param = cmd.createParameter(, adInteger, adParamInput    ): cmd.parameters.append param
+set param = cmd.createParameter(, adDate   , adParamInput    ): cmd.parameters.append param
+set param = cmd.createParameter(, adVarChar, adParamInput, 99): cmd.parameters.append param    
+      
+cmd.parameters(0) = 42
+cmd.parameters(1) = no
+cmd.parameters(2) ="hello world"
+
+dim nofRowsUpdated as → development/languages/VBA/language/datatypes/long
+
+'   Finally.... the statement can be executed:
+'
+cmd.execute nofRowsUpdated
+
+debug.print(nofRowsUpdated & " rows were updated")
+code }
+
+
+}
