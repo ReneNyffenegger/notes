@@ -593,6 +593,109 @@ code }
   }
 
 }
+{ Install git
+
+  Install → development/version-control-systems/git[git].
+
+  Download end extract the self extracting executable. Find newest version number → https://github.com/git-for-windows/git/releases[here].
+code {
+$gitVersion = '2.29.1'  # Find newest version number under https://github.com/git-for-windows/git
+
+if ([environment]::is64BitOperatingSystem) {
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe"    , "$($downloadFolder)Git.exe")
+
+#
+# There would also be a .tar.bz2 file:
+#
+# $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.tar.bz2", "$($downloadFolder)Git.exe")
+
+  # LFS Git does not seem necessary enymore
+  # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
+
+#
+# TODO does the downloaded file really need to have the *amd64* thingy?
+#
+# $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
+
+} else {
+  # echo "64 bit expected"
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-32-bit.exe", "$($downloadFolder)Git.exe")
+}
+code }
+
+  Run the downloaded executable (which installes the git executable under → Windows/dirs/Program-Files/Git/cmd).
+code {
+& "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT /CURRENTUSER
+code }
+
+  The meaning of the used command line flags is (see → https://jrsoftware.org/ishelp/index.php?topic=setupcmdline):
+  table { ll
+   `/SP-`               ☰ Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setup
+   `/SUPPRESSMSGBOXES`  ☰ Supress message boxes
+   table }
+
+    Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
+code {
+git config --system core.longpaths true
+code }
+
+    Possibly, username and password need to be configured, too:
+code {
+git config --global user.email "…"
+git config --global user.name  "René Nyffenegger"
+code }
+
+   For some reason that is beyond my intelligence, `core.autocrlf` seems to be `true` by default. Therefore, set it to `false`:
+code {
+git config --global core.autocrlf false
+code }
+
+  { Add github_root and github_top_root variables
+
+    Add the environment variables `github_top_root` and `github_root`
+code {
+[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("github_top_root", "$home\github\"       , "user")
+[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("github_root"    , "$home\github\github\", "user")
+[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("git_work_dir"   , "$home\localgit\"     , "user")
+code }
+
+
+   Because the change does not take effect in the current session, the variables also need to be set manually:
+code {
+$env:github_top_root = "$home\github\"
+$env:github_root     = "$home\github\github\"
+$env:git_work_dir    = "$home\localgit\"
+code }
+
+
+  }
+  { Create git directories
+
+code {
+$null = mkdir $env:github_top_root
+$null = mkdir $env:github_top_root\github
+$null = mkdir $env:github_top_root\about
+$null = mkdir $env:github_top_root\lib
+$null = mkdir $env:github_top_root\temp
+code }
+
+  }
+
+  { Install git lfs
+code {
+cd ... data.stadt-zuerich.ch
+git lfs install --local
+code }
+
+  }
+  { Add usr\bin to path
+
+    The `usr\bin` directory under a git installation has interesting tools such as → Linux/shell/commands/diff[`diff`]. Thus, `…\usr\bin` might be added to the
+    → Windows/development/environment-variables/PATH[`PATH` environment variable] so that these tools are available in a command line environment.
+
+  }
+
+}
 { Install Perl
 
   Install a *portable* → development/languages/Perl[Perl]. Strawberry's portable Perl claims that it does not need admin privileges.
@@ -714,109 +817,6 @@ code {
 code }
   TODO: at least the RN module name and installation location need to be changed.
   
-
-}
-{ Install git
-
-    Install → development/version-control-systems/git[git].
-
-    Download end extract the self extracting executable. Find newest version number → https://github.com/git-for-windows/git/releases[here].
-code {
-$gitVersion = '2.28.0'  # Find newest version number under https://github.com/git-for-windows/git
-
-if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe"    , "$($downloadFolder)Git.exe")
-
-#
-# There would also be a .tar.bz2 file:
-#
-# $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.tar.bz2", "$($downloadFolder)Git.exe")
-
-  # LFS Git does not seem necessary enymore
-  # $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v2.7.2/git-lfs-windows-amd64-v2.7.2.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
-
-#
-# TODO does the downloaded file really need to have the *amd64* thingy?
-#
-# $ua.downloadFile("https://github.com/git-lfs/git-lfs/releases/download/v/git-lfs-windows-amd64-v2.7.1.zip", "$home\Downloads\git-lfs-windows-amd64.zip")
-
-} else {
-  # echo "64 bit expected"
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-32-bit.exe", "$($downloadFolder)Git.exe")
-}
-code }
-
-  Run the downloaded executable (which installes the git executable under → Windows/dirs/Program-Files/Git/cmd).
-code {
-& "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT /CURRENTUSER
-code }
-
-  The meaning of the used command line flags is (see → https://jrsoftware.org/ishelp/index.php?topic=setupcmdline):
-  table { ll
-   `/SP-`               ☰ Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setup
-   `/SUPPRESSMSGBOXES`  ☰ Supress message boxes
-   table }
-
-    Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
-code {
-git config --system core.longpaths true
-code }
-
-    Possibly, username and password need to be configured, too:
-code {
-git config --global user.email "…"
-git config --global user.name  "René Nyffenegger"
-code }
-
-   For some reason that is beyond my intelligence, `core.autocrlf` seems to be `true` by default. Therefore, set it to `false`:
-code {
-git config --global core.autocrlf false
-code }
-
-  { Add github_root and github_top_root variables
-
-    Add the environment variables `github_top_root` and `github_root`
-code {
-[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("github_top_root", "$home\github\"       , "user")
-[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("github_root"    , "$home\github\github\", "user")
-[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("git_work_dir"   , "$home\localgit\"     , "user")
-code }
-
-
-   Because the change does not take effect in the current session, the variables also need to be set manually:
-code {
-$env:github_top_root = "$home\github\"
-$env:github_root     = "$home\github\github\"
-$env:git_work_dir    = "$home\localgit\"
-code }
-
-
-  }
-  { Create git directories
-
-code {
-$null = mkdir $env:github_top_root
-$null = mkdir $env:github_top_root\github
-$null = mkdir $env:github_top_root\about
-$null = mkdir $env:github_top_root\lib
-$null = mkdir $env:github_top_root\temp
-code }
-
-  }
-
-  { Install git lfs
-code {
-cd ... data.stadt-zuerich.ch
-git lfs install --local
-code }
-
-  }
-  { Add usr\bin to path
-
-    The `usr\bin` directory under a git installation has interesting tools such as → Linux/shell/commands/diff[`diff`]. Thus, `…\usr\bin` might be added to the
-    → Windows/development/environment-variables/PATH[`PATH` environment variable] so that these tools are available in a command line environment.
-
-  }
 
 }
 { Clone some git repositories
