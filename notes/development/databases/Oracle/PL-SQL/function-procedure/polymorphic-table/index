@@ -1,19 +1,73 @@
-$ Oracle: polymorphic table functions (PTF)
+$ Oracle: Polymorphic Table functions (PTF)
+
+After a *Polymorphic Table Function (PTF)* has been defined, it can be used very similar to an ordinary → development/databases/Oracle/objects/tables[table], yet parametrizable through a list
+of function-paramters that are passed to the function.
+-
+Because PTFs are semantically used like tables, their invocation occurs in a `from` clause of an
+→ development/databases/Oracle/SQL/select[`select` statement].
+
+{ Row vs table semantics
+
+  A PTF has either *row* or *table* semantics.
+
+  With *row semantics*, the input to the function is a single row.
+
+  With *table semantics*, the input to the function are one or more rows.
+  -
+  These rows can optionally be partitioned with a `partition by` clause or sorted with a `order by` clause.
+
+  { Declaration
+
+    The following two lines demonstrate how a PTF with row semantics and table semantics are declared:
+code {
+function ptf_r(tab table[, …]) return table pipelined row   polymorphic using → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface[<client-interface-package>];
+function ptf_t(tab table[, …]) return table pipelined table polymorphic using → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface[<client-interface-package>];
+code }
+
+  }
+
+}
 
 { Requirements for a polymorphic table function
 
-  A *package specification* that has a `describe` function
-  
-  Optionally, this package specification also comes with one or more of the functions/procedures
-    • `open`
-    • `fetch_rows`
-    • `close`
+  A PTF is a named → development/databases/Oracle/PL-SQL function that
+    • has exactly *one* parameter whose → development/databases/Oracle/SQL/data-types[data type] is `table`
+    • zero or more parameters of other data types
+    • returns a `table`
+    • specifies if it is a function with *row* or *table semantics*
+    • a reference to a → development/databases/Oracle/PL-SQL/package[PL/SQL package] that implements the → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface[client interface] for the PTF implementation of the PTF.
 
-  A *ptf package body*.
+  Especially note the last point: the PTF does not have an «ordinary» function body because the implementation for the function is provided by the *client interface package*.
 
-  A *PTF function* to reference the package.
-  -
-  This *PTF function* can be a stand alone function or in the same package where also the other functions are located.
+  { Client-interface package
+
+    The *client-interface* package that implements the PTF functionality is required to have at least a → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface/describe[`describe`]
+    function.
+
+    Optionally, this package specification also comes with one or more of the functions/procedures
+      • `open`
+      • `fetch_rows`
+      • `close`
+
+    A *ptf package body*.
+
+  }
+
+}
+{ Calling PTFs
+
+  After defining a PTF, for example named `peeTeaEff`, it might be called like so:
+code {
+select * from peeTeaEff(dual);
+
+create table tab_xyz (…);
+select * from peeTeaEff(tab_xyz);
+
+with w as (
+   select * from peeTeaEff(tab_xyz);
+)
+select * from peeTeaEff(w);
+code }
 
 }
 
