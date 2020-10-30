@@ -2,30 +2,42 @@ $ VBA Module File [Common]
 
 { File.bas #vba-file_bas
 
-  `slurpFile` reads the entire content of a file and returns it as a → development/languages/VBA/language/datatypes/string[string].
+  table { ll
 
-  `slurpFileCharSet` is basically the same as `slurpFile`, however, it allows to specify a
-   → development/Unicode/character-set[character set] when the file is slurped. This was necessary, because
-   → development/languages/VBA[VBA] apparently is unable to handle → development/Unicode/UTF-8[UTF-8] out of the box.
-   -
-   In order to achieve the goal, the → development/databases/ADO/objects/stream/loadFromFile#adodb-stream-loadFrom-file-charCode[ADODB stream object's `loadFromFile`] method
-   was needed (See also → development/languages/VBA/language/statements/open/character-encoding[VBA's `open` statement with char sets]).
-   -
-   Apparently, any value found in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_CLASSES_ROOT/MIME/Database/Charset[`HKEY_CLASSES_ROOT\MIME\Database\Charset`] can be used for
-   the value of the parameter `charSet`.
+    `slurpFile` ☰ reads the entire content of a file and returns it as a → development/languages/VBA/language/datatypes/string[string].
+    → #vba-file-slurpFileCharSet[`slurpFileCharSet`] ☰ is basically the same as `slurpFile`, however, it allows to specify a → development/Unicode/character-set[character set] when the file is slurped.
+    `flushToFile` ☰ is the opposite of `slurpFile`: it writes a string to a file.
+    `fileBaseName` ☰ returns a path (such as `p:\ath\to\foo.txt`) to the name of a file without suffix (in this case: `foo`).
+    `fileSuffix` ☰ returns the suffix of the file only (for example: `txt`).
+    `fileExists` ☰ checks if a given file exists.
+    `tempPath` ☰  uses the → Windows/development/WinAPI function `GetTempPath` to return the folder into which temporary files can (should?) be written.
 
-  `flushToFile` is the opposite of `slurpFile`: it writes a string to a file.
+  table }
 
-  `fileBaseName` turns a path (such as `p:\ath\to\foo.txt`) to the name of a file without suffix (in this case: `foo`).
+  { Dependencies
 
-  `fileSuffix` returns the suffix of the file only (for example: `txt`).
+    `File.bas` uses the → development/languages/VBA/Useful-object-libraries/Microsoft-Scripting-Runtime/fileSystemObject[`fileSystemObject`] of
+    → development/languages/VBA/Useful-object-libraries/Microsoft-Scripting-Runtime[Microsoft's Scripting Runtime], thus, when used in a
+    → development/languages/VBA project, the respective → Microsoft/Office/Visual-Basic-Editor/Object-Model#vbe-add-reference[reference] must be added.
 
-  `fileExists` checks if a given file exists.
+  }
+  { slurpFileCharSet #vba-file-slurpFileCharSet
 
-  `tempPath` uses the → Windows/development/WinAPI function `GetTempPath` to return the folder into which temporary files can (should?) be written.
+     The function `slurpFileCharSet` was necessary, because
+     → development/languages/VBA[VBA] is apparently unable to handle → development/Unicode/UTF-8[UTF-8] out of the box.
 
+     In order to achieve the goal, the → development/databases/ADO/objects/stream/loadFromFile#adodb-stream-loadFrom-file-charCode[ADODB stream object's `loadFromFile`] method
+     was needed (See also → development/languages/VBA/language/statements/open/character-encoding[VBA's `open` statement with char sets]).
 
-  gh|VBAModules|/Common/file/File.bas||
+     Apparently, any value found in the → Windows/registry[registry] under → Windows/registry/tree/HKEY_CLASSES_ROOT/MIME/Database/Charset[`HKEY_CLASSES_ROOT\MIME\Database\Charset`] can be used for
+     the value of the parameter `charSet`.
+
+  }
+  { Source code
+
+    gh|VBAModules|/Common/file/File.bas||
+
+  }
 
 }
 { splitFile.bas #vba-split-file

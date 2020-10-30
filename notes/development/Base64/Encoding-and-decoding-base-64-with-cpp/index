@@ -104,6 +104,25 @@ code }
 
   → https://github.com/Celemon[Celemony] (via → https://github.com/mynameisjohn[mynameisjohn]) provided the changes to fix *implicit cast warnings* (`size_t` etc.), resulting in *2.rc.04* (2020-05-31).
 
+  → https://github.com/Bouska[Pablo Martin-Gomez] changed the `throw "…"` (which must be caught by `catch (const char* …)` to `throw std::runtime_error("Input is not valid base64-encoded data.")` (which can be caught by `catch (std::exception …)`),
+  resulting in *2.rc.05* (2020-10-23).
+
+  Pablo Martin-Gomez also exchanged the cumbersome `while` loop
+code {
+size_t pos=0;
+while ((pos = copy.find("\n", pos)) != std::string::npos) {
+    copy.erase(pos, 1);
+}
+code }
+  with the much more elegant *erase-remove idiom* which allows to move the elements to be kept only once instead of at each `erase()` call.
+code {
+#include <algorithm>
+…
+copy.erase(std::remove(copy.begin(), copy.end(), '\n'), copy.end());
+code }
+
+  Pablo Martin-Gomez also improved the code by returning early from the function `decode()` if `encoded_string` is empty, resulting in *2.rc.07* (2020-10-23).
+
 }
 { base64.cpp #cpp-base64-cpp
 

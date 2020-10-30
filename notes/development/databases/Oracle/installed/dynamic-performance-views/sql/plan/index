@@ -1,6 +1,32 @@
 $ v$sql_plan
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/show-sql_id.sql||
+`v$sql_plan` stores the → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan] for each child version of an
+→ development/databases/Oracle/SQL/statement[SQL statement]. Each of these statements is identified by the values in the two
+columns `sql_id` and `child_number`. Thus, the plan can be joined to
+→ development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`] using `sqlid` and `child_number`.
+
+{ Querying plan with indented operations
+
+  The following select statements selects an execution plan with indented operations from `v$sql_plan`:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/indented.sql||
+
+}
+{ Using CTE recursive queries to select a plan
+
+  Alternatively, with → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[CTE recursive queries], the plan for an SQL statement can also be queried recursively
+  like so:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/show-sql_id.sql||
+
+}
+
+{ Column position
+
+  The value of *position* corresponds to the sequence number of the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] step with the same parent step *except* if `id = 0`,
+  in which case *position* equals to the value of *costs*. Thus, the following SQL statement does not return a single record, at least in 19c:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/column-position-id-eq-0.sql||
+
+}
 
 sa:
+
   → development/databases/Oracle/installed/dynamic-performance-views/[Oracle Dynamic Performance Views]
