@@ -3,7 +3,44 @@ $ SQLPATH - cons
 
 `cons.sql` is an SQL script that displays information about a → development/databases/Oracle/objects/tables/constraints[constraint].
 
-gh|Oracle-SQLPATH|/cons.sql||
+{ Example
+
+  I try to run a script that inserts some data into a → development/databases/Oracle/objects/tables[table]. Unfortunately, the
+  script violates a *check constraint*:
+{ code
+tq84@thedb> @fill-sales-hist
+
+insert into tq84.sales_hist
+*
+ERROR at line 1:
+ORA-02290: check constraint (TQ84.SYS_C001013371) violated
+code }
+
+  The name of the violated constraint is quite undecipherable: `TQ84.SYS_C001013371`.
+  -
+  So, what does this contraint refer to? `cons.sql` might be helpful:
+
+{ code
+dwh_dm_riskfinance@THEDB> @cons TQ84.SYS_C001013371
+
+Owner:  TQ84
+constraint name  SYS_C001013371
+type: C
+  Check constraint
+
+     Condition: valid_from < valid_to
+
+     Table:     SALES_HIST
+     Columns:   VALID_TO
+                VALID_FROM
+code }
+
+}
+{ cons.sql
+
+  gh|Oracle-SQLPATH|/cons.sql||
+
+}
 
 sa:
   → development/databases/Oracle/SQL-Plus/sqlpath
