@@ -1,15 +1,60 @@
 $ .NET: Global Assembly Cache
 @ Global Assembly Cache
 
-The *Global Assembly Cache* stores → Microsoft/dot-net/assembly[assemblies] that shared among applications on the same computer.
+A computer («machine») where the → Microsoft/dot-net/Common-Language-Runtime[Common Language Runtime] is installed also has a *Global Assembly Cache*.
 
-Assemblies in the GAC must have a → Microsoft/dot-net/assembly#assembly-name[strong name].
+The *Global Assembly Cache* is a machine wide location that stores → Microsoft/dot-net/assembly[assemblies] that are intended to be shared among applications on that machine.
+-
+However, to make assemblies referrable to Windows/development/COM[COM]-interop or unmanaged code, they don't need to be installed in the GAC.
+
+→ Microsoft/dot-net/assembly[Assemblies] in the GAC must have a → Microsoft/dot-net/assembly#assembly-name[strong name].
 
 Starting with the *.NET Framework 4*, the default location for the Global Assembly Cache is
 → Windows/dirs/Windows/Microsoft_NET/assembly[`%windir%\Microsoft.NET\assembly`].
 
+An assembly's filename, without its → development/filename-extensions[extension] `.dll` or `.exe`, that is stored in the GAC must correspond to the name of assembly itself.
+
+{ Viewing the content of the GAC
+
+  The content of the GAC can be viewed with → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/gacutil_exe[`gacutil -l`]:
+code {
+PS C:\Users\Rene> gacutil -l
+Microsoft (R) .NET Global Assembly Cache Utility.  Version 4.0.30319.0
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+The Global Assembly Cache contains the following assemblies:
+  Microsoft.Ink, Version=6.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64
+  Microsoft.Interop.Security.AzRoles, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64
+  srmlib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64
+  …
+  XsdBuildTask, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL
+  XsdBuildTask.resources, Version=4.0.0.0, Culture=de, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL
+
+Number of items = 979
+code }
+
+}
+{ Installing and removing assemblies into/from the GAC
+
+  An assembly is installed in the GAC either by
+  • an installer (i.e. *Windows Installer*?), or 
+  • → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/gacutil_exe[`gacutil.exe`] (Provided by the → Windows/development/Kits/Software-Development[Windows SDK]).
+
+  Install an assembly
+code {
+P:\ath\to\xyz> gacutil -i TQ84.Foo.dll
+code }
+
+  Remove the assembly
+code {
+P:\ath\to\xyz> gacutil -u TQ84.Foo
+code }
+  
+  These commands must be executed with administrator privileges.
+
+}
+
 sa:
-  → Windows/dirs/Program-Files-x86/Microsoft-SDKs/Windows/version/bin/NETFX-version-Tools/gacutil_exe[`gacutil.exe`]
 
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/ODP_NET/managed/_arch/OraProvCfg_exe[`OraProvCfg.exe`] (along with
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/ODP_NET/managed/_arch/configure_bat[`configure.bat`]?) allows to
