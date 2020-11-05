@@ -1,0 +1,52 @@
+$ SQL Developer installation directory: sqldeveloper/bin/sqldeveloper.conf
+
+This file allows to set the *java home* being used by → development/Software/Oracle-SQL-Developer[SQL Developer] with the `SetJavaHome` directive.
+
+Typically, the content of `sqldeveloper/bin/sqldeveloper.conf` is something like
+code {
+IncludeConfFile ../../ide/bin/ide.conf
+
+#Set our usage tracking URI
+AddVMOption  -Dide.update.usage.servers=https://www.oracle.com/webfolder/technetwork/sqldeveloper/usage.xml
+
+#Disable the AddinPolicyUtils
+AddVMOption  -Doracle.ide.util.AddinPolicyUtils.OVERRIDE_FLAG=true
+
+#Draw performance change
+AddVMOption -Dsun.java2d.ddoffscreen=false
+
+#font performance
+AddVMOption -Dwindows.shell.font.languages=
+
+AddVMOption -Doracle.ide.startup.features=sqldeveloper
+
+AddJavaLibFile ../lib/oracle.sqldeveloper.homesupport.jar
+AddVMOption -Doracle.ide.osgi.boot.api.OJStartupHook=oracle.dbtools.raptor.startup.HomeSupport
+
+#Configure some JDBC settings
+
+AddVMOption -Doracle.jdbc.mapDateToTimestamp=false  
+AddVMOption -Doracle.jdbc.autoCommitSpecCompliant=false
+
+# The setting below applies to THIN driver ONLY for others set this to false. 
+# Refer to OracleDriver doc. for more info.
+AddVMOption -Doracle.jdbc.useFetchSizeWithLongColumn=true
+
+AddVMOption -Dsun.locale.formatasdefault=true
+AddVMOption -Dorg.netbeans.CLIHandler.server=false
+
+#Disable remote entity resolution
+AddVMOption -Doracle.xdkjava.security.resolveEntityDefault=false
+
+# Avoid rendering exceptions on some graphics library / java / Linux combinations
+# enable only if you are getting
+# java.lang.ClassCastException: sun.awt.image.BufImgSurfaceData cannot be cast to sun.java2d.xr.XRSurfaceData
+# ref: https://stackoverflow.com/questions/34188495/how-can-i-work-around-the-classcastexception-in-java2d-bug-id-7172749
+# AddVMOption -Dsun.java2d.xrender=false
+
+IncludeConfFile  java11.conf
+
+IncludeConfFile  sqldeveloper-nondebug.conf
+
+code }
+

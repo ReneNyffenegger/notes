@@ -1,3 +1,82 @@
 $ Scripting SQLcl
 
 SQLcl scripting is based on → development/languages/Java/JSR-223[JSR-223].
+
+{ util
+
+  {  util.executeReturnOneCol
+
+code {
+script
+var whoAmI = util.executeReturnOneCol('select user from dual');
+
+if (whoAmI == 'RENE') {
+  print('yeah');
+}
+else {
+  print('no');
+}
+/
+code }
+
+    Using ~bind variables~
+code {
+script
+print(util.executeReturnOneCol('select :B from dual', {B: 'hello world'}));
+/
+code }
+
+  }
+  { util.executeReturnList
+
+code {
+script
+var objs = util.executeReturnList(
+    "select                       " +
+    "  object_name name,          " +
+    "  owner                      " +
+    "from                         " +
+    "  all_objects                " +
+    "where                        " +
+    "  object_name like :name and " +
+    "  object_type = :type        "
+    , 
+    { name: '%RS%',
+      type: 'TABLE'
+    });
+
+objs.forEach( function(obj) {
+   print(obj.NAME + ' (' + obj.OWNER + ')');
+});
+
+/
+code }
+
+   Unfortunatetly, multiline strings (aka → development/languages/JavaScript/language/expressions/primary-expressions/template-literals[template literals])
+   don't seem to be supported in the Nashorn interpreter, therefore I needed the clumsy addition of substrings to make the select Statement visually appealing.
+
+  }
+
+}
+{ Accessing the history
+
+code {
+script
+var hist = Java.type('oracle.dbtools.raptor.console.MultiLineHistory').getInstance();
+print('max history size: ' + hist.getMaxSize());
+hist.setMaxSize(500);
+print('max history size: ' + hist.getMaxSize());
+/
+code }
+
+}
+{ java.lang.Math
+
+ `java.lang.Math` is available:
+code {
+script
+print(java.lang.Math.sqrt(2));
+/
+code }
+
+}

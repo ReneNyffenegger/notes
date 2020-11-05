@@ -1,5 +1,5 @@
 
-SQLcl is a new Java-based command-line interface for Oracle Database. It supports everything that already → development/databases/Oracle/SQL-Plus[SQL*Plus] had, but additionally comes also with
+SQLcl is a new Java-based command-line interface for Oracle Database. It supports everything that already → development/databases/Oracle/SQL-Plus[SQL*Plus] had, but comes also with
   • SQL history
   • Code assistance (pressing `tab` completes table, view and column names)
   • New commands such as `cd`,`ctas`, `ddl`, `repeat`
@@ -9,7 +9,7 @@ SQLcl is a new Java-based command-line interface for Oracle Database. It support
 
   SQLcl only needs a JRE.
 
-  Apparently, it can be very picky if it doesn't find the verion it expects.
+  Apparently, it can be very picky if it doesn't find the version it expects.
 
 }
 { Download
@@ -21,16 +21,49 @@ SQLcl is a new Java-based command-line interface for Oracle Database. It support
 }
 { script
 
+  SQLcl comes with → development/languages/JavaScript based → development/databases/Oracle/SQLcl/script[scripting].
+  
+  A script is started with the keyword `script` and ended (like also an anonymous → development/databases/Oracle/PL-SQL block) with a slash (`/`)
+
+  { Write some text
+
+   `ctx.write` prints text. The new line `"\n"` is necessary for the text to be flushed:
 code {
 script
-  ctx.write("hello world\n");
+ctx.write("hello world\n");
 /
 code }
 
-`script` can also execute a script file. The file's suffix `.js` can be ommited:
+    Text can also be written with `print(…)` in which case the new line is not required.
+code {
+script
+print('The number is 42');
+/
+code }
+
+   `print()` writes to a different output stream than `ctx.write()`.
+
+  } 
+  { Executing stored scripts
+
+`script` can also execute the content of a  script file. The file's suffix `.js` can be ommited:
 code {
 script some_file_with_javascript
 code }
+
+  }
+  { Run dynamic SQL statements
+
+    It is possible to create a dynamic → development/databases/Oracle/SQL/statement[SQL statement] and then have it executed with `sqlcl.setStmt(…)` and `sqlcl.run()`:
+code {
+script
+var tabName = 'all_users';
+sqlcl.setStmt('select count(*) from ' + tabName);
+sqlcl.run();
+/
+code }
+
+  }
 
 }
 
@@ -38,7 +71,7 @@ code }
 
   sqlcl is started by using its name `sql`.
 
-  sqlcl has the folloing command line options:
+  sqlcl has the following command line options:
   { -H
 
     Display SQLcl version (as `-V` does) and usage help.
@@ -78,7 +111,7 @@ code }
   }
   { -oci
 
-    By default, SQLcl uses Oracle's JDBS driver to connet to the database.
+    By default, SQLcl uses Oracle's JDBC driver to connect to the database.
     -
     With `-oci`, it is instructed to use the Oracle client.
   }
@@ -119,7 +152,31 @@ code }
   }
   { colored output
 
-gh|about-SQLcl|/img/colored-output.png||
+    gh|about-SQLcl|/img/colored-output.png||
+
+  }
+
+}
+{ TODO
+
+  { no ocijdbc19 in java.library.path
+
+    How is it possible to add `ocijdbc19` to `java.library.path`?
+code {
+PS:\> sql /@ORA19
+
+SQLcl: Release 19.4 Production on Thu Nov 05 08:46:33 2020
+
+Copyright (c) 1982, 2020, Oracle.  All rights reserved.
+
+  USER          =
+  URL           = jdbc:oracle:oci8:@ora19
+  Error Message = no ocijdbc19 in java.library.path
+  USER          =
+  URL           = jdbc:oracle:thin:…
+  Error Message = ORA-01017: invalid username/password; logon denied
+Username? (RETRYING) ('/@dreampt1.bn.ch'?) ^
+code }
 
   }
 
