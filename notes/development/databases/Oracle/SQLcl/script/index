@@ -4,8 +4,17 @@ SQLcl scripting is based on → development/languages/Java/JSR-223[JSR-223].
 
 { util
 
+code {
+script
+print(sqlcl.getClass())
+/
+class oracle.dbtools.db.OracleUtil
+code }
+
   {  util.executeReturnOneCol
 
+     The following example uses the pseudo column `user` to determine the currently connected
+     → development/databases/Oracle/users-roles/users[user] name. (Of course, this name can more easily be found via `→ #sqlcl-script-conn[conn].getUserName()`)
 code {
 script
 var whoAmI = util.executeReturnOneCol('select user from dual');
@@ -58,6 +67,51 @@ code }
   }
 
 }
+{ conn #sqlcl-script-conn
+
+ `conn` is the connection object.
+
+code {
+script
+print(sqlcl.getClass())
+/
+class oracle.jdbc.driver.T4CConnection
+code }
+
+  Apparently, `oracle.jdbc.driver.T4CConnection` → https://stackoverflow.com/a/39571663[derives] from `oracle.jdbc.driver.PhysicalConnection` which in turn
+  implements the interface → development/languages/Java/classes/oracle/jdbc/OracleConnection[`oracle.jdbc.OracleConnection`].
+
+code {
+script
+print(conn.getUserName())
+/
+RENE
+code }
+
+
+}
+{ sqlcl
+
+ `sqlcl` seems to be a class that represents → development/databases/Oracle/SQLcl itself.
+
+code {
+script
+print(sqlcl.getClass())
+/
+class oracle.dbtools.raptor.newscriptrunner.ScriptExecutor
+code }
+
+}
+{ ctx
+
+
+code {
+script
+print(ctx.getClass())
+/
+class oracle.dbtools.raptor.newscriptrunner.ScriptRunnerContext
+code }
+}
 { Accessing the history
 
 code {
@@ -80,3 +134,30 @@ print(java.lang.Math.sqrt(2));
 code }
 
 }
+{ load()
+
+ `load(url|filename)` loads and executes another script.
+
+}
+{ TODO
+
+  The *global object* seems to be referencable with `this`:
+code {
+script
+print(this);
+/
+[object global]
+code }
+
+  There's an `engine` object:
+code {
+script
+print(engine);
+/
+jdk.nashorn.api.scripting.NashornScriptEngine@1e7a35c
+code }
+
+}
+sa:
+  → development/databases/Oracle/SQLcl/script/lob[This example] uses SQLcl scripting to put and get a → development/databases/Oracle/SQL/data-types/lob[BLOB] from/into an
+  → development/databases/Oracle/objects/tables[Oracle table].
