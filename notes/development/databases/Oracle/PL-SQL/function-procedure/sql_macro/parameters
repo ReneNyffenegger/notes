@@ -1,13 +1,58 @@
 $ Oracle SQL macros: using function parameters
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/create-table.sql||
+These examples try to outline some pecularities when using function parameters nn → development/databases/Oracle/PL-SQL/function-procedure/sql_macro[Oracle's SQL macro functions].
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/random-table.sql||
+{ Demonstration tables
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/random-table-select.sql||
+  First, we need three tables, named `T`, `T0` and `T1`. Each table contains a text that identifies the table name:
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/create-table.sql||
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN.sql||
+}
+{ function randomTable
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN-select-1.sql||
+  The function `randomTable` returns a → development/databases/Oracle/SQL/select[select statment] that depending on the (alleged) current time selects from `T0` or `T1`.
+  The statement also adds `compile_time` and `exec_time`:
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/random-table.sql||
 
-gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN-anonymous-block.sql||
+}
+{ Select from randomTable()
+
+  If the SQL macro function `randomTable` is executed mutliple times, it turns aut, that `compile_time` does not change and returns the time of when `randomTable()` was first called, however `exec_time`
+  returns the time of the execution of the SQL statement.
+
+  The consequence of this behavior is also that the select statement does not change the table from which it selects, as naively expected.
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/random-table-select.sql||
+
+}
+{ function tabN
+
+  Because `randomTable()` cannot be forced to change the select statement once it is defined, another approach is tried. The SQL macro function `tabN` has a paramter that is supposed to specify which table
+  is selected from:
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN.sql||
+
+}
+{ select from tabN
+
+  When `tabN` is used, it turns out that the select statement selects from `T`!
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN-select-1.sql||
+
+  Also, the `→ development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line()` in the function shows that the parameter `n` is always
+  → development/databases/Oracle/SQL/null[`null`], irrespective of the actual value passed to the function.
+
+code {
+tabN being called, n = 
+code }
+
+}
+{ Using tabN in PL/SQL context
+
+  The whole story with the parameters of macro functions gets even more interesting when using such macro functions in a
+  → development/databases/Oracle/PL-SQL[PL/SQL] context, as for example shown below:
+  gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN-anonymous-block.sql||
+
+  In this case. the `for r in (select … from tabN(1)` selects from from `T1` and the `for r in (select … from tabN(2)` selects from `T0`.
+  -
+  But when passing the parameter via a function (`iterateWithVariable`), the function `tabN` selects from `T` again. This is because in this case, the parameter is passed as a bind variable and the function
+  cannot know which value it has - so the value of the parameter `n` is passed as `null`, as already seen earlier.
+
+}
