@@ -1,5 +1,7 @@
 $ After installing Windows
 
+These are some notes where I try to gather scripts that configure a newly installed Windows system so that I feel comfortable using it.
+
 rem {
 { Create a System Recovery Disc (?)
 
@@ -125,8 +127,11 @@ code }
 }
 { Change default keyboard layout
 
-  *Capslock* needs to be swapped with *esc*, the *right Windows* key needs to function as *control* key:
-  → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Keyboard-Layout#reg-keyboard-layout-ps[execute this PowerShell script].
+  *Capslock* needs to be swapped with *ESC*, the *right Windows* key needs to function as *control* key:
+  Use → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Keyboard-Layout#reg-keyboard-layout-ps[this PowerShell script] to change the → Windows/registry accordingly (requires administrator privileges).
+
+  If adminstrator privilages are not available, try to compile → Windows/tools/swap-keys_c[`swap_keys.c`] or use
+  the → development/languages/C-Sharp[C-Sharp] program → Windows/tools/event-hooking/swap-keys/cs[`SwapKeys.cs`].
 
 }
 { Configure Text Services and Input Methods
@@ -597,12 +602,15 @@ code }
 
   Install → development/version-control-systems/git[git].
 
-  Download end extract the self extracting executable. Find newest version number → https://github.com/git-for-windows/git/releases[here].
+  Download the self extracting executable. There is a portable git, an «ordinary installer» and more. These have their own version number, find newest version number → https://github.com/git-for-windows/git/releases[here].
 code {
-$gitVersion = '2.29.1'  # Find newest version number under https://github.com/git-for-windows/git
+$gitVersion    = '2.29.2'  # Find newest version number under https://github.com/git-for-windows/git
+$gitSubVersion =  2
 
 if ([environment]::is64BitOperatingSystem) {
-  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe"    , "$($downloadFolder)Git.exe")
+# $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.$gitSubVersion/Git-$gitVersion-64-bit.exe"                          , "$($downloadFolder)Git.exe")
+# $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.$gitSubVersion/Git-$gitVersion-64-bit.exe"                          , "$($downloadFolder)Git.exe")
+  $ua.downloadFile("https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.$gitSubVersion/PortableGit-$gitVersion.$gitSubVersion-64-bit.7z.exe", "$($downloadFolder)PortableGit.7z.exe")
 
 #
 # There would also be a .tar.bz2 file:
@@ -623,7 +631,9 @@ if ([environment]::is64BitOperatingSystem) {
 }
 code }
 
-  Run the downloaded executable (which installes the git executable under → Windows/dirs/Program-Files/Git/cmd).
+  { Install «ordinary» git
+
+    Run the downloaded executable (which installes the git executable under → Windows/dirs/Program-Files/Git/cmd).
 code {
 & "$($downloadFolder)Git.exe" /SP- /SUPPRESSMSGBOXES /SILENT /CURRENTUSER
 code }
@@ -632,14 +642,44 @@ code }
   table { ll
    `/SP-`               ☰ Disables «This will install.. Do you wish to continue?» prompt at the beginning of Setup
    `/SUPPRESSMSGBOXES`  ☰ Supress message boxes
-   table }
+  table }
 
-    Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
+  }
+  { Installing portable git
+
+    If the *portable* version of Git was downloaded, execute the → Windows/dirs/Program-Files/7-zip/7z_exe#extract-7z-exe[`*.7z.exe`] file:
+code {
+& "${downloadFolder}\PortableGit.exe" -o $binPath\git -y
+code }
+
+    Add the new directory of the portable `git.exe` to the → Windows/development/environment-variables/PATH[`PATH` environment variable]:
+code {
+addDirToPath "$binPath\git\bin"
+code }
+
+  }
+
+  { Add usr\bin to path
+
+    The `usr\bin` directory under a Git installation has interesting tools such as → Linux/shell/commands/diff[`diff`]. Thus, `…\usr\bin` might be added to the
+    → Windows/development/environment-variables/PATH[`PATH` environment variable] so that these tools are available in a command line environment.
+
+  }
+  { Install git lfs
+code {
+cd ... data.stadt-zuerich.ch
+git lfs install --local
+code }
+
+  }
+}
+{ Configure Git
+  Do long paths have to be enabled on → Windows/versions/10[Windows 10] with git?
 code {
 git config --system core.longpaths true
 code }
 
-    Possibly, username and password need to be configured, too:
+  Possibly, username and password need to be configured, too:
 code {
 git config --global user.email "…"
 git config --global user.name  "René Nyffenegger"
@@ -678,20 +718,6 @@ $null = mkdir $env:github_top_root\about
 $null = mkdir $env:github_top_root\lib
 $null = mkdir $env:github_top_root\temp
 code }
-
-  }
-
-  { Install git lfs
-code {
-cd ... data.stadt-zuerich.ch
-git lfs install --local
-code }
-
-  }
-  { Add usr\bin to path
-
-    The `usr\bin` directory under a git installation has interesting tools such as → Linux/shell/commands/diff[`diff`]. Thus, `…\usr\bin` might be added to the
-    → Windows/development/environment-variables/PATH[`PATH` environment variable] so that these tools are available in a command line environment.
 
   }
 
