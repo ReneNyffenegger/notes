@@ -66,7 +66,40 @@ code }
   }
 
 }
+{ SQLcl not showing error messages
 
+  SQLcl does not automatically show error messages. (As per → https://ogobrecht.github.io/posts/2020-01-02-why-i-like-sqlplus-for-deployment-scripts[Ottmar Gobrecht's Blog], this problem only occurs in
+  in Versions prioer to 19.4 or on Windows).
+
+code {
+rene@SYS$USERS> create or replace procedure drop_me as
+  2  begin
+  3     no_such_procedure;
+  4  end;
+  5  /
+code }
+
+  No error message shown, although `no_such_procedure` does not exist.
+
+code {
+rene@SYS$USERS> show errors
+
+Errors for PROCEDURE RENE.DROP_ME:
+
+LINE/COL ERROR
+-------- -----------------------------------------------------------------
+3/4      PL/SQL: Statement ignored
+3/4      PLS-00201: identifier 'NO_SUCH_PROCEDURE' must be declared
+code }
+
+  Ottmar Gobrecht proposes to use the following setings until a fix is released
+code {
+set define off verify off feedback on
+code }
+
+  With these settings, the errors are now displayed.
+
+}
 { Starting sqlcl / Command line options
 
   sqlcl is started by using its name `sql`.
