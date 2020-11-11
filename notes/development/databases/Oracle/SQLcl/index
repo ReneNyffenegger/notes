@@ -188,10 +188,50 @@ code }
     gh|about-SQLcl|/img/colored-output.png||
 
   }
+  { SQL Select hints #sqlcl-sqldev-select-hints
+
+  SQLcl and → development/Software/Oracle-SQL-Developer[SQL Developer] allow to specify *SQL select hints* which cause a result set to be returned in a specific format:
+code {
+select /*ansiconsole*/ * from …; -- Best appearance for ANSI terminal display
+select /*csv*/         * from …; -- → development/Data/exchange/formats/CSV[Comma-separated values]
+select /*delimited*/   * from …; -- same as csv
+select /*fixed*/       * from …; -- Fixed-width fields with trailing blanks
+select /*html*/        * from …; -- Marked-up → development/web/HTML table
+select /*insert*/      * from …; -- Return INSERT statements
+select /*json*/        * from …; -- Returns → development/languages/JavaScript/JSON object format
+select /*loader*/      * from …; -- Pipe-delimited format suitable for → development/databases/Oracle/tools/sql-loader[SQL*Loader]
+select /*text*/        * from …; -- Plain text
+select /*xml*/         * from …; -- Tagged → development/XML
+code }
+
+  Note: these hints are not to be confused with → development/databases/Oracle/SQL/hints[Oracle Optimizer hints].
+
+  In → development/Software/Oracle-SQL-Developer[SQL Developer], such a select statement needs to be executed with `F5` for the «hint» to have an effect.
+
+   TODO: Compare with → development/Software/Oracle-SQL-Developer/SQL-extensions.
+
+  }
 
 }
 { TODO
 
+  { Can't load AMD 64-bit .dll on a IA 32-bit platform
+
+
+    Apparently, `ocijdbc19.dll` is 64-bit while SQLcl (`sql.exe`) is 32-bit. This causes the error message
+   *→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/ocijdbcvv_dll[C:\Oracle\19\bin\ocijdbc19.dll]: Can't load AMD 64-bit .dll on a IA 32-bit platform*
+    
+   *Why* on Earth does SQLcl sometimes try to use OCI? And *why* is the executable a 32-bit executable?
+
+   *Ok*…, it seems that I *can* connect with the thin driver if I use the corresponding connection string:
+code {
+.\sql.exe rene/rene@jdbc:oracle:thin:@192.168.0.227:1521:ORA19
+code }
+
+   If this is how this is supposed to be? Who knows?
+
+
+  }
   { no ocijdbc19 in java.library.path
 
     How is it possible to add `ocijdbc19` to `java.library.path`?
