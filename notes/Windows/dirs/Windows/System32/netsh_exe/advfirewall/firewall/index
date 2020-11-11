@@ -1,0 +1,95 @@
+$ netsh advfirewall firewall
+
+{ Commands in the «netsh advfirewall firewall» context
+
+table { ll
+  `help`, `?` ☰ Displays a list of commands.
+  `add`       ☰ Adds a new inbound or outbound firewall rule.
+  `delete`    ☰ Deletes all matching firewall rules.
+  `dump`      ☰ Displays a configuration script.
+  `set`       ☰ Sets new values for properties of a existing rule.
+  `show`      ☰ Displays a specified firewall rule.
+table }
+
+}
+
+{ Enabling programs / remove allowed programs
+
+code {
+netsh advfirewall firewall add rule name="My Application" dir=in action=allow program="C:\MyApp\MyApp.exe" enable=yes
+netsh advfirewall firewall add rule name="My Application" dir=in action=allow program="C:\MyApp\MyApp.exe" enable=yes remoteip=157.60.0.1,172.16.0.0/16,LocalSubnet profile=domain
+netsh advfirewall firewall add rule name="My Application" dir=in action=allow program="C:\MyApp\MyApp.exe" enable=yes remoteip=157.60.0.1,172.16.0.0/16,LocalSubnet profile=private
+
+netsh advfirewall firewall delete rule name="My Application" program="C:\MyApp\MyApp.exe"   REM ???
+code }
+
+  These commands replace the deprecated `→ Windows/dirs/Windows/System32/netsh_exe/firewall[netsh firewall] add allowedprogram …` and 
+ `netsh firewall delete allowedprogram…` commands.
+
+}
+{ Enable/disable specific ports
+
+code {
+netsh advfirewall firewall add    rule name="Open Port 80" dir=in action=allow protocol=TCP localport=80
+
+netsh advfirewall firewall delete rule name=…              protocol=udp localport=500      REM ???
+code }
+
+  These commands replace the deprecated `→ Windows/dirs/Windows/System32/netsh_exe/firewall[netsh firewall] add portopening TCP 80 …` and `netsh delete portopening protocol` commands.
+
+}
+{ Configure ICMP Settings
+
+code {
+netsh advfirewall firewall add rule name="ICMP Allow incoming V4 echo request" protocol=icmpv4:8,any   dir=in action=allow
+netsh advfirewall firewall add rule name="All ICMP V4"                         protocol=icmpv4:any,any dir=in action=allow
+netsh advfirewall firewall add rule name="Block Type 13 ICMP V4"               protocol=icmpv4:13,any  dir=in action=block
+code }
+
+}
+{ Logging
+
+code {
+netsh advfirewall set currentprofile logging filename %systemroot%\system32\LogFiles\Firewall\pfirewall.log
+netsh advfirewall set currentprofile logging maxfilesize 4096
+netsh advfirewall set currentprofile logging droppedconnections enable
+netsh advfirewall set currentprofile logging allowedconnections enable
+code }
+
+}
+{ Enable firewall
+
+code {
+netsh advfirewall set currentprofile state on
+netsh advfirewall set currentprofile firewallpolicy blockinboundalways,allowoutbound
+netsh advfirewall set domainprofile  firewallpolicy blockinbound,allowoutbound
+code }
+
+}
+{ Enable specific services 
+
+code {
+netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=Yes
+netsh advfirewall firewall set rule group="remote desktop"           new enable=Yes
+netsh advfirewall firewall set rule group="remote desktop"           new enable=Yes profile=domain
+netsh advfirewall firewall set rule group="remote desktop"           new enable=Yes profile=private
+code }
+
+}
+{ Restore policy defaults
+
+code {
+netsh advfirewall reset
+code }
+
+}
+{ TODO
+
+code {
+netsh advfirewall firewall show rule name=all
+code }
+
+}
+
+sa:
+  → Windows/dirs/Windows/System32/netsh_exe/advfirewall[`netsh advfirewall`]

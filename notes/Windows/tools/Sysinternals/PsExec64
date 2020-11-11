@@ -1,20 +1,35 @@
 $ Sysinternals tool: PsExec / PSExec64
 
-{ Viewing protected registry keys #psexec-view-registry
+{ Becoming «NT Authority\System» #psexec-become-SYSTEM
 
-  The → Windows/registry[registry] keys
-  → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM[`HKEY_LOCAL_MACHINE\SAM`] and
-  → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY[`HKEY_LOCAL_MACHINE\SECURITY`]
-  are protected by the *System account* (identifiedy by the SID → Windows/security/SID/S-1-5/18). Thus, they cannot be examined even by members of the
-  Administrator group.
+  With `PSExec`, it is possible to become → Windows/security/SID/S-1-5/18[NT Authority\System] using the `-s` and `-i` flags.
 
-  In order to be able to navigate to these keys, → Windows/dirs/Windows/regedit_exe[`regedit.exe`] must be started as *System*.
+  `-s` indicates to run the executable in the *System* accunt, `-i` specifies that it interacts with the desktop (that is: it is *interactive*).
 
-  This is possible with the `-s` and `-i` options of *PsExec64*. `-s` indicates to run the executable in the System accunt, `-i` specifies that it interacts with the desktop.
+code {
+C:\Users\rene> PsExec64 -s -i → Windows/dirs/Windows/System32/cmd_exe[cmd] 
+…
+C:\WINDOWS\system32> → Windows/dirs/Windows/System32/whoami_exe#win-whoami-user[whoami /user]
+…
+User Name           SID
+=================== ========
+nt authority\system → Windows/security/SID/S-1-5/18[S-1-5-18]
+code }
 
+  { Viewing protected registry keys #psexec-view-registry
+
+    The → Windows/registry[registry] keys
+    → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM[`HKEY_LOCAL_MACHINE\SAM`] and
+    → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY[`HKEY_LOCAL_MACHINE\SECURITY`]
+    are protected by the *System account* (identifiedy by the SID → Windows/security/SID/S-1-5/18). Thus, they cannot be examined even by members of the
+    Administrator group.
+
+    In order to be able to navigate to these keys, → Windows/dirs/Windows/regedit_exe[`regedit.exe`] must be started as *System*.
 code {
 PsExec64 -s -i regedit.exe
 code }
+
+  }
 
 }
 { Open a command prompt on a remote machine
