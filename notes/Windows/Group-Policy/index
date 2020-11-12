@@ -1,0 +1,62 @@
+$ Windows: Group Policy
+
+The purpose of *Group Policy* is to automate the application of *policy settings* on computers in an *Active Directory* domain, thus faciliting the one-to-many management of such policies.
+
+The engine behind Group Policy is located in → Windows/dirs/Windows/System32/userenv_dll[`userenv.dll`] and runs in the
+→ Windows/dirs/Windows/System32/winlogon_exe[`winlogon.exe`] process.
+
+{ Group Policy Object (GPO) #win-gpo
+
+  GPOs are stored on the *SYSVOL* share of a → Windows/user-account/domain#windows-domain-controller[domain controller] within AD.
+
+  These GPOs are transferred to a computer and the applied by a client side execution (CSE) mechanism.
+
+}
+{ Client Side Execution #win-gp-cse
+
+  The CSEs are started by → Windows/dirs/Windows/System32/winlogon_exe[`winlogon.exe`] at → Windows/booting[computer startup],
+  → Windows/user-account#win-user-log-in[user logon] and periodically.
+
+  Each CSE has a corresponding entry in the → Windows/registry under
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Winlogon/GPExtensions[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\GPExtensions`]
+
+}
+{ Group Policy Extensions #win-gp-ext
+
+  Group Policy Extensions include
+    • `gptext.dll`
+    • → Windows/dirs/Windows/System32/fdeploy_dll[`fdeploy.dll`]
+    • `scecli.dll`
+    • `dskquota.dll`
+    • `iedkcs32.dll`
+    • `appmgmts.dll`
+    • → Windows/dirs/Windows/System32/userenv_dll[`userenv.dll`] 
+
+}
+{ Group Policy Folder
+
+  A Group Policy is identified by a → development/UUID-GUID[GUID].
+
+  The domain controller manages a folder whose name corresponds to this GUID in the *SYSVOL* folder. These folders are replicated to other domain controllers.
+
+  The content of such the folder includes:
+    • `ADM` stores all `.adm` files for the GPO
+    • `Machine` stores a `Registry.pol` file that contains all registry settings that need to be applied below → Windows/registry/tree/HKEY_LOCAL_MACHINE[`HKEY_LOCAL_MACHINE`]
+    • `User` also stores a `Registry.pol` file with settings for → Windows/registry/tree/HKEY_CURRENT_USER[`HKEY_CURRENT_USER`]
+
+}
+{ Common Information Model Object Management (CIMOM) database
+
+  The CIMOM database collects all Group Policy processing information.
+
+}
+
+sa:
+
+  → Windows/dirs/Windows/System32/gpresult_exe[`gpresult.exe`]
+
+  → Windows/dirs/Windows/debug/UserMode/Userenv_log[`%SystemRoot%\debug\UserMode\Userenv.log`] records details on the processing of the Group Policy Engine.
+
+  → Windows/dirs/Windows/System32/gpedit_msc[`gpedit.msc`], the *local group policy editor*
+
+  → Windows/dirs/Windows/System32/GroupPolicy[`%SYSTEMROOT%\System32\GroupPolicy`]
