@@ -1,19 +1,37 @@
 $ Microsoft.Office.Interop.… : determine enum values
 
 The values of a → development/languages/VBA enumeration can be determined in → Windows/PowerShell by casting the (interop-) name of the enum into a
-→ Microsoft/dot-net/namespaces-classes/System/RuntimeType[`System.RuntimeType`] type and then appliying reflection on the type to get the values:
+→ Microsoft/dot-net/namespaces-classes/System/RuntimeType[`System.RuntimeType`] type and then appliying reflection on the type to get the values.
+
+The following example tries to demonstrate a few usages.
+
+First, we need to load the assembly that provides an interop, for exaple → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/Excel[`Microsoft.Office.Interop.Excel`]:
 code {
-$null = [→ Microsoft/dot-net/namespaces-classes/System/Reflection/Assembly[Reflection.Assembly]]::LoadWithPartialname('→ Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/_application_[Microsoft.Office.Interop.Excel]')
+→ Windows/PowerShell/language/variable/automatic/null[$null] = [→ Microsoft/dot-net/namespaces-classes/System/Reflection/Assembly[Reflection.Assembly]]::LoadWithPartialname('→ Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/_application_[Microsoft.Office.Interop.Excel]')
+code }
 
+After loading the the interop, we cast it into a `system.RuntimeType` using the → Windows/PowerShell/language/object/type/accelerators[type accelerator] `[type]`:
+code {
 $xlBordersIndexEnum = 'Microsoft.Office.Interop.Excel.xlBordersIndex' → Windows/PowerShell/language/operator/as[-as] [→ Microsoft/dot-net/namespaces-classes/System/RuntimeType[type]]
+code }
 
+Now, we're ready to print the value of a given entry in the enum, for example `xlEdgeBottom`:
+code {
 → Windows/PowerShell/command-inventory/noun/host/write[write-host] $xlBordersIndexEnum::xlEdgeBottom.value__
+code }
 
+The following → Windows/PowerShell/language/statement/foreach[`foreach`] statement iterates over each entry in the enum and prints its name and value:
+code {
 foreach ($fieldInfo in $xlBordersIndexEnum.DeclaredFields) {
    if ($fieldInfo.name -ne 'value__') {
       '  {0,-20} {1,2} ' -f $fieldInfo.name, $xlBordersIndexEnum.GetDeclaredField($fieldInfo.name).GetRawConstantValue()
    }
 }
+code }
+
+The names of the enum can also be found using the `GetNames()` method of → Microsoft/dot-net/namespaces-classes/System/Enum[`System.Enum`]:
+code {
+[enum]::GetNames($xlBordersIndexEnum)
 code }
 
 sa:
