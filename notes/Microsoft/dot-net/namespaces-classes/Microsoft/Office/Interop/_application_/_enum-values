@@ -1,0 +1,21 @@
+$ Microsoft.Office.Interop.… : determine enum values
+
+The values of a → development/languages/VBA enumeration can be determined in → Windows/PowerShell by casting the (interop-) name of the enum into a
+→ Microsoft/dot-net/namespaces-classes/System/RuntimeType[`System.RuntimeType`] type and then appliying reflection on the type to get the values:
+code {
+$null = [→ Microsoft/dot-net/namespaces-classes/System/Reflection/Assembly[Reflection.Assembly]]::LoadWithPartialname('→ Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/_application_[Microsoft.Office.Interop.Excel]')
+
+$xlBordersIndexEnum = 'Microsoft.Office.Interop.Excel.xlBordersIndex' → Windows/PowerShell/language/operator/as[-as] [→ Microsoft/dot-net/namespaces-classes/System/RuntimeType[type]]
+
+→ Windows/PowerShell/command-inventory/noun/host/write[write-host] $xlBordersIndexEnum::xlEdgeBottom.value__
+
+foreach ($fieldInfo in $xlBordersIndexEnum.DeclaredFields) {
+   if ($fieldInfo.name -ne 'value__') {
+      '  {0,-20} {1,2} ' -f $fieldInfo.name, $xlBordersIndexEnum.GetDeclaredField($fieldInfo.name).GetRawConstantValue()
+   }
+}
+code }
+
+sa:
+  The → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/_application_/Constants[`Microsoft.Office.Interop.….Constants`] enum contains the values for an
+  → Microsoft/Office[Office's application] *global values*.
