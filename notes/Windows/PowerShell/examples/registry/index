@@ -1,4 +1,4 @@
-$ PowerShell: manipulating the registry
+$ PowerShell: read and write from/to the registry
 
 { Two default drives #powershell-two-default-registry-drives
 
@@ -15,48 +15,95 @@ code }
 }
 { Examples
 
-  The following simple examples attempt to demonstrate how the → Windows/registry[registry] can be accessed with → Windows/PowerShell[PowerShell].
+  The following simple examples attempt to demonstrate how the → Windows/registry[registry] can be read and written to with → Windows/PowerShell[PowerShell].
 
-  { Get a value from the registry
+  { Create a new key
 
-    The following example gets the value for the → Windows/development/environment-variables/PATH[`PATH` environment variable]:
-code {
-$regKey = get-→ Windows/PowerShell/command-inventory/noun/item[item] → Windows/registry/tree/HKEY_CURRENT_USER/Environment[HKCU:\Environment]
-$regKey.getValue('PATH')
-code }
+    A new → Windows/registry/tree-structure/key[registry key] can be created with the
+    → Windows/PowerShell/command-inventory/noun/item/new[`new-item`].
 
-
-  }
-  { Create keys and values
-
-    First, we create a new key under → Windows/registry/tree/HKEY_CURRENT_USER/Software[`HKEY_CURRENT_USER\Software`]. The name of the key is `tq84`.
-
-    Then, we assign a value to this new key's default value and create three new values, named `value one` through `value three`. For the last key,
-    we use `-propertyType` to specify the values data type.
-
-    gh|about-powershell|/examples/registry/create-keys-and-values.ps1||
-
-    See also → Windows/PowerShell/command-inventory/noun/itemProperty/set#set-itemProperty-registry[`set-itemProperty`].
+    If the item being created is a registry key, the cmdlet returns a
+    → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] object. This
+    object is assigned to the Windows/PowerShell/language/variable[variable] `$key_tq84`:
+    gh|about-powershell|/examples/registry/create-new-key.ps1||
 
   }
-  { Check for the existence of keys and values
+  { Set key's default value #ps-reg-ex-def-value
 
-    This script uses `test-path` to check whether a key exists. The first key tested is the one we just created, the second key (`→ Windows/registry/tree/HKEY_CURRENT_USER[HKCU]:\a\path\that\likely\does\not\exist`)
+    A key's → Windows/registry/tree-structure/default-value[default value] can be set with
+    → Windows/PowerShell/command-inventory/noun/item/set[`set-item`]:
+    gh|about-powershell|/examples/registry/default-value.ps1||
+
+  }
+  { Add a named value
+
+    A value can be added to a key with the cmdlet
+    → Windows/PowerShell/command-inventory/noun/itemProperty/set[`set-itemProperty`].
+    gh|about-powershell|/examples/registry/add-value-txt.ps1||
+
+  }
+  { Add another value
+
+    Another value is added. Although the value is «numeric», without explicitely stating its
+    data type, the value is added as a → Windows/registry/data-types[string (`REG_SZ`)]:
+    gh|about-powershell|/examples/registry/add-another-value.ps1||
+
+  }
+  { Add a numeric value
+ 
+    This type, the data type of the added value is explicitely specified with the `-propertyType` flag as `REG_DWORD`:
+    gh|about-powershell|/examples/registry/add-value-num.ps1||
+
+  }
+  { Using .NET Objects to create values
+
+    Registry values and keys can not only be created with → Windows/PowerShell/language/cmdlet[cmdLets]. It's also
+    possible with the methods `SetValue()` and `CreateSubKey()` of the → Microsoft/dot-net class
+    → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] (of which
+    an instance is already assigned to the variable `$key_tq84`):
+    gh|about-powershell|/examples/registry/use-object.ps1||
+
+  }
+  { Values created
+
+    The registry values that were created look like this in → Windows/dirs/Windows/regedit_exe[`regedit.exe`]
+    gh|about-powershell|/examples/registry/img/inserted-values.png||
+
+  }
+  { Read a value
+
+    A value in the registry can be read with → Windows/PowerShell/command-inventory/noun/itemPropertyValue/get[`get-itemPropertyValue`]:
+    gh|about-powershell|/examples/registry/get-itemPropertyValue.ps1||
+
+    It is also possible to read one or more values at once with the
+    → Windows/PowerShell/command-inventory/noun/itemProperty/get[`get-itemProperty` cmdlet] which returns
+    a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`] object:
+    gh|about-powershell|/examples/registry/get-itemProperty.ps1||
+
+  }
+  { Reading the default value
+
+    A key's default value can be read by reading its property named `(default)`:
+    gh|about-powershell|/examples/registry/read-default-value.ps1||
+
+  }
+  { Check if a value or key exists
+
+    The existence of a registry key can be checked with → Windows/PowerShell/command-inventory/noun/path/test[`test-path`]. The existence of a value can be checked by calling
+   `$regKey.GetValue()`: if it returns → Windows/PowerShell/language/variable/automatic/null[`$null`], the value does not exist.
+
+    The first key tested is the one we just created, the second key (`→ Windows/registry/tree/HKEY_CURRENT_USER[HKCU]:\a\path\that\likely\does\not\exist`)
     does (most probably) not exits.
-
-    Under `tq84`, we use a key's method `getValue()` to get the value of `value one` (which exists) and `unobtainium` (which does not exist).
 
     gh|about-powershell|/examples/registry/check-if-key-or-value-exists.ps1||
 
   }
-  { Delete keys and values
+  { Cleaning up
 
-    Finally, we use `remove-itemProperty` to remove a specific value and `remove-item` to remove an entire key altogether.
-
+    Time to clean up the mess…
     gh|about-powershell|/examples/registry/delete-keys-and-values.ps1||
 
   }
-
 }
 
 sa:
