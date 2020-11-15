@@ -9,10 +9,22 @@ Unlike CLSIDs (which are → development/UUID-GUID[guids]), ProgIds are not glob
 
 The format of *ProgId* is `<program>.<component>.<version>`, for example `Excel.Application.15`. Apparently, the `.version` part is not mandatory.
 
-The → development/UUID-GUID[GUID] of that CLSID is stored under the respective default value for
+The → development/UUID-GUID[GUID] of that CLSID is stored under the respective → Windows/registry/tree-structure/default-value for
 → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId/CLSID[`HKEY_CLASSES_ROOT\<ProgId>\CLSID`].
 
 The *ProgId* might be referenced as *default value* from a *file type key* (→ Windows/registry/tree/HKEY_CLASSES_ROOT/_ext[`HKEY_CLASSES_ROOT\.ext`]) in the registry.
+
+{ Using ProgIDs in PowerShell to create a COM object
+
+  In → Windows/PowerShell, a COM object is created with → Windows/PowerShell/command-inventory/noun/object/new[`new-object -com prog.id`], for example:
+code {
+PS C:\> $xls = new-object -com excel.application
+$xls.visible = $true
+$wbk = $xls.workbooks.add()
+$wbk.Sheets.item(1).cells(2,2).value = "Powershell says hello"
+code }
+
+}
 
 sa:
   The WinAPI function `CLSIDFromProgID` finds the CLSID for a given ProgID.

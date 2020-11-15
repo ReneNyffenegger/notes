@@ -1,0 +1,61 @@
+$ Creating COM Objects with PowerShell
+
+In → Windows/PowerShell, a → Windows/development/COM/object is created with the
+→ Windows/PowerShell/command-inventory/noun/object/new[`new-object` cmdlet] by using its `-com` parameter and passing this paramter the name of the requested COM object's
+→ Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId[ProgID].
+
+{ Returned object type
+
+  Typically, `new-object -com …` returns a → Microsoft/dot-net/namespaces-classes/System/__ComObject[`System.__ComObject`] object. In special cases however, it returns an «interop» object that wraps the COM Object.
+  -
+  This behaviour is demonstrated in the following simple example.
+
+  First, we create two COM objects …
+code {
+PS C:\> $fso = new-object -com scripting.filesystemobject
+PS C:\> $xls = new-object -com excel.application
+code }
+
+  … and then determine their types:
+code {
+PS C:\> $fso.GetType().FullName
+System.__ComObject
+
+PS C:\> $xls.GetType().FullName
+Microsoft.Office.Interop.Excel.ApplicationClass
+code }
+
+  I → https://stackoverflow.com/q/64827505/180275[wondered why `new-object -com` does not always return a `__ComObject` object]. The explanation seems to be related to the way in which COM Objects are registered with the
+  → Windows/registry.
+
+  When I used `new-object -com progId`, the → Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID[CLSID] that is associated with `prog.id` was determined. The value of this CLSID is found in the registry as
+  → Windows/registry/tree-structure/default-value of the registry key → Windows/registry/tree/HKEY_CLASSES_ROOT/ProgId/CLSID[`HKEY_CLASSES_ROOT\prog.id\CLSID`]:
+code {
+$null = new-psDrive -name HKCR -psProvider registry -root HKEY_CLASSES_ROOT
+
+$clsid_xls = get-itemPropertyValue -name '(default)' HKCR:\excel.application\CLSID
+$clsid_fso = get-itemPropertyValue -name '(default)' HKCR:\scripting.filesystemobject\CLSID
+
+write-host "CLSIDs: xls: $clsid_xls, fso: $clsid_fso"
+CLSIDs: xls: {00024500-0000-0000-C000-000000000046}, fso: {0D43FE01-F093-11CF-8940-00A0C9054228}
+code }
+
+  Each of these CLSIDs has a → Windows/registry/tree-structure/key[registry key] named → Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID/GUID/InprocServer32[`InprocServer32`] that is found under the key
+  → Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID/GUID[`HKEY_CLASSES_ROOT\CLSID\{clsid}`]
+
+  If we look up these keys in → Windows/dirs/Windows/regedit_exe[`regedit.exe`], we find some differences.
+
+
+  { In-proc server for file system object
+
+    In the case of the file system object, «only» a → Windows/development/Portable-Executable/DLL is registred:
+    gh|about-PowerShell|/cmdlets/object/new/COM/img/fso.png||
+
+  }
+  { In-proc server for Excel
+
+    However, for the → Microsoft/Office/Excel object, an → Microsoft/dot-net/assembly and a (default?) class is registered:
+    gh|about-PowerShell|/cmdlets/object/new/COM/img/xls.png||
+
+  }
+}
