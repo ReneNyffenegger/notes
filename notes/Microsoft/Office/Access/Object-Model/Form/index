@@ -6,13 +6,29 @@ A rudimentary → development/languages/VBA piece of code that is supposed to de
 
 Controls can be added to a form with → Microsoft/Office/Access/Object-Model/Application#access-createControl[`access.createControl`].
 
-{ Opening and closing form
+{ Opening and closing forms
 
 ? A form is opened with → Microsoft/Office/Access/Object-Model/DoCmd#doCmd-open-close[`doCmd.openForm "frmName" …`] and closed with `→ Microsoft/Office/Access/Object-Model/DoCmd[`doCmd`].close acForm…`,
 code {
-doCmd.openForm "frmName", , , , , acDialog
+doCmd.openForm "frmName", acNormal , , , , acDialog
 code }
 
+  { Form view
+
+    An opened form is displayed in one of severelal *form views*. Each of these form views are listed in the → https://docs.microsoft.com/en-us/office/vba/api/access.acformview[`acFormView`] enumeration:
+    table { lrl
+      `acDesign` ☰ 1 ☰ Design view
+      `acFormDS` ☰ 3 ☰ Datasheet view
+      `acFormPivotChart` ☰ 5 ☰ PivotChart view
+      `acFormPivotTable` ☰ 4 ☰ PivotTable view
+      `acLayout` ☰ 6 ☰ Layout view
+      `acNormal` ☰ 0 ☰ Form view, this is the default
+      `acPreview` ☰ 2 ☰ Print Preview.
+    table }
+
+      These `ac…` correspond to the second parameter in `doCmd.openForm…`
+
+  }
 
 }
 { Section
@@ -27,6 +43,31 @@ code }
   table }
 
   For example, the `width` property of a form can be set with `frmObj.width = …`, but the `height` property must be set in the form's *detail* section: `frmObj.section(acDetail).height = …`.
+
+  { Showing/hiding the header and footer section #acc-form-toggle-hdr-ftr
+
+  
+    With → development/languages/VBA, the visibility of the header and footer section can be toggled with
+code {
+→ Microsoft/Office/Access/Object-Model/DoCmd#doCmd-runCommand[doCmd.runCommand] acCmdFormHdrFtr
+code }
+
+    In the GUI, the corresponding functionality is exectuted by right clicking the *Detail* «bar» above the form and then choosing *Form Header/Footer*:
+    gh|about-Access|/objects/form/img/toggle-header-footer.png||
+
+
+  }
+
+}
+{ Controls on a form
+
+  The controls on a form are accessible via its `controls` property.
+
+? Because this property is the default property of `form`, it can be ommited when referring to a control. Both of the following two statements are equivalent:
+code {
+forms!frmXYZ.controls!tbEntry
+forms!frmXYZ!tbEntry
+code }
 
 }
 { TODO
