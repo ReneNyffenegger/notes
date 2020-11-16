@@ -1,6 +1,43 @@
 $ PowerShell cmdLet resolve-path
 
-`resolve-path` returns a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PathInfo[`System.Management.Automation.PathInfo`] object.
+If invoked without the `-relative` option, `resolve-path` returns on or more → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PathInfo[`System.Management.Automation.PathInfo`] objects with
+the wildcard characters expanded.
+
+  Return a list of all files with 4 characters in the filename (without → development/filename-extensions[extension) and the exteions `.txt`:
+code {
+resolve-path ????.txt
+code }
+
+  Return a list of all `.tmp` files that start with `a`:
+code {
+resolve-path a*.tmp
+code }
+
+  Return the *home directory*
+code {
+resolve-path ~
+code }
+
+{ -relative
+
+  With the option `-relative` specified, `resolve-path` returns a list of relative paths (relative to the current direcotry, that is):
+code {
+resolve-path ../../*.txt -relative
+code }
+
+  The returned data type is not a `PathInfo` object anymore, but a → Microsoft/dot-net/namespaces-classes/System/String[string].
+
+  { Combining -relative with get-childItem #resolve-path-relative_get-childItem
+
+    The following simple → Windows/PowerShell/pipeline[pipeline] combines → Windows/PowerShell/command-inventory/noun/childItem/get[`get-childItem`] and `resolve-path -relative` to return
+    a list of all relative path names of `.sql` files beneath the current directory:
+code {
+get-childItem -recurse -filter *.sql | select-object { resolve-path $_.fullName -relative }
+code }
+
+  }
+
+}
 
 sa:
 
