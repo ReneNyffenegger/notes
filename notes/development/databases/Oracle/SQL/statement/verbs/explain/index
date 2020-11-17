@@ -1,8 +1,42 @@
 $ Oracle SQL: explain plan
 
+By default, `explain plan` writes the result into a table named `plan_table`. This can be changed with the `into …` clause, see below.
+-
+It turns out that the installatin script → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`catplan.sql`] creates a public synonym `plan_table` that points
+to a global temporary table (GGT) named `plan_table$`. Because `plan_table$` is a GTT, every session has its own version of the contents of `plan_table$`.
+
+`explain plan` is a → development/databases/Oracle/SQL/DML[DML statement], so the modifications made by this statement are not → development/databases/Oracle/SQL/TCL/commit[commited].
+
+
+Specify an explicit *statement id*:
+code {
+explain plan
+   set statement_id = 'st1'
+for
+   select
+      foo, bar, baz
+   from
+      tab;
+code }
+ 
+Specify a result table (that is different from `plan_table`):
+code {
+explain plan
+-- set statement_id = 'st1'
+into
+   tq84_plan
+for
+   select
+      foo, bar, baz
+   from
+      tab;
+code }
+
 sa:
+
+  → development/databases/Oracle/installed/packages/dbms/xplan[`dbms_xplan`] provide five table functions to format the results of an `explain plan` statement.
+
   The files
-  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`catplan.sql`],
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utlxplan_sql[`utlxplan.sql`], 
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utlxplp_sql[`utlxplp.sql`] and
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utlxpls_sql[`utlxpls.sql`]
