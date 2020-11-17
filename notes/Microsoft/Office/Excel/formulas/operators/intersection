@@ -1,0 +1,48 @@
+$ Excel: intersection operator
+
+{ Implicit intersection
+
+  *Implicit intersection* evaluates a set of *many values* to a *single value*.
+
+   In the «old» formula language, Excel used *implicit intersection* in a → Microsoft/Office/Excel/Object-Model/Range/cell[cell's] formula to reduce the potentially many values that the formula returned to one value,
+   because a cell could only contain a single value.
+   -
+   If the formula returned one value only, *implicit intersection* was practically not necessary (but behind the scenes, Excel did it anyway).
+
+   So, implicit intersection was evaluated as follows
+     • If the formula evaluates to a single value, return that value 
+     • If the formula evaluates to a range, then return the value from the cell on the same row or column as the cell
+     • If the formula evaluates to an array, then return its top-left value
+
+  With the introduction of *dynamic arrays*, Excel is not required to display one value only in a formula, rather, the values returned by the formula are spilled to neighboring cells.
+
+  { Implicit intersection operator @ #excel-impl-intersect-op
+  
+    As part of → Microsoft/Office/Excel[Excel's] → Microsoft/Office/Excel/formulas[formula]-language upgrade  to support
+    → Microsoft/Office/Excel/formulas/array#excel-dynamic-array-formulas[dynamic arrays], Excel introduced the *implicit intersection operator* `@`.
+  
+    When using the upgraded formula language, this operator indicates that *implicit intersection* should be applied. In the old language, Excel always did this, so there was no need for an implicit intersection operator.
+  
+    Formulas that contain the `@` in the new language behave the same as corresponding formulas in the old language without the `@`.
+
+    In versions of Excel that uses the newer formula language, Excel sometimes automatically inserts the `@` to ensure consistent behaviour. If the user removes such an `@` and then opens the Workbook in an earlier
+    version of Excel, the formula will be wrapped within the legacy annotation `{…}` to ensure that the older excel does not evaluate the formula in implicit intersection context.
+
+    The `@` symbol was already used in *table references* (before dynamic arrays were introduced) where they also indicated implitit intersection ( for example like `=[@col_A]`).
+  
+  }
+  { Simple examples where @ makes a difference
+
+    `=a1:a10` vs `=@a1:a10`
+
+    → Microsoft/Office/Excel/functions/index-match-lookup-etc/index_[`=index()`] vs `=@index(…)`
+
+  }
+
+}
+{ Misc
+
+  Some → Microsoft/Office/Excel/functions[functions] taht return multi-cell ranges or array include → Microsoft/Office/Excel/functions/index-match-lookup-etc/index_[`index(…)`],
+  → Microsoft/Office/Excel/functions/offset[`offset(…)`] and user defined (→ development/languages/VBA) functions.
+
+}
