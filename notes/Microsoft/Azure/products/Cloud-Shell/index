@@ -1,10 +1,174 @@
 $ Cloud Shell (Azure)
 
-*Azure Cloud Shell* provides a → Linux/shell/bash[Bash] or a → Windows/PowerShell[PowerShell] *shell*.
+*Azure Cloud Shell* provides a → Linux/shell/bash[Bash] or a → Windows/PowerShell[PowerShell] *shell* in a → development/web/browser.
 
 A user can change the default shell to be used for the next session anytime via the environment selector in the *Cloud Shell toolbar*
 
 The → development/web/URI-URL-URN-IRI-URC#url[URL] of the *Azure portal* is → https://shell.azure.com/[shell.azure.com]
+
+Azure Cloud Shell requires an Azure file share to persist files accross sessions.
+-
+The storage is mounted onto `~/clouddrive`.
+-
+`~` is is persisted as an `.img` in the Azure File share.
+-
+Files outside of `~` (as well as the machine state) are not persisted accross sessions.
+
+{ Initial home directory content
+
+  After logging in on Azure's Cloud Shell (and thus having created the required storage), the content
+  of the home directory is:
+code {
+PS /home/rene> → Windows/PowerShell/command-inventory/noun/childItem[get-childItem] -attributes !directory -recurse -force | select-object fullName
+
+FullName
+--------
+/home/rene/.bash_logout
+/home/rene/.bashrc
+/home/rene/.profile
+/home/rene/.tmux.conf
+/home/rene/.zcompdump_capture
+/home/rene/.local/share/powershell/PSReadLine/ConsoleHost_history.txt
+/home/rene/.azure/az.json
+/home/rene/.azure/az.sess
+/home/rene/.azure/azureProfile.json
+/home/rene/.azure/clouds.config
+/home/rene/.azure/commandIndex.json
+/home/rene/.azure/config
+/home/rene/.azure/telemetry.json
+/home/rene/.azure/telemetry.txt
+/home/rene/.azure/versionCheck.json
+/home/rene/.azure/commands/2020-11-17.22-43-29.login.113.log
+/home/rene/.azure/commands/2020-11-17.22-43-30.account_set.123.log
+/home/rene/.azure/logs/telemetry.log
+/home/rene/.azure/telemetry/cache
+/home/rene/.cache/powershell/ModuleAnalysisCache-AE0255EC
+/home/rene/.cache/powershell/telemetry.uuid
+/home/rene/.Azure/AzurePSDataCollectionProfile.json
+/home/rene/.Azure/AzureRmContext.json
+/home/rene/.Azure/AzureRmContextSettings.json
+code }
+
+}
+{ $PATH
+
+  The directories found in the `PATH` environment variable is
+code {
+PS /home/rene>  $env:PATH -split ':'
+/opt/microsoft/powershell/7
+~/.local/bin
+~/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/sbin
+/bin
+/usr/local/linkerd/bin
+/usr/local/sbin
+/usr/local/bin
+/usr/sbin
+/usr/bin
+/sbin
+/bin
+/usr/local/istio-latest/bin
+/usr/local/go/bin
+/opt/mssql-tools/bin
+~/bundle/bin
+~/bundle/gems/bin
+/home/rene/.local/share/powershell/Scripts
+code }
+
+}
+{ get-psProvider #az-shell-get-psProvider
+
+  `get-psProvider` reveals that there is a special `Azure:` drive:
+
+code {
+PS Azure:\> → Windows/PowerShell/command-inventory/noun/psProvider/get[get-psProvider]
+
+Name                 Capabilities                                                  Drives
+----                 ------------                                                  ------
+Alias                ShouldProcess                                                 {Alias}
+Environment          ShouldProcess                                                 {Env}
+FileSystem           Filter, ShouldProcess, Credentials                            {/, Temp}
+Function             ShouldProcess                                                 {Function}
+Variable             ShouldProcess                                                 {Variable}
+SHiPS                Filter, ShouldProcess                                         {Azure}
+code }
+
+  { Azure: drive #az-shell-azure-drive
+
+    The directories in the `Azure:` → Windows/PowerShell/language/provider/drive correspond to the available → Microsoft/Azure#az-subscription[subscriptions].
+code {
+PS /> cd Azure:
+PS Azure:\> dir
+
+Mode SubscriptionName   SubscriptionId                       TenantId                             State
+---- ----------------   --------------                       --------                             -----
++    TQ84 Subscription  01234567-89ab-cdef-fedc-ba9876543210 fedcba98-7654-3210-0123-456789abcdef Enabled
+…
+
+PS Azure:\> cd '/.TQ84 Subscription`
+code }
+
+  Being «in» a subscription directory, the «sub folders» list different views on the resources.
+code {
+PS Azure:\> dir
+   …
+Mode Name
+---- ----
++    AllResources
++    ResourceGroups
++    StorageAccounts
++    VirtualMachines
++    WebApps
+code }
+
+  }
+
+}
+
+{ Misc
+
+
+  { az commands
+
+    Some `az commands include`:
+    table { ll
+
+      `az account list` ☰ List subscriptions I have access to
+      `az account set --subscription 'some-subscription-name'` ☰ Set preferred subscription (and then stored in `~/.azure/azureProfile.json`)
+      `az group create --location westus --name SomeRG` ☰ Create a new resource group
+      `az vm create -n myVM -g SomeRG --image UbuntuLTS --generate-ssh-keys` ☰ Create an Ubuntu VM in your new resource group. The Azure CLI will create SSH keys and set up the VM with them. (Keys are stored in `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub`)
+
+    table }
+
+  }
+
+  { get-az* commands
+
+    table { ll
+     `get-azResourceProvider -listAvailable | select-object providerNamespace, registrationState` ☰ View all resource providers and their registration status for the current(?) subscription
+    table }
+
+  }
+  { ACC* environment variables
+
+    table { ll
+      `ACC_CLOUD` ☰ For example `PROD`
+      `ACC_LOCATION` ☰ contains the *current region*, for example: `WESTEUROPE`
+      `ACC_OID` ☰
+      `ACC_PUID` ☰
+      `ACC_STORAGE_PROFILE` ☰
+      `ACC_TERM_ID` ☰
+      `ACC_TID` ☰
+      `ACC_VERSION` ☰
+    table }
+
+  }
+
+}
 
 sa:
   → Microsoft/Azure/products/Portal
