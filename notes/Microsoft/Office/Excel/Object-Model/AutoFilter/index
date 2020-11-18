@@ -8,8 +8,8 @@ An `AutoFilter` object allows to hide or show rows based on criterias put on the
 
   The following simple example tries to demonstrate how an `autoFilter` object might be used.
 
-  The example also prints the values the worksheet's `.autoFilterMode` and `.filterMode` properties a few times. The meaning of these properties is:
-    • `autoFilterMode`, if `true`: drop down triangles are shown
+  The example also prints the values the worksheet's `.autoFilterMode` and → Microsoft/Office/Excel/Object-Model/Worksheet/filterMode[`.filterMode`] properties a few times. The meaning of these properties is:
+    • `autoFilterMode`, if → development/languages/VBA/language/datatypes/boolean[`true`]: drop down triangles are shown
     • `filterMode`, if `true` at least one filter is active, thus some rows might be hidden.
 
   gh|about-MS-Office-object-model|/Excel/AutoFilter/basics.bas||
@@ -38,9 +38,9 @@ code }
 }
 { Showing all records with VBA
 
-  In order to show all records that might previously have been filtered, the `showAllData` method can be used:
+  In order to show all records that might previously have been filtered, the → Microsoft/Office/Excel/Object-Model/Worksheet/showAllData[`showAllData`] method can be used:
 code {
-activeSheet.showAllData
+activeSheet.→ Microsoft/Office/Excel/Object-Model/Worksheet/showAllData[showAllData]
 code }
 
   This is effectively the same as clicking → Microsoft/Office/Excel/GUI/Ribbon/tabs/Data/Sort-and-Filter/Clear[Data -> Sort & filter -> Clear] on the
@@ -58,6 +58,33 @@ code }
   the range (and thus is hidden after applying a criteria to the filter).
 
 }
+{ Print filtered columns
+
+  The following simple function prints (`debug.print`) the numbers of the columns where a filter is applied:
+code {
+sub printFilteredColumns(byVal ws as worksheet) ' {
+   
+   if not ws.filterMode then ' {
+       debug.print "no columns are filtered"
+       exit sub
+   end if ' }
+
+   dim col as long
+   for col = 1 to ws.autoFilter.filters.count ' {
+       if ws.autoFilter.filters(col).on then
+          debug.print(col)
+       end if
+   next col ' }
+
+end sub ' }
+code }
+
+  The function can be called from the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window like so
+code {
+printFilteredColumns activeSheet
+code }
+
+}
 
 sa:
 
@@ -66,5 +93,7 @@ sa:
   → Microsoft/Office/Excel/Object-Model/Range/advancedFilter[`range.advancedFilter`]
 
   → Microsoft/Office/Excel/functions/criteria[Worksheet functions that use criterias]
+
+  A → Microsoft/Office/Excel/Object-Model/Worksheet[worksheet's] property → Microsoft/Office/Excel/Object-Model/Worksheet/filterMode[`filterMode`]
 
   → Microsoft/Office/Excel/Object-Model
