@@ -299,22 +299,26 @@ code }
 } 
 { Create variables, functions etc for installation
 
-  { Download folder
+code {
+$downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
+
+$ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
+[→ Microsoft/dot-net/namespaces-classes/System/Net/ServicePointManager[net.servicePointManager]]::securityProtocol = [net.securityProtocolType]::Tls12
+code }
+
+  { Download folder ($downloadFolder)
 
     Stuff to be downloaded might go into the → Windows/dirs/Users/username/Downloads[Downloads] directory.
 
     The location of the download directory can be determined with the → Windows/development/WinAPI function `SHGetKnownFolderPath`.
-    -
+
     In PowerShell, this function can be → Windows/dirs/_known-folders#win-known-folder-ps[accessed by running this P/Invoke class]. After running the linked script, the download
     folder name can be assigned to a → Windows/PowerShell/language/variable[variable] with
 code {
 PS C:\> $downloadFolder = $([shell32]::GetKnownFolderPath('{374DE290-123F-4565-9164-39C4925E467B}'))
 code }
 
-    It seems easier, however, to directly set the variable like so:
-code {
-$downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
-code }
+    It seems easier, however, to directly set the variable to `→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\`.
 
   }
   { Function addDirToPath
@@ -352,17 +356,11 @@ addDirToPath $binPath
 code }
 
   }
-  { User Agent
+  { User Agent ($ua)
 
-    Create a → development/web/HTTP/User-Agent[User Agent] to download files from the internet.
-code {
-$ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
-code }
+   `$ua` «stores» a → development/web/HTTP/User-Agent[User Agent] which is required to download files from the internet.
 
-  Prevent error: *The request was aborted: Could not create → development/security/cryptography/SSL-TSL[SSL/TLS] secure channel.*
-code {
-[→ Microsoft/dot-net/namespaces-classes/System/Net/ServicePointManager[net.servicePointManager]]::securityProtocol = [net.securityProtocolType]::Tls12
-code }
+    Setting `securityProtocol` to `Tls12` prevents the error: *The request was aborted: Could not create → development/security/cryptography/SSL-TSL[SSL/TLS] secure channel.*
 
   }
 }
@@ -649,7 +647,7 @@ code }
 
     If the *portable* version of Git was downloaded, execute the → Windows/dirs/Program-Files/7-zip/7z_exe#extract-7z-exe[`*.7z.exe`] file:
 code {
-& "${downloadFolder}\PortableGit.exe" -o $binPath\git -y
+& "${downloadFolder}\PortableGit.7z.exe" -o $binPath\git -y
 code }
 
     Add the new directory of the portable `git.exe` to the → Windows/development/environment-variables/PATH[`PATH` environment variable]:
