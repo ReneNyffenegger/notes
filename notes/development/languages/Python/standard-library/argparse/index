@@ -3,7 +3,79 @@ $ Python standard library: argparse
 
 The `argparse` library is used to parse command line arguments given to a Python script. 
 
-gh|about-Python|/standard-library/argparse/simple.py||
+{ Simple example
+
+  The following simple script (`simple.py`) tries to demonstrate how `argparse` might be used.
+
+  The script defines 4 possible arguments `-flag`, `-number`, `-text` and `-req`.
+
+ `action = 'store_true'` makes `-flag` a boolean like argument which does not require an explicit value to be set. When `simple.py` is invoked, either `-flag` is present or not.
+
+ `-number` is specified to accept only an → development/languages/Python/types/int[`int`]. If the script is invoked without using this argument, the corresponding value will be `None`.
+
+ `-text` accepts a → development/languages/Python/types/string[string (`str`)]. If this argument is not specified, the corresponding value will be the specified default value `Hello world`.
+
+ `-req` also accepts an `int`. Its `required = True` also mandates that this argument must be used when called.
+
+ `argparse` also adds the implicit argument `-help` which, when used, prints the command line arguments.
+
+  { simple.py
+
+    This is the source code for this example
+    gh|about-Python|/standard-library/argparse/simple.py||
+
+  }
+  { Some invocations
+
+   Using `-h` to summarize the possible arguments. The `[…]` braces indiciate optional arguments. Thus, it is visually clear
+   that `-req` is a required argument. `-flag` is shown to accept no parameter while `-number` and `-text` accept exactly one parameter:
+code {
+/home/rene> ./simple.py -h
+usage: simple.py [-h] [-flag] [-number NUMBER] [-text TEXT] -req REQ
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -flag           Specify a true/false option
+  -number NUMBER  What is the number
+  -text TEXT      What is the text
+  -req REQ        A required argument
+code }
+
+code {
+/home/rene> ./simple.py -num 18
+usage: simple.py [-h] [-flag] [-number NUMBER] [-text TEXT] -req REQ
+simple.py: error: the following arguments are required: -req
+code }
+
+    No value specified for `-text`, defaults to `Hello world`:
+code {
+/home/rene> ./simple.py -num 18 -req 99
+You did not specify the flag
+The number is 18
+The text   is Hello world
+req        is 99
+code }
+
+    No value specified for `-number`, defaults to `None`
+code {
+/home/rene> ./simple.py -flag  -req 99
+You specified the flag
+The number is None
+The text   is Hello world
+req        is 99
+code }
+
+    Using the wrong data type for an argument:
+code {
+/home/rene> ./simple.py -flag  -num forty-two -req 99
+usage: simple.py [-h] [-flag] [-number NUMBER] [-text TEXT] -req REQ
+simple.py: error: argument -number: invalid int value: 'forty-two'
+You specified the flag
+code }
+
+  }
+
+}
 
 sa:
 
