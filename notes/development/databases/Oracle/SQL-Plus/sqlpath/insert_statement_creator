@@ -1,0 +1,62 @@
+$ SQLPATH - insert_statement_creator
+@ insert_statement_creator.sql
+
+The following script generates `insert` statements for a given → development/databases/Oracle/objects/tables[table] and a given `where` statement. I used this script to create
+→ development/Data/test[test data] by first selecting the required data and then manually modifying them as required.
+
+Possible output is → #ins-stmt-possible-output[shown here].
+
+The script depends on → development/databases/Oracle/SQL-Plus/sqlpath/spool[`spool.sql` and `spool_off.sql`].
+
+{ insert_statement_creator.sql
+
+  gh|Oracle-SQLPATH|/insert_statement_creator.sql||
+
+}
+{ Possible output #ins-stmt-possible-output
+
+  For example, when executed with
+code {
+table_name varchar2(30)  := ' scott.emp';
+stmt_txt varchar2(32000) := q'!  select empno, ename, job, mgr, hiredate, sal from !' || table_name  ||
+                            q'! where job = 'CLERK' !';
+code }
+the script will produce an SQL script that looks like so:
+code {
+declare r  scott.emp%rowtype; begin
+  r.empno := 7369;
+  r.ename := 'SMITH';
+  r.job := 'CLERK';
+  r.mgr := 7902;
+  r.hiredate := to_date('1980-12-17 00:00:00', 'yyyy-mm-dd hh24:mi:ss');
+  r.sal := 800;
+ insert into  scott.emp values r;
+  r.empno := 7876;
+  r.ename := 'ADAMS';
+  r.job := 'CLERK';
+  r.mgr := 7788;
+  r.hiredate := to_date('1987-05-23 00:00:00', 'yyyy-mm-dd hh24:mi:ss');
+  r.sal := 1100;
+ insert into  scott.emp values r;
+  r.empno := 7900;
+  r.ename := 'JAMES';
+  r.job := 'CLERK';
+  r.mgr := 7698;
+  r.hiredate := to_date('1981-12-03 00:00:00', 'yyyy-mm-dd hh24:mi:ss');
+  r.sal := 950;
+ insert into  scott.emp values r;
+  r.empno := 7934;
+  r.ename := 'MILLER';
+  r.job := null;
+  r.mgr := 7782;
+  r.hiredate := null;
+  r.sal := null;
+ insert into  scott.emp values r;
+end;
+/
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL-Plus/sqlpath
