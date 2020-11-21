@@ -1,10 +1,108 @@
 $ Oracle PL/SQL: collection types
--
 
-→ development/databases/Oracle/PL-SQL/collection-types/return-table-from-function[Return a table from a function]
+A collection stores 0, 1 or more *elements* each of which has the same data type.
 
-→ development/databases/Oracle/PL-SQL/collection-types/predefined[Predefined collection types]
+Each element of a collection (`coll`) can be accessed by (unique) index value (`ix`):
+code {
+item := coll(ix)
+code }
 
+
+There are three fundamental collection types in → development/databases/Oracle/PL-SQL
+table { lllll
+   ☰ ~Associative Array~ ☰ ~VARRAY~ ☰ ~Nested Table~ ☰ Comment
+   Nof Elements ☰ unspecified  ☰ limited ☰ unspecified ☰
+   Ordered? ☰ ? ☰ yes ☰ no (*really*?) ☰
+   Can be created as schema object? ☰ ✗ ☰ ✓ ☰ ✓  ☰ All collection types can be created in PL/SQL blocks and or in a package. If type is created as schema object, it can be used in object-types.
+   Index type ☰ string or `pls_integer` ☰ integer ☰ integer ☰
+   Dense? ☰ either ☰ yes ☰ start dense, become sparse ☰
+   Unitialized ☰ empty ☰ null ☰ null ☰
+   ADT Possible ☰ no ☰ Only at schema level ☰ Only if defined at schema level ☰
+   Example usages ☰ hash tables ☰ arrays ☰ sets, bags ☰
+   → development/databases/Oracle/PL-SQL/collection-types/types/nested-table/set-operations[`multiset` and `set`] operators ☰ ✗ ☰ ✗ ☰ ✓ ☰
+table }
+
+Associative arrays were formerly referred to as *PL/SQL tables* and/or *index-by tables*.
+
+
+{ Constructors
+
+  *VARRAYs* and *nested tables* (but not *associative arrays*) must be initialized with a constructor whose name is equal to the name of the type of the variable that is being constructed.
+
+  The constructor accepts one or more parameters whose type is equal to the type of the elements. The constructor initializes the elements with the values passed to the constructor:
+code {
+declare
+  xyz_type …;
+  xyz_variable xyz_type;
+begin
+
+  xyz_variable  := xyz_type();
+  xyz_variable  := xyz_type(elem_1);
+  xyz_variable  := xyz_type(elem_1, elem_2…);
+
+  …
+end;
+/
+code }
+
+}
+{ Collection methods
+
+  Collection methods are
+  table { ll
+    `delete` ☰ `delete` deletes all items. `delete(n)` deletes item number `n`, `delete(n,m)` deletes items between `n` and `m`. `delete(n)` and `delete(n,m)` does not shrink the collection if collection is not an associative array.
+    `trim` ☰ `trim` removes 1, `trim(n)` removes `n` elements from the collection's end.
+    `extend` ☰ `extend` adds a `null`, `extend(n)` adds n `null` elements to the end of the collection. `extend(n,e)` adds n copies of the element whose index is `e`.
+    `exists` ☰ `exists(n)` checks if the n-th element exists. This method is particularly useful in combination with the `delete` method.
+    `first`, `last` ☰ Return first and last element, respectively
+    `count` ☰ Returns number of elements in collection. For VARRAYs, `count` is equal to `last`.
+    `limit` ☰ Maximum number of elements in a *VARRAY*, otherwise returns `null` (because other collections don't have a maximum number of elements.
+    `prior`, `next` ☰ Used to iterate over elements in collections, taking into account elements that might have been deleted.
+  table}
+
+}
+{ Local type vs public item
+
+  A collection type that is defined in a PL/SQL block is referred to as a *local type*.
+
+  If the collection type is defined in a package specification, it is referred to as *public item* and can thus be referenced from outside the package (`pkg_name.type_name`).
+
+}
+{ Difference to records
+
+  A → development/databases/Oracle/PL-SQL/record[record] consists of a given number of named components, referred to as *fields*, each of which has a data type that is independent from the other fields.
+
+  Fields are not accessed with parantheses, but with a dot:
+code {
+val := rec.fieldName;
+code }
+
+  It is possible to create a collection of records.
+
+  It is not possible to create a record type at schema level
+
+}
+{ Basic demonstration of declaration of types and variables
+
+  The following SQL Script tries to demonstrate how the different collection types are created and initialized and where it is possible to do so and where it is not:
+
+  gh|Oracle-Patterns|/PL-SQL/CollectionTypes/intro.sql||
+
+}
 
 sa:
+
+  → development/databases/Oracle/PL-SQL/collection-types/return-table-from-function[Return a table from a function]
+
+  → development/databases/Oracle/PL-SQL/collection-types/predefined[Predefined collection types]
+
   → development/databases/Oracle/PL-SQL
+
+ `→ development/databases/Oracle/installed/packages/dbms/types[dbms_types].typecode_varray` and `dbms_types.typecode_table`.
+
+  → development/databases/Oracle/installed/data-dictionary/plsql/types[user_plsql_types / all_plsql_types / dba_plsql_types / cdb_plsql_types],
+  -
+  → development/databases/Oracle/installed/data-dictionary/plsql/types[user_plsql_types / all_plsql_types / dba_plsql_types / cdb_plsql_types],
+  -
+  → development/databases/Oracle/installed/data-dictionary/plsql/coll_types[user_plsql_coll_types / all_plsql_coll_types / dba_plsql_coll_types / cdb_plsql_coll_types]
+
