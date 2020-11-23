@@ -6,16 +6,23 @@ Blob Storage is → development/web/service/REST[REST] based and can be accessed
 
 Often, Blob Storage is used within an Azure framework as *staging area*.
 
-{ Partioning Blob Storage
+{ Types of blobs
 
   Depending on the usage of the blobs, they can be partioned into
     • *block blobs*, to up/download large amount of → development/Data quickly, or
-    • *page blobs*, if random access (as opposed to serial access in block blobs) is required.
+    • *page blobs*, if random access (as opposed to serial access in block blobs) is required. A page blob contains data up to 8 TB.
+    • *append blobs*, which are optizmized for appending (for example → development/log-files)
 
 }
 { Containers
 
   Each blob (block or page) is held in a container and given a unique name within that container.
+
+  A container name must be a valid DNS name that follows the following rules:
+   • Name must start with a letter or number, and can contain only letters, numbers, and the dash (`-`) character.
+   • Every dash  character must be immediately preceded and followed by a letter or number; consecutive dashes are not permitted in container names.
+   • All letters in a container name must be lowercase.
+   • Container names must be from 3 through 63 characters long.
 
   Typically, a container groups related blobs according to their security requirements.
 
@@ -25,6 +32,16 @@ Often, Blob Storage is used within an Azure framework as *staging area*.
   The triple (account name, container name, blob name) is the *partition key* for a blob.
 
   The partition key is used to partition data into ranges which can then be load-balanced accross the system (but a single blob can only be served by a single server).
+
+}
+{ Copying blobs
+
+  Copy → development/Data into or from blobs with
+    • `AzCopy.exe` is a command line executable that copies blobs or files to or from a storage account. It can be downloaded from → https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10[here].
+    • → Microsoft/Azure/products/Data-Factory
+    • *Blobfuse*: a virtual file system driver. 
+    • → Microsoft/Azure/products/Data-Box
+    • Azure Import/Export service 
 
 }
 

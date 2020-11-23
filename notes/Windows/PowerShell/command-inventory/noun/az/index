@@ -1,0 +1,39 @@
+$ PowerShell module az
+
+{ Installing
+
+code {
+if (→ Windows/PowerShell/language/variable/automatic/PsVersionTable[$psVersionTable].psEdition -eq 'Desktop' -and (→ Windows/PowerShell/command-inventory/noun/module/get[get-module] -name azureRM -listAvailable)) {
+    → Windows/PowerShell/command-inventory/noun/warning/write[write-warning] -Message('Having both the AzureRM and Az modules installed on PowerShell Desktop at the same time is not supported.')
+} else {
+   → Windows/PowerShell/command-inventory/noun/module/install[install-module] -name az -allowClobber -scope currentUser
+}
+code }
+
+Apparently, the repository is *untrusted*:
+code {
+You are installing the modules from an untrusted repository. If you trust this repository, change its InstallationPolicy value by running the
+ Set-PSRepository cmdlet. Are you sure you want to install the modules from 'PSGallery'?
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): Y
+code }
+
+}
+{ Connecting to Azure and doing «stuff»
+
+code {
+→ Windows/PowerShell/command-inventory/noun/az/Account/connect[connect-azAccount]
+→ Windows/PowerShell/command-inventory/noun/az/ResourceGroup/get[get-azResourceGroup] | → Windows/PowerShell/command-inventory/noun/object/where[where-object] resourceGroupName -match rene
+code }
+
+}
+{ Azure Context Objects #ps-az-azure-context
+
+  An *Azure PowerShell Context Object* («Azure Context») stores subscription and authentication information. They're used if someone has access to more than one subscription.
+
+  A context consists of
+    • the account that was used to sign in with → Windows/PowerShell/command-inventory/noun/az/Account/connect[`connect-azAccount`]
+    • the active → Microsoft/Azure#az-subscription[subscription]
+    • a reference to a *token cache* which stores the *token* required to access the Azure cloud.
+
+
+}
