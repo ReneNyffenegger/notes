@@ -40,7 +40,7 @@ code }
 
 
 }
-{ Activate webRequest-invoke
+{ Activate webRequest-invoke #after-inst-win_activate-webRequest
 
  → Windows/PowerShell/command-inventory/noun/webRequest/invoke[`invoke-webRequest`] throws the error message
   "
@@ -49,7 +49,11 @@ code }
     Specify the UseBasicParsing parameter and try again.
   "
 
-  What needs to be done in order for `webRequest-invoke` to work?
+  What needs to be done in order for `webRequest-invoke` to work? Does it have anything to do with the → Windows/PowerShell/command-inventory/noun/webRequest/invoke#ps-invoke-webRequest-useBasicParsing[`-useBasicParsing`] option
+  of → Windows/PowerShell/command-inventory/noun/webRequest/invoke[`invoke-webRequest`]?
+  -
+  It seems that this behavior can be controlled with the → Windows/registry/tree-structure/value[registry value] → Windows/registry/tree/HK_CU-LM/Software/Policies/Microsoft/Internet-Explorer/Main#reg-pol-ie-DisableFirstRunCustomize[`DisableFirstRunCustomize`],
+  found under the → Windows/registry/tree-structure/key[registry key] → Windows/registry/tree/HK_CU-LM/Software/Policies/Microsoft/Internet-Explorer/Main[`HKLM|HKCU\Software\Policies\Microsoft\Internet Explorer`].
 
 }
 { Install/Copy PowerShell profile
@@ -279,6 +283,7 @@ code }
     • → development/languages/JavaScript/Node_js#node-js-install[node.js]
     • → development/web/service/stack/XAMPP#xampp-install[XAMPP]
     • → Windows/tools/Sysinternals#SysInternals-chocolatey[SysInternals]
+    • → development/languages/Java#java-install-choco[Java]
     • …
 
 }
@@ -1365,8 +1370,11 @@ code }
 code {
 $systemPath = [environment]::getEnvironmentVariable("PATH", "machine")
 
-[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]('PATH'     , "c:\Program Files\Java\jdk-12\bin;$systemPath", "machine")
-[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]('JAVA_HOME', "c:\Program Files\Java\jdk-12"                , "machine")
+# $jdkVersion = '12'
+$jdkVersion = 'jdk1.8.0_211'
+
+[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]('PATH'     , "c:\Program Files\Java\$jdkVersion\bin;$systemPath", 'machine')
+[environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]('JAVA_HOME', "c:\Program Files\Java\$jdkVersion"                , 'machine')
 code }
 
  }
