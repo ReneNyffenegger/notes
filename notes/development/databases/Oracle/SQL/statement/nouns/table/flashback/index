@@ -1,5 +1,90 @@
 $ Oracle SQL: FLASHBACK TABLE
 
+{ Simple example
+
+  In order to be able to flashback a table, it needs to be created with *enabled row movement*.
+
+code {
+drop table fb_t purge;
+create table fb_t (
+   a number,
+   b varchar2(10)
+)
+enable row movement;
+code }
+
+code {
+insert into fb_t values (1, 'one');
+insert into fb_t values (2, 'two');
+commit;
+select current_scn from v$database;
+--
+-- 3096729
+code }
+
+code {
+insert into fb_t values (3, 'three');
+commit;
+select current_scn from v$database;
+--
+-- 3096735
+code }
+
+code {
+select * from fb_t;
+--
+--          A B
+-- ---------- ----------
+--          1 one
+--          2 two
+--          3 three
+code }
+
+code {
+flashback table fb_t to scn 3096729;
+select * from fb_t;
+--
+--          A B
+-- ---------- ----------
+--          1 one
+--          2 two
+code }
+
+code {
+flashback table fb_t to scn 3096735;
+select * from fb_t;
+--
+--          A B
+-- ---------- ----------
+--          1 one
+--          2 two
+--          3 three
+code }
+
+code {
+insert into fb_t values (4, 'four');
+commit;
+--
+--          A B
+-- ---------- ----------
+--          1 one
+--          2 two
+--          4 four
+code }
+
+code {
+flashback table fb_t to scn 3096735;
+select * from fb_t;
+--
+--          A B
+-- ---------- ----------
+--          1 one
+--          2 two
+--          3 three
+code }
+
+}
+
 sa:
   → development/databases/Oracle/SQL/statement/nouns/database/flashback[`flashback database`]
 
