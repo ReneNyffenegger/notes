@@ -1,14 +1,28 @@
 $ Oracle data dictionary
 @ data dictionary
 
-The *data dictionary* stores and provides information about → development/databases/Oracle/objects[database objects]. Its data is exposed in a set of
-→ development/databases/Oracle/objects/views[views]. The data of these views is not supposed to be changed by a user. Rather, the data in the data dictionary
+The *data dictionary* stores and provides information about → development/databases/Oracle/objects[database objects]. This information is stored in a set
+of *dictionary base tables* (whose names seem to end in a dollar, for example `OBJ$`).
+
+The data dictionary is not supposed to be changed by a user. Rather, the data in the data dictionary
 is updated by → development/databases/Oracle when a → development/databases/Oracle/SQL/DDL[DDL statement] completes.
+
+The data in the base tables is not always stored in a user friendly way and Oracle provides a set of views that are supposed to make data dictionary querying easier.
+-
+Each of these views comes in up to four variants that have one of the prefixes `USER_`, `ALL_`, `DBA_` and/or `CDB_`:
+table { ll
+  ~Prefix~ ☰
+  `USER_` ☰ Only shows → development/databases/Oracle/objects[objects] that are owned by the → development/databases/Oracle/users-roles/users[user] that selects from that view
+  `ALL_` ☰ Shows objects on which the querying user has been granted → development/databases/Oracle/security/privileges[privileges]
+  `DBA_` ☰ All objects, sometimes with addtional columns that are interesting for → development/databases/DBA[DBAs].
+  `CDB_` ☰
+table }
+
 
 The data dictionary is also referred to as *row cache* because it stores data as rows rather than → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[buffers].
 
 Oracle's data dictionary is created by → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catalog_sql[`$ORACLE_HOME/rdbms/admin/catalog.sql`] and stored in the
-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[SYSTEM tablespace].
+→ development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[SYSTEM tablespace] which is always online when a → development/databases/Oracle/architecture/instance/startup-shutdown[database is open].
 
 → development/databases/Oracle/architecture/processes/background/SMON cleans up the data dictionary when it is in a transient and inconsistent state.
 
@@ -1129,7 +1143,7 @@ code }
 }
 { TODO
 
-  → development/databases/Oracle/installed/data-dictionary/hist[*hist* views]
+  → development/databases/Oracle/installed/data-dictionary/hist[HIST views]
 
 }
 
@@ -1140,3 +1154,5 @@ sa:
   → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/data-dictionary-cache
 
   Create ERDs with the information that is stored in the datacitionary with → development/Software/Oracle-SQL-Developer/GUI/menu/File/Data-Modeler/Import/Data-Dictionary[SQL Developer].
+
+  Data dictionary views(?) → development/databases/Oracle/installed/data-dictionary/_wmsys[that are owned by `WMSYS`].
