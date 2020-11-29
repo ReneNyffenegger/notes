@@ -12,14 +12,33 @@ the table was version enabled).
 
 { Workspaces
 
-  The different versions of data are organized in *workspaces*. These workspaces form a tree, that is, there is one root workspace (named *LIVE*) and zero or more additional worskspaces. Each
+  The different versions of data are organized in *workspaces*. These workspaces usually form a tree, that is, there is one root workspace (named *LIVE*) and zero or more additional worskspaces. Each
   of this additional workspaces has exactly one parent-workspace.
+  -
+ (Apparently, it's possible to create workspaces with multiple parents by setting the initialization parameter `ALLOW_MULTI_PARENT_WORKSPACES` to `ON).
 
   The available workspaces can be queried from → development/databases/Oracle/installed/data-dictionary/_wmsys/workspaces[`all_wm_workspaces`].
 
   { Merging
 
     A child workspace can be merged into its parent which applies the changes in the child to its parent. After a workspace is merged, it will be deleted.
+
+  }
+
+}
+{ Version enabled tables
+
+  { Views
+
+    Workspace manager creates a few → development/databases/Oracle/objects/views[views] for each version enabled tables. These views have the same name as the table with the following
+    suffixes appended:
+    table { ll
+      `_conf` ☰ 
+      `_diff` ☰ 
+      `_hist` ☰ Rows added by calling `setDiffVersions`
+      `_lock` ☰ 
+      `_mw`   ☰ `mw` = Multiworkspace view. Rows added by calling `setMultiWorkspaces`
+    table }
 
   }
 
@@ -41,6 +60,11 @@ where
    name = 'Workspace Manager'
 order by
    last_sample_date desc;
+code }
+
+code {
+select * from wm_installation order by name;
+select * from wm_events_info  order by event_name;
 code }
 
 }
