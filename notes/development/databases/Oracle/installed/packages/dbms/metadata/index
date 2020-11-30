@@ -2,5 +2,37 @@ $ dbms_metadata
 
 `dbms_metadata` exposes the *Metadata API* which allows to extract definitions of → development/databases/Oracle/objects[objects] as → development/databases/Oracle/SQL/DDL[DDL statements] or → development/XML documents.
 
+code {
+create table table_heap (
+   a number,
+   b varchar2(10)
+);
+
+create global temporary table table_ggt (
+   a number,
+   b varchar2(10)
+);
+
+select dbms_metadata.get_ddl('TABLE', 'TABLE_HEAP') from dual;
+select dbms_metadata.get_ddl('TABLE', 'TABLE_GGT' ) from dual;
+code }
+
+{ Using in SQL*Plus with spool
+
+  `dbms_metadata.get_ddl` might be used in → development/databases/Oracle/SQL-Plus and the
+  → development/databases/Oracle/SQL-Plus/spool[`spool`] command to extract the definition of an object
+  into a file that then can be used to re-create the table:
+code {
+→ development/databases/Oracle/SQL-Plus/set long 10000
+spool /tmp/table-def.sql
+select dbms_metadata.get_ddl('TABLE','JUST_A_TABLE') from dual;
+spool off
+code }
+
+}
+
 sa:
+
+  In order to extract definitions from another schema, the `select_catalog_role` → development/databases/Oracle/security/privileges[privilege].
+
   → development/databases/Oracle/installed/packages/dbms
