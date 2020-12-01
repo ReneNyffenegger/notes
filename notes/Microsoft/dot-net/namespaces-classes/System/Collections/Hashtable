@@ -2,7 +2,28 @@ $ System.Collections.Hashtable (class)
 
 A `System.Collections.Hashtable` object stores key/value pairs. In other → development/languages[programming languages], such objects are also referred to as *dictionaries* or *associative arrays*.
 
-In → Windows/PowerShell, a → Windows/PowerShell/language/type/hash-table[hash table] can be created like so:
+
+{ Derivation and interfaces
+
+ `System.Collections.Hashtable` derives directly from → Microsoft/dot-net/namespaces-classes/System/Object[`System.Object`] and implements
+ → Microsoft/dot-net/namespaces-classes/System/IClonable[`System.IClonable`] and `IDictionary`.
+
+
+}
+{ There is no Hashtable<TKey, TValue>
+
+  Unlike many other classes in the → Microsoft/dot-net/namespaces-classes/System/Collections[`System.Collections`] namespaces, there is no counterpart with the
+  name `System.Collections.Generic.Hashtable<TKey, TValue>`. However, there is a
+  → Microsoft/dot-net/namespaces-classes/System/Collections/Generic/Dictionary-TKey-TValue[`System.Collections.Generic.Dictionary<TKey, TValue>`] class.
+
+  In fact, → https://github.com/dotnet/platform-compat/blob/master/docs/DE0006.md[Microsoft recommends to use the `Dictionary<TKey, TValue>`] class.
+
+}
+{ Using hashtables in PowerShell
+
+  { Create a hashtable
+
+    In → Windows/PowerShell, a → Windows/PowerShell/language/type/hash-table[hash table] can be created like so:
 code {
 PS: C:\> $ht = @{
   key_1 = 'foo'
@@ -14,20 +35,36 @@ PS: C:\> $ht.GetType().FullName
 System.Collections.Hashtable
 code }
 
-{ Derivation and interfaces
+  }
+  { Adding a value to a hash table
 
- `System.Collections.Hashtable` derives directly from → Microsoft/dot-net/namespaces-classes/System/Object[`System.Object`] and implements
- → Microsoft/dot-net/namespaces-classes/System/IClonable[`System.IClonable`] and `IDictionary`.
+code {
+PS: C:\> $ht.key_4 = 'added'
+code }
 
+  }
+  { Iterating over elements
 
-}
-{ There is no Hashtable<TKey, TValue>
+    The hashtable's property `keys` (whose type is `System.Collections.Hashtable+KeyCollection` which implements
+    → Microsoft/dot-net/namespaces-classes/System/Collections/ICollection[`System.Collections.ICollection`] and
+    → Microsoft/dot-net/namespaces-classes/System/Collections/IEnumerable[`System.Collections.IEnumerable`])
+    provides the names of the keys in the hashtable. This allows to iterate over the key/value pairs:
+code {
+$ht.keys | foreach-object { "$_ -> $($ht[$_])" }
+code }
 
-  Unlike with many other classes in the → Microsoft/dot-net/namespaces-classes/System/Collections[`System.Collections`] namespaces, there is counterpart with the
-  name `System.Collections.Generic.Hashtable<TKey, TValue>`. However, there is a
-  → Microsoft/dot-net/namespaces-classes/System/Collections/Generic/Dictionary-TKey-TValue[`System.Collections.Generic.Dictionary<TKey, TValue>`] class.
+   `GetEnumerator()` returns a an enumerator that provides → Microsoft/dot-net/namespaces-classes/System/Collections/DictionaryEntry[`System.Collections.DictionaryEntry`] objects with the two
+    properties `Key` (apparently aliased to `Name` in PowerShell) and `Value`:
+code {
+$ht.GetEnumerator() | foreach-object { "$($_.key) -> $($_.value)" }
+code }
 
-  In fact, → https://github.com/dotnet/platform-compat/blob/master/docs/DE0006.md[Microsoft recommends to use the `Dictionary<TKey, TValue>`] class.
+  }
+  { Using hash tables for splatting
+
+    Hash tables can be used for → Windows/PowerShell/language/function/parameter/splatting[function parameter splatting].
+
+  }
 
 }
 

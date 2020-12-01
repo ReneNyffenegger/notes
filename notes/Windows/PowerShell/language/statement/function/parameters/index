@@ -36,10 +36,12 @@ This page tries to demonstrate some usages of `$args` and the `param` statement.
 
   gh|about-powershell|/language/statement/function/parameters/param.ps1||
 
-  With the exception of a `using` statment and comments (including `#require`), the → https://stackoverflow.com/a/60696789/180275[`param(…)` block must be the first statement in a script or function] in order to work (as I found
+  With the exception of a `using` statement and comments (including `#require`), the → https://stackoverflow.com/a/60696789/180275[`param(…)` block must be the first statement in a script or function] in order to work (as I found
   out the hard way when → https://stackoverflow.com/questions/60692362[got an error message] when I used → Windows/PowerShell/command-inventory/noun/strictMode/set[`set-strictMode`] *before* `param` in a script.
 
-  A special feature of the `param` statement is that it allows to «annotate» a parameter with attributes. These attributes are enclosed within brackets:
+  { Parameter attributes #ps-param-attribute
+
+    A special feature of the `param` statement is that it allows to «annotate» a parameter with attributes. These attributes are enclosed within brackets:
 code {
 param (
     [parameter(mandatory=$true)]
@@ -52,21 +54,24 @@ param (
 )
 code }
 
-  The list of available attributes includes
-    • `parameter(…)` (for example `parameter(mandatory=$true)`)
-    • `alias('xyz')`
-    • `allowNull()`
-    • `allowEmptyString()`
-    • `allowEmptyCollection()`
-    • `validateCount(minElemCnt, maxElemCnt)`
-    • `validateDrive('env')`
-    • `validateLength(minStringLen, maxStringLen)`
-    • `validatePattern(regExp)`
-    • `validateRange(valMin, valMax)`
-    • `validateScript( { statement(s) } )`
-    • `validateSet( 'foo', 'bar', 'baz' )
-    • `validateNotNull()`
-    • `validateNotNullOrEmpty()`
+    The list of available attributes includes
+      • `parameter(…)` (for example `parameter(mandatory=$true)`)
+      • `alias('xyz')`
+      • `allowNull()`
+      • `allowEmptyString()`
+      • `allowEmptyCollection()`
+      • `validateCount(minElemCnt, maxElemCnt)`
+      • `validateDrive('env')`
+      • `validateLength(minStringLen, maxStringLen)`
+      • `validatePattern(regExp)`
+      • `validateRange(valMin, valMax)`
+      • `validateScript( { statement(s) } )`
+      • `validateSet( 'foo', 'bar', 'baz' )`
+      • `validateNotNull()`
+      • `validateNotNullOrEmpty()`
+
+    An interesting feature of annotating a parameter with `validateSet` is that it allows to «cycle through» the listed values with the tabulator (→ Windows/PowerShell/tab-completion[tab-completion]) when entering the respective parameter.
+  }
 
 }
 { Shift parameters #ps-parameters-shift
@@ -81,12 +86,20 @@ code }
   See also → Windows/PowerShell/language/type/array/index#ps-assign-array-to-array[assigning an array to an array].
 
 }
-{ Dynamically determine parameter names and meta data
+{ Let PowerShell describe a function's parameters #ps-param-desc
 
-  It is possible to get meta data about parameters of an existing function va the → Windows/PowerShell/command-inventory/noun/command/get[`get-command` cmdLet].
-  -
-  Thus, given a function name only (such as `mkdir` in the following example), the function's parameter names, abbreviations and data types can be queried:
+ `→ Windows/PowerShell/command-inventory/noun/command/get[get-command] cmdName` returns a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/FunctionInfo[`System.Management.Automation.FunctionInfo`] object whose
+  member `Parameters` is a collection of → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ParameterMetadata[`System.Management.Automation.ParameterMetadata`] objects which describe the parameters of
+  a → Windows/PowerShell/language/command, such as the function `mkdir`. The following example prints each parameter's name, abbreviation and data type:
   gh|about-PowerShell|/language/function/parameter/info.ps1||
+
+
+  Alternatively, a «real» → Windows/PowerShell/pipeline can be uses to get more or less the same information:
+code {
+PS C:\> (→ Windows/PowerShell/command-inventory/noun/command/get[get-command] mkdir).parameters.values | → Windows/PowerShell/command-inventory/noun/object/select[select-object] name, parameterType, switchParameter, aliases
+code }
+
+  See also → Windows/PowerShell/command-inventory/noun/command/get#get-command-query-meta-info
 
 }
 { Script parameters
