@@ -1,26 +1,26 @@
 $ $ORACLE_HOME/rdbms/admin/utlxplan.sql
 
-`utlxplan.sql` is a template to create a `PLAN_TABLE` into which the
+`utlxplan.sql` is a template to create a `PLAN_TABLE` (see → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`$ORACLE_HOME/rdbms/admin/catplan.sql`]) into which the
 → development/databases/Oracle/SQL/statement/verbs/explain[`explain plan`] statement writes its results.
 
 In an ordinary Oracle installation, the «real» `plan_table` (or rather a public synonym with that name) is created by → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`catplan.sql`].
 
 code {
 create table PLAN_TABLE sharing=none (
-        statement_id       varchar2(30),
-        plan_id            number,
-        timestamp          date,
+        statement_id       varchar2(30)  ,
+        plan_id            number        ,  -- Uniquely identifies a plan (not a record)
+        timestamp          date          ,
         remarks            varchar2(4000),
-        operation          varchar2(30),
-        options            varchar2(255),
-        object_node        varchar2(128),
-        object_owner       varchar2(128),
-        object_name        varchar2(128),
-        object_alias       varchar2(261),
-        object_instance    numeric,
-        object_type        varchar2(30),
-        optimizer          varchar2(255),
-        search_columns     number,
+        operation          varchar2(30)  ,  -- First operation always one of "DELETE|INSERT|SELECT|UPDATE STATEMENT"
+        options            varchar2(255) ,  -- 
+        object_node        varchar2(128) ,  -- Name of database link or for parallel queries order in which output from operation is consumed
+        object_owner       varchar2(128) ,
+        object_name        varchar2(128) ,  -- "TABLE", "TABLE (TEMP)", "NON-UNIQUE" etc.
+        object_alias       varchar2(261) ,
+        object_instance    numeric       ,  -- Ordinal position of object as found in SQL statement (left to right, outer to inner). View expansion number is unpredictable.
+        object_type        varchar2(30)  ,
+        optimizer          varchar2(255) ,  -- "ALL_ROWS", "ANALYZED", …
+        search_columns     number        ,
         id                 numeric,
         parent_id          numeric,
         depth              numeric,
@@ -41,7 +41,7 @@ create table PLAN_TABLE sharing=none (
         filter_predicates  varchar2(4000),
         projection         varchar2(4000),
         time               numeric,
-        qblock_name        varchar2(128),
+        qblock_name        varchar2(128) , -- Name of query block (generated or specified with QB_NAME hint)
         other_xml          clob
 );
 code }
