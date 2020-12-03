@@ -5,19 +5,39 @@ A PowerShell command is one of the following:
   • → Windows/PowerShell/language/cmdlet[cmdLet]
   • → Windows/PowerShell/language/alias[alias]
   • → Windows/PowerShell/language/function[function]
-  • filter
+  • filter (a function with a *process block*)
   • script
   • application
 
 { Precedence
 
-  When entering a command in a PowerShell session, the following order of precedence is applied to resolve the command:
+   When entering a command in a PowerShell session, the following order of precedence is applied to resolve the command if multiple commands have the same name:
     • alias
-    • function
+    • function / filter
     • cmdLet
-    • → Windows/development/Portable-Executable/EXE[executables] and non-Powershell scripts (→ Windows/dirs/Windows/System32/cmd_exe/batch-files[batch files])
+    • applications: → Windows/development/Portable-Executable/EXE[executables] and non-Powershell scripts (→ Windows/dirs/Windows/System32/cmd_exe/batch-files[batch files])
+    • external scripts: PowerShell scripts with the → development/filename-extensions#ps1[`.ps1`]
+    • script block (are they named?)
 
-  ? If a command cannot be resolved, PowerShell also tries to resolve it by prepending it with `get-`. For example: entering `job` executes
+  An example of an ambigous command on Windows, PowerShell 5.1, is `sc` which can refer either to the executable
+  → Windows/dirs/Windows/System32/sc_exe[`sc.exe`] or the alias for → Windows/PowerShell/command-inventory/noun/content/set[`set-content`]) (Apparently, in PowerShell 7,
+ `sc` is not pre-defined as alias anymore):
+code {
+→ Windows/PowerShell/command-inventory/noun/command/get sc -all
+
+CommandType     Name                Version    Source
+-----------     ----                -------    ------
+Alias           sc -> Set-Content
+Application     sc.exe              10.0.19... C:\WINDOWS\system32\sc.exe
+code }
+
+  In order to make sure that a specific command type is executed, the → Windows/PowerShell/language/operator/call[call operator (`&`) might be used on an object
+  that is returned by `get-command … -commandType …`:
+code {
+& (get-command sc -commandType application) query
+code }
+
+  If a command cannot be resolved, PowerShell also tries to resolve it by prepending it with `get-`. For example: entering `job` executes
   → Windows/PowerShell/command-inventory/noun/job/get[`get-job`].
 
 

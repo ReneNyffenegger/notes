@@ -1,0 +1,95 @@
+$ PowerShell: arrays as arguments to executables and PowerShell scripts
+
+This page tries to summarize my investigations on the particularities when invoking
+PowerShell scripts and executables with → Windows/PowerShell/language/type/array[arrays] as their arguments.
+
+{ PowerShell script and executable
+
+  First, we need a PowerShell script and an executable that prints the number of arguments received and the value of each of these arguments.
+
+  { ShowArgs.ps1
+
+   `ShowArgs.ps1` is the PowerShell script which basically iterates over → Windows/PowerShell/language/variable/automatic/args[`$args`] and prints
+    its values and types.
+
+    gh|about-PowerShell|/language/type/array/as-argument/ShowArgs.ps1||
+
+  }
+  { ShowArgs.exe
+
+   `ShowArgs.exe` is the corresponding → Windows/development/Portable-Executable/EXE[executable]. It is created from the
+    following → development/languages/C-Sharp[C#] source file:
+    gh|about-PowerShell|/language/type/array/as-argument/ShowArgs.cs||
+  
+    The compilation into an executable with the → development/languages/C-Sharp/compiler[`csc` compiler] is simple:
+    gh|about-PowerShell|/language/type/array/as-argument/compile.ps1||
+
+    Unlike `ShowArgs.ps1`, `ShowArgs.exe` does not print the types of the arguements because they're constraint to strings.
+
+  }
+}
+{ Some tests
+
+  With the script and the exe, we're ready for some test
+
+  { foo, bar, baz
+
+    In → Windows/PowerShell, the comma in an expression like `foo, bar, baz` acts as a → Windows/PowerShell/language/operator/comma[comma operator] which creates an array.
+
+    Thus, the PowerShell script receives *one* argument which *is* the array that was passed to the script:
+code {
+PS C:\users\rene> .\ShowArgs.ps1 foo, bar, baz
+ShowArgs.ps1: argument count is 1
+  foo bar baz  (System.Object[])
+code }
+
+  An executable on the other hand receives three elements rather than one array:
+code {
+PS C:\users\rene> .\ShowArgs.exe: argument count is 3:
+  foo
+  bar
+  baz
+code }
+
+  }
+  { foo,bar,baz
+
+    On a syntactic level, `foo,bar,baz` is the same array as `foo, bar, baz` and thus
+    is processed equaly when passed to the PowerShell script:
+code {
+PS C:\users\rene> .\ShowArgs.ps1 foo,bar,baz
+ShowArgs.ps1: argument count is 1
+  foo bar baz  (System.Object[])
+code }
+    
+    Interestingly, the executable now receives *one* argument. Thus, the space *is* important when calling executables:
+code {
+PS C:\users\rene> .\ShowArgs.exe foo,bar,baz
+ShowArgs.exe: argument count is 1:
+  foo,bar,baz
+code }
+
+  }
+  { foo,bar baz
+
+  `foo,bar baz` consists of an array (with the elements `foo` and `bar`) and the token `baz`. Thus, the PowerShell scripts
+   receives an array and a string:
+code {
+PS C:\users\rene> .\ShowArgs.ps1 foo,bar baz
+ShowArgs.ps1: argument count is 2
+  foo bar  (System.Object[])
+  baz  (System.String)
+code }
+
+   The executable also receives two arguments, which agrees with the previous observation that spaces are important when
+   calling executables.
+code {
+PS C:\users\rene> .\ShowArgs.exe foo,bar baz
+ShowArgs.exe: argument count is 2:
+  foo,bar
+  baz
+code }
+
+  }
+
+}
