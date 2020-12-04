@@ -1,4 +1,4 @@
-$ PowerShell cmdLet get-childItem
+$- PowerShell cmdLet get-childItem
 
 `get-childItem` returns a list of → Windows/PowerShell/command-inventory/noun/item[items] and → Windows/PowerShell/command-inventory/noun/childItem[childItems] of a given
 → Windows/PowerShell/command-inventory/noun/location[location].
@@ -6,7 +6,7 @@ $ PowerShell cmdLet get-childItem
 code {
 get-childItem
 get-childItem -path p:\ath\to\dir
-get-childItem -path p:\ath\to\dir        -filter  *.txt
+get-childItem -path p:\ath\to\dir        → #get-childItem-filter[-filter]  *.txt
 get-childItem -path p:\ath\to\dir\*      -include *.txt                 # Note the star
 get-childItem -path p:\ath\to\dir\*      -exclude *.dll,*.exe
 get-childItem -path p:\ath\to\dir\a*\b*
@@ -17,7 +17,7 @@ get-childItem  …                         -hidden                        # retu
 get-childItem  …                         -readOnly                      # return read-only files only
 get-childItem  …                         -system                        # return system files only
 get-childItem  …                         -directory                     # return directories only
-get-childItem  …                         -name                          # return strings rather than filesystem, registry or certificate objects
+get-childItem  …                         → #get-childItem-name[-name]                          # return strings rather than filesystem, registry or certificate objects
 code }
 
 
@@ -40,7 +40,18 @@ get-childItem | → Windows/PowerShell/command-inventory/noun/object/sort[sort-o
 code }
 
 }
-{ List or exlude items with specific attributes (such as files, directories etc.) #get-childItem-attributes
+{ Find items whose name contain a given pattern (globbing) #get-childItem-filter
+
+  With `-filter`, it is possible to get a list of items whose names have a specific → Windows/PowerShell/language/wildcards[wildcard] pattern.
+
+  The following command lists files and directories that contain *il* in their names:
+  gh|about-PowerShell|/cmdlets/childItem/filter-il.ps1||
+
+  As per → https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem?view=powershell-7.1[Microsoft's documentation], only
+  the file system → Windows/PowerShell/language/provider[provider] supports filtering.
+
+}
+{ List or exclude items with specific attributes (such as files, directories etc.) #get-childItem-attributes
 
   The `-attributes` option allows to only list or excludeitems with a given set of attributes. The list of attributes that can be specified is that of
   → Microsoft/dot-net/namespaces-classes/System/IO/FileAttributes[`System.IO.FileAttributes`].
@@ -64,7 +75,7 @@ code }
 }
 { Returned type of get-childItem
 
-  If `get-childItem` is used in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
+  Unless invoked with → #get-childItem-name[`-name`] and `get-childItem` is used in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
   → Windows/PowerShell/language/type/array of → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`] and
   → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System.IO.FileInfo`] objects, both of which derive from
   → Microsoft/dot-net/namespaces-classes/System/IO/FileSystemInfo[`System.IO.FileSystemInfo`].
@@ -72,9 +83,38 @@ code }
   If used in a drive that accesses the → Windows/registry, it returns an array of → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] objects.
 
 }
+{ Let get-childItem return strings with -name #get-childItem-name
+
+  When `get-childItem` is invoked with the `-name` paramter, the cmdLet returns an array of strings rather then specialized types for the child items.
+
+  This is especially useful to get a more readable (imho) output, especially when combined with `-recurse` (in which case it behaves like the good old
+  → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] command → Windows/dirs/Windows/System32/cmd_exe/commands/dir[`dir /b …`]).
+
+}
+{ Querying child items from another provider (such as the registry, environment variables etc.)
+
+  Usually, `get-childItem` is used to list files and directories. However, it can also list items from a non file system provider by prepending the path with the provider and a colon.
+
+  The following command lists all → Windows/development/environment-variables[environment variables] that contain *user* in their names:
+code {
+get-childItem env:*user*
+code }
+
+  Listing items from the → Windows/registry is possible with
+code {
+get-childItem '→ Windows/registry/tree/HKEY_CURRENT_USER/AppEvents/Schemes[HKCU:\AppEvents\Schemes]' -recurse -name
+code }
+
+  Alternatively, it is also possible to change the location into another provider so that the provider does not need to be prefixed anymore:
+code {
+→ Windows/PowerShell/command-inventory/noun/location/set[set-location] hkcu:
+get-childItem appEvents\Schemes
+code }
+
+}
 { Aliases
 
-  `ls` and `dir` are → Windows/PowerShell/language/alias[aliases] for `get-childItem`.
+ `ls` and `dir` are → Windows/PowerShell/language/alias[aliases] for `get-childItem`.
 
 }
 
