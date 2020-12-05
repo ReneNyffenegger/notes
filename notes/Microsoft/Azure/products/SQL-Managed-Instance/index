@@ -5,11 +5,33 @@ $ Azure SQL Managed Instance
 Azure SQL Managed Instance is almost 100% compatible with the Enterprise → development/databases/SQL-Server/editions[Edition] database Engine of → development/databases/SQL-Server, in fact, it
 combines the best features of SQL Server and → Microsoft/Azure/products/SQL-Database[Azure SQL Database].
 
-
 Azure SQL Managed Instance provides a native → Microsoft/Azure/products/Virtual-Network[Virtual Network (VNet)] to address security concerns.
 
 The business model is tailored to existing SQL Server customers and allows the to *lift and shift* their on-prem applications to the cloud (for example using
 → Microsoft/Azure/products/Database-Migration-Services).
+
+{ Deployment within an Azure Virtual Network
+
+  A Managed Instance must be deployed within a → Microsoft/Azure/products/Virtual-Network[Virtual Network].
+
+  Within the virtual network, the managed instance requires a *dedicated subnet* which cannot be shared with any other cloud service.
+  -
+  Additionally, this dedicated subnet cannot be a gateway subnet.
+
+  This dedicated subnet needs to be *delegated* to the `Microsoft.Sql/managedInstance` *resource provider*.
+
+  The subnet also needs to be associated with a *Network Security Group (NSG)*.
+  -
+  The NSG allows control access to the managed instance by filtering traffic on ports 1433 and 11000-11999 (when managed instance is configured for redirect connections).
+
+  The subnet also needs to be associated with a *User Defined Route (UDR) table*.
+
+  Lastly, the subnet must have at least 32 IP-addresses.
+
+
+? It req
+
+}
 
 sa:
   → Microsoft/Azure/products/SQL-Database shares a common code basis with *Azure SQL Managed Instance*, here's a
@@ -18,3 +40,5 @@ sa:
   *Resource Providers* for Azure SQL Managed Instance include
     • Microsoft.DataMigration
   See also → Windows/PowerShell/command-inventory/noun/az/ResourceProvider/get[`get-azResourceProvider`]
+
+  The → Windows/PowerShell command noun → Windows/PowerShell/command-inventory/noun/az/SqlInstance[`azSqlInstance`]

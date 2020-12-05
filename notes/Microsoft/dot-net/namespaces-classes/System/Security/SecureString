@@ -14,6 +14,31 @@ The → https://docs.microsoft.com/en-us/dotnet/api/system.security.securestring
   method.
 "
 
+{ Get value of a secure string #SecureString-get-value
+
+  In → Windows/PowerShell, the value of a secure string can be «revoverd» like so:
+code {
+$password = 'secret!'
+$secStr   =  → Windows/PowerShell/command-inventory/noun/secureString/convertTo[convertTo-secureString] -string $password -asPlainText -force
+$secBstr  = [→ Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal[System.Runtime.InteropServices.Marshal]]::SecureStringToBSTR($secStr)
+
+→ Windows/PowerShell/command-inventory/noun/host/write[write-host] "Password is $([System.Runtime.InteropServices.Marshal]::PtrToStringAuto($secBstr))"
+code }
+
+}
+{ Not encrypted on non Windows platforms
+
+  The → https://docs.microsoft.com/en-us/dotnet/api/system.security.securestring[documentation] has also the following interesting remark:
+  "
+    On the Windows operating system, the contents of a SecureString instance's internal character array are encrypted. 
+    -
+    …
+    -
+    Because of this platform dependency, SecureString does not encrypt the internal storage on non-Windows platform. 
+  "
+
+}
+
 sa:
 
   → Microsoft/dot-net/namespaces-classes/System/String[`System.String`]
@@ -22,3 +47,5 @@ sa:
     → Windows/PowerShell/command-inventory/noun/secureString[`secureString`] and
     the option `-asSecureString` of the
     → Windows/PowerShell/command-inventory/noun/host/read[`read-host`] cmdLet.
+
+   `→ Windows/PowerShell/language/variable/automatic/host/ui[$host.ui].readLineAsSecureString()`
