@@ -2,7 +2,87 @@ $ System.Data.SqlClient (namespace)
 
 `System.Data.SqlClient` is the namespace for the → Microsoft/dot-net namespace for the → Microsoft/dot-net/ADO#dot-net-data-provider[Data Provider] for → development/databases/SQL-Server.
 
-The *.NET Framework Data Provider for SQL Server* uses a *lightweight* protocol to communicate with SQL Server. This protocol is independent from → development/databases/ODBC.
+The *.NET Framework Data Provider for SQL Server* uses a *lightweight* protocol to communicate with
+→ development/databases/SQL-Server. This protocol is independent from → development/databases/ODBC.
+
+{ Simple PowerShell example demonstrating system.Data.SqlClient
+
+  { Establish a connection
+
+    First, we need a *connection string*. The `System.Data.SqlClient` namespace provices the
+    → Microsoft/dot-net/namespaces-classes/System/Data/SqlClient/SqlConnectionStringBuilder[`SqlConnectionStringBuilder`] class to create such
+    a connection string:
+
+code {
+$builder = new-object System.Data.SqlClient.SqlConnectionStringBuilder
+
+$builder."Data Source"     = …
+$builder."User ID"         = …
+$builder."Password"        = …
+$builder."Initial Catalog" = …
+code }
+
+    The actual value of the connection string can be displayed with
+code {
+$builder.ConnectionString
+code }
+
+    With the connection string now created, we can establish the connection to the database:
+code {
+$conn = new-object System.Data.SQLClient.SqlConnection $builder
+$conn.open()
+code }
+
+  }
+  { Create a table
+
+    We also need a table to insert data and select it again:
+code {
+$null = (new-object System.Data.SqlClient.SqlCommand 'create table T1 (foo numeric, bar varchar(20), baz datetime)',$conn).executeNonQuery()
+code }
+
+  }
+  { Insert a few records
+
+    The newly created table is filled with three records.
+
+    First, we need to create an insert statement (`SqlCommand`) and a parameter for each column we want to fill:
+code {
+$insertStmt = new-object System.Data.SqlClient.SqlCommand 'insert into T1 values (@foo, @bar, @baz)',$conn
+$insertStmt.commandType = [System.Data.CommandType]::Text
+$foo = $insertStmt.parameters.add('@foo', [System.Data.SqlDbType]::Int     )
+$bar = $insertStmt.parameters.add('@bar', [System.Data.SqlDbType]::Varchar )
+$baz = $insertStmt.parameters.add('@baz', [System.Data.SqlDbType]::DateTime)
+code }
+
+    The created insert statement and its parameters allow to insert the records into the table:
+code {
+$null = $foo.value, $bar.value, $baz.value = 1, 'one'          , (get-date                      ) ; $insertStmt.executeNonQuery()
+$null = $foo.value, $bar.value, $baz.value = 2, 'two'          , (get-date '2020-02-02T22:22:22') ; $insertStmt.executeNonQuery()
+$null = $foo.value, $bar.value, $baz.value = 3, [DBNull]::value, [DBNull]::value                  ; $insertStmt.executeNonQuery()
+code }
+
+  }
+  { Select the data from the table
+
+    To select the data from the table, we need another statement (`SqlCommand`) and a reader.
+
+    Special care is taken to recognize `null` values by using `$reader.isDbNull()`:
+code {
+$selectStmt = new-object System.Data.SqlClient.SqlCommand 'select foo, bar, baz from T1', $conn
+$reader     = $selectStmt.executeReader()
+while ($reader.read()) {
+   write-host ('{0} {1} {2}' -f 
+      $(if ( $reader.isDbNull(0)) {  ''  } else {$reader.getDecimal(0)  } ),
+      $(if ( $reader.isDbNull(1)) {  ''  } else {$reader.getString(1)   } ),
+      $(if ( $reader.isDbNull(2)) {  ''  } else {$reader.getDateTime(2) } )
+   )
+}
+$reader.close()
+code }
+  }
+
+}
 
 sa:
   Compare with (the new?) → Microsoft/dot-net/namespaces-classes/Microsoft/Data/SqlClient[`Microsoft.Data.SqlClient`]
