@@ -2,6 +2,8 @@ $ Azure SQL Managed Instance
 
 *Managed, always up-to-date SQL instance in the cloud*
 
+*Azure SQL Managed Instance* is a product that belongs to the  → Microsoft/Azure/products/SQL product family.
+
 Azure SQL Managed Instance is almost 100% compatible with the Enterprise → development/databases/SQL-Server/editions[Edition] database Engine of → development/databases/SQL-Server, in fact, it
 combines the best features of SQL Server and → Microsoft/Azure/products/SQL-Database[Azure SQL Database].
 
@@ -10,9 +12,22 @@ Azure SQL Managed Instance provides a native → Microsoft/Azure/products/Virtua
 The business model is tailored to existing SQL Server customers and allows the to *lift and shift* their on-prem applications to the cloud (for example using
 → Microsoft/Azure/products/Database-Migration-Services).
 
-{ Deployment within an Azure Virtual Network
+{ Configuration of the Virtual Network into which the managed instance is placed
 
   A Managed Instance must be deployed within a → Microsoft/Azure/products/Virtual-Network[Virtual Network].
+
+  Required steps:
+    • Create and configure the Virtual network where the managed instance will be placed. Make sure that the *Service Endpoints option* is disabled
+    • Create a *route table* that allows the managed instance to communicate with *Azure Management Service*
+    • Optionally: create a dedicated subnet for the managed instance (or use the default one that was created together with the virtual network)
+    • Make sure that subnet has between 16 and 256 IP addresses (masks from /28 to /24)
+    • Assign route table to the subnet (default or optionally created one): it must have a *User Route Table (UDR)* with 0.0.0.0/0 Next Hop Internet route.
+
+  See also
+    • → https://docs.microsoft.com/kk-kz/archive/blogs/sqlserverstorageengine/how-to-configure-network-for-azure-sql-managed-instance[How to configure network for Azure SQL Managed Instance]
+
+rem {
+  The *service endpoints* of this virtual network should be disabled.
 
   Within the virtual network, the managed instance requires a *dedicated subnet* which cannot be shared with any other cloud service.
   -
@@ -28,10 +43,56 @@ The business model is tailored to existing SQL Server customers and allows the t
 
   Lastly, the subnet must have at least 32 IP-addresses.
 
+rem }
 
-? It req
 
 }
+{ Accessing a Managed Instance from outside the virtual network
+
+  In order to access a managed instance from outside the virtual network, a *public endpoint* must be enabled.
+
+  With an enabled public endpoint, the managed instance can be accessed from multi-tenant Azure services like Power BI or → Microsoft/Azure/products/App-Service[Azure App Service], or from an on-prem network.
+
+  In order to increase protection of the data stored in a managed instance, the public endpoint is enabled in a two step process that follows the principle of seperation of duties (SoD):
+    • The administrator of the managed instance enables the public endpoint
+    • A network adminsitrator allows traffic (using a *network security group*).
+
+
+  { PowerShell
+
+    With PowerShell, the first step (enabling the public endpoint) can be achieved like so:
+code {
+$sqlInstance = → Windows/PowerShell/command-inventory/noun/az/SqlInstance/get[get-azSqlInstance] -resourceGroupName $tq84_resourceGroupName -name 'nameofinstance'
+$sqlInstance = $sqlInstance | → Windows/PowerShell/command-inventory/noun/az/SqlInstance/set[set-azSqlInstance] -publicDataEndpointEnabled → Windows/PowerShell/language/variable/automatic/true-false[$true] -force
+code }
+
+    How the second step can be achieved with POwershell: I don't know.
+
+  }
+
+}
+{ Migration of on-prem databases into the Cloud
+
+  Migrating an on-prem → development/databases/SQL-Server application to a Managed Instance should not be too hard.
+
+  It should be kept in mind, however, that there some functional differences between Managed Instance and SQL Server, so that the application possibly needs to be changed before
+  moving it into the → development/Cloud.
+
+  If such a tweaking of the application is not desired, → Microsoft/Azure/products/SQL-Server-on-Virtual-Machines should be considered as it offers the exact same functionality as SQL Server.
+
+
+}
+{ Services Managed Instances depends on
+
+  Managed Instacne depends on a few → Microsoft/Azure services:
+    • → Microsoft/Azure/products/Storage (?) for backups
+    • → Microsoft/Azure/products/Event-Hubs[Event Hubs] for telemetry
+    • → Microsoft/Azure/products/Active-Directory for authentication
+    • Azure Key Vault for Transparent Data Encryption (TDE)
+    • some other Azure platform services that provide security and supportability features
+
+}
+
 
 sa:
   → Microsoft/Azure/products/SQL-Database shares a common code basis with *Azure SQL Managed Instance*, here's a
