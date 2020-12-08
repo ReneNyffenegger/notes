@@ -14,7 +14,7 @@ System.String
 code }
 
 }
-{ Return string rather than an array
+{ Return one string with the content of the file rather than an array
 
   In order to make `get-content` return the content of a file as a string rather than an array, the `-raw` option is needed:
 code {
@@ -29,6 +29,35 @@ code }
 code {
 PS C:\Users\Rene> get-content README.txt | where-object { $_ -match '\d\d\d' }
 code }
+
+}
+{ -readCount and -totalCount
+
+  The parameter `-readcount` specifies a number that controls the number of lines in the array that is passed down the → Windows/PowerShell/pipeline.
+  -
+  The parameter `-totalCount` specifies the maximum number of lines that are read.
+
+  { Processing every n-th line in a file
+
+    Thus, every `n-th line` in a file can be processed like so (here: `n` = 3):
+    gh|about-PowerShell|/cmdlets/content/get/every-nth-line.ps1||
+
+    Every 2nd line, with a maximum of 3 processed lines (which correspond to 6 (=3*2) lines from the input file) can be achieved like so:
+    gh|about-PowerShell|/cmdlets/content/get/every-nth-line-max.ps1||
+
+    In order to start with the n-th line rather than the first one, `→ Windows/PowerShell/language/variable/automatic/psItem[$_][0]` must be changed accordingly.
+
+  }
+  { Reading a file in batches of n bytes
+
+    In combination with `-encoding byte` («ordinary» PowerShell) or `-asByteStream` (PowerShell Core), `-readCount` and `-totalCount` allows to read
+    a file in batches of n bytes:
+    gh|about-PowerShell|/cmdlets/content/get/readCount-totalCount-byte-array.ps1||
+
+    Note, that the (supposed) array of four bytes must be enclosed into an → Windows/PowerShell/language/operator/array-subexpression[array subexpression operator `@(…)`] for
+    format to work (see also → https://stackoverflow.com/q/65205884/180275[my question on StackOverflow]).
+
+  }
 
 }
 { Hexadecimal representation of a file #ps-get-content-hex
