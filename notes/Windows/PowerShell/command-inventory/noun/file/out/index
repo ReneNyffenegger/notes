@@ -1,5 +1,25 @@
 $ PowerShell cmdLet out-file
 
+`out-file` allows to redirect output to file. With it's parameters, it is more flexible than the → Windows/PowerShell/language/operator/redirection[redirection operators].
+
+{ Creating vs writing to a new file
+
+  By default, `out-file` creates a file (as does the redirection operator `>`). Using `-append`, content is added to a file (if the file exists). Otherwise, `-append` also creates the file.
+
+code {
+'some text' | out-file  xyz.log
+'more text' | out-file  xyz.log -append
+code }
+
+}
+{ Preventing accidental creation of a file
+
+  The accidential creation of a file can be prevented with `-noClobber`
+code {
+'foo bar baz' | out-file xyz.log -noClobber
+code }
+
+}
 { Write a file line by line
 
   gh|about-PowerShell|/cmdlets/file/out/write-file.ps1||
@@ -23,6 +43,32 @@ code {
 code }
 
    The difference is that the 5.1 version writes the file in UTF16, LE, with a BOM (Byte Order mark) while the 7.0 version writes the file in → development/Unicode/UTF-8.
+
+}
+{ -encoding #ps-out-file-encoding
+
+  The parameter `-encoding` allows to specify the → development/Unicode/character-encoding[encoding] with which text is written to the file:
+code {
+'abc' | out-file -encoding ascii abc.txt
+code }
+
+  The accepted values for `-encoding` are
+    • ascii
+    • bigendianunicode
+    • bigendianutf32
+    • oem
+    • unicode
+    • utf7 (not recommended anymore and causes warning in PowerShell 7.1)
+    • utf8
+    • utf8BOM
+    • utf8NoBOM
+    • utf32
+
+  In PowerShell 7, its also possible to specify the encoding's → Windows/development/code-page[code page id]:
+code {
+'abc' | out-file abc.txt -encoding 65001
+'abc' | out-file abc.txt -encoding 'windows-1251'
+code }
 
 }
 
