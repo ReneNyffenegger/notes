@@ -58,16 +58,19 @@ Azure Pipelines supports(?) the folloing → development/languages[programming l
 
   Such resources include
   table { ll
-    agent ppols ☰ Used to build or deploy software
-    variable groups ☰ A variable groups stores named values («variables»). These values are available across multiple pipelines. Variable groups are managed in the *Library* page under *Pipelines*
-    secure files ☰ Stores (encrypted) files such as signing certificates, Apple provisioning profiles, Android keystore files, SSH keys (etc.?) without having to commit then into the source code repository. The content of a secure file is only available during the build or release pipeline by referencing them from a task.
-    service connections ☰ allows to connect to external and remote services that are used to execute tasks in a job
-    environments ☰ A colection of resources, such as Kubernetes clusters and virtual machines. Typical names for enviornments include: Dev, Test, QA, Staging and Production
-    repositories ☰ accesses templates in another repository
-    artifacts ☰
-    pipelines (huh, is this recursive?) ☰
-    containers ☰ Docker registries or → Microsoft/Azure/products/Container-Registry
+    Agent pools ☰ Used to build or deploy software
+    Variable groups ☰ A variable groups stores named values («variables»). These values are available across multiple pipelines. Variable groups are managed in the *Library* page under *Pipelines*
+    Secure files ☰ Stores (encrypted) files such as signing certificates, Apple provisioning profiles, Android keystore files, SSH keys (etc.?) without having to commit then into the source code repository. The content of a secure file is only available during the build or release pipeline by referencing them from a task.
+    Service connections ☰ allows to connect to external and remote services that are used to execute tasks in a job
+    Environments ☰ A colection of resources, such as Kubernetes clusters and virtual machines. Typical names for enviornments include: Dev, Test, QA, Staging and Production
+    Repositories ☰ accesses templates in another repository
+    Artifacts ☰ such as Azure Pipelines or Jenkins
+    Pipelines (huh, is this recursive?) ☰
+    Containers ☰ For example: Docker hub or → Microsoft/Azure/products/Container-Registry
   table }
+
+  The owner of a resource can define a *check* that must be satisfied before the pipeline (or more accurately: the stage) can consume the resource. If this check is not satisfied, the
+  stage won't run.
 
 }
 { Defining pipelines
@@ -90,8 +93,19 @@ Azure Pipelines supports(?) the folloing → development/languages[programming l
 
     Stages organize *jobs* in a pipeline.
 
+    By default, stages run in a sequence.
+
+    *Approval checks* allow to manually control if the next stage should run.
+
+    Typical examples of stages are
+      • build the application
+      • run test suite xyz
+      • deploy to UAT
+
   }
   { Jobs
+
+    A job is a unit of work which is assignable to the same machine.
 
     A job is either *agentless* or is executed on an *agent*.
 
@@ -100,9 +114,15 @@ Azure Pipelines supports(?) the folloing → development/languages[programming l
 
     A *step* is the smallest building block of a pipeline.
 
+    A step runs in its own → Linux/kernel/process[process] on an agent.
+
+    A step has access to the *pipeline workspace* on the local hard drive.
+
     A step is either
-      • a *script*, or a
-      • a *task* (which is essentially a prepackaged script)
+      • a *script*, a
+      • a *task* (which is essentially a prepackaged script), or a
+      • reference to an external template
+
 
   }
   { Running pipelines (triggers)
@@ -112,6 +132,35 @@ Azure Pipelines supports(?) the folloing → development/languages[programming l
   }
 
 }
+{ Templates
+
+  Templates are files that contain sections that are used in multiple places in the pipeline.
+
+  There are four *kinds of templates*:
+    • stage
+    • job
+    • step
+    • variable
+
+}
+rem {
+{ Content of a YAML file
+
+  The content of a YAML file reflects the structurye Pipeline:
+code {
+pipeline
+  stage a
+    job a.1
+      step a.1.1
+      step a.1.2
+    job a.2
+      step a.2.1
+      step a.2.2
+  stage b
+code }
+
+}
+rem }
 { Agent
  
   An agent is a the infrastructure that executes *jobs*.
