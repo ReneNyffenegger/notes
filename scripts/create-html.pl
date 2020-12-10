@@ -828,7 +828,10 @@ sub process_page { #_{
           $dirname_os =~ s/\xc3\xbc/ue/g;
           $dirname_os =~ s/\xc3\xa4/ae/g;
           $dirname_os =~ s/\xc3\xb6/oe/g;
-          print "copying img to /notes/$dirname_os/$image_name\n";
+          $dirname_os =~ s/ü/ue/g;
+          $dirname_os =~ s/ä/ae/g;
+          $dirname_os =~ s/ö/oe/g;
+          print "xyz: copying img to /notes/$dirname_os/$image_name\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
