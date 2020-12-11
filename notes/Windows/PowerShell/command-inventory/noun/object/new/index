@@ -46,6 +46,20 @@ code }
   With `new-object psObject`, PowerShell also creates a `PSObject` with `ImmediateBaseObject` referencing the `PSCustomObject`.
 
   }
+  { Beware of particularities of argument parsing mode
+
+    Arguments that are passed to a → Microsoft/dot-net type constructor are parsed in → Windows/PowerShell/language/parsing#ps-parse-arg-mode[argument parsing mode] which is different from
+    → Windows/PowerShell/language/parsing#ps-parse-expr-mode[expression parsing mode]. This might lead to seemingly inexplainable results.
+
+    One of the main differences of these → Windows/PowerShell/language/parsing[parsing modes] is that *argument parsing mode* does not recognize the type reference (for example
+    `[→ Microsoft/dot-net/namespaces-classes/System/Console[System.Console]]`) but assumes it to be a string.
+
+    Thus, if a method on a type is called to fill an argument to the constructor of the object being created, such a type reference must be enclosed in parenthesis:
+code {
+$obj = new-object type.name ( [Another.type.name]::method() )
+code }
+
+  }
 
 }
 { Creating a COM object

@@ -1,0 +1,62 @@
+$ PowerShell: Parsing commands and expressions
+
+PowerShell has two parsing modes:
+table { ll
+   Expression mode ☰ which is used to parse expressions that possibly consist of sub-expressions
+   Argument mode ☰ which is used to parse → Windows/PowerShell/language/command arguments
+table }
+
+When PowerShell parses an input, it starts in expression mode. When a parsed token refers to a → Windows/PowerShell/language/command invocation, parsing mode switches to argument mode.
+
+When being in argument mode, there are a set of tokens that are evaluated in expression mode.
+
+{ Expression mode #ps-parse-expr-mode
+
+  Expression mode recognizes the following token types:
+  table { ll
+     Character string literals ☰ which are enclosed in single or double quotes
+     Number literals ☰
+     → Windows/PowerShell/language/operator[Operators] ☰ which start with a hypen (for example → Windows/PowerShell/language/operator/comparison[`-gt`] or → Windows/PowerShell/language/operator/as[`-as`] etc)
+     Attribute and conversion expressions ☰ `[int] 42`
+     → Windows/PowerShell/language/variable[Variable] references ☰ which start with dollar sign (`$foo`). Variable references are evaluated as soon as they're encountered. (However, → Windows/PowerShell/language/function/parameter/splatting[splatting] is not possible)
+  table }
+
+  A token that is not recognized as one of the listed above is assumed to refer to a *command invocation*.
+
+}
+{ Argument mode #ps-parse-arg-mode
+
+  In argument mode, the following characters and syntaxes have a special meaning:
+  table { ll
+     `$variable` ☰ Only if name of variable exists
+     `'verbatim'` and `"expandable"` strings ☰
+     `(…)` ☰ Parenthesis enclose an expression (which are evaluated in expression mode again)
+     → Windows/PowerShell/language/operator/subexpression[`$( … )`] ☰ The subexpression operator
+     → Windows/PowerShell/language/scriptblock[`{ … }`] ☰ A → Windows/PowerShell/language/scriptblock
+     `@` ☰ An initial at-sign starts → Windows/PowerShell/language/function/parameter/splatting[splatting], → Windows/PowerShell/language/type/array[arrays] or → Windows/PowerShell/language/type/hash-table[hash tables]
+     `,` ☰ commas create → Windows/PowerShell/language/type/array[arrays]
+  table }
+
+  A token that is not recognized as one of the listed above is assumed to be an *expandable string* (that is: strings with double quotes rather than single quotes, see also → https://stackoverflow.com/a/65253822/180275[this StackOverflow answer])
+
+}
+{ Example of a consequence of the differing parsing modes
+
+  For example, in the following example, the token `[System.Text.Encoding]` is not recognized as a type reference to → Microsoft/dot-net/namespaces-classes/System/Text/Encoding[`System.Text.Ecoding`], rather,
+  the second argument to the constructor of `System.IO.StreamWriter` is passed the string `"[System.Text.Encoding]::UTF8"`.
+code {
+$outStream = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/IO/StreamWriter[System.IO.StreamWriter] some.file, [System.Text.Encoding]::UTF8
+code }
+
+ In expression mode, `[System.Text.Encoding]` would have been recognized as a type reference.
+
+}
+
+
+sa:
+  The → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Language/Parser[`System.Management.Automation.Language.Parser`] class parses
+  → Windows/PowerShell script files and returns and instance of
+  → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Language/ScriptBlockAst[`System.Management.Automation.Language.ScriptBlockAst`].
+
+links:
+  → https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing[about_Parsing]
