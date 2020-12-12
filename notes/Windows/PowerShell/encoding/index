@@ -15,6 +15,75 @@ $defaultEncoding.GetType().FullName
 code }
 
 }
+{ Encodings of Scripts #ps-encoding-script
+
+  In order to gain some clarity on the required encoding of → Windows/PowerShell scripts, I created three scripts in different encodings that write the PowerShell version
+ (`→ Windows/PowerShell/language/variable/automatic/PsVersionTable[psVersionTable].psVersion`), the encoding with which the scripts are encoded, and the length of
+  the string `'Bär`'.
+
+  The three encodings with which the scripts are encoded are
+    • Latin 1
+    • → development/Unicode/UTF-8, without a → development/Unicode/BOM
+    • → development/Unicode/UTF-8, with a → development/Unicode/BOM
+
+  For example, the script encoded in UTF-8 without a bom is:
+  gh|about-PowerShell|/encoding/script-utf8.ps1||
+
+  I used these scripts in PowerShell 7.1 and PowerShell 5.1. The following is a summary of the results.
+
+  { Invocation in PowerShell 7.1
+
+    In PowerShell 7.1, the length of `'Bär'` is always determined to be 3:
+code {
+PS> .\script-latin1.ps1
+PowerShell version: 7.1.0-preview.6
+This file is encoded in latin1
+3
+code }
+
+code {
+PS> .\script-utf8.ps1
+PowerShell version: 7.1.0-preview.6
+This file is encoded in utf-8 without a bom
+3
+code }
+
+code {
+PS> .\script-utf8-bom.ps1
+PowerShell version: 7.1.0-preview.6
+This file is encoded in utf-8 with a bom
+3
+code }
+
+  }
+  { PowerShell 5.1
+
+    In PowerShell 5.1 however, the length differs between latin-1 and → development/Unicode/UTF-8 if a script → development/Unicode/BOM[BOM] is indicated:
+
+code {
+PS> .\script-latin1.ps1
+PowerShell version: 5.1.19041.610
+This file is encoded in latin1
+3
+code }
+
+code {
+PS> .\script-utf8.ps1
+PowerShell version: 5.1.19041.610
+This file is encoded in utf-8 without a bom
+4
+code }
+
+code {
+PS> .\script-utf8-bom.ps1
+PowerShell version: 5.1.19041.610
+This file is encoded in utf-8 with a bom
+3
+code }
+
+  }
+
+}
 
 sa:
   The → Windows/PowerShell/language/variable/preference[preference] variable → Windows/PowerShell/language/variable/preference/OutputEncoding[`$outputEncoding`]

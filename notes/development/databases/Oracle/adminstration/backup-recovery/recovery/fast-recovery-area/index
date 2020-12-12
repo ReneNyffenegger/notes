@@ -10,8 +10,7 @@ $ Oracle: fast recovery area
 
    Raw disks are not supported.
 
-   The location is sest with the
-    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest[`db_recovery_file_dest` init parameter]
+   The location is set with the → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest[`db_recovery_file_dest` init parameter].
 
 }
 { Transient and permanent files
@@ -52,7 +51,44 @@ table }
   If available space is an issue, then at least the most important → development/databases/Oracle/architecture/database/logical-structures/tablespace[tablespaces] and
   → development/databases/Oracle/architecture/database/files/archived-redo-log[archived log files] that are not yet saved on tape should be stored in the FRA.
   
-    • → development/databases/Oracle/adminstration/init-parameters#db_recovery_file_dest_size[`db_recovery_file_dest_size`] (to set the → development/databases/Oracle/adminstration/backup-recovery/recovery/fast-recovery-area/disk-quota)
+
+  { Checking the space limit and the used space #ora-recovery-area-check-size
+
+    The upper limit of the size of the fast recovery area and how much space is already used can be checked with the following query:
+code {
+select
+    round(space_used /1024/1024/1024, 2) space_used_gb,
+    round(space_limit/1024/1024/1024, 2) space_limit_gb
+from
+    → development/databases/Oracle/installed/dynamic-performance-views/recovery/file/dest[v$recovery_file_dest];
+code }
+
+    Use `v$recovery_area_usage` to see how much space each file type (control file, redo log etc) uses
+
+  }
+  { ORA-19809: limit exceeded for recovery files
+
+    This error message proposes 5 actions (solutions) to get rid of it: 
+      • Take frequent backup of recovery area using → development/databases/Oracle/tools/RMAN.
+      • Consider changing RMAN → development/databases/Oracle/adminstration/backup-recovery/backup/retention-policy[retention policy].
+      • Consider changing RMAN archived log deletion policy.
+      • Add disk space and increase → development/databases/Oracle/adminstration/init-parameters/index#db_recovery_file_dest_size[`DB_RECOVERY_FILE_DEST_SIZE`].
+      • Delete files from recovery area using RMAN.
+
+    Deleting *expired archived log files* with RMAN:
+code {
+$ rman target /
+RMAN> crosscheck archivelog all;
+RMAN> delete expired archivelog all;
+code }
+
+    A more brue force way is to just delete *all* archived log files:
+code {
+RMAN> delete archivelog all;
+RMAN> crosscheck archivelog all;
+code }
+
+  }
 
 }
 { Disabling the fast recovery area
