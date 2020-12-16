@@ -1,20 +1,25 @@
 $ Oracle PL/SQL: AUTHID CURRENT_USER | DEFINER
 @ authid
 
-A → development/databases/Oracle/PL-SQL stored procedure runs either with in the context and the privileges of the caller (`authid current_user`) or
-in the context and with the privilges of the procedure's owner (`authid definer`).
+The same table or view name can be used in different schemas. Hence, if not qualified, they refer to different physical tables.
+-
+When a → development/databases/Oracle/PL-SQL stored procedure looks up unqualified table names, it does so either in the context and the privileges of the caller or
+in the context and with the privilges of the procedure's owner.
 
-The optional `authid` clause specifies which behavior the stored procedure assumes. It can be set to
-  • `authid current_user` (procedure runs in context of caller)
-  • `authid definer` (procedure runs n context of owner)
+The optional `AUTHID` clause specifies the behavior the stored procedure uses. It can be set to
+  • `AUTHID CURRENT_USER` (procedure runs in context of caller)
+  • `AUTHID DEFINER` (procedure runs in context of owner)
 
-When not specified, the default is `authid definer`.
+If not explicitely specified, the default is `AUTHID DEFINER`.
 
-The `authid` clause
-immediatly follows the `create procedure`, `create function`, `create package` or
-`create type` statements, as shown in the following:
- -
-  `authid` as used in a package declaration …
+A source of confusion might be that looking up names of stored procedure is not affected by the `authid` clause: they are always found in the context of the procedure owner.
+
+{ Location of the AUTHID clause 
+
+  The `AUTHID` clause immediatly follows the `CREATE PROCEDURE`, `CREATE FUNCTION`, `CREATE PACKAGE` or
+ `CREATE TYPE` statements, as shown in the following:
+  -
+ `AUTHID` as used in a package declaration …
 code {
 create package pkg
    AUTHID CURRENT_USER
@@ -23,7 +28,7 @@ as
 end pkg;
 /
 code }
-
+ 
   … in a function and procedure definition …
 code {
 create function f return number
@@ -50,6 +55,7 @@ as object (
 );
 code }
 
+}
 { Effects on roles
 
   A procedure with `authid definer` disables all → http://www.adp-gmbh.ch/ora/misc/users_roles_privs.html#roles[roles] that are granted to the caller. This can lead to
@@ -62,104 +68,46 @@ code }
 
   { Example from adp-gmbh.ch
 
-    This is an example that I copied from my old web site → http://www.adp-gmbh.ch[adp-gmbh.ch].
+    This is an example that I copied from my old web site → http://www.adp-gmbh.ch[adp-gmbh.ch] and updated on *2020-12-16* (added logging procedure).
 
-    First, two users are created, one named `A` and the other named `B`. They're given the required → development/databases/Oracle/security/privileges[privileges] for this example:
+    First, two users are created, one named `PROC_OWNER` and the other named `PROC_USER`. They're given the required → development/databases/Oracle/security/privileges[privileges] for this example:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/create-users.sql||
+
+    Now, user `PROC_OWNER` creates two tables, named `T` and `U` and fills them with `This is pkg_owner's table`.
+
+   `PROC_USER` is then allowed to read `T`, but not `U`.
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/proc-owner-tables.sql||
+
+   `PROC_OWNER` creates a simple logging procedure:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/proc-owner-log_msg.sql||
+
+   `PROC_OWNER` also creates the procedure `READ_T_CURRENT_USER` with `AUTHID CURRENT_USER`. This procedure simply selects the content of `T` and calls `log_msg` with the values found in `T`:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/proc-owner-read_t_current_user.sql||
+
+   `PROC_OWNER` then creates another procedure, `READ_U_DEFINER`, that reads from table `U`. This procedure runs under `AUTHID DEFINER`:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/proc-owner-read_u_definer.sql||
+
+    User `PROC_USER` is granted the → development/databases/Oracle/security/privileges[privilege] to execute both procedures:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/grant-execute-to-proc-user.sql||
+
+    Now, user `PROC_USER` comes into play. This user also creates two tables, again named `T` and `U` and fills them with `this is proc_user's table`:
+
+   `PROC_USER` executes the procedure `READ_T_CURRENT_USER`:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/exec-read_t_current_user.sql||
+    The execution prints.
 code {
-create user a identified by a default tablespace data quota unlimited on data;
-create user b identified by b default tablespace data quota unlimited on data;
-
-grant create session, create procedure, create table to a;
-grant create session, create procedure, create table to b;
+PROC_OWNER: This is proc_user's table
 code }
 
-    Now, user `A` creates two tables, named `T` and `U` and fills them with `'this is a''s table'`.
+   *Note*: this procedure evaluates table names in the context of the *current user* (i.e. `PROC_USER`) but procedures (such as `LOG_MSG`) in the context of the owner of the package.
 
-    User `U` is then allowed to read `T` (but not `U`).
-code {
-connect a/a;
-
-create table t (d varchar2(40));
-insert into  t values ('this is a''s table');
-
-commit;
-
-create table u (d varchar2(40));
-insert into  u values ('this is a''s table');
-
-grant select on t to b;
--- no grant on u
-code }
-
-    User `A` also creates a procedure (named `PT`) with `authid current_user` that just reads what was filled into table `T`:
-code {
-create procedure pt
- authid current_user
-as
-  v_d t.d%type;
-begin
-  select d into v_d from t; 
-  dbms_output.put_line(v_d);
-end;
-/
-code }
-
-    User `A` then creates another procedure, `PU`, that reads from table `U`. This procedure has `authid definer`:
-code {
-create procedure pu
- authid definer
-as
-  v_d t.d%type;
-begin
-  select d into v_d from u; 
-  dbms_output.put_line(v_d);
-end;
-/
-code }
-
-    User `B` is granted the right to execute both procedures:
-code {
-grant execute on pt to b;
-grant execute on pu to b;
-code }
-
-    Now, user `B` comes into play. This user also creates two tables, again named `T` and `U` and fills them with `'this is b''s table'`:
-code {
-connect b/b;
-
-create table t (d varchar2(40));
-insert into  t values ('this is b''s table');
-
-create table u (d varchar2(40));
-insert into  u values ('this is b''s table');
-
-commit;
-code }
-
-    Now, `B` executes procedure `PT`:
-code {
-set serveroutput on
-begin a.pt; end;
-/
-code }
-   
-    The output is:
-code {
-this is b's table
-code }
-
-    Then, `B` executes `PU`
-code {
-begin a.pu; end;
-/
-code }
+   `PROC_USER` also executes the procedure `READ_U_DEFINER`:
+    gh|Oracle-Patterns|/PL-SQL/authid/example-01/exec-read_t_current_user.sql||
 
    This time, the output is:
 code {
-this is a's table
+PROC_OWNER: This is proc_owner's table
 code }
-
-    This demonstrates that a procedure is run in the context of the caller if has `authid current_user` and in the context of the owner if the procedure has `authid definer`.
 
   }
   { EXECUTE IMMEDIATE #authod-exec-immediate
@@ -179,3 +127,5 @@ code }
   }
 
 }
+sa:
+  → development/databases/Oracle/SQL/session-system-control/alter-session/current_schema[`alter session set current_schema = …`] also causes to find object names in the specified schema.

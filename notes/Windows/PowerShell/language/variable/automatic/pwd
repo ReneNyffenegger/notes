@@ -1,13 +1,35 @@
 $ PowerShell: the automatic variable $pwd
 
-`$pwd` stands for *present (as in current) working directory. 
+`$pwd` stands for *present* (as in current) working directory. 
 
 The type of `$pwd` is → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PathInfo[`System.Management.Automation.PathInfo`].
+
+{ $pwd and Directory.CurrentWorkingDirectory
+
+  The values of `$pwd` and → Microsoft/dot-net/namespaces-classes/System/IO/Directory/GetCurrentDirectory[`GetCurrentDirectory()`] (class → Microsoft/dot-net/namespaces-classes/System/IO/Directory[`system.IO.Directory`])
+  are not necessarily the same:
+code {
+PS: C:\Users\Rene\AppData\Local\Temp> $pwd
+
+Path
+----
+C:\Users\Rene\AppData\Local\Temp
+
+
+PS: C:\Users\Rene\AppData\Local\Temp> [System.IO.Directory]::GetCurrentDirectory()
+C:\Users\Rene
+code }
+
+  The reasons are
+    • → Windows/PowerShell has a notion of working directories in various → Windows/PowerShell/language/provider[providers], not only file systems
+    • A PowerShell process can have multiple *runspaces*, each with a different file system location. Thus, it is not even possible to align the current directory of a PowerShell process with the «current location» of the run spaces.
+
+}
 
 sa:
   Typically, `→ Windows/PowerShell/language/variable/automatic/executionContext[$executionContext].SessionState.Path.CurrentLocation` has the same value like `$pwd`, but is read-only, while `$pwd` is writable.
 
- `pwd` is an → Windows/PowerShell/language/alias for the → Windows/PowerShell/command-inventory/noun/location/get[`get-location` cmdLet]
+ `pwd` (not `$pwd`) is an → Windows/PowerShell/language/alias for the → Windows/PowerShell/command-inventory/noun/location/get[`get-location` cmdLet]
 
   → Windows/PowerShell/language/variable/automatic/home[`$home`] points to the home directory.
 
