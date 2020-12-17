@@ -47,6 +47,38 @@ code }
   Variables in the `function:` namespace are constrained to the type `scriptblock`.
 
 }
+{ Constants
+
+code {
+PS C:\> set-variable num -option constant -value  42
+PS C:\> set-variable txt -option readOnly -value 'Hello world'
+
+PS C:\> $num = 17
+Cannot overwrite variable num because it is read-only or constant…
+
+PS C:\> $txt ='foo'
+Cannot overwrite variable txt because it is read-only or constant…
+
+PS C:\> remove-variable txt -force
+
+PS C:\> remove-variable num -force
+remove-variable : Cannot remove variable num because it is constant or read-only…
+code }
+
+code {
+$V = new-object → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSVariable[System.Management.Automation.PSVariable] -argumentList @(
+        'tq84'       ,  # Variable name
+        'foo bar baz',  # Value
+        [System.Management.Automation.ScopedItemOptions]::Constant
+     )
+
+→ Windows/PowerShell/language/variable/automatic/executionContext[$executionContext].SessionState.PSVariable.Set($V)
+
+write-host "tq84 = $tq84"
+code }
+
+
+}
 { Listing variables
 
   The names and values of variables are found in the → Windows/PowerShell/language/provider/drive[drive] `variable:`. Thus, they can be displayed with
