@@ -1,0 +1,54 @@
+$ PL/SQL: block
+
+A *block* is a fundamental construct in → development/databases/Oracle/PL-SQL: among others, they're used to
+   • declare variables
+   • embed statements
+   • exception handling
+
+
+A block consists of:
+table { lll
+  label ☰ optional ☰
+  declare section ☰ optional ☰ Used to declare variables, constants, types etc. that are used in this block und embeded sub blocks. These declared items are not available in enclosing blocks.
+  body ☰ required ☰ the executable part of the block contains a series of PL/SQL statements.
+  exception handler ☰ optional ☰ technically part of the body: where execution is transferred to when an error occurs.
+table }
+
+Blocks can be nested: a block's *body* (and exception handler because they're part of the body) can contain any number of nested sub-blocks.
+
+
+code {
+<<tq84>>                             -- This block has the label TQ84
+                                     --
+declare                              -- The declare section. Here, it
+   v1 number;                        --     declares the variable v1
+                                     --
+begin                                -- Start of the body.
+   v1 := 7/3;                        --    The body contains the statements to
+   dbms_output.put_line(v1);         --    be executed.
+                                     --
+exception                            -- Exception hander: used to
+   when others then                  --    manage errors.
+     dbms_output.put_line(sqlerrm);  --    The exception handler consists of
+     raise;                          --    statements as well.
+end;                                 -- End of the block.  
+code }
+
+{ Exception handler
+
+  After the exception handler is finished with execution, the next statment that is executed is the statement that follows the
+  exception handler in its enclosing block.
+  -
+  If there is no enclosing block, execution is transferred to the invoker or the host environment.
+
+  { sqlerrm and sqlcode
+
+    Two noteworthy functions to be used in the exception handler are
+      • `sqlerrm` and
+      • `sqlcode`
+
+    Outside of an exception handler, these function return `0` and `ORA-0000`, respectively. In → development/databases/Oracle/SQL/statement[SQL statements], `sqlerrm` and `sqlcode`
+    are not recognized.
+
+  }
+}

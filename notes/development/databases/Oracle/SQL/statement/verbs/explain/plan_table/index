@@ -1,0 +1,83 @@
+$ Oracle: PLAN_TABLE
+
+`plan_table` is used by the SQL Statement  → development/databases/Oracle/SQL/statement/verbs/explain[`explain plan`] to write its result to.
+
+code {
+create table PLAN_TABLE /* sharing=none */  (
+        statement_id       varchar2(30)  ,
+        plan_id            number        ,  -- Uniquely identifies a plan (not a record)
+        timestamp          date          ,
+        remarks            varchar2(4000),
+        operation          varchar2(30)  ,  -- First operation always one of "DELETE|INSERT|SELECT|UPDATE STATEMENT"
+        options            varchar2(255) ,  -- 
+        object_node        varchar2(128) ,  -- Name of database link or for parallel queries order in which output from operation is consumed
+        object_owner       varchar2(128) ,
+        object_name        varchar2(128) ,  -- "TABLE", "TABLE (TEMP)", "NON-UNIQUE" etc.
+        object_alias       varchar2(261) ,
+        object_instance    numeric       ,  -- Ordinal position of object as found in SQL statement (left to right, outer to inner). View expansion number is unpredictable.
+        object_type        varchar2(30)  ,
+        optimizer          varchar2(255) ,  -- "ALL_ROWS", "ANALYZED", …
+        search_columns     number        ,
+        id                 numeric       ,
+        parent_id          numeric       ,
+        depth              numeric       ,
+        position           numeric       ,  -- First row: estimated cost. Other rows: relative position of children with same parent
+        cost               numeric       ,
+        cardinality        numeric       ,
+        bytes              numeric       ,
+        other_tag          varchar2(255) ,
+        partition_start    varchar2(255) ,
+        partition_stop     varchar2(255) ,
+        partition_id       numeric       ,
+        other              long          ,
+        distribution       varchar2(30)  ,
+        cpu_cost           numeric       ,
+        io_cost            numeric       ,
+        temp_space         numeric       ,
+        access_predicates  varchar2(4000),
+        filter_predicates  varchar2(4000),
+        projection         varchar2(4000),
+        time               numeric       ,
+        qblock_name        varchar2(128) ,  -- Name of query block (either generated or specified with QB_NAME hint)
+        other_xml          clob
+);
+code }
+
+{ qblock_name #plan_table-qblock_name
+
+  If not specified with a → development/databases/Oracle/SQL/hints[hint], the first four characters of `qblock_name` reveals the type of the sql steatment:
+    • `SEL$`
+    • `DEL$`
+    • `INS$`
+    • `UPD$`
+    • `MRG$` 
+    • `CRI$` (`create index`)
+    • `SET$` (Apparently used in sort operations, `union all` clauses, selecting from underlying views, → development/databases/Oracle/SQL/statement/execution/parallel[parallel query] coordination etc.)
+
+  → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[SQLMaria (Maria Colgan)], there is also `MISC$`.
+
+  { Operations related to SET$
+
+    The following query finds operations that are related to `SET$`:
+code {
+select   count(*), operation, options
+from     v$sql_plan
+where    qblock_name like 'SET%'
+group by operation, options
+order by count(*) desc;
+code }
+
+  }
+
+}
+{ object_alias
+
+  The value of `object_alias` is either → development/databases/Oracle/SQL/null[`null`] or matches the
+  → development/regular-expressions[regular expression] `"[^"]+"@"[^"]+"$`, the following SQL does not return a record (at least I never encountered one):
+code {
+select count(*) from → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[v$sql_plan] where not regexp_like(object_alias, '"[^"]+"@"[^"]+"$');
+code }
+
+?  The second part (after the `@`, which is enclosed in `"…"`) seems to correspond to a qblock name.
+
+}

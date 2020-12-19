@@ -1,0 +1,103 @@
+$ PowerShell: execution policy
+
+The *execution policy* controls which configuration files and → Windows/PowerShell scripts are allowed to be loaded and run.
+
+Execution policies provide a facility to prevent the execution of malicious scripts.
+-
+However, it does not prevent a user from *bypassing* a policy.
+
+Windows stores the execution policy in the → Windows/registry.
+
+{ Policy values
+
+  { Default
+
+    The *default* policy is
+      • *Restricted* for Windows clients
+      • *remote signed* for → Windows/versions/Server
+
+  }
+  { Bypass
+
+    Run any script without any warning or prompts whatsoever.
+
+  }
+  { AllSigned 
+
+    With *allSigned*, scripts (including those written on local computer) can be run.
+
+     If they're not signed by a trusted publisher, the user is prompted for allowance before running the script.
+
+  }
+  { RemoteSigned
+
+    With *remoteSigned*, scripts can be run.
+
+    Scripts that don't originate from the computer (i.e. downloaded from the internet) are required to have a → development/security/cryptography/Digital-signature[digital signature] from a trusted publisher.
+
+    Unsigned downloaded script can be unblocked with → Windows/PowerShell/command-inventory/noun/file/unblock[`unblock-file`].
+
+  }
+  { Restricted #ps-exec-policy-restricted
+
+?   Only running → Windows/PowerShell/language/command[commands] entered in an interactive → Windows/PowerShell/session are possible.
+
+    Running scripts is not possible, including
+      • Formatting and configuration files (`*.ps1xml`)
+      • → Windows/PowerShell/language/module[Modules]
+      • → Windows/PowerShell/language/variable/automatic/profile[profiles]
+
+  }
+  { Undefined
+
+    No explicit policy value is defined for the current scope. As also the policy *default*, *undefined* effects to
+      • *restricted* for Windows clients and
+      • *remoteSigned* for Windows Server
+
+  }
+  { Unrestricted
+
+    Allows to run unsigned scripts.
+
+  }
+
+}
+{ Scope
+
+  Execution policies can be set in different scopes (listed in order of (descending?/ascending?) precedence:
+  table { ll
+    MachinePolicy ☰
+    UserPolicy ☰
+    Process ☰ Affects current → Windows/PowerShell/session[session] only, value is stored in → development/environment-variable[environment variable] `PSExecutionPolicyPreference`.
+    currentUser ☰
+    LocalMachine ☰ Default scope when setting an executino policy without specifying a scope.
+  table }
+
+  The actual values for each scope can be determined with the → Windows/PowerShell/command-inventory/noun/executionPolicy/get#get-executionPolicy-list[`get-executionPolicy -list`].
+
+}
+{ Only meaningful on Windows systems
+
+  Execution policies are only meaningful on computers running → Windows.
+
+  In non-Windows environments, the execution policy defaults to *unrestricted* and cannot be changed.
+
+}
+{ Example
+
+code {
+PS C:\Users\rene> .\create-zip.ps1
+. : File C:\Users\rene\create-zip.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see
+  …
+  …
+
+PS C:\Users\rene> → Windows/PowerShell/command-inventory/noun/executionPolicy/set[set-executionPolicy] -scope process -executionPolicy bypass
+PS C:\Users\rene> write-host $env:PSExecutionPolicyPreference
+Bypass
+PS C:\Users\rene> .\create-zip.ps1
+  …
+code }
+
+}
+sa:
+  The → Windows/PowerShell#ps-cmd-line-opts[PowerShell command line parameter] `-executionPolicy`.

@@ -7,7 +7,7 @@ code {
 get-childItem
 get-childItem -path p:\ath\to\dir
 get-childItem -path p:\ath\to\dir        → #get-childItem-filter[-filter]  *.txt
-get-childItem -path p:\ath\to\dir\*      -include *.txt                 # Note the star
+get-childItem -path p:\ath\to\dir\*      → #get-childItem-include[-include] *.txt                 # Note the star
 get-childItem -path p:\ath\to\dir\*      -exclude *.dll,*.exe
 get-childItem -path p:\ath\to\dir\a*\b*
 get-childItem  …                         -recurse
@@ -49,6 +49,22 @@ code }
 
   As per → https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem?view=powershell-7.1[Microsoft's documentation], only
   the file system → Windows/PowerShell/language/provider[provider] supports filtering.
+
+}
+{ -include #get-childItem-include
+
+ `-include` allows to specify an → Windows/PowerShell/language/type/array of filename patterns that further removes items from matched files that are not matched by the filename patters.
+
+ `-include` only works in conjuction with at least one `-recurse`, `-depth` or `-path`.
+
+  Unlike `-filter`, `-include` is implemented by → Windows/PowerShell.
+
+  Because `-filter` requires `-path` if `-recurse` and `-depth` are not specified, the the first of the following two → Windows/PowerShell/language/command[commands] does not return anything, but the second does (if
+  there are `*.txt` files in the current directory):
+code {
+get-childItem   -include *.txt
+get-childItem * -include *.txt
+code }
 
 }
 { List or exclude items with specific attributes (such as files, directories etc.) #get-childItem-attributes
