@@ -1,21 +1,58 @@
 $ PowerShell: module
 @ module
 
-→ Windows/PowerShell has two types of extensions: modules and PSSnapIns. Microsoft apparently encourages people to use modules rather than PSSnapIns.
+The functionality of → Windows/PowerShell can be extended with two ways:
+  • *modules* and
+  • *PSSnapIns*.
+Microsoft apparently encourages people to use modules rather than PSSnapIns.
 
+A script module (but not → #ps-module-static-dynamic[dynamic] module) is essentially a *PowerShell script*
+  • with a → development/filename-extensions#psm1[`.psm1`] (rather than a → development/filename-extensions#ps1[`.ps1`]) extension
+  • is stored in a directory (→ #ps-module-directory[module directory]) whose name is equal to the script file's base name.
+
+{ Module directory #ps-module-directory
+
+  In order to be found by PowerShell, the module directory must be located in one of the directories that are listed in the → Windows/development/environment-variables#win-envvar-PSModulePath[environment variable `$env:PSModulePath`].
+ 
+  A module that is not located in a directory pointed at by `$env:PSModulePath` can be loaded with the → Windows/PowerShell/command-inventory/noun/module/import[`import-module` cmdlet].
+
+  A handy (→ Windows/PowerShell/language/variable/automatic[automatic]) variable when writing PowerShell modules is → Windows/PowerShell/language/variable/automatic/psScriptRoot-psCommandPath[`$PSScriptRoot`]: when evaluated in a
+  module script (`.psm1`), its value corresponds to the path of the module directory. Thus, with this value, it is possible to reference other resources that are located in the module directory.
+
+
+}
 { Components of a module
 
-  A module consisists of up to four optional components:
+  A module consists of up to four optional components:
     • A *script module* (a file with the suffix `.psm1`)
     • A *binary module* (a file with the suffix `.dll`)
-    • A manifest module (a file with the suffix `.psd1` that basically contains a key/value hash table)
+    • A → #ps-module-manifest[manifest module] (a file with the suffix `.psd1` that basically contains a key/value hash table)
     • A dynamic module (created by the → Windows/PowerShell/command-inventory/noun/module/new[`new-module`] → Windows/PowerShell/language/cmdlet[cmdlet])
 
    The base name of the `.psm1` and/or `.psd1` files need to have the same name as the directory in which they are located. Such files are said to be *well-formed modules.*. 
 
 }
-{ Importing
+{ Module manifest #ps-module-manifest
 
+  A → Windows/PowerShell/language/module/files/manifest[module manifest] is a → development/filename-extensions#psd1[`.psd1`] file that contains a → Windows/PowerShell/language/type/hash-table and is used to organize and deploy a «solution».
+
+  The hash table contains information such as
+    • contents of the module
+    • attributes of the module
+    • names of other modules
+    • metadata: version number, author, description
+    • prerequisites required to load the module (for example: PowerShell version, → Microsoft/dot-net/Common-Language-Runtime[CLR] version, other modules)
+    • processing directives (other scripts, formats and types to process)
+    • restrictions on exported items (the usual suspects: → Windows/PowerShell/language/alias[aliases], → Windows/PowerShell/language/function[functions], → Windows/PowerShell/language/variable[variables], → Windows/PowerShell/language/cmdlet[cmdlets])
+    • directory layout
+    • version numbers
+    • author data
+    • etc.
+
+  A module manifest file can be created with → Windows/PowerShell/command-inventory/noun/moduleManifest/new[`new-moduleManifest`].
+
+}
+{ Importing
 
   Modules may be automatically loaded if they reside in a sub-directory to which one of the components of the environment variable
   → Windows/development/environment-variables#win-envvar-PSModulePath[`$env:PSModulePath`] points to.
