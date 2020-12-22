@@ -1,0 +1,50 @@
+$ Effects of ALTER SESSION SET CURRENT_SCHEMA in AUTHID DEFINER and AUTHID CURRENT_USER packages
+
+If → development/databases/Oracle/PL-SQL/execute-immediate[`execute immediate`] is used to execute a
+→ development/databases/Oracle/SQL/session-system-control/alter-session/current_schema[`alter session set current_schema`] statement in stored procedure with
+`→ development/databases/Oracle/PL-SQL/authid definer`, it does not affect the environment in which the `execute immediate` statement was executed.
+-
+However, in an `authid current_user` procedure (or package), it is.
+
+This is demonstrated in the following research.
+
+{ Creating two users/schemas
+
+  We need two schemas, one for the packages and one that executes the stored procuders.
+
+  gh|Oracle-patterns|/SQL/statement/nouns/session/alter/set/current_schema/execute-immediate/create-users.sql||
+
+}
+{ Packages
+
+  The two packages. One is defined with `→ development/databases/Oracle/PL-SQL/authid definer` the other with `authid current_user`. Both have exactly one procedure: `do_something.`
+
+  In both cases, `do_something` uses `execute immediate` to
+    • print the «actual» current schema,
+    • change the current schema and
+    • print the «actual» current schema again
+
+  After executing `execute immediate`, the procedure prints the «actual» current schema yet again.
+
+  gh|Oracle-patterns|/SQL/statement/nouns/session/alter/set/current_schema/execute-immediate/pkg-owner.sql||
+
+}
+{ Executing the stored procedures
+
+  Execute `do_something` in both packages:
+  gh|Oracle-patterns|/SQL/statement/nouns/session/alter/set/current_schema/execute-immediate/pkg-user.sql||
+
+  It prints
+code {
+kg_definer
+  exec immediate: current schema before setting current_schema: PKG_OWNER
+  exec immediate: current schema after  setting current_schema: PKG_USER
+  current schema after execute immediate:                       PKG_OWNER
+pkg_current_user
+  exec immediate: current schema before setting current_schema: PKG_USER
+  exec immediate: current schema after  setting current_schema: PKG_OWNER
+  current schema after execute immediate:                       PKG_OWNER
+code }
+
+}
+

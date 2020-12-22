@@ -1,0 +1,48 @@
+$ PowerShell cmdLet send-mailMessage
+
+code {
+$username = 'peterTheWolf'
+$password = 'littleRedCap'
+
+$secStr   = → Windows/PowerShell/command-inventory/noun/secureString/convertTo[convertTo-secureString] -string $password -asPlainText -force
+$cred     = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCredential[System.Management.Automation.PSCredential] $username, $secStr
+
+send-mailMessage                                `
+  -from          'me@here.xyz'                  `
+  -to            'you@there.abc'                `
+  -subject       'The zip'                      `
+  -smtpServer    'smtp.some.where'              `
+  -useSSL                                       `
+  -port           587                           `
+  -credential    $cred                          `
+  -attachments    foo-bar-baz.zip               `
+  -body         @'
+Hello
+
+here's the zip file
+'@
+code }
+
+{ Warning
+
+ *Note*, → https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/send-mailmessage[Microsoft's documentation] has the following warning:
+ "
+   The Send-MailMessage cmdlet is obsolete. This cmdlet does not guarantee
+   secure connections to SMTP servers. While there is no immediate replacement
+   available in PowerShell, we recommend you do not use Send-MailMessage. For
+   more information, see → https://github.com/dotnet/platform-compat/blob/master/docs/DE0005.md[Platform Compatibility note DE0005].
+ "
+
+}
+{ Timing out
+
+  If `send-mailMessage` cannot connect to the given SMTP server or indicated port, the cmdLet does not give a meaningful error message.
+  It just times says *the operation has timed out.*
+
+}
+
+sa:
+
+  The value of the → Windows/PowerShell/language/variable/preference[preference variable] `$psEmailServer` can be set to the SMTP server. This value is used if the parameter `-smtpServer` is not specified. 
+
+  → Windows/PowerShell/command-inventory/noun/mailMessage

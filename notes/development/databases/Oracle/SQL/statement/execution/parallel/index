@@ -28,9 +28,41 @@ In an → development/databases/Oracle[Oracle] database, parallel → developmen
 
   For → development/databases/Oracle/SQL/DML[DML statements] and select statements, parallel execution needs to be enabled with
 code {
-alter session enable parallel dml;
-alter session enable parallel query;
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] enable parallel dml;
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] enable parallel query;
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] enable parallel ddl;
+
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] force  parallel dml parallel 16;
 code } 
+
+  After enabling parallel dml or query, the new state is reflected in
+  → → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`].
+code {
+select
+   pdml_enabled,
+   pdml_status,
+   pddl_status,
+   pq_status
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session[v$session]
+where
+   → development/databases/Oracle/installed/dynamic-performance-views/session#vSession-audsid[audsid] = → development/databases/Oracle/SQL/functions/sys_context('userenv', 'sessionid');
+code }
+
+  { Using SQL hints
+
+code {
+insert /*+ enable_parallel_dml */ …
+code }
+
+  }
+  { Transactions / rollback
+
+  ? Apparently, an `alter session [enable|disable] parallel…` statement cannot be executed if a → development/databases/Oracle/architecture/transaction is still active.
+
+  ? A rollback of a DML statement that was executed in parallel seems to be faster as well. TOOD: Needs to be investigated.
+
+  }
 
 }
 { Default degree of parallelism
@@ -59,6 +91,21 @@ code }
 
   DFO: Data flow operator
 
+  { ORA-12801 and ORA-12805
+
+    ORA-12801 is *error signaled in parrallel query server …*
+    -
+    ORA-12805 is *parallel query server died unexpectedly*
+
+    These two errors are generic messages that may be caused when executing a parallel query. These errors are usually (always?) accompanied by additional messages which indicate
+    the real cause of the problem.
+
+    See also MOS note *184416.1*.
+
+  }
+
 }
 sa:
   → development/databases/Oracle/installed/packages/dbms/parallel_execute[`dbms_parallel_execute`]
+
+  → development/databases/Oracle/installed/dynamic-performance-views/px/session[`v$px_session`] shows information about sessions that run parallelly.

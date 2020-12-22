@@ -7,7 +7,7 @@ code {
 get-childItem
 get-childItem -path p:\ath\to\dir
 get-childItem -path p:\ath\to\dir        → #get-childItem-filter[-filter]  *.txt
-get-childItem -path p:\ath\to\dir\*      -include *.txt                 # Note the star
+get-childItem -path p:\ath\to\dir\*      → #get-childItem-include[-include] *.txt                 # Note the star
 get-childItem -path p:\ath\to\dir\*      -exclude *.dll,*.exe
 get-childItem -path p:\ath\to\dir\a*\b*
 get-childItem  …                         -recurse
@@ -51,6 +51,22 @@ code }
   the file system → Windows/PowerShell/language/provider[provider] supports filtering.
 
 }
+{ -include #get-childItem-include
+
+ `-include` allows to specify an → Windows/PowerShell/language/type/array of filename patterns that further removes items from matched files that are not matched by the filename patters.
+
+ `-include` only works in conjuction with at least one `-recurse`, `-depth` or `-path`.
+
+  Unlike `-filter`, `-include` is implemented by → Windows/PowerShell.
+
+  Because `-filter` requires `-path` if `-recurse` and `-depth` are not specified, the the first of the following two → Windows/PowerShell/language/command[commands] does not return anything, but the second does (if
+  there are `*.txt` files in the current directory):
+code {
+get-childItem   -include *.txt
+get-childItem * -include *.txt
+code }
+
+}
 { List or exclude items with specific attributes (such as files, directories etc.) #get-childItem-attributes
 
   The `-attributes` option allows to only list or excludeitems with a given set of attributes. The list of attributes that can be specified is that of
@@ -85,7 +101,7 @@ code }
 }
 { Let get-childItem return strings with -name #get-childItem-name
 
-  When `get-childItem` is invoked with the `-name` paramter, the cmdLet returns an array of strings rather then specialized types for the child items.
+  When `get-childItem` is invoked with the `-name` parameter, the cmdLet returns an array of strings rather then specialized types for the child items.
 
   This is especially useful to get a more readable (imho) output, especially when combined with `-recurse` (in which case it behaves like the good old
   → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] command → Windows/dirs/Windows/System32/cmd_exe/commands/dir[`dir /b …`]).

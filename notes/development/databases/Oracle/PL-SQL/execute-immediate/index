@@ -45,11 +45,26 @@ $ Oracle PL/SQL: execute immediate
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_out_nested_type.plsql||
 
 }
+{ select statements
+
+  In order for a → development/databases/Oracle/SQL/select[`select`] statement to be executed with `execute immediate`, at least on of the *into clause* or *bulk collect into clause* must be specifed.
+  -
+  Thus, the following statement does not increase the sequence `tq84_seq` because the select statement is not exectued:
+code {
+begin
+   execute immediate 'select → development/databases/Oracle/objects/sequences[tq84_seq].nextval from dual';
+end;
+/
+code }
+
+}
 
 sa:
 
-  In a stored procedure that is defined with `→ development/databases/Oracle/PL-SQL/authid definer`, the contect in which the statement that is executed is not influenced by
-  → development/databases/Oracle/SQL/session-system-control/alter-session/current_schema[`alter session set current_schema = …`] (See → development/databases/Oracle/PL-SQL/authid#authod-exec-immediate[this example]).
+  In a stored procedure that is defined with `→ development/databases/Oracle/PL-SQL/authid definer`, exectuting an 
+  → development/databases/Oracle/SQL/session-system-control/alter-session/current_schema[`alter session set current_schema = …`] with `execute immediate`
+  does not affect the scope in which `execute immediate` is executed, but it does if the procedure is defined with `authid current_schema`,
+  see → development/databases/Oracle/PL-SQL/authid#authod-exec-immediate[this example] and → development/databases/Oracle/SQL/statement/nouns/session/alter/set/current_schema/execute-immediate[this research]).
 
   → development/databases/Oracle/PL-SQL
 
