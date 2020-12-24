@@ -1,0 +1,58 @@
+$ Oracle: Collection types stored in table
+
+
+Create two → development/databases/Oracle/PL-SQL/collection-types[collection types] with schema scope:
+code {
+create type t_num is table of number;
+/
+
+create type v_num is varray(5) of number;
+/
+code }
+
+Create a → development/databases/Oracle/objects/tables[table] to store these collection types. Use the `nested table` clause to prevent *ORA-22913: must specify table name for nested table column or attribute* error message.
+code {
+create table tab_h (
+   txt      varchar2(20),
+   nums_x   t_num,
+   nums_5   v_num
+)
+nested table nums_x store as tab_n;
+code }
+
+Find the heap table and the nested table in the → development/databases/Oracle/installed/data-dictionary:
+code {
+select
+   obj.object_name obj_name,
+   obj.object_type obj_type,
+   tab.nested
+from
+   user_objects obj     left join
+   user_tables  tab on obj.object_name = tab.table_name
+where
+   obj.object_name in ('TAB_H', 'TAB_N');
+code }
+
+Insert a few records into the heap table:
+code {
+insert into tab_h values ('four', t_num(1,2,3,4), v_num(4        ));
+insert into tab_h values ('two' , t_num(3,1    ), v_num(1,2,3,4,5));
+code }
+
+Select these values. first from the «column» `nums_x`:
+code {
+select
+   txt,
+   t.column_value
+from
+   tab_h, table(tab_h.nums_x) t;
+code }
+
+And then also from the column `nums_5`:
+code {
+select
+   txt,
+   v.column_value
+from
+   tab_h, table(tab_h.nums_5) v;
+code }

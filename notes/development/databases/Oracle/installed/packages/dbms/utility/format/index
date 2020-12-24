@@ -1,0 +1,54 @@
+$ Oracle DBMS_UTILITY: FORMAT_xxx functions
+
+{ Errors
+
+  In order to examine the format of `format_error_stack` and `format_error_backtrace`, → #dbms_utility-format-error[these PL/SQL packages] were written.
+  -
+  When executed, `dbms_utility.format_error_stack` and `dbms_utility.format_error_backtrace` return a result like shown below
+ `format_error_stack`:
+code {
+RA-00900: invalid SQL statement
+ORA-06512: at "RENE.TQ84_PKG_1", line 11
+ORA-06512: at "RENE.TQ84_PKG_2", line 11
+ORA-06512: at "RENE.TQ84_PKG_2", line 4
+ORA-06512: at "RENE.TQ84_PKG_1", line 4
+ORA-06512: at "RENE.TQ84_PKG_2", line 8
+ORA-06512: at "RENE.TQ84_PKG_1", line 8
+code }
+
+  `format_error_backtrace`:
+code {
+ORA-06512: at "RENE.TQ84_PKG_1", line 11
+ORA-06512: at "RENE.TQ84_PKG_2", line 11
+ORA-06512: at "RENE.TQ84_PKG_2", line 4
+ORA-06512: at "RENE.TQ84_PKG_1", line 4
+ORA-06512: at "RENE.TQ84_PKG_2", line 8
+ORA-06512: at "RENE.TQ84_PKG_1", line 8
+ORA-06512: at line 2
+code }
+
+  Both are quite similar. `format_error_stack` includes an SQL code (for example `ORA-06512`) and an error message (compare with → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[`sqlerrm` and `sqlcode`]) which
+  is missing in `format_error_backtrace`. On the other hand, the last line of `format_error_backtrace` is missing in `format_error_stack`.
+
+  The general format of the result is:
+code {
+ORA-xxxxx: as yyy.zzzz, line nn    <--     Line in second exception handler that re-raised exception
+ORA-xxxxx: as yyy.zzzz, line nn    <--   Line in first exception handler that re-raised exception
+ORA-xxxxx: as yyy.zzzz, line nn    <-- Line where error was caused
+ORA-xxxxx: as yyy.zzzz, line nn    <--   Line that called procedure with error
+ORA-xxxxx: as yyy.zzzz, line nn    <--     Line that called procedure which then called procedure with error
+ORA-xxxxx: as yyy.zzzz, line nn    <--       …
+code }
+
+  As can be seen: because of the nestedness of these lines, the line where the real error has occured cannot be found without manual inspection of all lines that are listed in the output.
+
+  { Source code #dbms_utility-format-error
+
+    gh|Oracle-Patterns|/Installed/dbms/utility/format/error.sql||
+
+  }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/utility[`dbms_utility`]
