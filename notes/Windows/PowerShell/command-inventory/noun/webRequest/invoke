@@ -22,6 +22,47 @@ $res.content > p:\ath\to\file.txt
 code }
 
 }
+{ Error message: The request was aborted: Could not create SSL/TLS secure channel.
+
+  The error message *The request was aborted: Could not create SSL/TLS secure channel.* indicates (sometimes?, always?) that (at least?) → development/security/cryptography/SSL-TSL[TLS] 1.2 shoud be used. TLS 1.2 can be enabled with
+code {
+[→ Microsoft/dot-net/namespaces-classes/System/Net/ServicePointManager[net.servicePointManager]]::securityProtocol = [net.securityProtocolType]::Tls12
+code }
+
+}
+{ Checking status, content, headers etc.
+
+  Assign the result of a web request to a → Windows/PowerShell/language/variable[variable]:
+code {
+[net.servicePointManager]::securityProtocol = [net.securityProtocolType]::Tls12
+$res = invoke-webRequest https://renenyffenegger.ch/notes/Windows/PowerShell/command-inventory/noun/webRequest/invoke
+code }
+
+  Now, this varibale can be use to query the → development/web/HTTP/status-code[request's status code]…
+code {
+'{0} {1}' → Windows/PowerShell/language/operator/f[-f] $res.statusCode, $res.statusDescription
+code }
+  … some → development/web/HTTP/header[headers] …
+code {
+$res.headers['Content-Type']
+$res.headers['Connection']
+code }
+… or the requests body …
+code {
+$res.content
+code }
+… links …
+code {
+$res.links | foreach-object { '{0,-60} {1}' -f $_.innerText, $_.href}
+code }
+
+  With the `parsedHtml` property, it is even possible to access → development/web/HTML/tags[elements] in the returned → development/web/HTML document:
+code {
+$res.parsedHtml.title
+$res.ParsedHtml.body.childNodes.item(3).innerHtml
+code }
+
+}
 { -useBasicParsing #ps-invoke-webRequest-useBasicParsing
 
   → https://stackoverflow.com/a/38054505/180275[Apparently], using `-useBasicParsing` is necessary on systems where IE is not installed or configured.
@@ -45,4 +86,7 @@ code }
 }
 
 sa:
+
+  → Windows/PowerShell/command-inventory/noun/restMethod/invoke[`invoke-restMethod`]
+
   → Windows/PowerShell/command-inventory/noun/webRequest
