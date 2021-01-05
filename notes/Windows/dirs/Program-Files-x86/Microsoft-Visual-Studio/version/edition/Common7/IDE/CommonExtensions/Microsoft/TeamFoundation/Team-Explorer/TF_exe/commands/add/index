@@ -1,0 +1,25 @@
+$ tf.exe add
+
+`tf.exe add` adds new files and folders from a local file system location to → development/version-control-systems/Team-Foundation version control.
+
+{ Finding files that are not yet added
+
+  The following simple → Windows/PowerShell script (→ https://stackoverflow.com/a/65562460/180275[my answer on StackOverflow]) finds files that are not yet added to Team Foundation:
+code {
+[hashtable] $lps = [hashtable]::new()
+
+tf info . -recursive | findstr /r /c:"^  Local path :" | foreach-object {
+    $lp = $_ -replace '^  Local path : ', ''
+    if ($lp) {
+        $lps[$lp.toLower()] = $null
+    }
+}
+
+get-childItem -recurse | foreach-object {
+    if (-not $lps.ContainsKey($_.fullName.toLower())) {
+       (resolve-path -relative $_.fullName).toString()
+    }
+}
+code }
+
+}

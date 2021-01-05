@@ -25,6 +25,60 @@ code }
   `taskkill` kills the explorer → Windows/development/process[process] while the simple entering of `explorer.exe` starts the process again.
 
 }
+{ Quick access #explorer-quick-access
+
+ *Quick access*, on the left pane, upper section, lists
+   • Frequent folders
+   • Pinned items
+
+  { Adding (pinning) a folder to quick access from the command line
+
+    With → Windows/PowerShell, a folder can be added to *quick access* using the → Windows/development/COM/object → Windows/development/COM/Useful-object-libraries/Shell-Automation-Service[`shell.application`]:
+code {
+$sh = → Windows/PowerShell/command-inventory/noun/object/new[new-object] -com shell.application
+$sh.namespace('c:\users\rene').self.invokeVerb('pinToHome')
+code }
+
+  }
+  { Opening Quick access from the command line
+
+    In → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] with the → Windows/dirs/Windows/System32/cmd_exe/commands/start#cmd-shell-GUID[`start :::shell{GUID}`] command:
+code {
+start shell:::{679F85CB-0220-4080-B29B-5540CC05AAB6}
+code }
+
+    It can also be opened directly using the → Windows/dirs/Windows/explorer_exe[explorer executable], for example in → Windows/PowerShell:
+code {
+explorer.exe 'shell:::{679F85CB-0220-4080-B29B-5540CC05AAB6}'
+code }
+
+    With `win+R`, quick access can be opened by just pasting `shell:::{679F85CB-0220-4080-B29B-5540CC05AAB6}` into the box.
+
+  }
+  { Physical location of Quick Access entries #explorer-quick-access-stored
+  
+    The entries that are displayed in Quick Access are physically stored in the file `f01b4d95cf55d32a.automaticDestinations-ms` which is found under
+    → Windows/dirs/Users/username/AppData/Roaming/Microsoft/Windows/Recent/AutomaticDestinations[`%APPDATA%\Microsoft\Windows\Recent\AutomaticDestinations`].
+
+    Pinned entries seem to be stored under → Windows/dirs/Users/username/AppData/Roaming/Microsoft/Windows/Recent/CustomDestinations[`%APPDATA%\Microsoft\Windows\Recent\CustomDestinations`].
+
+
+  }
+  { Removing Quick Access
+
+    As per → https://kittmedia.com/2015/windows-10-schnellzugriff-aus-dem-navigationsbereich-entfernen/[Matthias Kittsteiner], it is possible to remove
+    *Quick Access* from the explorer by setting the value of `attributes` under the
+    → Windows/registry/tree-structure/key[registry key] `→ Windows/registry/tree/HKEY_CLASSES_ROOT/CLSID[HKEY_CLASSES_ROOT\CLSID]\{679f85cb-0220-4080-b29b-5540cc05aab6}\ShellFolder` to `0xa0600000`.
+    (On 64-Bit Windows, this change is also(?) required under the respective *Wow6432* node).
+
+  }
+  { Misc
+
+    Compare with the directory → Windows/dirs/Users/username/AppData/Roaming/Microsoft/Internet-Explorer/Quick-Launch[`%APPDATA%\Microsoft\Internet Explorer\Quick Launch`].
+
+  }
+
+}
 { explorer /e,::{CLSID}
 
  
@@ -38,6 +92,11 @@ code {
 → Windows/dirs/Windows[%SystemRoot%]\Explorer.exe /e,::{CLSID},objectName
 code }
   
+
+  TODO: is (and if: how) starting explorer with `/e,::{CLSID}` related to starting explorer like so:
+code {
+explorer.exe shell:::{679F85CB-0220-4080-B29B-5540CC05AAB6}
+code }
 
 }
 sa:
