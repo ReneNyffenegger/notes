@@ -3,12 +3,35 @@ $ PowerShell cmdLet get-itemPropertyValue
 `get-itemPropertyValue` returns the value of a named property of an → Windows/PowerShell/command-inventory/noun/item[item].
 -
 → Windows/PowerShell/command-inventory/noun/itemProperty/get[`get-itemProperty`] is related, but returns a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[psCustomObject] that
-happens to have a property with the same name as being requested with `get-itemProperty`.
-
-When used in a → Windows/registry/tree-structure/key[registry key], `get-itemPropertyValue` can be used to return
-a (named) → Windows/registry/tree-structure/value[registry value].
+happens to have the properties with the same names as being requested with `get-itemPropertyValue`.
 
 Note that there is no corresponding `set-itemPropertyValue`.
+
+{ File System
+
+  If used on file system items (that is: directories and files), `get-itemPropertyValue` can be used to get these items' property-values such as `creationTime`, `lastAccessTime`, `attributes` etc.
+  -
+  The following example displays the creation time of the → Windows/dirs/Users/username/AppData/Local/Temp[temp directory]:
+code {
+get-itemPropertyValue $env:temp creationTime
+code }
+
+}
+{ Registry values
+
+ `get-itemPropertyValue` is especially useful to return one ore more → Windows/registry/tree-structure/value[values] that are stored under a → Windows/registry/tree-structure/key[registry key].
+
+  The following invocation of the cmdLet returns one value from a given registry key:
+code {
+get-itemPropertyValue '→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion[hklm:\SOFTWARE\Microsoft\Windows NT\CurrentVersion]' currentBuild
+code }
+
+  If multiple values are requested, the cmdLet returns an → Windows/PowerShell/language/type/array[array].
+code {
+get-itemPropertyValue '→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion[hklm:\SOFTWARE\Microsoft\Windows NT\CurrentVersion]' releaseId, systemRoot
+code }
+
+}
 
 sa:
   The → Windows/PowerShell/language/command parameter → Windows/PowerShell/command-inventory/parameter/credential[`-credential`].
