@@ -3,3 +3,37 @@ $ Oracle.DataAccess.Client.OracleParameter (class)
 `Oracle.DataAccess.Client.OracleParameter` derives from → Microsoft/dot-net/namespaces-classes/System/Data/Common/DbParameter[`System.Data.Common.DbParameter`].
 
 The data type of an `Oracle.DataAccess.Client.OracleParameter` is specified by a → Microsoft/dot-net/namespaces-classes/Oracle/DataAccess/Client/OracleDbType[`Oracle.DataAccess.Client.OracleDbType` enum].
+
+{ PowerShell example #ps-OracleParameter
+
+  A simple PowerShell fragment that tries to demonstrate how `Oracle.DataAccess.Client.OracleParameter` might be used in → Windows/PowerShell.
+
+  The type of `$par` (which is returned by `$sql.Parameters.Add`) is `Oracle.DataAccess.Client.OracleParameter`.
+
+code {
+param (
+   [string] $name = $null
+)
+
+→ Windows/PowerShell/command-inventory/noun/type/add[add-type] -path "→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/ODP_NET/bin/v/Oracle_DataAccess_dll[$env:oracle_home\odp.net\bin\4\Oracle.DataAccess.dll]"
+
+$conn = [→ Microsoft/dot-net/namespaces-classes/Oracle/DataAccess/Client/OracleConnection[Oracle.DataAccess.Client.OracleConnection]]::new("User ID=rene;Password=rene;data source=ora19")
+$conn.Open()
+
+if ($filename) {
+   $sql  = [Oracle.DataAccess.Client.OracleCommand]::new("select * from tab where name = :1", $conn)
+   $par  = $sql.Parameters.Add('name', [→ Microsoft/dot-net/namespaces-classes/Oracle/DataAccess/Client/OracleDbType[Oracle.DataAccess.Client.OracleDbType]]::Varchar2, $name, [→ Microsoft/dot-net/namespaces-classes/System/Data/ParameterDirection[System.Data.ParameterDirection]]::Input)
+}
+else {
+   $sql  = [Oracle.DataAccess.Client.OracleCommand]::new("select * from tab", $conn)
+}
+$sql.CommandType = [System.Data.CommandType]::Text
+
+$rdr = $sql.ExecuteReader()
+
+while ($rdr.Read()) {
+  …
+}
+code }
+
+}
