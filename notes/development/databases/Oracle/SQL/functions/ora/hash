@@ -1,0 +1,35 @@
+$ Oracle SQL function: ORA_HASH
+
+`ora_hash(expr)` calculates a *hash value* for `expr`.
+
+`ora_hash(…)` is not available in → development/databases/Oracle/PL-SQL.
+
+code {
+ora_hash(expr)
+ora_hash(expr, max_bucket)
+ora_hash(expr, max_bucket, seed_value)
+code }
+
+{ Not suitable for LOBs (and LONGs)
+
+ `ora_hash(expr)` returns an upredictable value if `expr` is a → development/databases/Oracle/SQL/data-types/lob[lob] or long type, as is demonstrated in the following example:
+code {
+create table drop_me (a clob);
+
+insert into drop_me values ('x');
+insert into drop_me values (rpad('4000 ', 4000, 'x'));
+insert into drop_me values (rpad('4001 ', 4001, 'x'));
+
+select  a, ora_hash(a) from drop_me;
+
+drop table drop_me;
+code }
+
+}
+sa:
+
+  Compare with `standard_hash(…)` (which doesn't accept LOBs, either) and
+  → development/databases/Oracle/installed/packages/dbms/utility/get/hash_value[`dbms_utility.get_hash_value`]
+
+  Apparenlty, `ora_hash()` (or a function uses the same algorithm) is used to calculate the value of → development/databases/Oracle/installed/dynamic-performance-views/session#ora-v-session-module_hash[`module_hash`]
+  in → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`].
