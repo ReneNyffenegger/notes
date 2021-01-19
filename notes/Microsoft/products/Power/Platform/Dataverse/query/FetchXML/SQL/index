@@ -1,0 +1,355 @@
+$ FetchXML for SQL developers
+
+
+{ select * from TAB
+
+  The most basic → development/databases/SQL/statement …
+code {
+select * from TAB
+code }
+
+  … is formulated in FetchXML like so:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+  </entity>
+</fetch>
+code }
+
+}
+
+{ Select specfici attributes
+
+  Specific attributes, such as `col_1`, `col_2` and `col_3` in the following example …
+code {
+select
+   col_1,
+   col_2,
+   col_3
+from
+   tab
+code }
+
+  … are specified with the `<attribute>` tag:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <attribute name="col_1" />
+    <attribute name="col_2" />
+    <attribute name="col_3" />
+  </entity>
+</fetch>
+code }
+
+  }
+
+{ Where conditions
+
+  A → development/databases/SQL/where[`where` condition] …
+code {
+select *
+from
+   TAB
+where
+   id = 5
+code }
+
+  requires a `<filter>` and a `<condition>` tag. The `operator` attribute specifies the kind of comparison.
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+    <filter>
+      <condition attribute="id" operator="eq" value="5" />
+    </filter>
+  </entity>
+</fetch>
+code }
+
+
+  Similiarly, a *greater than* condition (`where id > 5`) requires the value of the `operator` attribute to be `gt`:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+    <filter>
+      <condition attribute="id" operator="gt" value="5" />
+    </filter>
+  </entity>
+</fetch>
+code }
+
+  { in
+
+  A `where id in (2, 3, 5, 7, 11)` condition  lists the values that must be satifised in a series of `<value>` tags:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+    <filter>
+      <condition attribute="id" operator="in">
+        <value>2</value>
+        <value>3</value>
+        <value>5</value>
+        <value>7</value>
+        <value>11</value>
+      </condition>
+    </filter>
+  </entity>
+</fetch>
+code }
+
+  }
+  { LIKE
+
+  A query that uses `like` and percent signs …
+
+code {
+select *
+from
+   tab
+where
+   col_1 like '%foo%'
+code }
+
+
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+    <filter>
+      <condition attribute="col_1" operator="like" value="%foo%" />
+    </filter>
+  </entity>
+</fetch>
+code }
+
+    *Note*: when transmitting such a query over HTTP, the `%` and the text between them seems to be needed to be encoded with → development/web/URI-URL-URN-IRI-URC#url-encoding[URL (aka percent) encoding].
+
+  }
+
+}
+
+{ select top 10 …
+
+  `TOP n` queries (`select top 10 from TAB …`) are specified using the `count` attribute in the `<fetch>` tag:
+code {
+<fetch mapping="logical" count="10" version="1.0">
+  <entity name="tab">
+    <all-attributes />
+    <filter>
+      <condition attribute="id" operator="gt" value="5" />
+    </filter>
+  </entity>
+</fetch>
+code }
+
+}
+
+
+{ Joining tables
+
+  While SQL uses the `join` keyword to join tables …
+code {
+select
+   P.text,
+   C.val
+from
+   par P                                join
+   chl  C on P.id = C.parent_id
+code }
+
+  … FetchXML uses `<link-entity>`:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="par">
+
+    <attribute name="text" />
+
+    <link-entity name="chl" from="parent_id" to="id" alias="C" link-type="inner">
+        <attribute name="val" />
+    </link-entity>
+
+  </entity>
+</fetch>
+code }
+
+  In v8.x versions of Web API, the value of the linked entity 'val' will be returend as `C_x002e_val` (hex `002e` is → development/Unicode for *full stop*).
+  -
+  This behavior is not present anymore in v9.x releases.
+
+
+  The following example tries to demonstrate how a join with conditions …
+code {
+select
+   P.text,
+   C.val
+from
+   par as P join chl as C on P.id = C.parent_id
+where
+   P.id  = 42        and
+   C.val > 999
+code }
+
+  … is translated to a FetchXML query:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="par">
+
+    <attribute name="text" />
+
+    <filter>
+          <condition attribute="id" operator="eq" value="42" />
+    </filter>
+
+    <link-entity name="chl" from="parent_id" to="id" alias="C" link-type="inner">
+
+         <attribute name="val" />
+
+         <filter>
+            <condition attribute="val" operator="gt" value="999" />
+         </filter>
+    </link-entity>
+
+  </entity>
+</fetch>
+code }
+
+  A FetchXML query has a limit of a maximum of 10 linked entities!
+
+}
+
+{ order by
+
+  A result set is returned in a specific order using the `order by` clause in SQL …
+code {
+select
+   col_1,
+   col_2,
+   col_3
+from
+   tab
+order by
+   col_1,
+   col_2 desc
+code }
+    
+  … and using `<order>` tags in FetchXML:
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab">
+    <attribute name="col_1" />
+    <attribute name="col_2" />
+    <attribute name="col_3" />
+    <order attribute="col_1" />
+    <order attribute="col_2" descending="true" />
+  </entity>
+</fetch>
+code }
+
+}
+{ order by in a join
+
+code {
+select
+   t1.id,
+   t1.col_1,
+   t1.col_2,
+   t2.id,
+   t2.col_a,
+   t2.col_b
+from
+   tab_one  t1                                   join
+   tab_two  t2 on t1.id = t2.id_tab_one
+order by
+   t1.id,
+   t2.id
+code }
+
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab_one">
+    <attribute name="id" />
+    <attribute name="col_1" />
+    <attribute name="col_2" />
+    <order attribute="id" />
+    <link-entity name="tab_two" from="id_tab_one" to="id" alias="t2" link-type="inner">
+      <attribute name="id" />
+      <attribute name="col_a" />
+      <attribute name="col_b" />
+      <order attribute="id" />
+    </link-entity>
+  </entity>
+</fetch>
+code }
+
+code {
+select
+   t1.id,
+   t1.col_1,
+   t1.col_2,
+   t2.id,
+   t2.col_a,
+   t2.col_b
+from
+   tab_one  t1                                   join
+   tab_two  t2 on t1.id = t2.id_tab_one
+order by
+   t2.id,   -- Note the order here
+   t1.id
+code }
+
+code {
+<fetch mapping="logical" version="1.0">
+  <entity name="tab_one">
+    <attribute name="id" />
+    <attribute name="col_1" />
+    <attribute name="col_2" />
+    <order attribute="id" />
+    <link-entity name="tab_two" from="id_tab_one" to="id" alias="t2" link-type="inner">
+      <attribute name="id" />
+      <attribute name="col_a" />
+      <attribute name="col_b" />
+      <order attribute="id" />     <!--  This looks very fishy -->
+    </link-entity>
+  </entity>
+</fetch>
+code }
+
+
+
+  → https://markcarrington.dev/2019/12/10/inside-fetchxml-pt-4-order[Mark Carrington] makes the following important observation regarding ordering a result set that involves multiple tables:
+  " 
+    Bear in mind there is no way to specify the sequence that orderings are
+    applied across multiple entities. Orders from the main <entity> are
+    always applied first, then the first <link-entity>, then any
+    sub-link-entities, and so on. In this example:
+  "
+
+  He further notes that the result set is sorted according to the primary name attribute of the related entity.
+
+}
+{ «Older than» operator
+
+code {
+<fetch>
+  <entity name="incident">
+   <attribute name="title" />
+   <attribute name="ticketnumber" />
+   <attribute name="createdon" />
+   <attribute name="incidentid" />
+
+   <filter type="and">
+     <condition attribute="createdon" operator="olderthan-x-minutes" value="40" />
+   </filter>
+
+  </entity>
+</fetch>
+code }
+
+}
+
+
+links:
+  → http://sql2fetchxml.com/
