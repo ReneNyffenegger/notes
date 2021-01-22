@@ -1,10 +1,55 @@
 $ PowerShell cmdLet get-winEvent
 
+code {
+get-winEvent  application
+get-winEvent  system
+get-winEvent  setup        # Note: get-eventLog setup is not possible
+get-winEvent  security     # requires admin privileges
+
+get-winEvent -providerName Microsoft-Windows-Kernel-Power
+code }
+
+{ -filterXml
+
+code {
+$time_from = (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).AddHours(-10).ToString( "→ Microsoft/dot-net/namespaces-classes/System/String/Format/_format-strings#dot-net-date-format-strings[yyyy-MM-ddTHH:mm:ss.fffZ]" )
+
+[xml] $qry = @"
+  <QueryList>
+    <Query Id="0" Path="Security">
+      <Select Path="Security">
+        *[System[TimeCreated[@SystemTime &gt;= '$time_from' ]]]
+      </Select>
+    </Query>
+  </QueryList>
+"@
+
+get-winEvent -filterXml $qry
+code }
+
+}
+
+{ TODO: get-winEvent vs get-eventLog
+
+  `get-winEvent` will eventually(?) replace `get-eventLog`
+
+  `get-eventLog` only queries the «traditional» event logs (system, application and security), it cannot query ETL type of logs.
+
+  `get-eventLog` is easier to use than `get-winEvent`.
+
+  `get-winEvent setup` is possible, `get-eventLog setup` throws an error.
+
+  `get-eventLog` returns instances of `System.Diagnostics.EventLogEntry`, `get-winEvent` instances of `System.Diagnostics.Eventing.Reader.EventLogRecord`.
+
+  links:
+    • → https://devblogs.microsoft.com/scripting/use-powershell-cmdlet-to-filter-event-log-for-easy-parsing/[Use PowerShell Cmdlet to Filter Event Log for Easy Parsing]
+
+}
+
 sa:
 
- `get-winEvent` is one of the cmdLets with the → Windows/PowerShell/command-inventory/parameter/computerName[`-computerName` parameter].
+  → Windows/PowerShell/command-inventory/noun/eventLog/get[`get-eventLog`]
 
-  → Windows/PowerShell/examples/Problem-Ejecting-USB-Mass-Storage-Device[This example] demonstrates how → Windows/PowerShell/command-inventory/noun/winEvent/get[`get-winEvent`] is used to
-  determine which application is preventing an USB drive from being ejected.
+ `get-winEvent` is one of the cmdLets with the → Windows/PowerShell/command-inventory/parameter/computerName[`-computerName` parameter].
 
   → Windows/PowerShell/command-inventory/noun/winEvent

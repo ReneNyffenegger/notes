@@ -21,25 +21,25 @@ table { llll
   `PowerShellVersion`      ☰ string ☰ Minimum version of the Windows PowerShell engine required ☰ n/a
   `PowerShellHostName`     ☰ string ☰ Name of required Windows  PowerShell host ☰ n/a
   `PowerShellHostVersion`  ☰ string ☰ Minimum version of Windows PowerShell host required ☰ n/a
-  `DotNetFrameworkVersion` ☰ string ☰ Minimum version f .NET Framework required. Valid for Desktop edition only. ☰ n/a
+  `DotNetFrameworkVersion` ☰ string ☰ Minimum version of → Microsoft/dot-net/implementations/Framework required. Valid for Desktop edition only. ☰ n/a
   `CLRVersion`             ☰ string ☰ Minimum version of the common language runtime (CLR) required. Valid for Desktop edition only. ☰ n/a
   `ProcessorArchitecture`  ☰ string ☰ `None`, `X86` or `Amd64` ☰ n/a
   `RequiredModules`        ☰ array  ☰ Modules that must be imported into the *global environment* prior to importing *this* module ☰ n/a
   `RequiredAssemblies`     ☰ array  ☰ → Microsoft/dot-net/assembly[Assemblies] that must be loaded  prior to importing *this* module ☰ n/a
   `ScriptsToProcess`       ☰ array  ☰ Script files (→ development/filename-extensions#ps1[`.ps1`]) to be loaded when importing this module ☰ n/a
-  `TypesToProcess`         ☰ array  ☰ Type Files (→ development/filename-extensions#ps1xml[`.ps1xml1]) to be loaded when importing this module ☰ n/a
-  `FormatsToProcess`       ☰ array  ☰ Format Files (→ development/filename-extensions#ps1xml[`.ps1xml1]) to be loaded when importing this module ☰ n/a
-  `NestedModules`          ☰ array  ☰ Modules to import as nested modules of the module specified in `RootModule/ModuleToProcess` ☰ n/a
-  `FunctionsToExport`      ☰ array  ☰ Functions to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
-  `CmdletsToExport`        ☰ array  ☰ Cmdlets to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
-  `VariablesToExport`      ☰ string ☰ Variables to export ☰ `'*'`
-  `AliasesToExport`        ☰ array  ☰ Aliases to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
+  `TypesToProcess`         ☰ array  ☰ Type Files (→ development/filename-extensions#ps1xml[`.ps1xml1`]) to be loaded when importing this module ☰ n/a
+  `FormatsToProcess`       ☰ array  ☰ Format Files (→ development/filename-extensions#ps1xml[`.ps1xml1`]) to be loaded when importing this module ☰ n/a
+  `NestedModules`          ☰ array  ☰ → Windows/PowerShell/language/module[Modules] to import as nested modules of the module specified in `RootModule/ModuleToProcess` ☰ n/a
+  `FunctionsToExport`      ☰ array  ☰ → Windows/PowerShell/language/function[Functions] to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
+  `CmdletsToExport`        ☰ array  ☰ → Windows/PowerShell/language/cmdlet[Cmdlets] to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
+  `VariablesToExport`      ☰ string ☰ → Windows/PowerShell/language/variable[Variables] to export ☰ `'*'`
+  `AliasesToExport`        ☰ array  ☰ → Windows/PowerShell/language/alias[Aliases] to export from this module. For performance reasons, this entry should exist and not contain wildcards. ☰ `@()`
   `DscResourcesToExport`   ☰ array  ☰ DSC resources to export from this module ☰ n/a
   `ModuleList`             ☰ array  ☰ List of all modules that are packaged with this module ☰ n/a
   `FileList`               ☰ array  ☰ List of all files that are package with this module ☰ n/a
   `PrivateData`            ☰ hash table ☰ Private data to pass to the module specified in `RootModule/ModuleToProcess`. This may also contain a `PSData` hashtable with additional module metadata used by PowerShell. ☰ see below
   `HelpInfoURI`            ☰ string ☰ → development/web/URI-URL-URN-IRI-URC#uri[URI] of HelpInfo ☰ n/a
-  `DefaultCommandPrefix`   ☰ string ☰ Default prefix for commands exported from this module. Override the default prefix using `→ Windows/PowerShell/command-inventory/noun/module/import#import-module-prefix[import-Module -prefix`]. ☰ n/a
+  `DefaultCommandPrefix`   ☰ string ☰ Default prefix for → Windows/PowerShell/language/command[commands] exported from this module. Override the default prefix using `→ Windows/PowerShell/command-inventory/noun/module/import#import-module-prefix[import-Module -prefix`]. ☰ n/a
 
 table }
 
@@ -64,9 +64,28 @@ code }
   }
 
 }
+{ Minimalistic manifest
+
+  A minimalisitic manifest file for a module named `TQ84` might look like so:
+code {
+@{
+   RootModule        = 'TQ84.psm1'
+   ModuleVersion     = '0.0.1'
+
+   FunctionsToExport = @(
+     'get-foo'    ,
+     'invoke-bar' ,
+     'set-baz'
+   )
+
+   AliasesToExport   = @()
+}
+code }
+
+}
 { Exporting classes
 
-  Interstingly, a module manifest does not have the possibility to export → Windows/PowerShell/language/class[classes] (with a key named for example `ClassesToExport`).
+  Interestingly, a module manifest does not have the possibility to export → Windows/PowerShell/language/class[classes] (with a key named for example `ClassesToExport`).
 
   Apparently, the canonical way to use classes that are defined in a module is the → https://channel9.msdn.com/Shows/MsftPowerShell/powershell-using-statement[`using` statement].
 
