@@ -1,0 +1,33 @@
+$ PowerShell: Get an object's property value by a dynamic property name
+
+The value of an → Windows/PowerShell/language/object[object's] property whose name is dynamic (for example stored in a → Windows/PowerShell/language/variable]) can be looked up with `$obj.psObject.properties['name'].value`:
+code {
+$obj = new-object psObject -property @{
+  num = 42
+  txt = 'Hello world'
+}
+
+$key = 'num'
+write-host "value of $key is $($obj.psObject.properties[$key].value)"
+code }
+
+However, such a value can also be looked up by the much shorter syntax `$obj.$key`:
+code {
+write-host "value of $key is $($obj.$key)"
+code }
+
+If the dynamic property name to be looked up is calculated «in place», parantheses can be used: `$obj.( expr )`:
+code {
+$a = 'n'
+$b = 'u'
+$c = 'm'
+
+write-host "value of $key is $( $obj.($a + $b + $c) )"
+code }
+
+This special syntax not only applies to → Windows/PowerShell/command-inventory/noun/object/new/psObject[custom objects], but also to «ordinary» objects:
+code {
+$dir = → Windows/PowerShell/command-inventory/noun/item/get[get-item] .
+$property = 'LastWriteTime'
+$dir.$property
+code }
