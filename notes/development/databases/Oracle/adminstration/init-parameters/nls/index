@@ -22,10 +22,61 @@ NLS_TIME_FORMAT           HH24:MI:SSXFF
 NLS_TIME_TZ_FORMAT        HH24:MI:SSXFF TZR
 code }
 
+{ NLS_COMP
+
+ `NLS_COMP` can be set to one of
+   • `BINARY`
+   • `LINGUISTIC`
+   • `ANSI` (supported for backward compatibility, `LINGUISTIC` is preferred)
+
+  If `NLS_COMP` is not set in the → development/databases/Oracle/adminstration/init-parameters, its value shows up as
+  → development/databases/Oracle/SQL/null[`null`] in `V$PARAMETER`, `V$SYSTEM_PARAMETER`, `V$PARAMETER2`, `V$SYSTEM_PARAMETER2` and
+  `NLS_INSTANCE_PARAMETERS`, but behaves as though it was set to `BINARY`.
+
+}
+{ NLS_LANG #ora-nls_lang
+
+  TODO: → development/databases/Oracle/SQL-Plus#sqlplus-char-set[Setting the environment variable `NLS_LANG`] prior to starting
+  → development/databases/Oracle/SQL-Plus.
+
+}
+{ NLS_SORT #ora-nls_sort
+
+  The value of `NLS_SORT` specifies the → development/Unicode/collation[collating] sequence for character value comparison. Thus, this value influences the
+  outcome of
+    • `order by`
+    • `group by`
+    • Comparison operators (such as `<`, `>`, `<=`, `>=` and even `=` or `<>`.
+    • The `in` operator
+    • `like`, `instr`
+    • `min`, `max`, `greatest`, `least`
+    • execution plans where indexes are involved (compare with the `nlssort()` function)
+
+  ? The exact operators and query clauses that obey the NLS_SORT parameter depend on the value of the NLS_COMP parameter. If an operator or clause does not obey the NLS_SORT value, as determined by NLS_COMP, the collation used is BINARY.
+
+  Setting the value of `nls_sort` to `binary` causes the values to be sorted according to the byte value of the compared value.
+
+  If `_CI` is appended to the value of `NLS_SORT`, the values are compared case-insenstively.
+  -
+  Appending `_AI` causes the values to be sorted accent-insensively.
+
+  The value of `NLS_SORT` can also be set using the environment variable `NLS_SORT`.
+
+  The current value of `NLS_SORT` is returned by `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'nls_sort')`.
+
+}
+
 sa:
+
+  Influence of `NLS_SORT` and `NLS_COMP` to → development/databases/Oracle/adminstration/init-parameters/nls/sort-comp/eq[testing equality of strings].
 
   → development/databases/Oracle/SQL/functions/sys_context[`sys_context('userenv', 'nls…')`]
 
   → development/databases/Oracle/SQL-Plus/sqlpath/nls[`nls.sql`] shows session, database and instance NLS-values.
 
   → development/databases/Oracle/adminstration/init-parameters
+
+  The functions `get_nls_parameter` and `set_nls_parameter` in → development/databases/Oracle/installed/packages/dbms/debug_jdwp[`dbms_debug_jdwp`].
+
+  → development/databases/Oracle/installed/dynamic-performance-views/nls/valid_values[`v$nls_valid_values`],
+  → development/databases/Oracle/installed/dynamic-performance-views/nls/parameters[`v$nls_parameters`].
