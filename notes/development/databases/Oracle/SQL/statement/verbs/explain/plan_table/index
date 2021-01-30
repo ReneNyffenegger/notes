@@ -8,7 +8,10 @@ create table PLAN_TABLE /* sharing=none */  (
         plan_id            number        ,  -- Uniquely identifies a plan (not a record)
         timestamp          date          ,
         remarks            varchar2(4000),
-        operation          varchar2(30)  ,  -- First operation always one of "DELETE|INSERT|SELECT|UPDATE STATEMENT"
+        operation          varchar2(30)  ,  -- … 
+                                            -- If id = 0 (first row in plan): operation indicates the
+                                            -- SQL statement type: DELETE STATEMENT, MERGE STATEMENT, SELECT STATEMENT, INSERT STATEMENT,
+                                            -- CREATE TABLE STATEMENT or CREATE INDEX STATEMENT
         options            varchar2(255) ,  -- 
         object_node        varchar2(128) ,  -- Name of database link or for parallel queries order in which output from operation is consumed
         object_owner       varchar2(128) ,
@@ -17,11 +20,11 @@ create table PLAN_TABLE /* sharing=none */  (
         object_instance    numeric       ,  -- Ordinal position of object as found in SQL statement (left to right, outer to inner). View expansion number is unpredictable.
         object_type        varchar2(30)  ,
         optimizer          varchar2(255) ,  -- "ALL_ROWS", "ANALYZED", …
-        search_columns     number        ,
+        search_columns     number        ,  -- Number of index columns that can be used to match a predicate, that is: the number of index columns with start and stop keys.
         id                 numeric       ,
         parent_id          numeric       ,
         depth              numeric       ,
-        position           numeric       ,  -- First row: estimated cost. Other rows: relative position of children with same parent
+        position           numeric       ,  -- First row (id = 0): estimated cost (and equal to value in cost, see also → development/databases/Oracle/installed/dynamic-performance-views/sql/plan#vSsql-plan-position[here]). Other rows: relative position of children with same parent
         cost               numeric       ,
         cardinality        numeric       ,
         bytes              numeric       ,
@@ -34,8 +37,9 @@ create table PLAN_TABLE /* sharing=none */  (
         cpu_cost           numeric       ,
         io_cost            numeric       ,
         temp_space         numeric       ,
-        access_predicates  varchar2(4000),
-        filter_predicates  varchar2(4000),
+        access_predicates  varchar2(4000),  -- Predicates that are used to locate rows, for example as start/stop predicates in an index range scan.
+                                            -- Only operations where access_predicates is filled seem to be INDEX, CONNECT BY, HASH JOIN and SORT
+        filter_predicates  varchar2(4000),  -- Predicates that are used to filter rows
         projection         varchar2(4000),
         time               numeric       ,
         qblock_name        varchar2(128) ,  -- Name of query block (either generated or specified with QB_NAME hint)
@@ -45,7 +49,7 @@ code }
 
 { qblock_name #plan_table-qblock_name
 
-  If not specified with a → development/databases/Oracle/SQL/hints[hint], the first four characters of `qblock_name` reveals the type of the sql steatment:
+  If not specified with a → development/databases/Oracle/SQL/hints[hint], the first four characters of `qblock_name` reveals the type of the SQL statement:
     • `SEL$`
     • `DEL$`
     • `INS$`
@@ -55,6 +59,9 @@ code }
     • `SET$` (Apparently used in sort operations, `union all` clauses, selecting from underlying views, → development/databases/Oracle/SQL/statement/execution/parallel[parallel query] coordination etc.)
 
   As per → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[SQLMaria (Maria Colgan)], there is also `MISC$`.
+
+  See also the → development/databases/Oracle/SQL/hints#ora-hint-4-types[query block SQL hint type].
+
 
   { Operations related to SET$
 

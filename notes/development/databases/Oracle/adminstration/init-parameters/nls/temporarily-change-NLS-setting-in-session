@@ -1,0 +1,35 @@
+$ Oracle: temporarily change an NLS setting in a session
+
+The following simple → development/databases/Oracle/PL-SQL/block[anonymous PL/SQL block] tries to demonstrate how an → development/databases/Oracle/adminstration/init-parameters/nls[NLS] setting
+can be temporarily changed and then reset to the previously active one.
+
+code {
+declare
+   nls_date_format varchar2(30);
+
+begin
+
+--
+-- save the current nls_date_format.
+--
+   nls_date_format := → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv','nls_date_format');
+
+--
+-- Change the nls_date_format setting.
+-- Note that the format needs to be enclosed in double-quotes.
+--
+   → development/databases/Oracle/installed/packages/dbms/session/set_nls[dbms_session.set_nls]('nls_date_format', '"dd.mm.rrrr"');
+
+--
+-- Print the current date in the active date format:
+--
+   → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line(sysdate);
+
+--
+-- Reset the nls_date_format setting
+-- Note again the double-quotes.
+--
+   → development/databases/Oracle/installed/packages/dbms/session/set_nls[dbms_session.set_nls]('nls_date_format', '"' || nls_date_format || '"');
+end;
+/
+code }

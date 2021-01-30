@@ -4,3 +4,19 @@ $ Oracle: init parameter tracefile_identifier
 If the value of `tracefile_identifier` was changed with an `→ development/databases/Oracle/SQL/statement/nouns/session#ora-alter-session-set[alter session set] tracefile_identifier = '…'` statement, the value is then
 found in the column → development/databases/Oracle/installed/dynamic-performance-views/process#vProcess-traceid[`traceid`] in
 → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`].
+
+The value of `tracefile_identifier` also facilitates finding a particular process' → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace file]:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/index#ora-alter-session-set[alter session set] tracefile_identifier = 'thatsMe';
+select value from v$diag_info where name = 'Default Trace File';
+exec → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[dbms_monitor.session_trace_enable];
+select
+  …
+from
+  …;
+exec → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[dbms_monitor.session_trace_disable];
+code }
+
+sa:
+
+  The parameter → development/databases/Oracle/adminstration/init-parameters/sql_trace[`sql_trace`]

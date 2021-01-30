@@ -28,6 +28,31 @@ The → development/databases/SQL-Server equivalent for clob is `text` and `imag
   gh|oracle-patterns|/SQL/datatypes/lob/ORA-06502.sql||
 
 }
+{ Group by LOB columns not permitted #ora-lob-group-by
+
+  Oracle does not allow to → development/databases/Oracle/SQL/select/group-by[group by] LOB-columns:
+code {
+create table tq84_grpby_clob (
+  id number,
+  txt clob
+);
+
+insert into tq84_grpby_clob values (1, 'foo');
+code }
+
+  The following select statement causes the error *ORA-00932: inconsistent datatypes: expected - got CLOB*:
+code {
+select
+   max(id),
+   txt
+from
+   tq84_grpby_clob
+group by
+   txt;
+code }
+
+}
+
 { JDBC #ora-lob-jdbc
 
   With JDBC 4.0, LOBs should be manipulated with the following interfaces and implementations: (which provide random access to the data)

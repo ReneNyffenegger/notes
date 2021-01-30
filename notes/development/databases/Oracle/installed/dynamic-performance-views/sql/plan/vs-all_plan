@@ -1,0 +1,47 @@
+$ Oracle: v$sql_plan vs v$all_sql_plan
+
+→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`] and `v$all_sql_plan` seem to return exactly the same information.
+
+Both views share the same set of columns:
+code {
+with
+   a as (select column_name from dba_tab_columns where table_name = 'V_$SQL_PLAN'     and owner = 'SYS'),
+   b as (select column_name from dba_tab_columns where table_name = 'V_$ALL_SQL_PLAN' and owner = 'SYS')
+select
+   coalesce(a.column_name, b.column_name)            col_name,
+   case when a.column_name is not null then 'y' end  in_v$sql,
+   case when b.column_name is not null then 'y' end  in_v$sqlarea
+from
+   a full outer join b on a.column_name = b.column_name
+where
+   a.column_name is null or
+   b.column_name is null
+order by
+   coalesce(a.column_name, b.column_name)
+;
+code }
+
+
+The following → development/databases/Oracle/SQL/statement[SQL Statement] tries to demonstrate that the view definition differ only from the table that these views select from. `vsql_plan`
+selects from `x$kqlfxpl` while `v$all_sql_plan` selects from `x$all_kqlfxpl`:
+code {
+with pos as (
+   select 1930 as val from dual
+)
+select
+   case when
+   substr(a.view_definition, 1, pos.val) = substr(b.view_definition, 1, pos.val) then '='  else '<>'
+   end eq,
+   substr(a.view_definition, pos.val-10),
+   substr(b.view_definition, pos.val-10),
+   length(a.view_definition),
+   length(b.view_definition)
+from
+   pos                       cross join
+   v$fixed_view_definition a cross join
+   v$fixed_view_definition b
+where
+   a.view_name = 'GV$SQL_PLAN' and
+   b.view_name = 'GV$ALL_SQL_PLAN'
+;
+code }

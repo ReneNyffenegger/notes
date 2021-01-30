@@ -2,6 +2,148 @@ $ Oracle SQL hints
 
 A hint is used to influence the → development/databases/Oracle/optimizer[optimizer].
 
+Such a hint is placed in an → development/databases/Oracle/SQL/statement directly after the first keyword within an SQL comment whose first character is a plus. The comment may contain
+multiple hints that are separated by white space.
+
+code {
+select /*+ hint-1 hint-2 … */
+  …
+from
+  …;
+code }
+
+When using *component queries* (for example when combined with `union`), both queries can have their own hint:
+code {
+select /*+ hint-1 */ …
+  union
+select /*+ hint-2 */ …
+code }
+
+If mutliple hints are specified and a hint is not understood by Oracle (for example because of a typo), then Oracle will honor the hints on the left side of that hint and disregard the rest.
+
+{ Four types of hints #ora-hint-4-types
+
+  There are four types of hints:
+  table { llll
+    ☰ ~Operates on~ ☰ - ~Examples~ ☰ ~Comment~
+    Single-table ☰ *one* table or view ☰ `index(tab ix)` , `use_nl(…)` ☰
+    Multi-table ☰ multiple table ☰ `leading(tab_a tab_b)` ☰
+    Query-block ☰single query blocks ☰ `star_transformation(@sel$2)` , `unnest(@sel$2)` , `full(@sel$2 t1)` ☰ Compare with the column → development/databases/Oracle/SQL/statement/verbs/explain/plan_table#plan_table-qblock_name[`qblock_name`] in the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`]
+    Statement ☰ entire → development/databases/Oracle/SQL/statement[SQL statements] ☰ `all_rows` ☰
+  table }
+
+  Note that `use_nl(tab_a tab_b)` is shortcut for `use_nl(tab_a) use_nl(tab_b)` and therefore is not considered to be a multi-table hint.
+
+}
+{ List of common hints
+
+  table { ll
+   `all_rows` ☰
+   `append` ☰
+   `append_values` ☰
+   `cache` ☰
+   `change_dupkey_error_index` ☰
+   `cluster` ☰
+   `clustering` ☰
+   `containers` ☰
+   `cursor_sharing_exact` ☰
+   `disable_parallel_dml` ☰
+   `driving_site` ☰
+   `dynamic_sampling` ☰
+   `enable_parallel_dml` ☰
+   `fact` ☰
+   `first_rows` ☰
+   `fresh_mv` ☰
+   `full` ☰
+   `gather_optimizer_statistics` ☰
+   `grouping` ☰
+   `hash` ☰
+   `ignore_row_on_dupkey_index` ☰
+   `index` ☰
+   `index_asc` ☰
+   `index_combine` ☰
+   `index_desc` ☰
+   `index_ffs` ☰
+   `index_join` ☰
+   `index_ss` ☰
+   `index_ss_asc` ☰
+   `index_ss_desc` ☰
+   `inmemory` ☰
+   `inmemory_pruning` ☰
+   `leading` ☰
+   `merge` ☰
+   `model_min_analysis` ☰
+   `monitor` ☰
+   `native_full_outer_join` ☰
+   `noappend` ☰
+   `nocache` ☰
+   `no_clustering` ☰
+   `no_expand` ☰
+   `no_fact` ☰
+   `no_gather_optimizer_statistics` ☰
+   `no_index` ☰
+   `no_index_ffs` ☰
+   `no_index_ss` ☰
+   `no_inmemory` ☰
+   `no_inmemory_pruning` ☰
+   `no_merge` ☰
+   `no_monitor` ☰
+   `no_native_full_outer_join` ☰
+   `no_parallel` ☰
+   `noparallel` ☰
+   `no_parallel_index` ☰
+   `noparallel_index` ☰
+   `no_pq_concurrent_union` ☰
+   `no_pq_skew` ☰
+   `no_push_pred` ☰
+   `no_push_subq` ☰
+   `no_px_join_filter` ☰
+   `no_query_transformation` ☰
+   `no_result_cache` ☰
+   `no_rewrite` ☰
+   `norewrite` ☰
+   `no_star_transformation` ☰
+   `no_statement_queuing` ☰
+   `no_unnest` ☰
+   `no_use_band` ☰
+   `no_use_cube` ☰
+   `no_use_hash` ☰
+   `no_use_merge` ☰
+   `no_use_nl` ☰
+   `no_xml_query_rewrite` ☰
+   `no_xmlindex_rewrite` ☰
+   `no_zonemap` ☰
+   `optimizer_features_enable` ☰
+   `opt_param` ☰
+   `ordered` ☰
+   `parallel` ☰
+   `parallel_index` ☰
+   `pq_concurrent_union` ☰
+   `pq_distribute` ☰
+   `pq_filter` ☰
+   `pq_skew` ☰
+   `push_pred` ☰
+   `push_subq` ☰
+   `px_join_filter` ☰
+   `qb_name` ☰
+   `result_cache` ☰
+   `retry_on_row_change` ☰
+   `rewrite` ☰
+   `star_transformation` ☰
+   `statement_queuing` ☰
+   `unnest` ☰
+   `use_band` ☰
+   `use_concat` ☰
+   `use_cube` ☰
+   `use_hash` ☰
+   `use_merge` ☰
+   `use_nl` ☰
+   `use_nl_with_index` ☰
+  table }
+
+}
+
+
 sa:
 
   An optimizer hint is not to be confused with → development/databases/Oracle/SQLcl#sqlcl-sqldev-select-hints[SQLcl and SQL Developer select hints].

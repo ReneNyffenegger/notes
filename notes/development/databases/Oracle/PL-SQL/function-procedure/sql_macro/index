@@ -5,7 +5,7 @@ $ Oracle: SQL macros
   There are two types of SQL macros:
     • Table macros (available with 19c)
     • Scalar macros (available with 20c)
-    
+
   Their main difference is that
     • table macros can *only* be used in the `from` clause while
     • scalar macros can *only* be applied in the `select` list or `where` clause of an → development/databases/Oracle/SQL[SQL] statement.
@@ -19,6 +19,46 @@ code }
   Without explicitly stating `sql_macro` with either `table` or `scalar`, the function defaults to a *table* macro.
 
 }
+{ Definition and declaration in a package
+
+  When unsing SQL macros in a package, the keyword `sql_macro` appears in the package specification …
+code {
+create or replace package tq84 as
+
+    function find (
+        pattern    varchar2,
+        typ        varchar2
+    ) return varchar2 sql_macro;
+
+end tq84;
+/
+code }
+
+  … but not in the body:
+code {
+create or replace package body tq84 as
+…
+    function find (
+        pattern    varchar2,
+        typ        varchar2
+    ) return varchar2 is
+    begin
+       return q'{
+          select *
+          from
+             syz v
+          where
+             v.typ = find.typ and
+             regexp_like(v.text, find.pattern, 'ni')
+       }';
+
+    end find;
+
+end tq84;
+/
+code }
+
+}
 { Simple example
 
   A basic example for SQL macros is → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/basic-example[here].
@@ -26,4 +66,4 @@ code }
 }
 sa:
   Some investigations on → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/parameters[using function parameters in SQL macro functions].
-  
+

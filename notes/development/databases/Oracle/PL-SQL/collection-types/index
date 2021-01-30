@@ -89,20 +89,44 @@ code }
   gh|Oracle-Patterns|/PL-SQL/CollectionTypes/intro.sql||
 
 }
+{ Finding collection types
 
+  The following query finds collection types, among which there are the two
+  → development/databases/Oracle/PL-SQL/collection-types/predefined[predefined ones `sys.dbms_debug_vc2coll` and `sys.ku$_vcnt`]:
+code {
+select
+   obj.owner,
+   obj.object_name,
+-- obj.object_type,          -- remove from output
+-- typ.typecode,             -- remove from output
+   typ.persistable,
+   cty.elem_type_owner,
+   cty.elem_type_name,
+   cty.length,
+   cty.nulls_stored
+from
+   all_objects    obj                                                                 join
+   all_types      typ on obj.owner = typ.owner and obj.object_name = typ.type_name    join
+   dba_coll_types cty on typ.owner = cty.owner and typ.type_name   = cty.type_name
+where
+   elem_type_name = 'VARCHAR2' and
+   1 = 1
+order by
+   length(obj.object_name) – search for a real short one
+-- elem_type_name
+;
+code }
+
+}
 sa:
 
   → development/databases/Oracle/PL-SQL/collection-types/return-table-from-function[Return a table from a function]
-
-  → development/databases/Oracle/PL-SQL/collection-types/predefined[Predefined collection types]
 
   → development/databases/Oracle/PL-SQL
 
  `→ development/databases/Oracle/installed/packages/dbms/types[dbms_types].typecode_varray` and `dbms_types.typecode_table`.
 
-  → development/databases/Oracle/installed/data-dictionary/plsql/types[user_plsql_types / all_plsql_types / dba_plsql_types / cdb_plsql_types],
+  → development/databases/Oracle/installed/data-dictionary/plsql/types[`user_plsql_types` / `all_plsql_types` / `dba_plsql_types` / `cdb_plsql_types`],
   -
-  → development/databases/Oracle/installed/data-dictionary/plsql/types[user_plsql_types / all_plsql_types / dba_plsql_types / cdb_plsql_types],
-  -
-  → development/databases/Oracle/installed/data-dictionary/plsql/coll_types[user_plsql_coll_types / all_plsql_coll_types / dba_plsql_coll_types / cdb_plsql_coll_types]
+  → development/databases/Oracle/installed/data-dictionary/plsql/coll_types[`user_plsql_coll_types` / `all_plsql_coll_types` / `dba_plsql_coll_types` / `cdb_plsql_coll_types`]
 

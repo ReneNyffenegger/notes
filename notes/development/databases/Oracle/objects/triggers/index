@@ -1,5 +1,40 @@
 $ Oracle triggers
--
+
+{ Logon trigger
+
+  The following code is a *simple* example that tries to demonstrate how a logon trigger might be formulated. In real life, to record user logons, `aud$` would be used.
+code {
+create table logon_trigger_test (usr varchar2(128), ts date);
+
+create or replace trigger someone_logged_on
+   after logon on database
+declare
+   pragma autonomous_transaction;
+begin
+
+   insert into logon_trigger_test values (user, sysdate);
+   commit;
+
+end someone_logged_on;
+/
+code }
+
+code {
+drop trigger someone_logged_on;
+drop table   logon_trigger_test;
+code }
+
+  { Disabling logon triggers
+
+    Logon triggers (as well as other system triggers) can be disabled by setting `_system_trigger_enabled` to `false`. This could be necessary if a logon trigger was written badly and prevents users from
+    loggin in.
+code {
+alter system set "_system_trig_enabled" = false scope=both;
+code }
+
+  }
+
+}
 
 sa:
   → development/databases/Oracle/objects

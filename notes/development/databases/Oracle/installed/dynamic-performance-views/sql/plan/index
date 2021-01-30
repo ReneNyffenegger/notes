@@ -11,6 +11,59 @@ columns `sql_id` and `child_number`. Thus, the plan can be joined to
   gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/indented.sql||
 
 }
+{ Some basic figures about plans found in v$sql_plan
+
+  The following query returns a record for each → development/databases/Oracle/SQL/statement/execution/plan[execution plan] that is found in `v$sql_plan`. Each plan is identified by the
+  combination of `sql_id` and `child_number`. Some figures that are returned list
+    • A plan's cost
+    • The number of steps (or operations) of which a plan consists (`cnt_steps_in_plan`)
+    • `optimzier`
+    • The number of query blocks in a plan (`cnt_qblock`)
+    • The total number of plans (`cnt_plans`)
+
+code {
+with pln as (
+   select
+      count(*) over()                          cnt_plans,
+      count(*)                                 cnt_steps_in_plan,
+      max(case when id = 0 then optimizer end) optimizer,
+      max(case when id = 0 then operation end) stmt_type,
+      max(case when id = 0 then cost      end) cost,
+      count(distinct qblock_name)              cnt_qblock,
+      sql_id,
+      child_number
+   from
+      v$sql_plan
+   group by
+      sql_id,
+      child_number
+)
+select
+   pln.cnt_steps_in_plan,
+   pln.optimizer,
+   pln.stmt_type,
+   pln.cost,
+   pln.cnt_qblock,
+   pln.sql_id,   
+   pln.child_number,
+   count(*) over (partition by pln.sql_id) cnt_sql_id,   
+   sql.parsing_schema_name,
+   sql.module,
+   sql.sql_fulltext,
+   pln.cnt_plans
+from
+   pln   left  join
+   v$sql sql on pln.sql_id       = sql.sql_id        and
+                pln.child_number = sql.child_number
+order by
+-- cnt_sql_id        desc
+   pln.cnt_qblock    desc
+-- pln.cost          desc
+-- cnt_steps_in_plan desc
+;
+code }
+
+}
 { Using CTE recursive queries to select a plan
 
   Alternatively, with → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[CTE recursive queries], the plan for an SQL statement can also be queried recursively
@@ -18,8 +71,7 @@ columns `sql_id` and `child_number`. Thus, the plan can be joined to
   gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/show-sql_id.sql||
 
 }
-
-{ Column position
+{ Column position #vSsql-plan-position
 
   The value of *position* corresponds to the sequence number of the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] step with the same parent step *except* if `id = 0`,
   in which case *position* equals to the value of *costs*. Thus, the following SQL statement does not return a single record, at least in 19c:
@@ -32,3 +84,5 @@ sa:
   The SQL statement → development/databases/Oracle/SQL/statement/verbs/explain[`explain plan`]
 
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/vs-all_plan[`v$sql_plan` vs `v$all_sql_plan`]

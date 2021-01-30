@@ -1,0 +1,78 @@
+$ Oracle: trace file
+
+{ Abbreviations
+
+  table { lll
+
+    ad       ☰        ☰ Address of cursor
+    c        ☰        ☰ Elapsed time for call in μs (± 10,000 μs)
+    card     ☰ `STAT` ☰ Number of records that a *row source* is expected to produce (cardinality). Compare with actual real produced number in `cnt`.
+    cr       ☰        ☰ Number of → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] read from → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[buffer cache] using *consisten read* (aka consistent mode?)
+    cnt      ☰ `STAT` ☰ Number of records produced by a *row source*. Compare with `card`.
+    cu       ☰        ☰ number of blocks read using *current mode*
+    dep      ☰        ☰ if > 0: child (dependent) SQL
+    e        ☰        ☰ elapsed time in μs (± 1 μs)
+    ela      ☰ `WAIT` ☰ elapsed time
+    hv       ☰        ☰ hash-value of SQL statement
+    len      ☰        ☰
+    nam      ☰ `WAIT` ☰ 
+    mis      ☰        ☰ (Number of?) → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache[Library cache] misses. (Always either 0 or 1?)
+    oct      ☰        ☰ Oracle command type
+    op       ☰        ☰ → development/databases/Oracle/optimizer[Optimizer] goal. 1: all, 2: first, 3: rule, 4: choose
+    p        ☰        ☰ number of blocks read using OS call (p = physical reads)
+    pr       ☰ `STAT` ☰ Physical reads
+    p1,p2,p3 ☰ `WAIT` ☰ 
+    plh      ☰        ☰ plan-hash
+    sqlid    ☰        ☰
+    tim      ☰        ☰ an ever increasing point in time (μs)
+    uid      ☰        ☰ → development/databases/Oracle/users-roles/users[User] id
+
+  table }
+
+  { STAT #ora-trace-file-STAT
+
+   `STAT` lines show *row source* statistics. `pid` points to a row source's consumer (parent) that is identified by `id`. Thus, the `STAT` lines allow to
+    re-assemble the development/databases/Oracle/SQL/statement/execution/plan[execution plan] and to find *hot spots* in it.
+    
+
+  }
+  { XCTEND
+
+    End of a → development/databases/Oracle/architecture/transaction:
+      • `rlbk=0`: commit, `rlbk=1`: rollback
+      • `rd_only=0`: no transaction started, `rd_only=1`: a transaction had already begun
+
+  }
+
+}
+
+sa:
+
+  Trace files are written to the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository.
+
+  → development/databases/Oracle/adminstration/trace-file-analyzer
+
+  → development/databases/Oracle/SQL/statement/execution#ora-sql-exec-tracing
+
+  The two sql scripts → development/databases/Oracle/SQL-Plus/sqlpath/tracefile[`tracefile.sql`] and
+  → development/databases/Oracle/SQL-Plus/sqlpath/find-trace-file[`find-trace-file.sql`]
+
+  → development/Software/Oracle-SQL-Developer allows to format a trace file with the menu → development/Software/Oracle-SQL-Developer/GUI/menu/File/Open[File -> Open]
+
+  The → development/databases/Oracle/adminstration/init-parameters[init parameters]
+    → development/databases/Oracle/adminstration/init-parameters/tracefile_identifier[`tracefile_identifier`] and
+    → development/databases/Oracle/adminstration/init-parameters/sql_trace[`sql_trace`].
+
+  → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[`dbms_monitor.session_trace_enable` and `session_trace_disable`]
+
+  → development/databases/Oracle/installed/data-dictionary/enabled/traces[`dba_enabled_traces` / `cdb_enabled_traces`]
+
+  `dbms_system.set_ev`
+
+  `alter session set events '10046 trace name context forever, level 8'`
+
+  → development/databases/Oracle/tools/oradebug/event[`oradebug event`]
+
+  Using event 1722 to find an offending SQL statement that causes an → development/databases/Oracle/errors/ORA-01722_invalid-number error.
+
+  → development/databases/Oracle/tools/oradebug/tracefile_name[`oradebug tracefile_name`]
