@@ -1,0 +1,65 @@
+$ Oracle system privilege: SYSDBA
+
+*SYSDBA* is an → development/databases/Oracle/security/privileges/system[Oracle system privilege]. Compare this privilege with
+→ development/databases/Oracle/security/roles/oracle-maintained/dba[DBA] which is a → development/databases/Oracle/security/roles/oracle-maintained[Oracle maintained role].
+
+A user logged in as SYSDBA is allowed to do *anything* on a database, including
+  • Starting a database
+  • Shutting down a database
+  • Backing up a database
+  • Recovering a database
+  • Creating a database
+
+SYSDBA is also required to execute → development/databases/Oracle/tools/oradebug.
+
+? In order to excersise the SYSDBA privilege, a user must connnect «*as sysdba*».
+
+The SYSDBA privilege cannot be granted to PUBLIC.
+
+{ Granting SYSDBA to a user #ora-grant-sysdba-to-user
+
+If a user is granted the SYSDBA privilege, this privilege is recorded in the password file, not in `DBA_SYS_PRIVS`:
+code {
+select
+   username,
+   sysdba,
+   last_login
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/pwfile_users;
+
+select * from dba_sys_privs where grantee = 'RENE' and privilege = 'SYSDBA';
+
+grant sysdba to rene;
+
+select
+   username,
+   sysdba,
+   last_login
+from
+   v$pwfile_users;
+--
+-- RENE now found in v$pwfile_users
+--
+
+select * from dba_sys_privs where grantee = 'RENE' and privilege = 'SYSDBA';
+--
+-- RENE still not found in v$pwfile_users
+--
+
+revoke sysdba from rene;
+
+select
+   username,
+   sysdba,
+   last_login
+from
+   v$pwfile_users;
+--
+-- RENE gone from in v$pwfile_users
+--
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/security/privileges/system

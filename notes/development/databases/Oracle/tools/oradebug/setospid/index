@@ -1,0 +1,20 @@
+$ oradebug setospid
+
+code {
+oradebug setospid 35020
+code }
+
+The OS-PID value to be used in `oradebug setospid` is found in → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`], column `SPID` (or `SOSID`?). If a
+→ development/databases/Oracle/architecture/session ID (SID) is known, this value can be found like so:
+code {
+select
+   prc.spid
+from
+   v$session     ses                                                   join
+   v$process     prc on ses.paddr           = prc.addr
+where
+   ses.sid = sys_context('userenv', 'sid');
+code }
+
+sa:
+  → development/databases/Oracle/tools/oradebug

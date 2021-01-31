@@ -1,5 +1,23 @@
 $ Oracle: trace file
 
+{ Enabling/disabling trace files
+
+code {
+→ development/databases/Oracle/SQL/statement/nouns/system/alter[alter system]  set → development/databases/Oracle/adminstration/init-parameters/event[event] = '…' /* set init-parameter named 'event'          */ ;
+→ development/databases/Oracle/SQL/statement/nouns/system/alter[alter system]  set events '…'  /* Note the plural and 'missing' equal sign  */ ;
+alter session set events '…'                                                  ;
+
+exec dbms_system.set_ev(…);
+
+exec → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[dbms_monitor.session_trace_enable]
+exec dbms_monitor.session_trace_disable
+code }
+
+code {
+SQL>  → development/databases/Oracle/tools/oradebug/event[oradebug event]
+code }
+}
+
 { Abbreviations
 
   table { lll
@@ -44,6 +62,172 @@ $ Oracle: trace file
 
   }
 
+  TODO:
+   • → https://hoopercharles.wordpress.com/2010/01/26/10046-extended-sql-trace-interpretation-2/[This link (Charles Hooper)] seemed to be only one with an explanation on *FETCH* calls.
+   • → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/trcsess[`trcsess`] 
+   • → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/tkprof[`tkprof`] 
+
+}
+{ TODO: Events that might be set
+
+  Set event 10235 to level 1.
+code {
+alter session set events '10235';
+code }
+
+code {
+alter session set events '10053 trace name context forever';
+code }
+
+code {
+alter session set events '10046 level 16';
+alter session set events 'sql_trace level 16';
+alter session set events 'sql_trace wait=true, plan_stat=never';
+alter session set events 'sql_trace off';
+code }
+See → development/databases/Oracle/tools/oradebug/doc/event/name/sql_trace[`oradebug doc event name sql_trace`] for usage.
+
+code {
+alter system  set events   'immediate trace name GWM_TRACE level 7';
+alter system  set event  = '10798 trace name context forever, level 7' scope=spfile;
+alter system  set events   'trace[progint_appcont_rdbms]'
+alter system  set events   'trace[sess_signature] disk highest';
+alter session set events   'trace[rdbms.SQL_Optimizer.*]';
+alter session set events   'trace[rdbms.SQL_Optimizer.*] [sql:6kdz5a5c427qd]' /* sql:6kdz5a5c427qd restricts event to SQL id */;
+alter session set events   'trace[krb.*]';
+code }
+
+  Found → https://joordsblog.vandenoord.eu/2013/05/oracle-tracing-and-events-oradebug.html[here]:
+code {
+alter session set events 'trace[RDBMS.SQL_Transform] [SQL: 32cqz71gd8wy3] disk=high RDBMS.query_block_dump(1) processstate(1) callstack(1)';
+code }
+
+  (Invalid) components.
+code {
+alter session set events 'trace [invalid_component]';
+ORA-49100: Failed to process event statement [trace [invalid_component]]
+ORA-48904: String [INVALID_COMPONENT] is not a valid component name
+code }
+  Valid components can be found using → development/databases/Oracle/tools/oradebug/doc/component[`oradebug doc component`].
+
+  Remove (global) events:
+code {
+alter session set event = '…' scope spfile;
+shutdown immediate
+startup
+show parameter event
+…
+alter system reset event scope = spfile sid='*';  
+shutdown immediate
+startup
+code }
+
+  Specify level in hexadecimal notation:
+code {
+alter system set events = '39089 trace name context forever, level 0x300' 
+SCOPE = spfile; 
+code }
+
+
+  Trace *plan management*:
+code {
+exec dbms_spm.configure(‘spm_tracing’,1);
+select parameter_name, parameter_value from sys.smb$config;
+code }
+
+Termininating the current → development/databases/Oracle/architecture/session:
+code {
+alter session set events 'immediate crash';
+ORA-03113: end-of-file on communication channel
+Process ID: 9312
+Session ID: 63 Serial number: 25232
+code }
+
+  Other *immediate* actions:
+code {
+alter session set events 'immediate eventdump(session)';
+alter session set events 'immediate eventdump(system)' ;
+code }
+
+code {
+alter session set events 'immediate trace(10046)';
+code }
+
+Specify parameters for events (for example: trace *in memory* and use *high resulution timer*):
+code {
+alter session set events 'trace[sql_mon.*] memory=high, get_time=highres';
+code }
+
+Use `|` to set a combination of events:
+code {
+alter system set events 'trace[
+  sql_mon |
+  sql_optimizer.*
+] {
+  process: pname = p000 |
+  process: pname=p005
+}';
+code }
+
+code {
+alter session set events '10046 leve 12';
+ORA-49100: Failed to process event statement [10046 leve 12]
+ORA-49104: [LEVE] is not a valid argument for event [kg_event]
+code }
+
+
+ ???
+code {
+alter system set events 'sql_trace {process : pname = dw | pname = dm} level=12'
+alter system set event ='sql_trace [sql:6kdz5a5c427qd] level=12' scope=spfile;
+alter system set event ='sql_trace [sql:6kdz5a5c427qd] off';
+code }
+
+  { Using oradebug
+
+code {
+oradebug setmypid
+oradebug event 942
+code }
+
+   Show events that are traced in «my» session:
+code {
+oradebug eventdump session
+code }
+
+code {
+→ development/databases/Oracle/tools/oradebug/doc/event[oradebug doc event]
+code }
+
+  }
+
+}
+{ Other TODOs
+
+code {
+begin
+  dbms_sqldiag.dump_trace('6kdz5a5c427qd');
+end;
+code }
+
+code {
+expdp userid=rene schemas=rene trace=480300
+code }
+
+  Trace = `xxx` specifies a hexadecimal value which is a combination of the following flags:
+  table { rl
+   `10300`   ☰ SHDW: To trace the Shadow process (API) (expdp/impdp)
+   `20300`   ☰ KUPV: To trace Fixed table
+   `40300`   ☰ 'div' To trace Process services
+   `80300`   ☰ KUPM: To trace Master Control Process (MCP,DM)
+   `100300`  ☰ KUPF: To trace File Manager
+   `200300`  ☰ KUPC: To trace Queue services
+   `400300`  ☰ KUPW: To trace Worker process(DW)
+   `800300`  ☰ KUPD: To trace Data Package
+   `1000300` ☰ META: To trace Metadata Package
+   `1FF0300` ☰ 'all' To trace all components(full tracing)
+ table }
+
 }
 
 sa:
@@ -63,15 +247,9 @@ sa:
     → development/databases/Oracle/adminstration/init-parameters/tracefile_identifier[`tracefile_identifier`] and
     → development/databases/Oracle/adminstration/init-parameters/sql_trace[`sql_trace`].
 
-  → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[`dbms_monitor.session_trace_enable` and `session_trace_disable`]
 
   → development/databases/Oracle/installed/data-dictionary/enabled/traces[`dba_enabled_traces` / `cdb_enabled_traces`]
 
-  `dbms_system.set_ev`
-
-  `alter session set events '10046 trace name context forever, level 8'`
-
-  → development/databases/Oracle/tools/oradebug/event[`oradebug event`]
 
   Using event 1722 to find an offending SQL statement that causes an → development/databases/Oracle/errors/ORA-01722_invalid-number error.
 

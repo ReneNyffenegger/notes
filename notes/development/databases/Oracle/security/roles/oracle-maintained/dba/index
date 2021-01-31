@@ -1,0 +1,19 @@
+$ Oracle role: DBA
+
+`DBA` is an → development/databases/Oracle/security/roles/oracle-maintained[Oracle maintained role]. Compare this role with
+→ development/databases/Oracle/security/privileges/system/sys/dba[SYSDBA] which is a → development/databases/Oracle/security/privileges/system[system privilege].
+
+  The following query lists all → development/databases/Oracle/security/privileges/system[system privileges] and shows if the system privilege is granted to the DBA
+  → development/databases/Oracle/security/roles[roles];
+code {
+select
+   spr.name,
+   case when dsp.privilege is null then 'not granted' else 'granted' end granted_to_dba
+from
+   system_privilege_map spr left join
+   dba_sys_privs        dsp on spr.name    =  dsp.privilege and
+                               dsp.grantee = 'DBA'
+order by
+   dsp.privilege nulls last,
+   spr.name;
+code }

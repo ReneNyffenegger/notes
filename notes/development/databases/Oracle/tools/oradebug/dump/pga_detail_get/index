@@ -1,0 +1,24 @@
+$ oradebug dump pga_detail_get
+
+`oradebug dump pga_detail_get` populates → development/databases/Oracle/installed/dynamic-performance-views/process/memory/detail[`v$process_memory_detail`] which shows
+→ development/databases/Oracle/architecture/instance/PGA related memory information.
+
+First, the PID of the process whose memory needs to be analyzed must be found in a → development/databases/Oracle/architecture/session:
+code {
+select
+   prc.pid
+from
+   v$session ses join
+   v$process prc on ses.paddr = prc.addr
+where
+   ses.sid = userenv('sid');
+code }
+
+Then, a user with → development/databases/Oracle/security/privileges/system/sys/dba[sysdba] privileges must dump the PGA information:
+code {
+oradebug setmypid
+oradebug dump pga_detail_get 61
+code }
+
+link:
+  Tanel Poder's → https://github.com/tanelpoder/tpt-oracle/blob/master/smem_detail.sql[`smem_detail.sql`] script.

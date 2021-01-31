@@ -1,0 +1,56 @@
+$ ORA-00942: table or view does not exist
+
+{ Using a trace file to reveal the name of the missing table #ora-942-tracefile
+
+code {
+create table T0 (a number);
+create table T1 (b number);
+create table T2 (c number);
+create table T3 (d number);
+code }
+
+  The following statement selects from t-ell instaed of t-one:
+code {
+select
+   t0.a, t1.b, t2.c, t3.d
+from
+   t0 cross join tl cross join t2 cross join t3;
+
+…
+  4     t0 cross join tl cross join t2 cross join t3;
+   t0 cross join tl cross join t2 cross join t3
+                 *
+ERROR at line 4:
+ORA-00942: table or view does not exist
+code }
+
+  Set event 942 to write name of table into a → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files] …
+code {
+alter session set events '942 incident(table_missing)';
+code }
+
+  … and execute the statement again (so that the relevant information is found in the trace file.
+
+  Find name (path) of trace file:
+code {
+select
+   value trace_file
+from
+   v$diag_info
+where
+   name = 'Default Trace File';
+code }
+
+  Open trace file. It reveals name
+code {
+→ development/databases/Oracle/errors/ORA-00700_soft-internal-error[ORA-00700: soft internal error], arguments: [EVENT_CREATED_INCIDENT], [0], [TABLE_MISSING], [], [], [], [], [], [], [], [], []
+
+about to signal 942
+Name: TL
+Encountered exception while getting args for function:0x00007FF7DCCA087B
+2021-01-31T16:53:01.939238+01:00
+code }
+
+  Compare setting this event with → development/databases/Oracle/tools/oradebug/event[`oradebug event 942`].
+
+}

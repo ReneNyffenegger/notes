@@ -1,0 +1,900 @@
+$ List of possible values for the Oracle parameter EVENT
+
+→ http://www.juliandyke.com/Diagnostics/Events/Events.php[Julian Dyke] mentions that the possible values for the  → development/databases/Oracle/adminstration/init-parameters/event[`event`] parameter
+are related to → development/databases/Oracle/errors[SQL error messages](!) in the range of 10000 through 10999 (Compare with `select event from x$trace_events`).
+Thus, a list of possible events can be generated with the following
+anonymous → development/databases/Oracle/PL-SQL/block[PL/SQL block]:
+code {
+declare 
+   msg varchar2(256);
+begin
+   for num in 10000..10999 loop
+
+     msg := → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[sqlerrm](-num);
+
+     if msg not like '%Message ' || num || ' not found%' then
+        dbms_output.put_line (num || ': ' || substr(msg, 11));
+     end if;
+
+   end loop;
+end;
+/
+code }
+
+table { lll
+  10000 ☰ control file debug event, name 'control_file' ☰
+  10001 ☰ control file crash event1 ☰
+  10002 ☰ control file crash event2 ☰
+  10003 ☰ control file crash event3 ☰
+  10004 ☰ block recovery testing - internal error ☰
+  10005 ☰ trace latch operations for debugging ☰
+  10006 ☰ block recovery testing - external error ☰
+  10007 ☰ log switch debug crash after new log select, thread ☰
+  10008 ☰ log switch debug crash after new log header write, thread ☰
+  10009 ☰ log switch debug crash after old log header write, thread ☰
+  10010 ☰ Begin Transaction ☰
+  10011 ☰ End   Transaction ☰
+  10012 ☰ Abort Transaction ☰
+  10013 ☰ Instance Recovery ☰
+  10014 ☰ Roll Back to Save Point ☰
+  10015 ☰ Undo Segment Recovery ☰
+  10016 ☰ Undo Segment extend ☰
+  10017 ☰ Undo Segment Wrap ☰
+  10018 ☰ Data Segment Create ☰
+  10019 ☰ Turn off data/space search cache ☰
+  10020 ☰ partial link restored to linked list (KSG) ☰
+  10021 ☰ KST event to trace control file header writes and reads ☰
+  10022 ☰ trace ktsgsp ☰
+  10023 ☰ Create Save Undo Segment ☰
+  10024 ☰ Write to Save Undo ☰
+  10025 ☰ Simulate block recovery errors ☰
+  10026 ☰ Apply Save Undo ☰
+  10027 ☰ Specify Deadlock Trace Information to be Dumped ☰
+  10028 ☰ Dump trace information during lock / resource latch cleanup ☰
+  10029 ☰ session logon (KSU) ☰
+  10030 ☰ session logoff (KSU) ☰
+  10031 ☰ sort debug event (S*) ☰
+  10032 ☰ sort statistics (SOR*) ☰
+  10033 ☰ sort run information (SRD*/SRS*) ☰
+  10034 ☰ access path analysis (APA*) ☰
+  10035 ☰ Write parse failures to alert log file ☰
+  10036 ☰ create remote row source (QKANET) ☰
+  10037 ☰ allocate remote row source (QKARWS) ☰
+  10038 ☰ dump row source tree (QBADRV) ☰
+  10039 ☰ type checking (OPITCA) ☰
+  10040 ☰ disable result-cache ☰
+  10041 ☰ dump undo records skipped ☰
+  10042 ☰ file header reads return youngest mirror ☰
+  10043 ☰ check consistency of owner/waiter/converter lists in KSQ ☰
+  10044 ☰ free list undo operations ☰
+  10045 ☰ free list update operations - ktsrsp, ktsunl ☰
+  10046 ☰ enable SQL statement timing ☰ Aka *sql_trace*, → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files] can be analyzed with *tkprof* or *trca*.
+  10047 ☰ trace switching of sessions ☰
+  10048 ☰ Undo segment shrink ☰
+  10049 ☰ protect library cache memory heaps ☰
+  10050 ☰ sniper trace ☰
+  10051 ☰ trace OPI calls ☰
+  10052 ☰ don't clean up obj$ ☰
+  10053 ☰ CBO Enable → development/databases/Oracle/optimizer[optimizer] trace ☰
+  10054 ☰ CBO Enable → development/databases/Oracle/optimizer[optimizer] trace for recursive statement (RPI) ☰
+  10055 ☰ Rowsets: turn off rowsets for various operations ☰
+  10056 ☰ dump analyze stats (kdg) ☰
+  10057 ☰ suppress file names in error messages ☰
+  10058 ☰ use table scan cost in tab$.spare1 ☰
+  10059 ☰ simulate error in logfile create/clear ☰
+  10060 ☰ CBO Enable predicate dump ☰
+  10061 ☰ disable SMON from cleaning temp segment ☰
+  10062 ☰ disable usage of OS Roles in osds ☰
+  10063 ☰ disable usage of DBA and OPER privileges in osds ☰
+  10064 ☰ thread enable debug crash level , thread ☰
+  10065 ☰ limit library cache dump information for state object dump ☰
+  10066 ☰ simulate failure to verify file ☰
+  10067 ☰ force redo log checksum errors - block number ☰
+  10068 ☰ force redo log checksum errors - file number ☰
+  10069 ☰ Flashback images for offline file  are lost ☰
+  10070 ☰ force datafile checksum errors - block number ☰
+  10071 ☰ force datafile checksum errors - file number ☰
+  10072 ☰ local tempspace tracing - recovery layer ☰
+  10073 ☰ latch cleanup tracing ☰
+  10074 ☰ default trace function mask for kst ☰
+  10075 ☰ CBO Disable outer-join to regular join conversion ☰
+  10076 ☰ CBO Enable cartesian product join costing ☰
+  10077 ☰ CBO Disable view-merging optimization for outer-joins ☰
+  10078 ☰ CBO Disable constant predicate elimination optimization ☰
+  10079 ☰ trace data sent/received via SQL*Net ☰
+  10080 ☰ dump a block on a segment list which cannot be exchanged ☰
+  10081 ☰ segment High Water Mark has been advanced ☰
+  10082 ☰ free list head block is the same as the last block ☰
+  10083 ☰ Trace IMCDT in LIMITED mode ☰
+  10084 ☰ free list becomes empty ☰
+  10085 ☰ free lists have been merged ☰
+  10086 ☰ CBO Enable error if kko and qka disagree on oby sort ☰
+  10087 ☰ disable repair of media corrupt data blocks ☰
+  10088 ☰ CBO Disable new NOT IN optimization ☰
+  10089 ☰ CBO Disable index sorting ☰
+  10090 ☰ invoke other events before crash recovery ☰
+  10091 ☰ CBO Disable constant predicate merging ☰
+  10092 ☰ CBO Disable hash join ☰
+  10093 ☰ CBO Enable force hash joins ☰
+  10094 ☰ before resizing a data file ☰
+  10095 ☰ dump debugger commands to trace file ☰
+  10096 ☰ after the cross instance call when resizing a data file ☰
+  10097 ☰ after generating redo when resizing a data file ☰
+  10098 ☰ after the OS has increased the size of a data file ☰
+  10099 ☰ after updating the file header with the new file size ☰
+  10100 ☰ after the OS has decreased the size of a data file ☰
+  10101 ☰ DBWR refresh fails on cross instance resize call ☰
+  10102 ☰ switch off anti-joins ☰
+  10103 ☰ CBO Disable hash join swapping ☰
+  10104 ☰ dump hash join statistics to trace file ☰
+  10105 ☰ CBO Enable constant pred trans and MPs w WHERE-clause ☰
+  10106 ☰ CBO Disable evaluating correlation pred last for NOT IN ☰
+  10107 ☰ CBO Always use bitmap index ☰
+  10108 ☰ CBO Don't use bitmap index ☰
+  10109 ☰ CBO Disable move of negated predicates ☰
+  10110 ☰ CBO Try index rowid range scans ☰
+  10111 ☰ Bitmap index creation switch ☰
+  10112 ☰ Bitmap index creation switch ☰
+  10113 ☰ Bitmap index creation switch ☰
+  10114 ☰ Bitmap index creation switch ☰
+  10115 ☰ CBO Bitmap optimization use maximal expression ☰
+  10116 ☰ CBO Bitmap optimization switch ☰
+  10117 ☰ CBO Disable new parallel cost model ☰
+  10118 ☰ CBO Enable hash join costing ☰
+  10119 ☰ QKA Disable GBY sort elimination ☰
+  10120 ☰ generate relative file # different from absolute ☰
+  10121 ☰ CBO Don't sort bitmap chains ☰
+  10122 ☰ Disable transformation of count(col) to count(*) ☰
+  10123 ☰ Rowsets: turn off rowsets for various operations ☰
+  10124 ☰ Force creation of segmented arrays by kscsAllocate ☰
+  10125 ☰ Disable remote sort elimination ☰
+  10126 ☰ Debug oracle java xa ☰
+  10127 ☰ Disable remote query block operation ☰
+  10128 ☰ Dump Partition Pruning Information ☰
+  10129 ☰ Alter histogram lookup for remote queries ☰
+  10130 ☰ sort disable readaheads ☰
+  10131 ☰ CONNECT BY debug event ☰
+  10132 ☰ dump plan after compilation ☰
+  10133 ☰ testing for SQL Memory Management ☰
+  10134 ☰ tracing for SQL Memory Management for session ☰
+  10135 ☰ CBO do not count 0 rows partitions ☰
+  10136 ☰ CBO turn off fix for bug 1089848 ☰
+  10137 ☰ CBO turn off fix for bug 1344111 ☰
+  10138 ☰ CBO turn off fix for bug 1577003 ☰
+  10139 ☰ CBO turn off fix for bug 1386119 ☰
+  10140 ☰ CBO turn off fix for bug 1332980 ☰
+  10141 ☰ CBO disable additional keys for inlist in bitmap optimization ☰
+  10142 ☰ CBO turn off advanced OR-expansion checks ☰
+  10143 ☰ CBO turn off hints ☰
+  10144 ☰ CBO turn off cost based selection of bji over bsj subquery ☰
+  10145 ☰ test auditing network errors ☰
+  10146 ☰ enable Oracle TRACE collection ☰
+  10147 ☰ enable join push through UNION view ☰
+  10148 ☰ Quarantine trace event ☰
+  10149 ☰ allow the creation of constraints with illegal date constants ☰
+  10150 ☰ import exceptions ☰
+  10152 ☰ CBO don't consider function costs in plans ☰
+  10153 ☰ Switch to use public synonym if private one does not translate ☰
+  10154 ☰ Switch to disallow synonyms in DDL statements ☰
+  10155 ☰ CBO disable generation of transitive OR-chains ☰
+  10156 ☰ CBO disable index fast full scan ☰
+  10157 ☰ CBO disable index access path for in-list ☰
+  10158 ☰ CBO preserve predicate order in post-filters ☰
+  10159 ☰ CBO disable order-by sort pushdown into domain indexes ☰
+  10160 ☰ CBO disable use of join index ☰
+  10161 ☰ CBO recursive semi-join on/off-switch ☰
+  10162 ☰ CBO join-back elimination on/off-switch ☰
+  10163 ☰ CBO join-back elimination on/off-switch ☰
+  10164 ☰ CBO disable subquery-adjusted cardinality fix ☰
+  10165 ☰ mark session for special handling during instance administration ☰
+  10166 ☰ trace long operation statistics updates ☰
+  10167 ☰ CBO use old index MIN/MAX optimization ☰
+  10168 ☰ CBO disable single-table predicate predicate generation ☰
+  10169 ☰ CBO disable histograms for multi partitions ☰
+  10170 ☰ CBO use old bitmap costing ☰
+  10171 ☰ CBO disable transitive join predicates ☰
+  10172 ☰ CBO force hash join back ☰
+  10173 ☰ Dynamic Sampling time-out error ☰
+  10174 ☰ view join-back elimination switch ☰
+  10175 ☰ CBO star transformation switch ☰
+  10176 ☰ CBO colocated join switch ☰
+  10177 ☰ CBO colocated join switch ☰
+  10178 ☰ CBO turn off hash cluster filtering through memcmp ☰
+  10179 ☰ CBO turn off transitive predicate replacement ☰
+  10180 ☰ temp table transformation print error messages ☰
+  10181 ☰ CBO disable multi-column in-list processing ☰
+  10182 ☰ CBO disable generation of implied predicates ☰
+  10183 ☰ CBO disable cost rounding ☰
+  10184 ☰ CBO disable OR-exp if long inlist on bitmap column ☰
+  10185 ☰ CBO force index joins ☰
+  10186 ☰ CBO disable index join ☰
+  10187 ☰ CBO additional index join switch ☰
+  10188 ☰ CBO additional index join switch ☰
+  10189 ☰ CBO turn off FFS null fix ☰
+  10190 ☰ Analyze use old frequency histogram collection and density ☰
+  10191 ☰ Avoid conversion of in-lists back to OR-expanded form ☰
+  10192 ☰ nopushdown when number of groups exceed number of rows ☰
+  10193 ☰ Force repeatable sampling with specified seed ☰
+  10194 ☰ CBO disable new LIKE selectivity heuristic ☰
+  10195 ☰ CBO don't use check constraints for transitive predicates ☰
+  10196 ☰ CBO disable index skip scan ☰
+  10197 ☰ CBO force index skip scan ☰
+  10199 ☰ set parameter in session ☰
+  10200 ☰ consistent read buffer status ☰
+  10201 ☰ consistent read undo application ☰
+  10202 ☰ consistent read block header ☰
+  10203 ☰ block cleanout ☰
+  10204 ☰ signal recursive extend ☰
+  10205 ☰ row cache debugging ☰
+  10206 ☰ transaction table consistent read ☰
+  10207 ☰ consistent read transactions' status report ☰
+  10208 ☰ consistent read loop check ☰
+  10209 ☰ enable simulated error on control file ☰
+  10210 ☰ check data block integrity ☰
+  10212 ☰ check cluster integrity ☰
+  10213 ☰ crash after control file write ☰
+  10214 ☰ simulate write errors on control file ☰
+  10215 ☰ simulate read errors on control file ☰
+  10216 ☰ dump control file header ☰
+  10217 ☰ debug sequence numbers ☰
+  10218 ☰ dump uba of applied undo ☰
+  10219 ☰ monitor multi-pass row locking ☰
+  10220 ☰ show updates to the transaction table ☰
+  10221 ☰ show changes done with undo ☰
+  10222 ☰ row cache ☰
+  10223 ☰ transaction layer - turn on verification codes ☰
+  10224 ☰ index block split/delete trace ☰
+  10225 ☰ free/used extent row cache ☰
+  10226 ☰ trace CR applications of undo for data operations ☰
+  10227 ☰ verify (multi-piece) row structure ☰
+  10228 ☰ trace application of redo by kcocbk ☰
+  10229 ☰ simulate I/O error against datafiles ☰
+  10230 ☰ KSFD block repair test event ☰
+  10231 ☰ skip corrupted blocks on _table_scans_ ☰
+  10232 ☰ dump corrupted blocks symbolically when kcbgotten ☰
+  10233 ☰ skip corrupted blocks on index operations ☰
+  10234 ☰ trigger event after calling kcrapc to do redo N times ☰
+  10235 ☰ check memory manager internal structures ☰
+  10236 ☰ dump redo on object no. or block type mismatch errors 1410/8103 ☰
+  10237 ☰ simulate ^C (for testing purposes) ☰
+  10238 ☰ instantiation manager ☰
+  10239 ☰ multi-instance library cache manager ☰
+  10240 ☰ dump dba's of blocks that we wait for ☰
+  10241 ☰ remote SQL execution tracing/validation ☰
+  10242 ☰ suppress OER 2063 (for testing distrib w/o different error log) ☰
+  10243 ☰ simulated error for test  of K2GTAB latch cleanup ☰
+  10244 ☰ make tranids in error msgs print as 0.0.0 (for testing) ☰
+  10245 ☰ Testing event used by server I/O ksfd/ksfq module ☰
+  10246 ☰ print trace of PMON actions to trace file ☰
+  10247 ☰ Turn on scgcmn tracing. (VMS ONLY) ☰
+  10248 ☰ turn on tracing for dispatchers ☰
+  10249 ☰ turn on tracing for multi-stated servers ☰
+  10250 ☰ Trace all allocate and free calls to the topmost SGA heap ☰
+  10251 ☰ check consistency of transaction table and undo block ☰
+  10252 ☰ shared IO pool error simulation ☰
+  10253 ☰ limit SQL text returned from X$KGLNA[1] ☰
+  10254 ☰ trace cross-instance calls ☰
+  10255 ☰ pl/sql parse checking ☰
+  10256 ☰ shared server debug event ☰
+  10257 ☰ trace shared server load balancing ☰
+  10258 ☰ force shared servers to be chosen round-robin ☰
+  10259 ☰ get error message text from remote using explicit call ☰
+  10260 ☰ PGA limit ( MB) exceeded - process terminated ☰
+  10261 ☰ limit the size of the PGA heap ☰
+  10262 ☰ Don't check for memory leaks ☰
+  10263 ☰ Don't free empty PGA heap extents ☰
+  10265 ☰ Keep random system generated output out of error messages ☰
+  10266 ☰ Trace OSD stack usage ☰
+  10267 ☰ Inhibit KSEDMP for testing ☰
+  10268 ☰ Don't do forward coalesce when deleting extents ☰
+  10269 ☰ Don't do coalesces of free space in SMON ☰
+  10270 ☰ Debug shared cursors ☰
+  10271 ☰ distributed transaction after COLLECT ☰
+  10272 ☰ distributed transaction before PREPARE ☰
+  10273 ☰ distributed transaction after PREPARE ☰
+  10274 ☰ distributed transaction before COMMIT ☰
+  10275 ☰ distributed transaction after COMMIT ☰
+  10276 ☰ distributed transaction before FORGET ☰
+  10277 ☰ Cursor sharing (or not) related event (used for testing) ☰
+  10278 ☰ Internal testing ☰
+  10279 ☰ Simulate block corruption in kdb4chk ☰
+  10280 ☰ Internal testing - segmentation fault during crash recovery ☰
+  10281 ☰ maximum time to wait for process creation ☰
+  10282 ☰ Inhibit signalling of other backgrounds when one dies ☰
+  10284 ☰ simulate zero/infinite asynch I/O buffering ☰
+  10285 ☰ Simulate control file header corruption ☰
+  10286 ☰ Simulate control file open error ☰
+  10287 ☰ Simulate archiver error ☰
+  10288 ☰ Do not check block type in ktrget ☰
+  10289 ☰ Do block dumps to trace file in hex rather than fromatted ☰
+  10290 ☰ Internal sequence tracing event ☰
+  10291 ☰ die in tbsdrv to test control file undo ☰
+  10292 ☰ hang analysis trace event ☰
+  10293 ☰ trace log switch media recovery checkpoints ☰
+  10294 ☰ ksrpc tracing ☰
+  10295 ☰ die after file header update durning cf xact ☰
+  10296 ☰ disable ORA-379 ☰
+  10297 ☰ shared I/O pool tracing ☰
+  10298 ☰ ksfd i/o tracing ☰
+  10299 ☰ Trace prefetch tracking decisions made by CKPT ☰
+  10300 ☰ Distributed transaction tracing ☰
+  10301 ☰ Enable LCK timeout table consistency check ☰
+  10302 ☰ trace create or drop internal trigger ☰
+  10303 ☰ trace loading of library cache for internal triggers ☰
+  10304 ☰ trace replication trigger ☰
+  10305 ☰ trace updatable materialized view trigger ☰
+  10306 ☰ trace materialized view log trigger ☰
+  10307 ☰ trace RepCat execution ☰
+  10308 ☰ replication testing event ☰
+  10309 ☰ Trigger Debug event ☰
+  10310 ☰ trace synchronous change table trigger ☰
+  10311 ☰ Disable Flashback Table Timestamp checking ☰
+  10312 ☰ Allow disable to log rows into the mapping table ☰
+  10314 ☰ Enable extra stats gathering for CR ☰
+  10316 ☰ Events for extensible txn header, non zero ext header size ☰
+  10317 ☰ Events for extensible txn header, zero ext header size ☰
+  10318 ☰ Trace extensible txn header movements ☰
+  10319 ☰ Trace PGA statistics maintenance ☰
+  10320 ☰ Enable data layer (kdtgrs) tracing of space management calls ☰
+  10321 ☰ Datafile header verification debug failure. ☰
+  10322 ☰ CBO don't simplify inlist predicates ☰
+  10323 ☰ before committing an add datafile command ☰
+  10324 ☰ Enable better checking of redo logs errors ☰
+  10325 ☰ Trace control file record section expand and shrink operations ☰
+  10326 ☰ clear logfile debug crash at , log ☰
+  10327 ☰ simulate ORA-00235 error for testing ☰
+  10328 ☰ disable first-to-mount split-brain error, for testing ☰
+  10329 ☰ simulate out-of-memory error during first pass of recovery ☰
+  10330 ☰ clear MTTR statistics in checkpoint progress record ☰
+  10331 ☰ simulate resilvering during recovery ☰
+  10332 ☰ force ALTER SYSTEM QUIESCE RESTRICTED command to fail ☰
+  10333 ☰ dump MTTR statistics each time it is updated ☰
+  10334 ☰ force FG to wait to be killed during MTTR advisory simulation ☰
+  10335 ☰ trace database open status ☰
+  10336 ☰ Do remote object transfer using remote SQL ☰
+  10337 ☰ enable padding owner name in slave sql ☰
+  10338 ☰ CBO don't use inlist iterator with function-based indexes ☰
+  10339 ☰ CBO disable DECODE simplification ☰
+  10340 ☰ Buffer queues sanity check for corrupted buffers ☰
+  10341 ☰ Simulate out of PGA memory in DBWR during object reuse ☰
+  10342 ☰ Raise unknown exception in ACQ_ADD when checkpointing ☰
+  10343 ☰ Raise an out of memory exception-OER 4031 in ACQ_ADD ☰
+  10344 ☰ reserved for simulating object hash reorganization ☰
+  10345 ☰ validate queue when linking or unlinking a buffer ☰
+  10346 ☰ check that all buffers for checkpoint have been written ☰
+  10347 ☰ dump active checkpoint entries and checkpoint buffers ☰
+  10348 ☰ test abnormal termination of process initiating file checkpoint ☰
+  10349 ☰ do not allow ckpt to complete ☰
+  10350 ☰ Simulate more than one object & tsn id in object reuse ☰
+  10351 ☰ size of slots ☰
+  10352 ☰ report direct path statistics ☰
+  10353 ☰ number of slots ☰
+  10354 ☰ turn on direct read path for parallel query ☰
+  10355 ☰ turn on direct read path for scans ☰
+  10356 ☰ turn on hint usage for direct read ☰
+  10357 ☰ turn on debug information for direct path ☰
+  10358 ☰ Simulate out of PGA memory in cache advisory reset ☰
+  10359 ☰ turn off updates to control file for direct writes ☰
+  10360 ☰ enable dbwr consistency checking ☰
+  10361 ☰ check buffer change vector count consistency ☰
+  10362 ☰ simulate a write error to take a file offline ☰
+  10363 ☰ Simulate messaging error for fast object reuse/checkpoint ☰
+  10364 ☰ Do not clear GIMH_STC_SHUT_BEGIN state during shutdown ☰
+  10365 ☰ turn on debug information for adaptive direct reads ☰
+  10366 ☰ kgnfs tracing ☰
+  10367 ☰ kgodm tracing ☰
+  10368 ☰ maximum number of internal errors a process will tolerate ☰
+  10369 ☰ test SQL monitoring feature ☰
+  10370 ☰ parallel query server kill event ☰
+  10371 ☰ disable TQ hint ☰
+  10372 ☰ parallel query server kill event proc ☰
+  10373 ☰ parallel query server kill event ☰
+  10375 ☰ turn on checks for statistics rollups ☰
+  10376 ☰ enable archive compression loads ☰
+  10377 ☰ force slave allocation ☰
+  10378 ☰ force hard process/range affinity ☰
+  10380 ☰ kxfp latch cleanup testing event ☰
+  10381 ☰ kxfp latch cleanup testing event ☰
+  10382 ☰ parallel query server interrupt (reset) ☰
+  10383 ☰ auto parallelization testing event ☰
+  10384 ☰ parallel dataflow scheduler tracing ☰
+  10385 ☰ parallel table scan range sampling method ☰
+  10386 ☰ parallel SQL hash and range statistics ☰
+  10387 ☰ parallel query server interrupt (normal) ☰
+  10388 ☰ parallel query server interrupt (failure) ☰
+  10389 ☰ parallel query server interrupt (cleanup) ☰
+  10390 ☰ Trace parallel query slave execution ☰
+  10391 ☰ trace PX granule allocation/assignment ☰
+  10392 ☰ parallel query debugging bits ☰
+  10393 ☰ print parallel query statistics ☰
+  10394 ☰ generate a fake load to test adaptive and load balancing ☰
+  10395 ☰ adjust sample size for range table queues ☰
+  10397 ☰ suppress verbose parallel coordinator error reporting ☰
+  10398 ☰ enable timeouts in parallel query threads ☰
+  10399 ☰ trace buffer allocation ☰
+  10400 ☰ turn on system state dumps for shutdown debugging ☰
+  10401 ☰ turn on IPC (ksxp) debugging ☰
+  10402 ☰ turn on IPC (skgxp) debugging ☰
+  10403 ☰ fake CPU number for default degree of parallelism ☰
+  10404 ☰ crash dbwr after write ☰
+  10405 ☰ emulate broken mirrors ☰
+  10406 ☰ enable datetime TIMESTAMP, INTERVAL datatype creation ☰
+  10407 ☰ enable datetime TIME datatype creation ☰
+  10408 ☰ disable OLAP builtin window function usage ☰
+  10409 ☰ enable granule memset and block invalidation at startup ☰
+  10410 ☰ trigger simulated communications errors in KSXP ☰
+  10412 ☰ dump the call stack if an error is signaled ☰
+  10413 ☰ force simulated error for testing purposes ☰
+  10414 ☰ simulated error from event  level ☰
+  10415 ☰ parallel degree specified is too large, max value allowed ☰
+  10416 ☰ disable fix for 2736734 ☰
+  10417 ☰ limit 1 file per sbtinfo2() validation call ☰
+  10418 ☰ disable re-creating tempfile ☰
+  10419 ☰ create tempfile without create_scn and time ☰
+  10420 ☰ trace KSO OS-process operations ☰
+  10421 ☰ enable dump from ksbwco if there is no reply ☰
+  10422 ☰ KSU debugging ☰
+  10423 ☰ dump the call stack if the specified error is cleared ☰
+  10424 ☰ KGE debugging ☰
+  10425 ☰ enable global enqueue operations event trace ☰
+  10426 ☰ enable ges/gcs reconfiguration event trace ☰
+  10427 ☰ enable global enqueue service traffic controller event trace ☰
+  10428 ☰ enable tracing of global enqueue service cached resource ☰
+  10429 ☰ enable tracing of global enqueue service IPC calls ☰
+  10430 ☰ enable ges/gcs dynamic remastering event trace ☰
+  10431 ☰ enable verification messages on pi consistency ☰
+  10432 ☰ enable tracing of global cache service fusion calls ☰
+  10433 ☰ global enqueue service testing event ☰
+  10434 ☰ enable tracing of global enqueue service multiple LMS ☰
+  10435 ☰ enable tracing of global enqueue service deadlock detetction ☰
+  10436 ☰ enable global cache service duplicate ping checking ☰
+  10437 ☰ enable trace of global enqueue service S optimized resources ☰
+  10438 ☰ force lowest node to be master of all gcs resources ☰
+  10439 ☰ enable tracing of global cache service fusion calls - part 2 ☰
+  10440 ☰ enable global enqueue service inquire resource modes trace ☰
+  10441 ☰ enable diagnosibility daemon (DIAG) trace ☰
+  10442 ☰ enable trace of kst for ORA-01555 diagnostics ☰
+  10443 ☰ reserved for data layer diagnostics and debugging ☰
+  10444 ☰ enable DLM timeout testing ☰
+  10445 ☰ enable tracing of LMS priority management ☰
+  10446 ☰ reserved for data layer diagnostics and debugging ☰
+  10447 ☰ reserved for data layer diagnostics and debugging ☰
+  10448 ☰ Dump trace for OLTP partial compression features diagnostics ☰
+  10449 ☰ enable trace of kst for undo manageability features diagnostics ☰
+  10450 ☰ signal ctrl-c in kdddca (drop column) after n rows ☰
+  10451 ☰ Force heap segment compression bypassing compatibility checks ☰
+  10452 ☰ Cannot do block media recovery; media recovery session may be in progress ☰
+  10453 ☰ Dump compression statistics to trace file ☰
+  10454 ☰ Disable column reordering during compression ☰
+  10455 ☰ Do Compression Block Checking ☰
+  10456 ☰ cannot open standby database; media recovery session may be in progress ☰
+  10457 ☰ cannot close standby database due to active media recovery ☰
+  10458 ☰ standby database requires recovery ☰
+  10459 ☰ cannot start media recovery on standby database; conflicting state detected ☰
+  10460 ☰ Perform backward tablescans for consistent read reduction ☰
+  10461 ☰ Simulate control file corruption during write operation ☰
+  10462 ☰ enable recovery debug module ☰
+  10463 ☰ enable controlfile test ☰
+  10464 ☰ enable incremental checkpoint debug for split brain check ☰
+  10465 ☰ force slave death during parallel crash recovery ☰
+  10466 ☰ enable HARD check for block write ☰
+  10467 ☰ amplify control file record expansion for testing ☰
+  10468 ☰ log writer debug module ☰
+  10469 ☰ error creating control file backup, no checkpoint ☰
+  10470 ☰ Lost write detection related event ☰
+  10471 ☰ PQ slave allocation timeout test ☰
+  10472 ☰ dump reading log buffer hit ratio histogram to lgwr trace file ☰
+  10473 ☰ enable BRR tracing ☰
+  10474 ☰ controlfile time tracing ☰
+  10475 ☰ readable standby debug event ☰
+  10476 ☰ control file corruption range testing ☰
+  10477 ☰ simulated rollback error ☰
+  10478 ☰ DBW0 file identification trace event ☰
+  10479 ☰ disk sector size test event ☰
+  10480 ☰ Soft asserts for fast detection of datafile storage problems ☰
+  10481 ☰ Backup data block for data file has an unlogged change ☰
+  10482 ☰ Automatic block repair cannot repair an offline or read-only data file ☰
+  10483 ☰ Simulate overly advanced incremental checkpoint ☰
+  10484 ☰ Enable tracing for online data file move operation ☰
+  10485 ☰ Real-Time Query cannot be enabled while applying migration redo. ☰
+  10486 ☰ Verify data file-related SGA alignment ☰
+  10487 ☰ Dump redo memory protection information. ☰
+  10488 ☰ Dump block headers read for media recovery. ☰
+  10489 ☰ Generate future redo for testing ☰
+  10490 ☰ Trace OSM misc. events ☰
+  10491 ☰ Trace OSM messaging (KFN) events ☰
+  10492 ☰ Trace OSM metadata events ☰
+  10493 ☰ Return empty define buffers on 1422 ☰
+  10494 ☰ Trace OSM metadata events ☰
+  10495 ☰ Trace OSM metadata events ☰
+  10496 ☰ Turn off fix for bug 2554178 ☰
+  10497 ☰ Trace OSM metadata events ☰
+  10498 ☰ Trim blank characters including contol characters ☰
+  10499 ☰ Trace OSM metadata events ☰
+  10500 ☰ turn on traces for SMON ☰
+  10501 ☰ periodically check selected heap ☰
+  10502 ☰ CBO disable the fix for bug 2098120 ☰
+  10503 ☰ enable user-specified graduated bind lengths ☰
+  10504 ☰ CBO disable the fix for bug 2607029 ☰
+  10505 ☰ CBO enable dynamic sampling dump to table ☰
+  10506 ☰ Disable fix for bug 2588217 ☰
+  10507 ☰ Trace bind equivalence logic ☰
+  10508 ☰ Enable fix for bug 14772545 ☰
+  10509 ☰ Check kghu subheaps at call boundaries ☰
+  10510 ☰ turn off SMON check to offline pending offline rollback segment ☰
+  10511 ☰ turn off SMON check to cleanup undo dictionary ☰
+  10512 ☰ turn off SMON check to shrink rollback segments ☰
+  10513 ☰ turn on IPC (ksmsq) debugging ☰
+  10515 ☰ turn on event to use physical cleanout ☰
+  10519 ☰ enable ALTER TYPE RESET support ☰
+  10520 ☰ recreate view only if definition has changed ☰
+  10521 ☰ CMON connection pool test event ☰
+  10522 ☰ turn off wrap source compression ☰
+  10523 ☰ force recreate package even if definition is unchanged ☰
+  10524 ☰ CMON connection pool trace event ☰
+  10525 ☰ Disable automatic object validation for describe ☰
+  10526 ☰ enables lightweight thread tracing ☰
+  10527 ☰ enables SGA allocation tracing ☰
+  10528 ☰ enables ksmg tracing ☰
+  10529 ☰ enables SGA range protection tracing ☰
+  10530 ☰ lightweight thread spawn failed, error stack: ☰
+  10531 ☰ lightweight thread unit test failure error ☰
+  10532 ☰ lightweight thread encountered internal error ☰
+  10542 ☰ Enable tracing for block compare ☰
+  10543 ☰ Standby Block Media Recovery (bmr) and split brain testing event ☰
+  10544 ☰ Inject standby autobmr failures ☰
+  10545 ☰ Print standby autobmr messages in alert log ☰
+  10546 ☰ Cannot perform block media recovery; standby database does not have requisite redo. ☰
+  10547 ☰ Cannot perform block media recovery; standby database is not caught up with primary. ☰
+  10548 ☰ Cannot perform block media recovery on a read-only plugged-in datafile. ☰
+  10549 ☰ Cannot perform block media recovery using a read-only plugged-in backup datafile. ☰
+  10550 ☰ signal error during create as select/create index after n rows ☰
+  10551 ☰ Internal testing for ORA-1551 error handling ☰
+  10552 ☰ allow unlimited corruption during recovery ☰
+  10553 ☰ Incompatible UNTIL CONSISTENT clause ☰
+  10554 ☰ Media recovery failed to bring datafile  to a consistent point ☰
+  10556 ☰ Enable tracing for multi instance Redo Apply ☰
+  10557 ☰ NID clears database incarnation section in controlfile ☰
+  10558 ☰ Disable unkeep marker handling for ADG ☰
+  10559 ☰ LGWR code path debugging event for deferred log flush on ping ☰
+  10560 ☰ block type '' ☰
+  10561 ☰ block type '', data object# ☰
+  10562 ☰ Error occurred while applying redo to data block (file# , block# ) ☰
+  10563 ☰ Test recovery had to corrupt data block (file# , block# ) in order to proceed ☰
+  10564 ☰ tablespace ☰
+  10565 ☰ Another test recovery session is active ☰
+  10566 ☰ Test recovery has used all the memory it can use ☰
+  10567 ☰ Redo is inconsistent with data block (file# , block# , file offset is  bytes) ☰
+  10568 ☰ Failed to allocate recovery state object: out of SGA memory ☰
+  10569 ☰ Trace datafile header writes ☰
+  10570 ☰ Test recovery complete ☰
+  10571 ☰ Test recovery canceled ☰
+  10572 ☰ Test recovery canceled due to errors ☰
+  10573 ☰ Test recovery tested redo from change  to ☰
+  10574 ☰ Test recovery did not corrupt any data block ☰
+  10575 ☰ Give up restoring recovered datafiles to consistent state: out of memory ☰
+  10576 ☰ Give up restoring recovered datafiles to consistent state: some error occurred ☰
+  10577 ☰ Can not invoke test recovery for managed standby database recovery ☰
+  10578 ☰ Can not allow corruption for managed standby database recovery ☰
+  10579 ☰ Can not modify control file during test recovery ☰
+  10580 ☰ Can not modify datafile header during test recovery ☰
+  10581 ☰ Can not modify redo log header during test recovery ☰
+  10582 ☰ The control file is not a backup control file ☰
+  10583 ☰ Can not recovery file  renamed as missing during test recovery ☰
+  10584 ☰ Can not invoke parallel recovery for test recovery ☰
+  10585 ☰ Test recovery can not apply redo that may modify control file ☰
+  10586 ☰ Test recovery had to corrupt 1 data block in order to proceed ☰
+  10587 ☰ Invalid count for ALLOW n CORRUPTION option ☰
+  10588 ☰ media recovery file header validation ☰
+  10589 ☰ Test recovery had to corrupt  data blocks in order to proceed ☰
+  10590 ☰ kga (argus debugger) test flags ☰
+  10591 ☰ kga (argus debugger) test flags ☰
+  10592 ☰ kga (argus debugger) test flags ☰
+  10593 ☰ kga (argus debugger) test flags ☰
+  10594 ☰ kga (argus debugger) test flags ☰
+  10595 ☰ kga (argus debugger) test flags ☰
+  10596 ☰ kga (argus debugger) test flags ☰
+  10597 ☰ kga (argus debugger) test flags ☰
+  10598 ☰ kga (argus debugger) test flags ☰
+  10599 ☰ kga (argus debugger) test flags ☰
+  10600 ☰ check cursor frame allocation ☰
+  10601 ☰ turn on debugging for cursor_sharing (literal replacement) ☰
+  10603 ☰ cause an error to occur during truncate (for testing purposes) ☰
+  10604 ☰ trace parallel create index ☰
+  10605 ☰ enable parallel create index by default ☰
+  10606 ☰ trace parallel create index ☰
+  10607 ☰ trace index rowid partition scan ☰
+  10608 ☰ trace create bitmap index ☰
+  10609 ☰ trace for array index insertion ☰
+  10610 ☰ trace create index pseudo optimizer ☰
+  10611 ☰ causes migration to fail - testing only ☰
+  10612 ☰ prints debug information for auto-space managed segments ☰
+  10613 ☰ prints debug information for auto-space managed segments ☰
+  10614 ☰ Operation not allowed on this segment ☰
+  10615 ☰ Invalid tablespace type for temporary tablespace ☰
+  10616 ☰ Operation not allowed on this tablespace ☰
+  10617 ☰ Cannot create rollback segment in dictionary managed tablespace ☰
+  10618 ☰ Operation not allowed on this segment ☰
+  10619 ☰ Avoid assertions when possible ☰
+  10620 ☰ Operation not allowed on this segment ☰
+  10621 ☰ specify retry count for online index build cleanup DML lock get ☰
+  10622 ☰ test or trace online index build or rebuild ☰
+  10623 ☰ test synchronized flow of SORT rows into FOR UPDATE lock phase ☰
+  10624 ☰ Disable UJV invalidation on drop index ☰
+  10625 ☰ Turn off redo log dump for the index when OERI 12700 ☰
+  10626 ☰ specify timeout for online index rebuild to wait for DML ☰
+  10627 ☰ Dump the content of the index leaf block ☰
+  10628 ☰ Turn on sanity check for kdiss index skip scan state ☰
+  10629 ☰ force online index build to backoff and retry DML lock upgrade ☰
+  10630 ☰ Illegal syntax specified with SHRINK clause ☰
+  10631 ☰ SHRINK clause should not be specified for this object ☰
+  10632 ☰ Invalid rowid ☰
+  10633 ☰ No space found in the segment ☰
+  10634 ☰ Segment is already being shrunk ☰
+  10635 ☰ Invalid segment or tablespace type ☰
+  10636 ☰ ROW MOVEMENT is not enabled ☰
+  10637 ☰ The segment does not exist ☰
+  10638 ☰ Index status is invalid ☰
+  10639 ☰ Dump library cache during reparse loops ☰
+  10640 ☰ Operation not permitted during SYSTEM tablespace migration ☰
+  10641 ☰ Cannot find a rollback segment to bind to ☰
+  10642 ☰ Found rollback segments in dictionary managed tablespaces ☰
+  10643 ☰ Database should be mounted in restricted mode and Exclusive mode ☰
+  10644 ☰ SYSTEM tablespace cannot be default temporary tablespace ☰
+  10645 ☰ Recursive Extension in SYSTEM tablespace during migration ☰
+  10646 ☰ Too many recursive extensions during SYSTEM tablespace migration ☰
+  10647 ☰ Tablespace other than SYSTEM, ,  not found in read only mode ☰
+  10648 ☰ Tablespace SYSAUX is not offline ☰
+  10649 ☰ Turn off/trace lob index freelist coalesce ☰
+  10650 ☰ disable cache-callback optimisation ☰
+  10651 ☰ incorrect file number block number specified ☰
+  10652 ☰ Object has on-commit materialized views ☰
+  10653 ☰ Table is in a cluster ☰
+  10654 ☰ Table is of type temporary or external ☰
+  10655 ☰ Segment can be shrunk ☰
+  10656 ☰ Table is in unusable state due to incomplete operation ☰
+  10657 ☰ Lob column to be shrunk does not exist ☰
+  10658 ☰ Lob column to be shrunk is marked unused ☰
+  10659 ☰ Segment being shrunk is not a lob ☰
+  10660 ☰ Segment is a shared lob segment ☰
+  10661 ☰ Invalid option specified ☰
+  10662 ☰ Segment has long columns ☰
+  10663 ☰ Object has rowid based materialized views ☰
+  10664 ☰ Table has bitmap join indexes ☰
+  10665 ☰ Inject Evil Literals ☰
+  10666 ☰ Do not get database enqueue name ☰
+  10667 ☰ Cause sppst to check for valid process ids ☰
+  10668 ☰ Inject Evil Identifiers ☰
+  10690 ☰ Set shadow process core file dump type (Unix only) ☰
+  10691 ☰ Set background process core file type (Unix only) ☰
+  10692 ☰ Trace preserving buffer across standby role transition ☰
+  10693 ☰ Internal event ☰
+  10700 ☰ Alter access violation exception handler ☰
+  10701 ☰ Dump direct loader index keys ☰
+  10702 ☰ Application continuity debugging was not enabled ☰
+  10704 ☰ Print out information about what enqueues are being obtained ☰
+  10706 ☰ Print out information about global enqueue manipulation ☰
+  10707 ☰ Simulate process death for instance registration ☰
+  10708 ☰ print out trace information from the RAC buffer cache ☰
+  10709 ☰ enable parallel instances in create index by default ☰
+  10710 ☰ trace bitmap index access ☰
+  10711 ☰ trace bitmap index merge ☰
+  10712 ☰ trace bitmap index or ☰
+  10713 ☰ trace bitmap index and ☰
+  10714 ☰ trace bitmap index minus ☰
+  10715 ☰ trace bitmap index conversion to rowids ☰
+  10716 ☰ trace bitmap index compress/decompress ☰
+  10717 ☰ trace bitmap index compaction trace for index creation ☰
+  10718 ☰ event to disable automatic compaction after index creation ☰
+  10719 ☰ trace bitmap index dml ☰
+  10720 ☰ trace db scheduling ☰
+  10721 ☰ Internal testing - temp table transformation ☰
+  10722 ☰ trace server level database scheduling ☰
+  10723 ☰ Internal testing - release buffer for buffer cache shrink ☰
+  10724 ☰ trace cross-instance broadcast ☰
+  10725 ☰ bitmap index version control ☰
+  10726 ☰ frequent itemset counting ☰
+  10727 ☰ introduce failure events in IPC ☰
+  10728 ☰ set parameters for CPU frequency calculation (debug) ☰
+  10730 ☰ trace row level security policy predicates ☰
+  10731 ☰ dump SQL for CURSOR expressions ☰
+  10732 ☰ honor pctfree during insert into AQ IOTs ☰
+  10733 ☰ test transient-IOT metadata during PMO cleanup ☰
+  10734 ☰ reroute external procedures ☰
+  10735 ☰ debug ksws operations ☰
+  10736 ☰ buffer cache pin history dump ☰
+  10737 ☰ test block checking ☰
+  10738 ☰ internal block testing ☰
+  10739 ☰ debug WLM (kywm) operations ☰
+  10740 ☰ disables fix for bug 598861 ☰
+  10741 ☰ trace missing BRR generation ☰
+  10742 ☰ dump process state on flush buffer_cache ☰
+  10743 ☰ define the misbehaved vt dump thresholds ☰
+  10744 ☰ disable LMD stale cvak traces and dumps ☰
+  10745 ☰ enable LCK1 kqlmbivg-NULL-kglhdrac dump ☰
+  10746 ☰ enable KGCE_DEBUG_MODE ☰
+  10750 ☰ test rollback segment blksize guessing for index array insert ☰
+  10751 ☰ override for remote row source maximum buffer size ☰
+  10752 ☰ override for the Exponential Moving Average factor ☰
+  10753 ☰ enforce deterministic behaviour for prefetching row source ☰
+  10754 ☰ disable fix for bug 14173995 for multi-table select for update ☰
+  10755 ☰ Event to store SIG_1551 stacks to KST ☰
+  10756 ☰ Event to enable svpt/autotxn tracing ☰
+  10757 ☰ Event to control tracing row source: rows to dump per rowset ☰
+  10758 ☰ Event to control tracing row source: start row number ☰
+  10759 ☰ Event to control tracing row source: end row number ☰
+  10760 ☰ Event to control tracing row source: maximum encoded operands to check ☰
+  10761 ☰ Event to control tracing row source: size of dictionary ☰
+  10770 ☰ Disable optimization to avoid buffering the right side of a cartesian join ☰
+  10780 ☰ LogMiner API trace event ☰
+  10781 ☰ LogMiner reader trace event ☰
+  10782 ☰ LogMiner preparer trace event ☰
+  10783 ☰ LogMiner builder trace event ☰
+  10784 ☰ LogMiner dictionary trace event ☰
+  10785 ☰ LogMiner trace event ☰
+  10786 ☰ call push/pop (KSU) ☰
+  10787 ☰ trace intra-instance broadcast ☰
+  10788 ☰ trace call stacks ☰
+  10789 ☰ LogMiner test event ☰
+  10790 ☰ LogMiner trace event ☰
+  10791 ☰ Logical Standby swithover/failover trace event ☰
+  10792 ☰ Logical Standby XDAT trace event ☰
+  10793 ☰ Logical Standby trace event ☰
+  10794 ☰ Logical Standby trace event ☰
+  10795 ☰ VKTM Process trace event ☰
+  10796 ☰ Elevate Scheduler Priority trace event ☰
+  10797 ☰ Logical Standby Test Event ☰
+  10798 ☰ debug GSM (Global Service Manager) operations ☰
+  10800 ☰ disable Smart Disk scan ☰
+  10804 ☰ reserved for ksxb ☰
+  10805 ☰ Trace state object operations ☰
+  10806 ☰ Switch to 7.3 mode when detaching sessions ☰
+  10807 ☰ Disable user id check when switching to a global transaction ☰
+  10808 ☰ Enable assert when waiting without a reason ☰
+  10809 ☰ Trace state object allocate / free history ☰
+  10810 ☰ Trace snapshot too old ☰
+  10811 ☰ Trace block cleanouts ☰
+  10812 ☰ Trace Consistent Reads ☰
+  10826 ☰ enable upgrade/downgrade error message trace ☰
+  10827 ☰ enable upgrade/downgrade diagnostics ☰
+  10828 ☰ memory allocator error ☰
+  10829 ☰ enable error suppression in NORMAL mode ☰
+  10830 ☰ Trace group by sort row source ☰
+  10831 ☰ Trace group by rollup row source ☰
+  10832 ☰ Trace approximate NDV row source ☰
+  10833 ☰ Runtime distribution keys for adaptive partial rollup ☰
+  10834 ☰ Runtime behavior control for adaptive partial rollup ☰
+  10835 ☰ exclude SYS_OP_CYCLED_SEQ from TQ keys for scalable percentile ☰
+  10839 ☰ trace / debug caching module (qesca.c) ☰
+  10840 ☰ trace / debug pl/sql caching module (kkxmInitCache) ☰
+  10841 ☰ Default un-inintialized charact set form to SQLCS_IMPLICIT ☰
+  10842 ☰ Event for OCI Tracing and Statistics Info ☰
+  10843 ☰ Event for client result cache tracing ☰
+  10844 ☰ turn on Native Net IPC debugging (skgxp) ☰
+  10845 ☰ Enable Director tracing ☰
+  10846 ☰ Event for non-blocking testing ☰
+  10847 ☰ OCI dump action is being invoked for internal error ORA- ☰
+  10848 ☰ OCI Non Blocking not supported with ☰
+  10849 ☰ Internal OCI event number ☰
+  10850 ☰ Enable time manager tracing ☰
+  10851 ☰ Allow Drop command to drop queue tables ☰
+  10852 ☰ Enable tracing for Enqueue Dequeue Operations ☰
+  10853 ☰ Enable tracing for Replicating AQ Operations ☰
+  10854 ☰ Sets poll count used for AQ listen code under RAC ☰
+  10856 ☰ Disable AQ propagator from using streaming ☰
+  10857 ☰ Force AQ propagator to use two-phase commit ☰
+  10858 ☰ Crash the AQ propagator at different stages of commit ☰
+  10859 ☰ Disable updates of message retry count ☰
+  10860 ☰ event for AQ admin disable new name parser ☰
+  10861 ☰ disable storing extended message properties ☰
+  10862 ☰ resolve default queue owner to current user in enqueue/dequeue ☰
+  10863 ☰ Control behavior of buffered background operations ☰
+  10864 ☰ event to enable AQ dedicated propagation ☰
+  10865 ☰ Control tracing of notification operations ☰
+  10866 ☰ event to order dequeue by condition ☰
+  10867 ☰ turn off authentication for emon to oci client and disable HA rstat ☰
+  10868 ☰ event to enable interop patch for AQ enqueue options ☰
+  10870 ☰ Disable multi-instance standby role transition ☰
+  10871 ☰ dump file open/close timestamp during media recovery ☰
+  10872 ☰ Flashback Database fault insertion event #. ☰
+  10873 ☰ file  needs to be either taken out of backup mode or media recovered ☰
+  10874 ☰ Change max logfiles in hashtable in krfbVerifyRedoAvailable ☰
+  10875 ☰ Require instance bounce after switchover to primary ☰
+  10876 ☰ IDR Test event ☰
+  10877 ☰ error signaled in parallel recovery slave ☰
+  10878 ☰ parallel recovery slave died unexpectedly ☰
+  10879 ☰ error signaled in parallel recovery slave ☰
+  10880 ☰ trace Java VM execution ☰
+  10883 ☰ Event for Fast Application Notification tracing ☰
+  10884 ☰ TTC event ☰
+  10885 ☰ Switchover test event ☰
+  10886 ☰ Recovery test event ☰
+  10887 ☰ An Oracle Active Data Guard license is required to open a pluggable database while standby recovery is applying changes. ☰
+  10888 ☰ TTC event for optimized fetch ☰
+  10889 ☰ minimum number of instances needed for redo apply unavailable ☰
+  10890 ☰ ADG test event ☰
+  10891 ☰ disable column pruning in ANSI join transformation ☰
+  10892 ☰ multi-instance redo apply encountered nonlogged operation ☰
+  10893 ☰ TTC trace event ☰
+  10898 ☰ LGWR timing event ☰
+  10900 ☰ extent manager fault insertion event # ☰
+  10901 ☰ disable the fix for bug 1230798 ☰
+  10902 ☰ disable seghdr conversion for ro operation ☰
+  10903 ☰ Force tablespaces to become locally managed ☰
+  10904 ☰ Allow locally managed tablespaces to have user allocation ☰
+  10905 ☰ Do cache verification (kcbcxx) on extent allocation ☰
+  10906 ☰ Unable to extend segment after insert direct load ☰
+  10907 ☰ Trace extent management events ☰
+  10908 ☰ Trace temp tablespace events ☰
+  10909 ☰ Trace free list events ☰
+  10910 ☰ inject corner case events into the RAC buffer cache ☰
+  10911 ☰ Locally managed SYSTEM tablespace bitmaps can be modified only under the supervision of Oracle Support ☰
+  10912 ☰ Used to perform admin operations on locally managed SYSTEM tablespace ☰
+  10913 ☰ Create locally managed database if compatible > 920 by default ☰
+  10914 ☰ invalid TABLESPACE GROUP clause ☰
+  10915 ☰ TABLESPACE GROUP cannot be specified for this type of tablespace ☰
+  10916 ☰ TABLESPACE GROUP already specified ☰
+  10917 ☰ TABLESPACE GROUP cannot be specified ☰
+  10918 ☰ TABLESPACE GROUP name cannot be the same as tablespace name ☰
+  10919 ☰ Default temporary tablespace group must have at least one tablespace ☰
+  10920 ☰ Cannot offline tablespace belonging to default temporary tablespace group ☰
+  10921 ☰ Cannot drop tablespace belonging to default temporary tablespace group ☰
+  10922 ☰ Temporary tablespace group is empty ☰
+  10923 ☰ prints debug information for object space server manageability ☰
+  10924 ☰ import storage parse error ignore event ☰
+  10925 ☰ trace name context forever ☰
+  10926 ☰ trace name context forever ☰
+  10927 ☰ trace name context forever ☰
+  10928 ☰ trace name context forever ☰
+  10929 ☰ trace name context forever ☰
+  10930 ☰ trace name context forever ☰
+  10931 ☰ trace name context forever ☰
+  10932 ☰ trace name context forever ☰
+  10933 ☰ trace name context forever ☰
+  10934 ☰ trace name context forever ☰
+  10936 ☰ trace name context forever ☰
+  10937 ☰ trace name context forever ☰
+  10938 ☰ trace name context forever ☰
+  10939 ☰ trace name context forever ☰
+  10940 ☰ trace name context forever ☰
+  10941 ☰ trace name context forever ☰
+  10943 ☰ trace name context forever ☰
+  10944 ☰ trace name context forever ☰
+  10945 ☰ trace name context forever ☰
+  10946 ☰ trace name context forever ☰
+  10947 ☰ trace name context forever ☰
+  10948 ☰ trace name context forever ☰
+  10949 ☰ Disable autotune direct path read for full table scan ☰
+  10960 ☰ AQ tracing event ☰
+  10961 ☰ Enable tracing for Scheduler subscriber cleanup ☰
+  10970 ☰ backout event for bug 2133357 ☰
+  10971 ☰ prints debugging information for LOBs ☰
+  10972 ☰ raise a 1551 exception in kdu_array_flush ☰
+  10973 ☰ backout evet for 2619509 ☰
+  10974 ☰ Turn on LOB integrity verification ☰
+  10975 ☰ trace execution of parallel propagation ☰
+  10976 ☰ internal package related tracing ☰
+  10977 ☰ trace event for RepAPI ☰
+  10978 ☰ general event for materialized view logs ☰
+  10979 ☰ trace flags for join index implementation ☰
+  10980 ☰ prevent sharing of parsed query during Materialized View query generation ☰
+  10981 ☰ dscn computation-related event in replication ☰
+  10982 ☰ event to turn off CDC-format MV Logs ☰
+  10983 ☰ event to enable Create_Change_Table debugging ☰
+  10984 ☰ subquery materialized view-related event ☰
+  10985 ☰ event for NULL refresh of materialized views ☰
+  10986 ☰ donot use HASH_AJ in refresh ☰
+  10987 ☰ event for the support of caching table with object feature ☰
+  10988 ☰ event to get exclusive lock during materialized view refresh in IAS ☰
+  10989 ☰ event to internally create statistics MV ☰
+  10990 ☰ dump spreadsheet info ☰
+  10991 ☰ event for optimizing the online redefinition instantiation ☰
+  10992 ☰ event to enable dbms_job instead of dbms_scheduler ☰
+  10993 ☰ Runtime enable IOQ batching ☰
+  10994 ☰ Compiletime enable IOQ batching ☰
+  10995 ☰ general event for materialized views ☰
+  10997 ☰ another startup/shutdown operation of this instance inprogress ☰
+  10998 ☰ event to enable short stack dumps in system state dumps ☰
+  10999 ☰ do not get database enqueue name ☰
+  39098 ☰ *Seems to be related to the data pump* ☰
+table }
