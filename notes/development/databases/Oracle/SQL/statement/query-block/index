@@ -1,0 +1,93 @@
+$ Oracle SQL statement: query block
+@ query block
+
+? An → development/databases/Oracle/SQL/statement consists of one or more query blocks in a tree-structure (a query block has zero, one or more sub-query blocks).
+-
+The → development/databases/Oracle/optimizer optimizes these query blocks from the bottom (the nodes of the tree) towards the tree-root.
+
+
+? After a statement has been parsed, the parsed query (which represents the statement's query blocks) is passed to the *query transformer* which tries to transform these query blocks into a more optimal
+execution plan, using methods such as
+ • View Merging
+ • Predicate Pushing
+ • Subquery Unnesting
+ • Query Rewrite with Materialized Views
+
+
+{ Query block hints
+
+  → development/databases/Oracle/SQL/hints[Hints] that specifically address query blocks include
+    • `qb_name` (to override a generated query block name)
+    • `star_transformation`
+    • `unnest`
+    • … ?
+
+  In order to refer to a query block in a hint, the respective query block name needs to be prefixed with an at symbol (for exampl `@QB_FOO`).
+
+}
+{ Showing query block names in an execution plan
+
+  The following example tries to demonstrate how query block names show up in an → development/databases/Oracle/SQL/statement/verbs/explain[explained] SQL statement.
+
+  Create two table to be used for the query:
+code {
+create table tq84_outer (
+   id number,
+   txt varchar2(20),
+   foo varchar2(20)
+);
+
+create table tq84_inner (
+   id number,
+   txt varchar2(20)
+);
+code }
+
+   Use the `qb_name` hints to specifically name a subquery:
+code {
+explain plan for
+select /*+ qb_name(outer_query) */
+   id,
+   txt
+from
+   tq84_outer one where
+   one.id = (select /*+ qb_name(subquery) */
+                max(two.id)
+             from
+                tq84_inner two
+             where
+                two.txt = one.txt
+            );
+code }
+
+  Show the → development/databases/Oracle/SQL/statement/execution/plan[execution plan]:
+code {
+select
+   lpad('| ', (pln.depth-1) * 2, '| ') || pln.operation || case when pln.options is not null then ' (' || pln.options || ')' end op,
+   pln.object_owner || nvl2(pln.object_owner, '.', '') || pln.object_name object_owner_name,
+   pln.object_alias,
+   pln.qblock_name
+from
+   → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[plan_table] pln where plan_id = (select max(plan_id) from plan_table)
+order by
+   pln.id
+;
+code }
+
+  The plan is:
+code {
+OP                        OBJECT_OWNER_NAME  OBJECT_ALIAS         QBLOCK_NAME
+-----------------------   -----------------  ------------------   -----------
+SELECT STATEMENT
+FILTER                                                            OUTER_QUERY
+| TABLE ACCESS (FULL)     RENE.TQ84_OUTER    "ONE"@"OUTER_QUERY"  OUTER_QUERY
+| SORT (AGGREGATE)                                                SUBQUERY
+| | TABLE ACCESS (FULL)   RENE.TQ84_INNER    "TWO"@"SUBQUERY"     SUBQUERY
+code }
+
+  TODO: Try the same thing with an index:
+code {
+create index tq84_outer_ix on tq84_outer(id);
+code }
+
+}

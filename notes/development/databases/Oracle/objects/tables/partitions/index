@@ -1,5 +1,75 @@
 $ Oracle table partitions
 
+code {
+select
+   partitioned,   -- 'YES'
+   num_rows,
+   blocks
+from
+   dba_tables
+where
+   owner      = 'RENE' and
+   table_name = 'HIST_ABC';
+
+
+select
+   composite,
+   partition_position,
+   partition_name,
+   subpartition_count,
+   high_value,
+   num_rows,
+   blocks
+   high_value_length
+from
+   all_tab_partitions
+where
+   table_owner  = 'RENE'                and
+   table_name   = 'HIST_ABC';
+
+select
+   subpar.partition_name,
+   subpar.subpartition_name,
+   tabpar.high_value             tabpar_high_value,
+   subpar.high_value             subpar_high_value,
+   subpar.num_rows               subpar_num_rows,
+   subpar.blocks                 subpar_blocks,
+   tabpar.high_value_length      tabpar_high_value_length,
+   subpar.high_value_length      subpar_high_value_length,
+   subpar.partition_position,
+   subpar.subpartition_position
+from
+   all_tab_partitions    tabpar   join
+   all_tab_subpartitions subpar on
+       tabpar.table_owner    = subpar.table_owner and
+       tabpar.partition_name = subpar.partition_name
+where
+   subpar.table_owner = 'RENE' and
+   subpar.table_name  = 'HIST_ABC'
+order by
+   subpar.partition_position,
+   subpar.subpartition_position;
+
+
+select
+   column_name
+from
+   all_part_key_columns
+where
+   owner      = 'RENE'                 and
+   name       = 'HIST_ABC'
+order by
+   column_position;
+
+select
+   column_name
+from
+   all_subpart_key_columns
+where
+   owner = 'RENE' and
+   name = 'HIST_ABC';
+code }
+
 { List partitions
 
   gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/list_partitioning.sql||
