@@ -9,6 +9,8 @@ $ Windows Update
 
  *Update Session Orchestrator (USO)* is a Windows component that manages the sequence of downloading and installing different update types. (Store Apps are not updated by the USO).
 
+  The executable for the USO seems to be → Windows/dirs/Windows/System32/UsoClient_exe[`UsoClient.exe`].
+
 }
 { Update types #windows-update-types
 
@@ -50,6 +52,11 @@ code }
   
   { Feature Update
 
+    When opening Windows Update Settings using `start ms-settings:windowsupdate` (2021-02-02), I found the following situation, which seems to indicate that *feature updates* are treated differently
+    from ordinary(?) updates:
+    gh|Windows-Pics|/ms-settings/windowsupdate/Youre-up-to-date_vs_feature-update.png||
+
+
     Performing a feature udpate, for example from 1909 to 2004, can be executed like so:
 code {
 $destDir = "$env:temp\FeatureUpdate"
@@ -60,10 +67,13 @@ $exe       = "$destDir\Win10Upgrade.exe"
 
 $webClient.DownloadFile('https://go.microsoft.com/fwlink/?LinkID=799445', $exe)
 
-start-process -FilePath $exe -ArgumentList '/quietinstall /skipeula /auto upgrade /copylogs $destDir' 
+→ Windows/PowerShell/command-inventory/noun/process/start[start-process] -filePath $exe -argumentList '/quietinstall /skipeula /auto upgrade /copylogs $destDir' 
 
 # check if still running:
-get-process Windows10UpgraderApp
+while (→ Windows/PowerShell/command-inventory/noun/process/get[get-process] Windows10UpgraderApp) { → Windows/PowerShell/command-inventory/noun/sleep/start[start-sleep] 1 }; 'done'
+
+# Check if updated
+get-itemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'  ReleaseId:w
 code }
 
   }
@@ -115,9 +125,9 @@ code }
 
 
   }
-  { Reporting all updates
+  { Reporting all updates #win-report-all-updates
 
-    The → Windows/development/COM/object (?) `Microsoft.Update.Session` allows to query the update history of applications (as opposed to QFE updates:
+    The → Windows/development/COM/object `Microsoft.Update.Session` allows to query the update history of applications (as opposed to QFE updates:
 code {
 PS C:\> $wuSess   = → Windows/PowerShell/command-inventory/noun/object/new[new-object] -comObject Microsoft.Update.Session
 PS C:\> $wuSearch = $wuSess.createUpdateSearcher()
