@@ -1,0 +1,116 @@
+$ Oracle: Semantical parsing of SQL statements with UTL_XML.PARSEQUERY
+
+`utl_xml` provides the function `parseQuery` that allows to semantically parse an → development/databases/Oracle/SQL/statement. Unfortunately, this function is protected by an
+`ACCESSIBLE BY (PACKAGE SYS.→ development/databases/Oracle/installed/packages/dbms/metadata[DBMS_METADATA])` clause.
+-
+However, → https://github.com/PhilippSalvisberg/plscope-utils/blob/main/database/utils/package/parse_util.pkb[Philipp Salvisberg] provided a work around so that this function still can be used.
+
+{ Allow using UTL_XML_LIB
+
+  A DBA must → development/databases/Oracle/SQL/DCL/grant[`grant`] execute on `utl_xml_lib` to the → development/databases/Oracle/users-roles/users[user] that is going to use the
+  functionality:
+  gh|Oracle-Patterns|/Installed/utl/xml/parse/grant-execute.sql||
+
+}
+{ Create a wrapper package
+
+  The user who wants to parse SQL statements then needs to create a «wrapper» PL/SQL package:
+  gh|Oracle-Patterns|/Installed/utl/xml/parse/utl_xml_wrapper.sql||
+
+}
+
+{ Using the function
+
+  Finally, this package can be used to parse a given SQL statement:
+  gh|Oracle-Patterns|/Installed/utl/xml/parse/parse-query.sql||
+
+}
+{ Output
+
+  Calling `parseQuery` returns an XML document that (for the example above) looks like so:
+code {
+<QUERY>
+  <SELECT>
+    <SELECT_LIST>
+      <SELECT_LIST_ITEM>
+        <COLUMN_REF>
+          <TABLE_ALIAS>A</TABLE_ALIAS>
+          <COLUMN>ID</COLUMN>
+        </COLUMN_REF>
+      </SELECT_LIST_ITEM>
+      <SELECT_LIST_ITEM>
+        <COLUMN_REF>
+          <TABLE_ALIAS>A</TABLE_ALIAS>
+          <COLUMN>NUM_1</COLUMN>
+        </COLUMN_REF>
+      </SELECT_LIST_ITEM>
+      <SELECT_LIST_ITEM>
+        <COLUMN_REF>
+          <TABLE_ALIAS>A</TABLE_ALIAS>
+          <COLUMN>TXT_1</COLUMN>
+        </COLUMN_REF>
+      </SELECT_LIST_ITEM>
+      <SELECT_LIST_ITEM>
+        <ADD>
+          <COLUMN_REF>
+            <TABLE_ALIAS>A</TABLE_ALIAS>
+            <COLUMN>NUM_1</COLUMN>
+          </COLUMN_REF>
+          <COLUMN_REF>
+            <TABLE_ALIAS>B</TABLE_ALIAS>
+            <COLUMN>NUM_2</COLUMN>
+          </COLUMN_REF>
+        </ADD>
+        <COLUMN_ALIAS>TOTAL</COLUMN_ALIAS>
+      </SELECT_LIST_ITEM>
+      <SELECT_LIST_ITEM>
+        <CAT>
+          <COLUMN_REF>
+            <TABLE_ALIAS>A</TABLE_ALIAS>
+            <COLUMN>TXT_1</COLUMN>
+          </COLUMN_REF>
+          <COLUMN_REF>
+            <TABLE_ALIAS>B</TABLE_ALIAS>
+            <COLUMN>TXT_2</COLUMN>
+          </COLUMN_REF>
+        </CAT>
+        <COLUMN_ALIAS>TEXT</COLUMN_ALIAS>
+      </SELECT_LIST_ITEM>
+    </SELECT_LIST>
+  </SELECT>
+  <FROM>
+    <FROM_ITEM>
+      <JOIN>
+        <INNER/>
+        <JOIN_TABLE_1>
+          <TABLE>PARSE_TEST_ONE</TABLE>
+          <TABLE_ALIAS>A</TABLE_ALIAS>
+        </JOIN_TABLE_1>
+        <JOIN_TABLE_2>
+          <TABLE>PARSE_TEST_TWO</TABLE>
+          <TABLE_ALIAS>B</TABLE_ALIAS>
+        </JOIN_TABLE_2>
+        <ON>
+          <EQ>
+            <COLUMN_REF>
+              <TABLE>PARSE_TEST_ONE</TABLE>
+              <TABLE_ALIAS>A</TABLE_ALIAS>
+              <COLUMN>ID</COLUMN>
+            </COLUMN_REF>
+            <COLUMN_REF>
+              <TABLE>PARSE_TEST_TWO</TABLE>
+              <TABLE_ALIAS>B</TABLE_ALIAS>
+              <COLUMN>ID_ONE</COLUMN>
+            </COLUMN_REF>
+          </EQ>
+        </ON>
+      </JOIN>
+    </FROM_ITEM>
+  </FROM>
+</QUERY>
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/packages/utl/xml[`utl_xml`]

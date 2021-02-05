@@ -1,0 +1,48 @@
+$ DBMS_SQLTUNE.SELECT_CURSOR_CACHE
+
+`dbms_sqltune.select_cursor_cache` collects → development/databases/Oracle/SQL/statement[SQL statements]
+from the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache/Shared-SQL-Area[shared SQL area].
+
+code {
+select
+   cc.force_matching_signature,
+   cc.sql_text,
+   cc.object_list,
+   cc.bind_data   ,
+   cc.parsing_schema_name,
+   cc.module,
+   cc.action,
+   cc.elapsed_time,
+   cc.cpu_time,
+   cc.buffer_gets,
+   cc.disk_reads,
+   cc.direct_writes,
+   cc.rows_processed,
+   cc.fetches,
+   cc.executions,
+   cc.end_of_fetch_count,
+   cc.optimizer_cost,
+   cc.optimizer_env,
+   cc.priority,
+   cc.command_type,
+   cc.first_load_time,
+   cc.stat_period,
+   cc.active_stat_period,
+   cc.other,
+   cc.plan_hash_value,
+   pl.*
+from
+   table(dbms_sqltune.select_cursor_cache(
+       basic_filter    => 'force_matching_signature = 15217364541437386770', -- condition  of selected records
+       object_filter   =>  null                                              -- Currently not supported
+    -- ranking_measure =>
+    -- result_limit    =>
+    -- attribute_list  =>
+    -- recursive_sql   =>
+   ))                      cc,
+   table(cc.sql_plan)      pl
+;   
+code }
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/sqltune[`dbms_sqltune`]

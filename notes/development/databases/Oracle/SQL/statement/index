@@ -1,6 +1,40 @@
 $ Oracle: SQL statement
--
 @ SQL statement
+
+{ Identifiying SQL Statements
+
+  { sql_id
+
+    …
+
+  }
+  { force_matching_signature / exact_matching_signature #ora-sql-stmt-ident-matching_signature
+
+code {
+select
+   count(*) over (partition by force_matching_signature) cnt,
+   force_matching_signature,
+   sql_id,
+   sql_fulltext
+from
+   v$sqlarea
+where
+   force_matching_signature <> 0
+order by
+   cnt desc;
+code }
+
+code {
+select
+   → development/databases/Oracle/installed/packages/dbms/sqltune[dbms_sqltune.sqltext_to_signature]('select  count(abc) from def where ghi = 9 and bitand(flags, 128) = 0', force_match=>1) sig_1,
+   → development/databases/Oracle/installed/packages/dbms/sqltune[dbms_sqltune.sqltext_to_signature]('select count( abc) from def where ghi = 7 and bitand(flags,  65) = 1', force_match=>1) sig_2
+from
+   dual;
+code }
+
+  }
+
+}
 
 sa:
   → development/databases/Oracle/SQL/statement/execution[Statement execution],
@@ -9,3 +43,5 @@ sa:
   Execute *dynamic SQL Statements* in → development/databases/Oracle/PL-SQL with
     • → development/databases/Oracle/PL-SQL/execute-immediate[`execute immediate`]
     • → development/databases/Oracle/installed/packages/dbms/sql[`dbms_sql`]
+
+  → development/databases/Oracle/installed/packages/utl/xml/parse[Semantically parse SQL statements with `utl_xml.parseQuery`]
