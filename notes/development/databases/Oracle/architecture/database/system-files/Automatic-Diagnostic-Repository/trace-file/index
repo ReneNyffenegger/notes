@@ -75,6 +75,7 @@ code {
 alter session set events '10235';
 code }
 
+Reveal optimizer statistics after SQL statement parsing.
 code {
 alter session set events '10053 trace name context forever';
 code }
@@ -86,6 +87,34 @@ alter session set events 'sql_trace wait=true, plan_stat=never';
 alter session set events 'sql_trace off';
 code }
 See → development/databases/Oracle/tools/oradebug/doc/event/name/sql_trace[`oradebug doc event name sql_trace`] for usage.
+-
+Compare with the → development/databases/Oracle/adminstration/init-parameters/sql_trace[init parameter `sql_trace`].
+
+
+Disable invoking the action after 1234 events:
+code {
+alter session set events '10046 trace name context level 12, lifetime 1234';
+code }
+
+Skip first 500 events:
+code {
+alter session set events '10046 trace name context level 12, lifetime 1234, after 500 occurrences';
+code }
+
+code {
+alter session set events '60 trace name hanganalyze level 4';
+code }
+
+code {
+alter session set events q'{60 trace           -
+name hanganalyze_global level   4, forever;    -
+name systemstate        level 266, lifetime 1; -
+name processstate       level   2, forever}';
+code }
+
+code {
+alter session set events 'deadlock trace name hanganalyze_global';
+code }
 
 code {
 alter system  set events   'immediate trace name GWM_TRACE level 7';
@@ -97,9 +126,25 @@ alter session set events   'trace[rdbms.SQL_Optimizer.*] [sql:6kdz5a5c427qd]' /*
 alter session set events   'trace[krb.*]';
 code }
 
+Force a crash after a `commit` (→ https://tanelpoder.com/posts/what-caused-this-wait-event/[Tanel Poder]):
+code {
+create table xyz(a number);
+alter session set events 'wait_event["log file sync"] crash()';
+insert into xyz values (1);
+commit;
+code }
+
+code {
+alter session set events 'wait_event["db file sequential read"] trace("stack is: %\n", shortstack())';
+code }
+
   Found → https://joordsblog.vandenoord.eu/2013/05/oracle-tracing-and-events-oradebug.html[here]:
 code {
 alter session set events 'trace[RDBMS.SQL_Transform] [SQL: 32cqz71gd8wy3] disk=high RDBMS.query_block_dump(1) processstate(1) callstack(1)';
+code }
+
+code {
+alter session set events 'wait_event[all] trace(''event="%" ela=% p1=% p2=% p3=%\n'', evargs(5), evargn(1), evargn(2), evargn(3), evargn(4))';
 code }
 
   (Invalid) components.
@@ -147,6 +192,26 @@ code }
 code {
 alter session set events 'immediate eventdump(session)';
 alter session set events 'immediate eventdump(system)' ;
+code }
+
+Dump → development/databases/Oracle/architecture/database/files/control[control file]
+code {
+alter session set events 'immediate trace name controlf level 10';
+code }
+
+Dump file headers:
+code {
+alter session set events 'immediate trace name file_hdrs level 10'
+code }
+
+Dump redo log headers
+code {
+alter session set events 'immediate trace name redohdr level 10';
+code }
+
+Dump system state:
+code {
+alter session set events 'immediate trace name systemstate level 10';
 code }
 
 code {

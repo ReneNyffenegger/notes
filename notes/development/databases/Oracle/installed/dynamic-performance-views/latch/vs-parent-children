@@ -1,0 +1,43 @@
+$ Oracle: V$LATCH vs V$LATCH_PARENT vs v$LATCH_CHILDREN
+
+code {
+select * from (
+   select 'v$latch'          as src, l.* from v$latch          l  union all
+   select 'v$latch_parent'   as src, l.* from v$latch_parent   l  union all
+   select 'v$latch_children' as src,
+      addr, latch#,
+   -- child#
+      level#,
+      name,
+      hash,
+      gets,
+      misses,
+      sleeps,
+      immediate_gets,
+      immediate_misses,
+      waiters_woken,
+      waits_holding_latch,
+      spin_gets,
+      sleep1,
+      sleep2,
+      sleep3,
+      sleep4,
+      sleep5,
+      sleep6,
+      sleep7,
+      sleep8,
+      sleep9,
+      sleep10,
+      sleep11,
+      wait_time,
+      con_id
+   from 
+      v$latch_children l
+)
+where
+   name = 'shared pool';
+code }
+
+sa:
+  → development/databases/Oracle/installed/dynamic-performance-views/latch[`v$latch`]
+  → development/databases/Oracle/installed/dynamic-performance-views/latch/children[`v$latch_children`]
