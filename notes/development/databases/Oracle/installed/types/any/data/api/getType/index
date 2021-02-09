@@ -1,0 +1,37 @@
+$ Oracle: SYS.ANYDATA.GETTYPE
+
+code {
+declare
+   type anydata_t is table of (sys.anydata);
+   a anydata_t;
+  
+   tp sys.anytype;
+begin
+   a := anydata_t(anydata.convertNumber(42), anydata.convertVarchar2('hello world'), anydata.convertDate(timestamp '2020-08-28 22:23:24'));
+  
+   for i in 1 .. a.count loop
+       dbms_output.put_line(
+          a(i).getTypeName    || ' (' || a(i).getType(tp)  || '): ' ||
+          --
+          a(i).accessNumber   ||
+          a(i).accessVarchar2 ||
+          a(i).accessDate
+       );
+      
+   --  if tp is null then
+   --     dbms_output.put_line('tp is null');
+   --  end if;
+   end loop;
+end;
+/
+code }
+
+Output:
+code {
+SYS.NUMBER (2): 42
+SYS.VARCHAR2 (9): hello world
+SYS.DATE (12): 2020-08-28 22:23:24
+code }
+
+sa:
+  → development/databases/Oracle/installed/types/any[`anyType`, `anyData` and `anyDataSet`]
