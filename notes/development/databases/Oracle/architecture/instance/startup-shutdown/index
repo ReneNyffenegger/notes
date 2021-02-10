@@ -20,6 +20,121 @@ A shutdown has the same phases in reverse order.
     • create a new → development/databases/Oracle/architecture/database
     • for some → development/databases/Oracle/adminstration/backup-recovery[backup and recovery] operations
 
+code {
+SQ> startup nomount
+
+Total System Global Area 1073738560 bytes
+Fixed Size                  9036608 bytes
+Variable Size             788529152 bytes
+Database Buffers          268435456 bytes
+Redo Buffers                7737344 bytes
+code }
+
+  `v$sql` is accessible:
+code {
+set numformat 999999999999999
+set lines 10000
+set trimspool on
+column sql_text format a9000
+spool %temp%\sql.txt
+
+select
+   lag(to_number(address, 'xxxxxxxxxxxxxxxx')) over (order by first_load_time, address desc) - to_number(address, 'xxxxxxxxxxxxxxxx') addr_diff,
+  (sysdate-to_date(first_load_time, 'yyyy-mm-dd/hh24:mi:ss'))*24*60*60 loaded_s_ago,
+-- sql_id,
+   substr(sql_fulltext, 1, 9000) sql_text
+from
+   v$sql
+order by
+   first_load_time,
+   address desc;
+
+spool off
+code }
+
+  `v$parameter` is also accessible:
+code {
+select substr(name,1,30), substr(value,1,50) from v$parameter order by name;
+code }
+
+  `v$controlfile` is empty:
+code {
+select * from v$controlfile;
+code }
+
+  Only *fixed tables* and *fixed views* can be queried:
+code {
+select count(*) from user_objects;
+
+ERROR at line 1:
+ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only
+
+
+select * from x$kcccp
+              *
+ERROR at line 1:
+ORA-01507: database not mounted
+code }
+
+  Some → development/databases/Oracle/architecture/processes/server/index[processes] are already available:
+code {
+SQL> select ksbdphdl, ksbdpnam, ksbdppri from x$ksbdp where ksbdpser > 0 order by ksbdpnam;
+
+        KSBDPHDL KSBDP KSBDPPRI
+---------------- ----- --------
+             239 CKPT  Normal
+              21 CLMN  Normal
+              42 D000  Normal
+               8 DBRM  Normal
+              75 DBW0  Normal
+              23 DIA0  Normal
+               6 DIAG  Normal
+             328 FENC  Normal
+               1 GEN0  Normal
+               2 GEN1  Normal
+              30 LG00  Normal
+              30 LG01  Normal
+             237 LGWR  Normal
+             271 LREG  Normal
+              81 M000  Normal
+              74 MMAN  Normal
+             346 MMNL  Normal
+             345 MMON  Normal
+              22 PMAN  Normal
+              20 PMON  Normal
+              15 PSP0  Normal
+             273 PXMN  Normal
+             250 RECO  Normal
+              41 S000  Normal
+             248 SMCO  Normal
+             247 SMON  Normal
+              14 SVCB  Normal
+             176 TMON  Normal
+               9 VKRM  Normal
+               0 VKTM  Time Cr
+code }
+
+  The → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache is empty:
+code {
+select count(*) from → development/databases/Oracle/architecture/instance/fixed-tables/bh;
+0
+code }
+
+  There *is* a `dual` table, yet without synonym:
+code {
+none> select * from dual;
+
+ADDR                         INDX          INST_ID           CON_ID D
+---------------- ---------------- ---------------- ---------------- -
+00007FF77465A43C                0                1                0 X
+code }
+
+  TODO: What happens if I query
+code {
+select * from v$database;
+select * from v$instance;
+code }
+
 }
 { Nomount -> mount
 
@@ -28,6 +143,31 @@ A shutdown has the same phases in reverse order.
   → development/databases/Oracle/adminstration/init-parameters#control_files[`control_files` init parameter].
 
   A mounted database is closed for ordinary users. Only adminsitrators have access to it for a restricted set of operations.
+
+code {
+alter database mount;
+code }
+
+  The control files are now opened:
+code {
+select count(*) from v$controlfile;
+…
+…
+code }
+
+  The buffer cache is still empty:
+code {
+select count(*) from x$bh;
+code }
+
+  The data dictionary is not available:
+code {
+select count(*) from user_objects;
+
+ERROR at line 1:
+ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only
+code }
+
 
 }
 { mount -> open
@@ -49,6 +189,22 @@ A shutdown has the same phases in reverse order.
   Note: It's also possible to open a database in read only mode.
 
   When a database is opened, the → development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[`SYSTEM` tablespace] is always online.
+
+code {
+alter database open;
+code }
+
+code {
+select * from dual;
+D
+-
+X
+code }
+
+code {
+select open_mode from v$database;
+select database_status from v$instance;
+code }
 
 }
 { Shutdown

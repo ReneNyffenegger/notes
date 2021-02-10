@@ -1,0 +1,33 @@
+$ Oracle PL/SQL: PRAGMA INLINE
+
+`pragma inline` instructs the → development/databases/Oracle/PL-SQL compiler to → development/databases/Oracle/PL-SQL/inline[inline] code.
+code {
+create or replace package tq84_pkg as
+    function f(a number, b number) return number;
+   
+    pragma inline('g', 'yes');
+    function g(a number, b number) return number;
+end tq84_pkg;
+/
+ 
+create or replace package body tq84_pkg as
+    function f(a number, b number) return number is
+    begin
+        return abs(a-3) + abs(b-5);
+    end f;
+   
+    function g(a number, b number) return number is
+    begin
+       pragma inline('f', 'yes');
+       return f(a, b);
+    end g;
+end tq84_pkg;
+/
+code }
+
+
+sa:
+
+  → development/databases/Oracle/adminstration/init-parameters/plsql/optimize_level#plsql_optimize_level-inline[`plsql_optimize_level`].
+
+  → development/databases/Oracle/SQL/clauses/with#ora-with-func[Using inlined functions in `with` clauses] of an SQL statement.

@@ -1,0 +1,30 @@
+$ Oracle SQL: show table columns, their data types and primary key positions
+
+The following SQL statement selects (shows) tables, their → development/databases/Oracle/objects/tables/columns[column] names and → development/databases/Oracle/SQL/data-types[data types] and
+the position of the columns that make up a → development/databases/Oracle/objects/tables[table's] → development/databases/Oracle/objects/tables/constraints/primary-key[primary key].
+
+code {
+select
+   case when nvl(lag(tabc.owner || '.' || tabc.table_name) over (order by tabc.owner, tabc.table_name, tabc.column_id), 'n/a') <> tabc.owner || '.' || tabc.table_name then tabc.owner      end owner,
+   case when nvl(lag(tabc.owner || '.' || tabc.table_name) over (order by tabc.owner, tabc.table_name, tabc.column_id), 'n/a') <> tabc.owner || '.' || tabc.table_name then tabc.table_name end table_name,
+   tabc.column_name,
+   tabc.data_type,
+   tabc.data_length,
+   tabc.data_precision,
+   tabc.data_scale,
+   tabc.nullable,
+   pkcl.position           primary_key_position
+from
+   dba_tab_columns     tabc                                                     left join
+   dba_constraints     conp  on tabc.table_name      = conp.table_name      and
+                                tabc.owner           = conp.owner           and
+                                conp.constraint_type = 'P'                      left join
+   dba_cons_columns    pkcl  on conp.constraint_name = pkcl.constraint_name and
+                                conp.owner           = pkcl.owner           and
+                                tabc.column_name     = pkcl.column_name
+order by
+   tabc.owner,
+   tabc.table_name,
+   tabc.column_id
+;
+code }
