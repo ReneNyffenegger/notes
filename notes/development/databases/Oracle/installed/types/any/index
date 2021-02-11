@@ -2,6 +2,12 @@ $ Oracle: anyType, anyData and anyDataSet
 
 { sys.anyType #sys-anyType
 
+ `anyType` allows to create generic (aka transient) object-types at *runtime*. Such a creation is started with `beginCreate` and ended with `endCreate`.
+
+  An instance of an `anyType` can also be created from a *persistent type* (that created using the ordinary `create type` statement) with the global function `sys.getAnyTypeFromPersistent(schemaName, typeName)`.
+
+  The OCI type that corresponds to `anyType` is `OCIType`.
+
   Methods:
   table { ll
 
@@ -15,22 +21,25 @@ $ Oracle: anyType, anyData and anyDataSet
 
   table } 
 
+
 }
 { sys.anyData #sys-anyData
 
   An instance of `sys.anyData` can be created with the following two ways
     • `convertXYZ` (`XYZ` being a data type such as `number`, `date` etc. or
-    • `beginCreate` … `endCreate()`
+    • `beginCreate` … `endCreate()` (after creating a transient type using `anyType`).
+
+  The OCI type that corresponds to `anyData` is `OCIAnyData`.
 
   table { ll
     `beginCreate` ☰ start creating a new `anyData` object whose type corresponds to a `anyType` that was previously created.
     `endCreate` ☰
-    `pieceWise` ☰
+    `pieceWise` ☰ must be called to iterate over the elements of an *object* in order to `get*` or `set*` their values. Unfortunately, it does not seem possible to get or set a value by either the element's name or position.
     `setXXX` ☰ `XXX` is a → development/databases/Oracle/SQL/data-types/index[data type] such as `number`, `date` etc.
     `getXXX` ☰
     `convertXXX` ☰
     `accessXXX` ☰ `XXX` corresponds to the data type of the returned value. If the `anyData` on which this method is called has another «underlying» data type, `accessXXX` returns → development/databases/Oracle/SQL/null[`null`].
-    `getTypeName` ☰
+    `getTypeName` ☰ Returns something like `SYS.VARCHAR2`, `USR.MY_TYPE`. If callled on a transient type, the function returns `null`.
     → development/databases/Oracle/installed/types/any/data/api/getType[`getType`] ☰
 
   table }
@@ -54,11 +63,7 @@ $ Oracle: anyType, anyData and anyDataSet
     `setXXX` ☰
   table }
 
-}
-{ GetANYTypeFromPersistent()
-
- `getANYTypeFromPersistent(schemaName, typeName)` returns an `anyType` object that corresponds
-  to an «ordinary» type that was created with `create type …`.
+  The OCI type that corresponds to `anyData` is `OCIAnyDataSet`.
 
 }
 { getTvoid()
@@ -66,3 +71,15 @@ $ Oracle: anyType, anyData and anyDataSet
   TODO…
 
 }
+{ Example
+
+  gh|Oracle-patterns|/Installed/types/any/passAnyObject/types.sql||
+
+  gh|Oracle-patterns|/Installed/types/any/passAnyObject/passAnyObject.sql||
+
+  gh|Oracle-patterns|/Installed/types/any/passAnyObject/run.sql||
+
+}
+
+sa:
+  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dbmsany_sql[`$ORACLE_HOME/rdbms/admin/dbmsany.sql`]

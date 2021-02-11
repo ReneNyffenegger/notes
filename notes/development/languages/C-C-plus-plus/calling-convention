@@ -13,6 +13,19 @@ are passed via CPU registers and/or via the stack and which registers are guaran
     Stdcall is the default calling convention for the 32-bit → Windows/development/WinAPI (after *pascal* was abandoned) and should apparently also be used
     for → Windows/development/Portable-Executable/DLL/export-table[exported functions in DLLs].
 
+    Stdcall is almost the same as cdecl with the exception that the callee resets `ESP` to the initial state with → development/languages/C-C-plus-plus/calling-convention[`ret x`] (instead of `ret`?). `x` = number of
+    arguments * `sizeof(int)`.
+code {
+push arg3
+push arg2
+push arg1
+call f
+
+f:
+  ; … do this , do that …
+ret 12
+code }
+
   }
   { cdecl #cdecl
 
@@ -23,6 +36,24 @@ are passed via CPU registers and/or via the stack and which registers are guaran
     Cleaning up the stack causes larger programs than those with stdcall.
 
     cdecl is required for variadic function arguments (vararg).
+
+code {
+→ development/languages/assembler/x86/instructions/push[push] arg3  ; rightmost argument
+→ development/languages/assembler/x86/instructions/push[push] arg2
+→ development/languages/assembler/x86/instructions/push[push] arg1  ; leftmost argument
+→ development/languages/assembler/x86/instructions/call[call] f
+add esp, 12  ; 12 = 3 arguments each being 4 bytes
+code }
+
+   When entering the function (just after `call f` and before `add esp, 12`), the stack is:
+   table { lll
+      ☰  ☰ Notation in IDA
+     ESP ☰ return address ☰
+     ESP+4 ☰ arg1 ☰ `arg_0`
+     ESP+8 ☰ arg2 ☰ `arg_1`
+     ESP+12 ☰ arg3 ☰ `arg_2`
+   table }
+
 
   }
   { fastcall
@@ -51,17 +82,33 @@ are passed via CPU registers and/or via the stack and which registers are guaran
 }
 { x64
 
-  Unlike the x86, on a x64, there is only *one* calling convention. It takes advantage of the increased number of → development/languages/assembler/x86/registers[registers] that are available.
+  { Windows?
 
-  The rules are
-    • The first four integer or pointer parameters are passed in the `rcx`, `rdx`, `r8` and `r9` registers.
-    • The first four floating-point parameters are passed in the first four SSE registers, `xmm0` - `xmm3`
-    • The caller reserves space on the stack for arguments passed in registers. The called function can use this space to spill the contents of registers to the stack
-    • Any additional arguments are passed on the stack
-    • An integer or pointer return value is returned in the `rax` register; a → development/IEEE/754[floating-point] return value is returned in `xmm0`.
-    • `rax`, `rcx`, `rdx` and `r8` through `r11` are volatile
-    • `rbx`, `rbp`, `rdi`, `rsi` and `r12` through `r15` are nonvolatile.
+    Unlike the x86, on a x64, there is only *one* calling convention. It takes advantage of the increased number of → development/languages/assembler/x86/registers[registers] that are available.
 
-  In → development/languages/C-C-plus-plus/CPP, the `this` pointer is implicitely passed as *first argument*
+    The rules are
+      • The first four integer or pointer parameters are passed in the `rcx`, `rdx`, `r8` and `r9` registers.
+      • The first four floating-point parameters are passed in the first four SSE registers, `xmm0` - `xmm3`
+      • The caller reserves space on the stack for arguments passed in registers. The called function can use this space to spill the contents of registers to the stack
+      • Any additional arguments are passed on the stack
+      • An integer or pointer return value is returned in the `rax` register; a → development/IEEE/754[floating-point] return value is returned in `xmm0`.
+      • `rax`, `rcx`, `rdx` and `r8` through `r11` are volatile
+      • `rbx`, `rbp`, `rdi`, `rsi` and `r12` through `r15` are nonvolatile.
+
+    In → development/languages/C-C-plus-plus/CPP, the `this` pointer is implicitely passed as *first argument*
+
+  }
+  { Linux
+
+    Arguments are passed similarly to Windows x64, but using 6 registers instead of 4: `rdi`, `rsi`, `rdx`, `rcx`, `r8` and `r9`.
+
+  }
+
+}
+{ Returning floats and doubles
+
+  All calling conventions except Win64 retourn a float or a double in the `fpu` register `st(0)`.
+
+  Win64 returns them in the low 32 or full 64 bits of the `xmm0` register.
 
 }
