@@ -1,43 +1,49 @@
 $ cl /Gs
 
-This is an example that tries to demonstrate the effect of Visual Studio's option `/Gs`.
+`cl /Gs` sets the threshold for *stack probes*.
 
-{ gs.c
+{ Example
 
-  `gs.c` is a simple → development/languages/C-C-plus-plus/C[C] program with a function (`func`) that allocates a certain amount of bytes
-  on the → Windows/development/process/thread/stack[stack].
+  This is an example that tries to demonstrate the effect of Visual Studio's option `/Gs`.
 
-  This amount is specified by the → development/languages/C-C-plus-plus/preprocessor/macros[preprocessor macro] `BUFSIZE`. When the
-  compiler is invoked, a value is assigned to this macro with the → Windows/development/Visual-Studio/cl/options/D[`/D`] option.
+  { gs.c
 
-  gh|about-cl|/options/G/s_/gs.c||
+   `gs.c` is a simple → development/languages/C-C-plus-plus/C[C] program with a function (`func`) that allocates a certain amount of bytes
+    on the → Windows/development/process/thread/stack[stack].
 
-}
-{ Makefile
+    This amount is specified by the → development/languages/C-C-plus-plus/preprocessor/macros[preprocessor macro] `BUFSIZE`. When the
+    compiler is invoked, a value is assigned to this macro with the → Windows/development/Visual-Studio/cl/options/D[`/D`] option.
 
-  The makefile creates three → Windows/development/Portable-Executable/EXE[exes] from this source.
+    gh|about-cl|/options/G/s_/gs.c||
 
-  The first exe, `gsOK.exe` allocates a relatively small amount on the stack so that the stack does not grow beyond the stack's guard page (actually, it does not even grow into the guard page).
-  -
-  So, this exe runs ok when run.
+  }
+  { Makefile
 
-  The second exe, `gsFail.exe`, grows the stack by 200000 bytes: the end of `buf` is below the guard page and the OS didn't have a chance to commit more memory to the stack.
-  Thus, when `func` tries to write a byte to the end of `buf`, it is outside of the → Windows/development/process[process's] commited memory which causes an exception to be raised.
+    The makefile creates three → Windows/development/Portable-Executable/EXE[exes] from this source.
 
-  The third exe, `gsOk_2.exe` allocates the same amount on the stack. But this time, the `/Gs` option instructs the compiler to insert a call to `chkstk` (which is defined in `chkstk.asm`) when
-  the function is entered. `chkstk` touches every page that is needed on the stack, thus giving the OS the opportunity to commit more memory to the stack. So, this exe runs ok.
+    The first exe, `gsOK.exe` allocates a relatively small amount on the stack so that the stack does not grow beyond the stack's guard page (actually, it does not even grow into the guard page).
+    -
+    So, this exe runs ok when run.
 
-  gh|about-cl|/options/G/s_/Makefile||
+    The second exe, `gsFail.exe`, grows the stack by 200000 bytes: the end of `buf` is below the guard page and the OS didn't have a chance to commit more memory to the stack.
+    Thus, when `func` tries to write a byte to the end of `buf`, it is outside of the → Windows/development/process[process's] commited memory which causes an exception to be raised.
 
-}
-{ chkstk.asm
+    The third exe, `gsOk_2.exe` allocates the same amount on the stack. But this time, the `/Gs` option instructs the compiler to insert a call to `chkstk` (which is defined in `chkstk.asm`) when
+    the function is entered. `chkstk` touches every page that is needed on the stack, thus giving the OS the opportunity to commit more memory to the stack. So, this exe runs ok.
 
-  This file is basically a copy lf → Windows/development/CRT/source/intel/chkstk_asm[`chkstk.asm`] as found in → Windows/development/CRT[Visual Studio's CRT].
-  It is explicitly needed for this example because the example does not link with default libs.
-  -
-  In an application in the wild, this would not really be needed because the function is included with the CRT DLL.
+    gh|about-cl|/options/G/s_/Makefile||
 
-  gh|about-cl|/options/G/s_/chkstk.asm||
+  }
+  { chkstk.asm
+
+    This file is basically a copy lf → Windows/development/CRT/source/intel/chkstk_asm[`chkstk.asm`] as found in → Windows/development/CRT[Visual Studio's CRT].
+    It is explicitly needed for this example because the example does not link with default libs.
+    -
+    In an application in the wild, this would not really be needed because the function is included with the CRT DLL.
+
+    gh|about-cl|/options/G/s_/chkstk.asm||
+
+  }
 
 }
 

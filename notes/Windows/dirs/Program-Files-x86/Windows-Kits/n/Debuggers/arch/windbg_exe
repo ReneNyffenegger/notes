@@ -3,6 +3,9 @@ $ windbg.exe
 *Windows GUI symbolic debugger*
 
 `windbg.exe` is the GUI version of CDB/NTSD and KD/NTKD.
+-
+The debugger can be started anywhere by entering the command `WinDbgX`.
+
 
 { Commands
 
@@ -11,6 +14,250 @@ code {
 .reload
 x notepad!*
 code }
+
+ { Loading symbols
+
+   Listing modules `lm` shows that most modules don't yet have the symbols:
+code {
+0:000> lm
+00007ff9`232b0000 00007ff9`233b0000   ucrtbase   (deferred)             
+00007ff9`233b0000 00007ff9`233d2000   win32u     (deferred)             
+00007ff9`233e0000 00007ff9`2347d000   msvcp_win   (deferred)             
+00007ff9`23770000 00007ff9`23a39000   KERNELBASE   (deferred)             
+00007ff9`23ac0000 00007ff9`23bcb000   gdi32full   (deferred)             
+00007ff9`23bd0000 00007ff9`23c8d000   KERNEL32   (deferred)             
+00007ff9`242b0000 00007ff9`24450000   USER32     (deferred)             
+00007ff9`25a40000 00007ff9`25a6a000   GDI32      (pdb symbols)          → Windows/dirs/ProgramData/Dbg/sym[C:\ProgramData\Dbg\sym]\gdi32.pdb\26374D0C904F7078CBA564E8FCA58EE71\gdi32.pdb
+00007ff9`25b70000 00007ff9`25d66000   ntdll      (pdb symbols)          C:\ProgramData\Dbg\sym\ntdll.pdb\432F2B8588C52E47219EE25E35F653491\ntdll.pdb
+code }
+
+  So, let's refresh at least `USER32` and `KERNEL32`:
+code {
+0:000> ld USER32
+Symbols loaded for USER32
+0:000> ld KERNEL32
+Symbols loaded for KERNEL32
+code }
+
+   Executing `lm` again now shows that `USER32` and `KERNEL32` have their symbols updated:
+code {
+O:OOO> lm
+00007ff9`232b0000 00007ff9`233b0000   ucrtbase   (deferred)             
+00007ff9`233b0000 00007ff9`233d2000   win32u     (deferred)             
+00007ff9`233e0000 00007ff9`2347d000   msvcp_win   (deferred)             
+00007ff9`23770000 00007ff9`23a39000   KERNELBASE   (deferred)             
+00007ff9`23ac0000 00007ff9`23bcb000   gdi32full   (deferred)             
+00007ff9`23bd0000 00007ff9`23c8d000   KERNEL32   (pdb symbols)          C:\ProgramData\Dbg\sym\kernel32.pdb\789BD698F50E4D3F96DDF36A5D4BAD6E1\kernel32.pdb
+00007ff9`242b0000 00007ff9`24450000   USER32     (pdb symbols)          C:\ProgramData\Dbg\sym\user32.pdb\EF56DB6F9CC97AD4E21FDF7B2A0A0FEA1\user32.pdb
+00007ff9`25a40000 00007ff9`25a6a000   GDI32      (pdb symbols)          C:\ProgramData\Dbg\sym\gdi32.pdb\26374D0C904F7078CBA564E8FCA58EE71\gdi32.pdb
+00007ff9`25b70000 00007ff9`25d66000   ntdll      (pdb symbols)          C:\ProgramData\Dbg\sym\ntdll.pdb\432F2B8588C52E47219EE25E35F653491\ntdll.pdb
+code }
+
+ }
+ { Expressions
+  
+   When a command expects a value, the value can be specified using an expression. The expression can contain names of *registers* and addressed in the `module!function+byte` format:
+code {
+bp EIP+1
+u ntdll!CsrSetPriorityClass+0x41
+dd ebp+4
+code }
+
+ }
+
+ { Numerical expressions
+
+   By default, numerical are interpreted as hexadecimally formatted. In order to specify, the numbers can be prefixed with `0x` (explicitly hexadecimal), `0n` (base 10), `0t` (octal) `0y` (binary).
+
+   The default base can be changed with `n`.
+
+   The `.formats` command displays a number in various formats:
+code {
+0:000> .formats 0n4096
+Evaluate expression:
+  Hex:     00000000`00001000
+  Decimal: 4096
+  Octal:   0000000000000000010000
+  Binary:  00000000 00000000 00000000 00000000 00000000 00000000 00010000 00000000
+  Chars:   ........
+  Time:    Thu Jan  1 02:08:16 1970
+  Float:   low 5.73972e-042 high 0
+  Double:  2.02369e-320
+code }
+
+   «Mathematical» expressions are calculated using the question mark:
+code {
+0:000> ? FF+1
+Evaluate expression: 256 = 00000000`00000100
+code }
+
+  The *double-questionmark* (`??`) allows to evaluate a C++ expression.
+
+ `.expr` specifies the default expression evaluator:
+code {
+.expr /s masm 
+.expr /s c++ 
+code }
+  
+   `.expr /q` displays the list of possible expression types.
+
+ }
+ { ?
+
+   The question mark evaluates a MASM expression.
+
+   An interesting feature are source line expressions: `prog.c:42`.
+
+ }
+ { ??
+
+   When evaluating C++ expressions, register names need to be prefixed with an `@`
+
+   The default base for numerals is 10.
+
+ }
+ { Display data
+
+   `dv` displays local variables. `dv /i` classifies them into categories, `dv /V` shows addresses and offsets for the relevant base frame register, `dv /t` shows type information.
+
+   `dd rdx L1`, `dd rdx L2`, …
+
+ }
+ { poi
+
+   `poi(addr)` dereferences an address (pointer).
+
+   For example, if the `rdx` register stores a pointer to `char*` (as for example for the `argv` parameter in `main`), the value of this string (`argv[0]`) can be displayed with
+  `da poi(rdx)`.
+   -
+   In C++ expression evaluation, this expression would be equivalent to `?? *(char**) @rdx`.
+   -
+   The value of the `argv[1]` is displayed with `da poi(rdx+8)`, the value of `argv[2]` with `da poi(rdx+10)` etc.
+
+
+
+
+ }
+ { Exclamation mark commands
+
+   Commands that start with an exclamation mark (`!`) are extensions. These are exported from a DLL which users can create to extend the functionality of WinDbg.
+
+   Displaying information about the PEB and the TEB
+code {
+!peb
+!teb
+code }
+
+   Compare the previous two commands with:
+code {
+dt nt!_PEB
+dt nt!_PEB -r @$peb
+dt nt!_TEB
+code }
+
+  ? Apparently, there are quite a few commands that rely on information found in the PEB and TEB: `lm`, `!dlls`, `!imgreloc`, `!tls`, `!gle`
+
+  { Address related
+
+   `!address addr` and `!vprot addr` display memory related information (protection, type, usage…)
+code {
+!address rdx
+!vprot   rdx
+code }
+
+  }
+
+ }
+ { Breakpoints
+
+   Breakpoints can be set with `bu`, `bp` and `bm`.
+
+  `bp` converts the given expression into an address and are not saved in the workspace.
+  -
+  `bu` stays asssociated with the symbolic value.
+
+   A breakpoint can be set on the entry point for an executable with code `bp $exentry` or `bp @$exentry` (which at least for console applications seems to be
+   something like `conhost!wWinMainCRTStartup`)
+   -
+   Another interesting breakpoint seems to be `conhost!wWinMain`
+   
+
+   Breakpoints that have been set are shown with `bl`:
+code {
+0:000> bu prog_64!main
+0:000> bl
+     0 e Disable Clear  00007ff9`25c40670     0001 (0001)  0:**** ntdll!LdrpDoDebuggerBreak+0x30
+     1 e Disable Clear  00007ff6`34b47280     0001 (0001)  0:**** prog_64!main
+code }
+
+?  The breakpoint at `ntdll!LdrpDoDebuggerBreak+0x30` seems to be set by default.
+
+   A breakpoint can be disabled with `bd` and cleared with `bc`:
+code {
+bd 1
+bc 1
+code }
+
+ }
+ { Pseudo registers
+
+   Psoeudo (or virtual) registers start with a dollar sign (`$`) and are set by debugger, for example `$ra` (return address on the stack), `$ip` (current instruction pointer), `$retreg` (register that stores
+   return value of a function, `eax`/ `rax` on x86,  x64), `$exentry` (entry point of the first executable in the current process), `$peb`, `$teb`, `$tpid` (process id), `$ptrsize` (size of pointer),
+  `$pagesize`, `$exp` (the last evaluated expression)
+
+   With MASM expression evaluation, pseudo registers might be prefixed with the at sign (`@`) which tells the expression evaluator that the following expression is a register or a pseudo-register, not a symbol.
+   Thus, with `@` symbol, the evaluator knows it does not have to search the whole symbol table which speeds up the evaluation process.
+
+
+   There are twenty virtual registers, named `$t0` through `$t19`.
+
+   Pseudo-registers (as also real registers) can be modified with the `r` command:
+code {
+r? $t0 = 42
+r? $t1 = 101
+? $t0 * $t1
+code }
+
+ }
+ { Scriptproviders
+
+code {
+0:000> .scriptproviders
+Available Script Providers:
+    NatVis (extension '.NatVis')
+    JavaScript (extension '.js')
+code }
+
+  { NatVis
+    
+    There are three default NatVis extensions:
+code {
+dx @$cursession
+dx @$curthread
+dx @$cursession
+
+dx @$curthread.Registers
+dx @$curthread.Registers.User
+code }
+
+  }
+
+ }
+ { Others
+
+   `.exepath` sets or displays the executable file search path.
+
+   `p` executes a single instruction or a source line», `pt` goes to next `ret`, `gu` (go up) finished the current function
+
+   `d…` displays memory, `dd…` displays referenced memory
+
+   `kv` displays stack backtrace.
+
+   `dt nt!_KPROCESS` and `dt nt!_EPROCESS`
+
+   `dt ntdll!*IMAGE_*`, `dt ntdll!_IMAGE_NT_HEADERS64` etc
+
+ }
 
   { Simple debugging session
 
@@ -27,7 +274,7 @@ code {
 code }
 
   }
-  { Put a breakpoint on a function
+  { Put a breakpoint on WinMain
 
 code {
 bu notepad!WinMain
@@ -177,5 +424,7 @@ code }
 }
 
 sa:
+
+  → Windows/dirs/Users/username/AppData/Local/Microsoft/WindowsApps/WinDbgX_exe[`WinDbgX.exe`] seems to be *WinDbg Preview*.
 
   → Windows/development/WinAPI/Debugging
