@@ -1,0 +1,91 @@
+$ Oracle SQL functions: XMLQuery
+
+code {
+XMLQuery ( XQueryExpression [ XML-passing-clause ] RETURNING CONTENT [ NULL ON EMPTY ]
+code }
+
+The returned → development/databases/Oracle/SQL/data-types[data type] is → development/databases/Oracle/installed/types/XMLType[`XMLType`].
+
+code {
+select
+   XMLQuery('
+     <nums>
+     {
+        for $i in (1,1,2,3,5,8,13) return <num>{ $i }</num>
+     }
+     </nums>
+   ' returning content).extract('//num[6]/text()').getStringVal() sixth_fibonacci_number
+from
+   dual;
+code }
+
+{ Arithmetical expressions
+
+  The following query returns `6`:
+code {
+drop table tq84_xml;
+
+create table tq84_xml (
+  id  number,
+  val clob
+);
+
+insert into tq84_xml values (1, '<nums>
+  <n>1</n><t>one</t>
+  <n>1</n><t>one</t>
+  <n>2</n><t>two</t>
+  <n>3</n><t>three</t>
+  <n>5</n><t>five</t>
+  <n>8</n><t>eight</t>
+</nums>');
+
+
+select
+   xmlQuery(
+   '
+      for $n in /nums/n 
+         return <n-times-3> { 
+           3 * xs:integer( $n ) (: use xs:integer to cast element value to appropriate type :)
+        } </n-times-3>'
+      passing xmlType(tq84_xml.val)
+      returning content
+   )
+   as x
+from
+   tq84_xml;
+code }
+
+  This query returns
+code {
+<n-times-3>3</n-times-3><n-times-3>3</n-times-3><n-times-3>6</n-times-3><n-times-3>9</n-times-3><n-times-3>15</n-times-3><n-times-3>24</n-times-3>
+code }
+
+}
+{ Accessing data in tables and views
+
+  With `fn:collection("oradb:/user-name/table-or-view-name)` it is possible to access data in tables and views:
+code {
+select XMLQuery(
+   'for $obj
+          in fn:collection("oradb:/SYS/USER_OBJECTS")
+        where
+           $obj/ROW/OBJECT_TYPE ne "LOB"
+        return
+          <obj>
+            <name>{ $obj/ROW/OBJECT_NAME/text() } </name>
+            <type>{ $obj/ROW/OBJECT_TYPE/text() } </type>
+        </obj>
+   '
+   returning content)
+   as objects
+from dual;
+
+code }
+
+}
+
+sa:
+
+  The functionality of `XMLQuery` (and → development/databases/Oracle/SQL/functions/XML/Cast[`XMLCast`]) obsolete the deprecated functions `extract` and `extractValue`.
+
+  → development/databases/Oracle/SQL/functions/XML

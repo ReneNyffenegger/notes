@@ -2,6 +2,52 @@ $ git branch
 
 List, create or delete → development/version-control-systems/git/branch[branches].
 
+{ Create a new branch
+
+  A new branch (in the following example named `V1.1`) is created with
+code {
+git branch V1.1
+code }
+
+  This command does not change into the current branch. In order to work on the new branch, the branch must be *checked out*:
+code {
+git → development/version-control-systems/git/commands/checkout V1.1
+code }
+
+  { git branch -b
+
+    A shortcut to do both, create a new branch in checkit out, in one go, is to use the `-b` flag on `git checkout`:
+code {
+$ git checkout -b tq84
+Switched to a new branch 'tq84'
+code }
+
+  }
+
+} 
+{ Creating a branch does not change the state of the repository
+ 
+  Note that creating a branch and/or changing into it does not change the state of a repository. Before creating a new branch, → development/version-control-systems/git/commands/status[`git status`]
+  reports  a *clean working tree* with *nothing to commit*.
+code {
+$ git → development/version-control-systems/git/commands/status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+code }
+
+  After creating a new branch (and switching into it), `git status` still reports the same state (but does not say that the branch is *up to date with the origin*:
+code {
+$ git checkout -b xyz
+Switched to a new branch 'xyz'
+
+$ git status
+On branch xyz
+nothing to commit, working tree clean
+code }
+
+}
 { Show remote tracking branches
 
 ? `git branch -r` shows *remote tracking branches*:
@@ -16,6 +62,40 @@ code }
 
   The returned list consists of the name («alias») → development/version-control-systems/git/repository#remote[remote repository] separated by a slash (`/`) from the
   name of the branch in that remote repository.
+
+}
+{ Delete a branch
+
+  Delete a branch with merged changes (must be in another branch?)
+code {
+git branch -d V1.1
+code }
+
+  Delete a branch with unmerged changes (must be in another branch)
+code {
+git branch -D V1.1
+code }
+
+  { Delete branch on remote origin
+
+    If the deleted branch already exists on the *remote origin*, it can be deleted with one of the following variants
+
+code {
+git push origin :V1.1
+git push origin -d V1.1
+git push origin -D V1.1
+code }
+  
+    Note that the `:V1.1` syntax refers to a → development/version-control-systems/git/ref#git-refsepc[refspec].
+
+  }
+
+}
+{ --set-upstream #git-branch-set-upstream
+
+ `git branch --set-upstream` is deprecated in favor of `git branch --track` or `git branch --set-upstream-to`.
+
+  Compare with → development/version-control-systems/git/commands/push#git-push-set-upstream[`git push --set-upstream`].
 
 }
 

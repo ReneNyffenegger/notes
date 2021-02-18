@@ -8,7 +8,10 @@ $ machine.config
 
 { Location of machine.config
 
-  The file is located at → Windows/dirs/Windows/Microsoft_NET/Framework64/vn_n_n/Config[`%Windir%\Microsoft.NET\Framework(64)\Version]\Config`.
+  The file is located at → Windows/dirs/Windows/Microsoft_NET/Framework(64)/vn_n_n/Config[`%Windir%\Microsoft.NET\Framework(64)\Version]\Config`, for
+  example under
+    • `%Windir%\Microsoft.NET\Framework\v4.0.30319\config\machine.config` or
+    ` `%Windir%\Microsoft.NET\Framework64\v4.0.30319\config\machine.config`:
 
   The location can programmatically be determined using the → Microsoft/dot-net/namespaces-classes/System/Configuration/Configuration[`System.Configuration.Configuration`] class:
 code {
@@ -32,6 +35,120 @@ PS C:\> [→ Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices
 code }
 
 }
+
+
+{ Format
+
+code {
+<configuration>
+    <configSections>
+        <section name="appSettings" type="System.Configuration.AppSettingsSection, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" restartOnExternalChanges="false" requirePermission="false"/>
+        <section name="connectionStrings" type="System.Configuration.ConnectionStringsSection, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" requirePermission="false"/>
+        …
+        <sectionGroup name="system.runtime.caching" type="System.Runtime.Caching.Configuration.CachingSectionGroup, System.Runtime.Caching, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+            <section name="memoryCache" type="System.Runtime.Caching.Configuration.MemoryCacheSection, System.Runtime.Caching, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" allowDefinition="MachineToApplication"/>
+        </sectionGroup>
+        <sectionGroup name="system.xml.serialization" type="System.Xml.Serialization.Configuration.SerializationSectionGroup, System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+            <section name="schemaImporterExtensions" type="System.Xml.Serialization.Configuration.SchemaImporterExtensionsSection, System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"/>
+            <section name="dateTimeSerialization" type="System.Xml.Serialization.Configuration.DateTimeSerializationSection, System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"/>
+            <section name="xmlSerializer" type="System.Xml.Serialization.Configuration.XmlSerializerSection, System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false"/>
+        </sectionGroup>
+        …
+    </configSections>
+
+    <configProtectedData defaultProvider="RsaProtectedConfigurationProvider">
+        <providers>
+            <add name="RsaProtectedConfigurationProvider" type="System.Configuration.RsaProtectedConfigurationProvider,System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" description="Uses RsaCryptoServiceProvider to encrypt and decrypt" keyContainerName="NetFrameworkConfigurationKey" cspProviderName="" useMachineContainer="true" useOAEP="true"/>
+            …
+        </providers>
+    </configProtectedData>
+
+    <runtime/>
+
+    <connectionStrings>
+        <add name="LocalSqlServer" connectionString="data source=.\SQLEXPRESS;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|aspnetdb.mdf;User Instance=true" providerName="System.Data.SqlClient"/>
+    </connectionStrings>
+
+    <system.data>
+        <DbProviderFactories/>
+    </system.data>
+
+    <system.serviceModel>
+        <extensions>
+            <behaviorExtensions>
+                <add name="persistenceProvider" type="System.ServiceModel.Configuration.PersistenceProviderElement, System.WorkflowServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"/>
+                …
+            <add name="Microsoft.VisualStudio.Diagnostics.ServiceModelSink.Behavior" type="Microsoft.VisualStudio.Diagnostics.ServiceModelSink.Behavior, Microsoft.VisualStudio.Diagnostics.ServiceModelSink, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/></behaviorExtensions>
+            <bindingElementExtensions>
+                <add name="webMessageEncoding" type="System.ServiceModel.Configuration.WebMessageEncodingElement, System.ServiceModel.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"/>
+                …
+            </bindingElementExtensions>
+        </extensions>
+        <client>
+            <metadata>
+                <policyImporters>
+                    <extension type="System.ServiceModel.Channels.ContextBindingElementImporter, System.ServiceModel, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"/>
+                </policyImporters>
+                <wsdlImporters>
+                    <extension type="System.ServiceModel.Channels.ContextBindingElementImporter, System.ServiceModel, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"/>
+                </wsdlImporters>
+            </metadata>
+        </client>
+        <tracking>
+          <profiles>
+            <trackingProfile name="">
+              <workflow activityDefinitionId="*">
+                <workflowInstanceQueries>
+                  <workflowInstanceQuery>
+                    <states>
+                      <state name="*"/>
+                    </states>
+                  </workflowInstanceQuery>
+                </workflowInstanceQueries>
+                <activityStateQueries>
+                  <activityStateQuery activityName="*">
+                    <states>
+                      <state name="Faulted"/>
+                    </states>
+                  </activityStateQuery>
+                </activityStateQueries>
+                <faultPropagationQueries>
+                  <faultPropagationQuery faultSourceActivityName="*" faultHandlerActivityName="*"/>
+                </faultPropagationQueries>
+              </workflow>
+            </trackingProfile>
+          </profiles>
+        </tracking>
+      <commonBehaviors><endpointBehaviors><Microsoft.VisualStudio.Diagnostics.ServiceModelSink.Behavior/></endpointBehaviors><serviceBehaviors><Microsoft.VisualStudio.Diagnostics.ServiceModelSink.Behavior/></serviceBehaviors></commonBehaviors></system.serviceModel>
+    <system.web>
+        <processModel autoConfig="true"/>
+
+        <httpHandlers/>
+
+        <membership>
+            <providers>
+                <add name="AspNetSqlMembershipProvider" type="System.Web.Security.SqlMembershipProvider, System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" connectionStringName="LocalSqlServer" enablePasswordRetrieval="false" enablePasswordReset="true" requiresQuestionAndAnswer="true" applicationName="/" requiresUniqueEmail="false" passwordFormat="Hashed" maxInvalidPasswordAttempts="5" minRequiredPasswordLength="7" minRequiredNonalphanumericCharacters="1" passwordAttemptWindow="10" passwordStrengthRegularExpression=""/>
+            </providers>
+        </membership>
+
+        <profile>
+            <providers>
+                <add name="AspNetSqlProfileProvider" connectionStringName="LocalSqlServer" applicationName="/" type="System.Web.Profile.SqlProfileProvider, System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
+            </providers>
+        </profile>
+
+        <roleManager>
+            <providers>
+                <add name="AspNetSqlRoleProvider" connectionStringName="LocalSqlServer" applicationName="/" type="System.Web.Security.SqlRoleProvider, System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
+                <add name="AspNetWindowsTokenRoleProvider" applicationName="/" type="System.Web.Security.WindowsTokenRoleProvider, System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"/>
+            </providers>
+        </roleManager>
+    </system.web>
+
+</configuration>
+code }
+
+} 
 
 sa:
 

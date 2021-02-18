@@ -1,0 +1,41 @@
+$ Oracle SQL functions: XMLTable
+@ XMLTable
+
+`XMLTable`: create a relational table (rows/columns) from  an → development/XML/XQuery expression.
+
+gh|oracle-patterns|/SQL/functions/xml/xmltable/select.xmltype.dual.sql||
+
+{ Turning an inline-XML document into a table
+
+code {
+select
+   t.*
+from
+   xmlTable(
+     '/nums/num'
+      passing → development/databases/Oracle/installed/types/XMLType[XMLType] (
+          '<nums>
+             <num><n>1</n><t>one</t></num>
+             <num><n>1</n><t>one</t></num>
+             <num><n>2</n><t>two</t></num>
+             <num><n>3</n><t>three</t></num>
+             <num><n>5</n><t>five</t></num>
+             <num><n>8</n><t>eight</t></num>
+          </nums>
+      ')
+      columns
+         n   number       path  'n',
+         t   varchar(10)  path  't'
+   ) t;
+code }
+
+}
+
+{ TODO
+
+  Is the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] `XMLTABLE EVALUATION` related to the function `XMLTable`?
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/functions/XML

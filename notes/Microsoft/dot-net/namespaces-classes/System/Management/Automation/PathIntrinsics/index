@@ -1,0 +1,98 @@
+$ System.Management.Automation.PathIntrinsics
+
+{ PowerShell
+
+  In → Windows/PowerShell, an instance to `System.Management.Automation.PathIntrinsics` is returned by the expression
+code {
+→ Windows/PowerShell/language/variable/automatic/executionContext[$ExecutionContext].SessionState.Path
+code }
+
+code {
+→ Windows/PowerShell/language/variable/automatic/executionContext[$ExecutionContext].SessionState.Path.CurrentLocation
+→ Windows/PowerShell/language/variable/automatic/executionContext[$ExecutionContext].SessionState.Path.CurrentFileSystemLocation
+→ Windows/PowerShell/language/variable/automatic/executionContext[$ExecutionContext].SessionState.Path.GetUnresolvedProviderPathFromPSPath(".\nonexist\foo.txt")
+code }
+
+
+}
+{ CurrentProviderLocation #PathIntrinsics-CurrentProviderLocation
+
+  Show the current location of → Windows/PowerShell/language/provider[providers]:
+code {
+$ExecutionContext.SessionState.Path.CurrentProviderLocation('Registry')
+$ExecutionContext.SessionState.Path.CurrentProviderLocation('FileSystem')
+code }
+
+}
+{ Combine
+
+  `$ExecutionContext.SessionState.Path.Combine('foo\..', 'bar\baz')` evaluates to `foo\..\bar\baz`.
+
+}
+{ GetResolvedPSPathFromPSPath
+
+code {
+$ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath('../../xyz')
+code }
+
+  Note: path must exist, otherwise error is thrown.
+
+
+}
+{ GetUnresolvedProviderPathFromPSPath
+
+code {
+$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('path/that/does/../not/exist.txt')
+code }
+
+}
+{ NormalizeRelativePath
+
+code {
+$ExecutionContext.SessionState.Path.NormalizeRelativePath("$home/foo/bar", $home)
+code }
+
+}
+{  ParseChildName / ParseParent
+
+  { ParseChildName
+
+  `$ExecutionContext.SessionState.Path.ParseChildName('child/grand-child/grand-grand-child')` evaluates to `grand-grand-child`.
+
+  }
+
+  { ParseParent
+
+  `ParseParent($dir, $root)` returns the parent directory of `$dir`.
+
+   As per documentation, `, `$root` is optional and allows to set the top-most directory of the returned directory. However, I could not confirm this claim.
+
+   and can be set to → Windows/PowerShell/language/variable/automatic/null[`$null`].
+
+  `$ExecutionContext.SessionState.Path.ParseParent("$home/../maria/foo.txt", $home)` evaluates to `C:\Users\rene\..\maria`.
+
+  `$ExecutionContext.SessionState.Path.ParseParent("C:\Users\maria\foo.txt", $home)` evaluates to `C:\Users\maria`.
+
+  `$ExecutionContext.SessionState.Path.ParseParent("$home/../../maria/foo.txt", $null)` evaluates to `C:\Users\rene\..\..\maria`.
+
+  }
+
+}
+{ Location stack
+
+code {
+$ExecutionContext.SessionState.Path.PushLocation('xyz')
+$ExecutionContext.SessionState.Path.SetDefaultLocationStack('xyz')
+$ExecutionContext.SessionState.Path.LocationStack('xyz')
+$ExecutionContext.SessionState.Path.PopLocation('xyz')
+
+$ExecutionContext.SessionState.Path.SetLocation(…)
+code }
+
+}
+
+
+sa:
+  → Microsoft/dot-net/namespaces-classes/System/Management/Automation/SessionState[`System.Management.Automation.SessionState`]
+
+
