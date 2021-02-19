@@ -14,7 +14,56 @@ $ Oracle: XML related SQL functions
  `XMLQuery` or `XMLTable`.
 
  `XMLQuery` constructs another xML document from the sequence while `XMLTable` turns the sequence into a virtual (SQL) table and returns a record for each item.
-  
+
+
+}
+{ Generate records
+
+code {
+select
+   t.num
+from
+--
+--   2:  use XMLTable to extract the numbers and create a row
+--       for each number.
+   xmlTable(
+--
+--   3:  Each node that is found with the following path
+--       is turned into a row.
+     '/nums/i'
+     -----------------------------------------------
+--   1:  use XMLQuery to create a dynamic
+--       XML document with the
+--       numbers for which a record
+--       needs to be created.
+--       The returned document looks like
+--            <nums>
+--               <i>1</i>
+--               <i>2</i>
+--               ...
+--            </nums>
+      passing XMLQuery('
+           (: Step one
+                   use XMLQuery to create a dynamic
+                   XML document with the
+                   numbers for which a record
+                   needs to be created :)
+        <nums>
+        {
+            for $i in (1 to 42) return <i>{ $i }</i>
+        }
+        </nums>
+   ' returning content)
+     -----------------------------------------------
+--
+--   4:  Specity the data types of each returned attribute (column)
+--       and associate the column with another XPath expression
+--      (here: the rather simple dot)
+      columns
+         num   number       path  '.'
+     -----------------------------------------------
+   ) t;
+code }
 
 }
 
