@@ -58,7 +58,22 @@ code }
   gh|about-PowerShell|/cmdlets/path/test/create-directory-if-it-does-not-exist.ps1||
 
 }
-{ Atlernative: System.IO.File/Directory::Exists() #ps-test-path-exists
+{ Error message: Could not find a part of the path…
+
+  If the path being tested contains a question mark (`?`) *and* has at least 149 characters, `test-path` throws the error message *Could not find a part of the path…*, as for example in the following statement.
+code {
+test-path 'A?123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567'
+code }
+
+  This error message is not thrown when one character is removed:
+code {
+test-path 'A?12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456'
+code }
+
+  → https://stackoverflow.com/questions/59197788/powershell-query-could-not-find-a-part-of-the-path[This stackoverflow question] has answers with other possible reasons for this error message.
+
+}
+{ Alternative: System.IO.File/Directory::Exists() #ps-test-path-exists
 
   An alternative to using `test-path` is to use the method `Exists()` of the → Microsoft/dot-net class
   → Microsoft/dot-net/namespaces-classes/System/IO/File[`System.IO.File`] or → Microsoft/dot-net/namespaces-classes/System/IO/Directory[`System.IO.Directory`]:
