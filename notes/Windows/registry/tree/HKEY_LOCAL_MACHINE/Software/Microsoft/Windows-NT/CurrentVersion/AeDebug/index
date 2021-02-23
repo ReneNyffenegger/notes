@@ -1,0 +1,52 @@
+$ Registry: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug
+
+The registry key `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug` (or rather its value `Debugger`) specifies the *post mortem debugger* which is the debugger that is started if an application stops responding (for
+example after an access violation).
+
+Typical values that might be found for `Debugger` include
+  • `"→ Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/windbg_exe[C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe]" -p %ld -e %ld -g`
+  • `"→ Windows/dirs/Windows/System32/vsjitdebugger_exe[C:\WINDOWS\system32\vsjitdebugger.exe]" -p %ld -e %ld`
+
+{ Debugger
+
+  The value of `Debugger` is a command line that starts the debugger.
+
+  Up to three values are passed (`printf`) to the command line:
+    • Process ID (`%ld`)
+    • Event Handle (`%ld`)
+    • Address of `JIT_DEBUG_INFO` structure (which is allocated in the target process address space), `%p`.
+
+
+}
+
+{ Auto
+
+  The value of `Auto` specifies if the debugger (command line) that is set in `Debugger` is automatically started or if a confirmation message box is first displayed.
+
+}
+
+{ JIT_DEBUG_INFO #JIT_DEBUG_INFO
+
+  The `JIT_DEBUG_INFO` struct is defined as follows:
+code {
+typedef struct _JIT_DEBUG_INFO {
+    DWORD dwSize;
+    DWORD dwProcessorArchitecture;
+    DWORD dwThreadID;
+    DWORD dwReserved0;
+    ULONG64 lpExceptionAddress;
+    ULONG64 lpExceptionRecord;
+    ULONG64 lpContextRecord;
+} JIT_DEBUG_INFO, *LPJIT_DEBUG_INFO;
+code }
+
+  The `→ Windows/development/Debugging/tools/commands/d/t[dt] JIT_DEBUG_INFO` command also displays this structure.
+
+}
+
+sa:
+  The → Windows/development/Debugging/tools#windows-debugging-tools-command-line-option[`-iaec` command line option] and the
+  → Windows/development/Debugging/tools/commands/dot/jdinfo[`.jdinfo` command] xof the → Windows/development/Debugging/tools[debugging tools for Windows].
+
+  The → Windows/tools/Sysinternals utility *ProcDump* can also be used for *post mortem dump capture*.
+
