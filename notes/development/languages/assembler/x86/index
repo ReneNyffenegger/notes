@@ -23,12 +23,68 @@ code }
 
   `cs`, `eip` and `ip` cannot be the destination.
 
+  The following `mov` instruction is illegal, because the registers are not the same size.
+code {
+mov al, esi
+code }
+
+  The following `mov` instruction, howver, *is* legal: it assigns the *byte* that is pointed at by `esi` to `al`:
+code {
+mov al, [esi]         ; think  char al = *((char*) esi)
+code }
+
+  Assign a constant to the destination:
+code {
+mov al, 0ABh
+code }
+
+
 }
 { Memory reference (pointers)
 
 code {
 add [esp], eax ; add value of eax to value of memory pointed at by esp (top of the stack).
 code }
+
+}
+{ lea #x68-lea
+
+ `lea` stands for *load effective address*. It does not dereference the address but «returns» a calculated (value of an) address. 
+
+ `lea` does not alter flags.
+
+code {
+lea eax, [ eax + ebx   + 42 ] ; eax := eax + ebx + 42
+lea eax, [ eax + ecx        ] ; eax := eax + ecx
+lea eax, [ ebx + ebx*N      ] ; eax := ebx + N*ebx = (N+1)*ebx, N ∈ {1,2,4,8}
+lea eax, [ rdi + rsi*4 - 8  ] ; …
+code }
+
+
+  Both of the following statements increment `eax` by one, but `lea` does not change `eflags` while `inc` might do (or always does) so:
+code {
+lea eax, [eax + 1]
+inc eax
+code }
+
+  { LEA vs MOV
+
+code {
+lea eax, <memory-expression>  ; eax := address of memory expression 
+mov eax, <memory-expression>  ; eax := value   at memory expression
+code }
+
+  }
+  { Calculating 37 * a
+
+   `lea` allows to calcuate → https://stackoverflow.com/questions/46480579[37*x with only two instructions]:
+code {
+leal    (%rdi,%rdi,8), %eax      # eax = a * 9
+leal    (%rdi,%rax,4), %eax      # eax = a + 4*(a*9)
+ret
+code }
+
+  }
 
 }
 { div / idiv
@@ -39,7 +95,6 @@ code {
 mov eax, 42 ; load dividend
 mov ecx,  5 ; load divisor
 div ecx     ;
-
 code }
 
 }
@@ -208,3 +263,4 @@ sa:
 
   → development/languages/assembler/x86/operands
 
+  → development/languages/assembler/x86/addressing-modes[Addressing modes]

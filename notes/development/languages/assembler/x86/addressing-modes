@@ -1,0 +1,42 @@
+$ Assember (x86/x64): addressing modes
+
+The addressing mode specifies how an address of a memory location is calculated.
+
+
+→ https://stackoverflow.com/a/34058400/180275[x86/x64 has the following addressing mode forms] and its sub-variants:
+code {
+section:[ base-register  +  index-register * N  +  displacement ]   ; N ∈ {1,2,4,8} / displacement a 32-bit constant. section is optional
+        [ RIP                                   +  displacement ]   ; 64-bit only? Aka RIP-relative mode?
+code }
+
+Any → development/languages/assembler/x86/registers[register] can be a `base-register`, any register except `rsp`/`esp` can be an `index-register`.
+
+The referenced registers have to be the same size (unless → https://stackoverflow.com/questions/39173410[an alternate address size is used]???).
+
+{ RIP-Relative
+
+ *RIP-relative mode* supports modern operating systems by providing a *flat address space* with a single code, data and stack space. 
+
+  This mode is the default addressing mode in 64-bit programs.
+
+}
+
+{ AT&T syntax vs Intel syntax
+
+  The Intel indirect syntax reference of the form `section:[base + index*scale + disp]` is translated into the AT&T syntax `section:disp(base, index, scale)`. (AT&T requires section to be prefixed with a `%`).
+
+  table { ll
+    Intel ☰ AT&T
+    `[esi]` ☰ `(%esi)`
+    `[ebp-8]` ☰ `-8(%ebp)`
+    `[ebp*4 + 0100]` ☰ `0x100(, %ebx,4)`
+    `[edx+ebx*4 + 8]` ☰ 0x8(%edx,%ebx,4)`
+
+  table }
+
+  See also → https://cs.nyu.edu/courses/fall10/V22.0201-002/addressing_modes.pdf[this link].
+
+}
+
+sa:
+  With the → development/languages/assembler/x86#x68-lea[`lea`] instruction, it's possible to assign the *value* of an address rather than the value of the location that that address points at.
