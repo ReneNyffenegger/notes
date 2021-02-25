@@ -1,0 +1,43 @@
+$ Oracle: V$DIAG_TRACE_FILE_CONTENTS
+
+`v$diag_trace_file_contents` shows the contents of → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files]. 
+
+code {
+alter session set events '10046 level 12';
+
+select
+trc.adr_home, trc.trace_filename,
+   trc.payload,
+   trc.timestamp,
+   trc.section_id,
+   trc.section_name,
+   trc.component_name,
+   trc.operation_name,
+   trc.session_id,
+   trc.serial#,
+   trc.file_name,
+   trc.function_name,
+   trc.record_type,
+   trc.record_level,
+   trc.parent_level,
+   trc.container_name,
+   trc.con_id,
+   trc.con_uid
+from
+   v$diag_trace_file_contents  trc  join
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/info[v$diag_info]                 inf on inf.value = trc.adr_home || '\trace\' || trc.trace_filename
+   --                                                              ^^^^^^^^^
+   --                                                               ? ? ? ?
+where
+   inf.name = 'Default Trace File'
+order by
+   trc.line_number
+;
+code }
+
+
+sa:
+
+  → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents/file_name-function_name[Finding kernel-internal function names]
+
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

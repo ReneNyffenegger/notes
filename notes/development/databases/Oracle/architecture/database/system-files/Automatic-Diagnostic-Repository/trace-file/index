@@ -78,18 +78,31 @@ code }
 Reveal optimizer statistics after SQL statement parsing.
 code {
 alter session set events '10053 trace name context forever';
+alter session set events 'trace[rdbms.SQL_Optimizer.*]';
+alter session set events 'trace[rdbms.SQL_Optimizer.*][sql_id:012345689abc]';
 code }
 
 code {
-alter session set events '10046 level 16';
-alter session set events 'sql_trace level 16';
+alter session set events 'trace[sql_execution]';
+code }
+
+code {
+alter session set events '10046 level 12';
+alter session set events 'sql_trace level 12';
 alter session set events 'sql_trace wait=true, plan_stat=never';
+alter session set events 'sql_trace [sql_id:012345689abc] wait=true, plan_stat=never';
 alter session set events 'sql_trace off';
 code }
 See → development/databases/Oracle/tools/oradebug/doc/event/name/sql_trace[`oradebug doc event name sql_trace`] for usage.
 -
 Compare with the → development/databases/Oracle/adminstration/init-parameters/sql_trace[init parameter `sql_trace`].
 
+code {
+alter session set events '[SQL_COMPILER.*] disk=highest';
+
+--  For a specific sql_id:
+alter session set events '[SQL_COMPILER.012345689abc] disk=highest';
+code }
 
 Disable invoking the action after 1234 events:
 code {
@@ -297,7 +310,10 @@ code }
 
 sa:
 
-  Trace files are written to the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository.
+  Trace files are written to the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository[Automatic Diagnostic Repository (ADR)].
+  -
+  Trace files that are currently available in the ADR are listed in → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file[`v$diag_trace_file`]. Their content can be queried
+  from → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents[`v$diag_trace_file_contents`].
 
   → development/databases/Oracle/installed/packages/dbms/sqltune/api/select_sql_trace[`dbms_sqltune.select_sql_trace`] reads a
   → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace file] and returns the found → development/databases/Oracle/SQL/statement[SQL statements] as an `sqlset_row`.

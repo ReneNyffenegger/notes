@@ -1,0 +1,112 @@
+$ Oracle: JSON_TABLE
+
+{ Selecting all records from JSON array of arrays
+
+  The following example selects from a → development/languages/JavaScript/JSON array of arrays.
+
+code {
+select * from
+   json_table ('[
+     [0, "zero" , "A"],
+     [1, "one"  , "B"],
+     [2, "two"  , "C"],
+     [3, "three", "D"],
+     [4, "four" , "E"],
+     [5, "five" , "F"]
+    ]',
+   '$[*]'                                 -- select all records!
+    columns
+       id    number  ( 1) path '$[0]' ,
+       num   varchar2(10) path '$[1]' ,
+       meta  varchar2( 3) path '$[2]'
+    );   
+
+--      ID NUM        MET
+---------- ---------- ---
+--       0 zero       A
+--       1 one        B
+--       2 two        C
+--       3 three      D
+--       4 four       E
+--       5 five       F
+code }
+
+}
+{ Restrict records
+
+  Setting the second paramter of `json_table` to `$[1,2,5]` only passes the corresponding records further down the pipeline:
+
+code {
+select * from
+   json_table ('[
+     [0, "zero" , "A"],
+     [1, "one"  , "B"],
+     [2, "two"  , "C"],
+     [3, "three", "D"],
+     [4, "four" , "E"],
+     [5, "five" , "F"]
+    ]'     ,
+   '$[1,2,5]'     -- Select (zero-based) records 1, 2 and 5.
+    columns
+       id    number  ( 1) path '$[0]' ,
+       num   varchar2(10) path '$[1]' ,
+       meta  varchar2( 3) path '$[2]'
+    );
+--
+--      ID NUM        MET
+---------- ---------- ---
+--       1 one        B
+--       2 two        C
+--       5 five       F
+code }
+   
+}
+{ Selecting from an array
+    
+  The following example selects from an array rather than from an array of arrays.
+
+  Each item in the array is treated as a record in the result:
+code {
+select * from
+   json_table (
+     '[0, "one", 2, 3, "four", "five"]',
+     '$[1,2,5]'  -- Treat items in JSON array as records
+      columns
+        element varchar2(10) path '$[0]'
+      );
+--
+--  ELEMENT
+--  ----------
+--  one
+--  2
+--  five
+code }
+
+}
+{ Treating an array as a record
+
+  The following example uses the same JSON-array, but this time, it is
+  treated as a record:
+    
+code {
+select *from
+   json_table ('[0, "one", 2, 3, "four", "five"]'
+   -- Missing: treat array as record
+   columns
+       item_0 varchar2(10) path '$[0]',
+       item_1 varchar2(10) path '$[1]',
+       item_2 varchar2(10) path '$[2]',
+       item_3 varchar2(10) path '$[3]',
+       item_4 varchar2(10) path '$[4]',
+       item_5 varchar2(10) path '$[5]'
+    );        
+--
+-- ITEM_0     ITEM_1     ITEM_2     ITEM_3     ITEM_4     ITEM_5
+-- ---------- ---------- ---------- ---------- ---------- ----------
+-- 0          one        2          3          four       five
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/functions/XML/Table[`XMLTable`].
