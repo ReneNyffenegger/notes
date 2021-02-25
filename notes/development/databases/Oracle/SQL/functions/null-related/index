@@ -20,7 +20,17 @@ code }
 }
 { lnnvl #lnnvl
 
-  `lnnvl` is equivalent to the → misc/ISO/9075[SQL standard's] `is not true` predicate (compare → misc/ISO/9075/features[feature] F571).
+`lnnvl` is equivalent to the → misc/ISO/9075[SQL standard's] `is not true` predicate (compare → misc/ISO/9075/features[feature] F571).
+
+ Assuming that `A` and `B` are expressions that evalute to a non-null value, the following is the result table of `lnnvl`:
+ table { ll
+   `lnnvl(   A =    A)` ☰ `false`
+   `lnnvl(   A =    B)` ☰ `true`
+   `lnnvl(   A = null)` ☰ `true`
+   `lnnvl(null = null)` ☰ `true`
+ table }
+
+ `lnnvl` can only be used in `where` clauses.
 
   gh|Oracle-Patterns|/SQL/functions/null_related/lnnvl.sql||
 
@@ -28,6 +38,17 @@ code }
 { nullif
 
   gh|Oracle-Patterns|/SQL/functions/null_related/nullif.sql||
+
+}
+{ Comparing null and not-null values with SYS_OP_MAP_NONNULL
+
+ `sys_op_map_nonnull` is an *undocumented* function that returns a → development/databases/Oracle/SQL/data-types/raw[`raw…`]. This raw is built from the value that is passed to the function and by appending `hex(0)`. In case of `null`,
+  it return `hex(255)`, without an added 0.
+
+  Thus, `sys_op_map_nonnull` makes it possible to compare `null` and not `null` values:
+  gh|Oracle-Patterns|/SQL/functions/null_related/sys_op_map_nonnull.sql||
+
+
 
 }
 sa:

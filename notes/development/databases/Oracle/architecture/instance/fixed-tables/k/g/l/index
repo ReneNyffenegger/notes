@@ -1,0 +1,25 @@
+$ X$KGL…
+
+? Kernel Generic Library Cache Manager
+
+«Defined and mapped from kqlf»
+
+Adapted from → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utldtree_sql[`$ORACLE_HOME/rdbms/admin/utldree.sql`].
+code {
+select
+   own.name      owner,
+   obj.name      obj_name,
+   axs.kglxsdep  axs_kglxsdep,
+   axs.kglxstyp  axs_kglxstyp,
+   cur.kglnaown  cur_owner,
+   cur.kglnaobj  cur_name
+from
+   x$kglob obx                                       join
+   obj$    obj on obj.name     = obx.kglnaobj        join
+   user$   own on own.name     = obx.kglnaown        join
+   x$kgldp dep on dep.kglrfhdl = obx.kglhdadr        join
+   x$kglxs axs on dep.kglhdadr = axs.kglhdadr and         --  make sure it is not axs transitive */
+                  dep.kgldepno = axs.kglxsdep        join --  reference, but axs direct one */
+   x$kglob cur on dep.kglhdadr = cur.kglhdadr
+;
+code }

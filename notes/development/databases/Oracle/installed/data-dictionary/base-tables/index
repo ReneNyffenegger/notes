@@ -3,3 +3,43 @@ $ Oracle: data dictionary base tables
 The base tables are owned by → development/databases/Oracle/users-roles/users/oracle-maintained/sys.
 
 The base tables are stored in the → development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[`SYSTEM` tablespace].
+
+code {
+select
+   o.obj#,
+   o.dataobj#,
+-- o.owner#,
+   u.name     owner,
+   u.type#    owner_type,
+   o.name,
+   o.namespace,
+   o.subname,
+   decode(o.type#,
+      0, 'next object',          -- Special case for object with obj# = 1
+      1, 'index'  ,
+      2, 'table'  ,
+      3, 'cluster',              -- ?
+          to_char(o.type#)
+         )                       type,
+   o.ctime, o.mtime, o.stime,
+   o.status,
+   o.remoteowner,
+   o.linkname,
+   o.flags,
+   o.oid$,
+   o.spare1, o.spare2, o.spare3, o.spare4, o.spare5, o.spare6, o.spare7, o.spare8, o.spare9, o.spare10, o.spare11, o.spare12, o.spare13, o.spare14,
+   o.signature,
+   o.dflcollid,
+   o.creappid,
+   o.creverid,
+   o.crepatchid,
+   o.modappid,
+   o.modverid,
+   o.modpatchid
+from
+   obj$      o  left join
+   user$     u on o.owner# = u.user#
+order by
+   o.obj#
+;
+code }
