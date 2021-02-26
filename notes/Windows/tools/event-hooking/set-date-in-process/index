@@ -1,0 +1,58 @@
+$ Windows: set date in process
+
+This is the source code for a simple Windows tool that uses → https://www.microsoft.com/en-us/research/project/detours/[Detours] to start a → Windows/development/process and hook
+the WinAPI functions `GetLocalTime` and `GetSystemTime` in order to make the started process run under a given time.
+
+The process is started in a command line (→ Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] or → Windows/PowerShell) like so:
+code {
+C:\Users\rene> setDate 2001-02-03 04:05:06 path-and-or-name-of.exe
+code }
+
+For example, if `path-and-or-name-of.exe` is → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], the time or date is now changed to the given values:
+code {
+C:\Users\rene> → Windows/dirs/Windows/System32/cmd_exe/commands/echo %TIME%
+4:05:06.00
+C:\Users\rene> → Windows/dirs/Windows/System32/cmd_exe/commands/echo %DATE%
+2001-02-03
+code }
+
+{ Compilation
+
+  I compiled the program with → Windows/development/MinGW/w64 using → Windows/tools/event-hooking/set-date-in-process#win-set-date-Makefile[this Makefile].
+}
+{ TODO
+
+  There are a number of other WinAPI functions that return a date or time that also should be hooked:
+    • `GetSystemTimePreciseAsFileTime`
+    • `GetSystemTimeAsFileTime`
+    • `time` (undocumented and not exposed through → Windows/dirs/Program-Files-x86/Windows-Kits/n/Include/version/um/Windows_h[`<windows.h>`] or an import library, found in → Windows/dirs/Windows/System32/KernelBase_dll/time[`KernelBase.dll`])
+    • `NtQuerySystemTime`
+    • `GetTimeFormat` (?)
+
+  If this tool is used to start a process that in turn starts another (child-) process, the child process does not «inherit» the time. Therefore, the tool should probably also hook
+ `CreateProcess` so that the started process injects the hooking → Windows/development/Portable-Executable/DLL also into the child-process.
+
+}
+
+{ setDate.c
+
+  gh|set-date-in-windows-process|/setDate.c||
+
+}
+{ hooks.c
+
+  gh|set-date-in-windows-process|/hooks.c||
+
+}
+{ setDate.h
+
+  gh|set-date-in-windows-process|/hooks.c||
+
+}
+{ Makefile #win-set-date-Makefile
+
+  gh|set-date-in-windows-process|/Makefile||
+
+}
+links:
+  The source code is hosted on → https://github.com/ReneNyffenegger/set-date-in-windows-process[github].

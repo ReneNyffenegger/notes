@@ -1,0 +1,33 @@
+$ OpenDTrace - Windows
+
+{ The program to be traced
+
+  This is the source code for the program to be traced. As always, when experimenting with something new, I try to
+  make the example as short as possibly: only two functions are called: `MessageBoxA` and `ExitProcess`.
+
+  The program does not need the C library, therefore I link it with → Windows/development/Visual-Studio/link/options/nodefaultlib[`/NODEFAULTLIB`] and have to
+  specify the → Windows/development/Portable-Executable/EXE/entry-point with → Windows/development/Visual-Studio/link/options/entry[`/ENTRY`].
+
+  gh|about-DTrace|/Windows/MessageBox/MessageBox.c||
+
+}
+{ The script
+
+  The following script catches the call to `MessageBox` and prints the addresses of the two string parameters (`arg1` and `arg2`).
+
+  gh|about-DTrace|/Windows/MessageBox/trace.d||
+
+  Unfortunately, I was unable to use `copyinstr()` to `printf` the string that was passed to the `MessageBox`. 
+
+}
+{  Running the script
+
+code {
+dtrace -c MessageBox.exe -s trace.d
+code }
+
+  The script's output shows that it correctly determines the values of the addresses that are passed to `MessageBox`:
+
+  gh|about-DTrace|/Windows/MessageBox/img/MessageBox.png||
+
+}
