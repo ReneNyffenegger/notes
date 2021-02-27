@@ -1,0 +1,44 @@
+$ Oracle: X$TRACE
+@ x$trace
+
+The value of the column `time` corresponds to microseconds since 2001-01-01.
+
+code {
+select
+   to_char(from_tz(timestamp '2000-01-01 00:00:00' + numToDSInterval(xtr.time/1e6, 'second'),'utc' ) at local, 'yyyy-mm-dd hh24:mi:ss') tm,
+   xtr.component,
+   xtr.event,
+   xtr.function,
+   xtr.data,
+   xtr.sid,
+   xtr.serial#,
+   xtr.file_loc,
+   xtr.operation,
+   xtr.section,
+   xtr.dump,
+   xtr.pid,
+   xtr.seq#
+from
+   x$trace xtr
+-- where
+-- xtr.operation is not null or
+-- xtr.section   is not null or
+-- xtr.dump      is not null
+order by
+   xtr.time desc;
+code }
+
+The values in the columns `filename` and `function` allow for some speculations about
+→ development/databases/Oracle/internals#ora-intenals-filenames-and-functions[Oracle's internals].
+
+{ TODO
+
+  What (if) is the relationship to → development/databases/Oracle/architecture/instance/fixed-tables/dbg/tf/view
+
+}
+
+sa:
+
+  → development/databases/Oracle/architecture/instance/fixed-tables/trace/events[`x$trace_events`]
+
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

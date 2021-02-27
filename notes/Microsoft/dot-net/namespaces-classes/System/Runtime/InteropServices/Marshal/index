@@ -1,10 +1,64 @@
 $ System.Runtime.InteropServices.Marshal (class)
 
-The `System.Runtime.InteropServices.Marshal` class allows to interact with *unmanaged* memory and convert between unmanaged and managed memory etc.
+The `System.Runtime.InteropServices.Marshal` class allows to interact with → Microsoft/dot-net/managed-code[managed] memory and
+→ Microsoft/dot-net/managed-code#dot-net-interaction-managed-unmanaged[convert between unmanaged and managed] memory etc.
 
+{ Memory allocation and releasing
+
+  The `Marshal` class provides two (direct) memory allocation methods:
+    • `AllocCoTaskMem` (The «COM task memory allocator»)
+    • `AllocHGlobal` (which allocates → Microsoft/dot-net/managed-code[unmanaged] memory and exposes the WinAPI function `LocalAlloc` from → Windows/dirs/Windows/System32/kernel32_dll[`kernel32.dll`])
+    • `FreeHGlobal` (which frees memory that was allocated with `AllocHGlobal`)
+
+  { PtrToXXX
+
+    The `PtrToXXX` methods allocate managed memory and fills it with the data that a (unamanged) pointer points at:
+      • `PtrToStringAnsi`
+      • `PtrToStringAuto`
+      • `PtrToStringBSTR`
+      • `PtrToStringUni`
+      • `PtrToStringUTF8`
+      • `PtrToStructure`  (Compare with `StructureToPtr`)
+  }
+  { StringToXXX
+
+    The `StringToXXX` allocate different «kinds» of unmanaged memory and copies the managed string data to that newly allocated memory:
+      • `StringToBSTR`
+      • `StringToCoTaskMemAnsi`
+      • `StringToCoTaskMemAuto`
+      • `StringToCoTaskMemUni`
+      • `StringToCoTaskMemUTF8`
+      • `StringToHGlobalAnsi`
+      • `StringToHGlobalAuto`
+      • `StringToHGlobalUni`
+
+  }
+  { ReadXXX / WriteXXX
+  
+    The `ReadXXX` and `WriteXXXX` methods read 1, 2, 4 or 8 bytes and return a corresponding
+    → Microsoft/dot-net/namespaces-classes/System/Byte[`System.Byte`]
+   `short` (= `System.Int16`?), `System.Int32` etc:
+      • `ReadByte` / `WriteByte`
+      • `ReadInt16` / `WriteInt16`
+      • `ReadInt32` / `WriteByte32`
+      • `ReadInt64` / `WriteByte64`
+      • `ReadIntPtr` / `WriteIntPtr64`
+
+  }
+
+}
+{ SizeOf #dot-net-Marshal-SizeOf
+
+  `SizeOf` comes in four overloads. This method returns the size of the (unamaged) bytes that a managed byte in fact requires to store its data:
+    • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Object[Object])`
+    • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Type[Type])`
+    • `SizeOf<T>()`
+    • `SizeOf<T>(T)`
+
+}
 { GetActiveObject #interop-GetActiveObject
 
-  The `GetActiveObject(progid)` method tries to locate an object with the given progid in the → Windows/development/COM#com-rot and returns the corrsponding
+  The `GetActiveObject(progid)` method tries to locate an object with the given progid in the → Windows/development/COM#com-rot and returns the corresponding
   → Windows/development/COM/object if it was found. If such an object is not found, a `System.Runtime.InteropServices.COMException` is thrown.
 
   The following example makes sure that the script does not start an additional → Microsoft/Office/Excel instance.
@@ -17,6 +71,11 @@ The `System.Runtime.InteropServices.Marshal` class allows to interact with *unma
   → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/GetActiveObject[P/Invoke].
 
 }
+
+
 sa:
+
+  → Windows/development/COM related → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_COM[methods in `Marshal`]
+
   → Microsoft/dot-net/namespaces-classes/System/Security/SecureString#SecureString-get-value[This example] shows how the static method `SecureStringToBSTR` can be used to
   get the value of a secure string.
