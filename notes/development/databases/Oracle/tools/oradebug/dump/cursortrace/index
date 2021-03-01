@@ -1,0 +1,41 @@
+$ oradebug dump cursortrace
+
+code {
+SQL> oradebug → development/databases/Oracle/tools/oradebug/doc/event/action[doc event action] cursortrace
+CURSORTRACE
+        - Trace cursor by hash value (hash value is address)
+Usage
+-------
+CURSORTRACE( level           <ub4> default '1',
+             addr            <pointer>,
+             address         <pointer>)
+code }
+
+code {
+select /*+ tq84 */ … from …;
+code }
+
+code {
+select hash_value, sql_text from v$sql where sql_text like '%tq84%';
+code }
+
+code {
+oradebug dump cursortrace 612 <hash-value>
+code }
+
+code {
+select /*+ tq84 */ … from …;
+code }
+
+{ TODO
+
+  Is `oradebug dump cursortrace` equivalent to
+code {
+alter system set events ‘immediate trace name cursortrace level 612, address hash_value’;
+code }
+
+  Should 578, 579 or 580 be used as level instead of 612?
+
+  Can tracing be turned off with level 128?
+
+}

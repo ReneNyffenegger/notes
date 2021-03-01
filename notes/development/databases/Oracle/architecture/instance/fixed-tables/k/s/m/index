@@ -1,0 +1,58 @@
+$ X$KSM…
+
+{ Basic layout of Oracle's memory
+
+code {
+with function n(x raw) return number is
+begin
+   return to_number(x, 'xxxxxxxxxxxxxxxx');
+end n;
+addr as (
+  select 'SGA (fixed)' text, min(n(addr    )) start_, max(n(addr    )) end_ from x$ksmmem   union all
+  select 'SGA (pool)'  text, min(n(ksmchptr)) start_, max(n(ksmchptr)) end_ from x$ksmsp    union all
+  select 'PGA pool'    text, min(n(ksmchptr)) start_, max(n(ksmchptr)) end_ from x$ksmpp    union all
+  select 'UGA pool'    text, min(n(ksmchptr)) start_, max(n(ksmchptr)) end_ from x$ksmup    union all
+  select 'ksmspr'      text, min(n(ksmchptr)) start_, max(n(ksmchptr)) end_ from x$ksmspr   union all
+  select 'ksmhp'       text, min(n(ksmchptr)) start_, max(n(ksmchptr)) end_ from x$ksmhp
+),
+addr_ as (
+  select
+       text || ' start' text,
+       start_ addr
+     from
+        addr
+ UNION ALL
+  select
+       text || ' end' text,
+       end_
+     from
+        addr
+)
+select *
+from
+   addr_
+order by
+   addr
+/
+code }
+
+}
+{ Details
+
+code {
+with function n(x raw) return number is
+begin
+   return to_number(x, 'xxxxxxxxxxxxxxxx');
+end n;
+select 'UGA pool' heap, ksmchcom, n(ksmchptr) start_, n(ksmchptr)+ ksmchsiz-1 end_, ksmchsiz, ksmchcls, ksmchtyp, ksmchpar  from  x$ksmup  union all
+select 'PGA pool' heap, ksmchcom, n(ksmchptr) start_, n(ksmchptr)+ ksmchsiz-1 end_, ksmchsiz, ksmchcls, ksmchtyp, ksmchpar  from  x$ksmpp  union all
+select 'SGA pool' heap, ksmchcom, n(ksmchptr) start_, n(ksmchptr)+ ksmchsiz-1 end_, ksmchsiz, ksmchcls, ksmchtyp, ksmchpar  from  x$ksmsp  union all
+select 'ksmspr'   heap, ksmchcom, n(ksmchptr) start_, n(ksmchptr)+ ksmchsiz-1 end_, ksmchsiz, ksmchcls, ksmchtyp, ksmchpar  from  x$ksmspr union all
+select 'ksmshp'   heap, ksmchcom, n(ksmchptr) start_, n(ksmchptr)+ ksmchsiz-1 end_, ksmchsiz, ksmchcls, ksmchtyp, ksmchpar  from  x$ksmhp;
+/
+code }
+
+}
+
+sa:
+  Tanel Poder's → https://github.com/tanelpoder/tpt-oracle/blob/master/fcha.sql[SQL script `fcha`] determines the heap for a given memory address.

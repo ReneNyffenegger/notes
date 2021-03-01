@@ -1,0 +1,34 @@
+$ Oracle: X$KQFCO
+@ x$kqfco
+
+
+code {
+select
+   tab.kqftanam tab_name,
+   col.kqfconam col_name,
+   decode (col.kqfcodty,
+       1, 'varchar2'  ,
+       2, 'number'    ,
+      12, 'date'      ,
+      23, 'raw'       ,
+     112, 'clob'      ,
+     180, 'ts'        ,
+     181, 'ts with tz',
+           col.kqfcodty)   col_type,
+   col.kqfcosiz            col_size,
+   col.kqfcooff            col_offset
+-- tab.kqftarsz                                   tab_rowsize, --?
+-- sum(col.kqfcosiz) over (partition by tab.indx) sum_col_size   
+from
+   x$kqfco col                                join 
+   x$kqfta tab on col.kqfcotab = tab.indx
+where
+   tab.kqftanam = 'X$BH'
+order by
+   tab_name,
+   col_offset
+;
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

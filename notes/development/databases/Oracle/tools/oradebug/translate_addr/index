@@ -1,0 +1,34 @@
+$ oradebug translate_addr
+
+`oradebug translate_addr 0x…` translates a memory-address to a *symbolic name*.
+
+On → Windows, this can be demonstrated with the → Windows/dirs/Program-Files-x86/Windows-Kits/n/Debuggers/arch/cdb_exe[Symbolic Debugger (`cdb.exe`):
+
+First, `cdb.exe` is started and attached to `oracle.exe`:
+code {
+C:\> cdb -pn oracle.exe
+code }
+
+Then, the (exported) symbols of `oracle.exe` are displayed with the → Windows/development/Debugging/tools/commands/x[`x`] command:
+code {
+0:004> x oracle!*
+*** WARNING: Unable to verify checksum for c:\oracle\19\bin\ORACLE.EXE
+00007ff7`61755ac0 ORACLE!qxiqitbcr (<no parameter info>)
+00007ff7`61755e60 ORACLE!qxiqitbdr (<no parameter info>)
+00007ff7`61756120 ORACLE!qxiqitbi (<no parameter info>)
+00007ff7`617565e0 ORACLE!qxiqitbd (<no parameter info>)
+00007ff7`617569b0 ORACLE!qxiqitbu (<no parameter info>)
+00007ff7`61756e80 ORACLE!qxiqitbr (<no parameter info>)
+00007ff7`617570d0 ORACLE!qxiqitbs (<no parameter info>)
+00007ff7`61757a90 ORACLE!qxiqitbf (<no parameter info>)
+00007ff7`61757e50 ORACLE!qxiqitbc (<no parameter info>)
+00007ff7`61758030 ORACLE!qxiqitbe (<no parameter info>)
+…
+code }
+
+I choose any of the displayed functions, for example `qxiqitbr`. The respective address is `00007ff7`61756e80`. So, I look up this address with
+→ development/databases/Oracle/tools/oradebug[`oradebug`]:
+code {
+sys> oradebug translate_addr 0x00007ff761756e80
+0x00007ff761756e8 qxiqitbr()
+code }

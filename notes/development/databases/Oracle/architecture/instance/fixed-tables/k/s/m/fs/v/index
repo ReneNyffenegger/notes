@@ -1,0 +1,65 @@
+$ Oracle: X$KSMFSV
+@ x$ksmfsv
+
+Names of variables, address of their value in the SGA, their datatype and size of the datatype.
+
+code {
+select   
+-- addr addr_hex,
+-- to_number(addr    , rpad('x', 16, 'x')) addr,
+   ksmfsnam                                variable_name,
+   to_number(ksmfsadr, rpad('x', 16, 'x')) address,
+   ksmfstyp                                typ,
+   ksmfssiz                                siz
+from
+   x$ksmfsv
+order by
+   variable_name
+;
+code }
+
+{ SCN number (kcsgscn_)
+
+  Such a variable is for example `kcsgscn_` which stores the *current SCN number*:
+code {
+select
+   to_number(mem.ksmmmval, rpad('x', 16, 'x'))      value,
+   vdb.current_scn 
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr cross  join
+   v$database vdb 
+where
+   var.ksmfsnam = 'kcsgscn_' -- SCN Number  
+;
+code }
+
+}
+{ Latches #ora-ksmfsv-latches
+
+  Many of these variables seem to store the address of *latches* which are exposed in → development/databases/Oracle/architecture/instance/fixed-tables/k/s/l/l/d[`x$kslld`] or
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/s/l/l/tr[`x$kslltr`].
+code {
+select   
+-- addr addr_hex,
+-- to_number(addr    , rpad('x', 16, 'x')) addr,
+   ksmfsnam                                variable_name,
+   lld.kslldnam                            lld_name,
+   lld.ksllddsp                            lld_description,   
+   llt.kslltnam                            llt_name,
+   to_number(ksmfsadr, rpad('x', 16, 'x')) address,
+   ksmfstyp                                typ,
+   ksmfssiz                                siz
+from
+   x$ksmfsv        var                                    left join
+   x$kslld         lld on  var.ksmfsadr = lld.kslldadr    left join
+   x$kslltr        llt on  var.ksmfsadr = llt.kslltaddr
+where
+   coalesce(lld.kslldadr, llt.kslltaddr) is not null
+;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

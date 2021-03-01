@@ -1,0 +1,81 @@
+$ Oracle: X$KSMSP
+@ x$ksmsp
+
+*SGA Heap*
+
+code {
+with function n(x raw) return number is
+begin
+   return to_number(x, 'xxxxxxxxxxxxxxxx');
+end n;
+ksmsp as (
+select
+   ksmsp.ksmchcom,
+   ksmsp.ksmchcls,
+   ksmsp.ksmchsiz,
+   ksmsp.ksmchtyp,
+   n(ksmsp.ksmchptr) ksmchptr,
+   n(ksmsp.ksmchpar) ksmchpar,
+   ksmsp.indx
+from
+   x$ksmsp ksmsp
+)
+select
+   ksmsp.ksmchcom,
+   ksmsp.ksmchcls,
+   ksmchsiz,
+   ksmchtyp,
+   ksmchptr,
+   case when
+        lag(ksmchptr+ksmchsiz) over (order by ksmchptr) !=
+        ksmchptr
+   then 'gap' end gap,
+   ksmchpar,
+   indx
+from
+   ksmsp
+order by
+   ksmchptr
+/
+code }
+
+{ Relation to (fixed) SGA
+
+  `ksmchptr` points to a memory region that is not in the SGA.
+  -
+  `ksmchpar` is in most cases either `0` or greater than the SGA. Only in a few cases it falls into the SGA:
+
+code {
+with function n(x raw) return number is
+begin
+   return to_number(x, 'xxxxxxxxxxxxxxxx');
+end n;
+sga_addr as (
+   select
+      min(n(addr)) begin_,
+      max(n(addr)) end_
+--    min(to_number(addr, 'xxxxxxxxxxxxxxxx')) start_,
+--    max(to_number(addr, 'xxxxxxxxxxxxxxxx')) end_
+   from
+      x$ksmmem
+)
+select
+   count(case when n(ksmsp.ksmchptr)       < sga_addr.begin_                   then 1 end) cnt_lt_sga    ,
+   count(case when n(ksmsp.ksmchptr)       < sga_addr.begin_                   then 1 end) cnt_lt_sga    ,
+   count(case when n(ksmsp.ksmchptr) between sga_addr.begin_ and sga_addr.end_ then 1 end) cnt_within_sga,
+   count(case when n(ksmsp.ksmchptr)      >                      sga_addr.end_ then 1 end) cnt_gt_sga    ,
+   count(case when n(ksmsp.ksmchpar) =  0                                      then 1 end) cnt_par_eq_0  ,   
+   count(case when n(ksmsp.ksmchpar) between 1 and sga_addr.begin_             then 1 end) cnt_par_lt_sga  ,   
+   count(case when n(ksmsp.ksmchpar) between sga_addr.begin_ and sga_addr.end_ then 1 end) cnt_par_within_sga,
+   count(case when n(ksmsp.ksmchpar)      >                      sga_addr.end_ then 1 end) cnt_par_gt_sga
+from
+   sga_addr,
+   x$ksmsp   ksmsp
+;
+/
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

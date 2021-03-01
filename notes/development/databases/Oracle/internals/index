@@ -1,3 +1,4 @@
+$ Oracle internals
 
 { Filenames and functions #ora-intenals-filenames-and-functions
 
@@ -5,7 +6,7 @@
   → development/databases/Oracle/architecture/instance/fixed-tables/dbg/tf/view[`x$dbgtfview`].
 code {
 select
--  count(*),
+   count(*),
    case when nvl(lag(source_file) over (order by source_file, function_name), 'n/a') <> source_file then source_file end source_file_,
    function_name
 from (
@@ -22,6 +23,12 @@ UNION ALL
        x$dbgtfview
    where
        function_name is not null
+UNION ALL
+   select distinct
+     ksbsrvdfile,   
+     null
+   from
+     x$ksbsrvdt
 )
 group by
    source_file,
@@ -30,6 +37,7 @@ order by
    source_file,
    function_name
 ;
+
 -- apa.c            apadrv
 -- dbgea.c          dbgea_dispatch_pack_int
 --                  dbgea_exec_

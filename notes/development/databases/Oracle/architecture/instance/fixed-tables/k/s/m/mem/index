@@ -1,0 +1,29 @@
+$ Oracle: X$KSMMEM
+$ x$ksmmem
+
+
+`x$ksmmem` exposes every value in the SGA. Therefore the number of bytes in `x$ksmmem` is equal to the size of the SGA as sound in `x$ksmsgmem`:
+code {
+with ksmmem as (
+  select
+     count(*) * 8                             size_b,
+    (count(*) * 8 / 1024/1024)                size_mb,
+     min(to_number(addr, 'xxxxxxxxxxxxxxxx')) min_addr,
+     max(to_number(addr, 'xxxxxxxxxxxxxxxx')) max_addr,
+     min(to_number(addr, 'xxxxxxxxxxxxxxxx')) + (count(*)-1) * 8 max_addr_calculated
+  from
+     x$ksmmem
+)
+select
+   ksmsgmem.ksmsgmemval  "Fixed SGA Size",
+   ksmmem.*
+from
+   ksmmem,
+   x$ksmsgmem ksmsgmem
+where
+    ksmsgmem.ksmsgmemnam = 'Fixed SGA Size'
+;
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]
