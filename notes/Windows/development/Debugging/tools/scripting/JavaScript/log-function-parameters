@@ -1,0 +1,52 @@
+$ Logging function parameter values with the JavaScript extension of Windows Debugger
+
+{ prog.c
+
+  Here's a simple program that is used to demonstrate how it is possible to log function parameter values
+  with the the → Windows/development/Debugging/tools/scripting/JavaScript[JavaScript extension] for
+  → Windows/development/Debugging/tools.
+
+  We're particularly interested in displaying the values of the three parameters of the function `func` as it is called.
+
+  gh|Windows-Debugging-Tools|/scripting/JavaScript/log-function-parameters/prog.c||
+
+}
+{ Compilation
+
+  The program is compiled with the → Windows/development/Visual-Studio/cl[Visual C compiler] like so:
+  gh|Windows-Debugging-Tools|/scripting/JavaScript/log-function-parameters/compile.ps1||
+
+}
+{ The script
+
+  We also need a script that contains the function that is called whenever `func` is brokein into.
+  -
+  This function is `func_breakpoint`. It basically reads the values of the three
+  → development/languages/assembler/x86/registers[registers] `ecx` (32-bit), `rdx` and `r8`
+  which store the three function parameter values. (See → development/languages/C-C-plus-plus/calling-convention#call-conv-x64[calling convention for x64]).
+
+  The values of the two latter parameters (`rdx` and `r8`) are pointers to memory that contain the actual strings. So, we use
+ `host.memory.readString(reg.rdx)` and `host.memory.readWideString(`reg.r8`) to get corresponding string values.
+
+  gh|Windows-Debugging-Tools|/scripting/JavaScript/log-function-parameters/log-parameters.js||
+
+}
+{ Starting the debugger
+
+  We're now ready to start the debugger and execute the script. The script initialize function `invokeScript` (which is called when the script is loaded)
+  sets the breakpoint on `func` and makes sure that hitting the breakpoint calls `func_breakpoint`:
+  gh|Windows-Debugging-Tools|/scripting/JavaScript/log-function-parameters/run-cdb.ps1||
+
+  The script writes the following content into the log file (`log.out`):
+code {
+setting breakpoint
+running program
+num = 7, ansi_text = seven, utf16_text = sieben
+num = 2, ansi_text = two, utf16_text = zwei
+num = 42, ansi_text = forty-two, utf16_text = zweiundvierzig
+Num is 42. Explore your environment.
+Use g to continue
+num = 5, ansi_text = five, utf16_text = fünf
+code }
+
+}
