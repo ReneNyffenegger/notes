@@ -1,5 +1,141 @@
 $ Oracle: X$BH
 @ x$bh
 
+`x$bh` lists → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/buffer-header[buffer headers].
+
+code {
+select
+   count(*) over () cnt,
+   bh.indx                                 bh_indx,
+   bh.tch                                  touch_count,  -- How often the buffer was accessed. Buffers with high tch are expected to be at the end of the LRU list
+   bh.lru_flag,
+   bh.inst_id,
+   file#,
+   dbablk                                  block#,
+   class,
+-- obj,   
+   ob.name                                 obj_name,
+   ow.name                                 obj_owner,
+   case when bh.tim != 4294967295 then
+        date'1970-01-01'+ bh.tim/24/60/60
+   end                                     last_touch_time,
+   decode(state,
+        0,'free'      , -- Not used
+        1,'xcur'      , -- Exclusive (current?)
+        2,'scur'      , -- Shared current
+        3,'cr'        , -- Consistent read
+        4,'read'      , -- Being read into buffer
+        5,'mrec'      , -- Media recovery mode
+        6,'irec'      , -- Instance recovery mode
+        7,'write'     ,
+        8,'pi'        , -- Past image (RAC mode)
+        9,'memory'    ,
+       10,'mwrite'    ,
+       11,'donated'   ,
+       12,'protected' ,
+       13,'securefile',
+       14,'siop'      ,
+       15,'recckpt'   ,
+       16,'flashfree' ,
+       17,'flashcur'  ,
+       18,'flashna'
+    )                                      status_decoded,
+/*  0                   xnc,
+    0                   forced_reads,
+    0                   forced_writes, */
+   
+   bh.fp_whr,    
+   bh.mode_held,
+   bh.changes,
+   count(*) over (
+      partition by bh.dbarfil,
+                   bh.dbablk
+   )                                       clone_cnt,
+   kc.indx                                 kc_indx,
+   kc.dbwr_num                             kc_dbwr_num,
+   bh.le_addr,
+   le_id1          lock_element_name,
+   le_id2          lock_element_class,
+   decode(bitand(bh.flag,     1),0,'N','Y') dirty,
+   decode(bitand(bh.flag,    16),0,'N','Y') temp,
+   decode(bitand(bh.flag,  1536),0,'N','Y') ping,
+   decode(bitand(bh.flag, 16384),0,'N','Y') stale,
+   decode(bitand(bh.flag, 65536),0,'N','Y') direct,
+   decode(bitand(bh.flag,524288),0,'N','Y') fts,     -- buffer was read in full table scan (http://www.adp-gmbh.ch/ora/tuning/fts_blocks_in_cache.html)
+   bh.flag2,
+   bh.rflag,
+   bh.sflag,
+ -- 'N'    new,
+   ts#,
+   lobid,
+   bitand(OBJ_FLAG, 240)/16   cachehint,
+   decode(bitand(OBJ_FLAG, 48)/16,
+        1, 'KEEP',
+        2, 'NONE',
+           'DEFAULT'
+   )                                       flash_cache, 
+   decode(
+      bitand(OBJ_FLAG, 192)/64,
+      1, 'KEEP',
+      2, 'NONE',
+         'DEFAULT'
+   )                                       cell_flash_cache,
+   bh.blsiz / 1024                         block_size_kb,
+-- kc.blk_size,
+   kc.dbwr_num                             kc_dbwr_num,
+   --
+   bh.cr_xid_usn, bh.cr_xid_slt, bh.cr_xid_sqn,
+   bh.cr_uba_fil, bh.cr_uba_blk, bh.cr_uba_rec,
+   --
+   bh.cr_sfl,
+   bh.lrba_seq,
+   bh.lrba_bno,
+   bh.hsub_scn,
+   --                                 bas / wrp
+   bh.cr_scn_bas , bh.cr_scn_wrp,
+   bh.fp_scn_bas , bh.fp_scn_wrp,
+   bh.cr_cls_bas , bh.cr_cls_wrp,
+   bh.hscn_bas   , bh.hscn_wrp,
+   --                                 nxt/prv
+   bh.us_nxt     , bh.us_prv,
+   bh.wa_nxt     , bh.wa_prv,   
+   bh.oq_nxt     , bh.oq_prv,
+   bh.aq_nxt     , bh.aq_prv,
+   --
+   bh.nxt_hash   , bh.prv_hash,
+   bh.nxt_repl   , bh.prv_repl,
+   --
+   bh.obj_flag,
+   bh.cr_rfcnt,
+   bh.shr_rfcnt,
+   bh.hladdr,
+   bh.cstate,
+   bh.dirty_queue,
+   bh.set_ds,
+   bh.ba,
+   bh.con_id
+from
+   x$bh      bh                            left join
+   x$le      le on bh.le_addr = le.le_addr left join
+   obj$      ob on bh.obj     = ob.obj#    left join
+   user$     ow on ob.owner#  = ow.user#   left join
+   x$kcbwds  kc on bh.set_ds  = kc.addr
+-- where
+--    state != 0
+--    ob.owner# not in (0, 9) -- SYS, SYSTEM
+-- order by
+--   tim desc
+;
+
+
+code }
+
 sa:
+
+  → development/databases/Oracle/installed/dynamic-performance-views/bh[`v$bh`]
+
+  → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache
+
   → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]
+
+  Join `set_ds` with `→ development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/ds[x$kcbwds].addr`.

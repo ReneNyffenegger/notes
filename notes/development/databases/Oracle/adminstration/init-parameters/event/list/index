@@ -1,5 +1,16 @@
 $ List of possible(?) values for the Oracle parameter EVENT
 
+{ Finding event names with ORADEBUG
+
+  It's possible to find event names with → development/databases/Oracle/tools/oradebug:
+code {
+SQL> oradebug → development/databases/Oracle/tools/oradebug/doc/event/name[doc event name]
+code }
+
+}
+{ Finding event descriptions with SQLERRM
+
+
 → http://www.juliandyke.com/Diagnostics/Events/Events.php[Julian Dyke] mentions that the possible values for the  → development/databases/Oracle/adminstration/init-parameters/event[`event`] parameter
 are related to → development/databases/Oracle/errors[SQL error messages](!) in the range of 10000 through 10999 (Compare with `select event from x$trace_events`).
 Thus, a list of possible events can be generated with the following
@@ -68,7 +79,7 @@ table { lll
   10043 ☰ check consistency of owner/waiter/converter lists in KSQ ☰
   10044 ☰ free list undo operations ☰
   10045 ☰ free list update operations - ktsrsp, ktsunl ☰
-  10046 ☰ enable SQL statement timing ☰ Aka *sql_trace*, → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files] can be analyzed with *tkprof* or *trca*.
+  10046 ☰ enable SQL statement timing ☰ Aka `sql_trace`, → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files] can be analyzed with *tkprof* or *trca*. For parameters see → development/databases/Oracle/tools/oradebug/doc/event/name/sql_trace[`oradebug doc event name sql_trace`].
   10047 ☰ trace switching of sessions ☰
   10048 ☰ Undo segment shrink ☰
   10049 ☰ protect library cache memory heaps ☰
@@ -254,7 +265,7 @@ table { lll
   10232 ☰ dump corrupted blocks symbolically when kcbgotten ☰
   10233 ☰ skip corrupted blocks on index operations ☰
   10234 ☰ trigger event after calling kcrapc to do redo N times ☰
-  10235 ☰ check memory manager internal structures ☰
+  10235 ☰ check memory manager internal structures ☰ Compare with event 10501
   10236 ☰ dump redo on object no. or block type mismatch errors 1410/8103 ☰
   10237 ☰ simulate ^C (for testing purposes) ☰
   10238 ☰ instantiation manager ☰
@@ -281,7 +292,7 @@ table { lll
   10259 ☰ get error message text from remote using explicit call ☰
   10260 ☰ PGA limit ( MB) exceeded - process terminated ☰
   10261 ☰ limit the size of the PGA heap ☰
-  10262 ☰ Don't check for memory leaks ☰
+  10262 ☰ Don't check for memory leaks ☰ `alter system set events '10262 trace name CONTEXT forever,level 90000'`;
   10263 ☰ Don't free empty PGA heap extents ☰
   10265 ☰ Keep random system generated output out of error messages ☰
   10266 ☰ Trace OSD stack usage ☰
@@ -512,7 +523,7 @@ table { lll
   10498 ☰ Trim blank characters including contol characters ☰
   10499 ☰ Trace OSM metadata events ☰
   10500 ☰ turn on traces for SMON ☰
-  10501 ☰ periodically check selected heap ☰
+  10501 ☰ periodically check selected heap ☰ Compare with event 10235
   10502 ☰ CBO disable the fix for bug 2098120 ☰
   10503 ☰ enable user-specified graduated bind lengths ☰
   10504 ☰ CBO disable the fix for bug 2607029 ☰
@@ -898,6 +909,8 @@ table { lll
   10999 ☰ do not get database enqueue name ☰
   39098 ☰ *Seems to be related to the data pump* ☰
 table }
+
+}
 
 sa:
   → development/databases/Oracle/architecture/instance/fixed-tables/trace/events[`x$trace_events`]

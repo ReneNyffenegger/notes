@@ -1,11 +1,11 @@
 $ Oracle: X$KQFCO
 @ x$kqfco
 
-
 code {
+
 select
-   tab.kqftanam tab_name,
-   col.kqfconam col_name,
+   tab.kqftanam            tab_name,
+   col.kqfconam            col_name,
    decode (col.kqfcodty,
        1, 'varchar2'  ,
        2, 'number'    ,
@@ -14,20 +14,42 @@ select
      112, 'clob'      ,
      180, 'ts'        ,
      181, 'ts with tz',
-           col.kqfcodty)   col_type,
+           col.kqfcodty)   col_data_type,
    col.kqfcosiz            col_size,
-   col.kqfcooff            col_offset
--- tab.kqftarsz                                   tab_rowsize, --?
--- sum(col.kqfcosiz) over (partition by tab.indx) sum_col_size   
+   col.kqfcolsz            col_size_, -- ??
+   col.kqfcoipo            col_pos,
+   col.kqfcooff            col_offset,
+   col.kqfcodty            col_data_type_nr,
+   col.kqfcotyp            col_type,
+   tab.kqftaver            tab_version,
+   tab.kqftatyp            tab_type,
+   tab.kqftaflg            tab_flags,
+   tab.kqftacoc            tab_coc,
+   col.kqfcomax            col_max,
+   col.kqfcotob            tab_obj, --  tab.kqftaobj
+   col.kqfcotab,
+   col.kqfcolof            col_of,
+   col.kqfcoidx            col_index,
+   col.indx                col_indx,
+   tab.indx                tab_indx,
+   col.kqfcocno            col_no,
+-- col.inst_id,  tab.inst_id,
+-- col.con_id ,  tab.con_id,
+   tab.kqftarsz                                   tab_rowsize, -- ?
+   sum(col.kqfcosiz) over (partition by tab.indx) sum_col_size,
+   to_number(col.addr, 'xxxxxxxxxxxxxxxx')        col_addr,
+   to_number(tab.addr, 'xxxxxxxxxxxxxxxx')        tab_addr
 from
    x$kqfco col                                join 
    x$kqfta tab on col.kqfcotab = tab.indx
 where
-   tab.kqftanam = 'X$BH'
+  tab.kqftanam = 'X$KQFTA'
 order by
    tab_name,
-   col_offset
+   col_no
 ;
+
+
 code }
 
 sa:

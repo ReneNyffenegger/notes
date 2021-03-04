@@ -1,4 +1,63 @@
-$ X$KGLCURSOR
+$ Oracle: X$KGLCURSOR
+@ x$kglcursor
+
+{ Storing invalid SQL statements
+
+ `x$kglcursor` not only stores valid cursors (as also `x$kqlcursor_child` and `x$kglcursor_child_sqlid` do) but also invalid statements.
+
+  The first twenty characters of such invalid statements are found in `kglnaobj` (which is exhibited in `v$` views as `sql_text`).
+
+  We execute some statements that cause *ORA-00900: invalid statement*:
+code {
+egin
+   execute immediate 'foo bar baz';
+end;
+/
+
+begin
+   execute immediate 'foo bar baz xyz abc def';
+--                    123456789 12345789 
+end;
+/
+
+begin
+   execute immediate 'foo bar baz xyz abc def ghi jkl mno pqr';
+end;
+/
+code }
+
+  Now, we query for these statements in `x$kglcursor`:
+code {
+select
+   kglhdnsd,
+   kglnaobj       sql_text,
+   kglobtyd       obj_typ,
+   kglobt03       sqlid,
+   kglhdpar       address,       -- Parent address?
+   kglhdadr       child_address,
+   kglobt09       child_number,
+   kglhdclt       child_latch,
+   kglhdobj
+   kglobt62
+from
+   x$kglcursor
+where
+   kglnaobj like 'foo bar baz%';
+--
+-- KGLHDNSD  SQL_TEXT              OBJ_TYP  SQLID         ADDRESS          CHILD_ADDRESS    CHILD_NUMBER CHILD_LATCH KGLOBT62        
+-- --------- --------------------- -------  ------------- ---------------- ---------------- ------------ ----------- ----------------
+-- SQL AREA  foo bar baz xyz abc   CURSOR   9h3fdjsyddzb1 00007FF9A3C5A2B0 00007FF9A49B2FF8            0           0 00              
+-- SQL AREA  foo bar baz xyz abc   CURSOR   9h3fdjsyddzb1 00007FF9A3C5A2B0 00007FF9A3C5A2B0        65535       64865 00007FF9A28B3510
+-- SQL AREA  foo bar baz           CURSOR   dgbrtv7pa2jqp 00007FF9A1D4E360 00007FF99B8D3E10            0           0 00              
+-- SQL AREA  foo bar baz           CURSOR   dgbrtv7pa2jqp 00007FF9A1D4E360 00007FF9A1D4E360        65535       83669 00007FF9A2B5C330
+-- SQL AREA  foo bar baz xyz abc   CURSOR   38u2kp1rng34h 00007FF999BA57E0 00007FF99E68BDA8            0           0 00              
+-- SQL AREA  foo bar baz xyz abc   CURSOR   38u2kp1rng34h 00007FF999BA57E0 00007FF999BA57E0        65535      101520 00007FF99BA4EE10
+code }
+
+}
+
 
 sa:
+ `x$kglcursor` is not found in → development/databases/Oracle/architecture/instance/fixed-tables/k/q/f/ta[`x$kqfta`].
+
   → development/databases/Oracle/architecture/instance/fixed-tables

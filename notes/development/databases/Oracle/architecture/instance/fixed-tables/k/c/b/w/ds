@@ -1,0 +1,79 @@
+$ Oracle: X$KCBWDS
+@ x$kcbwds
+
+
+Buffer pool, working data set? Set descriptor?
+
+code {
+select
+-- count(*) over () cnt,
+   wds.addr                       wds_addr,         -- Join with x$bh.set_ds
+-- wds.indx                       wds_indx,
+-- wds.pool_id                    wds_pool_id,   
+   bpd.bp_name                    buffer_pool_name,
+   wds.blk_size /1024             block_size_kb,   
+   wds.set_latch                  set_latch,
+   wds.ckpt_latch1                ckpt_latch1,
+   wds.ckpt_latch                 ckpt_latch,
+   wds.con_id                     con_id,
+   wds.inst_id                    inst_id,
+   wds.flag                       flag,
+   wds.set_id                     set_id,
+   wds.proc_group                 proc_group,
+   wds.dbwr_num                   dbwr_num,        -- DBWR: database writer
+   --
+   wds.cnum_repl    cnum_repl,     
+   wds.cnum2_repl   cnum2_repl,
+   wds.anum_repl    anum_repl,
+   wds.anum2_repl   anum2_repl,
+   --
+   wds.nxt_repl     , wds.prv_repl     , wds.nxt_replax   , wds.prv_replax   ,
+   wds.nxt_write    , wds.prv_write    , wds.nxt_writeax  , wds.prv_writeax  , wds.cnum_write   , wds.anum_write,
+   wds.nxt_xobj     , wds.prv_xobj     , wds.nxt_xobjax   , wds.prv_xobjax   , wds.cnum_xobj    , wds.anum_xobj ,
+   wds.nxt_xrng     , wds.prv_xrng     , wds.nxt_xrngax   , wds.prv_xrngax   , wds.cnum_xrng    , wds.anum_xrng ,
+   wds.nxt_req      , wds.prv_req      , wds.nxt_reqax    , wds.prv_reqax    , wds.cnum_req     , wds.anum_req  ,
+   wds.nxt_l2w      , wds.prv_l2w      , wds.nxt_l2wax    , wds.prv_l2wax    , wds.cnum_l2w     , wds.anum_l2w  ,
+   wds.nxt_l2r      , wds.prv_l2r      , wds.nxt_l2rax    , wds.prv_l2rax    , wds.cnum_l2r     , wds.anum_l2r  ,
+   wds.nxt_l2k      , wds.prv_l2k      , wds.nxt_l2kax    , wds.prv_l2kax    , wds.cnum_l2k     , wds.anum_l2k  ,
+   wds.nxt_dwb      , wds.prv_dwb      , wds.nxt_dwbax    , wds.prv_dwbax    , wds.cnum_dwb     , wds.anum_dwb  ,
+   wds.nxt_dwl2b    , wds.prv_dwl2b    , wds.nxt_dwl2bax  , wds.prv_dwl2bax  , wds.cnum_dwl2b   , wds.anum_dwl2b,
+   --
+   wds.cold_hd             cold_hd,
+   wds.hbmax               hbmax,
+   wds.hbufs               hbufs,
+   wds.cnum_set            cnum_set,
+   wds.cnuml2_set          cnuml2_set,
+   wds.buf_got             buf_got,
+   wds.sum_wrt             sum_wrt,
+   wds.sum_scn             sum_scn,
+   --
+   wds.fbwait              fbwait,
+   wds.wcwait              wcwait,
+   wds.bbwait              bbwait,    -- «buffer busy waits»
+   --
+   wds.fbinsp              fbinsp,
+   wds.dbinsp              dbinsp,
+   wds.pninsp              pninsp,
+   wds.hotmvs              hotmvs,
+   wds.dbbchg              dbbchg,
+   wds.dbbget              dbbget,
+   wds.conget              conget,
+   wds.pread               pread,
+   wds.pwrite              pwrite,
+   wds.fgsdepth            fgsdepth,
+   wds.tgtclean            tgtclean,
+   wds.pwbcnt              pwbcnt,
+   wds.protcnt             protcnt,
+   wds.lastdecr            lastdecr,
+   wds.l2_rd               l2_rd,
+   wds.l2_wr               l2_wr,
+   wds.l2_inv              l2_inv,
+   wds.l2_inv_colli        l2_inv_colli,
+   wds.l2_aged_out         l2_aged_out
+from
+   x$kcbwds  wds                                 join
+   x$kcbwbpd bpd  on wds.pool_id = bpd.bp_id
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables/bh[`x$bh`]

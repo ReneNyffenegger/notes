@@ -1,0 +1,36 @@
+$ Oracle: X$KCBWPD
+@ x$kcbwpd
+
+*Working pool descriptions*? Base for `v$buffer_pool`.
+
+code {
+select
+   inst_id,
+   bp_id           id,
+   bp_name         name,
+   bp_blksz /1024  block_size_kb ,
+   bp_gransz,
+   bp_size                      buffers,
+   decode(bp_state,
+      0, 'STATIC',
+      1, 'ALLOCATING',
+      2, 'ACTIVATING',
+      3, 'SHRINKING'
+   )                            ressize_state,
+   bp_currgrans * bp_gransz     current_size,
+   bp_tgtgrans  * bp_gransz     target_size,
+   bp_tgtgrans  * bp_bufpergran target_buffers,
+   bp_prevgrans * bp_gransz     prev_size,
+   bp_prevgrans * bp_bufpergran preb_buffers,
+   bp_lo_sid                    lo_setid,
+   bp_hi_sid                    hi_setid,
+   bp_set_ct                    set_count,
+   con_id
+from
+   x$kcbwbpd
+-- where
+--    bp_id > 0 and
+--    bp_currgrans > 0 and bp_tgtgrans > 0
+;
+code }
+

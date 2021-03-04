@@ -18,30 +18,93 @@ code }
 code {
 select
 -- count(*),
-   kglhdnsd
+   case when nvl(
+      lag( kglobtyd ) over (order by  kglobtyd, kglhdnsd),
+      'n/a'
+   ) <> kglobtyd then
+        kglobtyd
+   end                       kglobtyd_,
+   kglhdnsd   
 from
    x$kglob
 group by
-   kglhdnsd
+   kglobtyd,
+   kglhdnsd   
 order by
-   kglhdnsd;
+   kglobtyd,
+   kglhdnsd
+;
 
--- OPTIMIZER FINDING
--- PDB
--- QUEUE
--- RESOURCE MANAGER
--- RULE EVALUATION CONTEXT
--- RULESET
--- RUNTIME STATISTICS
--- SCHEDULER GLOBAL ATTRIBUTE
--- SCHEMA
--- SQL AREA
--- SQL AREA BUILD
--- SQL AREA STATS
--- SQL TUNING BASE OBJECT
--- TABLE/PROCEDURE
--- USER PRIVILEGE
+--
+-- KGLOBTYD_                           KGLHDNSD                                                                                                                        
+-- ----------------------------------- --------------------------------------------------------------------------------------------------------------------------------
+-- CLUSTER                             CLUSTER                                                                                                                         
+-- CURSOR                              BODY                                                                                                                            
+--                                     DBINSTANCE                                                                                                                      
+--                                     DBLINK                                                                                                                          
+--                                     OPTIMIZER DIRECTIVE OWNER                                                                                                       
+--                                     OPTIMIZER EXPRESSION OBJECT                                                                                                     
+--                                     SCHEDULER GLOBAL ATTRIBUTE                                                                                                      
+--                                     SCHEMA                                                                                                                          
+--                                     SQL AREA                                                                                                                        
+--                                     SQL AREA BUILD                                                                                                                  
+--                                     TABLE/PROCEDURE                                                                                                                 
+-- CURSOR STATS                        SQL AREA STATS                                                                                                                  
+-- DIRECTORY                           DIRECTORY                                                                                                                       
+-- EDITION                             EDITION                                                                                                                         
+-- FUNCTION                            TABLE/PROCEDURE                                                                                                                 
+-- HINTSET OBJECT                      HINTSET OBJECT                                                                                                                  
+-- INDEX                               INDEX                                                                                                                           
+-- LIBRARY                             TABLE/PROCEDURE                                                                                                                 
+-- MULTI-VERSIONED OBJECT              MULTI-VERSION OBJECT FOR INDEX                                                                                                  
+--                                     MULTI-VERSION OBJECT FOR TABLE                                                                                                  
+-- NONE                                SCHEMA                                                                                                                          
+-- OPERATOR                            TABLE/PROCEDURE                                                                                                                 
+-- Optimizer Directive Owner           OPTIMIZER DIRECTIVE OWNER                                                                                                       
+-- Optimizer Expresion Object          OPTIMIZER EXPRESSION OBJECT                                                                                                     
+-- Optimizer Expression Header         OPTIMIZER EXPRESSION HEADER                                                                                                     
+-- Optimizer Finding                   OPTIMIZER FINDING                                                                                                               
+-- PACKAGE                             TABLE/PROCEDURE                                                                                                                 
+-- PACKAGE BODY                        BODY                                                                                                                            
+-- QUEUE                               QUEUE                                                                                                                           
+-- RESOURCE MANAGER CONSUMER GROUP     RESOURCE MANAGER                                                                                                                
+-- RULESET                             RULESET                                                                                                                         
+-- RUNTIME STATISTICS                  RUNTIME STATISTICS                                                                                                              
+-- SCHEDULER CLASS                     TABLE/PROCEDURE                                                                                                                 
+-- SCHEDULER GLOBAL ATTRIBUTE          SCHEDULER GLOBAL ATTRIBUTE                                                                                                      
+-- SCHEDULER JOB                       TABLE/PROCEDURE                                                                                                                 
+-- SCHEDULER WINDOW                    TABLE/PROCEDURE                                                                                                                 
+-- SEQUENCE                            TABLE/PROCEDURE                                                                                                                 
+-- SQL TUNING BASE OBJECT              SQL TUNING BASE OBJECT                                                                                                          
+-- SYNONYM                             TABLE/PROCEDURE                                                                                                                 
+-- TABLE                               TABLE/PROCEDURE                                                                                                                 
+-- TYPE                                TABLE/PROCEDURE                                                                                                                 
+-- TYPE BODY                           BODY                                                                                                                            
+-- USER PRIVILEGES                     USER PRIVILEGE                                                                                                                  
+-- VIEW                                TABLE/PROCEDURE       
 code }
+
+code {
+select
+-- count(*) over (partition by L1.kglhdadr) cnt_L1,   
+   L1.kglhdadr, -- L1.kglhdpar,
+   L2.kglhdadr, -- L2.kglhdpar,
+   --L3.kglhdadr, L3.kglhdpar,
+   L1.kglobtyd, L1.kglhdnsd,
+-- L2.kglobtyd, L2.kglhdnsd,
+   L1.kglnaobj,
+   L2.kglnaobj,
+   L3.kglobtyd
+from
+   x$kglob  L1                                                                left join
+   x$kglob  L2  on L1.kglhdadr  = L2.kglhdpar and
+                   L1.kglhdadr  = L2.kglhdpar and
+                   L2.kglhdpar != L2.kglhdadr             left join
+   x$kglob  L3  on L2.kglhdadr = L3.kglhdpar and L2.kglhdpar != L3.kglhdadr   
+;   
+
+code }
+
 
 sa:
   → development/databases/Oracle/architecture/instance/fixed-tables[Fixed tables]
