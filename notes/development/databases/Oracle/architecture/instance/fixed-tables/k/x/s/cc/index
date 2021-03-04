@@ -1,0 +1,62 @@
+$ Oracle: X$KXSCC
+@ x$kxscc
+
+code {
+select
+   scc.inst_id,
+   scc.kxscccur           curno,
+   scc.kxscccfl           flag,
+   decode(scc.kxsccsta,
+     0, 'CURNULL',
+     1, 'CURSYNTAX',
+     2, 'CURPARSE',
+     3, 'CURBOUND',
+     4, 'CURFETCH',
+     5, 'CURROW',
+        'ERROR'
+   )                      status        ,
+   obp.kglobt03           sql_id        ,
+   --
+   obp.kglnatim                                     first_load_time_par,
+   obp.kgloblct                                     locked_total_par,
+-- obp.kglobt04           fetches_par,
+-- obp.kglobt05           executions_par,
+-- obp.kglobts4           parsing_schema_name_par,
+   --
+   obc.kglnatim                                     first_load_time_chl,
+   obc.kgloblct                                     locked_total_chl,
+   obc.kglobt04           fetches_chl,
+   obc.kglobt05           executions_chl,
+   obc.kglobts4           parsing_schema_name_chl,
+   --
+-- scc.kxsccphd           parent_handle ,
+   obp.kglfnobj           sql_full_text ,
+   scc.kxsccplk           parent_lock   ,
+   scc.kxsccclk           child_lock    ,
+   scc.kxscccpn           child_pin     ,
+   scc.kxscctbm           pers_heap_mem ,
+   scc.kxscctwm           work_heap_mem ,
+   scc.kxscctbv           bind_vars     ,
+   scc.kxscctdv           define_vars   ,
+   scc.kxsccbdf           bind_mem_loc  ,
+   scc.kxsccflg           inst_flag     ,
+   scc.kxsccfl2           inst_flag2    ,
+   scc.kxsccchd           child_handle  ,
+   scc.con_id             con_id        ,
+   --
+   scc.addr,
+   scc.indx
+from
+   x$kxscc scc                                     left join
+   x$kglob obp on scc.kxsccphd = obp.kglhdadr      left join
+   x$kglob obc on scc.kxsccchd = obc.kglhdadr
+code }
+
+{ kxsccsta
+
+  The column  `kxsccsta` exposes the status (or phase) of the → development/databases/Oracle/SQL/statement/execution[execution of an SQL statement].
+
+}
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]
