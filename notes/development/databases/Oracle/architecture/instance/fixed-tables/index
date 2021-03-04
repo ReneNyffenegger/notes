@@ -1,15 +1,25 @@
 $ Oracle: fixed tables (X$ tables)
 @ fixed table
 
+*Dynamic performance tables* (whose names start with `x$`) and their → development/databases/Oracle/objects/indexes[indexes] are commonly referred to as *fixed objects*
+
+These objects are *fixed* because no → development/databases/Oracle/SQL/DML[DML statement] is allowed on these - only → development/databases/Oracle/SQL/select[`select` statements].
+
+
+Table names and their respective column names can be queried with the following SQL statement:
 code {
 select
-   kqftanam
+   x$kqfta.kqftanam   table_name,
+   x$kqfco.kqfconam   column_name
 from
-   → development/databases/Oracle/architecture/instance/fixed-tables/k/q/f/ta
-x$kqfta
-   order by 1;
+   → development/databases/Oracle/architecture/instance/fixed-tables/k/q/f/ta   left join
+   x$kqfco             on x$kqfta.kqftaobj  = x$kqfco.kqfcotob
+order by
+   x$kqfta.kqftanam,
+   x$kqfco.indx;
 code }
 
+→ development/databases/Oracle/installed/fixed-views/ks[The x$ks… fixed views]
 
 table { ll
   x$abstract_lob ☰
@@ -294,7 +304,7 @@ table { ll
   x$kcbtek ☰
   x$kcbuwhy ☰
   x$kcbwait ☰
-  → development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/pd ☰ Working pool descriptions?
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/bpd ☰ Working pool descriptions?
   → development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/ds ☰ Working data set?
   x$kcbwh ☰
   x$kccacm ☰
@@ -1573,8 +1583,35 @@ code }
   }
 }
 
+
+{ TODO
+
+code {
+select * from x$ksmsd;
+select * from x$ksmfsv;
+code }
+
+code {
+select
+   x$ksuse.ksuudsna,
+   x$ksuse.ksuseunm,
+   x$ksuse.ksusemnm,
+   x$ksuse.ksusesvc,
+   x$ksuse.ksusepesta,
+   x$ksuse.*
+from
+   x$ksuse;
+code }
+
+}
+
 sa:
-  → development/databases/Oracle/installed/dynamic-performance-views/fixed/table[`v$fixed_table`]
+  → development/databases/Oracle/installed/dynamic-performance-views/fixed/table[`v$fixed_table`],
+  → development/databases/Oracle/installed/dynamic-performance-views/fixed/view_definition[`v$fixed_view_definition`]
+
+  The → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views] query their data mainly from the *dynamic performance (`x$`) tables*
+
+  → development/databases/Oracle/installed/packages/dbms/stats#dbms_stats-gather_fixed_objects_stats[`dbms_stats.gather_fixed_objects_stats`]
 
 links:
   Rodrigo Jorge's → https://github.com/dbarj/pkg_xdollar_search/[pkg_xdollar_search].
