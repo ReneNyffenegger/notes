@@ -16,6 +16,7 @@ select
 -- obj,   
    ob.name                                 obj_name,
    ow.name                                 obj_owner,
+   bp.bp_name                              buffer_pool,
    case when bh.tim != 4294967295 then
         date'1970-01-01'+ bh.tim/24/60/60
    end                                     last_touch_time,
@@ -43,7 +44,6 @@ select
 /*  0                   xnc,
     0                   forced_reads,
     0                   forced_writes, */
-   
    bh.fp_whr,    
    bh.mode_held,
    bh.changes,
@@ -82,7 +82,6 @@ select
    )                                       cell_flash_cache,
    bh.blsiz / 1024                         block_size_kb,
 -- kc.blk_size,
-   kc.dbwr_num                             kc_dbwr_num,
    --
    bh.cr_xid_usn, bh.cr_xid_slt, bh.cr_xid_sqn,
    bh.cr_uba_fil, bh.cr_uba_blk, bh.cr_uba_rec,
@@ -115,19 +114,18 @@ select
    bh.ba,
    bh.con_id
 from
-   x$bh      bh                            left join
+   x$bh      bh                                 join
+   x$kcbwds  kc on bh.set_ds  = kc.addr         join
+   x$kcbwbpd bp on kc.pool_id = bp.bp_id   left join
    x$le      le on bh.le_addr = le.le_addr left join
    obj$      ob on bh.obj     = ob.obj#    left join
-   user$     ow on ob.owner#  = ow.user#   left join
-   x$kcbwds  kc on bh.set_ds  = kc.addr
+   user$     ow on ob.owner#  = ow.user#
 -- where
 --    state != 0
 --    ob.owner# not in (0, 9) -- SYS, SYSTEM
 -- order by
 --   tim desc
 ;
-
-
 code }
 
 sa:

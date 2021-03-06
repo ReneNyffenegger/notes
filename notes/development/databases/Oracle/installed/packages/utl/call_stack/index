@@ -4,19 +4,54 @@ $ Oracle: UTL_CALL_STACK
 `utl_call_stack` provides functions to determine the current call stack in an PL/SQL program. Its functionality is similar to that of 
   → development/databases/Oracle/installed/packages/dbms/utility#dbms_utility-format_call_stack[`dbms_utility.format_call_stack`].
 
-{ dynamic_depth / error_depth
+{ Backtrace structure
 
- `dynamic_depth` and `error_depth` return a `pls_integer` that indicates the *number of subprograms* on the call stack and *number of errors* on the error stack, respectively.
+  The *backtrace structure* is not a stack. It is a list that is operated on on both sides.
 
-  Compare with `backtrace_depth`.
+  { Exception
+
+    When an exception occurs the backtrace structure is emptied.
+    Then the location (unit and line number) of the exception is pushed onto the *backtrace stack*.
+
+  }
+  { Leaving a body of a function or procedure
+
+    When the *body* of a function or procedure is left, *and* an exception is «active», the location of the call stack with the lowest index is put on the side of the backtrace structure
+    with the highest index.
+
+    The *body* of the function/procedure is left either
+      • if execution is returned to the caller or the function, or
+      • if the exection enters into the (optional) *exception handler* of the function/procedure)
+
+  }
+  { RAISE statement
+
+    The raise statement is special because it operates on the «other» end of the backtrace structure.
+
+    In particular, it puts the location that contains the `raise` statement ot the side of the backtrace structure with the lowest index.
+
+  }
+
+
+}
+
+{ Functions that return depths
+
+  There are three functions that return a `pls_integer` that correspond to different «depths»:
+
+  table { ll
+    `dynamic_depth` ☰ The *dynamic depth* is incresed when a subprogram (function or procedure) is called and decreased again when the subprogram returns to the caller.
+    `backtrace_depth` ☰ starts with `0`. Is increased by an exception, a `raise` statement (in an exception handler) or by leaving a procedure/function without handling the exception.
+    `error_depth` ☰ Often the same value as `backtrace_depth`. Might have a different value for «multi-line» exceptions such as demonstrated in → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode/nested[this example].
+  table }
 
 }
 
 { Procedures that take dynamic_depth as argument
 
   table { ll
-   `lexical_depth` ☰
-   `subprogram` ☰
+   `lexical_depth` ☰ 1 for non-nested sub-programs, increses by one for each nesting level
+   `subprogram` ☰ returns a → development/databases/Oracle/PL-SQL/collection-types/types/varray[`varray`] that contains the *lexical* parents of a subprogram. This varray can then be converted into a `varchar2` with `concatenate_subprogram`
    `owner` ☰
    `unit_line` ☰
    `unit_type` ☰
@@ -43,7 +78,7 @@ $ Oracle: UTL_CALL_STACK
 { Other functions
 
   table { ll
-   `concatenate_subprogram` ☰
+   `concatenate_subprogram` ☰ see `subprogram`
   table }
 
 

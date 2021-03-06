@@ -102,7 +102,7 @@ code {
 select
    object_alias,
 --
--- If nut using an alias in the SQL statement, the first part of the object alias
+-- If not using an alias in the SQL statement, the first part of the object alias
 -- is equal to the object_name. Note, that object_name can also refer to an index
 -- in which case othe first part of the object alias is null:
    regexp_replace(object_alias, '^"([^"]+)"@"[^"]+"$', '\1') object_alias_part_1,
@@ -119,6 +119,32 @@ select
 -- v$sql_plan.*
 from
    v$sql_plan;
+code }
+
+}
+{ access_predicates
+
+code {
+select
+   count(*),
+   operation
+-- options
+from
+   v$sql_plan
+where
+   access_predicates is not null
+group by
+    operation
+--  options
+order by
+   count(*) desc;
+--
+-- INDEX
+-- HASH JOIN
+-- CONNECT BY
+-- SORT
+-- BITMAP INDEX
+-- TABLE ACCESS
 code }
 
 }

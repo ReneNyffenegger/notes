@@ -5,12 +5,53 @@ $ oradebug dumpvar
 → development/databases/Oracle/architecture/instance/UGA or
 → development/databases/Oracle/architecture/instance/SGA variable.
 
-The following example prints the current → development/databases/Oracle/architecture/transaction/SCN (which is stored in the
+{ Dumping a numerical (kscn8) value
+
+  The following example prints the current → development/databases/Oracle/architecture/transaction/SCN (which is stored in the
 → development/databases/Oracle/architecture/instance/SGA[SGA's] fixed variable `kcsgscn`):
 code {
-oradebug → development/databases/Oracle/tools/oradebug/setmypid[setmypid]
-oradebug dumpvar sga kcsgscn -- SCN
+SQL> oradebug → development/databases/Oracle/tools/oradebug/setmypid[setmypid]
+SQL> oradebug dumpvar sga kcsgscn
+kscn8 kcsgscn_ [7FF6A57DF310, 7FF6A57DF318) = 007283D8 00000000
 code }
+
+  The value of the SCN is printed in hexadecimal (`007283D8 00000000`). It's possible to print the value in a more readable format, given the value's address (`7FF6A57DF310`) and data type
+ (`kscn8`), both of which is reported
+  by the `dumpvar` command:
+code {
+SQL> oradebug dumptype 0x7FF6A57DF310 kscn8 1
+        kscn8val = 7505534
+code }
+
+}
+{ Dumping a string (ocitext *) value
+
+code {
+SQL> oradebug dumpvar sga ksm_ob_path_
+oratext * ksm_ob_path_ [7FF6A57B3A30, 7FF6A57B3A38) = D58AA200 00007FFD
+code }
+
+  Unfortunately, `oratext *` is not recognies as datatype by `oradebug dumptype`.
+  -
+  Therefore, we try another text-like dateatype:
+code {
+SQL> oradebug dumptype 0x00007FFDD58AA200 ktsn_name_t
+        ktsn_name_t=text[30] = 67,58,92,79,114,97,99,108,101,92,97,112,112,92,82,101,110,101,0 … 
+code }
+
+  These number can then be joined into a string for example in PowerShell:
+code {
+(67,58,92,79,114,97,99,108,101,92,97,112,112,92,82,101,110,101 | foreach-object { $_ -as [char]} ) -join ''
+code }
+
+
+}
+
+{ Finding variable names
+
+  Names of SGA variables are listed in → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/fs/v[`x$ksmfsv`].
+
+}
 
 sa:
   → development/databases/Oracle/tools/oradebug

@@ -1,0 +1,37 @@
+$ Oracle internals: functions
+
+{ erroep
+
+ `erroep` throws an exception/error. It's unclear to me how many parameters the function expects nor what they're supposed to mean.
+
+code {
+SQL> → development/databases/Oracle/tools/oradebug/call[oradebug] call erroep 0 1477 0 0
+ORA-01477: user data area descriptor is too large
+SQL> oradebug call erroep 1555
+ORA-01555: snapshot too old: rollback segment number  with name "" too small
+code }
+
+}
+{ Tracing function calls
+
+  Function calls can be traced:
+code {
+SQL> oradebug setospid 14820
+SQL> oradebug event sql_trace {callstack: fname opifch2} callstack(3)
+SQL> oradebug tracefile_name
+code }
+
+  Then, in other session:
+code {
+select …
+code }
+
+}
+
+sa:
+  A way to find function names and the amount of parameters is using
+  → development/databases/Oracle/tools/oradebug/dump/errorstack[`oradebug dump errorstack`].
+
+  Memory addresses (in the `.text` segment of the executable of Oracle) can be translated to function names
+  with → development/databases/Oracle/tools/oradebug/translate_addr[`oradebug translate_addr`].
+

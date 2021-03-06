@@ -1,0 +1,22 @@
+$ Oracle: X$KCCCP
+@ x$kcccp
+
+? Checkpoint progress
+
+code {
+select
+  le.leseq                        "Current log sequence No",
+  100*cp.cpodr_bno/le.lesiz       "Percent Full",
+  cp.cpodr_bno                    "Current Block No",
+  le.lesiz                        "Size of Log in Blocks"
+from
+  x$kcccp cp                                      join
+  x$kccle le on cp.cpodr_seq = le.leseq and
+                bitand(le.leflg,24)=8      -- Current log
+; 
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables
+
+  → http://www.adp-gmbh.ch/ora/concepts/how_much_redo.html uses a variation of this SQL statement to track how much redo is written by different DML Statements.
