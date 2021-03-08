@@ -1,0 +1,37 @@
+$ Oracle: RAISE_APPLICATION_ERROR
+
+code {
+raise_application_error(nnn, "message");
+raise_application_error(nnn, "message", true);
+raise_application_error(nnn, "message", false);
+code }
+
+`nnn`: -20000 through -20999.
+
+If the third parameter of `raise_application_error` is `true`, the error code is put on top of the *error stack*, if it is `false`, the error stack is replaced with the error message.
+-
+The default for this parameter is `false`.
+
+gh|Oracle-Patterns|/PL-SQL/exception/raise_application_error.plsql||
+
+The previous example prints
+code {
+error depth: 3
+  sqlerrm: ORA-20801: Some text
+
+  20801: Some text
+  6512: at line 8
+  6512: at line 16
+----------------------
+error depth: 5
+  sqlerrm: ORA-20801: Some text
+
+  20801: Some text
+  6512: at line 8
+  6512: at line 16
+  1476: divisor is equal to zero
+  6512: at line 14
+code }
+
+sa:
+  `raise_application_error` is defined in → development/databases/Oracle/installed/packages/dbms/standard[`dbms_standard`].
