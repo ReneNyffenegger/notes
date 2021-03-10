@@ -21,6 +21,8 @@ Because the memory of the PGA is not shared between processes, there is no need 
 
 { Queries
 
+  { PGA statistics
+
 code {
 select
    name,
@@ -36,6 +38,7 @@ from
 order by
    name;
 code }
+
   Names that are found with this query are
     • MGA allocated (under PGA)
     • PGA memory freed back to OS
@@ -56,7 +59,43 @@ code }
     • total PGA allocated
 
 
-  The memory chunks of the PGA are selectable from `x$ksmpp` (which has the same structure as `x$ksmsp`).
+
+  }
+  { Size of PGA and UGA #size-PGA-UGA
+
+    → development/databases/Oracle/installed/dynamic-performance-views/sesstat[`v$sesstat`] allows to query (among many other values) the size of of
+    the PGA:
+code {
+select
+    s.sid,
+    s.username,
+    round(max(case when n.name = 'session uga memory'        then value /1024/1024 end), 1) uga_mb,
+    round(max(case when n.name = 'session pga memory'        then value /1024/1024 end), 1) pga_mb,
+    round(max(case when n.name = 'session uga memory max'    then value /1024/1024 end), 1) uga_mb_max,
+    round(max(case when n.name = 'session pga memory max'    then value /1024/1024 end), 1) pga_mb_max,
+    round(max(case when n.name = 'workarea memory allocated' then value /1024/1024 end), 1) workarea_mb
+from
+    v$session  s                                 join
+    v$sesstat  t on s.sid        = t.sid         join
+    v$statname n on t.statistic# = n.statistic#
+where
+     s.type = 'USER'
+     and s.username is not NULL
+-- and n.name in ('session pga memory', 'session pga memory max',    'session uga memory', 'session uga memory max')
+group by
+   s.sid,
+   s.username
+;
+code }
+
+  }
+
+  { Memory chunks
+
+    The memory chunks of the PGA are selectable from → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/p/p[`x$ksmpp`] (which has the same structure as 
+    → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/s/p[`x$ksmsp`]).
+  
+  }
 
 }
 

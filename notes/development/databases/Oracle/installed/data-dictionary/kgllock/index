@@ -1,4 +1,23 @@
 $ dba_kgllock
 
+`dba_kgllock` shows *locks* and *pins* that are held on *Kernel Generic Library (KGL) cache objects*.
+
+code {
+select
+-- lck.kgllkuse,
+   ses.sid, ses.serial#,
+   ses.username,
+   lck.kgllkhdl,   -- Address of handle for KGL object
+   lck.kgllkmod,   -- Current mode
+   lck.kgllkreq,   -- Mode or request
+   lck.kgllktype   -- Lock or Spin?
+from
+   dba_kgllock   lck                            left join
+   → development/databases/Oracle/installed/dynamic-performance-views/session[v$session]     ses on lck.kgllkuse = ses.saddr  
+;
+code }
+
 sa:
-  → development/databases/Oracle/installed/data-dictionary/lock
+  → development/databases/Oracle/installed/data-dictionary/lock[`dba_lock`]
+
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l[`x$kgl…`]
