@@ -2,7 +2,6 @@ $ Oracle: X$KQFCO
 @ x$kqfco
 
 code {
-
 select
    tab.kqftanam            tab_name,
    col.kqfconam            col_name,
@@ -17,7 +16,10 @@ select
            col.kqfcodty)   col_data_type,
    col.kqfcosiz            col_size,
    col.kqfcolsz            col_size_, -- ??
-   col.kqfcoipo            col_pos,
+   --
+   case when col.kqfcoidx > 0 then col.kqfcoidx  end    col_index_nr ,    -- If kqfcoidx <> 0, column is indexed (See → development/databases/Oracle/installed/dynamic-performance-views/indexed_fixed_column)
+   case when col.kqfcoidx > 0 then col.kqfcoipo  end    col_index_pos,
+   --
    col.kqfcooff            col_offset,
    col.kqfcodty            col_data_type_nr,
    col.kqfcotyp            col_type,
@@ -26,10 +28,9 @@ select
    tab.kqftaflg            tab_flags,
    tab.kqftacoc            tab_coc,
    col.kqfcomax            col_max,
-   col.kqfcotob            tab_obj, --  tab.kqftaobj
+   col.kqfcotob            tab_obj,           --  tab.kqftaobj
    col.kqfcotab,
    col.kqfcolof            col_of,
-   col.kqfcoidx            col_index,
    col.indx                col_indx,
    tab.indx                tab_indx,
    col.kqfcocno            col_no,
@@ -44,12 +45,12 @@ from
    x$kqfta tab on col.kqfcotab = tab.indx
 where
   tab.kqftanam = 'X$KQFTA'
+           --    'X$KSUPL'     -- Table with three indexes
+           --    'X$KESWXMON'  -- Table with combined index
 order by
    tab_name,
    col_no
 ;
-
-
 code }
 
 sa:

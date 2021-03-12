@@ -5,7 +5,6 @@ $ Oracle: fixed tables (X$ tables)
 
 These objects are *fixed* because no → development/databases/Oracle/SQL/DML[DML statement] is allowed on these - only → development/databases/Oracle/SQL/select[`select` statements].
 
-
 Table names and their respective column names can be queried with the following SQL statement:
 code {
 select
@@ -19,7 +18,9 @@ order by
    x$kqfco.indx;
 code }
 
-→ development/databases/Oracle/installed/fixed-views/ks[The x$ks… fixed views]
+With the → development/databases/Oracle/installed/dynamic-performance-views, it's possible to query `x$` table names from → development/databases/Oracle/installed/dynamic-performance-views/fixed/table[`v$fixed_table`].
+-
+Columns that are indexed can be queried from → development/databases/Oracle/installed/dynamic-performance-views/indexed_fixed_column[`v$indexed_fixed_column`].
 
 table { ll
   x$abstract_lob ☰
@@ -795,7 +796,7 @@ table { ll
   x$kqfsz ☰
   → development/databases/Oracle/architecture/instance/fixed-tables/k/q/f/ta ☰ Exhibits the names of the X$ tables.
   x$kqftvrttst0 ☰
-  x$kqfvi ☰
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/q/f/vi ☰ names of the → development/databases/Oracle/installed/dynamic-performance-views[`V$` (dynamic performance) views].
   x$kqfvt ☰
   x$kqlfbc ☰ Bind variable capture?
   x$kqlfsqce ☰
@@ -1037,7 +1038,7 @@ table { ll
   x$ksuprlat ☰
   x$ksurlmt ☰
   x$ksuru ☰
-  x$ksusd ☰
+  x$ksusd ☰ Session statistics
   → development/databases/Oracle/architecture/instance/fixed-tables/k/s/u/se ☰ Sessions
   x$ksusecon ☰
   x$ksusecst ☰
@@ -1087,7 +1088,7 @@ table { ll
   x$ktcnreg ☰
   x$ktcnregquery ☰
   x$ktcsp ☰
-  x$ktcxb ☰
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/t/c/xb ☰ Transaction object
   x$ktfbfe ☰
   x$ktfbhc ☰
   x$ktfbnstat ☰
@@ -1133,7 +1134,7 @@ table { ll
   x$ktstuss ☰
   x$kttefinfo ☰
   x$kttets ☰
-  x$kttvs ☰
+  x$kttvs ☰ *Save undo* for each tablespace (name in `kttvsnm`)
   x$ktucus ☰
   x$ktugd ☰
   x$ktumascn ☰
@@ -1149,7 +1150,7 @@ table { ll
   x$kupva ☰
   x$kupvj ☰
   x$kvii ☰
-  x$kvis ☰
+  x$kvis ☰ Used to store information like db block size (`select kvisval from x$kvis where kvistag = 'kcbbkl'`). Not anymore?
   x$kvit ☰
   x$kwddef ☰
   x$kwqbpmt ☰
@@ -1239,7 +1240,7 @@ table { ll
   x$kzsrpwfile ☰
   x$kzsrt ☰
   → development/databases/Oracle/SQL/statement/nouns/system/alter#alter-system-kzvdvclause[x$kzvdvclause] ☰
-  x$le ☰ Lock element?
+  x$le ☰ Lock element: contains an entry for each PCM lock held for the buffer cache. `x$le` can be left outer joined to → development/databases/Oracle/architecture/instance/fixed-tables/bh[`x$bh`] on `le_addr`.
   x$lobsegstat ☰
   x$lobstat ☰
   x$lobstathist ☰
@@ -1583,6 +1584,39 @@ code }
   }
 }
 
+{ Perl script to find x$ tables
+
+code {
+#!/usr/bin/perl -w
+
+use strict;
+
+open my $ora , '<', $ENV{ORACLE_HOME} . "/bin/oracle.exe" or die 'could not open oracle.exe';
+open my $xout, '>', 'x.out' or die;
+
+my $l;
+my $p = ' ' x 40;
+my %x;
+
+while (read ($ora, $l, 10000)) {
+   $l = $p.$l;
+
+   foreach ($l =~ /(x\$\w{3,})/g) {
+      $x{$_}++;
+   }
+
+   $p = substr ($l,-40);
+}
+
+foreach (sort keys %x) {
+   print $xout "$_\n";
+}
+code }
+
+}
+
+
+
 
 { TODO
 
@@ -1605,12 +1639,12 @@ code }
 }
 
 sa:
-  → development/databases/Oracle/installed/dynamic-performance-views/fixed/table[`v$fixed_table`],
-  → development/databases/Oracle/installed/dynamic-performance-views/fixed/view_definition[`v$fixed_view_definition`]
 
   The → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views] query their data mainly from the *dynamic performance (`x$`) tables*
 
   → development/databases/Oracle/installed/packages/dbms/stats#dbms_stats-gather_fixed_objects_stats[`dbms_stats.gather_fixed_objects_stats`]
+
+  → development/databases/Oracle/installed/data-dictionary/base-tables/fixed_obj[`fixed_obj$`]
 
 links:
   Rodrigo Jorge's → https://github.com/dbarj/pkg_xdollar_search/[pkg_xdollar_search].

@@ -5,7 +5,27 @@ Enqueue management statistics by type.
 
 `ksqstwat`: The number of wait for the enqueue statistics class. 
 
-`ksqstwtim`: Cumulated waiting time. This column is selected when → development/databases/Oracle/installed/dynamic-performance-views/enqueue_stat.cum_wait_time is selected. 
+`ksqstwtim`: Cumulated waiting time. This column is selected when `→ development/databases/Oracle/installed/dynamic-performance-views/enqueue_stat[v$enqueue_stat].cum_wait_time` is selected. 
+
+code {
+select
+   case when nvl(
+      lag( ksq.ksqsttyp ) over (order by  ksq.ksqsttyp, ksq.ksqstrsn ),
+      'n/a'
+   ) <> ksqsttyp then ksq.ksqsttyp end ksqsttyp,
+   ksq.ksqstrsn,   
+   ksq.ksqstreq,
+   ksq.ksqstwat,
+   ksq.ksqstsgt,
+   ksq.ksqstwtm,
+   ksq.ksqstexpl,
+   ksq.ksqstevidx
+from
+   x$ksqst ksq
+order by
+   ksq.ksqsttyp,
+   ksq.ksqstrsn;
+code }
 
 { Type of classes
 
@@ -29,7 +49,7 @@ Enqueue management statistics by type.
   • JQ	Job queue
   • KK	Redo log kick
   • LA..LP	Library cache lock
-  • MD	enqueue for Change data capture → development/databases/Oracle/objects/views/materialized[[materialized view] log (gotten internally for DDL on a snapshot log) id1=object# of the snapshot log.
+  • MD	enqueue for Change data capture → development/databases/Oracle/objects/views/materialized[materialized view] log (gotten internally for DDL on a snapshot log) id1=object# of the snapshot log.
   • MR	Media recovery
   • NA..NZ	Library cache pin
   • PF	Password file
@@ -37,7 +57,7 @@ Enqueue management statistics by type.
   • PR	Process startup
   • PS	Parallel slave synchronization
   • SC	System commit number
-  • SM	SMON
+  • SM	→ development/databases/Oracle/architecture/processes/background/SMON
   • SQ	Sequence number enqueue
   • SR	Synchronized replication
   • SS	Sort segment

@@ -1,0 +1,99 @@
+$ Oracle: X$KTCXB
+@ x$ktcxb
+
+Transaction object / SGA transaction table.
+
+code {
+select
+   case when
+      bitand(ksspaflg, 1) != 0 and
+      bitand(ktcxbflg, 2) != 0
+   then
+      'in trx'
+   end                 in_trx  ,
+   ktcxbxba            addr    ,
+   kxidusn             xidusn  ,
+   kxidslt             xidslot ,
+   kxidsqn             xidsqn  ,
+   ktcxbkfn            ubafil  ,
+   kubablk             ubablk  ,
+   kubaseq             ubasqn  ,
+   kubarec             ubarec  ,
+   ----------------------------
+   decode(ktcxbsta,
+      0,'IDLE',
+      1,'COLLECTING',
+      2,'PREPARED',
+      3,'COMMITTED',
+      4,'HEURISTIC ABORT',
+      5,'HEURISTIC COMMIT',
+      6,'HEURISTIC DAMAGE',
+      7,'TIMEOUT',
+      9,'INACTIVE',
+     10,'ACTIVE',
+     11,'PTX PREPARED',
+     12,'PTX COMMITTED',
+        'UNKNOWN')            status,
+   ---------------------------
+   ktcxbssb                                                                     start_scnb     ,
+   ktcxbssw                                                                     start_scnw     ,
+   ktcxbsen                                                                     start_uext     ,
+   ktcxbsfl                                                                     start_ubafil   ,
+   ktcxbsbk                                                                     start_ubablk   ,
+   ktcxbssq                                                                     start_ubasqn   ,
+   ktcxbsrc                                                                     start_ubarec   ,
+   ktcxbses                                                                     ses_addr       ,
+       ksqlkses,
+   ktcxbflg                                                                     flag           ,
+   decode(bitand(ktcxbflg,16),0,'NO','YES')                                     space          ,
+   decode(bitand(ktcxbflg,32),0,'NO','YES')                                     recursive      ,
+   decode(bitand(ktcxbflg,64),0,'NO','YES')                                     noundo         ,
+   decode(bitand(ktcxbflg,8388608),0,'NO','YES')                                ptx            ,
+   ktcxbnam                                                                     name           ,
+   ktcxbpus                                                                     prv_xidusn     ,
+   ktcxbpsl                                                                     prv_xidslt     ,
+   ktcxbpsq                                                                     prv_xidsqn     ,
+   ktcxbpxu                                                                     ptx_xidusn     ,
+   ktcxbpxs                                                                     ptx_xidslt     ,
+   ktcxbpxq                                                                     ptx_xidsqn     ,
+   ktcxbubk                                                                     used_ublk      ,
+   ktcxburc                                                                     used_urec      ,
+   ktcxblio                                                                     log_io         ,
+   ktcxbpio                                                                     phy_io         ,
+   ktcxbcrg                                                                     cr_get         ,
+   ktcxbcrc                                                                     cr_change      ,
+   to_date(ktcxbstm,'MM/DD/RR HH24:MI:SS','NLS_CALENDAR=Gregorian')             start_date     ,
+   ktcxbstm                                                                     start_time     ,
+   ktcxbdsb                                                                     dscn_base      ,
+   ktcxbdsw                                                                     dscn_wrap      ,
+   ktcxbssc                                                                     start_scn      ,
+   ktcxbdsc                                                                     dependent_scn  ,
+   ktcxbxid                                                                     xid            ,
+   ktcxbpid                                                                     prv_xid        ,
+   ktcxbpxi                                                                     ptx_xid        ,
+   --
+   ksspaown,
+   ktcxblkp,
+   ksqlkadr,
+   ksqlkres,
+   ksqlkmod,
+   ksqlkreq,
+   ksqlkmxh,
+   ksqlklat,
+   ksqlkctim,
+   ksqlklblk,
+   kscnbas,
+   kscnwrp,
+   kubafil,
+   ktcxbdix,
+   ktcxbdsb
+from
+   x$ktcxb
+-- where
+--    bitand(ksspaflg, 1) != 0 and
+--    bitand(ktcxbflg, 2) != 0
+;
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]
