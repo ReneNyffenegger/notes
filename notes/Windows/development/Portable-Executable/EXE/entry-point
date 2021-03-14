@@ -3,17 +3,57 @@ $ EXE: entry point
 
 The entry point of an → Windows/development/Portable-Executable/EXE[exe] (as well as of a → Windows/development/Portable-Executable/DLL[dll]) is specified with the
 → Windows/development/Visual-Studio/link/options/entry[linker option `/entry`].
+-
+With the → development/languages/C-C-plus-plus/GCC/linker[GNU linker], the → development/languages/C-C-plus-plus/GCC/linker/options[option] to specify the entry point is `--entry` or `-e`.
 
-The entry point *seems* (!) to have the following signature:
+{ Signature and first (and only?) argument: PEB
+
+  As per → https://stackoverflow.com/users/6401656/rbmm[RbMm], the entry point function has one parameter: → https://stackoverflow.com/a/55066512/180275[a pointer to the PEB].
+
+  Further, this user suggests that the entry point has the following signature
 code {
 ULONG __stdcall(*)(void* → Windows/development/process/PEB[PEB])
 code }
 
-When the entry point is called, the `ebx` → development/languages/assembler/x86/registers[register] (x64: `rcx`, because in Win-X64, the first parameter is passed in `rcx`) *seems* (!) to point to the
-→ Windows/development/process/PEB[process environment block (PEB)]:
--
-As per *RbMm*, the entry point function has one parameter: → https://stackoverflow.com/a/55066512/180275[a pointer to the PEB].
 
-With the → development/languages/C-C-plus-plus/GCC/linker[GNU linker], the → development/languages/C-C-plus-plus/GCC/linker/options[option] to specify the entry point is `--entry` or `-e`.
+  The following example tries to demonstrate that the first argument (which is passed in `rcx` in Win-X64) does actually point to the 
+  → Windows/development/process/PEB[process environment block (PEB)].
 
-In → Windows/development/Debugging/tools, the entry point is referred to by the *pseudo-register* `$exentry`.
+  { entry-point.c
+
+    The function `printAddress` prints the value of the first parameter of the entry-point function, the value of `[gs]:60h` and the value of the PEB as returned by
+   `NtQueryInformationProcess`. These three values should all be equal when the program is run.
+
+    gh|Windows-development|/Portable-Executable/entry-point/first-argument_PEB/entry-point.c||
+
+  }
+  { go_60.asm
+
+   `go_60.asm` is an assembler source file whose only function `get_gs_60` returns the value of `[gs]:60h` so that this value can be printed with `printAddress`.
+
+    gh|Windows-development|/Portable-Executable/entry-point/first-argument_PEB/gs_60.asm||
+
+  }
+  { Compilation and linking
+
+    The two source files can be compiled and linked like so:
+
+    gh|Windows-development|/Portable-Executable/entry-point/first-argument_PEB/compile.ps1||
+
+  }
+  { Executing the program
+
+    When the program is executed, it prints the same address three times, thus giving evidence that indeed the first parameter of the entry point function points to the PEB:
+code {
+First argument      : 000000975583D000
+gs:[60h]            : 000000975583D000
+PEB                 : 000000975583D000
+code }
+
+  }
+
+}
+
+sa:
+  In → Windows/development/Debugging/tools, the entry point is referred to by the *pseudo-register* `$exentry`.
+
