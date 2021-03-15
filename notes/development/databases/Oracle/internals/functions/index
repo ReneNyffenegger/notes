@@ -1,5 +1,32 @@
 $ Oracle internals: functions
 
+{ Waiting for input from a client over TCP
+
+  The callstack of an Oracle User process (thread) when waiting for the next command from the client via TCP (Oracle 19c on Windows):
+
+  table { ll
+
+  `ntdll!NtWaitForMultipleObjects+0x14` ☰
+  `KERNELBASE!WaitForMultipleObjectsEx+0xf0` ☰
+  `orantcp19!snttclose+0x37d4` ☰
+  `orantcp19!nttini+0x28642` ☰
+  `oran19!nsbrecv+0x29a` ☰
+  `oran19!nioqrc+0x1d4` (`opikndf2()+1116`?) ☰
+  `opitsk()+1292` ☰
+  `opiino()+1142` ☰
+  `opiodr()+1614` ☰
+  `opidrv()+816` ☰
+  `sou2o()+110` ☰
+  `opimai_real()+174` ☰
+  `opimai()+268` ☰
+  `OracleThreadStart()+643` ☰
+   ??? ☰
+  `KERNEL32!BaseThreadInitThunk+0x14` ☰ 
+  `ntdll!RtlUserThreadStart+0x21` ☰
+  
+  table }
+
+}
 { erroep
 
  `erroep` throws an exception/error. It's unclear to me how many parameters the function expects nor what they're supposed to mean.
@@ -14,7 +41,7 @@ code }
 }
 { Wait interface: kslwtbctx / kslwtectx
 
-  As per → https://fritshoogland.files.wordpress.com/2014/04/using-gdb-for-oracle-tracing-deep-dive.pdf[Frits Hoogland], `kslwtectx`, `kslwtectx` is the *wait interface*
+  As per → https://fritshoogland.files.wordpress.com/2014/04/using-gdb-for-oracle-tracing-deep-dive.pdf[Frits Hoogland], `kslwtbctx` and `kslwtectx` are the entry points for the *wait interface*
   (Kernel service layer wait begin / end context) and the *wait number* is passed in the function `kskthewt` (register `RSI`).
 
   The wait time is passed by calling the function `kslwtrk_enter_wait_int` (register `r13`).

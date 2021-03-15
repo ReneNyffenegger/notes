@@ -1,0 +1,63 @@
+$ Debugging Tools for Windows: pseudo registers
+@ pseudo register
+
+table { lll
+
+ ~Register~ ☰ ☰ ~x86/x64~
+`$ea` ☰ The effective address of the last instruction that was executed. If this instruction does not have an effective address, the debugger displays "Bad register error". If this instruction has two effective addresses, the debugger displays the first address. ☰
+`$ea2` ☰ The second effective address of the last instruction that was executed. If this instruction does not have two effective addresses, the debugger displays "Bad register error". ☰
+`$exp` ☰ The last expression that was evaluated. ☰
+`$ra` ☰ The return address currently on the stack. Useful in commands such as `→ Windows/development/Debugging/tools/commands/g[g] @$ra` ☰
+`$ip` ☰ The instruction pointer register ☰ `eip`/`rip`
+`$eventip` ☰ The instruction pointer at the time of the current event. This pointer typically matches `$ip`, unless you switched threads or manually changed the value of the instruction pointer. ☰
+`$previp` ☰ The instruction pointer at the time of the previous event. (Breaking into the debugger counts as an event.) ☰
+`$relip` ☰ An instruction pointer that is related to the current event. When you are branch tracing, this pointer is the pointer to the branch source. ☰
+`$scopeip` ☰ The instruction pointer for the current local context (also known as the scope). ☰
+`$exentry` ☰ The address of the → Windows/development/Portable-Executable/EXE/entry-point[entry point] of the first executable of the current process. ☰
+`$retreg` ☰ The primary return value register. ☰ `eax`/`rax`
+`$retreg64` ☰ The primary return value register, in 64-bit format. ☰ x86: `edx:eax`
+`$csp` ☰ The current call stack pointer. This pointer is the register that is most representative of call stack depth. ☰ `esp`/`rsp`
+`$p` ☰ The value that the last → Windows/development/Debugging/tools/commands/d[`d*`] (= display memory) command printed. ☰
+`$proc` ☰ The address of the current process (that is, the address of the EPROCESS block). ☰
+`$thread` ☰ The address of the current thread. In kernel-mode debugging, this address is the address of the ETHREAD block. In user-mode debugging, this address is the address of the thread environment block (TEB). ☰
+`$peb` ☰ The address of the process environment block (PEB) of the current process. ☰
+`$teb` ☰ The address of the thread environment block (TEB) of the current thread. ☰
+`$tpid` ☰ The process ID (PID) for the process that owns the current thread. ☰
+`$tid` ☰ The thread ID for the current thread. ☰
+`$dtid` ☰ ☰
+`$dpid` ☰ ☰
+`$dsid` ☰ ☰
+`$bpₙ` ☰ The address of → Windows/development/Debugging/tools/commands/b[breakpoint] with number `n` If no breakpoint has an ID of Number, `$bpNumber` evaluates to zero. ☰
+`$frame` ☰ The current frame index. This index is the same frame number that the .frame (Set Local Context) command uses. ☰
+`$dbgtime` ☰ The current time, according to the computer that the debugger is running on. ☰
+`$callret` ☰ The return value of the last function that .call (Call Function) called or that is used in an `.fnret /s` command. The data type of `$callret` is the data type of this return value. ☰
+`$extret` ☰ ☰
+`$extin` ☰ ☰
+`$clrex` ☰ ☰
+`$lastclrex` ☰ Managed debugging only: The address of the last-encountered → Microsoft/dot-net/Common-Language-Runtime[CLR] exception object. ☰
+`$ptrsize` ☰ The size of a pointer. In kernel mode, this size is the pointer size on the target computer. ☰
+`$pagesize` ☰ The number of bytes in one page of memory. In kernel mode, this size is the page size on the target computer. ☰
+`$pcr` ☰ ☰
+`$pcrb` ☰ ☰
+`$argreg` ☰ ☰
+`$exr_chance` ☰ The chance of the current exception record. ☰
+`$exr_code` ☰ The exception code for the current exception record. ☰
+`$exr_numparams` ☰ The number of parameters in the current exception record. ☰
+`$exr_paramₙ` ☰ The value of Parameter ₙ in the current exception record. (ₙ = 0 … 14) ☰
+`$bug_code` ☰ If a bug check has occurred, this is the bug code. Applies to live kernel-mode debugging and kernel crash dumps. ☰
+`$bug_paramₙ` ☰ If a bug check has occurred, this is the value of Parameter ₙ. Applies to live kernel-mode debugging and kernel crash dumps. ₙ = 1 … 4 ☰
+`t0` … `$t19` ☰ User defined registers ☰
+
+table } 
+
+Note that `$u0` through `$u9` are aliases rather than pseudo-registers.
+
+{ Writing to pseudo registers
+
+  It's possible to wrtie into pseudo registers with the → Windows/development/Debugging/tools/commands/r[`r` command]:
+code {
+r $t14 = 42
+r $t15 = poi(0xabcdef0 + $t14 )
+code }
+
+}
