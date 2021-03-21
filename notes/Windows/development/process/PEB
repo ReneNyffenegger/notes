@@ -6,10 +6,19 @@ Offset `0x30` of the → Windows/development/process/thread/TIB[TIB] (on Win32?)
 -
 The PEB can be programatically found with `NtCurrentTeb() -> ProcessEnvironmentBlock`
 
-
-
 `PEB.BeingDebugged` indicates if a → Windows/development/WinAPI/Debugging[debugger] is attached.
 
 It seems like the `ebx` → development/languages/assembler/x86/registers[register] (x64: rbx)  register points to the PEB when an
 → Windows/development/Portable-Executable/EXE[exe's] → Windows/development/Portable-Executable/EXE/entry-point[entry point] is called.
 
+{ peb.c #peb_c
+
+  → https://gist.github.com/Wack0[Wack0] has written a small c source file (`peb.c`) as github gist which gets a pointer to the PEB for every architecture that NT
+  was ported to (x86, x64, ARM, ARM64, IA64, Alpha AXP, MIPS, PowerPC). This source relies on Visual-C compiler intrinsics.  -
+
+  For x86, the relevant instruction is `__readfsdword(0x30)`, for x64, it is `__readgsqword(0x60)`.
+
+  I have allowed myself to fork this gist → https://gist.github.com/ReneNyffenegger/74d1416242750e002ba4bb8fb1f4681e[here].
+
+  
+}

@@ -1,6 +1,32 @@
 $ Oracle: X$KSLLD
 @ x$kslld
 
+`x$kslld` stands for [K]ernel [S]ervice [L]ock [L]atch [D]escriptor.
+
+{ Joining with x$ksmfsv #kslld-join-ksmfsv
+
+ `x$kslld` can be joined → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/fs/v[`x$ksmfsv`] to obtain a list of *fixed SGA variables* for
+  → development/databases/Oracle/architecture/instance/SGA/latch[latches]:
+code {
+select
+-- count(*) over (),
+   var.ksmfsnam  var_name  ,
+   var.ksmfstyp  typ       , -- always ksllt
+   var.ksmfssiz  size_     , -- always 160
+   ltc.kslldnam  latch_name,
+   ltc.kslldlvl  latch_level
+from
+   x$ksmfsv var                                join
+   x$kslld  ltc on var.ksmfsadr = ltc.kslldadr
+--where
+-- var.ksmfssiz != 160
+-- var.ksmfstyp <> 'ksllt'
+order by
+   var.ksmfsnam;
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/fs/v#ora-ksmfsv-latches[Variable names in `x$ksmfsv` for latches]

@@ -1,0 +1,51 @@
+$ v$result_cache_objects
+
+code {
+select
+   cob.id                                  id,
+   cob.creation_timestamp                  creation_timestamp,
+   usr.username,
+-- cob.creator_uid                         creator_uid,
+   obj.object_name,
+-- cob.object_no                           object_no,
+   cob.namespace                           namespace,
+   cob.name                                name,
+   cob.status                              status,
+   cob.type                                type,         -- Result or Dependency
+   ----
+   cob.row_count                           row_cnt,
+   cob.column_count                        col_cnt,
+   cob.row_size_avg                        row_size_avg,
+   cob.row_size_max                        row_size_max,
+   cob.row_size_min                        row_size_min,
+   ----
+   cob.block_count                         block_count,  -- Corresponds to the correpsonding number of records in → development/databases/Oracle/installed/dynamic-performance-views/result_cache/memory
+   cob.bucket_no                           bucket_no,
+   cob.build_time                          build_time,
+   cob.cache_key                           cache_key,
+   cob.cache_id                            cache_id,
+   cob.checksum                            checksum,
+   cob.con_id                              con_id,
+   cob.db_link                             db_link,
+   cob.depend_count                        depend_count,
+   cob.edition_id                          edition_id,
+   cob.hash                                hash,
+   cob.invalidations                       invalidations,
+   cob.lru_number                          lru_number,
+   cob.pin_count                           pin_count,
+   cob.scan_count                          scan_count,
+   cob.scn                                 scn,
+   cob.space_overhead                      space_overhead,
+   cob.space_unused                        space_unused
+from
+   v$result_cache_objects    cob                                    left join
+   dba_users                 usr on cob.creator_uid = usr.user_id   left join
+   dba_objects               obj on cob.object_no   = obj.object_id
+where
+   usr.username not in ('OUTLN', 'SYS')
+order by
+   cob.creation_timestamp desc;
+code }
+
+sa:
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

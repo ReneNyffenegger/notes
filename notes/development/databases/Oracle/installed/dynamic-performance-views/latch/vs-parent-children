@@ -1,42 +1,120 @@
-$ Oracle: V$LATCH vs V$LATCH_PARENT vs v$LATCH_CHILDREN
+$ Oracle: V$LATCH vs V$LATCH_PARENT vs V$LATCH_CHILDREN
 
+{ Identifiying columns
+
+  The value of `ADDR` is unique in all three views: None of the following queries returns a record:
 code {
-select * from (
-   select 'v$latch'          as src, l.* from v$latch          l  union all
-   select 'v$latch_parent'   as src, l.* from v$latch_parent   l  union all
-   select 'v$latch_children' as src,
-      addr, latch#,
-   -- child#
-      level#,
-      name,
-      hash,
-      gets,
-      misses,
-      sleeps,
-      immediate_gets,
-      immediate_misses,
-      waiters_woken,
-      waits_holding_latch,
-      spin_gets,
-      sleep1,
-      sleep2,
-      sleep3,
-      sleep4,
-      sleep5,
-      sleep6,
-      sleep7,
-      sleep8,
-      sleep9,
-      sleep10,
-      sleep11,
-      wait_time,
-      con_id
-   from 
-      v$latch_children l
-)
-where
-   name = 'shared pool';
+select 1 from v$latch          group by addr having count(*) > 1;
+select 1 from v$latch_parent   group by addr having count(*) > 1;
+select 1 from v$latch_children group by addr having count(*) > 1;
 code }
+
+ `v$latch` and `v$latch_parent` not only have the same amount of records, each value of `ADDR` that occurs in one view also occurs in the other view so that the following two
+  SQL statements don't return a record:
+code {
+select addr from v$latch_parent minus
+select addr from v$latch;
+
+select addr from v$latch minus
+select addr from v$latch_parent;
+code }
+
+  However, `v$latch_children` does not share a value of `ADDR` with one of the other views so that the following SQL statement does not return a single record:
+code {
+select count(*)
+from
+   v$latch          a                       join
+   v$latch_children b on a.addr = b.addr;
+code }
+
+   Latches are identified by their latch number `latch#`. It does not identify a child latch, however. The first two statements don't return a record, the third one returns many records:
+code {
+select latch# from v$latch_children group by latch# having count(*) > 1;
+select latch# from v$latch_parent   group by latch# having count(*) > 1;
+select latch# from v$latch          group by latch# having count(*) > 1;
+code }
+
+}
+{ Joining views
+
+  Because `latch#` identifies a latch, the three views might be joined on `latch# (if this is ever needed?).
+
+}
+{ Columns
+
+  All columns, *except* `CHILD#`, are shared by all three views. `CHILD#` is only found in → development/databases/Oracle/installed/dynamic-performance-views/latch/children[`v$latch_children`], as is
+  shown by the following SQL statement.
+code {
+with
+   a as (select column_name from dba_tab_columns where table_name = 'V_$LATCH'          and owner = 'SYS'),
+   b as (select column_name from dba_tab_columns where table_name = 'V_$LATCH_PARENT'   and owner = 'SYS'),
+   c as (select column_name from dba_tab_columns where table_name = 'V_$LATCH_CHILDREN' and owner = 'SYS')
+select
+   coalesce(a.column_name, b.column_name, c.column_name)            col_name,
+   case when a.column_name is not null then 'y' end                 in_v$latch,
+   case when b.column_name is not null then 'y' end                 in_v$latch_parent,
+   case when c.column_name is not null then 'y' end                 in_v$latch_children
+from
+--
+--    → https://renenyffenegger.ch/notes/development/databases/SQL/select/join/full-outer/3-tables
+--
+   a                                                              full outer join
+   b on a.column_name = b.column_name                             full outer join
+   c on coalesce(a.column_name, b.column_name) = c.column_name
+order by
+   coalesce(a.column_name, b.column_name, c.column_name)
+;
+code }
+
+}
+{ Aggregation
+
+ `v$latch` aggregates the values of `v$latch_parent` and `v$latch_children` so that in the following query, the `*_l` columns return the same value as the `*_s` columns:
+code {
+select
+   l.latch#,
+   l.name,-- s.name,
+   l.gets              gets_l            , s.gets              gets_s,
+   l.misses            misses_l          , s.misses            misses_s,
+   l.sleeps            sleeps_l          , s.sleeps            sleeps_s,
+   l.immediate_gets    immediate_gets_l  , s.immediate_gets    immediate_gets_s,
+   l.immediate_misses  immediate_misses_l, s.immediate_misses  immediate_misses_s,
+   l.spin_gets         spin_gets_l       , s.spin_gets         spin_gets_s,
+   l.wait_time         wait_time_l       , s.wait_time         wait_time_s
+from
+   v$latch l join
+   (
+    select
+       p.latch#, p.name, 
+       p.gets             + nvl(c.gets            , 0) gets,
+       p.misses           + nvl(c.misses          , 0) misses,
+       p.sleeps           + nvl(c.sleeps          , 0) sleeps,
+       p.immediate_gets   + nvl(c.immediate_gets  , 0) immediate_gets,
+       p.immediate_misses + nvl(c.immediate_misses, 0) immediate_misses,
+       p.spin_gets        + nvl(c.spin_gets       , 0) spin_gets,
+       p.wait_time        + nvl(c.wait_time       , 0) wait_time
+    from
+       v$latch_parent p  left join
+       (
+          select
+             latch#,
+             sum(gets          ) gets,
+             sum(misses        ) misses,
+             sum(sleeps        ) sleeps,
+             sum(immediate_gets) immediate_gets,
+             sum(immediate_misses) immediate_misses,
+             sum(spin_gets     ) spin_gets,
+             sum(wait_time     ) wait_time
+          from
+             v$latch_children
+          group by
+            latch#
+      ) c  on p.latch# = c.latch#
+   )    s  on l.latch# = s.latch#
+;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views/latch[`v$latch`]

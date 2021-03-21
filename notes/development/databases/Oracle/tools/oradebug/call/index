@@ -14,3 +14,43 @@ SYS> oradebug call ksmgsizeof_granule
 Function returned 400000
 code }
 
+{ ORA-07443: function … not found
+
+  Trying to call a function that is not known by → development/databases/Oracle/tools/oradebug causes the error message `ORA-07443` (function … not found) to be thrown.
+
+  Thus, it is possible to dump the call stack when this error is thrown with something like
+code {
+oradebug → development/databases/Oracle/tools/oradebug/setmypid[setmypid]
+oradebug event 7443 trace("ORA-07443: %\n", → development/databases/Oracle/tools/oradebug/doc/event/action/shortstack())
+oradebug call  doesNotExist
+oradebug → development/databases/Oracle/tools/oradebug/tracefile_name[tracefile_name]
+code }
+
+  On → Windows, Oracle 19, the callstack is
+    • dbgePostErrorKGE
+    • dbkePostKGE_kgsf
+    • kgeade
+    • kgeselv
+    • ksesec1
+    • skdxcall
+    • ksdxen_int
+    • ksdxen
+    • opiodr
+    • ttcpip
+    • opitsk
+    • opiino
+    • opiodr
+    • opidrv
+    • sou2o
+    • opimai_real
+    • opimai
+    • OracleThreadStart
+
+  
+
+  Instead of using the `shortstack()` action, it is also possible to call
+code {
+oradebug event 7443 → development/databases/Oracle/tools/oradebug/doc/event/action/callstack(1)
+code }
+
+}

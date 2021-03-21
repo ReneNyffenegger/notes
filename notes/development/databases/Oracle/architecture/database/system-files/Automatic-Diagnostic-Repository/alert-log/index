@@ -1,6 +1,43 @@
 $ Oracle: alert log
 @ alert log
 
-The alert log stores database messages (also error messages) in chronological order.
+The alert log stores database messages (also error messages) in chronological order. Messages that go to the alert log file include
+  • Internal errors (`ORA-00600`)
+  • → development/databases/Oracle/architecture/database/logical-structures/data-block[Block] corruption errors (`ORA-01578`)
+  • Some `create`, `alter` and `drop` statements
+  • `startup`, `shutdown` and `archivelog` statements
+  • Errors that are related automatic refreshing of → development/databases/Oracle/objects/views/materialized[materialized views]
+  • → development/databases/Oracle/adminstration/init-parameters[Init parameters] that had non-default values when the database and instance were → development/databases/Oracle/architecture/instance/startup-shutdown[started up]
 
-The alert log is stored in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository[Automatic Diagnostic Repository (ADR)]
+The alert log is stored in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository[Automatic Diagnostic Repository (ADR)].
+
+{ Showing the contents of the alert log
+
+  { ADRCI
+
+    With → development/databases/Oracle/tools/ADRCI, the content of the alert log file is opened in an editor:
+code {
+$ adrci
+…
+adrci> show → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log[alert]
+code }
+
+    In order to change the editor in which the alert log is displayed, `set editor` must be used:
+code {    
+adrci> set editor → development/vim[gvim]
+code }
+
+  }
+  { Via X$DBGALERTEXT
+
+    The content of the alert log file is also exposed in the → development/databases/Oracle/architecture/instance/fixed-tables/dbg/alertext[`x$dbgalertext`] view.
+
+  }
+
+}
+{ Writing to the alert log
+
+  It is possible to write a message to the alert log with the
+ `dbms_system.ksdwrt()` function
+
+}

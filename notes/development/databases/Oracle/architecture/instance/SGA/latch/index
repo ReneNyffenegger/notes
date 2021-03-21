@@ -1,0 +1,1034 @@
+$ Oracle: latch
+@ latch
+
+The purpose of a latch is to *protect shared resources* that are needed, accessed and modified by
+multiple → development/databases/Oracle/architecture/session[sessions] and/or → development/databases/Oracle/architecture/processes[processes] from
+corruption which might occur if one session/process writes to a memory structure while another session/process reads it and thus obtains incosistent (garbage) data.
+
+Such corruption can be prevented by allowing at most one process to «possess» a latch.
+
+When a process wants to read or write a shared resource, it first tries to aquire the associated latch. If another process already has that latch, the process has to wait until the latch becomes available.
+
+Latches don't have a queue: an available latch is assigned to the first process that tries to acquire it, irrespective how many times that process already tried to acquire this latch.
+-
+This behavior is different from *enqueue latches* (such as row latches) which *do have* such a queue.
+
+Statistics about latches (such as number of tried acquisitions, time held etc.) are recorded in
+  → development/databases/Oracle/installed/dynamic-performance-views/latch[`v$latch`],
+  → development/databases/Oracle/installed/dynamic-performance-views/latch/children[`v$latch_children`] and `v$latch_parent`.
+
+{ List of latches
+
+  The following statement returns a list of available latches. The second column tells if the latch is also a child latch.
+
+code {
+select
+   l.name,
+   case when exists (
+      select 1 from v$latch_children c
+      where
+         c.latch# = l.latch#
+   ) then 'X' end chld
+from
+   v$latch l
+order by
+   name;
+code }
+
+  table { ll
+    ~Name~ ☰
+    ADG active session counter latch ☰ 
+    AQ Background: interrupt command latch ☰ ✓
+    AQ Coord jobx_kwsbgsgn latch ☰ 
+    AQ Message drive state object latch ☰ ✓
+    AQ OPT Background Master Latch ☰ 
+    AQ Propagation Scheduling Proc Table ☰ 
+    AQ Propagation Scheduling System Load ☰ 
+    AQ Sharded master pool latch ☰ 
+    AQ Sharded subscriber statistics latch ☰ 
+    AQ Slave freSlvL_kwsbgsgn latch ☰ 
+    AQ deq hash table latch ☰ ✓
+    AQ deq log cmt cbk chunk latch ☰ 
+    AQ deq log statistics latch ☰ 
+    AQ dequeue txn counter latch ☰ 
+    AQ disk delete txn counter latch ☰ 
+    AQ ht cmt cbk chunk latch ☰ 
+    AQ process state object latch ☰ 
+    AQ small txn context latch ☰ 
+    AQ spare variable ☰ 
+    AQ: IPC master latch ☰ 
+    AQ: IPC msg seq no latch ☰ 
+    ASM Clusterware clients latch  ☰ 
+    ASM DiskGroup access Mode latch ☰ 
+    ASM KFFD SO Latch ☰ 
+    ASM Keyed state latch ☰ 
+    ASM Scrubbing background process latch ☰ 
+    ASM Volume SGA latch ☰ 
+    ASM Volume extent lock list ☰ 
+    ASM Volume process latch ☰ 
+    ASM allocation ☰ 
+    ASM attribute latch ☰ 
+    ASM connection state latch ☰ 
+    ASM db client latch ☰ 
+    ASM file allocation latch ☰ 
+    ASM file locked extent latch ☰ 
+    ASM map headers ☰ 
+    ASM map load waiting list ☰ 
+    ASM map operation freelist ☰ 
+    ASM map operation hash table ☰ 
+    ASM network SGA latch ☰ 
+    ASM network background latch ☰ 
+    ASM network group sga latch ☰ 
+    ASM network state latch ☰ 
+    ASM rcl group latch ☰ 
+    ASM remote client latch ☰ 
+    ASM rollback operations ☰ 
+    ASM scan context latch ☰ 
+    ASM staleness latch ☰ 
+    ASM to smr ☰ 
+    ASM user latch ☰ 
+    AW SGA latch ☰ 
+    AWR Alerted Metric Element list ☰ 
+    Accel KGA glob updates ☰ 
+    Accel glob updates ☰ 
+    Active DBOP List latch ☰ 
+    Autotask management ☰ 
+    BA container sga ctx latch ☰ 
+    BA statistics ☰ 
+    Backup Appliance communications latch ☰ 
+    Backup Appliance health check latch ☰ 
+    Backup Appliance state change latch ☰ 
+    Block new check invariant rollback SCN latch ☰ 
+    Bloom Filter SGA latch ☰ 
+    Bloom filter list latch ☰ 
+    CDB Service Hash Table Latch ☰ 
+    Change Notification Hash table latch ☰ 
+    Change Notification Latch ☰ 
+    Column stats entry latch ☰ 
+    Consistent RBA ☰ 
+    Cross process SGAlat ☰ 
+    DBOP Monitoring latch ☰ 
+    DML lock allocation ☰ ✓
+    DMON Network Error List Latch ☰ 
+    DMON Work Queues Latch ☰ 
+    DNFS DISP C Q ☰ 
+    DNFS DISP CLEAN PAR ☰ 
+    DNFS DISP R Q ☰ 
+    Dedup Write Append Table Latch ☰ 
+    Deferred Allocation Latch ☰ 
+    Dependency Info ☰ 
+    Drain structure latch ☰ 
+    Emon Post latch ☰ 
+    Event Group Locks ☰ ✓
+    FAL Queue ☰ 
+    FC keep messages queue ☰ 
+    FIB s.o chain latch ☰ 
+    FOB consolidated s.o list latch ☰ 
+    FOB s.o list latch ☰ 
+    Fast-Start Failover State Latch ☰ 
+    File IO Stats segmented array latch ☰ 
+    File State Object Pool Parent Latch ☰ ✓
+    Flashback coordinator context latch ☰ 
+    GCS logfile block ☰ 
+    GCS logfile write queue ☰ 
+    GDID metadata structure latch ☰ 
+    GES quarantineQ latch ☰ 
+    Global dict space allocation latch ☰ 
+    Hang Manager wait event statistics ☰ 
+    I/O Staticstics latch ☰ ✓
+    ILM Stats Stripe Latch ☰ ✓
+    ILM Stats main anchor latch ☰ 
+    ILM access tracking extent ☰ 
+    ILM activity tracking latch ☰ 
+    IM Global dictionary latch ☰ ✓
+    IM Global dictionary queue latch ☰ 
+    IM Global dictionary rw latch ☰ ✓
+    IM area sb latch ☰ 
+    IM area scb latch ☰ 
+    IM emb latch ☰ 
+    IM seg hdr latch ☰ 
+    IMFS defer write force ☰ 
+    IMFS defer write list ☰ 
+    IMXT hash table latch ☰ ✓
+    IPC other latch ☰ 
+    IPC stats buffer allocation latch ☰ 
+    In memory undo latch ☰ ✓
+    In-Memory Background task hash table latch ☰ 
+    In-Memory auxiliary task latch ☰ 
+    JOX JIT code cache latch ☰ 
+    JOX JIT latch ☰ 
+    JOX SGA heap latch ☰ 
+    JS Sh mem access ☰ ✓
+    JS broadcast LW Job latch ☰ 
+    JS broadcast add buf latch ☰ 
+    JS broadcast autostart latch ☰ 
+    JS broadcast drop buf latch ☰ 
+    JS broadcast kill buf latch ☰ 
+    JS broadcast load blnc latch ☰ 
+    JS global state obj latch ☰ 
+    JS mem alloc latch ☰ 
+    JS queue access latch ☰ ✓
+    JS queue state obj latch ☰ 
+    JS recent failure latch ☰ 
+    JS slv state obj latch ☰ 
+    KCNF Data Request Queue ☰ 
+    KCNIBR - invalid block range tree ☰ 
+    KDCStatHash latch ☰ ✓
+    KDFI Buf Ctl Latch ☰ 
+    KDFI Buffer Latch ☰ ✓
+    KDFI Hash Bucket Latch ☰ ✓
+    KDFI Hash Elem Latch ☰ ✓
+    KDKV Auxiliary Map Latch ☰ 
+    KDKV Invalid Buffer Latch ☰ 
+    KDMADO Action Sync ☰ 
+    KDMADO action list latch ☰ ✓
+    KDMADO bll latch ☰ ✓
+    KDMADO latch ☰ ✓
+    KDMADO param val cache sync ☰ 
+    KFA SGA latch ☰ 
+    KFC FX Hash Latch ☰ 
+    KFC Hash Latch ☰ 
+    KFC LRU latch ☰ 
+    KFC SGA latch ☰ 
+    KFCL BX Freelist ☰ 
+    KFCL Instance Latch ☰ 
+    KFCL LE Freelist ☰ 
+    KFDVA SGA Latch ☰ 
+    KFDVA vaL Cache Latch ☰ 
+    KFIAS client latch ☰ 
+    KFIAS cluster latch ☰ 
+    KFIAS endpoint latch ☰ 
+    KFIAS fast latch ☰ 
+    KFIAS node latch ☰ 
+    KFIAS process latch ☰ 
+    KFIAS queue latch ☰ 
+    KFIAS top latch ☰ 
+    KFK SGA Libload latch ☰ 
+    KFM allocation ☰ 
+    KFMD SGA ☰ 
+    KFR redo allocation latch ☰ 
+    KGNFS-NFS:SHM structure ☰ 
+    KGNFS-NFS:SVR LIST  ☰ 
+    KJC destination ctx free list ☰ 
+    KJC global post event buffer ☰ 
+    KJC global resend message queue ☰ 
+    KJC message pool KGH calls ☰ 
+    KJC message pool free list ☰ 
+    KJC message pool pending avail list ☰ 
+    KJC receiver ctx free list ☰ 
+    KJC receiver queue access list ☰ 
+    KJC snd proxy ctx free list ☰ 
+    KJC snd proxy queue access list ☰ 
+    KJCT flow control latch ☰ 
+    KJCT receiver queue access ☰ 
+    KKCN Cqn Reg Hash Table latch ☰ 
+    KKCN Reg Hash Table latch ☰ 
+    KKCN grp data latch ☰ 
+    KKCN grp reg latch ☰ 
+    KKCN reg stat latch ☰ 
+    KKCNE Reg Stat latch ☰ 
+    KKCNE grp reg latch ☰ 
+    KMG MMAN ready and startup request latch ☰ 
+    KMG resize request state object freelist ☰ 
+    KPON ksr channel latch ☰ 
+    KPOND ksr channel latch ☰ 
+    KPOND pool lst latch ☰ 
+    KQF runtime purge top lvl latch ☰ 
+    KQF runtime table column alloc ☰ 
+    KSFQ ☰ 
+    KSFS OFS ctx level parent latch ☰ 
+    KSFS OFS layer alloc latch ☰ 
+    KSFS OFS req layer parent latch ☰ 
+    KSFS OFS sess layer parent latch ☰ 
+    KSFS Receive and Send Queue latch ☰ ✓
+    KSFS id table parent latch ☰ 
+    KSFS ksfs_node latch ☰ 
+    KSFSD name cache latch ☰ 
+    KSFSD name cache parent latch ☰ 
+    KSGL LS Segment latch ☰ 
+    KSGL SGA anchor latch ☰ ✓
+    KSIPC ASPC anchor latch ☰ ✓
+    KSIPC SGA allocation parent latch ☰ 
+    KSIPC SHREG latch ☰ 
+    KSIPCGSN Hash Table latch ☰ ✓
+    KSIPCGSN Namespace latch ☰ 
+    KSK PDB IO ON ☰ 
+    KSK PDB IO STAT ☰ ✓
+    KSRMA SGA anchor latch ☰ ✓
+    KSRMF SGA anchor latch ☰ ✓
+    KSRMF UT anchor latch ☰ 
+    KSWL SGA anchor latch ☰ ✓
+    KSXR Instance Gone Latch ☰ 
+    KSXR hang analysis phase 1 latch ☰ 
+    KSXR hang analysis phase 2 latch ☰ 
+    KSXR large replies ☰ 
+    KTF sga latch ☰ 
+    KTILM latch ☰ ✓
+    KTU in-memory txn table latch ☰ 
+    KTURMA ODPSCN latch ☰ 
+    KTURMA SGA allocation parent latch ☰ 
+    KWQMN job cache list latch ☰ 
+    KWQMN to-be-Stopped Buffer list Latch ☰ 
+    KWQP Prop Status ☰ 
+    KWQS pqsubs latch ☰ 
+    KWQS pqueue ctx latch ☰ 
+    KWSB Job Cache ☰ 
+    KWSBIT Free List ☰ 
+    KWSBTM scheduling stats ☰ 
+    KWSBTM slave so ☰ 
+    KWSMCLD State Object ☰ 
+    KWSNSM State Object ☰ 
+    KWSNSME Free List ☰ 
+    KWSSNMAP bitmap ☰ 
+    KXDAM sga state latch ☰ 
+    KXDBIO latch ☰ 
+    KZIC Latch ☰ 
+    Key management ☰ 
+    LGWR NS Write ☰ 
+    Latch for NonceHistory ☰ 
+    Limit of XDS Child Cursor Latch ☰ 
+    Locator state objects pool parent latch ☰ ✓
+    Lost write SCN list ☰ 
+    Lost write change tracking ☰ ✓
+    Lsod array latch ☰ ✓
+    MGA asr alloc latch ☰ 
+    MGA heap latch ☰ 
+    MGA pid alloc latch ☰ 
+    MGA service latch ☰ 
+    MGA shared context latch ☰ 
+    MGA shared context root latch ☰ 
+    MMON per PDB bit map latch ☰ 
+    MQL Tracking Latch ☰ 
+    Managed Standby Recovery State ☰ 
+    Media rcv so alloc latch ☰ 
+    Memory Management Latch ☰ 
+    Memory Queue ☰ 
+    Memory Queue Message Subscriber #1 ☰ 
+    Memory Queue Message Subscriber #2 ☰ 
+    Memory Queue Message Subscriber #3 ☰ 
+    Memory Queue Message Subscriber #4 ☰ 
+    Memory Queue Subscriber ☰ 
+    Message cache latch ☰ 
+    Metadata in SGA latch ☰ 
+    MinActiveScn Latch ☰ 
+    Minimum flashback SCN latch ☰ 
+    Mutex ☰ 
+    Mutex Stats ☰ 
+    NLS data objects ☰ 
+    NSV command ID generation latch ☰ 
+    NSV message latch ☰ 
+    NVM Coremask ☰ 
+    NVM DISP Global context ☰ 
+    Nologging Standby SCN Time Map cache ☰ 
+    Nologging Standby Statistics ☰ 
+    Nologging standby progress SIL ☰ 
+    Nonce variable ☰ 
+    ODM-NFS:Global file structure ☰ 
+    OFS SGA Latch ☰ 
+    OFS forget queue latch ☰ 
+    OFS request latch ☰ 
+    OLS Group Tree ☰ 
+    OLS label cache ☰ 
+    OS file lock latch ☰ 
+    OS process ☰ ✓
+    OS process allocation ☰ 
+    OS process: request allocation ☰ 
+    Online Datafile Move latch ☰ 
+    PC and Classifier lists for WLM ☰ 
+    PC and Service Request Count lists for WLM ☰ 
+    PDB Hash Table Latch ☰ ✓
+    PDB LRU structure ☰ ✓
+    PDB SGA accounting Latch ☰ 
+    PL/SQL warning settings ☰ 
+    PX hash array latch ☰ ✓
+    Parent latch for dependency tracking ☰ ✓
+    Parent latch for query hash table access ☰ 
+    Parent latch for segments scanning ☰ 
+    Policy Hash Table Latch ☰ 
+    Policy Refresh Latch ☰ 
+    Populate so latch ☰ 
+    QMT ☰ 
+    QOL Name Generation Latch ☰ 
+    RAS Session User&Flag Table Latch ☰ 
+    RBA broadcast init ☰ 
+    RECO Verifiers Cache ☰ 
+    REDO key cache latch ☰ 
+    RLB latch ☰ 
+    RSGA Queue ☰ 
+    RSM process latch ☰ 
+    RTA CIC message ☰ 
+    RTT parent context ☰ 
+    Read Only Database Account Status ☰ 
+    Real time apply boundary ☰ 
+    Real-time descriptor latch ☰ 
+    Report Request stats latch ☰ 
+    Report Request struct latch ☰ 
+    Req deq shard id ☰ 
+    Req enq shard id ☰ 
+    Request holder compeltion list latch ☰ ✓
+    Request id generation latch ☰ 
+    Reserved Space Latch ☰ 
+    Result Cache: MB Latch ☰ 
+    Result Cache: RC Latch ☰ 
+    Result Cache: SO Latch ☰ 
+    Retry Ht elm latch ☰ 
+    Retry bkt latch ☰ 
+    Role set constraints ☰ 
+    Roles granted to regular roles ☰ 
+    Roles granted to users ☰ 
+    SGA Blackbox latch ☰ 
+    SGA IO buffer pool latch ☰ 
+    SGA Logging Bkt Latch ☰ ✓
+    SGA Logging Log Latch ☰ ✓
+    SGA blob lock ☰ 
+    SGA blob parent ☰ 
+    SGA bucket locks ☰ 
+    SGA global fib table latch ☰ 
+    SGA heap creation lock ☰ 
+    SGA heap locks ☰ 
+    SGA kcrrgap latch ☰ 
+    SGA kcrrlatmscnl latch ☰ 
+    SGA kcrrpinfo latch ☰ 
+    SGA mapping latch ☰ 
+    SGA pool creation lock ☰ 
+    SGA pool locks ☰ 
+    SGA slab metadata lock ☰ 
+    SGA table lock ☰ 
+    SO private so latch ☰ ✓
+    SPA Slave Task Context Latch ☰ 
+    SQL memory manager latch ☰ 
+    SQL memory manager workarea list latch ☰ ✓
+    SR Stats Stripe Latch ☰ ✓
+    SR Stats main anchor latch ☰ 
+    SR segment reuse latch ☰ 
+    STREAMS LCR ☰ 
+    STREAMS Pool Advisor ☰ 
+    STREAMS: txn btree ☰ 
+    Sage HT Latch ☰ 
+    Sched IM Job latch ☰ 
+    Sched InMem Job Cache ☰ ✓
+    Security Class Hashtable ☰ 
+    Shadow lost write data file ☰ 
+    Sharding general allocation latch ☰ 
+    Shared B-Tree ☰ ✓
+    Shared memory lock latch ☰ 
+    Split maps with pending writes ☰ 
+    Statement Queuing SGA latch ☰ 
+    Statement queuing latch ☰ 
+    Store Old PDB GUID list ☰ 
+    Streams Generic ☰ 
+    Subscriber Ht elm latch ☰ 
+    Testing ☰ 
+    Token Manager ☰ 
+    Transportable DB Context Latch ☰ 
+    Triton Security Context Version Latch ☰ 
+    Txn Ht elm latch ☰ 
+    Txn bkt latch ☰ 
+    UM object latch ☰ 
+    UM root latch  ☰ 
+    Undo Hint Latch ☰ 
+    Unexpected Error Test ☰ 
+    VPSO SGA ☰ 
+    WCR: MMON Create dir ☰ 
+    WCR: MTS VC queue ☰ 
+    WCR: kecr File Count ☰ 
+    WCR: kecu cas mem ☰ 
+    WCR: processes HT ☰ 
+    WCR: sync ☰ 
+    WCR: ticker cache ☰ 
+    Write State Object Pool Parent Latch ☰ ✓
+    X$KSFQP ☰ 
+    XDB Byte Lock SGA Latch ☰ 
+    XDB Config-1 ☰ 
+    XDB Config-2 ☰ 
+    XDB Config-3 ☰ 
+    XDB Mcache SGA Latch ☰ 
+    XDB NFS Security Latch ☰ 
+    XDB NFS Stateful SGA Latch ☰ 
+    XDB PL/SQL Support ☰ 
+    XDB unused session pool ☰ 
+    XDB used session pool ☰ 
+    XML DB Events ☰ 
+    XS state object latch ☰ 
+    acceptable condition management ☰ 
+    active checkpoint queue latch ☰ 
+    active service list ☰ 
+    address list ☰ 
+    affinity stats hash tables freelist ☰ 
+    affinity stats objects freelist ☰ 
+    alert log latch ☰ 
+    archive destination ☰ 
+    archive process ☰ 
+    auto segment repair latch ☰ 
+    base objn cache latch ☰ 
+    begin backup scn array ☰ 
+    block corruption recovery state ☰ 
+    block media rcv so alloc latch ☰ 
+    bq:time manger info latch ☰ 
+    buffer pin latch ☰ 
+    buffer pool ☰ ✓
+    bufq statistics ☰ 
+    business card ☰ ✓
+    cache buffer handles ☰ 
+    cache buffers chains ☰ ✓
+    cache buffers lru chain ☰ ✓
+    cache table scan latch ☰ 
+    cached attr list ☰ 
+    call allocation ☰ 
+    change notification client cache latch ☰ ✓
+    change tracking consistent SCN ☰ 
+    change tracking optimization SCN ☰ 
+    change tracking state change latch ☰ 
+    channel anchor ☰ 
+    channel handle pool latch ☰ ✓
+    channel operations parent latch ☰ ✓
+    checkpoint queue latch ☰ ✓
+    chunk list latch ☰ 
+    client/application info ☰ ✓
+    compile environment latch ☰ 
+    connection pool sga data lock ☰ 
+    constraint object allocation ☰ 
+    controlfile update task ☰ 
+    corrupted undo seg latch ☰ 
+    cost function ☰ 
+    cp cmon array latch ☰ 
+    cp cso latch ☰ 
+    cp handoff latch ☰ 
+    cp holder latch ☰ 
+    cp pool array latch ☰ 
+    cp pool latch ☰ ✓
+    cp ref latch ☰ 
+    cp server array latch ☰ 
+    cp server hash latch ☰ ✓
+    cp sga latch ☰ 
+    cp srv type state latch ☰ ✓
+    cp srv type wait latch ☰ 
+    cr slave free list ☰ 
+    cvmap freelist lock ☰ 
+    data request task latch ☰ 
+    database property service latch ☰ 
+    datapump attach fixed tables latch ☰ 
+    datapump job fixed tables latch ☰ 
+    dbkea msgq latch ☰ 
+    dbkpls swphs latch ☰ 
+    deferred cleanup latch ☰ 
+    device information ☰ 
+    direct msg latch ☰ 
+    dispatcher info ☰ 
+    dml lock allocation ☰ 
+    domain validation update latch ☰ 
+    done queue latch ☰ ✓
+    dtp latch ☰ 
+    dummy allocation ☰ 
+    dynamic channels ☰ 
+    eighteenth spare latch - S non-parent ☰ 
+    eighth spare latch - X parent ☰ 
+    eleventh spare latch - children ☰ 
+    emon sga global latch ☰ 
+    end-point list ☰ 
+    enqueue freelist latch ☰ ✓
+    enqueue hash chains ☰ ✓
+    enqueue message sequence number ☰ 
+    enqueue sob latch ☰ 
+    enqueues ☰ 
+    error message lists ☰ 
+    fast space usage latch ☰ 
+    fifteenth spare latch - children ☰ 
+    fifth spare latch - X non-parent ☰ 
+    file cache latch ☰ 
+    file deallocation SCN cache ☰ 
+    file number translation table ☰ 
+    first Audit Vault latch ☰ 
+    first spare latch - X non-parent ☰ 
+    fixed table rows for x$hs_session ☰ 
+    flash file access latch ☰ ✓
+    flashback FBA barrier ☰ 
+    flashback SCN barrier ☰ 
+    flashback allocation ☰ 
+    flashback archiver latch ☰ 
+    flashback copy ☰ ✓
+    flashback hint SCN barrier ☰ 
+    flashback mapping ☰ 
+    flashback marker cache ☰ 
+    flashback prepare log info ☰ 
+    flashback sync request ☰ 
+    flush log buffer task latch ☰ 
+    for slaves getting lno ☰ 
+    fourteenth spare latch - children ☰ 
+    fourth Audit Vault latch ☰ 
+    fourth spare latch - X non-parent ☰ 
+    gc element ☰ 
+    gc imc list ☰ 
+    gc persistent rm ☰ 
+    gc pmon cleanup ☰ 
+    gc query keys ☰ 
+    gc undo hash index ☰ 
+    gc xid list ☰ 
+    gcr global ctx ☰ 
+    gcr metric datalist ☰ 
+    gcr structure management ☰ 
+    gcs affinity object freelist latch ☰ 
+    gcs brownout history latch ☰ 
+    gcs commit scn state ☰ 
+    gcs lock state resolution latch ☰ 
+    gcs nodemap pool ☰ 
+    gcs opaque info freelist ☰ 
+    gcs partitioned table hash ☰ 
+    gcs pcm hashed value bucket hash ☰ 
+    gcs remaster request queue ☰ 
+    gcs remastering latch ☰ 
+    gcs resource freelist ☰ 
+    gcs resource hash ☰ 
+    gcs resource scan list ☰ 
+    gcs resource timerq list ☰ 
+    gcs resource validate list ☰ 
+    gcs shadows freelist ☰ 
+    generalized trace enabling latch ☰ 
+    ges DFS wait callback info ☰ 
+    ges cached resource lists ☰ 
+    ges deadlock list ☰ 
+    ges domain table ☰ 
+    ges enqueue table freelist ☰ 
+    ges group table ☰ 
+    ges process hash list ☰ 
+    ges process parent latch ☰ 
+    ges process table freelist ☰ 
+    ges recovery domain freelist latch ☰ 
+    ges remote lock freelist ☰ 
+    ges resource hash list ☰ 
+    ges resource scan list ☰ 
+    ges resource table freelist ☰ 
+    ges s-lock bitvec freelist ☰ 
+    ges statistic table ☰ 
+    ges synchronous data ☰ 
+    ges timeout list ☰ 
+    ges value block free list ☰ 
+    global KZLD latch for auth type mem in SGA ☰ 
+    global KZLD latch for mem in SGA ☰ 
+    global KZLG latch for AD domain memory in SGA ☰ 
+    global KZLG latch for memory in SGA ☰ 
+    global ctx hash table latch ☰ 
+    global hanganlyze operation ☰ 
+    global tx hash mapping ☰ ✓
+    granule from data transfer cache ☰ 
+    granule list of data transfer cache ☰ 
+    gsm Service Per Region list letch ☰ 
+    gsm instance stat ☰ 
+    gsm region list letch ☰ 
+    gws:Sharding global descriptor latch ☰ 
+    hash table Sql Plan Finding latch ☰ 
+    hash table column stats latch ☰ 
+    hash table column usage latch ☰ 
+    hash table dml freq tracking latch ☰ 
+    hash table expression usage tracking latch ☰ ✓
+    hash table modification latch ☰ 
+    hash table sql contorl latch ☰ ✓
+    hash table zonemap usage tracking latch ☰ 
+    heartbeat check ☰ 
+    heartbeat history management ☰ 
+    heartbeat structure management ☰ 
+    hint flashback FBA barrier ☰ 
+    hot latch diags ☰ 
+    i/o slave adaptor ☰ 
+    image handles of buffered messages latch ☰ 
+    imc buf hdl lat ☰ ✓
+    imc cr clone buf ☰ ✓
+    imc hash lat ☰ ✓
+    imc sj lat ☰ ✓
+    imc srchsp lat ☰ ✓
+    imc-txn-wrk-lat ☰ ✓
+    in-memory area latch ☰ 
+    in-memory columnar extent map latch ☰ 
+    in-memory columnar segment hash table latch ☰ ✓
+    in-memory columnar ts extent map chunk latch ☰ 
+    in-memory global pool latch ☰ 
+    instance enqueue ☰ 
+    instance information ☰ 
+    internal temp table object number allocation latch ☰ 
+    interrupt manipulation ☰ 
+    intra txn parallel recovery ☰ ✓
+    io pool granule list ☰ 
+    io pool granule metadata list ☰ ✓
+    java patching ☰ 
+    job queue sob latch ☰ 
+    job workq parent latch ☰ ✓
+    job_queue_processes free list latch ☰ 
+    job_queue_processes parameter latch ☰ 
+    jslv pdb context latch ☰ 
+    k2q global data latch ☰ 
+    k2q lock allocation ☰ 
+    kKCN Cqn SGA ☰ 
+    kcb DW scan objtemp hash table latch ☰ ✓
+    kcb DW scan objtemp latch ☰ 
+    kcbtsemkid latch ☰ 
+    kcfis latch ☰ 
+    kcfpdbrel_bitvec latch ☰ 
+    kcn buffer chains ☰ ✓
+    kcn header allocation ☰ 
+    kcnr cache write SO allocation ☰ 
+    kcnr recent RCVID list update ☰ 
+    kcrrgapb latch ☰ 
+    kdlx hb parent latch ☰ 
+    keiut hash table modification ☰ 
+    kexsv SC latch ☰ 
+    kexsvus latch ☰ 
+    key vector list latch ☰ 
+    kgb latch ☰ 
+    kgb parent ☰ 
+    kgnfs mount latch ☰ 
+    kjbfp shared context ☰ 
+    kjbr roi instance map ☰ 
+    kjci objects freelist latch ☰ ✓
+    kjci process context latch ☰ ✓
+    kjci process list latch ☰ 
+    kjci request sequence latch ☰ 
+    kjcipctx state object freelist latch ☰ 
+    kjirbuddy resource latch ☰ 
+    kjoedcso state object freelist latch ☰ 
+    kjoeq Omni Enqueue freelist latch ☰ 
+    kjoeq omni enqueue hash bucket latch ☰ 
+    kjoeq replication context freelist latch ☰ 
+    kjoer owner freelist ☰ 
+    kjoer owner hash bucket ☰ 
+    kjoer replication context freelist ☰ 
+    kjpm my inst data ☰ 
+    kjpm process struct free list ☰ 
+    kjpm same node instance lists ☰ 
+    kjsc Request obj freelist latch ☰ 
+    kjsc Ring Buffer obj freelist latch ☰ 
+    kjsc protect control request queue ☰ 
+    kjsc protect warm up context ☰ 
+    kjsca pkey obj freelist latch ☰ 
+    kjsca protect pkey hash table bucket ☰ 
+    kjsca protect service hash table bucket ☰ 
+    kjsca service obj freelist latch ☰ 
+    kjscpss state object freelist latch ☰ 
+    kkae edition name cache ☰ 
+    kmcptab latch ☰ 
+    kmcpvec latch ☰ 
+    kokc descriptor allocation latch ☰ 
+    kpon job info latch ☰ 
+    kpon sga structure ☰ 
+    kpoxft latch ☰ 
+    kpplsSyncStateListSga: lock ☰ 
+    krb spare1 latch ☰ 
+    krb spare2 latch ☰ 
+    krb spare3 latch ☰ 
+    krb spare4 latch ☰ 
+    krbabrstatl ☰ 
+    krbmrosl ☰ 
+    krdbc state object latch ☰ 
+    krso process ☰ 
+    krsr_sgaq_avmstats latch ☰ 
+    ksbxic instance latch ☰ 
+    kse signature ☰ 
+    ksevn object root latch ☰ 
+    ksfv messages ☰ ✓
+    ksfv subheap ☰ 
+    ksi resource reuse count ☰ ✓
+    ksilookup lmd array freelist latch ☰ 
+    ksim group membership cache ☰ ✓
+    ksim membership request latch ☰ 
+    ksipc so latch ☰ 
+    ksir sga latch ☰ 
+    ksiresm freelist latch ☰ 
+    ksm sga alloc latch ☰ 
+    ksns object allocation latch ☰ 
+    ksns object latch ☰ ✓
+    ksns object root latch ☰ 
+    ksolt lwth alloc ☰ 
+    kspoltest latch ☰ 
+    kss move lock ☰ 
+    kssmov protection latch ☰ 
+    ksuosstats global area ☰ 
+    ksupkttest latch ☰ 
+    ksutcpistat latch ☰ 
+    ksv allocation latch ☰ 
+    ksv class latch ☰ ✓
+    ksv instance latch ☰ 
+    ksv msg queue latch ☰ ✓
+    ksv remote inst ops ☰ 
+    ksxp shared latch ☰ 
+    ksxp so latch ☰ 
+    ksz_so allocation latch ☰ 
+    ktfbn latch ☰ ✓
+    ktimext state object latch ☰ 
+    ktm adg jrnls ☰ ✓
+    ktm adg lookuptable level 1 ☰ 
+    ktm adg lookuptable level 2 ☰ 
+    ktm adg space ☰ ✓
+    ktm adg stages ☰ 
+    ktm adg worklink ☰ 
+    ktm global data ☰ 
+    ktm prv jrnls ☰ ✓
+    ktmpj HT ls ☰ ✓
+    kupp process latch ☰ 
+    kwqbcco:cco ☰ 
+    kwqbsgn:msghdr ☰ 
+    kwqbsn:qsga ☰ 
+    kwqbsn:qxl ☰ 
+    kwqi:kchunk latch ☰ 
+    kwslbmdl: metadata latch ☰ 
+    kwslbprocl: process count latch ☰ 
+    kwslbql: queue latch ☰ 
+    kwslbutl: uncommitted txn latch ☰ 
+    kwsopt stat latch ☰ 
+    kwsptQcachLt: queue cache latch ☰ 
+    kwsptTrncTsksLt: trunc task latch ☰ 
+    kwsptjobAdPtLt: AdPt list latch ☰ 
+    kwsptjobTrPtLt: TrPt list latch ☰ 
+    kwsslGlobalLat: global latch ☰ 
+    kwsslLat: skiplist latch ☰ ✓
+    kxfxscanrate_latch ☰ ✓
+    kzan audit policy latch ☰ 
+    kzsc heap latch ☰ 
+    last service list ☰ 
+    latch for ges resource pool freelist ☰ 
+    latch for ges rht buckets array freelist ☰ 
+    latch for ges rht structure freelist ☰ 
+    latch for sabmr requests triggered by queries ☰ 
+    lgwr LWN SCN ☰ 
+    library cache load lock ☰ 
+    list of block allocation ☰ ✓
+    loader state object freelist ☰ 
+    lob segment dispenser latch ☰ ✓
+    lob segment hash table latch ☰ ✓
+    lob segment query latch ☰ ✓
+    lock DBA buffer during media recovery ☰ 
+    lock new checkpoint scn during media recovery ☰ 
+    log archive config ☰ 
+    log write info ☰ 
+    log write worker phase ☰ ✓
+    logical standby cache ☰ 
+    logical standby view ☰ 
+    logminer context allocation ☰ ✓
+    logminer local ☰ 
+    logminer work area ☰ 
+    longop free list parent ☰ ✓
+    lreg configuration ☰ 
+    managed standby ☰ 
+    media recovery process out of buffers ☰ 
+    message bitmap latch ☰ 
+    message enqueue sync latch ☰ 
+    message pool operations parent latch ☰ ✓
+    messages ☰ 
+    mira inst ckpt scn ☰ 
+    mira process information array modification ☰ 
+    modify kcvdpc_req/_file ☰ 
+    mostly latch-free SCN ☰ 
+    mount mode context latch ☰ 
+    msg queue latch ☰ ✓
+    multiblock read objects ☰ 
+    multiple dbwriter suspend ☰ 
+    name-service entry ☰ 
+    name-service memory objects ☰ 
+    name-service memory recovery ☰ 
+    name-service namespace bucket ☰ ✓
+    name-service namespace objects ☰ 
+    name-service pending queue ☰ 
+    name-service request ☰ 
+    name-service request queue ☰ 
+    ncodef allocation latch ☰ 
+    nineteenth spare latch - S non-parent ☰ 
+    ninth spare latch - X parent ☰ 
+    obj/range reuse redo processing ☰ 
+    object queue header freelist ☰ ✓
+    object queue header operation ☰ ✓
+    object queue memory ☰ ✓
+    object stats modification ☰ 
+    other instances last written RBA ☰ 
+    parallel ibr array ☰ 
+    parallel query alloc buffer ☰ ✓
+    parallel query stats ☰ ✓
+    parallel recoverable recovery ☰ 
+    parallel txn reco latch ☰ 
+    parameter list ☰ 
+    parameter table management ☰ 
+    pass worker exception to master ☰ 
+    pdb domain request queues ☰ 
+    pdb enqueue hash chains ☰ 
+    pebof_rrv ☰ 
+    periodic dump event callbacks ☰ 
+    peshm ☰ ✓
+    pesom_free_list ☰ ✓
+    pesom_hash_node ☰ ✓
+    pesom_heap_alloc ☰ 
+    pkey global statistics ☰ 
+    pmon dead latch ☰ 
+    pmon spawn latch ☰ 
+    pmon tst latch ☰ 
+    pmon tst latch 2 ☰ 
+    policy information ☰ 
+    policy result list latch ☰ 
+    post/wait queue ☰ ✓
+    prespawn queue latch ☰ 
+    proc-group map latch ☰ 
+    process ☰ 
+    process allocation ☰ 
+    process group creation ☰ 
+    process memory detail ☰ 
+    process pkey statistics list ☰ 
+    process queue ☰ ✓
+    process queue reference ☰ ✓
+    qm_init_sga ☰ 
+    qmn state object latch ☰ 
+    qmn task context latch ☰ 
+    qmn task queue latch ☰ 
+    qmne Export Table Latch ☰ 
+    qmtmrcsg_init ☰ 
+    quarantine object ☰ 
+    quarantine pending ☰ 
+    quarantine region ☰ 
+    query server freelists ☰ ✓
+    query server process ☰ 
+    queue sender's info. latch ☰ 
+    queued dump request ☰ 
+    queuing load statistics ☰ 
+    read or modify gwm sga variables ☰ 
+    read-moslty lock queue under pkey ☰ 
+    read-only violation array modification ☰ 
+    readable standby influx scn ☰ 
+    readable standby lamport table ☰ 
+    readable standby metadata redo cache ☰ 
+    readredo stats and histogram ☰ 
+    real redo SCN ☰ 
+    records written to CLI ☰ 
+    recovery domain freelist ☰ 
+    recovery domain hash bucket ☰ 
+    redo allocation ☰ ✓
+    redo copy ☰ ✓
+    redo gen encryption key structure ☰ 
+    redo log management ☰ 
+    redo transport task ☰ 
+    redo writing ☰ 
+    reg$ timeout service time ☰ 
+    reid allocation latch ☰ 
+    remote tool request latch ☰ 
+    reservation so alloc latch ☰ 
+    resmgr group change latch ☰ 
+    resmgr:active threads ☰ 
+    resmgr:actses change group ☰ ✓
+    resmgr:actses change state ☰ ✓
+    resmgr:free threads list ☰ 
+    resmgr:incr/decr stats ☰ 
+    resmgr:method mem alloc latch ☰ 
+    resmgr:plan CPU method ☰ ✓
+    resmgr:plan change alloc latch ☰ 
+    resmgr:plan change latch ☰ 
+    resmgr:pq event array ☰ 
+    resmgr:pq mstat ☰ 
+    resmgr:resource group CPU method ☰ ✓
+    resmgr:schema config ☰ 
+    resmgr:session queuing ☰ ✓
+    resmgr:vc list latch ☰ 
+    resumable state object ☰ 
+    row cache objects ☰ ✓
+    rsb inst ckpt scn ☰ 
+    rt rmv count latch ☰ 
+    rules engine aggregate statistics ☰ 
+    rules engine evaluation context statistics ☰ 
+    rules engine rule set statistics ☰ 
+    rules engine rule statistics ☰ 
+    second Audit Vault latch ☰ 
+    second spare latch - X non-parent ☰ 
+    segmented array pool ☰ 
+    sequence cache ☰ 
+    server alert latch ☰ 
+    service drain list ☰ 
+    session allocation ☰ ✓
+    session idle bit ☰ ✓
+    session queue latch ☰ ✓
+    session state list latch ☰ 
+    session statistics ☰ ✓
+    session switching ☰ ✓
+    session timer ☰ 
+    seventeenth spare latch - S non-parent ☰ 
+    seventh spare latch - X parent ☰ 
+    sga hash table parent latch ☰ ✓
+    shard latch ☰ 
+    shardgroup list latch ☰ 
+    shared pool ☰ ✓
+    shared pool sim alloc ☰ ✓
+    shared pool simulator ☰ ✓
+    shared server configuration ☰ 
+    shared server info ☰ 
+    shrink stat allocation latch ☰ 
+    sim partition latch ☰ ✓
+    simulator hash latch ☰ ✓
+    simulator lru latch ☰ ✓
+    sixteenth spare latch - S non-parent ☰ 
+    sixth spare latch - X parent ☰ 
+    sort extent pool ☰ 
+    space background SGA latch ☰ 
+    space background state object latch ☰ 
+    space background task latch ☰ 
+    spare latch 1 ☰ 
+    spare latch 2 ☰ 
+    spilled messages latch ☰ 
+    standby media recovery info ☰ 
+    state object free list ☰ 
+    state object latch ☰ 
+    statistics aggregation ☰ 
+    storage server table manipulation latch ☰ 
+    subscriber Ht bkt ☰ 
+    subshard operation latch ☰ 
+    tablespace key chain ☰ ✓
+    temp lob duration state obj allocation ☰ 
+    temp undo so allocation ☰ 
+    temporary table state object allocation ☰ 
+    tenth spare latch - X parent ☰ 
+    test excl. non-parent l0 ☰ 
+    test excl. non-parent lmax ☰ 
+    test excl. parent l0 ☰ 
+    test excl. parent2 l0 ☰ 
+    test excl. parent2 lmid cln ☰ 
+    test generic mode ☰ 
+    test generic normal ☰ 
+    test generic open ☰ 
+    test generic pdb ☰ 
+    test mixed exclusive ☰ 
+    test mode exclusive ☰ 
+    test mode shared ☰ 
+    test open exclusive ☰ 
+    test open shared ☰ 
+    test pdb exclusive ☰ 
+    test pdb shared ☰ 
+    test shared non-parent l0 ☰ 
+    test shared parent2 lmid ☰ 
+    third Audit Vault latch ☰ 
+    third spare latch - X non-parent ☰ 
+    thirteenth spare latch - children ☰ 
+    threshold alerts latch ☰ 
+    trace latch ☰ 
+    transaction allocation ☰ ✓
+    transaction branch allocation ☰ 
+    twelfth spare latch - children ☰ 
+    twentieth spare latch - S non-parent ☰ 
+    twenty-fifth spare latch - S par ☰ 
+    twenty-first spare latch - S par ☰ 
+    twenty-fourth spare latch - S par ☰ 
+    twenty-second spare latch - S par ☰ 
+    twenty-third spare latch - S par ☰ 
+    undo global data ☰ ✓
+    vecio buf des ☰ 
+    virtual circuit buffers ☰ 
+    virtual circuit holder ☰ ✓
+    virtual circuit queues ☰ ✓
+    virtual circuits ☰ 
+    wallet access so alloc latch ☰ 
+    write to kcbpws ☰ 
+    write to kcvcfhmap ☰ 
+    xscalc freelist ☰ 
+    xssinfo freelist ☰ 
+  table }
+
+}
+
+sa:
+
+  Other locking mechanisms, such as
+    • locks (row locks, table locks…)
+    • mutexes
+    • internal locks
+
+  → development/databases/Oracle/architecture/instance/fixed-tables/k/s/l/l/d#kslld-join-ksmfsv[Joining `x$kslld` to `x$ksmfsv`] to show the SGA variables that are related to latches.

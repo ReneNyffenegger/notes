@@ -16,18 +16,29 @@ code }
 Start a → Windows/development/process and start debugging it
 code {
 Dbg:/> notepad
-Dbg:/> (Windows/PowerShell/command-inventory/noun/process/get[get-process] notepad) | connect-process
+Dbg:/> → Windows/PowerShell/command-inventory/noun/process/get[get-process] notepad | connect-process
 code }
 
 { Log files
 
   Some log files (→ development/filename-extensions#etl[`*.etl`]) are written to
- `→ Windows/dirs/Users/username/AppData/Local/Temp[`$env:localAppData]\temp]\DbgProvider (The directory `DbgProvider` below the temp directory).
+ `→ Windows/dirs/Users/username/AppData/Local/Temp[$env:localAppData\temp]\DbgProvider` (The directory `DbgProvider` below the temp directory).
 
   Such log files can then later be dumped into a CSV file for analyzing with → Windows/dirs/Windows/System32/tracerpt_exe[`tracerpt.exe`]:
 code {
 PS:/> → Windows/dirs/Windows/System32/tracerpt_exe[tracerpt] -of CSV C:\Users\Rene\AppData\Local\Temp\DbgProvider\debugTrace_48d8e97fbc9cfa00.etl
 code }
+
+}
+{ Some interesting functions
+
+  The function `Run` in `DbgShell\ColorconsoleHost.cs` seems to implement the «REPL-loop».
+
+  This loop calls `m_host.m_ui.ReadLineWithTabCompletion( true );` which returns the line that the user entered.
+
+  Commands (such as those destined for the debugging engine) are routed to `RunspaceSettings._OnCommandNotFound(…)` (`DbgProvider\internal\RunspaceSettings.cs`).
+
+ `DbgProvider\Debugger.psm1` defines some → Windows/PowerShell functions (such as `~x`) which are called (initiated?) from `_OnCommandNotFound()`.
 
 }
 
