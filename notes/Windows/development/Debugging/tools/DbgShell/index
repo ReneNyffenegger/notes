@@ -13,12 +13,43 @@ code {
 PS C:\Users\Rene\DbgShell> .\bin\Release\x64\DbgShell.exe
 code }
 
-Start a → Windows/development/process and start debugging it
+Start a → Windows/development/process and attach to it to debug it:
 code {
 Dbg:/> notepad
 Dbg:/> → Windows/PowerShell/command-inventory/noun/process/get[get-process] notepad | connect-process
 code }
 
+In order to start the process with the debuger, `Start-DbgProcess` can be used. A dump file can be loaded with `Mount-DbgDumpFile`.
+
+{ Additional providers and drives
+
+  DbgShell comes with an additional → Windows/PowerShell/language/provider: `Debugger`
+code {
+PS: C:/> → Windows/PowerShell/command-inventory/noun/psProvider/get[get-psProvider] debugger
+
+Name       Capabilities    Drives
+----       ------------    ------
+Debugger   ShouldProcess   {Dbg, procs}
+code }
+
+  The `Dbg:` → Windows/PowerShell/language/provider/drive has one directory, `Process` which seems to contain all currently running processes:
+code  {
+PS: C:> ls Dbg:\Process
+…
+code }
+
+  It is unclear what the `procs:` drive contains as `ls procs:` results in an error.
+
+  The file system provider comes with an additional drive: `Bin:`.
+code {
+PS C:\> get-psprovider fileSystem
+Name           Capabilities                          Drives
+----           ------------                          ------
+FileSystem     Filter, ShouldProcess, Credentials    {C, Bin, D}
+code }
+
+
+}
 { Log files
 
   Some log files (→ development/filename-extensions#etl[`*.etl`]) are written to

@@ -134,39 +134,6 @@ code }
    -
    The value of the `argv[1]` is displayed with `da poi(rdx+8)`, the value of `argv[2]` with `da poi(rdx+10)` etc.
 
-
-
-
- }
- { Exclamation mark commands
-
-   Commands that start with an exclamation mark (`!`) are extensions. These are exported from a DLL which users can create to extend the functionality of WinDbg.
-
-   Displaying information about the PEB and the TEB
-code {
-!peb
-!teb
-code }
-
-   Compare the previous two commands with:
-code {
-dt nt!_PEB
-dt nt!_PEB -r @$peb
-dt nt!_TEB
-code }
-
-  ? Apparently, there are quite a few commands that rely on information found in the PEB and TEB: `lm`, `!dlls`, `!imgreloc`, `!tls`, `!gle`
-
-  { Address related
-
-   `!address addr` and `!vprot addr` display memory related information (protection, type, usage…)
-code {
-!address rdx
-!vprot   rdx
-code }
-
-  }
-
  }
  { Breakpoints
 
@@ -196,27 +163,6 @@ code }
 code {
 bd 1
 bc 1
-code }
-
- }
- { Pseudo registers
-
-   Pseudo (or virtual) registers start with a dollar sign (`$`) and are set by debugger, for example `$ra` (return address on the stack), `$ip` (current instruction pointer), `$retreg` (register that stores
-   return value of a function, `eax`/ `rax` on x86,  x64), `$exentry` (
-   → Windows/development/Portable-Executable/EXE/entry-point[entry point] of the first executable in the current process), `$peb`, `$teb`, `$tpid` (process id), `$ptrsize` (size of pointer),
-  `$pagesize`, `$exp` (the last evaluated expression)
-
-   With MASM expression evaluation, pseudo registers might be prefixed with the at sign (`@`) which tells the expression evaluator that the following expression is a register or a pseudo-register, not a symbol.
-   Thus, with `@` symbol, the evaluator knows it does not have to search the whole symbol table which speeds up the evaluation process.
-
-
-   There are twenty virtual registers, named `$t0` through `$t19`.
-
-   Pseudo-registers (as also real registers) can be modified with the `r` command:
-code {
-r? $t0 = 42
-r? $t1 = 101
-? $t0 * $t1
 code }
 
  }
