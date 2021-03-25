@@ -1,0 +1,81 @@
+$ Oracle: SQL query to recursively query referential integrity dependencies
+
+code {
+with  p_r as (
+   select
+      p.table_name             p_table_name,
+      p.owner                  p_owner,
+      p.constraint_name        p_constraint_name,
+      r.table_name             r_table_name,
+      r.owner                  r_owner,
+      r.constraint_name        r_constraint_name
+   from
+      all_constraints p                                                join
+      all_constraints r on p.owner           = r.r_owner        and
+                           p.constraint_name = r.r_constraint_name
+),
+rec (table_name, owner /*, p_constraint_name, r_table_name, r_owner, r_constraint_name */, lvl) as (
+   select
+    'TQ84_START'     table_name,
+    'RENE'           owner,
+     0               lvl
+   from
+      dual
+UNION ALL
+   select
+      p_r.r_table_name     ,
+      p_r.r_owner          ,
+      rec.lvl + 1
+   from
+      rec                                                         join
+      p_r on
+          p_r.p_table_name      = rec.table_name and
+          p_r.p_owner           = rec.owner
+)
+cycle table_name set cycle_ to '1' default '0'
+select
+   rpad(' ', 2*lvl) || rec.table_name table_name,
+   owner
+from
+   rec;
+code }
+
+{ Test data
+
+code {
+create table tq84_start(id number primary key, nn number not null);
+create table tq84_lvl_2_A(id number primary key,                            id_start references tq84_start);
+create table tq84_lvl_2_B(id number primary key, uq number unique not null, id_start references tq84_start);
+create table tq84_lvl_3_C(id number primary key, id_lvl_2_a references tq84_lvl_2_A);
+create table tq84_lvl_3_D(id number primary key, id_lvl_2_b references tq84_lvl_2_B);
+create table tq84_lvl_3_E(id number primary key, id_lvl_2_b references tq84_lvl_2_B(uq));
+code }
+
+  Add a record that causes the dependencies to have a cycle:
+code {
+alter table tq84_start add (id_lvl_3_e references tq84_start);
+code }
+
+  When queried with the statement, the result is:
+code {
+TQ84_START        RENE
+  TQ84_LVL_2_A    RENE
+  TQ84_LVL_2_B    RENE
+    TQ84_LVL_3_C  RENE
+    TQ84_LVL_3_D  RENE
+    TQ84_LVL_3_E  RENE
+code }
+
+}
+{ Cleaning up
+
+code {
+alter table tq84_lvl_3_e disable primary key;
+drop  table tq84_lvl_3_e;
+drop  table tq84_lvl_3_d;
+drop  table tq84_lvl_3_c;
+drop  table tq84_lvl_2_b;
+drop  table tq84_lvl_2_a;
+drop  table tq84_start;
+code }
+}
