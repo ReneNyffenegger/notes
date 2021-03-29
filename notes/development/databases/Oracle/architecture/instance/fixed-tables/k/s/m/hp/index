@@ -1,0 +1,38 @@
+$ Oracle: X$KSMHP
+@ x$ksmhp
+
+{ No full table scan
+
+  Querying `x$ksmhp` with a full table scan (like for example `select * from x$ksmhp`) does not return a record.
+
+  In order to find records, it must be quered with a valid heap descriptor (address) on the column `ksmchds`.
+
+  Valid heap descriptors can be found (among others?) in → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/cursor[`x$kglcursor`]:
+code {
+select kglobhd6 from x$kglcursor;
+…
+00007FFB3D4DDAE0
+…
+code }
+
+  With such a heap descriptor, the corresponding records can be queried like so:
+code {
+select
+   addr,
+   ksmchcom   chunk_allocation_comment,
+   ksmchptr   chunk_pointer,
+   ksmchsiz   chunk_size,
+   ksmchcls   allocation_class,
+   ksmchtyp   chunk_type,
+   ksmchpar,
+   ksmchown,
+   indx,
+   inst_id,
+   con_id
+from
+   x$ksmhp
+where
+   ksmchds  = hextoraw('00007FFB3D4DDAE0');
+code }
+
+}
