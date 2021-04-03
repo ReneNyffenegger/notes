@@ -1,7 +1,69 @@
 $ %SYSTEMROOT%\System32\Tasks
 
+`C:\Windows\System32\Tasks` contains → development/XML files that contain the definitions of scheduled tasks.
+
 The directory structure under `%SYSTEMROOT%\System32\Tasks` seems to correspond to the → Windows/registry[registry] key structure under
 → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Schedule/TaskCache/Tree[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree`].
+
+{ XML structure
+
+code {
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+
+  <RegistrationInfo>
+    <Author>…</Author>
+    <URI   >…</URI>      <!-- Corresponds to relative location under C:\Windows\System32\Tasks -->
+  </RegistrationInfo>
+
+  <Triggers>
+    <TimeTrigger>
+      <StartBoundary>1992-05-01T18:00:00</StartBoundary>
+      <Enabled      >true</Enabled>
+      <Repetition>
+        <Interval         >P1D  </Interval>
+        <StopAtDurationEnd>false</StopAtDurationEnd>
+      </Repetition>
+      <RandomDelay>PT4H</RandomDelay>
+    </TimeTrigger>
+  </Triggers>
+
+  <Settings>
+    <MultipleInstancesPolicy   >IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries    >true</StopIfGoingOnBatteries>
+    <AllowHardTerminate        >true</AllowHardTerminate>
+    <StartWhenAvailable        >true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable >true</RunOnlyIfNetworkAvailable>
+    <AllowStartOnDemand        >true</AllowStartOnDemand>
+    <Enabled                   >true</Enabled>
+    <Hidden                    >false</Hidden>
+    <RunOnlyIfIdle             >false</RunOnlyIfIdle>
+    <WakeToRun                 >false</WakeToRun>
+    <ExecutionTimeLimit        >P1D</ExecutionTimeLimit>
+    <Priority                  >7</Priority>
+  </Settings>
+
+  <Actions Context="Author">
+    <Exec>
+      <Command>P:\ath\to\exe\or\bat</Command>
+      <Arguments />
+    </Exec>
+  </Actions>
+
+  <Principals>
+    <Principal id="Author">
+      <UserId   >TQ84\Rene       </UserId>
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel >LeastPrivilege  </RunLevel>
+    </Principal>
+  </Principals>
+
+</Task>
+code }
+
+}
+
 
 sa:
   → Windows/dirs/Windows/System32/schtasks_exe[`schtasks.exe`]

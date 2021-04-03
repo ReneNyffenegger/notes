@@ -17,9 +17,14 @@ On *MACs* prior to MAC OS X, it was a → development/line-break#cr. With/since 
 }
 { Changing line endings #change-line-endings
 
-  The Linux → Linux/shell[Linux shell] command → Linux/shell/commands/dos2unix[`dos2unix`] changes DOS line endings in a file to UNIX endings.
+  { dos2unix
 
-  In → Windows/PowerShell, line endings might be changed with something like
+    The Linux → Linux/shell[Linux shell] command → Linux/shell/commands/dos2unix[`dos2unix`] changes DOS line endings in a file to UNIX endings.
+
+  }
+  { PowerShell
+
+    In → Windows/PowerShell, line endings might be changed with something like
 code {
 [→ Microsoft/dot-net/namespaces-classes/System/IO/File[IO.File]]::WriteAllText(
    "→ Windows/PowerShell/language/variable/automatic/pwd[$pwd]\file.unix",
@@ -27,8 +32,19 @@ code {
 )
 code }
 
-}
+    Text that contains Unix *and* DOS endings might be converted to text that contains DOS endings *only* like so
+code {
+$txt_mixed = "@$([char]0x0a)@$([char]0x0d)$([char]0x0a)@"
+$txt_dos    = $txt_mixed -replace "(?<!`r)`n", "`r`n"
 
+# verify result:
+$text_dos | → Windows/PowerShell/command-inventory/noun/hex/format[format-hex]
+…
+…   40 0D 0A 40 0D 0A 40
+code }
+
+  }
+}
 
 
 sa:
