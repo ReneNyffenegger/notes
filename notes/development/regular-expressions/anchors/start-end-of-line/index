@@ -1,0 +1,34 @@
+$ Regular expressions: start and end of line ($, ^)
+
+`^` and `$` are *zero width* → development/regular-expressions[regular expression] anchor that match the beginning or end of the matched string.
+
+With *multi line mode*, `^` also matches right after a → development/line-break[new line], `$` right before a new line.
+
+{ PowerShell examples
+
+  By default `$` matches at the end of a string, but not before a new line;
+code {
+PS C:\> "one`ntwo`nthree" -replace '$', ' EOT'
+one
+two
+three EOT
+code }
+
+  With multi line mode, `$` also matches before an end of line:
+code {
+PS C:\> "one`ntwo`nthree" -replace '(?m)$', ' EOL'
+one EOL
+two EOL
+three EOL
+code }
+
+  It should be noted that the → Microsoft/dot-net regular expression engine only considers `\n` (0x0a) to be a new line, but not `\r\n` (0x0d 0x0a0.
+code {
+PS C:\> "foo`nbar" -match '(?m)o$'
+True
+
+PS C:\> "foo`r`nbar" -match '(?m)o$'
+False
+code }
+
+}
