@@ -1,15 +1,69 @@
 $ PowerShell cmdLet select-string
 
-`select-string` allows to search for strings that match a substring or a → development/regular-expressions[regular expressions].
+`select-string` allows to search for strings that match a substring or a → development/regular-expressions[regular expressions]. Its usage is similar to that
+of → Linux/shell/commands/grep[`grep`] of → Windows/dirs/Windows/System32/findstr_exe[`findstr.exe`].
 
 The → Windows/PowerShell/language/object[objects] that are → Windows/PowerShell/pipeline[piped] into `select-string` need to be either
 → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`] objects or
 have a `ToString()` method.
 
-`select-string` returns → Windows/PowerShell/language/object[objects] whose type is → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/MatchInfo[`Microsoft.PowerShell.Commands.MatchInfo`].
+Unless `-raw` or `-quiet` is specified, `select-string` returns → Windows/PowerShell/language/object[objects] whose type
+is → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/MatchInfo[`Microsoft.PowerShell.Commands.MatchInfo`].
+-
+With `-quiet`, it returns → Windows/PowerShell/language/variable/automatic/true-false[`$true` or `$false`] (depending on whether the input-line matched the pattern).
+-
+With `-raw` (which was introduces with PowerShell 7), the cmdLet returns the matched strings as string objects.
 
 By default, `select-string` tries to match with regular expressions. In order to match a substring (for example to improve performance), the `-simpleMatch` option needs to be given.
 
+{ Common usages
+
+  Find lines in current directory that contain `pattern`.
+code {
+select-string pattern *
+code }
+
+
+  Search in files with given → development/filename-extensions[extensions] only:
+code {
+select-string -list pattern *.sql
+select-string -list pattern *.sql, *.config
+code }
+   
+  Unfortunately, `select-string pattern *` throws an error message if `select-string pattern *` is executed in a directory that contains sub-direcotries:
+  *select-string : The file P:\ath\to\subdirectory cannot be read: Access to the path 'P:\ath\to\subdirectory' is denied*.
+  -
+  Therefore, it is advisable to use a → Windows/PowerShell/pipeline that pipes the result of → Windows/PowerShell/command-inventory/noun/childItem/get[`get-childItem`] into the `select-string` cmdLet;
+code {
+get-childItem * | select-object pattern
+code }
+
+  Use `-list` to report only first occurence of a found pattern;
+code {
+get-childItem * | select-string -list pattern
+code }
+
+  Show filenames only. `filename` is a property of the returned → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/MatchInfo[`MatchInfo`] objects:
+code {
+select-string -list pattern * | → Windows/PowerShell/command-inventory/noun/object/select[select-object] filename
+code }
+
+  More properties, such as `lineNumber` can be added to the result:
+code {
+select-string -list pattern * | → Windows/PowerShell/command-inventory/noun/object/select[select-object] lineNumber, filename
+code }
+
+  Search recursively in or below the current directory:
+code {
+→ Windows/PowerShell/command-inventory/noun/childItem/get[get-childItem] -recurse | select-string pattern
+code }
+
+  By default, `select-string` searches case-insensitively. Case sensitiveness can be turned on with `-caseSensitive`:
+code {
+→ Windows/PowerShell/command-inventory/noun/childItem/get[get-childItem] -recurse | select-string -caseSensitive pattern
+code }
+
+}
 { Find strings in an array
 
   The following simple → Windows/PowerShell/pipeline pipes a string → Windows/PowerShell/language/type/array into `select-string` and uses a regular expression to find
@@ -108,6 +162,11 @@ LineNumber rel. path                      Line
         15 ..\..\write-host.ps1           write-host "foo bar" -noNewline
         17 ..\..\write-host.ps1           # foo bar baz
 code }
+
+}
+{ Alias
+
+  An → Windows/PowerShell/language/alias for `select-string` is `sls`.
 
 }
 
