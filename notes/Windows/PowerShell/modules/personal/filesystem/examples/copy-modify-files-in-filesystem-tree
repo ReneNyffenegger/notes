@@ -1,0 +1,30 @@
+$ PowerShell module filesystem, example: copy and modify files in a filesystem tree
+
+code {
+set-strictMode -version latest
+ 
+$src_root    = "$home/work/src"
+$target_root = "$home/work/target"
+ 
+$target_root = initialize-emptyDirectory  $target_root
+if ($target_root -eq $null) {
+ 
+    write-textInConsoleErrorColor "Could not remove $target_root"
+    return
+}
+ 
+foreach ($file in get-childItem $src_root -recurse -include *.sql) {
+
+    $fileRelPath = resolve-relativePath $src_root $file
+    write-host $fileRelPath
+ 
+    $content = get-content -raw -encoding default $file
+
+    $content = $content -replace '[aeiou]', '#'
+ 
+    write-file "$target_root$fileRelPath" $content ( [System.Text.Encoding]::GetEncoding(1252) )
+}
+code }
+
+sa:
+  → Windows/PowerShell/modules/personal/filesystem
