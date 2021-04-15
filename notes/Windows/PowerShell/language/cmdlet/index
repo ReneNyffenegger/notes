@@ -1,8 +1,6 @@
 $ PowerShell cmdlets
 @ cmdLet
 
-All cmdLets derive from → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Cmdlet[`System.Management.Automation.Cmdlet`].
-
 It's possible to create → Windows/PowerShell/language/alias[aliases] for cmdlets.
 
 A cmdLet is one of the → Windows/PowerShell/language/command[PowerShell command] types which have an entry in the → Microsoft/dot-net/namespaces-classes/System/Management/Automation/CommandTypes[`System.Management.Automation.CommandTypes` enum].
@@ -26,6 +24,12 @@ code }
 code {
 get-command -verb import
 get-command -noun csv
+code }
+
+  It is also possible to search for cmdlets with → Windows/PowerShell/language/wildcards[wildcards]. The following command finds cmdlets like `get-help`, `set-hvciOptions`,
+  → Windows/PowerShell/command-inventory/noun/hex/format[`format-hex`], → Windows/PowerShell/command-inventory/noun/host/out[`out-host`] etc:
+code {
+get-command *t-h*
 code }
 
 }
@@ -80,11 +84,35 @@ code }
   Sometimes, there is also `-passThru`. This causes a cmdlet to pass on the object it acted on. Usually, this parameter is used
   on cmdlets with the verbs `new`, `stop`, → Windows/PowerShell/command-inventory/verb/set[`set`] etc.
 
+  The list of common parameters can be displayed in the shell like so:
+code {
+PS C:\> [→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCmdlet[System.Management.Automation.Cmdlet]]::CommonParameters
+…
+PS C:\> [→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCmdlet[System.Management.Automation.Cmdlet]]::OptionalCommonParameters
+…
+code }
+
 }
-{ cmdLet classes
+{ (Predifined) cmdLet classes
 
   Typically, the functionality of cmdLets is stored in a → Microsoft/dot-net class (type). These classes are found in the
   → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands[`Microsoft.PowerShell.Commands` namespace].
+
+}
+{ Common base class
+
+  All cmdLets derive from → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Cmdlet[`System.Management.Automation.Cmdlet`].
+
+  A cmdlet can be created by deriving it directly from directly from → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Cmdlet[`System.Management.Automation.Cmdlet`]
+  or, alternatively, from  → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCmdlet[`System.Management.Automation.PSCmdlet`] (which itselfs inherits from `CmdLet`).
+
+  The `Cmdlet` class provides most common used functionality of a cmdlet, such as
+    • → Windows/PowerShell/language/object output
+    • record processing
+
+  If a cmdlet requires access to the *MSH Runtime*, the cmdlet must be derived from the `PSCmdlet` class
+
+ `CmdLet` inherits from → Microsoft/dot-net/namespaces-classes/System/Management/Automation/Internal/InternalCommand[`System.Management.Automation.Internal.InternalCommand`]
 
 }
 { TODO
