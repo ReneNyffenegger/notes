@@ -7,33 +7,13 @@ code {
 application.VBE.activeVBProject.→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBComponent[vbComponents]("module10").codeModule
 code }
 
-For example, the following sequence changes the text of the third line:
-code {
-→ development/languages/VBA/language/statements/set cm = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
-cm.replaceLine 3, " ' This line was changed programmatically"
-code }
-
-Note that the numbering is not zero-based: the first line is identified by line number 1.
-
-The property `.countOfLines` evaluates to the number of lines in the source code.
-
-The method `.addFromString "some text"` seems to insert a line at the current cursor position.
--
-In order to append a line to the source code, `insertLines` needs to be used:
-code {
-set cm = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
-cm.insertLines cm.countOfLines + 1, "' This line was added at " & format(now, "yyyy-mm-dd hh:nn:ss")
-code }
-
-Unfortunately, `cm` looses the reference to the code module object after executing `cm.insertLines`
-
 { Properties
 
   Properties of `codeModule` are
   table { ll
     `codePane` ☰
     `countOfDeclarationLines` ☰
-    `countOflines` ☰
+    `countOflines` ☰ The number of lines in the source code
     `lines` ☰
     `parent` ☰
     `procBodyLine` ☰
@@ -49,12 +29,58 @@ Unfortunately, `cm` looses the reference to the code module object after executi
   Methods of `codeModule` are
   table { ll
     `addFromFile` ☰ Compare with `→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBComponent[vbComponentss].import`
-    `addFromString` ☰
+    `addFromString` ☰ inserts a line at the current cursor position.
+
     → Microsoft/Office/Visual-Basic-Editor/Object-Model/CodeModule/createEventProc[`createEventProc`] ☰ `createEventProc("click", "labelFoo")` creates a procedure to catch the *click* event on the control *labelFoo* and returns the line number where the event procedure was inserted.
-    `deleteLines` ☰
+    `deleteLines` ☰ `deleteLines n` deletes line `n`. `deleteLines n m` deletes `m` lines starting at line `n`. Note that line numbers are one-based.
     `find` ☰
     `insertLines` ☰
   table }
+
+}
+
+{ Inserting lines
+
+  In order to append a line to the source code, `insertLines` needs to be used:
+code {
+dim mdl as codeModule
+set mdl = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
+mdl.insertLines cm.countOfLines + 1, "' This line was added at " & format(now, "yyyy-mm-dd hh:nn:ss")
+code }
+
+  Unfortunately, `mdl` looses the reference to the code module object after executing `mdl.insertLines`
+
+}
+
+{ Changing a aline
+
+  The following sequence changes the text of the third line:
+
+code {
+dim mdl as codeModule
+set mdl = …
+→ development/languages/VBA/language/statements/set cm = application.VBE.ActiveVBProject.VBComponents("module10").codeModule
+cm.replaceLine 3, " ' This line was changed programmatically"
+code }
+
+}
+
+{ Delete entire code module
+
+code {
+dim mdl as codeModule
+set mdl = …
+
+if mdl.countOfLines > 0 then
+   mdl.deleteLines 1, mdl.countOfLines
+end if
+code }
+
+  Alternatively, the `if then` can be ommited by making sure there is always at least one line in the source code:
+code {
+mdl.insertLines 1, "'"
+mdl.deleteLines 1, mdl.countOfLines
+code }
 
 }
 
