@@ -5,6 +5,33 @@ A *foreign key* constraint is also (and possibly more correctly) referred to as 
 → development/databases/Oracle/installed/data-dictionary/constraints/constraint_type[`constraint_type`]
 (→ development/databases/Oracle/installed/data-dictionary[data dictionary] view → development/databases/Oracle/installed/data-dictionary/constraints[`all_constraint`]) as `R`.
 
+{ Extracting foreign key creation statements with DBMS_METADATA #ora-fk-metadata
+
+  The following statements use → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`dbms_metadata.get_ddl`] to extract statements that create
+  foreign keys:
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'SQLTERMINATOR', true);
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'PRETTY'       , true);
+end;
+/
+
+select
+   dbms_metadata.get_ddl ('REF_CONSTRAINT', cfk.constraint_name, cfk.owner)
+from
+   all_constraints cfk  join
+   all_constraints cpk  on cfk.r_owner           = cpk.owner             and
+                           cfk.r_constraint_name = cpk.constraint_name
+where
+   cfk.owner           = 'TABLE_OWNER'   and
+   cpk.table_name      = 'SOME_TABLE'    and
+   cpk.constraint_type IN ('P','U')      and
+   cfk.constraint_type = 'R'
+;
+code }
+
+}
+
 sa:
 
   An → development/databases/Oracle/SQL/statement[SQL statement] to → development/databases/Oracle/objects/tables/constraints/referential-integrity/query[recursively query referential integrity dependencies].
