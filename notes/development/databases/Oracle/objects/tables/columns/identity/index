@@ -15,6 +15,28 @@ It should also be kept in mind that an identity column does not automatically cr
 
 gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/identity/intro.sql||
 
+{ Data Dictionary
+
+  The → development/databases/Oracle/installed/data-dictionary views that lists information about identity columns
+  are → development/databases/Oracle/installed/data-dictionary/tab/identity_cols[`user_tab_identity_cols`, `all_tab_identity_cols` and `dba_tab_identity_cols`].
+
+  Some (limited) information about identity columns can also be found in → development/databases/Oracle/installed/data-dictionary/tab/columns[`dba_tab_columns`].
+code {
+select
+   table_name,
+   column_name,
+   default_on_null,
+   data_default      -- typically something like "RENE"."ISEQ$$_2235365".nextvale
+from
+   user_tab_columns
+where
+   identity_column = 'YES' and
+   table_name like 'T_ID_%'
+order by
+   table_name;
+code }
+
+}
 { ORA-01031: insufficient privileges
 
   In order to create tables with identity columns, the `create sequence` → development/databases/Oracle/security/privileges[privilege] is required. Without that privilege, the error message
@@ -25,10 +47,9 @@ gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/identity/intro.sql||
 sa:
 
   The → development/databases/Oracle/installed/dynamic-performance-views/session/returning[`returning` clause] can be used in
-  → development/databases/Oracle/PL-SQL/block[{PL/SQL blocks] to return the generated value into a variable.
+  → development/databases/Oracle/PL-SQL/block[PL/SQL blocks] to return the generated value into a variable.
 
   → development/databases/Oracle/objects/sequences#ora-default-sequence-for-pk[Using sequences to generate auto-incrementing numbers]
 
-  → development/databases/Oracle/installed/data-dictionary/tab/identity_cols[`user_tab_identity_cols` / `all_tab_identity_cols` / `dba_tab_identity_cols`]
 
-   → development/databases/SQL-Server[SQL Server].
+  → development/databases/SQL-Server[SQL Server].
