@@ -12,12 +12,20 @@ from
   …;
 code }
 
+A hint can have arguments:
+code {
+select /*+ hint(argument)                 */  …
+select /*+ hint(argument-1 argument_2 … ) */  …
+code }
+
 When using *component queries* (for example when combined with `union`), both queries can have their own hint:
 code {
 select /*+ hint-1 */ …
   union
 select /*+ hint-2 */ …
 code }
+
+All hints except `/*+ rule */` cause the → development/databases/Oracle/optimizer[(cost based) optimizer] to be used.
 
 If mutliple hints are specified and a hint is not understood by Oracle (for example because of a typo), then Oracle will honor the hints on the left side of that hint and disregard the rest.
 
@@ -34,36 +42,74 @@ If mutliple hints are specified and a hint is not understood by Oracle (for exam
 
   Note that `use_nl(tab_a tab_b)` is shortcut for `use_nl(tab_a) use_nl(tab_b)` and therefore is not considered to be a multi-table hint.
 
+  { Specifying table names in hints
+
+    If a single or multi-table hint refers to a → development/databases/Oracle/objects/tables[table] that is aliased, the alias needs to be specified in the hint.
+ 
+    Wrong:
+code {
+select /*+ index(scott.emp ix_emp) */ from scott.emp  e;
+code }
+
+    Better:
+code {
+select /*+ index(e) */ from scott.emp  e;
+code }
+
+    Schema names should be omitted.
+
+  }
+
 }
-{ List of common hints
+{ When hints might be used
+
+  With an ideal optimizer, hints should not be used. However, it turns out that the optimizer sometimes creates a suboptimal plan in which case better performance can be achieved by hinting the SQL statement.
+  
+  Sometimes, the characteristics of the selected data changes rapidly so that the relevant → development/databases/Oracle/optimizer/statistics[statistics] are inaccurate which also might lead to a bad plan.
+
+}
+{ Jonathan Lewis' list of the Big Five Hints #ora-hint-jl-big-5
+
+  Jonahtan Lewis' list of the → https://jonathanlewis.wordpress.com/2015/12/03/five-hints[Big Five Hints] is:
+    • `merge`, `no_merge`
+    • `push_pred`, `no_push_pred`
+    • `unnest`, `no_unnest`
+    • `push_subq`, `no_push_subq`
+    • `driving_site`
+
+}
+
+{ List of some hints
 
   table { ll
    ~Hint~ ☰ ~Comment~
+   `and_equal` ☰ Choos an execution plan that uses an access path that merges the scans on several single-column indexes
+   `antijoin` ☰
    `all_rows` ☰
-   `append`, `noappend` ☰
+   `append`, `noappend` ☰ `append`: If a table or an index is specified with `nologging`, this hint applied with an insert statement produces a *direct path* insert which reduces generation of → development/databases/Oracle/architecture/database/redo-data[redo].
    `append_values` ☰
    `cache`, `nocache` ☰ When performing a full table scan, this hint places → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] at the most recently used end of the LURU list of the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[buffer cache]. Useful for (small) lookup tables.
    `cardinality` ☰ Not documented. Apparently applied to a → development/databases/Oracle/SQL/statement/query-block rather than a table (or list of tables).
    `change_dupkey_error_index` ☰
-   `cluster` ☰
+   `cluster` ☰ Perform a → http://www.adp-gmbh.ch/ora/sql/join/join_methods.html#nested_loop[nested loop] by the → development/databases/Oracle/objects/clusters[cluster] index.
    `clustering`, `no_clustering` ☰
    `containers` ☰
    `cursor_sharing_exact` ☰
    `disable_parallel_dml` ☰
    `driving_site` ☰ Specifies the «location» where a distributed query is executed. This hint is on → #ora-hint-jl-big-5[Jonathan Lewis' list of the Big Five Hints]
-   `dynamic_sampling` ☰
+   `dynamic_sampling` ☰ Control some behavior of → development/databases/Oracle/optimizer/statistics/dynamic[dynamic optimizer statistics] (Generally: `/*+ dynamic_sampling(0) */` or for a given table `/*+ dynamic_sampling(t 0) */`)
    `enable_parallel_dml` ☰
-   `fact`, `no_fact` ☰
+   `fact`, `no_fact` ☰ Used in the context of *star tranformations* to indicate that the hinted table should (not) be considered a *fact table*.
    `first_rows` ☰
    `fresh_mv` ☰
-   `full` ☰
+   `full` ☰ Access the data in a table with a *full table scan*, rather than using indexes (compare with the `rowid` and the various `index*` hints).
    `gather_plan_statistics` ☰ Collect extra metrics during → development/databases/Oracle/SQL/statement/execution[SQL statement execution] and make them available in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`]
    `gather_optimizer_statistics`, `no_gather_optimizer_statistics` ☰ `no_gather_optimizer_statistics` suppresses gathering statistics during *bulk loads* (such as `create table as select` statements). Such statistics can then later be gathered using `gather_optimizer_statistics` at statement level.
    `grouping` ☰
-   `hash` ☰
+   `hash` ☰ Join two tables with a *hash join*, therefor not usable for inequality comparisons. Compare with `use_nl`, `use_merge` etc.)
    `ignore_row_on_dupkey_index` ☰
    `inline` ☰ Undocumented hint.
-   `index`, `no_index` ☰
+   `index`, `no_index` ☰ Use (`/*+ index(t) */`) or don't use (`/*+ noindex(t) */`) an index on a table. Index name can additionaly be specified: `/*+ index(tab ix) */`. The index to be used can be described in terms of the columns: `/*+ index(tab tab(col_1, col_2…)) */`
    `index_asc` ☰
    `index_combine` ☰
    `index_desc` ☰
@@ -78,9 +124,13 @@ If mutliple hints are specified and a hint is not understood by Oracle (for exam
    `leading` ☰ Specify the order of tables when joining them. Compare with `ordered`.
    `materialize` ☰ Undocumented hint. Store the result of a query in a → development/databases/Oracle/SQL/clauses/with[`with` clause] in a → development/databases/Oracle/objects/tables/types/global-temporary[global temporary table]. Useful, if this result is referred to multiple times in the query. Compare with `cache` and `inline`. Apparently, an inline view is materialized when it uses `rownum`.
    `merge`, `no_merge` ☰ Do or don't use *complex view merging*. These hints are on → #ora-hint-jl-big-5[Jonathan Lewis' list of the Big Five Hints]
+   `merge_aj` ☰
+   `merge_sj` ☰
    `model_min_analysis` ☰
    `monitor`, `no_monitor` ☰ Do (or don't) monitor SQL statement that take less (or more) than 5 seconds.
    `native_full_outer_join`, `no_native_full_outer_join` ☰
+   `nl_aj` ☰
+   `nl_sj` ☰
    `no_expand` ☰
    `noparallel` ☰
    `noparallel_index` ☰
@@ -102,10 +152,12 @@ If mutliple hints are specified and a hint is not understood by Oracle (for exam
    `push_subq`, `no_push_subq` ☰ These hints are on → #ora-hint-jl-big-5[Jonathan Lewis' list of the Big Five Hints]
    `px_join_filter`, `no_px_join_filter` ☰
    `qb_name` ☰
-   `result_cache`, `no_result_cache` ☰
+   `result_cache`, `no_result_cache` ☰ `/*+ result_cache */`, `/*+ result_cache(snapshot = 3600) */` (3600 seconds or one hour), `/*+ result_cache(shelflife = 3600) */`, `/*+ result_cache(syobj=true) */`
    `retry_on_row_change` ☰
    `rewrite`, `no_rewrite` ☰ Rewrite a query so that uses one (or more?) → development/databases/Oracle/objects/views/materialized[materialized views], if possible.
-   `rule` ☰
+   `rowid` ☰ Access a row by its → development/databases/Oracle/SQL/data-types/rowid. Compare with `full` and the various `index*` hints.
+   `rule` ☰ The only hint that cause the *rule based optimizer* (rather than the → development/databases/Oracle/optimizer[(cost based) optimizer] to be used).
+   `star` ☰  Try to use a *star query plan*. A star plan has the largest table in the query last in the join order and joins it with a nested loops join on a concatenated index. The STAR hint applies when there are at least three tables, the large table's concatenated index has at least three columns, and there are no conflicting access or join method hints. The optimizer also considers different permutations of the small tables.
    `star_transformation`, `no_star_transformation` ☰
    `statement_queuing`, `no_statement_queuing` ☰
    `unnest`, `no_unnest` ☰ Do or don't unnest → development/databases/Oracle/SQL/select/subquery[subqueries]. These hints are on → #ora-hint-jl-big-5[Jonathan Lewis' list of the Big Five Hints]
@@ -119,17 +171,6 @@ If mutliple hints are specified and a hint is not understood by Oracle (for exam
   table }
 
 }
-{ Jonathan Lewis' list of the Big Five Hints #ora-hint-jl-big-5
-
-  Jonahtan Lewis' list of the → https://jonathanlewis.wordpress.com/2015/12/03/five-hints[Big Five Hints] is:
-    • `merge`, `no_merge`
-    • `push_pred`, `no_push_pred`
-    • `unnest`, `no_unnest`
-    • `push_subq`, `no_push_subq`
-    • `driving_site`
-
-}
-
 { TODO
 
   Oracle's documentation has the following → https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Comments.html#GUID-D316D545-89E2-4D54-977F-FC97815CD62E[note]:

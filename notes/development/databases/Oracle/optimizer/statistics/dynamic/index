@@ -1,0 +1,31 @@
+$ Oracle: Dynamic optimizer statistics
+
+When an → development/databases/Oracle/SQL/statement is → development/databases/Oracle/SQL/statement/executiontion#ora-hard-soft-parse[hard parsed] and the relevant
+→ development/databases/Oracle/optimizer/statistics[statistics] are stale, missing or insufficent, Oracle scans a small portion («sample») of the underlying data to get
+some *dynamic statistics* that can be used to generate an → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan].
+
+{ Controlling behavior of dynamic statistics
+
+  The behavior of gathering dynamic statistics can be controlled with a number that is speciied with
+    • the → development/databases/Oracle/adminstration/init-parameters[init parameter `optimizer_dynamic_sampling`], or
+    • the → development/databases/Oracle/SQL/hints[`dynamic_sampling` hint].
+
+  This number is an integer between 0 and 10 with the following meaning:
+  table { ll
+    ~Level~ ☰ ~Description~
+    0 ☰ Don't gather dynamic sample statistics
+    1 ☰ Sample all tables that have not been analyzed if some conditions are true
+    2 ☰ Apply dynamic sampling to all unanalyzed tables. The number of blocks sampled is two times the default number of dynamic sampling blocks.
+    3 ☰ Apply dynamic sampling to all tables that meet Level 2 criteria, plus all tables for which standard selectivity estimation used a guess for some predicate that is a potential dynamic sampling predicate. The number of blocks sampled is the default number of dynamic sampling blocks. For unanalyzed tables, the number of blocks sampled is two times the default number of dynamic sampling blocks.
+    4 ☰ Apply dynamic sampling to all tables that meet Level 3 criteria, plus all tables that have single-table predicates that reference 2 or more columns. The number of blocks sampled is the default number of dynamic sampling blocks. For unanalyzed tables, the number of blocks sampled is two times the default number of dynamic sampling blocks.
+    5 - 9 ☰ Apply dynamic sampling to all tables that meet the previous level criteria using 2, 4, 8, 32, or 128 times the default number of dynamic sampling blocks respectively.
+    10 ☰ Apply dynamic sampling to all tables that meet the Level 9 criteria using all blocks in the table.
+  table }
+
+  The relevant conditions for level 1 are:
+   • At least one table in the query is unanalyzed
+   • The unanalyzed table is joined to another table or appears in a → development/databases/Oracle/SQL/select/subquery or *non-mergeable view*
+   • The unanalyzed table has no indexes
+   • The unanalyzed table has more blocks than the number of blocks that would be used for dynamic sampling of this table. The number of blocks sampled is the default number of dynamic sampling blocks (32).
+
+}
