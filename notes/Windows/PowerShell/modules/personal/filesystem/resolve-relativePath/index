@@ -2,6 +2,10 @@ $ PowerShell module filesystem: resolve-relativePath
 
 The → Windows/PowerShell/language/function[function] `resolve-relativePath` of the → Windows/PowerShell/language/module → Windows/PowerShell/modules/personal/filesystem[filesystem]
 returns the *relative path* between a directory and a file or directory.
+-
+Thus, it improves the functionality provided by the built-in cmdlet → Windows/PowerShell/command-inventory/noun/path/resolve[`resolve-path`] which only allows to get the relative path from the current directory
+(→ Windows/PowerShell/language/variable/automatic/pwd[`$pwd`]).
+
 
 code {
 resolve-relativePath $fromDir  $destPath
@@ -10,7 +14,11 @@ code }
 Note: `$fromDir` and `$destPath` must share a common prefix in order for the function to succeed.
 
 This function was inspired (and copied with minor adaptions) by/from
-→ https://github.com/webmd-health-services/Carbon/[Carbon's] command → https://get-carbon.org/Resolve-RelativePath.html[`Resolve-RelativePath`], uses the → Windows/development/WinAPI function `PathRelativePathTo`.
+→ https://github.com/webmd-health-services/Carbon/[Carbon's] command → https://get-carbon.org/Resolve-RelativePath.html[`Resolve-RelativePath`].
+-
+The function uses the → Windows/development/WinAPI function `PathRelativePathTo`.
+
+{ Simple example
 
 code {
 $sql_file_root = 'P:\ath\to\development\sql'
@@ -22,3 +30,16 @@ $sql_file_root = 'P:\ath\to\development\sql'
 
 }
 code }
+
+}
+{ Passing an array to the second parameter
+
+  The second parameter accepts an Windows/PowerShell/language/type/array:
+code {
+PS:> resolve-relativePath  x/y  x/a/b, x/y/z, x/
+..\a\b
+.\z
+..\
+code }
+
+}
