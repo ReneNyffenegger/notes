@@ -1,0 +1,34 @@
+$ Oracle: DBA_OPTSTAT_OPERATION_TASKS
+
+code {
+select
+   ops.id, -- tsk.opid,
+   ops.operation,
+   tsk.target_objn     target_obj_nr,
+   ops.target          target, tsk.target target_tsk,
+   tsk.target_size     nof_blocks,
+   tsk.estimated_cost  esitated_secs,
+   tsk.batching_coeff,
+   tsk.actions,
+-- tsk.priority,                           -- Rank of task within same parent operation
+   tsk.flags,
+-- ops.start_time, ops.end_time,
+   tsk.start_time, tsk.end_time,
+   ops.status,
+   tsk.status,
+   ops.job_name,
+   tsk.job_name,
+   ops.session_id,
+   tsk.notes,
+   ops.notes
+from
+   dba_optstat_operations      ops                       left join
+   dba_optstat_operation_tasks tsk on ops.id = tsk.opid
+order by
+   ops.start_time desc,
+   ops.id,
+   tsk.priority;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/optstat/operations[`dba_operations`]

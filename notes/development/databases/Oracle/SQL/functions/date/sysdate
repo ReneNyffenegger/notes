@@ -1,0 +1,18 @@
+$ Oracle: SYSDATE
+
+`SYSDATE` evaluates to a → development/databases/Oracle/SQL/data-types/date[date] that corresponds to the current date/time.
+
+If used in an → development/databases/Oracle/SQL/statement, the returned value won't change until the statement is finished, even if the execution of the statement takes longer than one second.
+Thus, the following SQL statement will run quite for a long time and won't change the values of the first two columns:
+code {
+with x as (select /*+ materialize */ sysdate d from dual)
+select
+  x.d,
+  sysdate,
+  level
+from
+  x connect by x.d < sysdate + 1/86400;
+code }
+
+sa:
+  Other → development/databases/Oracle/SQL/functions/date[date related SQL functions]
