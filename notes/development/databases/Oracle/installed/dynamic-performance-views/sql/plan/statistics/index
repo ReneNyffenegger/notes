@@ -1,0 +1,53 @@
+$ v$sql_plan_statistics
+
+`v$sql_plan_statistics` provides *actual* (not estimated as in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`]) for
+every → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operation] of an → development/databases/Oracle/SQL/statement/execution[executed SQL statement].
+
+In order for an → development/databases/Oracle/SQL/statement to populate the statistics into this view,
+  • the statement must be compiled with `statistics_level` = `true`, or
+  • `sql_trace` is set to `true`, or
+  • the statement must be using the → development/databases/Oracle/SQL/hints[`gather_plan_statistics` hint],
+  • or ???
+
+code {
+select
+   sps.executions,
+-- sqp.id,
+-- sqp.parent_id,
+   lpad('| ', (sqp.depth-1) * 2, '| ') || sqp.operation || case when sqp.options is not null then ' (' || sqp.options || ')' end op,
+   sqp.object_owner     , sqp.object_name,
+   sps.last_starts      , sps.starts,
+   sps.last_output_rows , sps.output_rows,
+   sqp.cardinality,
+   sqp.access_predicates,
+   sqp.filter_predicates,
+   sqp.object_alias,
+   sqp.qblock_name,
+   sqp.projection,
+   sps.last_elapsed_time  , sps.elapsed_time,
+   sqp.time,
+   sqp.object_type,
+   sqp.position,
+   sps.last_cr_buffer_gets, sps.cr_buffer_gets,   
+   sps.last_cu_buffer_gets, sps.cu_buffer_gets,
+   sps.last_disk_reads    , sps.disk_reads,
+   sps.last_disk_writes   , sps.disk_writes
+-- sqp.plan_hash_value,
+from
+   v$sql_plan            sqp                                             left join
+   v$sql_plan_statistics sps on sqp.sql_id       = sps.sql_id       and
+                                sqp.child_number = sps.child_number and
+                                sqp.id           = sps.operation_id and
+                                sqp.con_id       = sps.con_id
+where
+   sqp.sql_id       = 'c1td37cfqu9ka' and
+   sqp.child_number =  0
+order by
+   sqp.id;  
+code }
+
+sa:
+
+  → development/databases/Oracle/installed/dynamic-performance-views/statistics_level[`v$statistics_level`]
+
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

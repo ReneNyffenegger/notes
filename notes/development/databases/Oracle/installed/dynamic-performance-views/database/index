@@ -51,6 +51,21 @@ gh|oracle-patterns|/Installed/dynamic-performance-views/database/columns.sql||
   Shows a → development/databases/Oracle/architecture/database[database's] current → development/databases/Oracle/architecture/transaction/SCN.
 
 }
+{ platform_id, platform_name #v_database-platform_id
+
+  → development/databases/Oracle/SQL/join[Join] `platform_id` (or `platform_name`, for that matter) with
+ → development/databases/Oracle/installed/dynamic-performance-views/transportable_platform[`v$transportable_platform`] to determine the → development/endianness of the → development/Data in the database:
+code {
+select
+   db.platform_id,
+   db.platform_name,
+   tp.endian_format
+from
+   v$database                db join
+   → development/databases/Oracle/installed/dynamic-performance-views/transportable_platform[v$transportable_platform]  tp on db.platform_id = tp.platform_id;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views/[Oracle Dynamic Performance Views]
