@@ -15,3 +15,30 @@ sql_trace
    plan_stat       < never | first_execution | all_executions | adaptive >,
    level           <ub4>
 code }
+
+{ Simple example
+
+  In a session with SYSDBA privileges:
+code {
+SQL> → development/databases/Oracle/tools/oradebug/setospid[oradebug setospid] 15628
+Oracle pid: 27, Windows thread id: 15628, image: ORACLE.EXE (SHAD)
+
+SQL> oradebug event sql_trace wait=true, bind=false, plan_stat=first_execution
+Statement processed.
+
+SQL> → development/databases/Oracle/tools/oradebug/tracefile_name[oradebug tracefile_name]
+C:\ORACLE\DB\ORA19\DIAG\diag\rdbms\ora19\ora19\trace\ora19_ora_15628.trc
+code }
+
+  Then in session to be traced:
+code {
+select …
+code}
+
+  Turn off tracing (in first (SYSDBA) session):
+code {
+SQL> rem oradebug event sql_trace level=0
+SQL> oradebug close_trace
+code }
+
+}
