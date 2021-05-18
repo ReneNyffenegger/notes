@@ -20,12 +20,13 @@ In the → development/databases/Oracle/installed/data-dictionary, tablespaces a
     • → development/databases/Oracle/architecture/database/logical-structures/tablespace/temporary
 
 }
-{ Locally / dictionary managed tablespace
+{ Space management (locally vs dictionary managed tablespaces)
 
-  The → development/databases/Oracle/architecture/database/logical-structures/extent[extents] that are allocated in a tablespace can be managed either locally or in
-  the → development/databases/Oracle/installed/data-dictionary[dictionary].
+  There are two methods to manage available space (that is its → development/databases/Oracle/architecture/database/logical-structures/extent[extents]) within a tablespace:
+    • Locally managed tablespaces, and
+    • Dictionary managed tablespaces
 
-  Managing them locally is the more modern and usually preferred variant.
+  A *locally managed tablespaces* is the more modern and usually preferred variant.
 
   Which variant is used for a tablespace can be queried with the following select statement:
 code {
@@ -36,6 +37,26 @@ select
 from
    dba_tablespaces;
 code }
+
+  { Space management for locally managed tablespace
+
+    For a locally managed tablespace, there are again two different methods to manage space:
+      • Automatic segment space management (ASSM), the default for locally managed tablespace
+      • Manual segment space management (MSSM), which is considered legacy
+
+    With ~automatic segment space management~, space in a tablespace is managed using bitmaps. There is only one parameter that controls space allocation:
+      • `pctfree`
+
+    With ~manual segment space management~, free space is managed using a linked list by the name of *free list*. This list records free
+    → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a segment's *high water mark*.
+    -
+    Parameters that control space managed are:
+      • `pctfree`
+      • `pctused`
+      • `freelists`
+      • `freelist groups`
+
+  }
 
 }
 

@@ -1,5 +1,41 @@
-$ Oracle table partitions
+$ Oracle: partitioned tables
 
+{ Partition techniques
+
+  Each record in a partitioned → development/databases/Oracle/objects/tables is assigned to an unambiguous partition.
+
+  There are three distribtion techniques to determine the partition into which a record falls:
+    • → development/databases/Oracle/objects/tables/partitions/distribution-techniques/range[Range]
+    • → development/databases/Oracle/objects/tables/partitions/distribution-techniques/hash[Hash]
+    • → development/databases/Oracle/objects/tables/partitions/distribution-techniques/list[List]
+
+  A variant of the *range partioning* is → development/databases/Oracle/objects/tables/partitions/distribution-techniques/range/interval[interval partitioning]: Oracle will automatically create the new partitions when an inserted (or updated?) value requires it.
+
+  { Composite partitioned
+
+    With *composite partioning*, two partition techniques are combined so that there are two levels: partition and sub-partition.
+
+    Because there are three basic partitining techniques, there are nine (=3 * 3) possible composite partition types, for example
+    → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-range-list[range - list],
+    → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-range-range[range - range] or
+    → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-list-hash[list - hash].
+
+    Of course, interval partitioning can also be employed for compositie partitioning: for example
+    → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-interval-list[interval - list]
+
+  }
+
+}
+
+{ Data dictionary
+
+  Available characteristics and other data pertaining to partitions tables can be queried in the
+  → development/databases/Oracle/installed/data-dictionary from `all_tab_partitions` and `all_tab_subpartitions`.
+  -
+  The views pertaining to partioned → development/databases/Oracle/objects/indexes[indexes] are
+ `all_ind_partitions` and `all_ind_subpartitions`.
+
+  A partitioned table is marked with `YES` in the column `partitioned` of `dba_tables`:
 code {
 select
    partitioned,   -- 'YES'
@@ -10,8 +46,10 @@ from
 where
    owner      = 'RENE' and
    table_name = 'HIST_ABC';
+code }
 
-
+   The individual partitions that belong to a partitioned table are found in `dba_tab_partitions`:
+code {
 select
    composite,
    partition_position,
@@ -26,7 +64,10 @@ from
 where
    table_owner  = 'RENE'                and
    table_name   = 'HIST_ABC';
+code }
 
+   If the table is also sub-partitoned, the sub-partitions can be quried from `dba_tab_subpartitions`:
+code {
 select
    subpar.partition_name,
    subpar.subpartition_name,
@@ -49,77 +90,35 @@ where
 order by
    subpar.partition_position,
    subpar.subpartition_position;
+code }
 
 
+code {
 select
    column_name
 from
    all_part_key_columns
 where
-   owner      = 'RENE'                 and
-   name       = 'HIST_ABC'
+   owner  = 'RENE'                 and
+   name   = 'HIST_ABC'
 order by
    column_position;
+code }
 
+code {
 select
    column_name
 from
    all_subpart_key_columns
 where
    owner = 'RENE' and
-   name = 'HIST_ABC';
+   name  = 'HIST_ABC';
 code }
 
-{ List partitions
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/list_partitioning.sql||
-
 }
-{ Interval partitions
 
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/interval_partitioning.sql||
 
-}
-{ Interval partition, based on a number
 
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/interval-partition-number.sql||
-
-}
-{ Range partition
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/range_partitioning.sql||
-
-}
-{ Interval partition, based on a character datatype
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/interval-based-on-char.sql||
-
-}
-{ Hash partition
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/hash_partitioning.sql||
-
-}
-{ Composite: range list
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/composite_range-list.sql||
-
-}
-{ Composite: range range
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/range-range.sql||
-
-}
-{ Composite: interval list
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/composite-interval-list.sql||
-
-}
-{ Composite: list hash
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/composite_list-hash.sql||
-
-}
 { Dropping a partition
 
   gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/drop_partition.sql||
@@ -148,5 +147,10 @@ sa:
 
   Using → development/databases/Oracle/installed/packages/dbms/rowid#dbms_rowid-record-partition[dbms_rowid.rowid_partition] to determine where
   in which partition a record is stored.
+
+  development/databases/Oracle/objects/indexes/partitioned/local[Local partitioned indexes]
+
+  The *Partition Advisor*, which is part of the *SQL Access Advisor*, will recommend a partitioning strategy for a table based on workload of
+  → development/databases/Oracle/SQL/statement[SQL statements].
 
   → development/databases/Oracle/objects/tables/partitions/ora-01841

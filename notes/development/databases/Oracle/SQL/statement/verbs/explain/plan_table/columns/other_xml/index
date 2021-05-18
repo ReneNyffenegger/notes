@@ -1,0 +1,81 @@
+$ Oracle PLAN_TABLE: column OTHER_XML
+
+The column `other_xml` of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] displays additional, differently structured (hence
+the → development/XML format) for an execution step. Such information includes:
+  • Schema-name against which SQL statement was parsed
+  • Database version (release number)
+  • Hash value of → development/databases/Oracle/SQL/statement/execution/plan[execution plan]
+  • Name of outline or SQL profile to create the plan
+  • If → development/databases/Oracle/optimizer/statistics/dynamic[dynamic statistics] were used when the plan was created
+  • Outline data which can reproduce the plan
+  • An indication if the supplied → development/databases/Oracle/SQL/hints[hints] were erroneous
+
+code {
+create table tq84_tab (nm number, tx varchar2(10));
+
+→ development/databases/Oracle/SQL/statement/verbs/explain[explain plan]
+   → development/databases/Oracle/SQL/statement/verbs/explain#ora-explain-plan-stmt-id[set statement_id] = 'get_other_xml'
+for
+  select /*+ invalid_hint(t) */
+     nm,
+     tx
+  from
+     tq84_tab t;
+
+select
+   other_xml
+from
+   → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[plan_table]
+where
+   statement_id = 'get_other_xml' and
+   other_xml is not → development/databases/Oracle/SQL/null[null];
+code }
+
+The (manually formatted) value of `other_xml` for this statment is:
+code {
+<other_xml>
+
+  <info type="has_user_tab"             >yes</info>
+  <info type="db_version"               >19.0.0.0</info>
+  <info type="parse_schema"             ><![CDATA["RENE"]]></info>
+  <info type="dynamic_sampling" note="y">2</info>
+  <info type="plan_hash_full"           >1066212411</info>
+  <info type="plan_hash"                >1254052927</info>
+  <info type="plan_hash_2"              >1066212411</info>
+
+  <stats type="compilation">
+    <stat name="bg">8</stat>
+  </stats>
+
+  <qb_registry>
+    <q o="2" f="y">
+      <n><![CDATA[SEL]]></n>
+      <f>
+        <h>
+          <t><![CDATA[T]]></t><s><![CDATA[SEL]]></s>
+        </h>
+      </f>
+    </q>
+  </qb_registry>
+
+  <outline_data>
+    <hint><![CDATA[FULL(@"SEL" "T"@"SEL")             ]]></hint>
+    <hint><![CDATA[OUTLINE_LEAF(@"SEL")               ]]></hint>
+    <hint><![CDATA[ALL_ROWS                           ]]></hint>
+    <hint><![CDATA[DB_VERSION('19.1.0')               ]]></hint>
+    <hint><![CDATA[OPTIMIZER_FEATURES_ENABLE('19.1.0')]]></hint>
+    <hint><![CDATA[IGNORE_OPTIM_EMBEDDED_HINTS        ]]></hint>
+
+  </outline_data>
+
+  <hint_usage>
+    <q>
+      <n><![CDATA[SEL]]></n>
+      <h o="EM" st="PE">
+        <x><![CDATA[invalid_hint]]></x>
+      </h>
+    </q>
+  </hint_usage>
+
+</other_xml>
+code }
