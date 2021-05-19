@@ -3,7 +3,9 @@ $ diskpart.exe
 `diskpart.exe` can be used to display and configure → Windows/file-system[file system] → Windows/file-system/partition[partitions]. It is a command line program and thus can be used
  in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`].
 
-{ list disk
+When working with `diskpart.exe`, the available objects must first be listed (for example with → #diskpart-list-disk[`list disk`]) and then an object must be selected (for example → #diskpart-select-disk[`select disk …`]).
+
+{ list disk #diskpart-list-disk
 
  `list disk` shows the disks.
 
@@ -17,7 +19,7 @@ DISKPART> list disk
 code }
 
 
-  `list disk` can be used to show if a → hardware/harddisk/index uses a → hardware/harddisk/MBR[MBR] (column `Gpt` contains no star), or a → hardware/harddisk/GPT (column `Gpt` contains a star).
+  `list disk` can be used to show if a → hardware/harddisk/index uses a → hardware/harddisk/MBR[MBR] (column `Gpt` contains no star), or a → hardware/harddisk/GPT[GPT partition] (column `Gpt` contains a star).
 
   Note: the *Free* column (which in the example above shows 14 MB) does not say how much space is free in the → Windows/file-system[file system] but rather how much space is not allocated for a file system.
 
@@ -103,6 +105,28 @@ code }
 
 code {
 DISKPART> format fs=fat
+code }
+
+}
+{ Take a disk offline #diskpart-take-offline
+
+  A disk can be taken offline, for example because → Windows/dirs/ProgramData/Microsoft/Windows-Defender/Platform/_version_/MsMpEng_exe[`MsMpEng.exe`] prevents a
+  → Windows/PowerShell/examples/Problem-Ejecting-USB-Mass-Storage-Device[USB drive from being ejected]:
+code {
+C:\> dispkart
+
+DISKPART> list disk
+
+  Disk ###  Status         Size     Free     Dyn  Gpt
+  --------  -------------  -------  -------  ---  ---
+  Disk 0    Online          223 GB      0 B
+  Disk 1    Online          931 GB      0 B
+
+DISKPART> select disk 1
+
+Disk 1 is now the selected disk.
+
+DISKPART> offline
 code }
 
 }
