@@ -1,0 +1,110 @@
+$ Oracle SQL plans: filter predicate INTERNAL_FUNCTION()
+
+{ INTERNAL_FUNCTION in combination with datatype conversion
+
+`INTERNAL_FUNCTION()` seems to occur only in → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter predicates] of an
+→ development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan].
+
+code {
+create table tq84_A (
+   nm  number,
+   dt  varchar2(20)  -- Note: varchar2 instead of date!
+);
+code }
+
+code {
+explain plan for
+select
+   sum(nm)
+from
+   tq84_A
+where
+   dt < date '2019-05-18'
+;
+
+select * from table(dbms_xplan.display);
+code }
+
+code {
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |        |     1 |    55 |     2   (0)| 00:00:01 |
+|   1 |  SORT AGGREGATE    |        |     1 |    55 |            |          |
+|*  2 |   TABLE ACCESS FULL| TQ84_A |     1 |    55 |     2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - filter(INTERNAL_FUNCTION("DT")<TO_DATE(' 2019-05-18 00:00:00',
+              'syyyy-mm-dd hh24:mi:ss'))
+code }
+
+code {
+drop table    tq84_A;
+code }
+
+}
+{ Sometimes only shown in dbms_xplan.display_cursor
+
+code {
+create table tq84_A (
+   nm   number,
+   tx   varchar2(10)
+);
+
+explain plan for
+select
+   count(*)
+from
+   tq84_A
+where
+   nm =  7  or
+   tx = 'Z'
+;
+
+select * from table(dbms_xplan.display);
+
+-- because of display_cursor
+set serveroutput off
+
+select
+   count(*)
+from
+   tq84_A
+where
+   nm =  7  or
+   nm =  9  or
+   tx = 'Z'
+;
+
+select * from table(dbms_xplan.display_cursor);
+code }
+
+code {
+-----------------------------------------------------------------------------
+| Id  | Operation          | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT   |        |       |       |     2 (100)|          |
+|   1 |  SORT AGGREGATE    |        |     1 |    35 |            |          |
+|*  2 |   TABLE ACCESS FULL| TQ84_A |     1 |    35 |     2   (0)| 00:00:01 |
+-----------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - filter((INTERNAL_FUNCTION("NM") OR "TX"='Z'))
+code }
+
+code {
+drop table tq84_A;
+
+set serveroutput on
+code }
+
+}
+
+links:
+
+  As so often, → https://tanelpoder.com/2013/01/16/what-the-heck-is-the-internal_function-in-execution-plan-predicate-section/[Tanel Poder] was very helpful.

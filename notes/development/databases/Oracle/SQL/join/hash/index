@@ -1,5 +1,16 @@
 $ Oracle: hash join
 
+When Oracle hash-joins two data sets, the join-columns of the (typically?) smaller data set is first hashed and stored (in memory or on disk).
+-
+Then, Oracle iterates over each record of the larger result set and also hashes the each of the join-columns and looks that hash up in the stored away hashed set.
+-
+Hashing the smaller set first has three benefits:
+  • Because a write operation is involved, less data needs to be written
+  • The smaller size increases the likelyhood that the hashed data fits into memory
+  • The probablity of a hash collision is smaller
+
+A hash join is especially performant if the the smaller input set is smaller than n (for example n < 25000).
+
 sa:
   Events:
     • 10092 disables hash joins.
