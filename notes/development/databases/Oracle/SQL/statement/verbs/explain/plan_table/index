@@ -41,53 +41,12 @@ create table PLAN_TABLE /* sharing=none */  (
                                             -- Only operations where access_predicates is filled seem to be INDEX, CONNECT BY, → development/databases/Oracle/SQL/join/hash[HASH JOIN] and SORT
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter_predicates]  varchar2(4000),  -- Predicates that are used to filter rows
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/projection[projection]         varchar2(4000),
-        time               numeric       ,
-        qblock_name        varchar2(128) ,  -- Name of query block (either generated or specified with QB_NAME hint)
+        time               numeric       ,  -- Estimated duration (in seconds) that SQL statements spends for this operation
+        → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/qblock_name[qblock_name]        varchar2(128) ,  -- Name of → development/databases/Oracle/SQL/statement/query-block[query block] (either generated or specified with → development/databases/Oracle/SQL/hints[QB_NAME hint])
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/other_xml[other_xml]          clob   -- Additional, differently structured (hence XML), values for an execution step.
 );
 code }
 
-{ qblock_name #plan_table-qblock_name
-
-  If not specified with a → development/databases/Oracle/SQL/hints[hint], the first four characters of `qblock_name` reveals the type of the SQL statement:
-    • `SEL$`
-    • `DEL$`
-    • `INS$`
-    • `UPD$`
-    • `MRG$` 
-    • `CRI$` (`create index`)
-    • `SET$` (Apparently used in sort operations, `union all` clauses, selecting from underlying views, → development/databases/Oracle/SQL/statement/execution/parallel[parallel query] coordination etc.)
-
-  As per → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[SQLMaria (Maria Colgan)], there is also `MISC$`.
-
-  See also the → development/databases/Oracle/SQL/hints#ora-hint-4-types[query block SQL hint type].
-
-  Select first and second part from qblock name:
-code {
-select
-   sql_id,
-   qblock_name,
-   regexp_replace(qblock_name, '^([^$]+)\$[^$]+$', '\1') qblock_name_part_1,
-   regexp_replace(qblock_name, '^[^$]+\$([^$]+)$', '\1') qblock_name_part_2
-from
-   v$sql_plan
-;
-code }
-
-  { Operations related to SET$
-
-    The following query finds operations that are related to `SET$`:
-code {
-select   count(*), operation, options
-from     v$sql_plan
-where    qblock_name like 'SET%'
-group by operation, options
-order by count(*) desc;
-code }
-
-  }
-
-}
 { object_alias
 
   The value of `object_alias` is either → development/databases/Oracle/SQL/null[`null`] or matches the

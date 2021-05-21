@@ -1,0 +1,58 @@
+$ Oracle: outer apply join
+
+An *outer apply join* is a variation of a → development/databases/Oracle/SQL/join/outer/left[left outer join]
+
+code {
+create table tq84_L (
+   nm number,
+   tx varchar2(3)
+);
+
+insert into tq84_L values (1, 'B');
+insert into tq84_L values (2, 'E');
+insert into tq84_L values (3, 'A');
+insert into tq84_L values (4, 'C');
+insert into tq84_L values (5, 'D');
+
+create table tq84_R (
+    nm  number,
+    val varchar2(10)   
+);
+
+insert into tq84_R values (1, 'one'   );
+insert into tq84_R values (2, 'two'   );
+insert into tq84_R values (2, 'zwei'  );
+insert into tq84_R values (3, 'three' );
+insert into tq84_R values (3, 'trois' );
+insert into tq84_R values (3, 'drei'  );
+insert into tq84_R values (5, 'five'  );
+insert into tq84_R values (5, 'cinque');
+code }
+
+
+code {
+select
+   l.nm,
+   l.tx,
+   r.val
+from
+   tq84_L   l
+   outer apply
+  (
+    select
+       r.nm,
+       max(r.val) val
+    from
+       tq84_R r
+    where
+       l.tx > 'B'  and -- <<<  refer to the «left» table
+       r.nm = l.nm     -- <<<  in the «right» table
+    group by
+       r.nm
+  ) r;
+code }
+
+code {
+drop table tq84_R;
+drop table tq84_L;
+code }

@@ -1,0 +1,79 @@
+$ Oracle PLAN_TABLE: column QBLOCK_NAME
+@ qblock_name
+
+If not specified with a → development/databases/Oracle/SQL/hints[hint], the first four characters of the `qblock_name` column in the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] reveals the type of the
+→ development/databases/Oracle/SQL/statement
+  • `SEL$`
+  • `DEL$`
+  • `INS$`
+  • `UPD$`
+  • `MRG$` 
+  • `CRI$` (`create index`)
+  • `SET$` (Used in sort operations, `union all` clauses, selecting from underlying views, → development/databases/Oracle/SQL/statement/execution/parallel[parallel query] coordination etc.)
+
+As per → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[SQLMaria (Maria Colgan)], there is also `MISC$`.
+
+See also the → development/databases/Oracle/SQL/hints#ora-hint-4-types[query block SQL hint type].
+
+Select first and second part from qblock name:
+code {
+select
+   sql_id,
+   qblock_name,
+   regexp_replace(qblock_name, '^([^$]+)\$[^$]+$', '\1') qblock_name_part_1,
+   regexp_replace(qblock_name, '^[^$]+\$([^$]+)$', '\1') qblock_name_part_2
+from
+   v$sql_plan
+;
+code }
+
+{ Operations related to a given qblock prefix
+
+  The following query finds operations that are related to `SET$`:
+code {
+select   count(*), operation, options
+from     → development/databases/Oracle/installed/dynamic-performance-views/sql/plan
+where    qblock_name like 'SET%'
+group by operation, options
+order by count(*) desc;
+code }
+
+}
+{ SET$
+
+  The following example show an SQL statement with a `SET$` in a qblock name:
+code {
+create table tq84_A (nm number, tx varchar2(10));
+create table tq84_B (nm number, tx varchar2(10));
+create table tq84_C (nm number, tx varchar2(10));
+
+explain plan for
+   select nm, tx from tq84_A union all
+   select nm, tx from tq84_B union all
+   select nm, tx from tq84_c
+;
+
+column op          format a30
+column object_name format a10
+column qblock_name format a10
+select
+   lpad(' ', depth*2) || operation || ' ' || options op,
+   object_name,
+   qblock_name
+from
+   plan_table;
+
+--
+-- SELECT STATEMENT
+--   UNION-ALL                               SET$1
+--     TABLE ACCESS FULL          TQ84_A     SEL$1
+--     TABLE ACCESS FULL          TQ84_B     SEL$2
+--     TABLE ACCESS FULL          TQ84_C     SEL$3
+
+
+drop table tq84_C;
+drop table tq84_B;
+drop table tq84_A;
+code }
+
+}

@@ -1,18 +1,25 @@
-$ Oracle PL/SQL: execute immediate
+$ Oracle PL/SQL: EXECUTE IMMEDIATE
 @ execute immediate
 
 `execute immediate` can be used to dynamically execute an → development/databases/Oracle/SQL/statement[SQL statement] that is stored in a variable or a string.
 
-{ into
+{ INTO clause
 
   The `into` clause → development/databases/Oracle/SQL/select[selects] values *into* variables:
 
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/into.plsql||
 
-}
-{ using out
+  { INTO ROWTYPE
 
-  `using out` transfers data that is evaluated in an execute immediate statement out to variables:
+    Instead of listing each individual variable separatly, the → development/databases/Oracle/PL-SQL/record#ora-record-rowtype[`%rowtype`] idiom can be used to select all values of a row:
+
+    gh|Oracle-Patterns|/PL-SQL/execute_immediate/into_rowtype.plsql||
+
+  }
+}
+{ USING OUT clause
+
+ `using out` transfers data that is evaluated in an `execute immediate` statement out to variables:
 
   Example 1:
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_out.plsql||
@@ -21,34 +28,41 @@ $ Oracle PL/SQL: execute immediate
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_out_2.plsql||
 
 }
-{ into rowtype
-
-  Instead of listing each individual variable separatly, the → development/databases/Oracle/PL-SQL/record#ora-record-rowtype[`%rowtype`] idiom can be used to select all values of a row:
-
-  gh|Oracle-Patterns|/PL-SQL/execute_immediate/into_rowtype.plsql||
-
-}
-{ using in out
+{ USING IN OUT clause
 
   With `using in out`, it is possible to transfer values into and out from an `execute immediate` statement. Thus, it combines `into` and `using out`.
 
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_in_out.plsql||
 
+  { USING OUT into a nested type #exec-immediate-nested-table
+
+    The following example fills and returns a → development/databases/Oracle/PL-SQL/collection-types/nested-table[nested table].
+
+    gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_out_nested_type.plsql||
+
+  }
+  { Filling a nested table (using .extend)
+
+    When using → development/databases/Oracle/PL-SQL/collection-types#plsql-coll-types-methods[collection methods] such as `.extend`, the `.extend` must be separated by a space
+    from the bind variable:
+
+    gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_in_out_nested_type_extend.plsql||
+
+  }
+
 }
-{ using in out nested type extend
+{ Insert statement returning values
 
-  gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_in_out_nested_type_extend.plsql||
-
-}
-{ using out (nesteed type)
-
-  gh|Oracle-Patterns|/PL-SQL/execute_immediate/using_out_nested_type.plsql||
+  The following example creates a → development/databases/Oracle/objects/tables with an → development/databases/Oracle/objects/tables/columns/identity[identity column] and then
+  inserts a record with `execute immedate` using the `out` clause to return the generated value of the identity column and the → development/databases/Oracle/SQL/data-types/rowid
+  of the inserted record into two variables:
+  gh|Oracle-Patterns|/PL-SQL/execute_immediate/select-returning-values.plsql||
 
 }
-{ select statements
+{ Select statements
 
   In order for a → development/databases/Oracle/SQL/select[`select`] statement to be executed with `execute immediate`, at least one of the *into clause* or *bulk collect into clause* must be specifed.
-  -
+
   Thus, the following statement does not increase the sequence `tq84_seq` because the select statement is not exectued:
 code {
 begin
@@ -61,7 +75,7 @@ code }
 
 sa:
 
-  In a stored procedure that is defined with `→ development/databases/Oracle/PL-SQL/authid definer`, exectuting an 
+  In a stored procedure that is defined with `→ development/databases/Oracle/PL-SQL/authid definer`, exectuting an
   → development/databases/Oracle/SQL/session-system-control/alter-session/current_schema[`alter session set current_schema = …`] with `execute immediate`
   does not affect the scope in which `execute immediate` is executed, but it does if the procedure is defined with `authid current_schema`,
   see → development/databases/Oracle/PL-SQL/authid#authod-exec-immediate[this example] and → development/databases/Oracle/SQL/statement/nouns/session/alter/set/current_schema/execute-immediate[this research]).
