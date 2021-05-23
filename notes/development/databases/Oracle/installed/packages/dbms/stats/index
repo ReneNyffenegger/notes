@@ -1,13 +1,31 @@
 $ Oracle: DBMS_STATS
 @ dbms_stats
 
-`dbms_stats` is used to update and manage table and index statistics which help the → development/databases/Oracle/optimizer[optimizer] to estimate the costs of different
+`dbms_stats` is used to update and manage table and index → development/databases/Oracle/optimizer/statistics[statistics]
+which help the → development/databases/Oracle/optimizer[optimizer] to estimate the costs of different
 → development/databases/Oracle/SQL/statement/execution/plan[execution plans].
 
 After gathering such statistics, their values can be queried in the → development/databases/Oracle/installed/data-dictionary in several views, for example
 → development/databases/Oracle/installed/data-dictionary/tab/statistics[`all_tab_statistics`].
 
+{ Parameter NO_INVALIDATE #dbms_stats-no_invalidate
+
+  The parameter `no_invalidate` controls whether → development/databases/Oracle/SQL/cursor[Cursors] are invalided when `dbms_stats` is used to modify
+  statistics.
+  -
+ `false` invalidates them, `true` does invalide them, `null` lets Oracle choose if it will or won't invalidate them.
+
+  When pagging `null`, it seems that the current (19c) implementation does not invalidate these statistics for 5 hours (see Dani Schnider's Blog: → https://danischnider.wordpress.com/2015/01/06/avoid-dbms_stats-auto_invalidate-in-etl-jobs/[Avoid dbms_stats.auto_invalidate in ETL jobs]).
+  -
+  This period can apparently be changed with the → development/databases/Oracle/adminstration/init-parameters[`_optimizer_invalidation_period` init parameter]
+
+
+}
+
 { Functions and procedures
+
+  Oracle's documentation on `dbms_stats` says
+ *Most procedures in this package commit the current → development/databases/Oracle/architecture/transaction, perform the operation, and then commit again.*
 
   table { ll
 
@@ -37,7 +55,7 @@ After gathering such statistics, their values can be queried in the → developm
    `create_advisor_task` ☰
    `create_extended_stats` ☰
    `create_extended_stats` ☰
-   `create_stat_table` ☰
+   `create_stat_table`, `drop_stat_table` ☰ Create or drop a *user statitics table*
    `delete_column_stats` ☰
    `delete_database_prefs` ☰
    `delete_database_stats` ☰
@@ -57,7 +75,6 @@ After gathering such statistics, their values can be queried in the → developm
    `diff_table_stats_in_stattab` ☰
    `drop_advisor_task` ☰
    `drop_extended_stats` ☰
-   `drop_stat_table` ☰
    `execute_advisor_task` ☰
    `export_column_stats` ☰
    `export_database_prefs` ☰
@@ -73,7 +90,7 @@ After gathering such statistics, their values can be queried in the → developm
    `export_system_stats` ☰
    `export_table_prefs` ☰
    `export_table_stats` ☰
-   `flush_database_monitoring_info` ☰ Flush in-mmory monitoring information to the → development/databases/Oracle/installed/data-dictionary.
+    → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/database_monitoring_info/flush[`flush_database_monitoring_info`] ☰ Flush in-memmory monitoring information to the → development/databases/Oracle/installed/data-dictionary.
    `gather_database_stats` ☰
    `gather_database_stats_job_proc` ☰
    `gather_dictionary_stats` ☰
@@ -86,14 +103,14 @@ After gathering such statistics, their values can be queried in the → developm
    → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[`gather_table_stats`] ☰
    `gather_table_stats_func` ☰
    `generate_index_stats` ☰
-   `generate_stats` ☰ deprecated in favor of `gather_index_stats`k
+   `generate_stats` ☰ Generate statistics for objects that are derived from objects that have a certain amount of statistics. Deprecated in favor of `gather_index_stats`
    `gen_selmap` ☰
    `get_advisor_opr_filter` ☰
    `get_advisor_recs` ☰
    `get_column_stats` ☰
    `get_compatible` ☰
    `get_index_stats` ☰
-   `get_param` ☰ Deprecated in favor of `get_prefs`
+   → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/param/get[`get_param`] ☰ Deprecated in favor of `get_prefs`
    `get_prefs` ☰
    `get_row_count_estimate` ☰
    `get_stats_history_availability` ☰
@@ -123,11 +140,6 @@ After gathering such statistics, their values can be queried in the → developm
    `merge_stats_partition_exchange` ☰
    `postprocess_indstats` ☰
    `postprocess_stats` ☰
-   `prepare_column_values` ☰
-   `prepare_column_values` ☰
-   `prepare_column_values` ☰
-   `prepare_column_values` ☰
-   `prepare_column_values` ☰
    `prepare_column_values` ☰
    `prepare_column_values_nvarchar` ☰
    `prepare_column_values_rowid` ☰

@@ -1,12 +1,54 @@
-$ dbms_support
+$ Oracle: DBMS_SUPPORT
+@ dbms_support
 
 `dbms_support` needs to be installed manually with → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dbmssupp_sql[`dbmssupp.sql`] (which is found
-in the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin[`$ORACLE_HOME/rdbms/admin`] directory).
--
+in the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin[`$ORACLE_HOME/rdbms/admin`] directory):
+code {
+SQL> @?/rdbms/admin/dbmssupp
+code }
+
+
 After installing `dbms_support`, only → development/databases/Oracle/users-roles/users/oracle-maintained/sys has access to it. In order for other users to be able to use it, they need to be granted access:
 code {
 grant execute on dbms_support to rene;
 code }
+
+{ Functions and procedures
+
+  table { ll
+    → #dbms_support-mysid[`mysid`] ☰
+    `package_version  ` ☰
+    `start_trace` ☰
+    `start_trace_in_session` ☰
+    `stop_trace` ☰
+    `stop_trace_in_session` ☰
+  table }
+
+}
+
+{ Starting a diagnostic trace #dbms_support-start-trace
+
+  Event 10046, level 12
+code {
+exec dbms_support.start_trace( binds=>true , waits=>true);
+code }
+
+  Event 10046, level 1, in another → development/databases/Oracle/architecture/session
+code {
+exec dbms_support.start_trace_in_session (sid => 1802, serial=>54321)
+code }
+
+  Stop trace:
+code {
+exec dbms_support.stop_trace
+exec dbms_support.stop_trace_in_session(1802, 54321)
+code }
+
+   Tracing (also for events different than 10046) also be set with
+   → development/databases/Oracle/installed/packages/dbms/system/api/set_ev[`dbms_system.set_ev`] or
+   `alter session set events …`.
+
+}
 
 { mysid #dbms_support-mysid
 

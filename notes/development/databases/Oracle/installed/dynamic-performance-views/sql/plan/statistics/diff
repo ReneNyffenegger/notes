@@ -1,0 +1,88 @@
+$ Structural differences between V$SQL_PLAN_STATISTICS and V$SQL_PLAN_STATISTICS_ALL
+
+code {
+with a as (select * from dba_tab_columns where owner = 'SYS' and table_name = 'V_$SQL_PLAN_STATISTICS'),
+     b as (select * from dba_tab_columns where owner = 'SYS' and table_name = 'V_$SQL_PLAN_STATISTICS_ALL')
+select
+     coalesce(a.column_name, b.column_name)          col_name,
+     case when a.column_id is not null then 'X' end  in_a,
+     case when b.column_id is not null then 'X' end  in_b
+from
+     a                full outer join
+     b on a.column_name = b.column_name
+order by
+    coalesce (a.column_name, b.column_name);
+
+-- ACCESS_PREDICATES          X
+-- ACTIVE_TIME                X
+-- ADDRESS                 X  X
+-- BYTES                      X
+-- CARDINALITY                X
+-- CHILD_ADDRESS           X  X
+-- CHILD_NUMBER            X  X
+-- CON_DBID                   X
+-- CON_ID                  X  X
+-- COST                       X
+-- CPU_COST                   X
+-- CR_BUFFER_GETS          X  X
+-- CU_BUFFER_GETS          X  X
+-- DEPTH                      X
+-- DISK_READS              X  X
+-- DISK_WRITES             X  X
+-- DISTRIBUTION               X
+-- ELAPSED_TIME            X  X
+-- ESTIMATED_ONEPASS_SIZE     X
+-- ESTIMATED_OPTIMAL_SIZE     X
+-- EXECUTIONS              X  X
+-- FILTER_PREDICATES          X
+-- FULL_PLAN_HASH_VALUE    X  X
+-- HASH_VALUE              X  X
+-- ID                         X
+-- IO_COST                    X
+-- LAST_CR_BUFFER_GETS     X  X
+-- LAST_CU_BUFFER_GETS     X  X
+-- LAST_DEGREE                X
+-- LAST_DISK_READS         X  X
+-- LAST_DISK_WRITES        X  X
+-- LAST_ELAPSED_TIME       X  X
+-- LAST_EXECUTION             X
+-- LAST_MEMORY_USED           X
+-- LAST_OUTPUT_ROWS        X  X
+-- LAST_STARTS             X  X
+-- LAST_TEMPSEG_SIZE          X
+-- MAX_TEMPSEG_SIZE           X
+-- MULTIPASSES_EXECUTIONS     X
+-- OBJECT#                    X
+-- OBJECT_ALIAS               X
+-- OBJECT_NAME                X
+-- OBJECT_NODE                X
+-- OBJECT_OWNER               X
+-- OBJECT_TYPE                X
+-- ONEPASS_EXECUTIONS         X
+-- OPERATION                  X
+-- OPERATION_ID            X  
+-- OPTIMAL_EXECUTIONS         X
+-- OPTIMIZER                  X
+-- OPTIONS                    X
+-- OTHER                      X
+-- OTHER_TAG                  X
+-- OTHER_XML                  X
+-- OUTPUT_ROWS             X  X
+-- PARENT_ID                  X
+-- PARTITION_ID               X
+-- PARTITION_START            X
+-- PARTITION_STOP             X
+-- PLAN_HASH_VALUE         X  X
+-- POLICY                     X
+-- POSITION                   X
+-- PROJECTION                 X
+-- QBLOCK_NAME                X
+-- REMARKS                    X
+-- SEARCH_COLUMNS             X
+-- SQL_ID                  X  X
+-- STARTS                  X  X
+-- TEMP_SPACE                 X
+-- TIME                       X
+-- TIMESTAMP                  X
+-- TOTAL_EXECUTIONS           X
+code }

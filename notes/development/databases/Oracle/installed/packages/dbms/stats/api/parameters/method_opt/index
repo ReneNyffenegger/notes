@@ -1,0 +1,49 @@
+$ DBMS_STATS.GATHER_xxx_STATS: parameter METHOD_OPT
+
+The value of `method_opt` allows sets the method of gathering options for for all, all hidden or all indexed columns like so:
+code {
+FOR ALL [INDEXED | HIDDEN] COLUMNS [size_clause]
+code }
+
+When calling → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[`gather_table_stats`], the value of the parameter accepts either the `FOR ALL …` option or an option that more
+narrowly specifies the columns to be analyzed:
+code {
+FOR COLUMNS [column_clause] [size_clause]
+code }
+
+In other words, The `FOR COLUMNS …` option cannot be specified when calling either of
+  • `gather_dictionary_stats`
+  • `gather_database_stats`
+  • `gather_schema_stats`
+
+{ Column clause
+
+  `column_clause` is defined as
+code {
+column_name | extension name | extension
+code }
+
+}
+{ Size clause
+
+  `size_clause` is defined as
+code {
+SIZE { nof_hist_buckets | REPEAT | AUTO | SKEWONLY }
+code }
+
+  `nof_hist_buckets` specifies the number of histogram buckets to be created and must be between 1 and 2048.
+
+  `REPEAT` indicates that histograms must only be collected on columns that alread have histograms.
+
+  `AUTO` lets Oracle decide whether histograms should be collected.
+
+  `SKEWONLY` also lets Oracle decide whether histograms should be collected. It is not entirely clear to me what the difference between `AUTO` and `SKEWONLY` is.
+
+}
+
+
+sa:
+
+code {
+select → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/param/get[dbms_stats.get_param]('method_opt') from dual;
+code }

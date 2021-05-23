@@ -1,0 +1,69 @@
+$ Oracle: use EXPLAIN PLAN to find objects whose statistics weren't taken for a certain amount of time
+
+code {
+explain plan
+   set statement_id = 'abc'
+for
+   select
+      …
+   from
+     …;
+code }
+
+
+code {
+select
+   count(*)           cnt,
+   pln.object_owner,
+   pln.object_name,
+   pln.object_type,
+   pln.optimizer,
+   coalesce(tas.last_analyzed, ins.last_analyzed) last_analyzed,
+   coalesce(tas.stale_stats  , ins.stale_stats  ) stale_stats  ,
+   coalesce(tas.user_stats   , ins.user_stats   ) user_stats   ,
+   coalesce(tas.num_rows     , ins.num_rows     ) num_rows     ,
+   coalesce(tas.sample_size  , ins.sample_size  ) sample_size  ,
+   tas.blocks,
+   tas.empty_blocks,
+   tas.chain_cnt,
+   ins.blevel,
+   ins.leaf_blocks,
+   ins.distinct_keys,
+   ins.avg_leaf_blocks_per_key,
+   ins.table_name                    table_of_index
+from
+   plan_table         pln                                                 left join
+   all_tab_statistics tas on  pln.object_type    ='TABLE'           and
+                              tas.table_name     = pln.object_name  and
+                              tas.owner          = pln.object_owner and
+                              tas.partition_name is null                  left join
+   all_ind_statistics ins on  pln.object_type    ='INDEX'           and
+                              ins.index_name     = pln.object_name  and
+                              ins.owner          = pln.object_owner and
+                              ins.partition_name is null
+where 
+   pln.object_type is not null     and
+   pln.object_type not in ('VIEW') and
+   statement_id = 'abc'
+group by   
+   pln.object_owner,
+   pln.object_name,
+   pln.object_type,
+   pln.optimizer,
+   coalesce(tas.last_analyzed, ins.last_analyzed),
+   coalesce(tas.stale_stats  , ins.stale_stats  ),
+   coalesce(tas.user_stats   , ins.user_stats   ),
+   coalesce(tas.num_rows     , ins.num_rows     ),
+   coalesce(tas.sample_size  , ins.sample_size  ),
+   tas.blocks,
+   tas.empty_blocks,
+   tas.chain_cnt,
+   ins.blevel,
+   ins.leaf_blocks,
+   ins.distinct_keys,
+   ins.avg_leaf_blocks_per_key,
+   ins.table_name
+order by
+   coalesce(tas.last_analyzed, ins.last_analyzed)
+;  
+code }

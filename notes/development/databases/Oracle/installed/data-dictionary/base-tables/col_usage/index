@@ -1,0 +1,69 @@
+$ Oracle: COL_USAGE$
+
+`COL_USAGE$` stores data that is required by → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`] to determine for which columns histograms need to be created when
+gathering → development/databases/Oracle/optimizer/statistics.
+
+`COL_USAGE$` is maintained by → development/databases/Oracle/architecture/processes/background/SMON. Apparently, SMON can be triggered to update the table by calling
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/database_monitoring_info/flush
+end;
+/
+code }
+
+code {
+select
+   own.name owner,
+   obj.name obj_name,
+   col.name col_name,
+   col.type#,
+   col.length,
+   col.precision#,
+   col.scale,
+   col.null$,
+   cou.equality_preds,
+   cou.equijoin_preds,
+   cou.nonequijoin_preds,
+   cou.range_preds,
+   cou.like_preds,
+   cou.null_preds,
+   cou.timestamp,
+   cou.flags
+/* col.deflength,
+   col.default$,
+   col.intcol#,
+   col.property,
+   col.charsetid,
+   col.charsetform,
+   col.evaledition#,
+   col.unusablebefore#,
+   col.unusablebeginning#,
+   col.acdrrescol#,
+   col.collid,
+   col.collintcol#,
+   col.fixedstorage,
+   col.spare1, col.spare2, col.spare3, col.spare4, col.spare5, col.spare6, col.spare7, col.spare8, col.spare9, col.spare10, col.spare11, col.spare12, col.spare13
+  */
+from
+   sys.obj$       obj                                    join
+   sys.user$      own  on obj.owner# = own.user#         join
+   sys.col$       col  on obj.obj#   = col.obj#     left join
+   sys.col_usage$ cou  on col.obj#   = cou.obj# and
+                          col.col#   = cou.intcol#
+where
+   own.name = 'RENE' and
+   obj.name = 'TQ84_COL_USAGE_TEST';
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/base-tables/col[`col$`]
+
+  `dbms_stats.report_col_usage`
+
+  Compare with `dba_col_usage_statistics`
+
+  Column group usage is recorded in `col_group_usage$`
+  -
+  → development/databases/Oracle/SQL/DML monitoring results are stored in `mon_mods$` and `mon_mods_all$`
+
+  

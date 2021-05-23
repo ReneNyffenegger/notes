@@ -1,0 +1,112 @@
+$ Oracle: PARTOBJ$
+
+`partobj$` has a row per *partitioned object*. The table is crated in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dcore_bsq[`dcore.bsq`].
+
+code {
+create table partobj$ (
+  obj#        number not null,/* object number of partitioned table or index */
+  parttype    number not null,                          /* partitioning type */
+             /* 1 = range, 2 = hash, 3 = system 4 = List, 5 = Ref;           */
+             /* If range/list/hash, subparttype may be non-zero to indicate  */
+             /* type of composite partitioning method.                       */
+             /* see subparttype(spare1) for form of subpartitioning used.    */
+  partcnt     number not null,                       /* number of partitions */
+  partkeycols number not null,      /* number of columns in partitioning key */
+  flags       number,           /* 0x0001 = local index                      */
+                                /* 0x0002 = prefixed index                   */
+                                /* 0x0004 = no-align index                   */
+                                /* 0x0008 = domain index                     */
+                                /* 0x0010 = compressed index                 */
+                                /* 0x0020 = table has ref ptn'ed children    */
+                                /* 0x0040 = table is interval partitioned    */
+                                /* 0x0080 = System managed domain index      */
+                                /* 0x0100 = IOT Top index                    */ 
+                                /* 0x0200 = LOB column index                 */
+                                /* 0x0400 = Tracked Table IOT Top index      */
+                                /* 0x0800 = Segment creation deferred        */
+                                /* 0x1000 = Segment creation immediate       */
+                                /* 0x2000 = indexing off                     */
+                                /* 0x8000 = table is interval subpartitioned */
+                               /* 0x10000 = partition read only              */
+                               /* 0x20000 = table is external                */
+                               /* 0x40000 = table uses json vc partitioning  */
+  defts#      number,                           /* default tablespace number */
+  defpctfree  number not null,                            /* default PCTFREE */
+  defpctused  number not null,          /* default PCTUSED (N/A for indexes) */
+  defpctthres number,               /* default PCTTHRESHOLD (N/A for tables) */
+  definitrans number not null,                           /* default INITRANS */
+  defmaxtrans number not null,                           /* default MAXTRANS */
+  deftiniexts number,                         /* default INITIAL extent size */
+  defextsize  number,                            /* default NEXT extent size */
+  defminexts  number,                                  /* default MINEXTENTS */
+  defmaxexts  number,                                  /* default MAXEXTENTS */
+  defextpct   number,                                 /* default PCTINCREASE */
+  deflists    number not null,                    /* default FREELISTS value */
+  defgroups   number not null,  /* default FREELIST GROUPS (N/A for indexes) */
+  deflogging  number not null,   /* default logging attribute of the object: */
+                              /* 0 - unspecified; 1 - LOGGING; 2 - NOLOGGING */
+  spare1      number,                           /* default BUFFER_POOL value */
+
+  /* 7 bytes of spare2 are currently spoken for */
+  /* byte 0   : subparttype - non-zero implies Composite partitioning */
+  /*            (1 - Range, 2 - Hash, 3 - System, 4 - List); */
+  /* byte 1   : subpartkeycols; */
+  /* bytes 2-3: defsubpartcnt */
+  /* byte 4   : compression attribute of the partition */
+  /*            following bit patterns are possible: */
+  /*            00000000 : Compression not specified */
+  /*            00000001 : Compression enabled for direct load operations */
+  /*            00000010 : Compression disabled      */
+  /*            00000101 : Compression enabled for all operations */
+  /*            00001001 : Archive Compression: level 1 */
+  /*            00010001 : Archive Compression: level 2 */
+  /*            00011001 : Archive Compression: level 3 */
+  /*            00100001 : Archive Compression: level 4 */
+  /*            00101001 : Archive Compression: level 5 */
+  /*            00110001 : Archive Compression: level 6 */
+  /*            00111001 : Archive Compression: level 7 */
+  /* byte 5   : inmemory columnar attributes            */
+  /*            00000000 : imc not specified            */
+  /*            00000001 : imc explicitly enabled       */
+  /*            00000010 : imc explicitly not enabled   */
+  /*            00000100 : imc_mirrormap */
+  /*            00001000 : imc level 1 */
+  /*            00010000 : imc_preload  */
+  /*            00100000 : imc_mapby1  */
+  /*            01000000 : imc_mapby2  */
+  /*            10000000 : imc level 2          */
+  /* byte 6:    00000001 : imc level 3    */            
+  /*            00000010 : imc level 4*/
+  /*            00000100 : duplicate1  */
+  /*            00001000 : duplicate2  */
+  /*            IMC preload priority levels */
+  /*            00010000 : priority NONE */
+  /*            00100000 : priority LOW */
+  /*            01000000 : priority MEDIUM */
+  /*            10000000 : priority HIGH */
+  /* byte 7:    00000001 : priority CRITICAL */
+  spare2      number,                       
+  /* byte 0 of spare3 stores dtydef of partition interval
+   * (either DTYNUM, DTYIYM, or DTYIDS)
+   * byte 1 of spare3 stores dtydef of subpartition interval
+   * (either DTYNUM, DTYIYM, or DTYIDS)
+   * byte 3 of spare3 stores additional imc flags (for svc, order by)
+   * byte 4 of spare3 stores additional compression flags
+   */
+  /* byte 2 of spare3 : cell columnar cache attributes      */
+  /*            00000000 : cellcache not specified          */
+  /*            00000001 : cellcache explicitly enabled     */
+  /*            00000010 : cellcache explicitly not enabled */
+  /*            00000100 : cellcache 12.1.0.2 compat        */
+  /*            00001000 : cellcache comp for query         */
+  /*            00010000 : cellcache comp for capacity      */
+  spare3      number,                                       /* spare column  */
+  definclcol  number,       /* default iot include column # (N/A for tables) */
+  parameters  varchar2(1000),  /* default parameter string for domain index  */
+  interval_str varchar2(1000),                   /* string of interval value */
+  interval_bival raw(200),              /* binary representation of interval */
+  defmaxsize  number,                                  /* default MAXSIZE    */
+  subptn_interval_str varchar2(1000),     /* string of subptn interval value */
+  subptn_interval_bival raw(200)   /* bin. representation of subptn interval */
+)
+code }

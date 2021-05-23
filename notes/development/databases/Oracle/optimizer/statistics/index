@@ -1,4 +1,23 @@
-$ Oracle optimzer statistics
+$ Oracle optimizer statistics
+@ optimizer statistics
+
+Optimizer statistics must not be confused with *performance statistics* which are visible in → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views] (aka *v$ views*).
+
+{ Statistics
+
+  The optimizer relies on the following 4 types of statistics when determining an → development/databases/Oracle/SQL/statement/execution/plan[execution plan] for an
+  → development/databases/Oracle/SQL/statement.
+
+  table { lll
+     ☰ ☰ → development/databases/Oracle/installed/data-dictionary[Data dictionary view]
+    → development/databases/Oracle/objects/tables[Table] statistics ☰ → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] (and how many empty ones), rows and avarage length (bytes) of rows ☰ → development/databases/Oracle/installed/data-dictionary/tab/statistics[`dba_tab_statistics`] etc.
+    → development/databases/Oracle/objects/tables/columns[Column] statistics ☰ Number of distint values («NDV»), number of → development/databases/Oracle/SQL/null[nulls], distribution of data («histogram») and extended statistics ☰ → development/databases/Oracle/installed/data-dictionary/tab/col_statistics[`dba_tab_col_statistics`]
+    → development/databases/Oracle/objects/indexes[Index] statistcs ☰ Number of leaf blocks and index levels; clustering factor ☰ → development/databases/Oracle/installed/data-dictionary/ind/statistics[`dba_ind_statistics`] etc.
+    System statistics ☰ I/O and CPU performance and utilization ☰
+  table }
+
+
+}
 
 { Gathering statistics
 
@@ -25,6 +44,75 @@ $ Oracle optimzer statistics
   The column `stale_stats` in `all_tab_statistics` allows to find → development/databases/Oracle/objects/tables[tables] that have
   → development/databases/Oracle/installed/data-dictionary/tab/statistics/stale-or-no-statistics[no or stale optimizer statistics].
 
+  Tables and clusters that store statistics data include:
+  table { ll
+     `c_obj#_intcol#` ☰
+     `histgrm$` ☰
+     `hist_head$` ☰
+     `tab_stats$` ☰
+     `ind_stats$` ☰
+     `aux_stats$` ☰ an auxiliary table used to store parameter values
+     `cache_stats_1$` ☰ Cache statistics
+     `cache_stats_0$` ☰
+     `association$` ☰ User defined stats associations
+     `ustats$` ☰ User defined stats
+     `stats_target$` ☰ Target list for automated stats collection 
+
+   table }
+  
+  It is also possible to store statistics in a «user-schema». Such statistics have no influence on the → development/databases/Oracle/optimizer[optimizer].
+
+}
+{ TODO
+
+  { Histograms
+
+code {
+drop table tq84_histogram_test;
+
+create table tq84_histogram_test (
+    nm number,
+    tx varchar2(100)
+);
+
+insert into tq84_histogram_test  values (  5, 'A');
+insert into tq84_histogram_test  values (  5, 'B');
+insert into tq84_histogram_test  values (  5, 'C');
+insert into tq84_histogram_test  values (100, 'D');
+insert into tq84_histogram_test  values (100, 'E');
+insert into tq84_histogram_test  values (100, 'F');
+insert into tq84_histogram_test  values (104, 'G');
+insert into tq84_histogram_test  values (104, 'H');
+insert into tq84_histogram_test  values (104, 'I');
+code }
+
+    Query histogram:
+code {
+select
+   own.name owner,
+   obj.name obj_name,
+   col.name col_name,
+   -----------------
+   hgr.bucket,
+   hgr.endpoint,
+   hgr.ep_repeat_count,
+   hgr.epvalue_raw, hgr.epvalue,
+   hgr.savtime,
+   dense_rank() over (partition by own.name, obj.name, col.name order by hgr.savtime desc) savtime_rank
+from
+   sys.obj$       obj                                    join
+   sys.user$      own  on obj.owner# = own.user#         join
+   sys.col$       col  on obj.obj#   = col.obj#     left join
+  "_OPTSTAT_HISTGRM_HISTORY_DEC" hgr on col.obj# = hgr.obj# and
+                                        col.col# = hgr.intcol#
+where
+   own.name = 'RENE'                and
+   obj.name = 'TQ84_HISTOGRAM_TEST' and
+   col.name = 'NM';
+code }
+
+  }
+
 }
 
 sa:
@@ -34,6 +122,8 @@ sa:
   → development/databases/Oracle/installed/packages/dbms/auto_task_admin/api/enable-disable#dbms_auto_task_admin-optimizer-stats-collection[Enabling and disabling]
   automatic optimizer statistics colleciton with → development/databases/Oracle/installed/packages/dbms/auto_task_admin[`dbms_auto_task_admin`].
  
-  → development/databases/Oracle/optimizer/statistics/advisor[Optimzer statistcs advisor]
+  → development/databases/Oracle/optimizer/statistics/advisor[Optimizer statistics advisor]
 
   → development/databases/Oracle/objects/indexes/partitioned/local/vs-ordinary#dbms_stats-gather_stats_local-vs-ordinary-ix[Gathering statistics for «local» and «ordinary» indexes].
+
+  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catmwin_sql[`$ORACLE_HOME/rdbms/admin/catmwin.sql`] defines maintenance window and stats collection job.

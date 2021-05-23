@@ -79,3 +79,49 @@ code {
 
 </other_xml>
 code }
+
+{ Querying other_xml with XPATH expressions
+
+ `other_xml` can be queried with → development/XML/XPath expressions.
+
+code {
+with x as (
+   select xmlType(other_xml) other_xml from v$sql_plan where other_xml is not null
+)
+select 
+   extractvalue(other_xml, '/*/info[@type = "plan_hash"]'                              ) plan_hash,
+   extractvalue(other_xml, '/*/info[@type = "adaptive_plan"]'                          ) adaptive_plan,
+   extractvalue(other_xml, '/*/info[@type = "sql_profile"]'                            ) sql_profile,
+   extractvalue(other_xml, '/*/info[@type = "sql_patch"]'                              ) sql_patch,
+   extractvalue(other_xml, '/*/info[@type = "baseline"]'                               ) baseline,
+   extractvalue(other_xml, '/*/info[@type = "outline"]'                                ) outline,
+   extractvalue(other_xml, '/*/info[@type = "dynamic_sampling"]'                       ) dynamic_sampling,
+   extractvalue(other_xml, '/*/info[@type = "dop"]'                                    ) dop,
+   extractvalue(other_xml, '/*/info[@type = "dop_reason"]'                             ) dop_reason,
+   extractvalue(other_xml, '/*/info[@type = "pdml_reason"]'                            ) pdml_reason,
+   extractvalue(other_xml, '/*/info[@type = "idl_reason"]'                             ) idl_reason,
+   extractvalue(other_xml, '/*/info[@type = "queuing_reason"]'                         ) queuing_reason,
+   extractvalue(other_xml, '/*/info[@type = "px_in_memory"]'                           ) px_in_memory,
+   extractvalue(other_xml, '/*/info[@type = "px_in_memory_imc"]'                       ) px_in_memory_imc,
+   extractvalue(other_xml, '/*/info[@type = "row_shipping"]'                           ) row_shipping,
+   extractvalue(other_xml, '/*/info[@type = "index_size"]'                             ) index_size,
+   extractvalue(other_xml, '/*/info[@type = "result_checksum"]'                        ) result_checksum,
+   extractvalue(other_xml, '/*/info[@type = "cardinality_feedback"]'                   ) cardinality_feedback,
+   extractvalue(other_xml, '/*/info[@type = "performance_feedback"]'                   ) performance_feedback,
+   extractvalue(other_xml, '/*/info[@type = "rely_constraint"]'                        ) rely_constraint,
+   extractvalue(other_xml, '/*/info[@type = "xml_suboptimal"]'                         ) xml_suboptimal,
+   extractvalue(other_xml, '/*/spd/cu'                                                 ) spd_cu,
+   extractvalue(other_xml, '/*/info[@type = "gtt_session_st"]'                         ) gtt_session_st,
+   extractvalue(other_xml, '/*/info[@type = "gather_stats_on_conventional_dml"]'       ) gather_stats_on_cnvtl_dml,
+   extractvalue(other_xml, '/*/info[@type = "optimizer_use_stats_on_conventional_dml"]') opt_use_stats_on_cnvtl_dml,
+   extractvalue(other_xml, '/*/info[@type = "slave_parse"]'                            ) slave_parse,
+   extractvalue(other_xml, '/*/info[@type = "baseline_repro_fail"]'                    ) baseline_repro_fail,
+   extractvalue(other_xml, '/*/info[@type = "cross_shard_query"]'                      ) cross_shard_query,
+   extractvalue(other_xml, '/*/info[@type = "shard_id"]'                               ) shard_id,
+   extract     (other_xml, '/*/hint_usage').getClobVal()
+ from
+   x
+;
+code }
+
+}

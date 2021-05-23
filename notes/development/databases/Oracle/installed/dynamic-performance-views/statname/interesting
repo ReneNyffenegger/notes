@@ -5,18 +5,78 @@ Some interesting statistics that are found in → development/databases/Oracle/i
 table { ll
 
   `db block gets` ☰ Get a → development/databases/Oracle/architecture/database/logical-structures/data-block[data block] in *current mode*, that is the most recent version of it. Typically used in → development/databases/Oracle/SQL/DML.
-  `consistent gets` ☰ Get a → development/databases/Oracle/architecture/database/logical-structures/data-block[data block] that is *consistent with a → development/databases/Oracle/architecture/transaction/SCN* (aka referred to as *point in time* or *read consistent* mode). Typically used in *queries* (`select` statements) to guarantee *data consitence*. A consistent get may or may not involve reconstruction of a data block.
+  `consistent gets` ☰ Get a → development/databases/Oracle/architecture/database/logical-structures/data-block[data block] that is *consistent with a → development/databases/Oracle/architecture/transaction/SCN* (aka referred to as *point in time* or *read consistent* mode). Typically used in *queries* (`select` statements) to guarantee *data consistence*. A consistent get may or may not involve reconstruction of a data block.
   `session logical reads` ☰ Sum of `db block gets` plus `consistent gets`
   `consistent changes` ☰ Number of times rollback was applied to create a consistent read
-  `physical reads` ☰ Number of blocks that could not be read from the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache.
+  `physical reads` ☰ Number of blocks that were read from disk because they were not cachaed in the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache. This value is `physical reads direct` plus the reads into the buffer cache.
   `rows processed` ☰
   `recursive calls` ☰ Records operations that are made by Oracle «behind the scenes» that are necessary to execute a query
   `sorts (memory)` ☰
   `sorts (disk)` ☰ Sort operations that required at least on disk write
   `sorts (rows)` ☰
-  `redo size` ☰
+  `redo size` ☰ Amount of → development/databases/Oracle/architecture/database/redo-data in bytes
   `SQL*Net roundtrips to/from client` ☰
   `bytes sent via SQL*Net to client` ☰
   `bytes received via SQL*Net from client` ☰
 
 table }
+
+{ Select values in one record
+
+  Select those values in one record
+code {
+select
+   max (case when stat.name = 'db block gets'                          then value end) db_block_gets,
+   max (case when stat.name = 'consistent gets'                        then value end) consistent_gets,
+   max (case when stat.name = 'session logical reads'                  then value end) session_logical_reads,
+   max (case when stat.name = 'consistent changes'                     then value end) consistent_changes,
+   max (case when stat.name = 'physical reads'                         then value end) physical_reads,
+   max (case when stat.name = 'rows processed'                         then value end) rows_processed,
+   max (case when stat.name = 'sorts (memory)'                         then value end) sorts_memory,
+   max (case when stat.name = 'sorts (disk)'                           then value end) rows_disk,
+   max (case when stat.name = 'sorts (rows)'                           then value end) sorts_rows,
+   max (case when stat.name = 'redo size'                              then value end) redo_size,
+   max (case when stat.name = 'SQL*Net roundtrips to/from client'      then value end) net_roundtrips_to_from_client,
+   max (case when stat.name = 'bytes sent via SQL*Net to client'       then value end) bytes_sent_via_net_to_client,
+   max (case when stat.name = 'bytes received via SQL*Net from client' then value end) bytes_rcvd_via_net_from_client
+from
+   v$sesstat  sest                                         join
+   v$statname stat on sest.statistic# = stat.statistic#
+where
+   sest.sid = sys_context('userenv', 'sid')
+;
+code }
+
+}
+{ Summing up values
+
+  Some statistical values combine (sum up) values of other statistics.
+
+  For example
+    • `session logical reads` = `db block gets` + `consistent gets`
+    • `physical reads` = `physical reads cache` + `physical reads direct`
+
+  This is demonstrated with the following query where the value of the returned `session_logical_read` should be the
+  same as `db_block_plus_consistent_gets` and `phys_reads` should be the same as `phys_read_cache_plus_direct`:
+code {
+select
+   sum(case when name in ('session logical reads'     ) then value end ) session_logical_read,
+   sum(case when name in ('db block gets',
+                          'consistent gets'           ) then value end ) db_block_plus_consistent_gets,
+   sum(case when name in ('physical reads'            ) then value end ) phys_reads,           
+   sum(case when name in ('physical reads cache',      
+                          'physical reads direct'     ) then value end ) phys_read_cache_plus_direct
+from (
+   select
+      nam.name,
+      sum(sst.value) value
+   from
+      v$sesstat  sst  join
+      v$statname nam on sst.statistic# = nam.statistic#
+   group by
+      nam.name
+)
+;
+code }
+
+}

@@ -1,0 +1,48 @@
+$ Oracle PLAN_TABLE: column SEARCH_COLUMNS
+
+The value of `search_columns` in the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] corresponds to the number of index columns that can be used to match a predicate.
+
+code {
+create table tq84_abc (
+   val     number,
+   col_1   varchar2(10),
+   col_2   varchar2(10),
+   col_3   varchar2(10),
+   col_4   varchar2(10)
+);
+
+create index tq84_abc_ix on tq84_abc(col_1, col_2, col_3, col_4);
+
+explain plan
+   set statement_id = 'abc'
+for
+   select *
+   from
+      tq84_abc
+   where
+   --
+   -- Use only three columns of the available four
+   -- in the index:
+   --
+      col_1 = 'A' and
+      col_2 = 'B' and
+      col_3 = 'C'
+;
+
+select
+   lpad(' ', depth*2) || operation || ' ' || options op,
+   object_name,
+   search_columns
+from
+   plan_table
+where
+   statement_id = 'abc'
+order by
+   id;
+
+-- OP                                     OBJECT_NAME   SEARCH_COLUMNS
+-- -------------------------------------  ------------  --------------
+-- SELECT STATEMENT
+--   TABLE ACCESS BY INDEX ROWID BATCHED  TQ84_ABC
+--     INDEX RANGE SCAN                   TQ84_ABC_IX   3
+code }

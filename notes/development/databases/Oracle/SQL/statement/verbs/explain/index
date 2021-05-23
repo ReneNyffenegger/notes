@@ -1,13 +1,60 @@
-$ Oracle SQL: explain plan
+$ Oracle SQL: EXPLAIN PLAN
+@ explain plan
+
+Whenever Oracle → development/databases/Oracle/SQL/statement/execution[executes] an → development/databases/Oracle/SQL/statement, it has to build (compile)
+an → development/databases/Oracle/SQL/statement/execution/plan[plan] that specifies how and in what order (→ development/databases/Oracle/SQL/join[join] methods)
+→ development/databases/Oracle/objects/tables[tables] and → development/databases/Oracle/objects/indexes[indexes] are accessed.
+
+Oracle's SQL statement `EXPLAIN PLAN` can be given an SQL statement in order for a user to query such an execution plan:
+code {
+EXPLAIN PLAN FOR <sql statement>;
+code }
 
 By default, `explain plan` writes the result into a table named → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
-However, the destination table can changed with the `into …` clause, see below.
+However, the destination table can changed with the `into …` clause, see → #ora-explain-plan-result-table[below]. It is also possible to give a plan
+a *statement id* so that records that belong to a plan can be identified (see → #ora-explain-plan-stmt-id[here]).
 -
 It turns out that the installation script → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`catplan.sql`] creates a public synonym `plan_table` that points to a
 → development/databases/Oracle/objects/tables/types/global-temporary[global temporary table (GGT)] named `plan_table$`. Because `plan_table$` is a GTT, every session has its own version of the contents of `plan_table$`.
 
 `explain plan` is a → development/databases/Oracle/SQL/DML[DML statement], so the modifications made by this statement are not → development/databases/Oracle/SQL/TCL/commit[commited].
 
+{ Show execution plan with DBMS_XPLAN
+
+The result that is written into the plan table can be displayed with → development/databases/Oracle/installed/packages/dbms/xplan#dbms_xplan-display[`dbms_xplan.display`]):
+code {
+SQL> explain plan for select * from dual connect by level < 10;
+SQL> select * from table(dbms_xplan.display);
+…
+-------------------------------------------------------------------------------------
+| Id  | Operation                    | Name | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |      |     1 |     2 |     2   (0)| 00:00:01 |
+|*  1 |  CONNECT BY WITHOUT FILTERING|      |       |       |            |          |
+|   2 |   TABLE ACCESS FULL          | DUAL |     1 |     2 |     2   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------
+code }
+
+}
+{ Show execution plan with a SELECT statement
+
+  It is also possible to query a plan directly from the `plan_table`. This boils down to a variant of
+code {
+select
+   lpad(' ', depth*2) || operation || ' ' || options op,
+   object_name
+from
+   plan_table
+where
+   plan_id = (select max(plan_id) from plan_table)
+order by
+   id
+;
+code }
+
+  Of course, in the real world, more columns that are found in `plan_table` would probably be added.
+
+}
 { Specifying a statement id #ora-explain-plan-stmt-id
 
   Oracle allows to specify a *statement id* when a plan is explained. The value of this statement is found in the column `statement_id` of the
@@ -22,8 +69,10 @@ for
       tab;
 code }
 
+  If the `set statement_id` clause is not used, `statement_id` is assigned from → development/databases/Oracle/objects/sequences `SYS.ORA_PLAN_ID_SEQ$`.
+
 }
-{ Specifying a result table
+{ Specifying a result table #ora-explain-plan-result-table
  
   It is also possible to specify a result table that is different from `plan_table`:
 code {
@@ -37,6 +86,14 @@ for
    from
       tab;
 code }
+
+}
+{ Caveats
+
+ `EXPLAIN PLAN` assumes bind variables to be → development/databases/Oracle/SQL/data-types/varchar2[a `varchar2` data type] and accordingly calulates an execution plan.
+
+  If then the same statement is executed but with the bind variables bound to different data types, Oracle might choose to execute the statement with a different
+  plan.
 
 }
 
