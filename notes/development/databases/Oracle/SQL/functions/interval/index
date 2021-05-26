@@ -25,7 +25,34 @@ code }
 }
 { TO_DSINTERVAL and TO_YMINTERVAL
 
- `TO_DSINTERVAL` and `TO_YMINTERVAL` convert a string argument in SQL interval or ISO 8601:2004 format to an `interval`.
+ `TO_DSINTERVAL` and `TO_YMINTERVAL` convert a string argument in *SQL interval* or *ISO 8601:2004* format to an `interval`.
+
+  The *SQL interval format* looks like so
+code {
+ dd hh:mi:ss
+ dd hh:mi:ss.fff
++dd hh:mi:ss.fff
+-dd hh:mi:ss.fff
+ etc.
+code }
+  
+ The *ISO 8601 format* starts with `P` or `-P`.
+ -
+ The number of days (if specified) is followed by a `D`.
+ -
+ If either of hours, minutes or seconds are specified, a `T` follows the `D` or the `P`.
+ -
+ Hours, if any, are followed by an `H`, minutes, if any, by an `M` and (fractional) seconds, if any, by an `S`.
+  
+code {
+select
+    to_dsinterval('12 5:13:28.03'   ) sql_format,     -- 12 days, 5 hours, 13 minutes, 28.03 seconds
+    to_dsinterval('P12DT5H13M28.03S') iso_format,     -- same thing, but ISO format
+    to_dsinterval('P18D'            ) iso_18_days,    -- exactly 18 days
+    to_dsinterval('PT12S'           ) iso_12_seconds  -- exactly 12 seconds
+from
+    dual;
+code }
 
 }
 
