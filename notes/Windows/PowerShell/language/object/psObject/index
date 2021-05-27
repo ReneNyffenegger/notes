@@ -1,26 +1,74 @@
-$ PowerShell: the psObject object
+$ PowerShell: the PSObject object
 
-I use → Windows/PowerShell/command-inventory/noun/object/new[`new-object`] to create a instance of a → Microsoft/dot-net `System.Int64` class:
-gh|about-PowerShell|/language/object/psObject/create-object.ps1||
+{ Under the hood, all PowerShell objects are PSObject objects
 
-With → Windows/PowerShell/command-inventory/noun/member/add[`add-member`], it's possible to add user defined members to `$obj`:
-gh|about-PowerShell|/language/object/psObject/add-member.ps1||
+  All → Windows/PowerShell/language/object[objects] that are created in a  → Windows/PowerShell/session[PowerShell session],
+  be they → Microsoft/dot-net/namespaces-classes[.NET types], → Windows/development/COM objects or
+  the explicit «void» object `PSCustomObject`, are wrapped into a PSObject, which itself is implemented in the .NET type
+  → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`].
+  
+  These *PSObjects* might be stored in a → Windows/PowerShell/language/variable (to name them) or flow (anonymously) through a
+  → Windows/PowerShell/pipeline[pipeline].
 
-How is it possible to add members to a .NET class?
+  In order to demonstrate of wrapping objects into a PSObject, I create a few objects …
+code {
+$forty_two  = 42
+$now        = new-object  System.DateTime
+$com_obj    = new-object -comObject shell.application
+$a_process  =(get-process)[0]
+$void_obj   = new-object  psCustomObject
+code }
 
-Answer: members can be added because of the → Windows/PowerShell/language/object/Extended-Type-System[Extended Type System (ETS)].
+  … and assign them to an → Windows/PowerShell/language/type/array so that I can iterate over each element of them:
+code {
+$all_objects = $forty_two, $now, $com_obj, $a_process, $void_obj
+code }
 
-Extended members that were added to a object can be displayed with `get-member -view extended`:
-gh|about-PowerShell|/language/object/psObject/obj-get-extended-members.ps1||
+  First, I have the object's types printed. I also print the type of the an object's special member `psObject` which directly accesses the psObject object that wraps the underlying object:
+code {
+$all_objects | foreach-object {
+   "$($_.psObject.GetType().FullName):  $($_.GetType().FullName)"
+}
+code }
 
-Technically, the .NET class is wrapped into a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`] object. This `PSObject` object is referenced by `$obj.psObject`:
-gh|about-PowerShell|/language/object/psObject/psObject.ps1||
+  Which prints
+code {
+System.Management.Automation.PSObject:  System.Int32
+System.Management.Automation.PSObject:  System.DateTime
+System.Management.Automation.PSObject:  System.__ComObject
+System.Management.Automation.PSObject:  System.Diagnostics.Process
+System.Management.Automation.PSObject:  System.Management.Automation.PSCustomObject
+code }
 
-The `PSObject` object has a member `Properties` which stores the extended values:
-gh|about-PowerShell|/language/object/psObject/psObject-properties.ps1||
+  This dichthomy of an object being both, a PSObject object *and* a .NET (or COM) type that is pointed at by the PSObject, allows for some interesting features in PowerShell, for
+  example adding members to an object which is demonstrated below.
 
-Finally, there is also the `BaseObject` member which refers to the `System.Int64` that we created at the beginning:
-gh|about-PowerShell|/language/object/psObject/psObject-baseObject.ps1||
+}
+{ Adding (extended) members to a PowerShell object
 
+  I use → Windows/PowerShell/command-inventory/noun/object/new[`new-object`] to create an instance of a → Microsoft/dot-net `System.Int64` class:
+  gh|about-PowerShell|/language/object/psObject/create-object.ps1||
+
+  With → Windows/PowerShell/command-inventory/noun/member/add[`add-member`], it's possible to add user defined members to `$obj`:
+  gh|about-PowerShell|/language/object/psObject/add-member.ps1||
+
+  How is it possible to add members to a .NET class?
+
+  Answer: members can be added because of the → Windows/PowerShell/language/object/Extended-Type-System[Extended Type System (ETS)]: the members are not added to the
+  .NET object but to the PSObject that wraps the .NET object.
+
+  Extended members that were added to a object can be displayed with `get-member -view extended`:
+  gh|about-PowerShell|/language/object/psObject/obj-get-extended-members.ps1||
+
+  Technically, the .NET class is wrapped into a → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSObject[`System.Management.Automation.PSObject`] object. This `PSObject` object is referenced by `$obj.psObject`:
+  gh|about-PowerShell|/language/object/psObject/psObject.ps1||
+
+  The `PSObject` object has a member `Properties` which stores the extended values:
+  gh|about-PowerShell|/language/object/psObject/psObject-properties.ps1||
+
+  Finally, there is also the `BaseObject` member which refers to the `System.Int64` that we created at the beginning:
+  gh|about-PowerShell|/language/object/psObject/psObject-baseObject.ps1||
+
+}
 sa:
   → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCustomObject[`System.Management.Automation.PSCustomObject`]
