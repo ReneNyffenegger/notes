@@ -1,6 +1,32 @@
 $ Oracle: DBMS_CRYPTO.HASH
 
-gh|Oracle-patterns|/Installed/dbms/crypto/hash/sha-256.sql||
+The `dbms_crypto.hash` function takes two parameters:
+  • a → development/databases/Oracle/SQL/data-types/raw[`raw`], → development/databases/Oracle/SQL/data-types/lob[`blob` or `clob`] and
+  • a hash-type (one of the `dbms_crypto.hash_*` constants)
+
+The function creates the hash value for the first parameter as per the desired hash and returns a → development/databases/Oracle/SQL/data-types/raw[`raw`].
+
+{ Calculate a 256-bit SHA-2 hash from a CLOB
+
+  Calling `dbms_crypto.hash` with the `dbms_crypto.hash_sh256` creates a 256-bit SHA-2 hash.
+  gh|Oracle-patterns|/Installed/dbms/crypto/hash/sha-256.sql||
+
+  This simple example prints
+code {
+hash: 33B28259443FA31A0052030C1E5482E2145219AD02B6E226CD5D3F096FC7E897
+code }
+
+}
+{ Calculate an MD5 hash from a string (varchar2) #dbms_crypto-hash-md5
+
+  In order to calculate a hash from a → development/databases/Oracle/SQL/data-types/varchar2[`varchar2`], the value of the string might be converted to a `raw` (otherwise an
+ *ORA-06502: PL/SQL: numeric or value error: hex to raw conversion error* is thrown).
+
+  Such a conversion is possible with → development/databases/Oracle/installed/packages/utl/i18n/api/string_to_raw[`utl_i18n.string_to_raw`].
+
+  gh|Oracle-patterns|/Installed/dbms/crypto/hash/md5.sql||
+
+}
 
 sa:
   → development/databases/Oracle/installed/packages/dbms/crypto[`dbms_crypto`]

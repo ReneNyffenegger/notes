@@ -5,7 +5,105 @@ $ Oracle: SQL statement
 
   { sql_id #ora-sql-stmt-ident-sqlid
 
-    …
+    An SQL statement (or more accuratly its text) is identified by an *SQL ID* which is a base 32 representation of the last 8 bytes of `kglnahsv` in
+    → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/ob[`x$kglob`]. The *hash value* is just another
+    → https://tanelpoder.com/2009/02/22/sql_id-is-just-a-fancy-representation-of-hash-value[fancy representation of the SQL ID].
+
+   These values are used to find SQL statements in several places, for example in → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`].
+
+code {
+declare
+   sql_md5    raw(16);
+   hash_      raw(16);
+   
+   subtype dword is raw(4);
+
+   sqlid_num number;
+   sqlid     varchar2(13);
+
+   type  dword_4 is varray(4) of dword;
+   parts dword_4 := dword_4();
+
+   sql_hash  varchar2(100);
+
+begin
+
+   sql_md5 := dbms_crypto.hash(
+            utl_i18n.string_to_raw('select 42 from dual' || chr(0), 'AL32UTF8'),
+            dbms_crypto.hash_md5
+   );
+
+   dbms_output.put_line('MD5 of SQL: ' || sql_md5);
+  
+   parts.extend(4);
+   for i in 1 .. 4 loop
+       parts(i) := utl_raw.substr(sql_md5, (i-1)*4+1, 4);
+       parts(i) := utl_raw.reverse(parts(i));             -- Little/big endian?
+  
+   end loop;
+  
+   hash_ := utl_raw.concat(parts(1), parts(2), parts(3), parts(4));
+  
+   dbms_output.put_line('Hash: ' || hash_);
+
+   for ob in (select * from x$kglob where kglnahsv = lower(hash_)) loop
+       dbms_output.put_line(ob.kglnaobj);
+   end loop;
+
+   ------
+
+
+-- declare
+-- v_temp NUMBER := TO_NUMBER(RAWTOHEX(UTL_RAW.reverse(UTL_RAW.SUBSTR(v_md5, 9, 4)))|| RAWTOHEX(UTL_RAW.reverse(UTL_RAW.SUBSTR(v_md5, 13, 4))),RPAD('x', 16, 'x'));
+
+   sqlid_num := to_number(
+      rawtohex( utl_raw.concat(parts(3), parts(4) ) ),
+      rpad('x', 16, 'x')
+   );
+
+   select 
+      listagg(
+         substr('0123456789abcdfghjkmnpqrstuvwxyz',
+         mod(
+           trunc(sqlid_num/power(32,level-1)),
+           32 
+         ) + 1 ,
+         1
+       ) 
+   ) within group (order by level desc) into sqlid
+   from dual 
+   connect by level <= ceil(log(32, sqlid_num + 1));
+
+   dbms_output.put_line('SQLID: ' || sqlid);
+
+   for s in (select * from v$sql where v$sql.sql_id = sqlid) loop
+       dbms_output.put_line(s.sql_text);
+   end loop;
+
+--
+-- Convert sql_id to hash
+-- Algorithm found @ Tanel's Poder website
+--   https://tanelpoder.com/2009/02/22/sql_id-is-just-a-fancy-representation-of-hash-value
+--   https://github.com/tanelpoder/tpt-oracle/blob/master/i2h.sql
+--
+   select
+       trunc(mod(sum(( instr('0123456789abcdfghjkmnpqrstuvwxyz',substr(lower(trim(sqlid)),level,1))-1)*power(32,length(trim(sqlid))-level)),power(2,32))) into sql_hash
+   from
+       dual
+   connect by
+       level <= length(trim(sqlid));
+
+   dbms_output.put_line('Hash: ' || sql_hash);
+
+   for s in (select * from v$sql where v$sql.hash_value = sql_hash) loop
+       dbms_output.put_line(s.sql_text);
+   end loop;
+
+   dbms_output.put_line('dbms_utility.sqlid_to_sqlhash(): ' || → development/databases/Oracle/installed/packages/dbms/utility/api/sqlid_to_sqlhash[dbms_utility.sqlid_to_sqlhash](sqlid));
+
+end;
+/
+code }
 
     { sql_exec_id
 

@@ -89,9 +89,9 @@ select
 -- count(*) over (partition by L1.kglhdadr) cnt_L1,   
    L1.kglhdadr, -- L1.kglhdpar,
    L2.kglhdadr, -- L2.kglhdpar,
-   --L3.kglhdadr, L3.kglhdpar,
-   L1.kglobtyd, L1.kglhdnsd,
--- L2.kglobtyd, L2.kglhdnsd,
+ --L3.kglhdadr,    L3.kglhdpar,
+   L1.kglobtyd,    L1.kglhdnsd,
+-- L2.kglobtyd,    L2.kglhdnsd,
    L1.kglnaobj,
    L2.kglnaobj,
    L3.kglobtyd
@@ -99,12 +99,28 @@ from
    x$kglob  L1                                                                left join
    x$kglob  L2  on L1.kglhdadr  = L2.kglhdpar and
                    L1.kglhdadr  = L2.kglhdpar and
-                   L2.kglhdpar != L2.kglhdadr             left join
-   x$kglob  L3  on L2.kglhdadr = L3.kglhdpar and L2.kglhdpar != L3.kglhdadr   
+                   L2.kglhdpar != L2.kglhdadr                                 left join
+   x$kglob  L3  on L2.kglhdadr  = L3.kglhdpar and L2.kglhdpar != L3.kglhdadr   
 ;   
-
 code }
 
+{ Columns KGLNAOBJ vs. KGLFNOBJ
+
+  The column `kglnaobj` is a `varchar2(1000)`, `kglfnobj` a `clob`.
+  -
+  Thus, `kglnaobj` can be used to search for an object (`select * from x$kglob where kglnaobj like 'select abc from …`);
+
+
+code {
+select
+   max(length(kglnaobj)), -- likely to be 1000
+   max(length(kglfnobj))  -- likely to exceed 1000
+from
+   x$kglob;
+code }
+
+
+}
 
 sa:
   → development/databases/Oracle/architecture/instance/fixed-tables[Fixed tables]
