@@ -69,7 +69,74 @@ code }
     gh|oracle-patterns|/Installed/dynamic-performance-views/active/session_history/trace-session.sql||
 
   }
+
+  { fixed view definition
+
+code {
+SELECT  /*+ qb_name(gv_ashv) no_merge ordered use_nl(s,a) */
+   a.inst_id,
+   s.sample_id,
+   s.sample_time,
+   s.sample_time_utc,
+   a.usecs_per_row,
+   s.is_awr_sample,
+   a.session_id,
+   a.session_serial#,
+   decode(a.session_type, 1, 'FOREGROUND', 'BACKGROUND'), a.flags, a.user_id, a.sql_id,
+   decode(bitand(a.flags, power(2, 4)), NULL, 'N', 0, 'N', 'Y'), a.sql_child_number, a.sql_opcode, a.force_matching_signature,
+   decode(a.top_level_sql_id, NULL, a.sql_id, a.top_level_sql_id),
+   decode(a.top_level_sql_id, NULL, a.sql_opcode,        a.top_level_sql_opcode), a.sql_opname,a.sql_adaptive_plan_resolved,a.sql_full_plan_hash_value,a.sql_plan_hash_value,
+   decode(a.sql_plan_operation, NULL, to_number(NULL),       a.sql_plan_line_id),
+   a.sql_plan_operation, a.sql_plan_options,
+   decode(a.sql_exec_id, 0, to_number(NULL), a.sql_exec_id), a.sql_exec_start,
+   decode(a.plsql_entry_object_id,0,to_number(NULL),       a.plsql_entry_object_id),
+   decode(a.plsql_entry_object_id,0,to_number(NULL),       a.plsql_entry_subprogram_id),
+   decode(a.plsql_object_id,0,to_number(NULL),a.plsql_object_id),
+   decode(a.plsql_object_id,0,to_number(NULL),a.plsql_subprogram_id),
+   decode(a.qc_session_id, 0, to_number(NULL), a.qc_instance_id),
+   decode(a.qc_session_id, 0, to_number(NULL), a.qc_session_id),
+   decode(a.qc_session_id, 0, to_number(NULL), a.qc_session_serial#),
+   decode(a.px_flags, 0, to_number(NULL), a.px_flags),
+   decode(a.wait_time, 0, a.event,    NULL), 
+   decode(a.wait_time, 0, a.event_id, NULL), 
+   decode(a.wait_time, 0, a.event#,   NULL), a.seq#, a.p1text, a.p1, a.p2text, a.p2, a.p3text, a.p3, 
+   decode(a.wait_time, 0, a.wait_class,    NULL), 
+   decode(a.wait_time, 0, a.wait_class_id, NULL), a.wait_time,
+   decode(a.wait_time, 0, 'WAITING', 'ON CPU'), a.time_waited, (case when a.blocking_session = 4294967295         then 'UNKNOWN'       when a.blocking_session = 4294967294         then 'GLOBAL'       when a.blocking_session = 4294967293         then 'UNKNOWN'       when a.blocking_session = 4294967292         then 'NO HOLDER'       when a.blocking_session = 4294967291         then 'NOT IN WAIT'       else 'VALID'  end), (case when a.blocking_session between 4294967291 and 4294967295         then to_number(NULL)       else a.blocking_session  end), (case when a.blocking_session between 4294967291 and 4294967295         then to_number(NULL)       else a.blocking_session_serial#  end), (case when a.blocking_session between 4294967291 and 4294967295         then to_number(NULL)       else a.blocking_inst_id  end), (case when a.blocking_session between 4294967291 and 4294967295         then NULL      else decode(bitand(a.flags, power(2, 3)),NULL, 'N', 0,'N','Y')  end),
+   a.current_obj#, a.current_file#, a.current_block#, a.current_row#,a.top_level_call#, a.top_level_call_name,
+   decode(a.consumer_group_id, 0, to_number(NULL), a.consumer_group_id), a.xid,
+   decode(a.remote_instance#, 0, to_number(NULL), a.remote_instance#), a.time_model, a.in_connection_mgmt, a.in_parse, a.in_hard_parse, a.in_sql_execution, a.in_plsql_execution, a.in_plsql_rpc, a.in_plsql_compilation, a.in_java_execution, a.in_bind, a.in_cursor_close, a.in_sequence_load, a.in_inmemory_query, a.in_inmemory_populate, a.in_inmemory_prepopulate, a.in_inmemory_repopulate, a.in_inmemory_trepopulate, a.in_tablespace_encryption,
+   decode(bitand(a.flags, power(2, 5)), NULL, 'N', 0, 'N', 'Y'),
+   decode(bitand(a.flags, power(2, 6)), NULL, 'N', 0, 'N', 'Y'),
+   decode(bitand(a.flags, power(2, 0)), NULL, 'N', 0, 'N', 'Y'),
+   decode(bitand(a.flags, power(2, 2)), NULL, 'N', 0, 'N', 'Y'), 
+   decode(bitand(a.flags, power(2, 8)), NULL, 'N', 0, 'N', 'Y'), a.service_hash, a.program, a.module, a.action, a.client_id, a.machine, a.port, a.ecid, a.dbreplay_file_id, a.dbreplay_call_counter,
+   decode(a.tm_delta_time, 0, to_number(null),        a.tm_delta_time),
+   decode(a.tm_delta_time, 0, to_number(null),        a.tm_delta_cpu_time),
+   decode(a.tm_delta_time, 0, to_number(null),        a.tm_delta_db_time),
+   decode(a.delta_time, 0, to_number(null),         a.delta_time), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_read_io_requests), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_write_io_requests), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_read_io_bytes), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_write_io_bytes), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_interconnect_io_bytes), 
+   decode(a.delta_time, 0, to_number(null),         a.delta_read_mem_bytes), 
+   decode(a.pga_allocated, 0, to_number(null), a.pga_allocated), 
+   decode(a.pga_allocated, 0, to_number(null),         a.temp_space_allocated), a.con_dbid, a.con_id, a.dbop_name, a.dbop_exec_id
+FROM
+   x$kewash s,
+   x$ash    a
+WHERE
+   s.sample_addr = a.sample_addr and
+   s.sample_id   = a.sample_id   and
+   s.sample_time = a.sample_time and
+   nlssort(s.need_awr_sample,'nls_sort = binary') = nlssort(a.need_awr_sample,'nls_sort = binary')
+code }
+
+  }
+
 }
+
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views/statistics_level[`v$statistics_level`]

@@ -1,13 +1,40 @@
-$ v$session_event
+$ Oracle: V$SESSION_EVENT
+@ v$session_event
 
 This view is similar to → development/databases/Oracle/installed/dynamic-performance-views/system/event[`v$system_event`]. However, it breaks the numbers down to
-currently *connected sessions*.
+currently *connected → development/databases/Oracle/architecture/session[sessions]*.
 
 { Join with v$session
 
   The following SQL statement joins `v$session_event` with → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] so that it is possible to
   determine what event that consumed the most time of a session:
   gh|oracle-patterns|/Installed/dynamic-performance-views/session/event/join-session.sql||
+
+}
+{ Comparing connection time with waiting time and CPU time
+
+  At any given point in time, a session is either using CPU cycles or waiting on an event. Thus, the amount of CPU time plus the amount of total waiting time is equal to the total time
+  that a session is connected to Oracle.
+
+  The following query selects these three figures. Ideally `connected_time_s` should be equal to `total_waited_time_s + total_cpu_time_s`. It turns out, however, that
+  there is a small discrepancy of my idealism the the world we live in.
+
+code {
+select
+  round( (sysdate - ses.logon_time ) * 86400 )   connected_time_s,
+  round(  sum(time_waited_micro)     / 1e6   )   total_waited_time_s,
+  round(  prc.cpu_used               / 1e6   )   total_cpu_time_s
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session/[v$session]       ses                           join
+   v$session_event sev on ses.sid   = sev.sid    join
+   → → development/databases/Oracle/installed/dynamic-performance-views/process[v$process]       prc on ses.paddr = prc.addr 
+where
+   sev.sid = sys_context('userenv', 'sid')
+group by
+   ses.logon_time,
+   prc.cpu_used
+;
+code }
 
 }
 { max_wait

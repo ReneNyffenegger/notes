@@ -10,9 +10,8 @@ create table PLAN_TABLE /* sharing=none */  (
                                             -- but can be controlled with → development/databases/Oracle/SQL/statement/verbs/explain#ora-explain-plan-stmt-id[set statement_id] clause of → development/databases/Oracle/SQL/statement/verbs/explain
         timestamp          date          ,
         remarks            varchar2(4000),
-        operation          varchar2(30)  ,  -- … 
-                                            -- If id = 0 (first row in plan): operation indicates the
-                                            -- SQL statement type: DELETE STATEMENT, MERGE STATEMENT, SELECT STATEMENT, INSERT STATEMENT,
+        operation          varchar2(30)  ,  -- Records the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] for this step except if id = 0 (first row in plan).
+                                            -- For the first row, operation contains the SQL statement type: DELETE STATEMENT, MERGE STATEMENT, SELECT STATEMENT, INSERT STATEMENT,
                                             -- CREATE TABLE STATEMENT or CREATE INDEX STATEMENT
         options            varchar2(255) ,  -- 
         object_node        varchar2(128) ,  -- Name of database link or for parallel queries order in which output from operation is consumed
@@ -45,7 +44,7 @@ create table PLAN_TABLE /* sharing=none */  (
         temp_space         numeric       ,  -- Estimated required temporary space for the operation, for example sort or → development/databases/Oracle/SQL/join/hash[hash join].
         access_predicates  varchar2(4000),  -- Predicates that are used to locate rows, for example as start/stop predicates in an index range scan.
                                             -- Only operations where access_predicates is filled seem to be INDEX, CONNECT BY, → development/databases/Oracle/SQL/join/hash[HASH JOIN] and SORT
-        → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter_predicates]  varchar2(4000),  -- Predicates that are used to filter rows
+        → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter_predicates]  varchar2(4000),  -- Predicates that are used to filter rows. compare with the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation FILTER]
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/projection[projection]         varchar2(4000),
         time               numeric       ,  -- Estimated duration (in seconds) that SQL statements spends for this operation
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/qblock_name[qblock_name]        varchar2(128) ,  -- Name of → development/databases/Oracle/SQL/statement/query-block[query block] (either generated or specified with → development/databases/Oracle/SQL/hints[QB_NAME hint])
