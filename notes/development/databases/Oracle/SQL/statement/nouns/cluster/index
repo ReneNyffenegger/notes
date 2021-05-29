@@ -1,0 +1,42 @@
+$ Oracle SQL noun: CLUSTER
+
+The → development/databases/Oracle/SQL/statement[Oracle SQL statements] with the noun `cluster` are
+  • `alter cluster`
+  • `analyze cluster`
+  • `create cluster`
+  • `drop cluster`
+  • `truncate cluster`
+
+
+{ Creating a single table cluster
+
+  A special case of a → development/databases/Oracle/objects/clusters is one that only stores data for a singe → development/databases/Oracle/objects/tables. In the `create cluster` statement, this is
+  achieved using the `single table` clause:
+code {
+create cluster tq84_cluster (
+   hash_value_column number(4) -- Numerical value for the hash key
+)
+SINGLE TABLE
+hashkeys 8192               -- Number of different hash values is 8192
+size       70               -- ONE key plus its data requires 70 bytes
+hash is  hash_value_column  -- The hash value is provided by the table itself
+;
+
+create table tq84_hashed_table (
+   id   number(4),
+   data varchar2(50)
+)
+cluster tq84_hashed_table(id);
+
+alter table tq84_hashed_table add constraint tq84_hashed_table_pk primary key (id);
+
+insert into tq84_hashed_table
+select
+   level,
+   …
+from
+   dual connect by level <= 8192;
+code }
+
+
+}
