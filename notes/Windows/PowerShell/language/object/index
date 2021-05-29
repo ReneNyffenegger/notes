@@ -100,6 +100,47 @@ code }
   Compare with the → Windows/PowerShell/language/object/member#item-related-properties[properties that are related to items].
 
 }
+{ PSStandardMembers
+
+ `PSStandardMembers` is a hidden *MemberSet*. Because it is hidden, it requires the `-force` option of → Windows/PowerShell/command-inventory/noun/member/get[`get-member`] to
+  be  displayed (as is also the case to display → #psobject-intrinsic-members[intrinsic members]).
+
+code {
+PS C:\> $proc = → Windows/PowerShell/command-inventory/noun/process/get[get-process] -id → Windows/PowerShell/language/variable/automatic/PID[$pid]
+PS C:\> $proc | get-member -force PSStandardMembers
+
+   TypeName: System.Diagnostics.Process
+
+Name              MemberType Definition
+----              ---------- ----------
+PSStandardMembers MemberSet  PSStandardMembers {DefaultDisplayPropertySet}
+code }
+
+ `PSStandardMembers` is interesting because it it has a property set with the name *DefaultDisplayPropertySet*, this property set defines the object's properties that
+  should be displayed when the object is rendered on the console and no view is defined.
+
+  In the case of the `$proc` (→ Microsoft/dot-net/namespaces-classes/System/Diagnostics/Process[`System.Diagnostics.Process`]) object, these properties can be queried like so:
+code {
+PC C:\> $proc.PSStandardMembers.DefaultDisplayPropertySet.ReferencedPropertyNames
+Id
+Handles
+CPU
+SI
+Name
+code }
+
+  It turns out, that exactly those properties are displayed in the following (admittedly simple) → Windows/PowerShell/pipeline:
+code {
+PS C:\> $proc | → Windows/PowerShell/command-inventory/noun/list/format[format-list]
+
+Id      : 2980
+Handles : 695
+CPU     : 4.953125
+SI      : 1
+Name    : powershell
+code }
+
+}
 
 sa:
 
