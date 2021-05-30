@@ -1,0 +1,33 @@
+$ Oracle: Adaptive query optimization
+
+Adaptive query optimization complements using → development/databases/Oracle/optimizer/statistics[statistics] when generating an optimal plan to
+→ development/databases/Oracle/SQL/statement/execution[execute an SQL statement].
+
+The two main areas of *adaptive query optimization* are
+  • → development/databases/Oracle/SQL/statement/execution/plan/adaptive[Adaptive SQL plans]
+  • → development/databases/Oracle/optimizer/statistics/adaptive[Adaptive statistics]
+
+With *adaptive SQL plans*, the *statement executor* can adjust an → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan] at *run-time*. Areas where such adaptions are possible include
+  • → development/databases/Oracle/SQL/join/methods[join methods] (switch from a → development/databases/Oracle/SQL/join/methods/hash[hash join] to a → development/databases/Oracle/SQL/join/methods/nested-loop[nested loop join] or vice versa)
+  • Parallel distribution methods
+  • Bitmap pruning
+
+Adaptive statistics deals with
+  • Dynamic statistics
+  • Automatic reoptimization
+  • → development/databases/Oracle/SQL/statement/execution/plan/directive[SQL plan directives]
+
+The optimizer chooses an adaptive plan when the SQL statement's → development/databases/Oracle/SQL/join[joins] and predicates reach a level of
+complexity that make an accurate cardinality estimation difficult if not impossible.
+-
+In such a case, the optimizer injects a → development/databases/Oracle/SQL/statement/execution/plan/operations[`statistics collector` operation] into its chosen plan.
+
+In order to see all operations of an adaptive plan with → development/databases/Oracle/installed/packages/dbms/xplan#dbms_xplan-display_cursor[`xplan.display_cursor`], the `format` parameter
+must include `adaptive`:
+code {
+select * from table(dbms_xplan.display_cursor(format => 'adaptive'));
+code }
+
+Adaptive plan generation can be turned of using → development/databases/Oracle/SQL/hints[`opt_param` hint] like so: `opt_param('_optimizer_adaptive_plans', 'false')`.
+
+

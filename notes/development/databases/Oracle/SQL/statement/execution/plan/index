@@ -31,35 +31,15 @@ The execution plan is stored in the → development/databases/Oracle/architectur
 
 }
 
-{ Adaptive query optimization #ora-adaptive-exec-plan
-
- *Adaptive query optimization* makes it possible for the statement executor to adjust an execution plan at runtime.
-
-  Adaptive query optimization complements using statistics when generating an optimal plan for an SQL statement.
-
-  The optimizer chooses an adaptive plan when the SQL statement's → development/databases/Oracle/SQL/join[joins] and predicates reach a level of complexity that make an accurate cardinality estimation difficult if not impossible.
-  -
-  In such a case, the optimizer injects a → development/databases/Oracle/SQL/statement/execution/plan/operations[`statistics collector` operation] into its chosen plan.
-
-  In order to see all operations of an adaptive plan with → development/databases/Oracle/installed/packages/dbms/xplan#dbms_xplan-display_cursor[`xplan.display_cursor`], the `format` parameter
-  must include `adaptive`:
-code {
-select * from table(dbms_xplan.display_cursor(format => 'adaptive'));
-code }
-
-  Adaptive plan generation can be turned of using → development/databases/Oracle/SQL/hints[`opt_param` hint] like so: `opt_param('_optimizer_adaptive_plans', 'false')`.
-
-  See also → development/databases/Oracle/SQL/statement/execution/plan/adaptive[Adaptive SQL plans]
-
-}
-
-
 
 sa:
 
-  → development/databases/Oracle/SQL/statement/execution/plan/operations[Operations]
+  A plan consists of a hierarchical list of → development/databases/Oracle/SQL/statement/execution/plan/operations[operations].
 
-  → development/databases/Oracle/SQL/statement/execution/plan/directive[SQL plan directives]
+  With → development/databases/Oracle/optimizer/adaptive[adaptive query optimization], the *statement executor* can adjust an SQL execution plan (which was created at *compile-time*) at *run-time*.
+
+  → development/databases/Oracle/SQL/statement/execution/plan/directive[SQL plan directives] store statistical information about past executions of an SQL statement. They're used to (hopefully)
+  create a more optimal plan for a future execution of the SQL statement.
 
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`] and
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor[`v$sql_plan_monitor`]
