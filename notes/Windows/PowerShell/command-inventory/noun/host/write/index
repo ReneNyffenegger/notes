@@ -9,14 +9,39 @@ $ PowerShell cmdLet: write-host
   gh|about-PowerShell|/cmdlets/host/write/img/color.png||
 
 }
+{ Write-host 'string' vs. 'string' #write-host-vs
+
+  gh|about-PowerShell|/cmdlets/host/write/vs-string.ps1||
+
+when this → Windows/PowerShell/script[script] is invoked, it prints
+code {
+foo
+bar
+baz
+code }
+
+  Seemingly, there is no differences between writing a string using `write-host` and simply state a string (which passes it on to the next
+  → Windows/PowerShell/language/command in the → Windows/PowerShell/pipeline.
+
+  However, if the output of this script is piped into a command, it becomes clear that the string `"bar"` has «disappeared» from the pipeline:
+  gh|about-PowerShell|/cmdlets/host/write/vs-string-use.ps1||
+
+  Now, the output is:
+code {
+I have received the object foo
+bar
+I have received the object baz
+code }
+
+}
 { Write-host considered harmful
 
-  Jeffrey Snover, the inventor of → Windows/PowerShell, reminds his audience on his blog that
+  Because `write-host` does not pass → Windows/PowerShell/language/object[objects] down the pipeline, Jeffrey Snover, the inventor of → Windows/PowerShell, reminds his audience on his blog that
   → http://www.jsnover.com/blog/2013/12/07/write-host-considered-harmful/[using `write-host` is almost always wrong] and that
   → Windows/PowerShell/command-inventory/noun/output/write[`write-output`] should be used instead.
 
-  The reason for this is that `write-host` directly writes to the console without a possibility to redirect the output into a log file or to use the output further down
-  a → Windows/PowerShell/pipeline[pipeline].
+  The reason that Jeffrey Snover disourages the use of `write-host` is because `write-host` directly writes to the console without a possibility to redirect the output into a
+  → development/log-files[log file] or to use the output further down a → Windows/PowerShell/pipeline[pipeline].
 
   However, as per → https://devblogs.microsoft.com/scripting/weekend-scripter-welcome-to-the-powershell-information-stream/[this blog post by Ed Wilson], `write-host` is being redeemed because
   → Windows/PowerShell/command-inventory/noun/information/write[`write-information`] provides the good stuff of `write-host` without its problems.
