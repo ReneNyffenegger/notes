@@ -1,0 +1,51 @@
+$ Oracle dynamic performance views: PLAN_HASH_VALUE vs FULL_PLAN_HASH_VALUE
+
+In → development/databases/Oracle/installed/dynamic-performance-views, the column `FULL_PLAN_HASH_VALUE` identifies an → development/databases/Oracle/SQL/statement/execution/plan/adaptive[adaptive SQL plan]
+with all of its possible plan alternatives.
+-
+`PLAN_HASH_VALUE` identifies an actually executed → development/databases/Oracle/SQL/statement/execution/plan[execution plan].
+
+These columns appear in the following views
+
+table { lll
+  → development/databases/Oracle/installed/dynamic-performance-views/active/session_history[V$ACTIVE_SESSION_HISTORY] ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
+  V$ALL_ACTIVE_SESSION_HISTORY ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
+  V$ALL_SQL_MONITOR ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
+  V$ALL_SQL_PLAN ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+  V$ALL_SQL_PLAN_MONITOR ☰ SQL_PLAN_HASH_VALUE ☰ 
+  → development/databases/Oracle/installed/dynamic-performance-views/session/longops[V$SESSION_LONGOPS] ☰ SQL_PLAN_HASH_VALUE ☰ 
+  → development/databases/Oracle/installed/dynamic-performance-views/sql[V$SQL] ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/area[V$SQLAREA] ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+  V$SQLAREA_PLAN_HASH ☰ PLAN_HASH_VALUE ☰ 
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/stats[V$SQLSTATS] ☰ PLAN_HASH_VALUE ☰ 
+  V$SQLSTATS_PLAN_HASH ☰ PLAN_HASH_VALUE ☰ 
+  V$SQL_JOIN_FILTER ☰ SQL_PLAN_HASH_VALUE ☰ 
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/monitor[V$SQL_MONITOR] ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[V$SQL_PLAN] ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor[V$SQL_PLAN_MONITOR] ☰ SQL_PLAN_HASH_VALUE ☰ 
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[V$SQL_PLAN_STATISTICS] ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+  V$SQL_PLAN_STATISTICS_ALL ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
+table }
+
+
+This list was selected with the following SQL statement
+code {
+select
+   replace(a.table_name, 'V_$', 'V$'),
+   max(case when  a.column_name in ('PLAN_HASH_VALUE', 'SQL_PLAN_HASH_VALUE')  then a.column_name end ) name_plan_hash,
+   max(case when b.column_name in ('FULL_PLAN_HASH_VALUE', 'SQL_FULL_PLAN_HASH_VALUE') then b.column_name end) name_full_plan_hash
+from
+   dba_tab_columns a join
+   dba_tab_columns b on a.table_name = b.table_name
+   
+where
+   a.table_name like 'V\_$%' escape '\' and
+   (
+      a.column_name in (     'PLAN_HASH_VALUE',      'SQL_PLAN_HASH_VALUE') or
+      b.column_name in ('FULL_PLAN_HASH_VALUE', 'SQL_FULL_PLAN_HASH_VALUE')
+   )
+group by
+   a.table_name
+order by
+   a.table_name;
+code }

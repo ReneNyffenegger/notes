@@ -4,21 +4,21 @@ $ Oracle: V$EVENT_NAME
 { Interesting event names #ora-interesting-event-names
 
   Some interesting, IMHO, event names include:
-  table { llllll
-    ~Name~ ☰ ~Description~ ☰ ~param 1~ ☰ ~param 2~ ☰ ~param 3~ ☰ ~Comments~
-     db file scattered read ☰ read *multiple* → development/databases/Oracle/architecture/database/logical-structures/data-block[db blocks] as part of a table or index *full scan* into the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache. Because multiple blocks are read, the individual blocks must usually be «scattered» to different regions in the buffer cache. ☰ file number ☰ block number ☰ number of blocks ☰ The → #ora-event-name-more-descriptive[more descriptive name] is *db multiblock read*
-     db file sequential read ☰ read *one* → development/databases/Oracle/architecture/database/logical-structures/data-block[block] into the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache when reading an index block or a data block identified by a → development/databases/Oracle/SQL/data-types/rowid. ☰ file number ☰ block number ☰ number of blocks (should always be 1) ☰ The → #ora-event-name-more-descriptive[more descriptive name] is *db single block read*
-     db file parallel read ☰ ☰ files ☰ blocks ☰ requests ☰ The → #ora-event-name-more-descriptive[more descriptive name] is *db list of block reads*.
-     db file single write ☰  ☰ file number ☰ ☰ ☰ 
-     buffer busy waits ☰ Multiple → development/databases/Oracle/architecture/processes[processes] try to access the same buffer in the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[buffer cache] ☰ ☰ ☰ ☰
-     direct path read ☰ Read → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] directly into → development/databases/Oracle/architecture/instance/PGA. ☰ file number ☰ first dba ☰ number of blocks ☰ 
-     free buffer waits ☰ Waiting for free space to become available in the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache to read a → development/databases/Oracle/architecture/database/logical-structures/data-block. This wait causes → development/databases/Oracle/architecture/processes/background/DBWn[DBWR] to write dirty blocks to their data file. ☰ ☰ ☰ ☰
-     log buffer space ☰ waiting for the → development/databases/Oracle/architecture/processes/background/LGWR[LGWR process] to make room in the → development/databases/Oracle/architecture/instance/SGA/redo-log-buffer ☰ ☰ ☰ ☰
-     PGA memory operation ☰ → https://fritshoogland.wordpress.com/2017/03/01/oracle-12-2-wait-event-pga-memory-operation/[Memory allocation or deallocation] ☰ number of bytes(?) ☰ ? (always 1?) ☰ ? ☰
-     log file switch (checkpoint incomplete) ☰ Blocks a → development/databases/Oracle/SQL/TCL/commit[`commit`]. ☰ ☰ ☰ ☰
-     log file switch (archiving needed) ☰ Blocks a → development/databases/Oracle/SQL/TCL/commit[`commit`]. ☰ ☰ ☰ ☰
-     log file sync ☰ When commiting a → → development/databases/Oracle/architecture/transaction, this event waits until LGWR has written the corresponding redo information to the → development/databases/Oracle/architecture/database/files/online-redo-log-files[redo log files]  ☰ ☰ ☰ ☰ 
-     SQL*Net message from client ☰ ☰ driver id (4 bytes encoded as integer) ☰ number of bytes ☰  ☰
+  table { lllll
+    ~Name~ ☰ ~Description/comments~ ☰ ~param 1~ ☰ ~param 2~ ☰ ~param 3~
+     db file scattered read ☰ read *multiple* → development/databases/Oracle/architecture/database/logical-structures/data-block[db blocks] as part of a table or index *full scan* into the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache. Because multiple blocks are read, the individual blocks must usually be «scattered» to different regions in the buffer cache,  hence, the → #ora-event-name-more-descriptive[more descriptive name] is *db multiblock read* ☰ file number ☰ block number ☰ number of blocks
+     db file sequential read ☰ read *one* → development/databases/Oracle/architecture/database/logical-structures/data-block[block] into the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache when reading an index block or a data block identified by a → development/databases/Oracle/SQL/data-types/rowid. The database reads the blocks in a sequence, one here, one there, hence *db file sequential read*. The → #ora-event-name-more-descriptive[more descriptive name] is *db single block read* ☰ file number ☰ block number ☰ number of blocks (should always be 1)
+     db file parallel read ☰ The → #ora-event-name-more-descriptive[more descriptive name] is *db list of block reads*. ☰ files ☰ blocks ☰ requests 
+     db file single write ☰  ☰ file number ☰ ☰
+     buffer busy waits ☰ Multiple → development/databases/Oracle/architecture/processes[processes] try to access the same buffer in the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[buffer cache] ☰ ☰ ☰
+     direct path read ☰ Read → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] directly into → development/databases/Oracle/architecture/instance/PGA. ☰ file number ☰ first dba ☰ number of blocks
+     free buffer waits ☰ Waiting for free space to become available in the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache to read a → development/databases/Oracle/architecture/database/logical-structures/data-block. This wait causes → development/databases/Oracle/architecture/processes/background/DBWn[DBWR] to write dirty blocks to their data file. ☰ ☰ ☰
+     log buffer space ☰ waiting for the → development/databases/Oracle/architecture/processes/background/LGWR[LGWR process] to make room in the → development/databases/Oracle/architecture/instance/SGA/redo-log-buffer. The more descriptive name is *log buffer full - LGWR bottleneck* ☰ ☰ ☰
+     PGA memory operation ☰ → https://fritshoogland.wordpress.com/2017/03/01/oracle-12-2-wait-event-pga-memory-operation/[Memory allocation or deallocation] ☰ number of bytes(?) ☰ ? (always 1?) ☰ ?
+     log file switch (checkpoint incomplete) ☰ Blocks a → development/databases/Oracle/SQL/TCL/commit[`commit`]. ☰ ☰ ☰
+     log file switch (archiving needed) ☰ Blocks a → development/databases/Oracle/SQL/TCL/commit[`commit`]. ☰ ☰ ☰
+     log file sync ☰ When commiting a → development/databases/Oracle/architecture/transaction, this event waits until LGWR has written the corresponding redo information to the → development/databases/Oracle/architecture/database/files/online-redo-log-files[redo log files]. The → #ora-event-name-more-descriptive[more descriptive name] is *commit: log file sync*   ☰ ☰ ☰
+     SQL*Net message from client ☰ ☰ driver id (the 4 integer bytes store the → development/Unicode/ASCII value of a 4-character string) ☰ number of bytes ☰ 
   table }
 
 }
