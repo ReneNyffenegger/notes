@@ -11,10 +11,47 @@ $ Windows registry structure: value
 }
 { PowerShell's representation of a registry value
 
-  In → Windows/PowerShell, a *registry value* is represented by an
-  → Windows/PowerShell/command-inventory/noun/itemProperty[itemProperty]. Thus, in order to create a new registry value, the
-  → Windows/PowerShell/command-inventory/noun/itemProperty/new[`new-itemProperty` cmdLet] is needed.
+  In → Windows/PowerShell, a *registry value* is represented by an → Windows/PowerShell/command-inventory/noun/itemProperty[itemProperty].
 
+  { Querying a key
+
+    An existing value, for example the value of `PATH` in the registry key → Windows/registry/tree/HKEY_CURRENT_USER/Environment[HKCU:\Environment], can be queried like so:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/itemProperty[get-itemProperty] → Windows/registry/tree/HKEY_CURRENT_USER/Environment[HKCU:\Environment] PATH
+code }
+
+    Unfortunately, this also prints varios `PS*` members like `PSPath` etc:
+code {
+Path         : C:\Users\Rene\bin/scripts;…
+PSPath       : Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\Environment
+PSParentPath : Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER
+PSChildName  : Environment
+PSDrive      : HKCU
+PSProvider   : Microsoft.PowerShell.Core\Registry
+code }
+
+    Therefore, → Windows/PowerShell/command-inventory/noun/itemPropertyValue/get[`get-itemPropertyValue`] seems to be the better approach:
+code {
+PS C:\> get-itemPropertyValue HKCU:\Environment PATH
+code }
+
+  }
+  { Creating a new value
+
+    Similarly, aew registry value can be created with → Windows/PowerShell/command-inventory/noun/itemProperty/new[`new-itemProperty` cmdLet]:
+ 
+code {
+PS C:\> $null = new-itemProperty HKCU:\Environment keyName -value 42
+code }
+
+  }
+  { Dropping the value again
+
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/itemProperty/remove[remove-itemProperty] HKCU:\Environment keyName
+code }
+
+  }
 }
 
 sa:

@@ -7,6 +7,49 @@ Terminals are represented by uppercase names.
 
 In a grammar, comments can be introduced with a double slash (`//`).
 
+{ Specifying the grammar
+
+  The grammar can be specified in the Lark's *constructor*(?):
+code {
+grammar = """
+  …
+""
+
+parser = Lark(grammar)
+code }
+
+  In a grammar, `TERMINALS` are specifice in uppercase letters, `rules` in lowercase letters.
+
+}
+{ Start symbol
+
+  The default *start symbol* in a grammar is `start`:
+code {
+parser = Lark("""
+start: …
+""")
+code }
+
+  It's possible to define another start symbol:
+code {
+parser = Lark("""
+non_default_start: …
+""",
+start = 'non_default_start')
+code }
+
+}
+{ Eearly vs. LALR(1)
+
+  By default, Lark creates a parser that uses the *Earley algorithm* to parse the input.
+
+  Earley is powerful, but also slow. If the grammar is LR-compatible, the algorithm can be changed to *LALR(1)*:
+code {
+parser = Lark(grammar, parser='lalr')
+code }
+  
+
+}
 { Parse digits and characters
 
   gh|about-Python|/libraries/Lark/digit-char.py||
@@ -30,3 +73,56 @@ In a grammar, comments can be introduced with a double slash (`//`).
   gh|about-Python|/libraries/Lark/digit-char-import-common.WS.py||
 
 }
+{ Ignore comments and whitespace
+
+  The following example impots the → development/languages/C-C-plus-plus[C and C++] like comments as well as whitespaces and ignores them.
+
+  It then iterates over words (defined by the → development/regular-expressions[regular expression] `\w+` that are found in the text to be parsed.
+  gh|about-Python|/libraries/Lark/ignore/extract-words-remove-comments.py||
+
+  When running this example, it prints
+code {
+one
+two
+three
+four
+five
+six
+seven
+code }
+
+  Note that Lark also defines the import `WORD` which is defined as lowercase or uppercase letters of the alphabet without any diacritcal marks.
+
+}
+
+{ TODO
+
+  { %import
+
+    Predifined → https://github.com/lark-parser/lark/blob/master/lark/grammars/common.lark[importable terminals(?)]:
+code {
+%import common.ESCAPED_STRING
+%import common.SIGNED_NUMBER
+%import common.CNAME            // Identifiers, might start with underscore: foo, bar42, _baz etc.
+%import common.NEWLINE
+%import common.WS_INLINE
+
+    // Comments:
+%import common.SH_COMMENT       // Shell comment (starting with #)
+%import common.CPP_COMMENT      // Comment that starts with // and goes through the end of line
+%import common.C_COMMENT        // Comment like /* this one */
+%import common.SQL_COMMENT      // select -- this is the comment
+code }
+ 
+  In an `%import` statement, the `->` renames the imported(?) terminal:
+code {
+%import common.ESCAPED_STRING -> STRING
+%import common.SIGNED_NUMBER  -> NUMBER
+code }
+
+  }
+
+}
+
+sa:
+  → development/languages/Python/libraries/Lark/rules[Rules]
