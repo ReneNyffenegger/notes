@@ -1,6 +1,6 @@
 $ PowerShell cmdLet set-strictMode
 
-`set-strictMode` is used to check the validity of expressions etc.
+`set-strictMode` is used to check the validity of expressions etc in the current and its child → Windows/PowerShell/language/scopes[scopes].
 
 `set-strictMode` is set to a *version* (with `latest` referring to the most recent one):
 code {
@@ -8,15 +8,16 @@ set-strictMode -version 2
 set-strictMode -version latest
 code }
 
-The effect of `set-strictMode` only extends the scope (and child scopes) in which it is set.
+If the value of the → Windows/PowerShell/language/variable/preference/errorActionPreference[`$errorActionPreference` automatic variable] is set to *stop*, a
+→ Windows/PowerShell/script[script] halts execution if a statement or an expression does not meet the requirements checked for with `set-strictMode`.
 
 { -version
 
   The `-version` argument takes one of the following four arguments
   table { ll
-    `1.0` ☰ prohibits references to uninitialized variables, except for uninitialized variables in strings.
-    `2.0` ☰ `1.0` *plus* prohibiting references to non-existent properties of an objects and prohibiting function calls that use the syntax for calling methods.
-    `3.0` ☰ `2.0` *plus* prohibiting  out of bounds or unresolvable array indexes.
+    `1.0` ☰ prohibits references to uninitialized → Windows/PowerShell/language/variable[variables], except for uninitialized variables in strings.
+    `2.0` ☰ `1.0` *plus* prohibiting references to non-existent properties (→ Windows/PowerShell/language/object/member[members] of → Windows/PowerShell/language/object[objects] and prohibiting function calls that use the syntax for calling methods.
+    `3.0` ☰ `2.0` *plus* prohibiting  out of bounds or unresolvable → Windows/PowerShell/language/type/array indexes.
     `latest` ☰ Latest version that is available
   table }
 
@@ -27,6 +28,38 @@ The effect of `set-strictMode` only extends the scope (and child scopes) in whic
   after the `param` keyword.
 
   See also → Windows/PowerShell/script#ps-script-top[statements and keywords at the top of a script]
+
+}
+{ Examples
+
+  { version 1 #ps-set-strict-mode-v1
+
+    gh|about-PowerShell|/cmdlets/strictMode/set/version-1.ps1||
+
+    This → Windows/PowerShell/script[script] references an *uninitialized* → Windows/PowerShell/language/variable (`$uninitialized_val`).
+
+    The `-version 1` of the `set-strictMode` statement causes the script to issue the error message
+   *The variable '…' cannot be retrieved because it has not been set.*
+
+  }
+  { version 2 #ps-set-strict-mode-v2
+
+    gh|about-PowerShell|/cmdlets/strictMode/set/version-2.ps1||
+
+    This script tries to access a property (→ Windows/PowerShell/language/object/member[member]) of an → Windows/PowerShell/language/object that does not exist (`$obj.unobtainium`).
+
+    With `-version 2`, the error message that is thrown is
+   *The property '…' cannot be found on this object. Verify that the property exists.*
+
+  }
+  { version 3 #ps-set-strict-mode-v3
+
+    gh|about-PowerShell|/cmdlets/strictMode/set/version-3.ps1||
+
+    This script creates an → Windows/PowerShell/language/type/array with three elements. When the (inexsting) fourth element is accessed, PowerShell raises the error message
+   *Index was outside the bounds of the array.*
+
+  }
 
 }
 
