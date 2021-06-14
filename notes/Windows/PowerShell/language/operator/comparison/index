@@ -21,20 +21,29 @@ The → Windows/PowerShell comparison → Windows/PowerShell/language/operator[o
 
   The operators `-eq`, `-ne`, `-gt`, `-lt`, `-le`, `-ge` and their case sensitive cousins return a boolean if applied to a scalar. 
 
-  If they're applied to an → Windows/PowerShell/language/type/array[array], they behave like a → science/computer/Programming-paradigm/Functional-programming/First-class-function/filter[filter (functional programming)] and only return the elements
-  of the array that satisfy the comparison operator. (Compare with the → Windows/PowerShell/command-inventory/noun/object/where[`where-object` cmdLet].
+  If they're applied to an → Windows/PowerShell/language/type/array[array], they behave like a → science/computer/Programming-paradigm/Functional-programming/First-class-function/filter[filter (functional programming)]
+  and only return the elements
+  of the array that satisfy the comparison operator. (Compare with the → Windows/PowerShell/command-inventory/noun/object/where[`where-object` cmdLet]).
 
   gh|about-PowerShell|/language/operator/comparison/scalar-vs-array.ps1||
 
 }
+{ Comparing objects
+
+  If the compared → Windows/PowerShell/language/object[objects] don't implement the → Microsoft/dot-net/namespaces-classes/System/IComparable[`System.IComparable`] interface,
+ `-eq` and `-ne` checks whethter the expressions (typically → Windows/PowerShell/language/variable[variables]) on either side of the operator refer to the same
+  object:
+  gh|about-PowerShell|/language/operator/comparison/objects.ps1||
+
+}
 { Required methods and interfaces #comparison-required
 
-  In order for the comparison operators to return a meaningful value, the classes the operator operates on need to implement the
+  It is possible to compare the data of objects which allows for a (probably) more meaningful comparison of objects. This is achieved if the compared objects implement the
   → Microsoft/dot-net/namespaces-classes/System/IComparable[`System.IComparable`] interface and override the
   → Microsoft/dot-net/namespaces-classes/System/Object#Equals-GetHashCode[`Equals()` and possibly also `GetHashCode()`] methods of the
   → Microsoft/dot-net/namespaces-classes/System/Object[`System.Object`] class that every other class inherits.
   
-  If a class does not implement `IComparable` and on instance of such a class is compared with for example `-eq`, the environment throws the error
+  If a class does not implement `IComparable` and an instance of such a class is compared with for example `-eq`, the environment throws the error
   message *Cannot compare "…" because it is not IComparable.*
 
   The following example defines a → Windows/PowerShell/language/class (named `C`) which implements `IComparable` and then creates a few instances of it and compares with `-lt`, `-gt` and `-eq`.
@@ -44,7 +53,6 @@ The → Windows/PowerShell comparison → Windows/PowerShell/language/operator[o
   demonstrates that `-eq` does not test for *identity* (such as for example the → development/languages/Python/operators/is[Python operator `is`]).
 
 }
-
 
 sa:
 

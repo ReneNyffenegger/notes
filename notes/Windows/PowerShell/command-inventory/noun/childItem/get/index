@@ -119,12 +119,26 @@ code }
 }
 { Returned type of get-childItem
 
-  Unless invoked with → #get-childItem-name[`-name`] and `get-childItem` is used in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
+  If `get-childItem` is invoked in a file system → Windows/PowerShell/language/provider/drive, `get-childItem` returns an
   → Windows/PowerShell/language/type/array of → Microsoft/dot-net/namespaces-classes/System/IO/DirectoryInfo[`System.IO.DirectoryInfo`] and
   → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System.IO.FileInfo`] objects, both of which derive from
   → Microsoft/dot-net/namespaces-classes/System/IO/FileSystemInfo[`System.IO.FileSystemInfo`].
-
+  -
   If used in a drive that accesses the → Windows/registry, it returns an array of → Microsoft/dot-net/namespaces-classes/Microsoft/Win32/RegistryKey[`Microsoft.Win32.RegistryKey`] objects.
+
+  The fact that `get-childItem` returns specific → Windows/PowerShell/language/object[objects] turns out to be problematic if these objects are compared with
+  → Windows/PowerShell/language/operator/comparison[comparison operators] (such as `-eq`) to a string. The following probably won't do what the author expected to do:
+code {
+foreach ($file in get-childItem *) {
+   if ($file -eq "readme.txt") {
+      ...
+   }
+}
+code }
+  
+
+  In order to have `get-childItem` return an array of strings, it must be invoked with the  → #get-childItem-name[`-name`] argument.
+
 
 }
 { Let get-childItem return strings with -name #get-childItem-name
