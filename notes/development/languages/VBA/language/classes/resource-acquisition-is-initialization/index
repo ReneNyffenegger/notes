@@ -1,0 +1,40 @@
+$ VBA: Resource acquisition is initialization (RAII)
+
+This is a simple example that tries to demonstrate → https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization[resource acquisition is initialization]
+with → development/languages/VBA[Visual Basic for Applications].
+
+{ resource.cls
+
+ `resource.cls` is the → development/languages/VBA/language/classes[class] that wraps the resource. In this example, the acquired and freed resource is indicated with
+  simple `debug.print` statements in the → development/languages/VBA/language/classes#vba-class-ctor-dtor[classes constructor and destructor] (which happen to be named
+ `class_initialize` and `class_terminate` in VBA):
+
+  gh|about-VBA|/language/classes/RAII/resource.cls||
+
+}
+{ func.vb
+
+  The following → development/languages/VBA/language/module uses the requested resource by creating a new object of the resource
+ (→ development/languages/VBA/language/operators/new[`new` operator).
+
+  Note that the function does not explicitely free the resource when it does not need it anymore (that is, when `exit sub` is called).
+  Rather, the instance of the resource class goes out of scope which triggers `class_terminate` which takes care of freeing the resource.
+  -
+  Thus, the programmer can be sure that the resource is freed when the function `useResource` is left.
+
+  gh|about-VBA|/language/classes/RAII/func.vb||
+
+}
+
+{ Creating the project
+
+  The following → development/languages/VBScript file uses the → Microsoft/Office/VBScript-App-Creator to create an Excel project in order to run `main` (in `func.vb`):
+
+  gh|about-VBA|/language/classes/RAII/create.wsf||
+
+  On the command line, it must be invoked with
+code {
+P:\ath\to\project> → Windows/dirs/Windows/System32/cscript_exe[cscript] .\create.wsf
+code }
+
+}
