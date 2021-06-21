@@ -1,12 +1,175 @@
-$ dbms_datapump
+$ Oracle: DBMS_DATAPUMP
+@ dbms_datapump
 
-`dbms_datapump` exposes the → development/databases/Oracle/tools/Data-Pump API and used by `expdb` and `impdb`.
+`DBMS_DATAPUMP` exposes the → development/databases/Oracle/tools/Data-Pump API and used by
+→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/expdp[`expdb`] and 
+→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/impdp[`impdb`].
+
+{ Functions and procedures
+
+  table { ll
+
+   `add_device` ☰
+   `add_file` ☰
+   `attach` ☰
+   `client_lob_append` ☰
+   `client_lob_delete` ☰
+   `client_lob_get` ☰
+   `create_job_view` ☰
+   `datapump_job` ☰
+   `data_filter` ☰
+   `data_remap` ☰
+   `detach` ☰
+   `dh_key_exchange` ☰
+   `end_sw_update` ☰
+   `establish_remote_context` ☰
+   `get_dumpfile_info` ☰
+   `get_object_info` ☰
+   `get_status` ☰
+   `get_status_version` ☰
+   `has_privs` ☰
+   `log_entry` ☰
+   `log_error` ☰
+   `metadata_filter` ☰
+   `metadata_remap` ☰
+   `metadata_transform` ☰
+   `open` ☰
+   `setup_remote_context` ☰
+   `set_debug` ☰
+   `set_parallel` ☰
+   `set_parameter` ☰
+   `set_remote_worker` ☰
+   `start_job` ☰
+   `start_sw_update` ☰
+   `stop_job` ☰
+   `stop_worker` ☰
+   `test_functionality` ☰
+   `test_remote_context1010` ☰
+   `test_remote_context1020` ☰
+   `test_remote_context1120` ☰
+   `test_remote_context1210` ☰
+   `trace_entry` ☰
+   `wait_for_job` ☰
+
+  table }
+
+}
+{ Cloning a schema with DBMS_DATAPUMP
+
+  The following scripts try to demonstrate how a schema might be cloned using `dbms_datapump`.
+
+  { run.sql
+
+   `run.sql` is the driving script.
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/run.sql||
+
+  }
+  { create_schemas.sql
+
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/create_schemas.sql||
+
+  }
+
+  { export.plsql
+
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/export.plsql||
+
+    { Parameter file for export (export.par)
+
+      gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/export.par||
+
+    }
+
+  }
+
+  { import.plsql
+
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/import.plsql||
+
+    { import.part
+
+      gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/import.par||
+
+    }
+
+  }
+  { Some grants
+
+    Since `to_schema_A` will also access the same tables in `schema_b` that from_schema_A accesses, we also
+    need to grant the relevant grants for to_schema_A:
+code {
+connect schema_B/p
+grant insert, select on table_b_1 to to_schema_A;
+code }
+
+  }
+  { Misc
+
+
+code {
+connect to_schema_a/p
+insert into table_a_1 values (999, 'foo bar');
+
+select object_type, object_name from dba_objects where owner = 'TO_SCHEMA_A';
+select name, line, substrb(text, 1, 50) from all_errors where owner = 'TO_SCHEMA_A';
+code }
+
+  { export_import_dp.sql (TODO
+
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/export_import_dp.sql||
+
+  }
+
+  { call_count_procs.sql
+
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/call_count_procs.sql||
+
+  }
+  { cleanup.sql
+
+    Cleaning up the whole thing…
+    gh|Oracle-Patterns|/Installed/dbms/datapump/clone_schema/cleanup.sql||
+  }
+
+  { Misc
+
+    See also → https://connor-mcdonald.com/2021/06/14/get-complete-ddl-for-a-schema/[Connor McDonald's Get complete DDL for a schema] blog post.
+
+  }
+
+}
+
+}
+{ Extracting a schema
+
+  { run.sql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/run.sql||
+  }
+
+  { create_schema.sql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/create_schema.sql||
+  }
+  { dbms_datapump_exception.plsql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/dbms_datapump_exception.plsql||
+  }
+  { export_dump.plsql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/export_dump.plsql||
+  }
+  { export_sql.plsql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/export_sql.plsql||
+  }
+  { import_sql_file.sql
+    gh|Oracle-Patterns|/Installed/dbms/datapump/extract_schema_sql/import_sql_file.sql||
+  }
+
+
+}
 
 sa:
 
   The following APIs:
     • *External Table* API
     • *Direct Path* API
-    • *Metadata* API (→ development/databases/Oracle/installed/packages/dbms/metadata[`dbms_metadata`]
+    • *Metadata* API (→ development/databases/Oracle/installed/packages/dbms/metadata[`dbms_metadata`])
 
   → development/databases/Oracle/installed/packages/dbms
