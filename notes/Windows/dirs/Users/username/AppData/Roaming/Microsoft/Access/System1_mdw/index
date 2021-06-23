@@ -1,0 +1,72 @@
+$ System1.mdw
+
+`System1.mdw` is the *Microsoft Access Workgroup Information file*.
+
+As per → https://www.lifewire.com/mdw-file-2621978[Tim Fisher (Lifewire)], this file stores usernames and → development/security/password[passwords] for users and groups
+that should have access to an MS Access database.
+
+{ Queries
+
+  It seems, that `System1.mdw` contains four queries.
+
+  { MSysGroupList
+
+code {
+SELECT MSysAccounts.Name
+FROM MSysAccounts
+WHERE (((MSysAccounts.FGroup)<>0))
+ORDER BY MSysAccounts.Name;
+code }
+
+  }
+  { MSysGroupMembers
+
+code {
+PARAMETERS GroupName Text ( 255 );
+
+SELECT DISTINCT MSysAccounts_1.Name
+FROM (MSysAccounts INNER JOIN MSysGroups ON MSysAccounts.SID = MSysGroups.GroupSID) INNER JOIN MSysAccounts AS MSysAccounts_1 ON MSysGroups.UserSID = MSysAccounts_1.SID
+WHERE (((MSysAccounts.name)=[GroupName]) AND ((MSysAccounts.FGroup)<>0) AND ((MSysAccounts_1.FGroup)=False));
+code }
+
+  }
+  { MSysUserList
+
+code {
+SELECT MSysAccounts.Name
+FROM MSysAccounts
+WHERE MSysAccounts.FGroup = 0
+ORDER BY MSysAccounts.Name;
+code }
+
+  }
+  { MSysUserMemberships
+
+code {
+PARAMETERS UserName Text ( 255 );
+
+SELECT DISTINCT MSysAccounts_1.Name
+FROM (MSysAccounts INNER JOIN MSysGroups ON MSysAccounts.SID = MSysGroups.UserSID) INNER JOIN MSysAccounts AS MSysAccounts_1 ON MSysGroups.GroupSID = MSysAccounts_1.SID
+WHERE (((MSysAccounts.name)=[UserName]) AND ((MSysAccounts.FGroup)=False) AND ((MSysAccounts_1.FGroup)<>0));
+code }
+
+  }
+
+}
+
+{ Path to System1.mdw
+
+  The path to `System1.mdw` (which usually seems to be located in `→ Windows/dirs/Users/username/AppData/Roaming/Microsoft[%APPDATA%\Microsoft]\Access`) can also be found in
+  → development/languages/VBA like so:
+  code {
+  debug.print → Microsoft/Office/Access/Object-Model/DBEngine[application.dbEngine].systemDB
+  code }
+
+  This path is also stored in the → Windows/registry in the value of `SystemDB` under
+  the registry key → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Office/Access/Access-Connectivity-Engine/Engines[`HKEY_CURRENT_USER\Software\Microsoft\Office\X.Y\Access\Access Connectivity Engine\Engines`].
+
+}
+
+sa:
+
+  The System table → development/databases/Access/system-objects/MSysObjects[`MSysObjects`].
