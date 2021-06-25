@@ -2,9 +2,48 @@ $ PowerShell: byte arrays
 
 { Creating an array of bytes
 
+  { Creating an array from a list of numerical literals
+
+    An → Windows/PowerShell/language/type/array[array] of bytes can simply be created by assigning an array of numbers (technically: bytes) to a typed → Windows/PowerShell/language/variable:
 code {
 [byte[]] $byte_array = 65,66,67
 code }
+
+    Of course, typically, such numbers come in hexadecimal form in which case they need to be prepended with `0x`:
+code {
+[byte[]] $another_array = 0x41, 0x42, 0x43
+code }
+
+    If the array of hexadecimal number comes from a source where it is not already prefixed and manually prefixing them is too tedious, a → Windows/PowerShell/pipeline helps to convert the hexadecimal numbers to a byte:
+code {
+[byte[]] $xyz = 41, 42, 43 | → Windows/PowerShell/command-inventory/noun/object/forEach[foreach-object] { → Windows/PowerShell/command-inventory/noun/expression/invoke[invoke-expression] "0x$_" }
+code }
+
+    The last example would not work if the hexadecimal numbers had characters in them. But we can put such values into a string and create an array using the → Windows/PowerShell/language/operator/string-manipulation#ps-split-join[`-split` operator]:
+code {
+[byte[]] $abc = "0a a0 ff" -split ' ' | foreach-object { invoke-expression "0x$_" }
+code }
+  
+  }
+  { Create an array of n elements, each initialized to 0
+  
+    The following constructs create `byte` arrays, each of which has 10 elements and whose values are initialized to `0`.
+code {
+$array_1 = [byte[]]::new(10)
+$array_2 = → Windows/PowerShell/command-inventory/noun/object/new[new-object] byte[] 10
+$array_3 = [→ Microsoft/dot-net/namespaces-classes/System/Array[System.Array]]::CreateInstance([byte], 10)
+code }
+
+  }
+  { Creating higher dimension arrays
+
+    The following constructs create arrays of higher dimensions:
+code {
+[byte[,]] $four_by_eight = [System.Array]::CreateInstance([byte], @(4, 8))
+[byte[,,,]] $b_3x4x5x6 = [byte[,,,]]::new(3,4,5,6)
+code }
+
+  }
 
 }
 { Converting between strings and byte arrays
@@ -16,7 +55,6 @@ $text       = $enc.GetString($byte_array)
 code }
 
 }
-
 { File content as byte array
 
   A file can be read into a byte array with the method `[→ Microsoft/dot-net/namespaces-classes/System/IO/File/ReadAllBytes-WriteAllBytes[System.IO.File]]::ReadAllBytes` and written with
