@@ -5,22 +5,47 @@ The `split-path` cmdLet allows to select parts such as directories, filenames or
 Unlike → Windows/PowerShell/command-inventory/noun/path/resolve[`resolve-path`], `split-path` also returns a value if the specified path does not point to an existing directory or file.
 
 The type of the returned value is a string. Its value depends on the option that is passed to `split-path`.
--
-Specifying `drive:\dirOne\dirTwo\file.ext`, the following parts of the path are returned:
+
+If the path `drive:\dirOne\dirTwo\file.ext` is used in `split-path`, the following parts of the path are returned:
 table { lll
   ~Option used~  ☰ ~Returned value~ ☰ ~Comment~
                  ☰ `drive:\dirOne\dirTwo` ☰ The directory in which a file is located, or a directory's parent directory
   `-parent`      ☰ `drive:\dirOne\dirTwo` ☰ Requires PowerShell 6 or later
   `-leaf`        ☰ `file.ext` ☰
-  `-leafBase`    ☰ `file` ☰
-  `-extension`   ☰ `.ext` ☰ Requires PowerShell 6 or later
+  `-leafBase`    ☰ `file` ☰ Requires PowerShell 6 or later
+  `-extension`   ☰ `.ext` ☰ Note that it also returns the dot. Requires PowerShell 6 or later
   `-qualifier`   ☰ `drive:` ☰
   `-noQualifier` ☰ `\dirOne\dirTwo\file.ext` ☰
   `-isAbsolute`  ☰ `→ Windows/PowerShell/language/variable/automatic/true-false[$true]` ☰ Compare with the static method → Microsoft/dot-net/namespaces-classes/System/IO/Path/IsPathRooted[`IsPathRooted()`] of the .NET class → Microsoft/dot-net/namespaces-classes/System/IO/Path[`System.IO.Path`]
 table }
 
-These results were obtained with the following test script:
-gh|about-PowerShell|/cmdlets/path/split/go.ps1||
+{ PowerShell 5.1: extract file base name or extension
+
+  PowerShell 5.1 does not have the `-leafBase` or `extension` option. But it is still possible to get a file's base name or extension.
+
+  The following statement uses the → Windows/PowerShell/language/operator/string-manipulation#ps-replace[`-replace` operator] to apply
+  a → development/regular-expressions[regular expression] that returns a file's base name, here: `ghi`.
+code {
+(split-path /abc/def/ghi.txt -leaf )  -replace '\.[^.]*$'
+code }
+
+  Similarly, the following statement returns the extension, however, unlike `-extension`, without a dot (that is: `txt`).
+code {
+(split-path /abc/def/ghi.txt -leaf )  -replace '[^.]+\.'
+code }
+
+  In order to also return the dot, the following statement can be used:
+code {
+(split-path /abc/def/ghi.txt -leaf )  -replace '.*(\.[^.]+)$', '$1'
+code }
+
+}
+{ Test script
+
+  These results of the result table were obtained with the following test script:
+  gh|about-PowerShell|/cmdlets/path/split/go.ps1||
+
+}
 
 sa:
   The → Windows/PowerShell/language/command parameter → Windows/PowerShell/command-inventory/parameter/credential[`-credential`].
