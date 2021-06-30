@@ -1,0 +1,136 @@
+$ Oracle SQL/JSON
+
+Query functions to produce SQL values from JSON documents:
+  • `json_value()`
+  • `json_query()`
+  • `json_table()`
+
+Predicates
+  • `json_exists`
+  • `is json`, `is not json`
+  • `json_equal`
+  • `json_textcontains` (?)
+
+Generation functions
+  • `json_object()`
+  • `json_array()`
+  • `json_objectagg()`
+  • `json_arrayagg()`
+
+Updating JSON data
+  • `json_transform()`
+  • `json_mergepath()`
+
+Misc
+table { ll
+  `json_serialize()` ☰ Returns a textual representation of a JSON document
+  `json_scalar()` ☰ Returns a scalar type
+  `json_equal()` ☰ Tests if two JSON values are equal
+  `json_dataguide()` ☰ An → development/databases/Oracle/SQL/select/aggregate[aggregate function]
+table }
+
+Object types
+  • `json_element_t` (The super type for the following three types)
+  • `json_scalar_t`
+  • `json_object_t`
+  • `json_array_t`
+
+{ Creating a table for JSON documents
+
+  JSON documents can be stored in → development/databases/Oracle/objects/tables/columns[columns] whose → development/databases/Oracle/SQL/data-types[data type] is one of
+    • `json`
+    • → development/databases/Oracle/SQL/data-types/varchar2[`varchar2`]
+    • → development/databases/Oracle/SQL/data-types/lob[`clob` or `blob`]
+
+code {
+create table tq84_json_documents (
+   id   number generated always as identity,
+   doc  clob,
+   --
+   constraint json_doc_pk primary key (id),
+   constraint doc_is_json check(doc is json)
+);
+
+insert into tq84_json_documents (doc) values ('{num: 1}');
+ 
+-- check constraint violation
+-- insert into tq84_json_documents (doc) values ('{num: }');
+code }
+
+}
+{ Querying JSON data
+
+code {
+select
+   *
+from
+   json_table('
+{
+   "num"    :     42,
+   "txt"    :     "Hello world",
+   "ary"    :    ["elem_0", 1]
+}',
+'$'
+   columns (
+      num             number                   path '$.num'   ,
+      txt             varchar2(20)             path '$.txt'   ,
+      ary             varchar2(20) FORMAT JSON path '$.ary'   ,
+      ary_1st_elem    varchar2(20)             path '$.ary[0]',
+      ary_2nd_elem    number                   path '$.ary[1]'
+   )
+);
+code }
+ 
+   The following JSON document is very similar to the previous one - but it contains an array of objects.
+   Using `$[*]` returns a record for each of these objects:
+code { 
+select
+   *
+from
+   json_table('
+[
+   {
+      "num"    :     42,
+      "txt"    :    "Hello world",
+      "ary"    :   ["elem_0", 1]
+   },
+   {
+      "num"    :     99,
+      "txt"    :    "ninety-nine",
+      "ary"    :   ["red balllons", 55.5]
+   },
+   {
+      "num"    :     17,
+      "txt"    :    "xyz",
+      "ary"    :   ["abc", 1.7]
+   }
+]',
+  '$[*]'  -- Note the [*]
+   columns (
+      num             number                   path '$.num'   ,
+      txt             varchar2(20)             path '$.txt'   ,
+  --  ary             varchar2(20) format json path '$.ary'   ,
+      ary_1st_elem    varchar2(20)             path '$.ary[0]',
+      ary_2nd_elem    number                   path '$.ary[1]'
+   )
+);
+code }
+
+
+}
+
+{ OSON
+
+  OSON is Oracle's optimized (binary) format for fast query and update of JSON documents/data.
+
+}
+
+{ Misc / TODO
+
+ `to_json()`
+
+  Internally, Oracle processes JSON data in the → development/Unicode/UTF-8 encoding.
+
+  → development/databases/Oracle/installed/packages/dbms/json[`dbms_json`]
+
+}

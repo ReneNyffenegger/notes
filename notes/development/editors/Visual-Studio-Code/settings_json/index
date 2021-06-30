@@ -15,7 +15,10 @@ $ Visual Studio Code: settings.json
 { Editing settings.json
 
   The settings can be edited using the menu → development/editors/Visual-Studio-Code/GUI/menu/File/Preferences/Settings[File -> Preferences -> Settings] or the
-  → development/editors/Visual-Studio-Code#vscode-shortcuts[keyboard shortcuts] `ctrl+,` or `F1`.
+  → development/editors/Visual-Studio-Code#vscode-shortcuts[keyboard shortcuts] `ctrl+,`.
+
+ `settings.json` can be edited in one of two views which is specified using the (setting) option `workbench.settings.editor`. If this value is `"ui"`, the settings
+  are displayed using a specialized GUI, if it is `"json"`, an editor is opened that displayes the «raw» → development/languages/JavaScript/JSON.
 
 }
 { Settings sync
@@ -56,11 +59,15 @@ code {
 
 "extensions.ignoreRecommendations"          :  true        , // Silence → development/editors/Visual-Studio-Code/extensions[extension] recommendation
 "extensions.showRecommndationsOnlyOnDemand" :  true        , // Remove the RECOMMENDED section
+ 
+     // Related to folding 
+"editor.showFoldingControls"                : "always"     ,
+"editor.foldingStrategy"                    : "auto"       , // or indentation
 
 "files.associations"                        : {              // Set explicit file types for given file extensions and name patterns
-    "*.wsf": "vb"   ,                                        // Find language identifiers (such as 'vb') at → https://code.visualstudio.com/docs/languages/identifiers
-    "*.cls": "vb"
-}
+    "*.wsf": "vb"   ,                                        // Map wsf and cls to 'Visual Basic'.
+    "*.cls": "vb"                                            // Find language identifiers (such as 'vb') at → https://code.visualstudio.com/docs/languages/identifiers
+},
 
 "files.autoSave"                            : "off"        ,
 
@@ -89,8 +96,33 @@ code {
 
 "workbench.statusBar.visible"               :  true        ,
 
-"workbench.settings.editor"                 : "json"         // Make → development/editors/Visual-Studio-Code/GUI/menu/File/Preferences/Settings[File -> Preferences -> Settings] open THIS settings.json (rather than edit in a GUI editor)
-
+"workbench.settings.editor"                 : "json"       , // Make → development/editors/Visual-Studio-Code/GUI/menu/File/Preferences/Settings[File -> Preferences -> Settings] open THIS settings.json (rather than edit in a GUI editor)
+                                                             // Set value to "ui" to edit settings using the GUI
+"explicitFolding.rules"                     : {
+ //
+ //  Settings for → development/editors/Visual-Studio-Code/extensions[extension] → https://marketplace.visualstudio.com/items?itemName=zokugun.explicit-folding[Explicit Folding]
+ //
+    "*": {
+            "begin": "{{{",
+            "end"  : "}}}"
+    },
+    "vb": [
+        {
+            "begin": "' {",
+            "end"  : "' }"
+        },
+        {
+            "begin": "{{{",
+            "end"  : "}}}"
+        }
+    ],
+    "sql": [
+        {
+            "begin": "-- {",
+            "end"  : "-- }"
+        }
+    ]
+}
 
 /*
 "[plsql]": {
