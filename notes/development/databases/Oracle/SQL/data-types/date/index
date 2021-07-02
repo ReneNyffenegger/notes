@@ -13,12 +13,37 @@ A → development/databases/Oracle/SQL/data-types/timestamp[`timestamp`] value d
   (or microseconds), a *timestamp* literal is needed.
 
 }
+{ Special dates etc.
+
+  The minimal date is `date '-4712-01-01``, the maximal date is `date '9999-12-31'`.
+
+  Date literals between `date '1582-10-05'` and `date '1582-10-15'` evaluate to `date '1582-10-15` (which corresponds to the julian day 2299161).
+
+  There is no year 0, but Oracle calculates Julian days within year 0 (bug 106242).
+
+code {
+select
+   to_number(to_char(date '-4712-01-01', 'J')) julian_day_1, -- = 1
+   --
+   to_number(to_char(date '-0001-12-31', 'J')) jd_1721057,
+   to_number(to_char(date '+0001-01-01', 'J')) jd_1721424,
+   --
+   date  '1582-10-04'    "1582-10-04",
+   date  '1582-10-05'    "1582-10-15 (1st missing date)",
+   date  '1582-10-14'    "1582-10-15 (also missing date)",
+   date  '1582-10-15'    "1582-10-15 (1st gregorian day)",
+   date  '9999-12-31'    "9999-12-31" -- maximum date
+from
+   dual;
+code }
+
+}
+
 { Misc
 
   The → development/databases/SQL-Server equivalent for date seems to be → development/databases/SQL-Server/T-SQL/data-types/datetime[`datetime`].
 
 }
-
 sa:
 
   → development/databases/Oracle/SQL/functions/date[DATE related SQL functions]
