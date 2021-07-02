@@ -1,18 +1,27 @@
-$ package.json
+$ VS Code extension: package.json
+@ package.json
 
 `package.json` is an → development/editors/Visual-Studio-Code/extensions[extension's] *manifest file*. This file is located in the
 → development/editors/Visual-Studio-Code/extensions/anatomy[root] of the extension's directory structure.
 
-The four *required fields* in `package.json` are `name`, `version`, `publisher` and `engines`.
+The four *required fields* in `package.json` are
+table { ll
+  `name` ☰  All lowercase
+  `version` ☰ In → https://semver.org/[Semantic versioning format] (`maj.min.pch`).
+  `publisher` ☰ which identifies the identity that is allowed to publish an extension to the *Visual Studio Code Marketplace*.
+  `engines` ☰
+table }
 
 Other *important* or *interesting* fields are
 table { ll
-  `main`             ☰ Extension's entry point
+  `main`             ☰ Extension's entry point: the name of a → development/languages/JavaScript file, relative to the extension's root. The `.js` suffix can be submitted (in fact, it even seems to be recommended because it is assumed to be a JavaScript file).
   `activationEvents` ☰ Activation events
-  `contribution`     ☰ Contribution Points
+  `contributes`      ☰ Description of the functionality that is provided by the extension.
   `engines.vscode`   ☰ The minimum → development/editors/Visual-Studio-Code/API[VS Code API] version that the extension requires
   `dependencies`     ☰
   `repository`       ☰
+  `license`          ☰
+  `displayName`      ☰ Extension's name in the market place
 table }
 
 code {
@@ -21,13 +30,70 @@ code {
    "version"    : "0.0.1"              ,
    "publisher"  : "tq84"               ,
    "engines"    :{"vscode": "^1.32.0" },
-   "
+    …
 }
 code }
 
-The characters of `name` should be lowercase.
 
 `publisher` dot `name` (`tq84.demo-extension`) is the extension's *unique ID*, used by → development/editors/Visual-Studio-Code[VS Code] to identify the extension.
+
+`package.json` must be stored as a «pure» → development/languages/JavaScript/JSON file: comments are (as per strict JSON specification) not allowed.
+
+{ activationEvents #vscode-package-json-activationEvents
+
+ `activationEvents` is an array whose elements define when an extension is activated.
+
+  Possible values for the elements of `activationEvents` include
+  table { ll
+    `*` ☰ VS Code starts up
+    `onStartupFinished` ☰ After VS Code is started up. Similar to `*`, but with the intension not to slow down the starting up process.
+    `onLanguage:xyz` ☰ a file whose language ID is `xyz` is opened
+    `onCommand:…` ☰
+    `workspaceContains:**/pattern.*` ☰ A folder is opened that contains a file whose name matches the given pattern.
+    `onDebug` ☰ before a debug session is started
+    `onDebugInitialConfigurations` ☰ activation is just before the `provideDebugConfigurations` method of the `DebugConfigurationProvider` is called.
+    `onDebugResolve:type` ☰ activation is just before the `resolveDebugConfiguration` method of the `DebugConfigurationProvider` is called.
+    `onFileSystem:scheme` ☰ A file with the given *scheme* (`sftp`, `ftp`, `ssh` …) is opened
+    `onView:viewID` ☰ A view with the given ID is opened
+    `onUri` ☰
+    `onWebviewPanel` ☰
+  table }
+
+}
+
+{ contributes
+
+  table { ll
+    `configuration` ☰ 
+    `configurationDefaults` ☰ Overwrite default editor configurations
+    `commands` ☰ add a titled command (and optionally an icon, category and enabled state). Such commands show up in the *Command Palette* (`ctrl+shift+p`) and possibly in other menus, too.
+    `menus` ☰
+    `keybindings` ☰ Assign a command to combination of keys being pressed.
+    `languages` ☰
+    `debuggers` ☰
+    `breakpoints` ☰
+    `grammars` ☰ A *TextMate* grammar
+    `themes` ☰ Color theme
+    `iconThemes` ☰ File icon themes, which are shown next to file names
+    `productIconThemes` ☰
+    `snippets` ☰
+    `jsonValidation` ☰
+    `views` ☰
+    `viewsWelcome` ☰
+    `viewsContainers` ☰
+    `walkthroughs` ☰ intended to introduce an extension to a user
+    `problemMatchers` ☰ 
+    `problemPatterns` ☰
+    `taskDefinitions` ☰
+    `colors` ☰
+    `typescriptServerPlugins` ☰
+    `resourceLabelFormatters` ☰
+    `customEditors` ☰
+    `contributes.con` ☰
+  table }
+
+}
+
 
 links:
   The → https://code.visualstudio.com/api/references/extension-manifest[extension manifest reference] has a list of allowed field-names in `package.json`.
