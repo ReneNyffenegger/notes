@@ -1,0 +1,147 @@
+$ Oracle: Materialized views - fast refresh
+
+{ Aggregate functions
+
+  In order for a → development/databases/Oracle/objects/views/materialized that contains an → development/databases/Oracle/SQL/select/aggregate[aggregate function]
+  to be *fast refreshable*, there must be a `count(*)` column and a `count(col)` column for all columns that are aggregated.
+
+code {
+create table tq84_A (
+   id         number primary key,
+   val_A_1    number(5),
+   val_A_2    varchar2(10)
+);
+
+insert into tq84_A values (1, 100, 'foo');
+insert into tq84_A values (2,  42, 'bar');
+insert into tq84_A values (3,  99, 'bar');
+insert into tq84_A values (4,  18, 'baz');
+
+commit;
+
+--
+-- 
+--
+drop materialized view log on tq84_A;
+create materialized view log -- Prevent ORA-23413: table … does not have a materialized view log
+  on tq84_A
+  with
+     rowid,                  -- Prevent ORA-12032: cannot use rowid column from materialized view log on "RENE"."TQ84_A"
+     sequence
+  (
+     val_A_1,                -- Prevent ORA-12033: cannot use filter columns from materialized view log on
+     val_A_2
+  )
+  including new values       -- Prevent ORA-32401: materialized view log on … does not have new values
+;
+
+drop materialized view tq84_mv_1;
+create materialized view tq84_mv_1
+refresh fast on commit
+as
+select
+   min(val_A_1),
+   val_A_2
+from
+   tq84_A
+group by
+   val_A_2
+;
+
+select * from tq84_mv_1;
+
+insert into tq84_A values (5,  38, 'baz');
+delete from tq84_A where id = 4;
+
+select * from tq84_mv_1;
+commit;
+select * from tq84_mv_1;
+
+--> View was not refreshed
+--> alert log says:
+-->     Fast refresh is not possible for on-commit mv RENE.TQ84_MV_1
+-->     On commit 
+-->     MV RENE.TQ84_MV_1 was not refreshed successfully.
+-->     Number of MV refresh failures: 1.
+
+
+exec dbms_mview.explain_mview('tq84_mv_1')
+
+select
+   capability_name,
+   possible,
+   msgtxt
+from
+   mv_capabilities_table
+where
+   mvowner    = user and
+   mvname     ='TQ84_MV_1'
+;
+
+--
+--> Result says that REFRESH_FAST is not possible.
+--
+
+declare
+  task_name varchar2(20) := 'tq84_advise';
+begin
+
+  dbms_advisor.tune_mview(
+     task_name      => task_name,
+     mv_create_stmt => q'{
+create materialized view tq84_mv_1
+refresh fast on commit
+as
+select
+   min(val_A_1),
+   val_A_2
+from
+   tq84_A
+group by
+   val_A_2
+}');
+
+end;
+/
+--
+--> ORA-13600: error encountered in Advisor
+--> QSM-03113: Cannot tune the MATERIALIZED VIEW statement
+--> 
+--> QSM-02086: mv uses the MIN, MAX or ANY_VALUE aggregate functions
+
+
+--
+-- The materialized view works ok if it
+-- contains a count(*) and a count(val_A_1)!
+-- So: recreate the materialized view with
+-- these columns!
+--
+drop materialized view tq84_mv_1;
+create materialized view tq84_mv_1
+refresh fast on commit
+as
+select
+   count(*),
+   count(val_A_1),
+   min(val_A_1),
+   val_A_2
+from
+   tq84_A
+group by
+   val_A_2
+;
+
+select * from tq84_mv_1;
+
+insert into tq84_A values (6,  8, 'baz');
+delete from tq84_A where id = 3;
+
+select * from tq84_mv_1;
+commit;
+select * from tq84_mv_1;
+
+drop materialized view tq84_mv_1;
+drop table tq84_A;
+code }
+
+}

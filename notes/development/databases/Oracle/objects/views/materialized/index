@@ -1,6 +1,110 @@
-$ Oracle: materialized views
+$ Oracle: Materialized views
+@ materialized view
 
 A *materialized view* stores the result of a → development/databases/Oracle/SQL/select[select statement].
+-
+There are three options that specify how the result of the select statement is refreshed:
+table { lll
+   ☰ ☰ ~Default~
+  Refresh Mode ☰ `on commit`, `on demand` or `on statement` ☰ `on demand`
+  Refresh Option ☰ `complete`, `fast`, `force` or `never` ☰ `force`
+  Trust constraints ☰ `trusted constraints` or `enforced constraints` ☰ `enforced`
+table }
+
+{ Master tables
+
+  The → development/databases/Oracle/objects/tables[tables], → development/databases/Oracle/objects/views[views] and
+  materialized view that provide the data for a materialized view (that is: the objects that the materialized view selects from) are
+  referred to as *master tables* (sometimes also as *detail tables*).
+
+}
+{ Relation to snapshots
+
+  Materialized views were previously referred to as *snapshots*. Therefore, for backward compatibility, it is possible to use the term `snapshot` instead of `materialized view`.
+
+  The apparant package name → development/databases/Oracle/installed/packages/dbms/mview[`dbms_mview`] is in fact a
+  → development/databases/Oracle/objects/synonyms for `dbms_snapshot`.
+
+}
+
+rem {
+
+{ Fast refresh restrictions
+
+  In order for a materialized view to be *fast refreshable*, the following items are not allowed
+    • `sysdate` or `rownum`
+    • Data types  development/databases/Oracle/SQL/data-types/raw[`raw` and `long raw`]
+    • `select` list subquery
+    • → development/databases/Oracle/SQL/select/analytic[Analytic functions] in the select clause.
+    • Referencing tables having an `XMLindex` index.
+    • `model` clause
+    • Nested queries with `any`, `all` or `not exists`
+    • `start with … connect clause`
+    • Mutliple detail tables at different sites
+    • `on commit` refreshalbe MVs cannot have remote detail tables
+    • Index organized tables when using join or aggregates with `group by`
+
+  In addition, nested materialized views must have a → development/databases/Oracle/SQL/join or → development/databases/Oracle/SQL/select/aggregate[aggregate function].
+
+
+}
+
+rem }
+
+
+{ Materialized View Logs
+
+  { used for fast refreshable materialized views
+
+    In order for a materialized view to be fast refreshable, *materialized log views* are typically required (exceptions being «partition change tracking» (PCT) refresh).
+
+    When using materialized view logs for fast refershing materialized views, they should include the `rowid` clause.j
+
+    If they're used for aggregate materialized views, they must also include every column that is referenced in the materialized view.
+
+rem {
+CREATE MATERIALIZED VIEW LOG
+  ON sales
+  WITH ROWID
+  (
+    prod_id,
+    cust_id, …
+  )
+  INCLUDING NEW VALUES
+;
+rem }
+
+rem {
+CREATE MATERIALIZED VIEW LOG
+  ON sales
+  WITH ROWID
+  (
+    prod_id,
+    cust_id, …
+  )
+  COMMIT SCN
+  INCLUDING NEW VALUES
+;
+rem }
+
+rem {
+CREATE MATERIALIZED VIEW LOG
+  ON sales
+  WITH
+     SEQUENCE,  -- Required to support combination of insert, update or delete statements
+     ROWID
+  (
+    prod_id,
+    cust_id, …
+  )
+  COMMIT SCN
+  INCLUDING NEW VALUES
+;
+rem }
+
+  }
+
+}
 
 
 sa: 
@@ -13,3 +117,9 @@ sa:
   Errors that occur when materialized views are automatically refreshed are recored in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log.
 
   The → development/databases/Oracle/SQL/hints[`rewrite` hint]
+
+  → development/databases/Oracle/installed/packages/dbms/advisor/api/tune_mview[`dbms_advisor.tune_mview`] optimizes materialized view creation statemens to achieve `refresh fast` and `enable query rewrite` goals
+
+  → development/databases/Oracle/objects/views/materialized/prebuilt-table[Prebuilt tables]
+
+  → development/databases/Oracle/objects/views/materialized/options/refresh/fast[fast refresh]
