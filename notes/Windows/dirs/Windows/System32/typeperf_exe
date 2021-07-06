@@ -1,7 +1,54 @@
 $ typeperf.exe
 
+`typeperf.exe` writes data from → Windows/Management-Instrumentation/Performance-Counters[Performance Counters] to → development/stdin-stdout-stderr[stdout] or to a log file
+(→ development/Data/exchange/formats/CSV, TSV (aka Tab-delimited file TDF), BIN (= BLG?) (and SQL?)
 
 In order to use typeperf, one must either be a member of the local Performance Log Users group, or the command must be executed from an elevated command window
+
+{ Options
+
+   table { ll
+
+    `-f <CSV|TSV|BIN|SQL>`          ☰ Output file format. Default is → development/Data/exchange/formats/CSV.
+    `-cf <filename>`                ☰ File containing performance counters to monitor, one per line.
+    `-si <[[hh:]mm:]ss>`            ☰ Time between samples. Default is 1 second.
+    `-o <filename>`                 ☰ Path of output file or SQL database. Default is → development/stdin-stdout-stderr[stdout].
+    `-q [object]`                   ☰ List installed counters (no instances). To list counters for one object, include the object name, such as Processor.
+    `-qx [object]`                  ☰ List installed counters with instances. To list counters for one object, include the object name, such as Processor.
+    `-sc <samples>`                 ☰ Number of samples to collect. Default is to sample until `CTRL+C` is pressed.
+    `-config <filename>`            ☰ Settings file containing command options.
+    `-s <computer_name>`            ☰ Server to monitor if no server is specified in the counter path.
+    `-y`                            ☰ Answer yes to all questions without prompting.
+    `-?`                            ☰ Displays context sensitive help.
+
+  table }
+
+}
+{ Examples
+
+  Print the amount of available → Windows/development/memory[memory] every 10 seconds: 
+code {
+typeperf "\memory\Available Bytes" -si 10
+…
+"07/06/2021 10:07:08.801","2133475328.000000"
+"07/06/2021 10:07:18.803","1981624320.000000"
+"07/06/2021 10:07:28.806","2057383936.000000"
+"07/06/2021 10:07:38.809","2153164800.000000"
+"07/06/2021 10:07:48.812","2082856960.000000"         
+code }
+
+  Show all installed counters:
+code {
+typeperf -q
+code }
+
+  Show available counters for specific objects:
+code {
+typeperf -qx "Battery Status"
+typeperf -qx  Memory
+code }
+
+}
 
 sa:
   → Windows/dirs/Windows/System32/perfmon_exe[`perfmon.exe`]
