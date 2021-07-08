@@ -1,5 +1,9 @@
 $ Simple demonstration script for using Tim Halls VBA-JSON parser
 
+The following simple script tries to demonstrate how → https://github.com/VBA-tools/VBA-JSON[Tim Hall's VBA JSON parser] might be used.
+
+I wrote this script because I once was bitten by the fact(?) that the special key name *values* cannot be used with the exclamation point notation (`jsonTest!values`).
+
 code {
 option explicit
 
@@ -9,6 +13,7 @@ sub jsonTest()
     jsonText = "{" & _
        """keyOne"": [""zero"", ""one"", ""two"", ""three""]," & _
        """keyTwo"": {""num"": 42, ""txt"": ""Hello world.""}" & _
+       """values"": {""num"": 99, ""txt"": ""ninety-nine.""}" & _
     "}"
 
     dim jsonParsed as dictionary
@@ -19,21 +24,39 @@ sub jsonTest()
   '
     dim k as variant
     for each k in jsonParsed
-        debug.print "key        = " & k
+        debug.print "key = " & k
     next k
 
-    debug.print "keyOne(2)  = " & jsonParsed!keyOne(2)
-    debug.print "keyTwo!num = " & jsonParsed!keyTwo!num
+    debug.print ""
+
+    debug.print "jsonParsed!keyOne(2)     = "   & jsonParsed!keyOne(2)
+    debug.print "jsonParsed!keyTwo!num    = "   & jsonParsed!keyTwo!num
+    debug.print "jsonParsed(""values"")!num = " & jsonParsed("values")!num ' jsonParsed!values does not seem to work...
+
+    debug.print ""
+
+    dim e as variant
+    for each e in jsonParsed!keyOne
+        debug.print e
+    next e
 
 end sub 
 code }
 
 When run, this → development/languages/VBA/language/subs-and-functions[`sub`] prints
 code {
-key        = keyOne
-key        = keyTwo
-keyOne(2)  = one
-keyTwo!num = 42
+key = keyOne
+key = keyTwo
+key = values
+
+jsonParsed!keyOne(2)     = one
+jsonParsed!keyTwo!num    = 42
+jsonParsed("values")!num = 99
+
+zero
+one
+two
+three
 code }
 
 The VBA-JSON library requires a *reference* for → development/languages/VBA/Useful-object-libraries/Microsoft-Scripting-Runtime/dictionary[dictionary] to be set.
