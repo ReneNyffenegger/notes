@@ -47,7 +47,7 @@ code }
   A *code template* is textual abbrevation for a predefined text snippet (the template). This abreviation is epxanded with `ctrl+space`.
 
   Code templates can be entered under the menu
-  → development/Software/Oracle-SQL-Developer/GUI/menu/Tools/Preferences/Database/SQL-Editor-Code-Templates[Tools -> Preferences Database -> sqL Editor Code Templates].
+  → development/Software/Oracle-SQL-Developer/GUI/menu/Tools/Preferences/Database/SQL-Editor-Code-Templates[Tools -> Preferences -> Database -> SQL Editor Code Templates].
   
   
   Apparently, these code templates are stored (in Windows) under `"%appdata%\SQL Developer\CodeTemplate.xml"`.
@@ -262,7 +262,59 @@ code }
 }
 { TODO
 
-  Apparently, performance can be improved by unchecking unneeded features under → development/Software/Oracle-SQL-Developer/GUI/menu/Tools/Features[Tools -> Features].
+  { Performance improvements
+
+    Apparently, performance can be improved by unchecking unneeded features under → development/Software/Oracle-SQL-Developer/GUI/menu/Tools/Features[Tools -> Features].
+
+  }
+  { Executing JavaScript #sql-dev-exec-js
+
+    JavaScript can be executed in the ~Arbori Editor~.
+
+    In order to open this *Arbori Editor*, *Code Outline* must be opened first, which is possible by using the (right-click)
+    → development/Software/Oracle-SQL-Developer/GUI/SQL-Worksheet#sql-dev-worksheet-ctx-menu[context menu] in the
+    → development/Software/Oracle-SQL-Developer/GUI/SQL-Worksheet.
+    -
+    After opening *Code Outline*, the word *Arbori* must be typed into the text box at the top of Code Outline. This opens the Arbori Editor.
+
+    The following demonstration JavaScript code can then be pasted into the Arbori Editor and executed:
+code {
+include "std.arbori"
+
+prelude: runOnce -> {
+
+    print("Hello");
+
+    var ConnectionResolver = Java.type('oracle.dbtools.db.ConnectionResolver');
+    var connectionList     = ConnectionResolver.getConnectionNames();
+
+    for (var i in connectionList ) {
+       print(connectionList[i]);
+    }
+
+    Connection conn = (Connection) DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:ORA19", "rene", "rene");
+//  var conn = ConnectionResolver.getConnection('IdeConnections%23Ora19');
+
+    if (conn == null) {
+       print("conn == null");
+    }
+    else {
+
+        var stmt = conn.createStatement();
+        var rs = stmt.executeQuery("select object_name, created from user_objects");
+        while( rs.next() ) {
+            print(rs.getString(1) + ": " + rs.getString(2));
+        }
+    }
+}
+code }
+
+    In order to see the output in Windows, the Console based executable of SQL Developer must be started, that is `<inst-dir>\sqldeveloper\bin\sqldeveloper64.exe`, not
+    `…sqldeveloper64W.exe` or `…\sqldeveloper.exe`.
+    
+    Also note that it seems that the current(?) SQL Worksheet needs to containt at least one character.
+
+  }
 
 }
 
