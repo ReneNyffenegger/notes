@@ -2,6 +2,42 @@ $ openfiles.exe
 
 *Displays the current open files list* (files that were opened by remote users for a file share)
 
+code {
+C:\> openfiles /query /fo table
+
+Files Opened Locally:
+---------------------
+
+ID    Process Name         Open File (Path\executable)                       
+===== ==================== ==================================================
+64    fontdrvhost.exe      C:\Windows\System32
+64    fontdrvhost.exe      C:\Windows\System32
+64    dwm.exe              C:\Windows\System32
+212   dwm.exe              C:\Windows\System32\en-US\dwm.exe.mui
+388   dwm.exe              C:\Windows\System32\en-US\d2d1.dll.mui
+1556  dwm.exe              C:\Windows\System32\en-US\crypt32.dll.mui
+2168  dwm.exe              C:\Windows\System32\en-US\KernelBase.dll.mui
+2212  dwm.exe              C:\Windows\System32
+…
+code }
+
+What is the column `ID` identifiying? It does not refer to a → Windows/development/process/identifer[process id]. In order to get the process id, the `/v` (verbose) flag must be given:
+code {
+openfiles /query /fo table /v
+Files Opened Locally:
+---------------------
+
+ID    Accessed By     PID      Process Name         Open File (Path\executable)                                                     
+===== =============== ======== ==================== ================================================================================
+64    UMFD-0          1000     fontdrvhost.exe      C:\Windows\System32
+64    UMFD-1          1256     fontdrvhost.exe      C:\Windows\System32
+64    DWM-1           1328     dwm.exe              C:\Windows\System32
+212   DWM-1           1328     dwm.exe              C:\Windows\System32\en-US\dwm.exe.mui
+388   DWM-1           1328     dwm.exe              C:\Windows\System32\en-US\d2d1.dll.mui
+1556  DWM-1           1328     dwm.exe              C:\Windows\System32\en-US\crypt32.dll.mui
+…
+code }
+
 { Requirements
 
   Some requirements to use `openfiles.exe` include
@@ -17,6 +53,7 @@ $ openfiles.exe
     `/disconnect` ☰ disconnect one or more open files
     `/query` ☰ displays files opened locally or from shared folders
     `/local` ☰ enables/disables the display of local open files
+    `/v` ☰ Verbose (also report *Accessed By* and *PID*)
     `/command /?` ☰  `/command` being one of `/disconnect`, `/query` or `/local`
 
   table }
@@ -37,6 +74,34 @@ code }
   → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager[`HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager`],
   value → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager#system-global-flag[`GlobalFlags`].
 
+}
+{ Example
+
+   Trying to move (rename) a directory in → Windows/PowerShell:
+code {
+PS C:\Users\rene> mv proj proj.old
+move : Access to the path 'C:\Users\Rene\proj\' is denied.
+code }
+
+  Become administrator:
+code {
+PS C:\Users\rene> → Windows/PowerShell/command-inventory/noun/process/start[start-process] $( (→ Windows/PowerShell/command-inventory/noun/process/get[get-process] -pid $pid).path ) -verb runAs
+code }
+
+  Prepare for some waiting time…
+code {
+PS C:\Windows\System32> openfiles /query /fo table /v | select-string 'C:\\Users\\rene\\proj'
+11376 Rene            60       explorer.exe         C:\Users\Rene\proj\some\sub\directory
+13644 Rene            60       explorer.exe         C:\Users\Rene\proj\another\sub\directory
+code }
+
+  The third column of the output is the → Windows/development/process/identifer[process id]:
+code {
+stop-process -id 60
+code }
+
+  Alternatively, the blocking process can also be found with the → Windows/dirs/Windows/System32/resmon_exe[Resource Monitor (`resmon.exe`)] (See
+  → https://superuser.com/a/643312/16610[this Stackoverflow answer). It looks like this is a faster alternative to find a blocking process.
 
 }
 
@@ -45,3 +110,7 @@ sa:
   → Windows/PowerShell/examples/Problem-Ejecting-USB-Mass-Storage-Device
 
   The PowerShell command noun → Windows/PowerShell/command-inventory/noun/smbOpenFile[`smbOpenFile`].
+
+code {
+C:\> → Windows/dirs/Windows/System32/net_exe[net] file
+code }
