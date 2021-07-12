@@ -1,5 +1,31 @@
 $ user_constraints / all_constraints / dba_constraints / cdb_constraints
 
+{ Find primary-foreign key relations #ora-all_constraints-fk-pk
+
+  By joining records of `all_constraints` that identify
+  → development/databases/Oracle/objects/tables/constraints/primary-key[primary keys] to
+  records of `all_constraints` that identify → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys], it is possible to
+  select primary-foreign key relations.
+
+code {
+select
+   pk.owner         pk_owner,
+   pk.table_name    pk_table,
+   fk.owner         fk_owner,
+   fk.table_name    fk_table,  
+   pk.status        pk_status,
+   fk.status        fk_status
+from
+   all_constraints  pk                                                     join
+   all_constraints  fk on pk.owner           = fk.r_owner            and
+                          pk.constraint_name = fk.r_constraint_name
+where
+   pk.owner      =  user                 and
+   pk.table_name = 'XYZ';
+code }
+
+}
+
 sa:
   → development/databases/Oracle/objects/tables/constraints[Table constraints]
 
