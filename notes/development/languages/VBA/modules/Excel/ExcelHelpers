@@ -9,14 +9,15 @@ ExcelHelpers depends on
 { Functions
 
   table { ll
-    → #vba-mod-exh-findWorksheet[`findWorksheet`] ☰
-    → #vba-mod-exh-deleteWorksheet[`deleteWorksheet`] ☰
-    → #vba-mod-exh-freezeHeader[`freezeHeader`] ☰
     → #vba-mod-exh-colLetterToNum[`colLetterToNum`] ☰
-    `deleteRange` ☰ If the specified  → Microsoft/Office/Excel/Object-Model/Range#excel-range-name[range name] exists: calls its → Microsoft/Office/Excel/Object-Model/Range/clearFormats[`.clearFormats`] and → Microsoft/Office/Excel/Object-Model/Range#excel-range-clearContents[`.clearContents`] methods and then deletes the → Microsoft/Office/Excel/Object-Model/Name[named range].
     → #vba-mod-exh-createButton[`createButton`] ☰ Create a → Microsoft/Office/Excel/Object-Model/Button[button] that occupies a specifed → Microsoft/Office/Excel/Object-Model/Range[range].
-    `unprotect(sh, pw)` ☰ tries to → Microsoft/Office/Excel/Object-Model/Worksheet/protect-unprotect[unprotect] worksheet `sh` with → development/security/password `pw`. Returns `true` if successful, `false` otherwise. Compare with menu → Microsoft/Office/Excel/GUI/Ribbon/tabs/Review/Protect/Protect-Sheet[Review -> Protect -> Protect Sheet]
+    `deleteRange` ☰ If the specified  → Microsoft/Office/Excel/Object-Model/Range#excel-range-name[range name] exists: calls its → Microsoft/Office/Excel/Object-Model/Range/clearFormats[`.clearFormats`] and → Microsoft/Office/Excel/Object-Model/Range#excel-range-clearContents[`.clearContents`] methods and then deletes the → Microsoft/Office/Excel/Object-Model/Name[named range].
+    → #vba-mod-exh-deleteWorksheet[`deleteWorksheet`] ☰
+    → #vba-mod-exh-findWorksheet[`findWorksheet`] ☰
+    → #vba-mod-exh-freezeHeader[`freezeHeader`] ☰
+    → #vba-mod-exh-insertHyperlinkToVBAMacro[`insertHyperlinkToVBAMacro`] ☰ Inserts a → Microsoft/Office/Excel/functions/hyperlink[`=hyperlink(…)`] worksheet function that calls a → development/languages/VBA/language/subs-and-functions[user defined VBA function] when clicked.
     `pageNumberOfCell(c)` ☰ returns the page number on which the give → Microsoft/Office/Excel/Object-Model/Range/cell is located.
+    `unprotect(sh, pw)` ☰ tries to → Microsoft/Office/Excel/Object-Model/Worksheet/protect-unprotect[unprotect] worksheet `sh` with → development/security/password `pw`. Returns `true` if successful, `false` otherwise. Compare with menu → Microsoft/Office/Excel/GUI/Ribbon/tabs/Review/Protect/Protect-Sheet[Review -> Protect -> Protect Sheet]
 
   table }
 
@@ -27,6 +28,22 @@ ExcelHelpers depends on
     If no such worksheet exists, it is created.
 
     Optionally, the parameter `deleteIfExists` can be set to → development/languages/VBA/language/datatypes/boolean[`true`] to always return a newly created worksheet.
+
+  }
+  { insertHyperlink #vba-mod-exh-insertHyperlinkToVBAMacro
+
+
+code {
+dim hyperlinkCell as range : set hyperlinkCell = …
+insertHyperlinkToVBAMacro hyperlinkCell, "text", "VBA_function_name_to_be_called"
+code }
+
+    Using → development/languages/VBA/language/subs-and-functions/parameters[parameters] to be passed to the VBA function:
+code {
+insertHyperlinkToVBAMacro hyperlinkCell, "text", "VBA_function_name_to_be_called", "Param one", 2, 3…
+code }
+
+    Note: the function that is called must return a → Microsoft/Office/Excel/Object-Model/Range[`range`] which specifies the target → Microsoft/Office/Excel/Object-Model/Range/cell of the function
 
   }
   { deleteWorksheet #vba-mod-exh-deleteWorksheet
@@ -48,7 +65,7 @@ ExcelHelpers depends on
    `colLetterToNum` returns the column (as number) that corresponds to a column letter. (`colLetterToNum("D")` returns 4 etc.)
 
   }
-  { createButton #vb-mod-exh-createButton
+  { createButton #vba-mod-exh-createButton
 
   `createButton` creates a → Microsoft/Office/Excel/Object-Model/Button[button] that occupies a given → Microsoft/Office/Excel/Object-Model/Range[range] (parameter `rng`).
 
@@ -70,6 +87,8 @@ code }
 
 }
 sa:
+
+  → development/languages/VBA/modules/Excel/_test
 
   → Microsoft/Office/Excel/helpers[Excel Object Model (helpers)]
 
