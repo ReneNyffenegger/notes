@@ -1,5 +1,89 @@
 $ Oracle: JSON_TABLE
 
+`JSON_TABLE` projects a → development/languages/JavaScript/JSON document onto a *virtual table* that can be used in an
+→ development/databases/Oracle/SQL/statement like an ordinary → development/databases/Oracle/objects/tables.
+
+{ Selecting scalar variables from a 'dictionary'
+
+code {
+select
+   t.num,
+   t.txt
+from
+   json_table (
+   '{
+     "num":  42,
+     "txt": "Hello world",
+     "ary": ["foo", "bar", "baz"],
+     "dct": {"val_1": "one", "val_2": "two"}
+  }',
+  '$'
+  columns (
+     num number,
+     txt varchar2(20)
+  )
+) t;
+code }
+
+
+
+}
+{ Seleting values from a 'sub-hash'
+
+code {
+select
+   t.num,
+   t.txt,
+   t.dct_val_1,
+   t.dct_val_2
+from
+   json_table (
+   '{
+     "num":  42,
+     "txt": "Hello world",
+     "ary": ["foo", "bar", "baz"],
+     "dct": {"val_1": "one", "val_2": "two"}
+   }',
+   '$'
+   columns (
+      num       number,
+      txt       varchar2(20),
+      dct_val_1 varchar2(10) path dct.val_1,
+      dct_val_2 varchar2(10) path dct.val_2
+   )
+) t;
+
+code }
+
+}
+{ Accessing array elemens
+
+code {
+select
+   t.num,
+   t.txt,
+   t.ary_elem
+from
+   json_table (
+   '{
+     "num":  42,
+     "txt": "Hello world",
+     "ary": ["foo", "bar", "baz"],
+     "dct": {"val_1": "one", "val_2": "two"}
+  }',
+  '$'
+  columns (
+     num       number,
+     txt       varchar2(20),
+     nested path '$.ary[*]'
+     columns (
+        ary_elem varchar2(50) path '$'
+     )
+  )
+) t;
+code }
+
+}
 { Selecting all records from JSON array of arrays
 
   The following example selects from a → development/languages/JavaScript/JSON array of arrays.
@@ -109,4 +193,7 @@ code }
 }
 
 sa:
+
+  → development/databases/Oracle/SQL/JSON
+
   → development/databases/Oracle/SQL/functions/XML/Table[`XMLTable`].

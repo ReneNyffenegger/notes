@@ -12,6 +12,104 @@
   committed.
 
 }
+{ Basic commands on the command line
+
+code {
+tf workspace -new -noprompt tq84Dream -collection:https://devops.foobarbaz.xyz/DefaultCollection
+code }
+
+code {
+tf workfold -map '$/DREAM' C:\users\rene\TF -collection:https://devops.foobarbaz.xyz/DefaultCollection -workspace:tq84Dream
+code }
+
+code {
+tf get recursive .
+code }
+
+code {
+tf add .\InitialCode
+code }
+
+code {
+C:…\…\\> tf checkin .\InitialCode\  /comment:"Add InitialCode"
+Checking in add: InitialCode
+
+Changeset #6657 checked in.
+code }
+
+Turns out, *InitialCode* was not added recursively…
+code {
+tf add     -recursive .\InitialCode
+tf checkin -recursive .\InitialCode\ /comment:"Add InitialVersion with -recursive parameter"
+code }
+
+code {
+tf add .\hello-world.sql .\hello-world-body.sql
+tf checkin  /comment:"First version of Hello-World package"
+code }
+
+code {
+c:\…\…> tf workspaces
+Collection: https://devops.foobarbaz.xyz/defaultcollection
+Workspace  Owner             Computer Comment
+---------- ----------------- -------- --------------------------------------------------------------------------------------------------------------------------
+BNCN0444   Nyffenegger, René BNCN0444
+BNCN0444_1 Nyffenegger, René BNCN0444
+tq84Dream  Nyffenegger, René BNCN0444
+code }
+
+code {
+C:\…\…> tf info .  -recursive
+code }
+
+code {
+C:\…\…> tf status .
+There are no pending changes
+
+C:\…\…> tf add .\0106-001_explain-plan-as-FIBU.sql .\0106-002_explain-plan-errors.sql
+0106-001_explain-plan-as-FIBU.sql
+0106-002_explain-plan-errors.sql
+
+C:\…\…> tf status .
+There are no pending changes.
+
+C:\…\…> tf folderdiff .
+C:\…\…> tf folderdiff . -noprompt
+TF206008: Unable to determine the workspace because the local path you provided either is not mapped to a server folder or it cannot be found. Check the value you provided for targetPath or provide an alternate sourcePath value and try again.
+
+C:\…\…>  tf checkin . -comment:"explain plan for 'InitialVersion'"
+There are no pending changes matching the specified items.
+No files checked in.
+
+C:\…\…>  tf checkin .\0106-001_explain-plan-as-FIBU.sql .\0106-002_explain-plan-errors.sql  -comment:"explain plan for 'InitialVersion'"
+Checking in add: 0106-001_explain-plan-as-FIBU.sql
+Checking in add: 0106-002_explain-plan-errors.sql
+
+Changeset #6667 checked in
+code }
+
+code {
+tf workspaces -format:detailed -collection:https://devops.foobarbaz.xyz/DefaultCollection/
+code }
+
+  Rename a directory:
+code {
+tf rename .\sql_stmt_templ\ .\sql_stmt_tmpl
+tf checkin . -recursive -comment:'rename sql_stmt_templ to sql_stmt_tmpl'
+code }
+
+  Move file to another folder/directory:
+code {
+tf rename .\SystemData\_test.ps1 test-SystemData.ps1
+rem tf folderdiff  -recursive -noprompt .
+tf checkin -recursive . -comment:"move tests into respective directory"
+code }
+
+
+  Misc:
+    • use `-noprompt`
+
+}
 
 sa:
   → Windows/dirs/Program-Files-x86/Microsoft-Visual-Studio/version/edition/Common7/IDE/CommonExtensions/Microsoft/TeamFoundation/Team-Explorer/TF_exe[`TF.exe`]
