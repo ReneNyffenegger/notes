@@ -1,0 +1,33 @@
+$ Registry: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideMyComputerIcons
+
+Some sources in the Internet claim that it is possible to hide some folders from
+→ Windows/dirs/Windows/explorer_exe/GUI#explorer-GUI-This-PC[This PC in the File explorer] by adding a few values under the registry key
+`HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideMyComputerIcons`, as for example with the → Windows/PowerShell/script[PowerShell script] shown below.
+-
+However, in my tests, I was unable to hide anything!
+
+code {
+set-strictMode -version latest
+
+function set-folderHidden($guid, $hide) {
+ #
+ # Setting $hide to 1 is supposed to hide the folder
+ # 
+   $regPath = 'hkcu:/SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/HideMyComputerIcons'
+
+   if ( -not (test-path $regPath )) {
+    # write-host "$regPath does not exist, creating it"
+      $null = new-item $regPath -force
+   }
+
+   $null = new-itemProperty -path $regPath -name $guid  -value $hide  -force
+}
+
+set-folderHidden  '{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}'  1   # 3D Objects
+set-folderHidden  '{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}'  1   # Deskop
+set-folderHidden  '{D3162B92-9365-467A-956B-92703ACA08AF}'  1   # Documents
+set-folderHidden  '{088E3905-0323-4B02-9826-5D99428E115F}'  1   # Downloads
+set-folderHidden  '{3DFDF296-DBEC-4FB4-81D1-6A3438BCF4DE}'  1   # Music
+set-folderHidden  '{24AD3AD4-A569-4530-98E1-AB02F9417AA8}'  1   # Pictures
+set-folderHidden  '{F86FA3AB-70D2-4FC7-9C99-FCBF05467F3A}'  1   # Videos
+code }

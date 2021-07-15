@@ -1,0 +1,19 @@
+$ Registry: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\AllowedEnumeration
+
+code {
+set-strictMode -version latest
+
+function add-folder($guid, $allowed) {
+
+   $regPath = 'hkcu:/SOFTWARE/Microsoft/Windows/CurrentVersion/Explorer/AllowedEnumeration'
+
+   if ( -not (test-path $regPath )) {
+    # write-host "$regPath does not exist, creating it"
+      $null = new-item $regPath -force
+   }
+
+   $null = new-itemProperty -path $regPath -name $guid -value $allowed  -force
+}
+
+add-folder  '{5E6C858F-0E22-4760-9AFE-EA3317B67173}'  1  # At least USERPROFILE(?) should be registered in order not to hide everthing
+code }
