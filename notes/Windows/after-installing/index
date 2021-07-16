@@ -377,11 +377,45 @@ code {
 [environment]::setEnvironmentVariable('rn_root', "$home\renenyffenegger.ch\", 'user')
 code }
 
+  { PSModulePath
+
+code {
+function add-psModulePath {
+
+   param (
+      [string] $psModulePath
+   )
+
+   if (! (test-path -pathType container $psModulePath)) {
+      write-host "$psModulePath is not a directory"
+      return
+   }
+
+   $psmodules = [environment]::getEnvironmentVariable('PSModulePath', 'user') -split ';'
+   # $psmodules = @("${env:github_top_root}ps\modules") + $psmodules
+   if ($psModules) {
+      $psmodules = @($psModulePath) + $psmodules
+   }
+   else {
+      $psmodules = @($psModulePath)
+   }
+   [environment]::setEnvironmentVariable('PSModulePath', ($psmodules -join ';') , 'user')
+}
+code }
+
+code {
+add-psModulePath "$env:github_top_root\ps\modules"
+code }
+
+  }
+
+rem {
 code {
 $psmodules = [environment]::getEnvironmentVariable('PSModulePath', 'user') -split ';'
 $psmodules = @("${env:github_top_root}ps\modules") + $psmodules
 [environment]::setEnvironmentVariable('PSModulePath', ($psmodules -join ';') , 'user')
 code }
+rem }
 
 }
 { Change date format etc.

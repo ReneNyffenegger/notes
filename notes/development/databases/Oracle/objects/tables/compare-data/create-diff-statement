@@ -1,0 +1,44 @@
+$ Oracle: Create an SQL Statement that compares two tables
+
+code {
+with tabs as (
+   select  user ownr_a, 'TQ84_A' name_a,
+           user ownr_b, 'TQ84_B' name_b
+   from
+      dual
+),
+col as (
+   select
+        listagg(a.column_name, ',') within group (order by b.column_id) as umns
+   from
+       tabs                                                  join
+       all_tab_columns a on a.owner      = tabs.ownr_a and
+                            a.table_name = tabs.name_a       join
+       all_tab_columns b on b.owner      = tabs.ownr_b and
+                            b.table_name = tabs.name_b
+   where                           
+       a.column_name = b.column_name
+)
+select 
+   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || ' minus select ' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || ') only_a union all' || chr(10) ||
+   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || ' minus select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || ') only_b'
+from
+   tabs cross join
+   col;
+code }
+
+  With the following two tables …
+code {
+create table tq84_A (num  number, txt varchar2(10));
+create table tq84_B (num  number, txt varchar2(10));
+code }
+
+  … The select statement produces the following SQL statement:
+code {
+select 'only A' where_, only_a.* from (select NUM,TXT from DWH_DM_RISKFINANCE.TQ84_A minus select NUM,TXT from DWH_DM_RISKFINANCE.TQ84_B) only_a union all
+select 'only B' where_, only_b.* from (select NUM,TXT from DWH_DM_RISKFINANCE.TQ84_B minus select NUM,TXT from DWH_DM_RISKFINANCE.TQ84_A) only_b
+ 
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/compare-data[Compare the data of two tables]
