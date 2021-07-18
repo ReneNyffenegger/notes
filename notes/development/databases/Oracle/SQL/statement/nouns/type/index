@@ -1,0 +1,68 @@
+$ Oracle SQL noun: TYPE and TYPE BODY
+
+The → development/databases/Oracle/SQL/statement[Oracle SQL statements] with the noun `type` or `type body` are
+  • `create type`, `create type body`
+  • `alter type`, `alter type body`
+  • `drop type`, `drop type body`
+
+code {
+create type tq84_typ as object (
+   mbr_1 integer,
+   mbr_2 varchar2(10),
+   constructor function tq84_typ(val integer) return self as result
+) not final;
+/
+
+create type body tq84_typ as
+    constructor function tq84_typ(val integer) return self as result
+    is begin
+        self.mbr_1  := val * 2;
+        self.mbr_2  := to_char(self.mbr_1);
+        
+        return; -- Prevent ORA-06503: PL/SQL: Function returned without value
+    end tq84_typ;
+end ;
+/
+
+declare
+   obj tq84_typ;
+begin
+
+   obj := tq84_typ(21);
+   dbms_output.put_line(obj.mbr_1);
+   dbms_output.put_line(obj.mbr_2);
+   
+end;
+/
+code }
+
+{ Abstract base type
+
+code {
+create type tq84_abstract_base as object (
+
+   dummy char(1),
+   not final member function doSomething(val integer) return varchar2
+   
+)  not final not instantiable;
+/
+code }
+
+code {
+create type tq84_implementation under tq84_abstract_base (
+   overriding member function doSomething(val integer) return varchar2
+) final instantiable;
+/
+code }
+
+code {
+create type body tq84_implementation as
+   overriding member function doSomething(val integer) return varchar2 as
+   begin
+       return null;
+   end doSomething;
+end;
+/
+code }
+
+}
