@@ -1,6 +1,35 @@
-$ user_errors / all_errors / dba_errors / cdb_errors
+$ USER_ERRORS / ALL_ERRORS / DBA_ERRORS / CDB_ERRORS
 
 Display → development/databases/Oracle/PL-SQL/errors-warnings[errors] on → development/databases/Oracle/PL-SQL objects (stored procedures, functions, packages etc.)
+
+{ Join with ALL_SOURCE
+
+  `ALL_ERRORS` can be joined with → development/databases/Oracle/installed/data-dictionary/source[`ALL_SOURCE`]:
+code {
+select
+   cast(err.name as varchar2(50))                  name,
+        err.type                                   type,
+   cast(substr(err.text, 1, 100) as varchar2(100)) err_text,
+   err.line,
+   cast(substr(src.text, 1, 100) as varchar2(100)) src_text
+from
+   all_errors  err left join
+   all_source  src on err.name  = src.name and
+                      err.type  = src.type and
+                      err.line  = src.line and
+                      err.owner = src.owner
+where
+   err.owner = 'RENE' and
+   substr(err.name, 1, 3) != 'SH_'
+order by
+   err.owner,
+   err.name,
+   err.type,
+   err.line
+;
+code }
+
+}
 
 sa:
 
@@ -8,3 +37,5 @@ sa:
 
   → development/databases/Oracle/SQL-Plus/sqlpath/err[`err.sql`] is a script to be placed into the → development/databases/Oracle/SQL-Plus/sqlpath[`$SQLPATH`] directory that allows to quickly select the errors
   in a → development/databases/Oracle/SQL-Plus session.
+
+  → development/databases/Oracle/installed/data-dictionary
