@@ -4,7 +4,7 @@ $ System.Web.Script.Serialization.JavaScriptSerializer (class)
 
 Note, Microsoft recommends to use → https://www.newtonsoft.com/json[newtonsoft's `Json.NET`] for serialization and deserialization.
 
-{ Parsing JSON
+{ Parsing JSON with C-Sharp
 
   The following → development/languages/C-Sharp[C#] example tries to demonstrate how → development/languages/JavaScript/JSON[JSON] can be parsed by using the methods
  `DeserializeObject()` and `Deserialize()`.
@@ -18,7 +18,38 @@ Note, Microsoft recommends to use → https://www.newtonsoft.com/json[newtonsoft
   gh|.NET-API|/System/Web/Script/Serialization/JavaScriptSerializer.cs||
 
 }
+{ Parson JSON with PowerShell
 
+  In order to use `JavaScriptSerializer` in → Windows/PowerShell, the → Microsoft/dot-net/assembly `System.Web.Extension` must be loaded first:
+code {
+→ Windows/PowerShell/language/variable/automatic/null = [System.Reflection.Assembly]::→ Microsoft/dot-net/namespaces-classes/System/Reflection/Assembly/LoadWithPartialName[LoadWithPartialName]('System.Web.Extensions')
+code }
+
+  With this assembly, a `JavaScriptSerializer` → Windows/PowerShell/language/object can then be instantiated:
+code {
+$jsonSerializer = → Windows/PowerShell/command-inventory/noun/object/new[new-object] System.Web.Script.Serialization.JavaScriptSerializer
+code }
+
+code {
+$json = $jsonSerializer.DeserializeObject('
+{
+   "num": 42,
+   "txt": "Hello World",
+   "ary": ["zero", "one", "two", "three"],
+   "dct": {"elem_1": "foo", "elem_2": "bar", "elem_3": "baz"}
+}')
+
+write-host $json.num
+write-host $json.txt
+write-host $json.ary[1]
+write-host $json.dct.elem_2
+
+write-host $json.length
+write-host $json.ary.length
+write-host $json.dct.keys
+code }
+
+}
 
 sa:
   → Microsoft/dot-net/namespaces-classes/System/Runtime/Serialization/Json/DataContractJsonSerializer[`System.Runtime.Serialization.Json.DataContractJsonSerializer`]
