@@ -16,7 +16,7 @@ ExcelHelpers depends on
     → #vba-mod-exh-findWorksheet[`findWorksheet`] ☰
     → #vba-mod-exh-freezeHeader[`freezeHeader`] ☰
     → #vba-mod-exh-insertHyperlinkToVBAMacro[`insertHyperlinkToVBAMacro`] ☰ Inserts a → Microsoft/Office/Excel/functions/hyperlink[`=hyperlink(…)`] worksheet function that calls a → development/languages/VBA/language/subs-and-functions[user defined VBA function] when clicked.
-    `pageNumberOfCell(c)` ☰ returns the page number on which the give → Microsoft/Office/Excel/Object-Model/Range/cell is located.
+    `pageNumberOfCell(c)` ☰ returns the page number on which the given → Microsoft/Office/Excel/Object-Model/Range/cell (`c`) is located.
     `unprotect(sh, pw)` ☰ tries to → Microsoft/Office/Excel/Object-Model/Worksheet/protect-unprotect[unprotect] worksheet `sh` with → development/security/password `pw`. Returns `true` if successful, `false` otherwise. Compare with menu → Microsoft/Office/Excel/GUI/Ribbon/tabs/Review/Protect/Protect-Sheet[Review -> Protect -> Protect Sheet]
 
   table }
@@ -43,7 +43,11 @@ code {
 insertHyperlinkToVBAMacro hyperlinkCell, "text", "VBA_function_name_to_be_called", "Param one", 2, 3…
 code }
 
-    Note: the function that is called must return a → Microsoft/Office/Excel/Object-Model/Range[`range`] which specifies the target → Microsoft/Office/Excel/Object-Model/Range/cell of the function
+    Note: the function that is called must return a → Microsoft/Office/Excel/Object-Model/Range[`range`] which specifies the target → Microsoft/Office/Excel/Object-Model/Range/cell of the function.
+
+    2021-07-26: it turns out that a function that is called via `insertHyperlinkToVBAMacro` has only limited capabilites when modifying a
+    → Microsoft/Office/Excel/Object-Model/Worksheet[worksheet's] content (at least when
+    calling `→ Microsoft/Office/Excel/Object-Model/Worksheet/usedRange[usedRange].→ Microsoft/Office/Excel/Object-Model/Range#excel-range-clearContents[clearContents]`)
 
   }
   { deleteWorksheet #vba-mod-exh-deleteWorksheet
@@ -55,9 +59,10 @@ code }
   }
   { freezeHeader #vba-mod-exh-freezeHeader
 
-   `freezeHeader` (horizontally) freezes a header, by default one row.
+   `freezeHeader n` freezes the first `n` rows, thus creating a horizontal header. The → development/languages/VBA/language/subs-and-functions/optional-parameters[parameter is optional] and defaults to 1.
 
-    If the → development/languages/VBA/language/subs-and-functions/optional-parameters[optional parameter] `bottomRow` is assigned a value, it indicates the number of rows to be frozen.
+    2021-07-26, V0.5: `freezeHeader` can now be called with two (optional) parameters of which the first indicates the number of rows indicates the number of rows and the second one
+    the number of columns on the left side (which, of course, makes the name of the sub a bit missleading).
 
   }
   { colLetterToNum #vba-mod-exh-colLetterToNum
@@ -91,6 +96,7 @@ code }
   table { ll
     V0.3 ☰ Add hyperlink functionality
     V0.4 ☰ Function `deleteWorksheet`: set a sheet's visibility to `xlSheetVisible` before deleting the sheet.
+    V0.5 ☰ `freezeHeader` now takes two optional parameters and adapts the changes of *BN*.
   table }
 
 }
