@@ -1,0 +1,41 @@
+$ Data URLs
+
+code {
+data:                   ,<data>
+data: <mediatype>       ,<data>
+data:             base64,<data>
+data: <mediatype>;base64,<data>
+code }
+
+`mediatype` is a → development/web/Multipurpose-Internet-Mail-Extensions[MIME] type string. If omitted, the value defaults to `text/plain;charset:US-ASCII`.
+
+Special characters (reserved characters as defined RFC 3986) in `<data>` must be → development/web/URI-URL-URN-IRI-URC#url-encoding[percent encoded].
+
+{ Creating data URLs with PowerShell
+
+code {
+PS> → Windows/PowerShell/command-inventory/noun/type/add[add-type] -assemblyName System.Web
+PS> $dataUrl = 'data:,' + [System.Web.HttpUtility]::UrlEncode("Rene says:`nHello World!")
+PS> → Windows/PowerShell/command-inventory/noun/process/start[start-process] chrome $dataUrl
+code }
+
+  Making sure that the right → development/Unicode/character-encoding[encoding] is specified (Note the acute accent on *René*):
+code {
+PS> $dataUrl = 'data:text/plain;charset=UTF-8,' + [System.Web.HttpUtility]::UrlEncode("René says:`nHello World!")
+PS> → Windows/PowerShell/command-inventory/noun/process/start[start-process] chrome $dataUrl
+code }
+
+  Using → development/Base64, for example to decode an image:
+code {
+PS> $pngBase64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes('C:\Windows\System32\@WLOGO_48x48.png'))
+PS> $dataUrl = 'data:image/png;base64,' + $pngBase64
+PS> → Windows/PowerShell/command-inventory/noun/process/start[start-process] chrome $dataUrl
+code }
+
+  (Mis-)use the as an editor:
+code {
+PS> → Windows/PowerShell/command-inventory/noun/process/start[start-process] chrome 'data:text/html,<html%20contenteditable>'
+code }
+
+
+}
