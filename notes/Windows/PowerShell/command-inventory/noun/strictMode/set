@@ -1,17 +1,18 @@
 $ PowerShell cmdLet set-strictMode
 
-`set-strictMode` is used to check the validity of expressions etc in the current and its child → Windows/PowerShell/language/scopes[scopes].
+`set-strictMode` is used to check the validity of expressions etc. in the current and its child → Windows/PowerShell/language/scopes[scopes].
 
 `set-strictMode` is set to a *version* (with `latest` referring to the most recent one):
 code {
 set-strictMode -version 2
 set-strictMode -version latest
+set-strictMode -off
 code }
 
 If the value of the → Windows/PowerShell/language/variable/preference/errorActionPreference[`$errorActionPreference` automatic variable] is set to *stop*, a
 → Windows/PowerShell/script[script] halts execution if a statement or an expression does not meet the requirements checked for with `set-strictMode`.
 
-{ -version
+{ -version / -off
 
   The `-version` argument takes one of the following four arguments
   table { ll
@@ -20,6 +21,8 @@ If the value of the → Windows/PowerShell/language/variable/preference/errorAct
     `3.0` ☰ `2.0` *plus* prohibiting  out of bounds or unresolvable → Windows/PowerShell/language/type/array indexes.
     `latest` ☰ Latest version that is available
   table }
+
+  In order to disable all effects of `set-strictMode`, it can be set to `-off`.
 
 }
 { Using set-strictMode and param statement
@@ -32,6 +35,15 @@ If the value of the → Windows/PowerShell/language/variable/preference/errorAct
 }
 { Examples
 
+  { off
+
+    Setting `strictMode` to `-off` disables all checks. Undefined → Windows/PowerShell/language/variable[variables] evaluate to → Windows/PowerShell/language/variable/automatic/null[`$null`] without any indication of
+    a (possible) error in the source code.
+
+    The following script prints `They first said 'hello world', followed by ''`:
+    gh|about-PowerShell|/cmdlets/strictMode/set/off.ps1||
+
+  }
   { version 1 #ps-set-strict-mode-v1
 
     gh|about-PowerShell|/cmdlets/strictMode/set/version-1.ps1||
@@ -56,7 +68,7 @@ If the value of the → Windows/PowerShell/language/variable/preference/errorAct
 
     gh|about-PowerShell|/cmdlets/strictMode/set/version-3.ps1||
 
-    This script creates an → Windows/PowerShell/language/type/array with three elements. When the (inexsting) fourth element is accessed, PowerShell raises the error message
+    This script creates an → Windows/PowerShell/language/type/array with three elements. When the (inexisting) fourth element is accessed, PowerShell raises the error message
    *Index was outside the bounds of the array.*
 
   }
