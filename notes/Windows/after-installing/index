@@ -309,7 +309,8 @@ code }
 { Create variables, functions etc for installation
 
 code {
-$downloadFolder="→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
+$downloadFolder = "→ Windows/PowerShell/language/variable/automatic/home[$home]\Downloads\"
+$binPath        = "$home\bin"
 
 $ua = → Windows/PowerShell/command-inventory/noun/object/new[new-object] → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[System.Net.WebClient]
 [→ Microsoft/dot-net/namespaces-classes/System/Net/ServicePointManager[net.servicePointManager]]::securityProtocol = [net.securityProtocolType]::Tls12
@@ -353,7 +354,6 @@ code }
   -
   With → Windows/PowerShell[PowerShell]:
 code {
-$binPath = "$home\bin"
 → Windows/PowerShell/language/variable/automatic/null[$null] = mkdir $binPath -errorAction silentlyContinue
 code }
 
@@ -604,8 +604,13 @@ code }
 
   In order to be able to change *file type associations* (FTAs) on the command line, a utility is needed. Such a functionality is provided by
   → Windows/PowerShell/script[PowerShell script] → https://github.com/DanysysTeam/PS-SFTA[PS-SFTA].
+code {
+PS:> set-FTA applications\code.exe .sql
+code }
 
-  Another utility is `SetUserFTA.exe` which can be downloaded from → https://kolbi.cz/blog/2017/10/25/setuserfta-userchoice-hash-defeated-set-file-type-associations-per-user[`SetUserFTA.exe`]:
+  { SetUserFTA.exe
+
+    Another utility is `SetUserFTA.exe` which can be downloaded from → https://kolbi.cz/blog/2017/10/25/setuserfta-userchoice-hash-defeated-set-file-type-associations-per-user[`SetUserFTA.exe`]:
 code {
 $ua.downloadFile('https://kolbi.cz/SetUserFTA.zip', "$downloadFolder/SetUserFTA.zip")
 
@@ -613,6 +618,7 @@ add-Type -assembly System.IO.Compression.FileSystem
 $zip = [IO.Compression.ZipFile]::OpenRead("$downloadFolder/SetUserFTA.zip")
 [IO.Compression.ZipFileExtensions]::ExtractToFile($zip.getEntry("SetUserFTA/SetUserFTA.exe"), "$binPath/SetUserFTA.exe")
 code }
+  }
 
 }
 { Enable Clipboard History
