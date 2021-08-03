@@ -1,0 +1,38 @@
+$ Power Query M formula language standard library: List.Accumulate
+
+The following example uses `List.Accumulate` to iterate over the columns of a table thats start with `p` and then add a calculated column from the
+data being iterate over: if the column contains an `X`, the calculated column will have the value `1`, else `0`.
+
+code {
+let
+   tab = #table(
+       {  "id","p1","p2","p3","p4","p5"},                  //  Column names
+        {
+         {  1 , "x",""  ,"x" ,"x" ,"x" },                  //  Table data
+         {  2 , "x",""  ,""  ,"x" ,""  },
+         {  3 , "" ,""  ,"x" ,"x" ,"x" }
+        }
+   ),
+   col_names    = Table.ColumnNames(tab),                  //  Get table's column names
+   col_names_p  = List.Select(                             //  Filter column names that
+                    col_names,                             //  start with a p
+                    each Text.StartsWith(_, "p")
+                  ),
+   tab_with_num = List.Accumulate(                         //  Iterate over each column name that
+                    col_names_p,                           //  starts with a p
+                    tab,                                   //  and, starting with 'tab'
+                   (tab_, col_name) => Table.AddColumn(    //  add a calculated column,
+                       tab_, 
+                       col_name & "_num",                  //  with '_num' appended to the
+                       each if Record.Field(_,             //  column name
+                             col_name) = "x" then 1        //  whose value is 1 if the value
+                                             else 0        //  of the column is equal to 'X'
+                   )
+                 ),
+   tab_num_only = Table.RemoveColumns(                     //  Then: remove original 'p-columns'
+                     tab_with_num,
+                     col_names_p
+                  )
+in
+   tab_num_only
+code }
