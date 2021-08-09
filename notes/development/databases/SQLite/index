@@ -47,6 +47,18 @@ sudo apt-get install php-sqlite3
 code }
 
 }
+{ Find SQLite databases in a file system
+
+  The following simple → Windows/PowerShell/pipeline[PowerShell pipeline] finds SQLite databases below the current directory in a file system:
+code {
+get-childItem  -recurse -attributes !directory |
+   foreach-object {
+      $firstCharacters = ([char[]] (get-Content $_.fullName -encoding byte -totalCount 15)) -join ''
+      if ($firstCharacters -eq 'SQLite format 3') {$_}
+   }
+code }
+
+}
 
 sa:
   → development/databases/SQLite/tables[tables],
