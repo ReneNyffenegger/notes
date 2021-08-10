@@ -40,16 +40,17 @@ In theory (and practice?), SIDs are supposed to be unique.
   { Security Authority
 
     The third part represents the *identifier authority* which identifies the agent that issued and owns the SID:
-
     The possible values are:
-      • 0 (`SECURITY_NULL_SID_AUTHORITY`) is the owner of the *null account SID* `S-1-0-0`.
-      • 1 (`SECURITY_WORLD_SID_AUTHORITY`, *everyone group*) also has one SID only: `S-1-1-0`.
-      • 2 (`SECURITY_LOCAL_SID_AUTHORITY`, *local group*) also has one SID only: `S-1-2-0`.
-      • 3 (`SECURITY_CREATOR_SID_AUTHORITY`): SIDs `S-1-3-0` through `S-1-3-5`)
-      • 4 (`SECURITY_NON_UNIQUE_AUTHORITY`) is not used
-      • 5 (`SECURITY_NT_AUTHORITY`) owns → Windows/user-account[accounts] that are managed by the NT security subsystem.
-      • 9 (`SECURITY_RESOURCE_MANAGER_AUTHORITY`) …
-      • 16 (`SECURITY_MANDATORY_LABEL_AUTHORITY`), see → Windows/development/process#win-process-integrity-level[process integrity levels]
+    table { rll
+       0 ☰ SECURITY_NULL_SID_AUTHORITY ☰ the owner of the *null account SID* and manages *one* SID: `S-1-0-0`.
+       1 ☰ SECURITY_WORLD_SID_AUTHORITY ☰ *everyone group*, also has one SID only: `S-1-1-0`.
+       2 ☰ SECURITY_LOCAL_SID_AUTHORITY ☰ *local group* also has one SID only: `S-1-2-0`.
+       3 ☰ SECURITY_CREATOR_SID_AUTHORITY ☰ SIDs `S-1-3-0` through `S-1-3-5`
+       4 ☰ SECURITY_NON_UNIQUE_AUTHORITY ☰ is not used
+       5 ☰ SECURITY_NT_AUTHORITY ☰ owns → Windows/user-account[accounts] that are managed by the NT security subsystem.
+       9 ☰ SECURITY_RESOURCE_MANAGER_AUTHORITY ☰ …
+      16 ☰ SECURITY_MANDATORY_LABEL_AUTHORITY ☰ see → Windows/development/process#win-process-integrity-level[process integrity levels]
+    table }
 
   }
   { Subauthority identifiers
@@ -121,7 +122,7 @@ code }
     `S-1-5-2` ☰  The *Network group*, which represents users who have logged on to a machine from the network. ☰ `NETWORK`
     `S-1-5-3` ☰  Batch ☰ `BATCH`
     `S-1-5-4` ☰  Interactive ☰ `NT AUTHORITY\INTERACTIVE` (german: `NT AUTORITÄT\INTERAKTIV`)
-    `S-1-5-5-x-y` ☰ is a → Windows/security/SID/S-1-5-5-x-y_logon[logon SID] which identifies *logon → Windows/development/session[session]*. ☰
+    `S-1-5-5-x-y` ☰ is a → Windows/security/SID/S-1-5-5-x-y_logon[logon SID] which identifies *logon → Windows/development/session[session]*. This SID can be queried using → Windows/dirs/Windows/System32/whoami_exe#win-whoami-logonid[`whoami.exe /logonid`] ☰
     `S-1-5-6` ☰  Service (compare with `S-1-5-80…`) ☰ `SERVICE`
     `S-1-5-7` ☰  *Anonymous logon* ☰ `ANONYMOUS LOGON`
     `S-1-5-8` ☰  *Proxy* ☰ `PROXY`
@@ -138,7 +139,7 @@ code }
     `S-1-5-20` ☰  *Network Service* ☰ `NT AUTHORITY\NETWORK SERVICE`
     → Windows/security/SID/S-1-5/21[`S-1-5-21-…`] ☰  → Windows/user-account[User accounts] (and also domains?) ☰
     `S-1-5-21-do-ma-in-500` ☰ (local?) Administrator ☰
-    `S-1-5-21-do-ma-in-501` ☰ ☰
+    `S-1-5-21-do-ma-in-501` ☰ A domain's guest accoutn which allows users that don't have a domain account to log in ☰
     → Windows/security/SID/S-1-5/21/do-ma-in-503[`S-1-5-21-do-ma-in-503`] ☰ The *Default Account* (aka *Default System Managed Account*) ☰
     `S-1-5-21-do-ma-in-504` ☰ ☰
     `S-1-5-32` ☰  The *built-in* → Windows/user-account/domain, it contains groups that define roles on a *local machine*. ☰ `BUILTIN`
@@ -158,7 +159,7 @@ code }
     `S-1-5-32-579` ☰ Access Control Assistance Operators ☰
     → Windows/security/SID/S-1-5/32/581[`S-1-5-32-581`] ☰ System Managed Accounts Group ☰
     `S-1-5-32-583` ☰ Device Owners                         ☰
-    `S-1-5-64-10` ☰ NTLM Authentication ☰ 
+    `S-1-5-64-10` ☰ → development/security/authentication/NTLM Authentication ☰ 
     `S-1-5-80` ☰  *all → Windows/services[services]* ☰
     `S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464` ☰ Trusted installer ☰ `NT SERVICE\TrustedInstaller`
     `S-1-5-94-…`☰ Windows Remoting Virtual Users ☰
@@ -170,8 +171,7 @@ code }
 
   table }
 
-Mandatory Label\Medium Mandatory Level         Label            S-1-16-8192
-
+  See also the → Microsoft/dot-net/namespaces-classes/System/Security/Principal/WellKnownSidType[`System.Security.Principal.WellKnownSidType` enum].
 
 }
 { Capability SIDs #capabilty-sid
@@ -204,6 +204,13 @@ PS C:\> $friendlyName = $sid.Translate([→ Microsoft/dot-net/namespaces-classes
 PS C:\> → Windows/PowerShell/command-inventory/noun/output/write[write-output] $friendlyName.Value
 NT AUTHORITY\SYSTEM
 code }
+
+  «My» SID can be determined like so:
+code {
+PS C:\> [→ Microsoft/dot-net/namespaces-classes/System/Security/Principal/WindowsIdentity[System.Security.Principal.WindowsIdentity]]::→ Microsoft/dot-net/namespaces-classes/System/Security/Principal/WindowsIdentity/GetCurrent[GetCurrent]().User.Value
+code }
+
+  → Microsoft/dot-net/namespaces-classes/System/Security/Principal/WellKnownSidType[`System.Security.Principal.WellKnownSidType`] is an enum of *well known SIDs*.
 
 }
 { TODO

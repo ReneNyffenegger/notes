@@ -1,0 +1,37 @@
+$ System.Security.Claims.Claim (class)
+
+
+An instance of `System.Security.Claims.Claim` represents a → development/security/Claims-based-identity#CBIS-claim[claim].
+
+code {
+foreach ($claim in [System.Security.Principal.WindowsIdentity]::GetCurrent().Claims) {
+   if ($claim.valueType -ne 'http://www.w3.org/2001/XMLSchema#string') {
+      $claim.valueType
+   }
+   if ($claim.Type -eq 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name') {
+      $typeName   = 'Name'
+      $valueIsSID = $false
+   }
+   elseif ($claim.Type -eq 'http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid') {
+      $typeName   = 'Primary SID'
+      $valueIsSID = $true
+   }
+   elseif ($claim.Type -eq 'http://schemas.microsoft.com/ws/2008/06/identity/claims/primarygroupsid') {
+      $typeName   = 'Primary Group SID'
+      $valueIsSID = $true
+   }
+   elseif ($claim.Type -eq 'http://schemas.microsoft.com/ws/2008/06/identity/claims/groupsid') {
+      $typeName   = 'Group SID'
+      $valueIsSID = $true
+   }
+   else {
+      $typeName   = '?'
+      $valueIsSID = $false
+   }
+   $sidName = ''
+   if ($valueIsSID) {
+      $sidName = ((new-object System.Security.Principal.SecurityIdentifier ($claim.value) ).Translate( [System.Security.Principal.NTAccount])).Value 
+   }
+   '{0,-17}: {1,-50} {2}' -f $typeName, $claim.value, $sidName
+}
+code }
