@@ -1,0 +1,70 @@
+$ TFS Web API
+
+Some simple investigations on using the → development/version-control-systems/Team-Foundation[TFS] Web API with → Windows/PowerShell.
+
+code {
+$rootUrl    = 'https://devops.foo.xyz/'
+$collection = 'DefaultCollection'
+$collUrl    = "$rootUrl$collection"
+ 
+$projects = get-webApiJson "$collUrl/_apis/projects"
+$projects.count
+  
+$project     = $projects.value[1]
+$proj_id     = $project.id
+$project_url = $project.url
+ 
+write-host "Project name:        $($project.name)"
+write-host "Project description: $($project.description)"
+write-host "Project revision:    $($project.revision)"
+ 
+$projectDetail = get-webApiJson $project_url
+$defaultTeam = $projectDetail.defaultTeam
+ 
+write-host "Default Team name: $($defaultTeam.name)"
+ 
+$releases = get-webApiJson "$collUrl/_apis/release/releases"
+write-host "Number of releases: $($releases.count)"
+$lastRelease = $releases.value[$releases.count-1]
+$releaseModifier = $lastRelease.modifiedBy
+ 
+write-host "Last release id            : $($lastRelease.id)"
+write-host "Last release name          : $($lastRelease.name)"
+ 
+write-host "Last relase modified by    : $($releaseModifier.displayName) ($($releaseModifier.uniqueName)), url = $($releaseModifier.url)"
+ 
+$releaseDetail = get-webApiJson $lastRelease.url
+ 
+$processes = get-webApiJson "$collUrl/_apis/process/processes"
+write-host "count of processes:  $($processes.count)"
+write-host "first process:       $($processes.value[0].description)"
+ 
+$repoRoot = get-webApiJson "$collUrl/_apis/tfvc/items?scopePath=$/&recursionLevel=oneLevel"
+code }
+ 
+A simple function to list the items in a TFS directory:
+code { 
+function ls-TFSDirectory {
+   param (
+      [string] $urlRoot,
+      [string] $path
+   )
+   $dir = get-webApiJson "$urlRoot/_apis/tfvc/items?scopePath=$path&recursionLevel=oneLevel"
+   foreach ($item in $dir.value) {
+      if ($item.psobject.Properties.name -match 'isFolder') {
+         $dir_file = 'd'
+         $size     = ''
+      }
+      else {
+         $dir_file = 'f'
+         $size     = $item.size
+      }
+      write-host ( '{0} {1,6} {2,4} {3,-40}' -f $dir_file, $size, $item.version, $item.path)
+   }
+}
+code }
+ 
+Using the function:
+code { 
+ls-TFSDirectory $collUrl $/path/to/directory
+code }
