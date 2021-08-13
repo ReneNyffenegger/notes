@@ -1,0 +1,108 @@
+$ Examples for DBMS_METADATA
+
+
+{ General settings
+
+  Reset all settings:
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'DEFAULT');
+end;
+/
+code }
+
+  If the extracted SQL statements is somehow transferred into an SQL script (which might be run by
+  → development/databases/Oracle/SQL-Plus
+
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'SQLTERMINATOR', true  );
+end;
+/
+code }
+
+}
+
+{ Generate create table statements
+
+   
+  We don't want foreign key constraints to be in the create table statement, so that we don't have to care about the order tables when
+  the script is replayed. Unfortunately, this setting turns off all contraint clauses, even `not null` for columns.
+  -
+  There seems to be a `NULL_CONSTRAINTS` parameter, but setting it to either `true` or `false` does not have an influence as far as I can tell.
+
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'CONSTRAINTS'  , false  );
+end;
+/
+code }
+
+  Depending on the requirements, the name of the table owner might or might not be desired:
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'EMIT_SCHEMA'  , false  );
+end;
+/
+code }
+
+code {
+select
+   dbms_metadata.get_ddl('TABLE', tab.table_name, tab.owner)
+from
+   dba_tables tab
+where
+   tab.owner = 'RENE';
+;
+code }
+
+}
+{ Generate primary key statements
+
+  After creating the tables, we also extract the primary key constraints. They need to be replayed after the create table statements are run.
+
+  Because it's possible that unique key constraints might be used as foreign key targets, unique key constraints might be extracted as well:
+
+code {
+select
+   dbms_metadata.get_ddl('CONSTRAINT', pk.constraint_name, pk.owner) primary_key_constraints
+from
+   dba_constraints pk
+where
+   pk.constraint_type  in ('P' /*, 'U' */)   and
+   pk.owner            = 'RENE'
+;
+code }
+
+}
+{ Generate foreign key constraints
+
+  With the primary key constraints in place, the foreign key constraints can be created.
+
+code {
+select
+   dbms_metadata.get_ddl('REF_CONSTRAINT', fk.constraint_name, fk.owner) foreign_key_constraints
+from
+   dba_constraints fk
+where
+   fk.constraint_type  = 'R'          and
+   fk.owner            = 'RENE'
+;
+code }
+
+}
+{ Generate remaining constraints
+
+  Generate the remaning check and unique constraints:
+code {
+select
+   dbms_metadata.get_ddl('CONSTRAINT', fk.constraint_name, fk.owner) remaining_constraints
+from
+   dba_constraints fk
+where
+   fk.constraint_type  in ('C', 'U')  and
+   fk.owner            = 'RENE'
+;
+code }
+
+}
