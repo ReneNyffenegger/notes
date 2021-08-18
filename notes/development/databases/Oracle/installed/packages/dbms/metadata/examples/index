@@ -46,6 +46,16 @@ end;
 /
 code }
 
+  Setting the parameter `SEGMENT_ATTRIBUTES` to `false` causes to remove clauses like `SEGMENT CREATION IMMEDIATE`, `PCTFREE … PCTUSED …`, `BUFFER_POOL DEFAULT` or `TABLESPACE` to be removed from
+  the `create table` statement, thus resulting in a more readable statement (which might or might not be desired):
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'SEGMENT_ATTRIBUTES', false);
+end;
+/
+code }
+
+  Select the `create table` statement:
 code {
 select
    dbms_metadata.get_ddl('TABLE', tab.table_name, tab.owner)
