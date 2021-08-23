@@ -1,0 +1,36 @@
+$ Stackexchange Web API
+
+code {
+function get-webApiJson {
+   param (
+      [string] $url
+   )
+ 
+   $res = → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] $url
+   → Windows/PowerShell/command-inventory/noun/json/convertFrom[convertFrom-json] $res.Content
+}
+code }
+
+code {
+$version = '2.3'
+$baseUrl = "https://api.stackexchange.com/$version"
+code }
+
+Get all sites
+code {
+$sites = get-webApiJson "$baseUrl/sites"
+code }
+
+code {
+$url = 'renenyffenegger.ch'
+
+foreach ($site in $sites.items) {
+    $site.name
+#   $site.name  , $site.api_site_parameter
+
+   $questions_linking_to_url = get-webApiJson "$baseUrl/search/advanced?order=desc&sort=activity&url=*$url*&site=$($site.api_site_parameter)"
+   foreach ($question in $questions_linking_to_url.items) {
+      '  {0,-70} {1}' -f $question.title.SubString(0, [Math]::Min($question.title.Length, 70)), $question.link
+   }
+}
+code }
