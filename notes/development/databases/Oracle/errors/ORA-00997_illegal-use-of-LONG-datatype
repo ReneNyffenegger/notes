@@ -1,0 +1,14 @@
+$ ORA-00997: illegal use of LONG datatype
+
+The first of the following statements causes an *ORA-00997: illegal use of → development/databases/Oracle/SQL/data-types/long[LONG] datatype* error, because the column `data_default` of
+`user_tab_cols` is a `long`. This problem can somewhat be mitigated by using `to_lob` which creates a `clob` from the `long`.
+-
+However, if `to_lob()` is used in a `case when` clause, we get the error → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes[ORA-00932: inconsistent datatypes: expected - got LONG].
+
+code {
+create table tq84_a as select                                  data_default       as data_default      from user_tab_cols;
+create table tq84_b as select                           to_lob(data_default)      as data_default_clob from user_tab_cols;
+create table tq84_c as select        case when 1=1 then to_lob(data_default) end  as data_default_clob from user_tab_cols;
+create table tq84_d as select to_lob(case when 1=1 then        data_default  end) as data_default_clob from user_tab_cols;
+code }
+
