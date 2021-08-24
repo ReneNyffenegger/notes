@@ -27,16 +27,24 @@ while ($anotherPageToFetch) {
    $pageNum ++
    $sites = get-webApiJson "$baseUrl/sites?pagesize=999&pagenum=$pageNum"
    foreach ($site in $sites.items) {
-      $se_sites += new-object psObject @{ name = $site.name ; api_name = $site.api_site_parameter ; type = $site.site_type }
+      $se_sites += new-object psObject -property @{ name = $site.name ; api_name = $site.api_site_parameter ; type = $site.site_type }
    } 
    $anotherPageToFetch = $sites.has_more
 }
+
+$se_sites | where-object type -eq main_site
 code }
 
+Find questions that contain a specific URL:
 code {
 $url = 'renenyffenegger.ch'
 
 foreach ($site in $se_sites) {
+
+   if ($site.type -eq 'meta_site') {
+      continue
+   }
+
    $site.name
 
    $questions_linking_to_url = get-webApiJson "$baseUrl/search/advanced?order=desc&sort=activity&url=*$url*&site=$($site.api_name)"
