@@ -1,4 +1,34 @@
-$ PowerShell cmdLet: write-host
+$ PowerShell cmdLet: Write-Host
+
+{ Bypass the pipeline
+
+ `write-host` writes a string or a text representation of the cmdlet's arguments directly to the → Windows/PowerShell/host[host's] console, that is *without*
+  putting them into the → Windows/PowerShell/pipeline.
+
+  This behaviour is demonstrated with the following simple pipeline: an → Windows/PowerShell/language/type/array[array] of three strings, `'one'`, `'two'` and `three'` is piped into
+  a → Windows/PowerShell/command-inventory/noun/object/forEach[`foreach-object`] cmdlet whose → Windows/PowerShell/language/scriptblock evaluates the the incoming objects (strings).
+  -
+  If the strings ends in `o` (as is the case for `two`), then a string is written directly to the host (`write-host`).
+  -
+  If it starts with an `o`, a string is written with → Windows/PowerShell/command-inventory/noun/output/write[`write-output`], which essentially passes the string down the pipeline.
+  -
+  Otherwise, the string is passed down the pipeline unmodified.
+
+  The result of the entire pipeline is assigned to the → Windows/PowerShell/language/variable `$pipelineResult`:
+
+  gh|about-PowerShell|/cmdlets/host/write/pipeline.ps1||
+
+  When executing this example, it prints:
+code {
+two ends in o
+
+pipelineResult:
+one begins with o
+three
+code }
+
+  See also → Windows/PowerShell/command-inventory/noun/host/write/vs-string[this example] which essentially demonstrates the same.
+}
 
 { Colored output
 
@@ -7,31 +37,6 @@ $ PowerShell cmdLet: write-host
 
   The script, when executed, prints:
   gh|about-PowerShell|/cmdlets/host/write/img/color.png||
-
-}
-{ Write-host 'string' vs. 'string' #write-host-vs
-
-  gh|about-PowerShell|/cmdlets/host/write/vs-string.ps1||
-
-when this → Windows/PowerShell/script[script] is invoked, it prints
-code {
-foo
-bar
-baz
-code }
-
-  Seemingly, there is no differences between writing a string using `write-host` and simply state a string (which passes it on to the next
-  → Windows/PowerShell/language/command in the → Windows/PowerShell/pipeline.
-
-  However, if the output of this script is piped into a command, it becomes clear that the string `"bar"` has «disappeared» from the pipeline:
-  gh|about-PowerShell|/cmdlets/host/write/vs-string-use.ps1||
-
-  Now, the output is:
-code {
-I have received the object foo
-bar
-I have received the object baz
-code }
 
 }
 { Write-host considered harmful
@@ -50,6 +55,6 @@ code }
 
 sa:
 
-  Compare with → Windows/PowerShell/command-inventory/noun/host/out[`out-host`]
+  Compare with → Windows/PowerShell/command-inventory/noun/host/out[`out-host`] which does not render an object.
 
   → Windows/PowerShell/command-inventory/noun/host
