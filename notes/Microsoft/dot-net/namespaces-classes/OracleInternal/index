@@ -1,0 +1,125 @@
+$ .NET Namespace OracleInternal.*
+
+code {
+add-type -PSPath c:\Oracle\19\ODP.NET\managed\common\Oracle.ManagedDataAccess.dll
+code }
+
+{ OracleInternal.SqlAndPlsqlParser.OracleLpParser
+
+code {
+PS C:\> $parser = new-object OracleInternal.SqlAndPlsqlParser.OracleLpParser 0
+
+PS C:\> $parsed = $parser.TestParse(@'
+   ---------------------------------
+   select
+      42                    a_number,
+     'Hello world'          a_text,
+      tab_alias.col_a,
+      col_b
+   from
+      someTable tab_alias left join
+      anotherTable on tab_alias.col_x = col_y;
+   ---------------------------------
+'@
+)
+
+PS C:\> write-host $parsed
+
+[0,25)  | unlabeled_nonblock_stmt | sql_statements: sql_statement | sql_statement: library_unit | library_unit: unlabeled_nonblock_stmt | unlabeled_nonblock_stmt: sql_stmt ';'
+  [0,24)  | query_block | sql_stmt: sql_query_or_dml_stmt | sql_query_or_dml_stmt: select | select: subquery | subquery: simple_set_expr | simple_set_expr: query_block | query_block: select_clause from_clause
+    [0,12)  | select_clause | select_clause: 'SELECT' select_list
+      [0,1)  | 'SELECT'
+      [1,12)  | select_list | select_list: select_list ',' select_term
+        [1,10)  | select_list | select_list: select_list ',' select_term
+          [1,6)  | select_list | select_list: select_list ',' select_term
+            [1,3)  | "aliased_expr" | select_list: select_term | select_term: "aliased_expr" | "aliased_expr": expr as_alias
+              [1,2)  | digits | expr: expr# | expr#: simple_expression | simple_expression: literal | literal: numeric_literal | numeric_literal: digits
+              [2,3)  | identifier | as_alias: identifier
+            [3,4)  | ','
+            [4,6)  | "aliased_expr" | select_term: "aliased_expr" | "aliased_expr": expr as_alias
+              [4,5)  | string_literal | expr: expr# | expr#: simple_expression | simple_expression: literal | literal: string_literal
+              [5,6)  | identifier | as_alias: identifier
+          [6,7)  | ','
+          [7,10)  | column | select_term: expr | expr: expr# | expr#: simple_expression | simple_expression: column | column: column[4,12) identifier
+            [7,9)  | column[4,12) | column[4,12): identifier '.'
+              [7,8)  | identifier
+              [8,9)  | '.'
+            [9,10)  | identifier
+        [10,11)  | ','
+        [11,12)  | identifier | select_term: expr | expr: expr# | expr#: simple_expression | simple_expression: column | column: identifier
+    [12,24)  | from_clause | from_clause: 'FROM' table_reference_list
+      [12,13)  | 'FROM'
+      [13,24)  | joined_table | table_reference_list: table_reference | table_reference: table_primary_or_joined_table | table_primary_or_joined_table: joined_table | joined_table: table_reference outer_join_clause
+        [13,15)  | table_primary | table_reference: table_primary_or_joined_table | table_primary_or_joined_table: table_primary | table_primary: table_primary_element identifier
+          [13,14)  | identifier | table_primary_element: table_primary_element_qte | table_primary_element_qte: table_primary_element_qte[6,21) | table_primary_element_qte[6,21): query_table_expression | query_table_expression: query_table_expression_named_object | query_table_expression_named_object: query_table_expression_named_object# | query_table_expression_named_object#: identifier
+          [14,15)  | identifier
+        [15,24)  | outer_join_clause | outer_join_clause: outer_join_clause[7,36) table_reference on_using_condition
+          [15,17)  | outer_join_clause[7,36) | outer_join_clause[7,36): outer_join_type 'JOIN'
+            [15,16)  | 'LEFT' | outer_join_type: outer_join_type[3,31) | outer_join_type[3,31): 'LEFT'
+            [16,17)  | 'JOIN'
+          [17,18)  | identifier | table_reference: table_primary_or_joined_table | table_primary_or_joined_table: table_primary | table_primary: table_primary_element | table_primary_element: table_primary_element_qte | table_primary_element_qte: table_primary_element_qte[6,21) | table_primary_element_qte[6,21): query_table_expression | query_table_expression: query_table_expression_named_object | query_table_expression_named_object: query_table_expression_named_object# | query_table_expression_named_object#: identifier
+          [18,24)  | on_using_condition | on_using_condition: 'ON' condition
+            [18,19)  | 'ON'
+            [19,24)  | simple_comparison_condition | condition: comparison_condition | comparison_condition: simple_comparison_condition | simple_comparison_condition: expr simple_comparison_condition[6,47) expr
+              [19,22)  | column | expr: expr# | expr#: simple_expression | simple_expression: column | column: column[4,12) identifier
+                [19,21)  | column[4,12) | column[4,12): identifier '.'
+                  [19,20)  | identifier
+                  [20,21)  | '.'
+                [21,22)  | identifier
+              [22,23)  | '=' | simple_comparison_condition[6,47): cmp_op | cmp_op: '='
+              [23,24)  | identifier | expr: expr# | expr#: simple_expression | simple_expression: column | column: identifier
+  [24,25)  | ';'
+code }
+
+}
+
+{ OracleInternal.SqlAndPlsqlParser.LocalParsing.OracleLpName
+
+code {
+PS C:\> $lpName = new-object OracleInternal.SqlAndPlsqlParser.LocalParsing.OracleLpName 'what is this'
+PS C:\> $lpName
+
+DbName     RawName      CaseSensitivity
+------     -------      ---------------
+WHATISTHIS what is this     Insensitive
+code }
+
+}
+{ OracleInternal.Common.OracleLpTable
+
+code {
+PS C:\> $table = new-object OracleInternal.Common.OracleLpTable RENE, TQ84_TAB, $null
+PS C:\> $table
+
+m_schemaName m_tableName m_dbLinkName
+------------ ----------- ------------
+RENE         TQ84_TAB
+code }
+
+}
+{ OracleInternal.Common.OracleMetadata
+
+code {
+PS C:\> $con = new-object Oracle.ManagedDataAccess.Client.OracleConnection "user id=rene;data source=ora19;password = rene"
+PS C:\> $con.Open()
+PS C:\> $tables = new-object 'System.Collections.Generic.List[OracleInternal.Common.OracleLpTable]'#  $table
+PS C:\> $tables.Add($table)
+PS C:\> $tables_meta = [OracleInternal.Common.OracleMetadata]::GetColumnInformation($con, $tables)
+PS C:\> foreach ($col in $tables_meta) { $col.m_columns }
+m_columnName m_tableName m_schemaName m_isHidden
+------------ ----------- ------------ ----------
+ID           TQ84_TAB    RENE              False
+NUM          TQ84_TAB    RENE              False
+TXT          TQ84_TAB    RENE              False
+code }
+
+}
+{ OracleInternal.Common.SqlStatementType
+
+  Seems to be an enum with the following values:
+    • `SELECT`
+    • `DML`
+    • `PLSQL`
+    • `OTHERS`
+
+}
