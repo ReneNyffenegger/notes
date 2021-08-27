@@ -1,27 +1,9 @@
 $ Powershell + Microsoft.Office.Interop.Excel
 
-This is a simple example that is supposed to demonstrate how → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/Excel[`Microsoft.Office.Interop.Excel`] can be
-used in → Windows/PowerShell:
+{ Example
 
-
-code {
-add-type -path 'C:\Program Files (x86)\Microsoft Office\Office16\DCF\Microsoft.Office.Interop.Excel.dll'  # Path in BN
-$xls = new-object Microsoft.Office.Interop.Excel.ApplicationClass
-
-$xls.Visible = $true
-
-$wb = $xls.Workbooks.Add()
-$sh = $wb.Worksheets(1)
-
-$sh.Name = "foo bar baz"
-
-$sh.Cells(1,1) = "Hello world"
-
-$wb.SaveAs("$env:temp\excel-test.xlsx")
-$xls.Quit()
-code }
-
-{ Another example
+  This is a simple example that is supposed to demonstrate how → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/Excel[`Microsoft.Office.Interop.Excel`] can be
+  used in → Windows/PowerShell:
 
   gh|.NET-API|/Microsoft/Office/Interop/Excel/PowerShell/simple.ps1||
 
@@ -39,8 +21,14 @@ code }
 
 }
 
-
 sa:
 
-  The → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/Excel[`Microsoft.Office.Interop.Excel` namespace].
+  → https://stackoverflow.com/a/25135685/180275[This Stackoveflow answer] has some ideas that outline the necessary steps to have the Excel
+  → Windows/development/process stopped that is spawned when using Interop Excel. Basically, it boils down to put all interop stuff into a
+  → Windows/PowerShell/language/function and after calling the function to execute the following two statements outside of the function
+code {
+[→ Microsoft/dot-net/namespaces-classes/System/GC[System.GC]]::Collect()
+[→ Microsoft/dot-net/namespaces-classes/System/GC[System.GC]]::WaitForPendingFinalizers()
+code }
 
+  The → Microsoft/dot-net/namespaces-classes/Microsoft/Office/Interop/Excel[`Microsoft.Office.Interop.Excel` namespace].
