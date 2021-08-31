@@ -1,6 +1,171 @@
-$ OraProvCfg.exe
+$ %ORACLE_HOME\ODP.NET\managed\_arch\OraProvCfg.exe
 
 `OraProfCfg.exe` is a platform-independent (?) (AnyCPU) tool to configure → development/databases/Oracle/ODP_NET drivers (managed and unmanaged).
+
+There are two versions of this executable, one is located under `_arch` = `x86` and one under `_arch` = `x64`.
+
+
+{ Program Options
+
+  All options except `/action` are optional.
+
+  table { ll
+   `/action:<act>` ☰ `<act> is one of `gac`, ungac`, `register`, `unregister`, `config` or `unconfig`
+   `/configfile:path/to/→ Windows/dirs/Windows/Microsoft_NET/Framework64/vn_n_n/Config/web_config[web.config]` ☰ 
+   `/product:<prod>` ☰ `<prod>` is one of `odp`, `odpm` or `aspnet`.
+   `/updateonly:…` ☰ Values `true` or `false`. Only k
+   `/component:<comp>` ☰ `<comp> is one of `oraclepermission`, `perfcounter`, `dbproviderfactory` or `configsection`.
+   `/productversion:<product version>` ☰
+   `/frameworkversion:…` ☰ → Microsoft/dot-net framework version, for example `4.0.30319`
+   `/providerpath:path/to/provider/assembly` ☰ A possible path is → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/ODP_NET/bin/v/Oracle_DataAccess_dll[`%ORACLE_HOME%\ODP.NET\bin\4\Oracle.DataAccess.dll`]
+   `/verbose:…` ☰ `true` or `false`
+   `/set:[*\]<section name>\<attribute name>:<attribute value>` ☰ Set values for specific attribute names (for example `oramts_sess_txntimetolive`) under given sections (for example section name `distributedTransaction` iunder `oracle.manageddataaccess.client`)
+   `/unset:[*\]<section name>\<attribute name>:<attribute value>` ☰
+   `/log:path/to/log.file` ☰
+   `/force` ☰
+
+  table }
+
+
+}
+
+rem {
+
+            NOTE : updateonly is a optional parameter. Default value is false. It can be set to true if 
+                   user wants to update the existing entries only.
+                   /updateonly:<update only> option is only applicable when configuring the
+                   app/machine.config for odp or odpm.
+            NOTE : The /updateonly can only be used when
+                   1) adding the config section entries for ODPU/ODPM
+                   2) adding the db provider factory section entries for ODPU/ODPM
+                   3) adding provider config entries (i.e. TNS_ADMIN setting) under 'oracle.manageddataaccess.client' section.
+            NOTE : /updateonly will be true or false in the following scenario.
+                   1) TRUE scenario
+                   1.1) OraProvCfg /action:config /updateonly:true /product:odpm....
+                   1.2) OraProvCfg /action:config /updateonly /product:odpm....
+                   2) FALSE scenario
+                   2.1) OraProvCfg /action:config /updateonly:false /product:odpm....
+                   2.2) OraProvCfg /action:config /product:odpm.... 
+
+rem }
+
+{ Examples
+
+  { GAC
+
+    { Installing an assembly into the GAC:
+
+code {
+OraProvCfg /action:gac /providerpath:<provider path>
+code }
+
+    }
+
+    { Uninstalling an assembly from the GAC:
+
+code {
+OraProvCfg /action:ungac /providerpath:<assembly name>
+code }
+
+      In order to install a specific version of an → Microsoft/dot-net/assembly with `/action:ungac`,
+      the provider path can be set to the assembly name *and* version, for example `Oracle.DataAccess, Version=4.112.2.0`.
+
+   }
+
+  }
+  { Machine.config
+
+    {  Configuring ODP.NET with .NET Framewework 4.0 machine.config
+
+code {
+OraProvCfg /action:config /force [/configfile:<app/web.config filepath>] /product:odp [/updateonly:<update only>][/component:<component name>]/frameworkversion:v4.0.30319 /providerpath:<provider path>
+code }
+
+   Notes:
+     • `/productversion:<product version>` can also be used in place of `/providerpath:<providerpath>`
+     • Component is an optional parameter and can be assigned as `dbproviderfactory` or `configsection` if user want to configure provider entries only for those specific section.
+
+
+     }
+    { Setting ODP.NET attributes with .NET Framewework 4.0 machine.config
+
+code {
+OraProvCfg /action:config /product:odpm [/updateonly:<update only>] [/component:<component name>] /frameworkversion:v4.0.30319 /providerpath:<provider path> /set:distributedTransaction\omtsreco_ip_address:my-pc /set:distributedTransaction\omtsreco_port:2040 /set:distributedTransaction\oramts_sess_txntimetolive:240
+code }
+
+    Notes:
+      • /productversion:<product version>` can also be used in place of /providerpath:<providerpath>.
+      • Using /updateonly:<update only> with /set will update the existing provider settings only and will not create a new one if it is present in the config.
+      • Component is optional parameter and can be assigned as `configsection` if user does not want to configure `dbproviderfactories` section.
+      • `/set` or `/unset` is supported only with `odpm
+
+    }
+    { Removing ODP.NET attributes with .NET Framewework 4.0 machine.config
+
+code {
+OraProvCfg /action:config [/configfile:<app/web.config filepath>] /product:odpm [/component:<component name>] /frameworkversion:v4.0.30319 /providerpath:<provider path> /unset:*\distributedTransaction\omtsreco_ip_address
+code }
+
+    Notes: 
+      • `/productversion:<product version>` can also be used in place of /providerpath:<providerpath>.
+      • Component is an optional parameter and can be assigned as `dbproviderfactory` or `configsection` if user want to configure provider entries only for those specific section.
+
+    }
+    { Unconfiguring ODP.NET from .NET Framework 4.0 machine.config
+
+code {
+OraProvCfg /action:unconfig [/configfile:<app/web.config filepath>] /product:odp /frameworkversion:v4.0.30319 [/providerpath:<provider path>]
+code }
+
+      Notes:
+       • `/productversion:<product version>` can also be used in place of /providerpath:<providerpath>.
+       • Component is an optional parameter and can be assigned as `dbproviderfactory` or `configsection` if user want to configure provider entries only for those specific section.
+
+    }
+    { Configuring machine.config for ASP.NET providers:
+
+code {
+OraProvCfg /action:config /force [/configfile:<app/web.config filepath>] /product:aspnet /component:<component name> /frameworkversion:v4.0.30319 /providerpath:<provider path>
+code }
+
+    }
+    { Unconfiguring ASP.NET providers from machine.config
+
+code {
+OraProvCfg /action:unconfig [/configfile:<app/web.config filepath>] /product:aspnet /component:<component name> /frameworkversion:v4.0.30319
+code }
+
+    }
+
+  }
+  { OraclePermission
+
+   { Configuring ODP.NET OraclePermission for Web Applications:
+
+code {
+OraProvCfg /action:config /product:odp /component:oraclepermission /frameworkversion:v4.0.30319 /providerpath:<providerpath>
+code }
+
+     Notes:
+       • This operation is applicable for odp and odpm only.
+       • `/productversion:<product version>` can also be used in place of `/providerpath:<providerpath>`
+       • To unconfigure, use `/action:unconfig`. Using this option without `/providerpath` will remove all OraclePermission entries
+   }
+ }
+ { Performance Counters
+
+    { Registering ODP.NET Performance Counters:
+
+code {
+OraProvCfg /action:register /product:odp /component:perfcounter /providerpath:<provider path>
+code }
+
+      Notes:
+        •This operation is applicable for odp and odpm only.
+        •To unregister, use `/action:unregister`
+    }
+  }
+}
 
 sa:
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/ODP_NET/managed/_arch/configure_bat[`configure.bat`]
