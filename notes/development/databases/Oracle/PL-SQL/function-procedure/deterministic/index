@@ -1,0 +1,24 @@
+$ Oracle PL/SQL: Deterministic functions
+
+{ Impact when used in WHERE clause
+
+  The following example tries to demonstrate the impact of a deterministic function when used in a `where` clause of a → development/databases/Oracle/SQL/select[select statement].
+
+  the following → development/databases/Oracle/PL-SQL package contains two functions of which one is deterministic and the other is not. These functions produce the same result: they multiply the
+  passed number by two.
+  -
+  A special feature of these functions is that it calls → development/databases/Oracle/installed/packages/dbms/lock/sleep[`dbms_lock.sleep`] to artificially prolongate the time spent in this function.
+  This will allow to roughly estimate how many times the function was called.
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/where-clause/pkg.sql||
+
+  This is the table on which we're going to query a record:
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/where-clause/tab.sql||
+
+  Finally the select statements.
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/where-clause/select.sql||
+
+  The first select statement takes approximately three seconds because the table is queried in a full table scan and the non-deterministic function is called for each record during the scan.
+  -
+  However, the second select statement takes approximately one second because the function, by virtue of its determinacy, is called only once.
+
+}
