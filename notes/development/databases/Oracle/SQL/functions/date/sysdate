@@ -2,17 +2,32 @@ $ Oracle: SYSDATE
 
 `SYSDATE` evaluates to a → development/databases/Oracle/SQL/data-types/date[date] that corresponds to the current date/time.
 
-If used in an → development/databases/Oracle/SQL/statement, the returned value won't change until the statement is finished, even if the execution of the statement takes longer than one second.
-Thus, the following SQL statement will run quite for a long time and won't change the values of the first two columns:
+{ Using SYSDATE in an SQL statement
+
+  If used in an → development/databases/Oracle/SQL/statement, the returned value won't change until the statement is finished, even if the execution of the statement takes longer than one second.
+
+  In order to demonstrate this, I create a function that returns the value of `sysdate`:
 code {
-with x as (select /*+ materialize */ sysdate d from dual)
-select
-  x.d,
-  sysdate,
-  level
-from
-  x connect by x.d < sysdate + 1/86400;
+create or replace function get_sysdate return date
+is begin
+   return sysdate;
+end get_sysdate;
+/
 code }
+
+  I then select both, `sysdate` and the value returned by `get_sysdate` for at least three seconds:
+code {
+select
+   sysdate,
+   get_sysdate,
+   level
+from
+   dual connect by sysdate + 3/86400 >= get_sysdate;
+code }
+
+  The result of the query shows that `sysdate` does not change while `get_sysdate` returns different values for the period being executed.
+
+}
 
 sa:
   Other → development/databases/Oracle/SQL/functions/date[date related SQL functions]

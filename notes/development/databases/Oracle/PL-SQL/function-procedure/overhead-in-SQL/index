@@ -1,0 +1,33 @@
+$ PL/SQL functions: Overhead when using in SQL
+
+{ WHERE clause
+
+  This is a test with which I wanted to approximately estimate the impact on the → development/databases/Oracle/SQL/statement/execution[SQL execution time] when using PL/SQL functions in `where` clauses.
+
+  I conducted this test on two environments, both being Oracle 19. To my surprise, the loss of performance was quite different on those environments.
+
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/table.sql||
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/funcs.sql||
+
+  First, we select the «ordinary» `count` from the table …
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-count.sql||
+
+  … and compare with the using a `where` condition. Since there is no index on the table, a full table scan will be employed.
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-where.sql||
+
+  When using a function, on one environment, I found a 18 or 60 times slower execution:
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-func.sql||
+  
+  Applying `result_cache` on the function resulted in a 77 or 23 times slower execution:
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-result_cache.sql||
+
+  When using a → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] function, the execution was 13 or 5 times slower.
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-deterministic.sql||
+
+  Using a → development/databases/Oracle/SQL/clauses/with[«local» function (`with` clause)], the execution time was approximately 16 or 6 times slower.
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/select-local.sql||
+
+  Cleaning up:
+  gh|oracle-patterns|/PL-SQL/function-procedure/overhead-in-SQL/where/clean-up.sql||
+
+}

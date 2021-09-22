@@ -1,4 +1,4 @@
-$ PowerShell: byte arrays
+$ PowerShell: Byte arrays
 
 { Creating an array of bytes
 
@@ -6,22 +6,24 @@ $ PowerShell: byte arrays
 
     An → Windows/PowerShell/language/type/array[array] of bytes can simply be created by assigning an array of numbers (technically: bytes) to a typed → Windows/PowerShell/language/variable:
 code {
-[byte[]] $byte_array = 65,66,67
+[byte[]] $byte_array = 65,66,67,90
 code }
 
     Of course, typically, such numbers come in hexadecimal form in which case they need to be prepended with `0x`:
 code {
-[byte[]] $another_array = 0x41, 0x42, 0x43
+[byte[]] $another_array = 0x41, 0x42, 0x43, 0x5A
 code }
 
     If the array of hexadecimal number comes from a source where it is not already prefixed and manually prefixing them is too tedious, a → Windows/PowerShell/pipeline helps to convert the hexadecimal numbers to a byte:
 code {
-[byte[]] $xyz = 41, 42, 43 | → Windows/PowerShell/command-inventory/noun/object/forEach[foreach-object] { → Windows/PowerShell/command-inventory/noun/expression/invoke[invoke-expression] "0x$_" }
+[byte[]] $xyz = '41', '42', '43', '5A' | → Windows/PowerShell/command-inventory/noun/object/forEach[foreach-object] { → Windows/PowerShell/command-inventory/noun/expression/invoke[invoke-expression] "0x$_" }
 code }
 
-    The last example would not work if the hexadecimal numbers had characters in them. But we can put such values into a string and create an array using the → Windows/PowerShell/language/operator/string-manipulation#ps-split-join[`-split` operator]:
+    Because some of the values of the last example contain characters, these values had to be enclosed in quotes.
+    -
+    To make things easier, we can put such values into a string and create an array using the → Windows/PowerShell/language/operator/string-manipulation#ps-split-join[`-split` operator]:
 code {
-[byte[]] $abc = "0a a0 ff" -split ' ' | foreach-object { invoke-expression "0x$_" }
+[byte[]] $abc = "41 42 43 5A" -split ' ' | foreach-object { invoke-expression "0x$_" }
 code }
   
   }
@@ -71,4 +73,8 @@ code }
 }
 
 sa:
+
+  Using the → Windows/PowerShell/language/operator/string-manipulation/split[`-split` operator] to create a byte array from a
+  → Windows/PowerShell/language/operator/string-manipulation/split#ps-split-pair-characters[hexadecimal representation of a byte stream].
+
   → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/ByteCollection[`Microsoft.PowerShell.Commands.ByteCollection`]

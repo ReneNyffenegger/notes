@@ -1,5 +1,26 @@
 $ Oracle PL/SQL: Deterministic functions
 
+code {
+CREATE FUNCTION func_name … RETURN number DETERMINISTIC
+AS
+  ….
+code }
+
+A function that is declared deterministic asserts that a given combination of input-parameter values always returns the same value. However, Oracle does not verify this assertion.
+
+A function is required to be deterministic if it used for a
+  • function-based index
+  • → development/databases/Oracle/objects/tables/columns/virtual[virtual column] definition
+  • from a query of a materialized view that is marked `refresh fast` or `eanble query rewrite`
+
+Deterministic functions are especially useful when used in
+  • `where` clauses
+  • `order by` clauses
+  • `group by` clauses
+  • `map` or `order` methods of an SQL type
+  • selection/criteria functions
+  
+
 { Impact when used in WHERE clause
 
   The following example tries to demonstrate the impact of a deterministic function when used in a `where` clause of a → development/databases/Oracle/SQL/select[select statement].
@@ -22,3 +43,31 @@ $ Oracle PL/SQL: Deterministic functions
   However, the second select statement takes approximately one second because the function, by virtue of its determinacy, is called only once.
 
 }
+{ Caching of result
+
+  The result of deterministic functions for a given combination of parameter values is cached within one *fetch* in a select statement. In each individual fetch, the result for a paramter-value
+  combination is cached again and thus entails another function call.
+  -
+  This behaviour is demonstrated here.
+
+  We need a log table to record each call of the deterministic function.
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/cache-result/log-table.sql||
+
+  The deterministic function itself.
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/cache-result/func.sql||
+
+  Calling the function from an SQL statement.
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/cache-result/select.sql||
+
+  After executing the previous select statement in SQL*Plus, the log table contains 187 (=11 Fetches with 17 calls to the function) records. (For a reason that I don't understand, when doing the same
+  test in SQL Developer, I get 186 records only).
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/cache-result/select-count-from-log-table.sql||
+
+  
+  Cleaning up
+  gh|oracle-patterns|/PL-SQL/function-procedure/deterministic/cache-result/clean-up.sql||
+
+}
+
+sa:
+  → development/databases/Oracle/PL-SQL/function-procedure/overhead-in-SQL
