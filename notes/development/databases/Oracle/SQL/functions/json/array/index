@@ -1,14 +1,28 @@
 $ Oracle: JSON_ARRAY
 
+`json_array` turns a list of numbers, strings or JSON objects into a VARCHAR2 representation of a → development/languages/JavaScript/JSON[JSON] array.
+
+By default, → development/databases/Oracle/SQL/null[`null`] values are not included in the returned value:
 code {
 select
-   json_array (42, 'Hello world',sysdate)
+   json_array (42, 'Hello world', null, → development/databases/Oracle/SQL/functions/date/sysdate[sysdate])
 from
    dual;
 --
 -- [42,"Hello world","2021-08-09T12:54:39"]
 code }
 
+In order to include null values in the return value, `NULL ON NULL` needs to be included:
+code {
+select
+   json_array (42, 'Hello world', null, → development/databases/Oracle/SQL/functions/date/sysdate[sysdate] NULL ON NULL)
+from
+   dual;
+--
+-- [42,"Hello world",null,"2021-08-09T12:54:39"]
+code }
+
+The following example returns a JSON array that contains three JSON objects:
 code {
 select
    json_array (
@@ -20,6 +34,19 @@ from
    dual;
 --
 -- [{"id":1,"item":"foo","pit":"2021-10-21T03:44:35"},{"id":2,"item":"bar","pit":"2021-08-11T20:27:02"},{"id":3,"item":"baz","pit":"2021-10-08T20:48:23"}]
+code }
+
+Booleans can only be used in a → development/databases/Oracle/PL-SQL context:
+code {
+declare
+   j clob;
+begin
+   j := json_array(true, false);
+   dbms_output.put_line(j);
+end;
+/
+--
+-- [true,false]
 code }
 
 sa:

@@ -194,6 +194,67 @@ select * from
 code }
 
 }
+{ Joining tables (LEFT JOIN and NESTED) #ora-json_table-nested
+
+  The following example tries to demonstrate how a «real» table can be joined to a virtual table produced by `json_table`.
+
+  First, we create the «real» table and insert some JSON date into it:
+  code {
+create table tq84_n (
+   i number,
+   j varchar2(4000)
+);
+
+insert into tq84_n values (1, '[{"id": 1, "txt": "one"   },
+                                {"id": 2, "txt": "two"   },
+                                {"id": 3, "txt": "three" }]'
+                          );
+insert into tq84_n values (2, '[{"id": 2, "txt": "zwei"  },
+                                {"id": 4, "txt": "vier"  },
+                                {"id": 6, "txt": "sechs" }]'
+                          );
+insert into tq84_n values (3, '[{"id": 3, "txt": "tres"  },
+                                {"id": 6, "txt": "seis"  },
+                                {"id": 9, "txt": "nueve" }]'
+                          );
+  code }
+
+  We're then ready to select from the table.
+
+  The following two select statements are equivalent, but using `nested` is arguably more friendly to read.
+
+  First select: join the tables with a → development/databases/Oracle/SQL/join/outer[left outer join].
+  code {
+select
+   n.i,
+   t.txt
+from
+   tq84_n n left outer join
+   json_table(n.j, '$[*]'
+      columns (
+       id  number   path '$.id',
+       txt varchar2 path '$.txt'
+      )
+   ) t on n.i = t.id;
+  code }
+
+  Second select: using the `nested` clause instead.
+  code  {
+select
+   i,
+   txt
+from
+   tq84_n nested
+   j, '$[*]'
+      columns (
+         id  number   path '$.id',
+         txt varchar2 path '$.txt'
+      )
+where
+   i = id;
+  code }
+
+}
 
 sa:
 
