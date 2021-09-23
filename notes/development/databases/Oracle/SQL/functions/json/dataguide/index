@@ -1,0 +1,62 @@
+$ Oracle: JSON_DATAGUIDE
+
+`json_dataguide` returns a → development/languages/JavaScript/JSON document that contains → development/Data/metadata about a given JSON document.
+
+code {
+select json_dataguide(
+'{
+  "number": 42,
+  "translations": [
+    {
+      "lang": "germam",
+      "text": "Zweiundvierzig"
+    },
+    {
+      "lang": "french",
+      "text": "quarante-deux"
+    }
+  ]
+}') from dual;
+code }
+
+code {
+with dg as (
+select json_dataguide(
+'
+    {
+      "number": 42,
+      "translations": [
+      {
+        "lang": "germam",
+        "text": "Zweiundvierzig"
+      },
+      {
+        "lang": "french",
+        "text": "quarante-deux"
+      }
+    ]
+  }
+  ') j from dual
+)
+select
+    path,
+    type,
+    length
+from dg → development/databases/Oracle/SQL/functions/json/table#ora-json_table-nested[nested]
+    j, '$[*]'
+   columns (
+      path   varchar2(4000) path '$."o:path"',
+      type   varchar2(4000) path '$.type'    ,
+      length number         path '$."o:length"'
+   )
+;
+code }
+
+{ TODO
+
+ ?  `json_dataguide` is an → development/databases/Oracle/SQL/select/aggregate[aggregate function].
+
+}
+
+sa:
+  The dictionary view `dba_json_dataguides` and `dba_json_dataguide_fields`.
