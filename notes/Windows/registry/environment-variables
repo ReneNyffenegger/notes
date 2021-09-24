@@ -17,15 +17,19 @@ There seem to be three places that control the values of → development/environ
   Notify the system by ending the `WM_SETTINGCHANGE` message using the → Windows/development/WinAPI[WinAPI] function `SendMessage` or `SendMessageTimeout`, having `lParam` set to the string `"Environment"`.
 
   With → Windows/PowerShell, its possible to invoke a WinAPI function. The following script sends a message in order for new processes to have updated values for
-  changed environment variables:
+  changed environment variables.
+  -
+  It should be noted that this broadcast message must be explicitely processed by a → Windows/development/process[process]. → Windows/dirs/Windows/explorer_exe[`explorer.exe`] is the only(?) process to do so.
+  Therefore, after sending WM_SETTINGCHANGE, a process needs to be restarted for the message to have an effect.
 
   gh|about-Windows-Registry|/HKEY_CURRENT_USER/Environment/apply-changes.ps1||
 
   It should be noted, however, that it's not necessary to send a `WM_SETTINGCHANGE` if an environment variable is changed with the
    → Windows/PowerShell/index#ps-env-variables[PowerShell idiom to change variables] because PowerShell is smart enough to figure out that this needs to be done:
 code {
-PS C:\> [environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("VAR", "value", "user")`
+PS C:\> [environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("VAR", "value", "user")
 code }
+  Update 2021-09-24: This assertion does not seem to be true anymore, at least when changing a user (not a system) variable (if it ever was!).
 
   In → development/languages/VBA[Visual Basic for Applications], a `WM_SETTINGCHANGE` can be sent with the following call. The declaration of the function and constants
   is found → development/languages/VBA/Win-API[here].
@@ -40,6 +44,8 @@ code }
 code {
 c:\> → Windows/dirs/Windows/System32/rundll32_exe[rundll32.exe] user32.dll,UpdatePerUserSystemParameters 1 True
 code }
+
+    Update 2021-09-24: This call does also → https://stackoverflow.com/a/21086393/180275[not work anymore].
 
  }
 
