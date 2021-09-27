@@ -14,7 +14,12 @@ create table tq84_data_scale_length_precision (          -- DATA_LENGTH  DATA_PR
     ts_tz           timestamp with time zone,            --          13            null           6
     ts_tz_loc       timestamp with local time zone       --          11            null
 );
+code }
 
+
+{ Determine data_length, data_precision and data_scale
+
+code {
 select
    column_name,
    data_type,
@@ -27,6 +32,29 @@ where
    table_name = 'TQ84_DATA_SCALE_LENGTH_PRECISION'
 order by
    column_id;
+code }
 
+}
+
+{ Inserting values that are too large for the column definition #ora-insert-values-that-are-too-large
+
+code {
+insert into tq84_data_scale_length_precision(num__5__2) values( 123.45  );
+insert into tq84_data_scale_length_precision(num__5__2) values( 123.456 ); -- No error thrown, but value inserted is 123.46
+insert into tq84_data_scale_length_precision(num__5__2) values(1234.56  ); -- → development/databases/Oracle/errors/ORA-01438_value-larger-than-specified-precision-allowed-for-this-column[ORA-01438: value larger than specified precision allowed for this column]
+code }
+
+code {
+insert into tq84_data_scale_length_precision(vc_10) values('0123456789' );
+insert into tq84_data_scale_length_precision(vc_10) values('0123456789*'); -- → development/databases/Oracle/errors/ORA-12899_value-too-large-for-column[ORA-12899: value too large for column] "..."."TQ84_DATA_SCALE_LENGTH_PRECISION"."VC_10" (actual: 11, maximum: 10)
+code }
+
+
+}
+{ Clean up demonstration table
+
+code {
 drop table tq84_data_scale_length_precision;
 code }
+
+}

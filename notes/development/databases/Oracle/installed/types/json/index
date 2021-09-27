@@ -1,0 +1,38 @@
+$ Oracle: JSON related types
+
+code {
+declare
+
+   scl  json_scalar_t;
+   ary  json_array_t;
+   obj  json_object_t;
+
+   procedure inspect(elm  json_element_t) is begin
+       dbms_output.put_line(elm.to_clob);
+       if    elm.is_array then
+             dbms_output.put_line('  is an array');
+       elsif elm.is_object then
+             dbms_output.put_line('  is an object');
+       elsif elm.is_scalar then
+             dbms_output.put_line('  is a scalar');
+       end if;
+   end inspect;
+
+begin
+
+   ary := json_array_t.parse('[ 1, "two", "2021-08-28T22:23:23"]');
+   obj := json_object_t.parse('{"num": 42, "txt": "hello-world"}');
+-- json_scalar_t does not override parse: 
+-- scl := json_scalar_t.parse(99);
+   scl := json_scalar_t(jdom_t.parse(99));
+
+   inspect(ary);
+   inspect(obj);
+   inspect(scl);
+
+end;
+/
+code }
+
+sa:
+  → development/databases/Oracle/SQL/JSON
