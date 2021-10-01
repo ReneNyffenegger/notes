@@ -1,0 +1,118 @@
+$ Oracle SQL noun: CONTEXT
+
+The → development/databases/Oracle/SQL/statement[Oracle SQL statements] with the noun `context` are
+  • `create context`
+  • `drop context`
+
+{ CREATE CONTEXT
+
+  code {
+create context context-namespace using package-name;
+create context context-namespace using package-name initialized externally;
+create context context-namespace using package-name initialized globally;
+create context context-namespace using package-name accessed globally;
+  code }
+
+
+ `create context` creates a context namespace.
+  -
+  Such a context namespace is a container, if you will, for attribute value pairs.
+
+  A value for an attribute is set by calling
+ `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].set_context('context-namespace', 'attribute-value', value)`.
+  -
+  For security reasons, Oracle only allows to execute `dbms_session.set_context` from
+  within the package that was associated in the `create context` statement.
+
+  The value of an attribute can the be queried with `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('context-namespace', 'attribute-name')`.
+
+  { Example
+
+code {
+conn / as sysdba
+
+create user rene 
+identified by rene 
+default tablespace users 
+temporary tablespace temp;
+
+grant create session,
+      create procedure,
+      create any context
+      to rene;
+
+conn rene/rene
+
+create context some_context using some_package;
+
+create package some_package as
+
+    procedure set_value_in_context(some_value in varchar2);
+
+end some_package;
+/
+
+create package body some_package as
+
+    procedure set_value_in_context(some_value in varchar2) is
+    begin
+        dbms_session.set_context('some_context', 'some_attribute', some_value);
+    end set_value_in_context;
+
+end some_package;
+/
+
+exec some_package.set_value_in_context('foo');
+
+select sys_context('some_context', 'some_attribute') from dual;
+code }
+
+   The value that was set for a context-attribute pertains to the current session only. Other sessions can have their own values, reconnecting «forgets» the value:
+code {
+conn rene/rene;
+select sys_context('some_context', 'some_attribute') from dual;
+code }
+
+  }
+  {  Accessed Global
+
+     Using the `accessed globally` modifier in the `create context` statement allows to set a value for an attribute globally, that is, other sessions see the set
+     value as well and the value persists after reconnecting:
+code {
+conn rene/rene
+
+create context global_context using global_package accessed globally;
+
+create package global_package as
+
+    procedure set_value_in_context(global_value in varchar2);
+
+end global_package;
+/
+
+create package body global_package as
+
+    procedure set_value_in_context(global_value in varchar2) is
+    begin
+        dbms_session.set_context('global_context', 'global_attribute', global_value);
+    end set_value_in_context;
+
+end global_package;
+/
+
+exec global_package.set_value_in_context('valid accross sessions');
+code }
+
+code {
+conn rene/rene
+
+select sys_context('global_context', 'global_attribute') from dual;
+code }
+
+
+  }
+
+}
+
+sa:
+  The Oracle object type → development/databases/Oracle/objects/contexts[context].
