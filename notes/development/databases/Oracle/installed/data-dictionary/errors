@@ -1,6 +1,7 @@
 $ USER_ERRORS / ALL_ERRORS / DBA_ERRORS / CDB_ERRORS
 
-Display → development/databases/Oracle/PL-SQL/errors-warnings[errors] on → development/databases/Oracle/PL-SQL objects (stored procedures, functions, packages etc.)
+Display → development/databases/Oracle/PL-SQL/errors-warnings[errors] or warnings (column `attribute`) of → development/databases/Oracle/PL-SQL objects (stored procedures, functions, packages etc.)
+
 
 { Join with ALL_SOURCE
 
@@ -27,6 +28,34 @@ order by
    err.type,
    err.line
 ;
+code }
+
+}
+{ Most recent errors
+
+  The following select statement joins `dba_errors` with → development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`] to order the result set
+  with the most recently installed objects first (`order by last_ddl_time desc`):
+code {
+select
+   err.owner,
+   err.name,
+   obj.last_ddl_time,
+   err.text,
+   err.attribute,
+   err.type,
+   err.line,
+   err.position,
+   err.message_number
+from
+   dba_errors  err                                     join
+   dba_objects obj on err.owner = obj.owner        and
+                      err.name  = obj.object_name  and
+                      err.type  = obj.object_type
+-- where
+--    err.owner = user
+order by
+   obj.last_ddl_time desc nulls last,
+   err.sequence;
 code }
 
 }
