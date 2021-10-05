@@ -3,6 +3,61 @@ $ OData-Service-Root/$metadata
 `service/$metadata` returns a CDSL → development/XML/DOM/nodes/document that describes the services offered by a particular → development/Data/OData installation.
 The document might also reference other CDSL documents.
 
+The returned XML document is a → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-edmx/688b06d4-aa08-4b58-b200-f286ce696383[an EDMX document].
+-
+The root element of this EDMX document is an `<edmx:Edmx>` element.
+-
+The root element contains zero or more `<edmx:Reference>` or `<edmx:Annotationsreference>` subelements in any order.
+-
+The root element contains exactly one `<edmx:DataServices>` element which must appear after any `<edmx:Reference>` or `<edmx:Annotationsreference>` element.
+-
+The <edxm:DataServices>` element contains zero or more `<Schema>` elements. These `<Schema>` elements specify → development/Data/OData#OData-EDM[Entity Data Model] conceptual Schemas.
+(See → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-csdl/c03ad8c3-e8b7-4306-af96-a9e52bb3df12[MC-CSDL: Conceptual Schema Definition File Format])
+
+An `<edmx:Reference>` element allows to reference other EDMX documents or Entity Data Model (EDM) conceptual schemas:
+code {
+  <edmx:Reference Uri="http://vocabularies.odata.org/OData.Community.Keys.V1.xml">
+    <edmx:Include Namespace="OData.Community.Keys.V1" Alias="Keys" />
+    <edmx:IncludeAnnotations TermNamespace="OData.Community.Keys.V1" />
+  </edmx:Reference>
+
+  <edmx:Reference Url="http://www.tq84.xy/a-model.edmx"       />
+
+ < edmx:Reference Url="http://www.tq84.xy/another-model.csdl" />
+code }
+
+An `<edmx:AnnotationsReference>` element allows to reference annotations which are specified in another EDMX document or another Entity Data Model (EDM) conceptual schema.
+
+A `<Schema>` element roughly → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-csdl/5deb6a21-3be2-450b-9e68-f2a94fe69483[follows the following structure]:
+code {
+<Schema>
+   <Using/>
+   <Using/>
+   <Annotations />
+   <ValueTerm />
+ 
+   → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-csdl/6875ce6c-837c-4cea-8e35-441dc2366008[<EntityType/>]
+   <EntityType/>
+   <ComplexType/>
+ 
+   → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-csdl/77d7ccbb-bda8-444a-a160-f4581172322f[<Association/>]
+   <Association/>
+   <Function/>
+   <Function/>
+   <EntityContainer>
+      <EntitySet/>
+      <EntitySet/>
+ 
+      → https://docs.microsoft.com/en-us/openspecs/windows_protocols/mc-csdl/84fdfd02-7b12-4aa3-a2eb-51bab109f439[<AssociationSet/>]
+      <AssociationSet/>
+ 
+      <FunctionImport/>
+      <FunctionImport/>
+   </EntityContainer>
+   <EntityContainer/>
+</Schema>
+code }
+
 code {
 <?xml version="1.o" encoding="utf-8"?>
 <edmx:Edmx
