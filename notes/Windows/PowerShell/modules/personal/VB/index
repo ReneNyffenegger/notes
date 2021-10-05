@@ -24,6 +24,20 @@ Access functions that are found in Visual Basic
 { Antivirus protection
 
   On a computer where *CrowdStrike Falcon Sensor* is installed, using this VB module resulted in `VB.psm1` being quarantined because it was considered malicious.
+ (The error message being *This script contains malicious content and has been blocked by your antivirus software.*).
+
+  The offending statement seems to be the following, which is found in the `init()` function.
+code {
+$assembly = [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+code }
+
+  On such systems, for the time being, the function `init()` and the reference that, calls it must be removed manually. The `LoadWithPartialName()` then needs to be executed on the command line.
+  -
+  Alternatively, I also seemed to have some success by replacing the code-line with
+code {
+$assembly = [System.Reflection.Assembly]::LoadFrom('C:\WINDOWS\Microsoft.Net\assembly\GAC_MSIL\Microsoft.VisualBasic\v4.0_10.0.0.0__b03f5f7f11d50a3a\Microsoft.VisualBasic.dll')
+code }
+
 
 }
 { Source code
