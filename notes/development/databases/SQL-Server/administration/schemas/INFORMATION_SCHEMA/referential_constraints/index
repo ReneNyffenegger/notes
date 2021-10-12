@@ -1,0 +1,31 @@
+$ INFORMATION_SCHEMA.referential_constraints
+@ referential_constrains
+
+
+The following select statement finds foreign-key primary-key (child-parent) relations:
+code {
+select
+   chl.table_name                 child_table,
+   par.table_name                 parent_table,
+-- chl.constraint_type                        ,  -- Always FOREIGN KEY?
+   chl.constraint_name            foreign_key ,
+   ref.unique_constraint_name     primary_key
+-- ref.*,
+-- chl.*
+from
+   information_schema.table_constraints       chl                                                     join
+   information_schema.referential_constraints ref on chl.constraint_name = ref.constraint_name        join
+   information_schema.table_constraints       par on par.constraint_name = ref.unique_constraint_name
+where
+-- chl.table_name = 'CHILD_TABLE'
+   par.table_name = 'PARENT_TABLE'
+;
+code }
+
+sa:
+
+  → development/databases/SQL-Server/objects/table/constraints[Table constraints]
+
+  → development/databases/SQL-Server/administration/schemas/INFORMATION_SCHEMA/table_constraints[`table_constraints`]
+
+  → development/databases/SQL-Server/administration/schemas/INFORMATION_SCHEMA

@@ -1,0 +1,35 @@
+$ INFORMATION_SCHEMA.key_columns_usage
+@ key_columns_usage
+
+code {
+select
+   chl.table_name                 child_table,
+   par.table_name                 parent_table,
+-- chl.constraint_type                        ,  -- Always FOREIGN KEY?
+   coc.column_name                child_column,
+   clc.is_nullable                child_column_nullable,
+   cop.column_name                parent_column,
+   chl.constraint_name            foreign_key ,
+   ref.unique_constraint_name     primary_key
+from
+   information_schema.table_constraints       chl                                                      join
+   information_schema.referential_constraints ref on chl.constraint_name  = ref.constraint_name        join
+   information_schema.table_constraints       par on par.constraint_name  = ref.unique_constraint_name join
+   information_schema.key_column_usage        coc on chl.constraint_name  = coc.constraint_name        join
+   information_schema.key_column_usage        cop on par.constraint_name  = cop.constraint_name  and
+                                                     coc.ordinal_position = cop.ordinal_position       join
+   information_schema.columns                 clc on coc.table_name       = clc.table_name       and
+                                                     coc.column_name      = clc.column_name
+where
+-- chl.table_name = 'xyz_tab'
+   par.table_name = 'xyz_tab'
+order by
+   chl.constraint_name,
+   coc.ordinal_position
+;
+code }
+
+sa:
+  → development/databases/SQL-Server/objects/table/constraints[Table constraints]
+
+  → development/databases/SQL-Server/administration/schemas/sys/objects/views/columns[sys.columns]
