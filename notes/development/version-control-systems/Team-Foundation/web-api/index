@@ -2,6 +2,7 @@ $ TFS Web API
 
 Some simple investigations on using the → development/version-control-systems/Team-Foundation[TFS] Web API with → Windows/PowerShell.
 
+Funtion to request a → development/languages/JavaScript/JSON object from the WebAPI endpoint:
 code {
 function get-webApiJson {
    param (
@@ -13,22 +14,35 @@ function get-webApiJson {
 }
 code }
 
+Define some global variables that specify a TFS collection's WebAPI → development/web/URI-URL-URN-IRI-URC#url[URL]:
 code {
 $rootUrl    = 'https://devops.foo.xyz/'
 $collection = 'DefaultCollection'
 $collUrl    = "$rootUrl$collection"
- 
+code }
+
+Iterate over available projects
+code {
 $projects = get-webApiJson "$collUrl/_apis/projects"
-$projects.count
-  
-$project     = $projects.value[1]
-$proj_id     = $project.id
-$project_url = $project.url
+
+write-host ''
+foreach ($project in $projects.value) {
+   write-host "$($project.name): $($project.description)"
  
-write-host "Project name:        $($project.name)"
-write-host "Project description: $($project.description)"
-write-host "Project revision:    $($project.revision)"
+   write-host "  id:          $($project.id)"
+   write-host "  url:         $($project.url)"
+   write-host "  revision:    $($project.revision) ($($project.lastUpdateTime))"
+   write-host ''
+}
+code }
+
+Choose a project URL and ID from output shown above:
+code {
+$project_url = ...
+$project_id  = ...
+code }
  
+code {
 $projectDetail = get-webApiJson $project_url
 $defaultTeam = $projectDetail.defaultTeam
  
@@ -49,8 +63,29 @@ $releaseDetail = get-webApiJson $lastRelease.url
 $processes = get-webApiJson "$collUrl/_apis/process/processes"
 write-host "count of processes:  $($processes.count)"
 write-host "first process:       $($processes.value[0].description)"
+code }
  
+code {
 $repoRoot = get-webApiJson "$collUrl/_apis/tfvc/items?scopePath=$/&recursionLevel=oneLevel"
+$repoRoot
+code }
+
+Iterate over last `n` changesets:
+code {
+#
+#  https://docs.microsoft.com/en-us/rest/api/azure/devops/tfvc/changesets/get-changesets?view=azure-devops-rest-6.1
+#
+$top_n  = 100
+$path   = '$/TRAUM/DWH'
+$author = 'Nyffenegger, René'
+
+foreach ($changeSet in (get-webApiJson ("$collUrl/_apis/tfvc/changesets?project=$proj_id" +
+                      "&`$top=$top_n"                        +
+                      "&`searchCriteria.itemPath=$path"     +
+                      "&`searchCriteria.author=$author"
+                      )).value) {
+   write-host ('{0,5} {1,-30} {2,-30} {3}' -f $changeSet.changeSetId, $changeSet.author.displayName, $changeSet.createdDate, $changeSet.comment)
+}
 code }
  
 A simple function to list the items in a TFS directory:

@@ -10,7 +10,7 @@ A PGA consists of
   • bitmap merge area (to merge data from scans of multiple bitmap indexes)
   • User Global Area (→ development/databases/Oracle/architecture/instance/UGA) (in dedicated server environments)
   • SQL work area (sort area?), used by → development/databases/Oracle/SQL/select/group-by[`group by`] and → development/databases/Oracle/SQL/select/order-by[`order by`]
-  • Session memory (Logon information
+  • → development/databases/Oracle/architecture/session[Session] memory (Logon information)
   • → development/databases/Oracle/architecture/instance/PGA/private-SQL-area[Private SQL area] (Values of bind variables, session specific information for processing etc.)
 
 In shared server environments (as opposed to non-dedicated server environments), the UGA moves into the → development/databases/Oracle/architecture/instance/SGA/Large-Pool because multiple clients share the
@@ -71,20 +71,27 @@ select
     s.username,
     round(max(case when n.name = 'session uga memory'        then value /1024/1024 end), 1) uga_mb,
     round(max(case when n.name = 'session pga memory'        then value /1024/1024 end), 1) pga_mb,
+    round(                       p.pga_used_mem                         /1024/1024     , 1) pga_used_mb,
+    round(                       p.pga_alloc_mem                        /1024/1024     , 1) pga_alloc_mb,
+    round(                       p.pga_freeable_mem                     /1024/1024     , 1) pga_freeable_mb,
     round(max(case when n.name = 'session uga memory max'    then value /1024/1024 end), 1) uga_mb_max,
     round(max(case when n.name = 'session pga memory max'    then value /1024/1024 end), 1) pga_mb_max,
     round(max(case when n.name = 'workarea memory allocated' then value /1024/1024 end), 1) workarea_mb
 from
     v$session  s                                 join
     v$sesstat  t on s.sid        = t.sid         join
-    v$statname n on t.statistic# = n.statistic#
+    v$statname n on t.statistic# = n.statistic#  join
+    v$process  p on s.paddr      = p.addr
 where
      s.type = 'USER'
      and s.username is not NULL
 -- and n.name in ('session pga memory', 'session pga memory max',    'session uga memory', 'session uga memory max')
 group by
    s.sid,
-   s.username
+   s.username,
+   p.pga_used_mem,
+   p.pga_alloc_mem,
+   p.pga_freeable_mem
 ;
 code }
 
