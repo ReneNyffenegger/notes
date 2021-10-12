@@ -11,11 +11,12 @@ $ Oracle: DBMS_SQL
     → development/databases/Oracle/installed/packages/dbms/sql/open_cursor[`open_cursor`] ☰ create a cursor for an → development/databases/Oracle/SQL/statement[SQL statement]. Must be closed with `close_cursor` when no longer used.
     → development/databases/Oracle/installed/packages/dbms/sql/parse[`parse`] ☰ parses the text of an SQL text. → development/databases/Oracle/SQL/DDL[DDL] statements are also executed.
     → development/databases/Oracle/installed/packages/dbms/sql/describe_columns[`describe_columns`] ☰ Used to get get information about the returned columns in a → development/databases/Oracle/SQL/select[`select` statement].
-    `bind_variable` ☰
+    → development/databases/Oracle/installed/packages/dbms/sql/api/bind_variable[`bind_variable`] ☰ associates a bind variable with a value with which an SQL statement will be executed.
     `bind_array` ☰
-    `define_columns` ☰ Needed in queries (`select` statements) for each selected column. (Use → development/databases/Oracle/installed/packages/dbms/sql/describe_columns[`describe_columns`] to determine column pecularities)
+    → development/databases/Oracle/installed/packages/dbms/sql/api/define_array[`define_array`] ☰
+    → development/databases/Oracle/installed/packages/dbms/sql/api/define_column[`define_columns`] ☰ Needed in queries (`select` statements) for each selected column. (Use → development/databases/Oracle/installed/packages/dbms/sql/describe_columns[`describe_columns`] to determine column names and their → development/databases/Oracle/SQL/data-types[datatypes].
     `execute` ☰ Execute statement
-    `fetch_rows` ☰ Repeatedly called in queries in order to get records from statement.
+    → development/databases/Oracle/installed/packages/dbms/sql/api/fetch_rows[`fetch_rows`] ☰ Fetches rows from a select statement. Called repeatedly to get full result set.
     `column_value` ☰ Used after calling `fetch_rows` to get the values of the columns in of the records that were fetched.
     `variable_value` ☰ Gets the value of an `out` parameters in a PL/SQL block. (Is `variable_value` also used in `select` statements?)
     `close_cursor` ☰ Close cursor that was opened with `open_cursor`
@@ -31,6 +32,65 @@ $ Oracle: DBMS_SQL
     `to_refcursor` ☰
 
   table }
+
+}
+{ Example: Select statement
+
+code {
+declare
+   cur   number;
+   obj_nam  varchar2(128);
+   last_ddl date;
+   obj_id   number;
+   dummy    integer;
+
+begin
+
+   cur := dbms_sql.open_cursor;
+
+   dbms_sql.parse(cur, q'{
+      select
+         object_name,
+         last_ddl_time,
+         object_id
+      from
+         all_objects
+      where
+         object_name like :nam and
+         object_type    = :typ
+      }',
+      dbms_sql.native
+   );
+
+   dbms_sql.bind_variable(cur, ':nam', '%TQ84%');
+   dbms_sql.bind_variable(cur, ':typ', 'TABLE' );
+
+   dbms_sql.define_column(cur, 1, obj_nam , 128);
+   dbms_sql.define_column(cur, 2, last_ddl     );
+   dbms_sql.define_column(cur, 3, obj_id       );
+
+--
+-- The return value of dbms_sql.execute is undefined for
+-- select statements. Therefor, we assign it to a variable
+-- named dummy:
+--
+   dummy := dbms_sql.execute(cur);
+
+   while dbms_sql.fetch_rows(cur) > 0 loop
+         dbms_sql.column_value(cur, 1, obj_nam );
+         dbms_sql.column_value(cur, 2, last_ddl);
+         dbms_sql.column_value(cur, 3, obj_id  );
+         dbms_output.put_line(
+              rpad(obj_nam, 50) ||
+              to_char(last_ddl, 'yyyy-mm-dd') || '  ' ||
+              to_char(obj_id, '9999999999')
+         );
+   end loop;
+
+   dbms_sql.close_cursor (cur);
+end;
+/
+code }
 
 }
 { TODO

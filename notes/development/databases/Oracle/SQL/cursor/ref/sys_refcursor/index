@@ -1,0 +1,77 @@
+$ Oracle: SYS_REFCURSOR
+
+gh|Oracle-Patterns|/SQL/cursors/ref_cursor_from_string.plsql||
+
+{ Passing ref cursors to procedures
+
+ `sys_refcursor` can be used to pass → development/databases/Oracle/SQL/cursor[cursors] from and to a stored precedures
+
+  In the following example, the procedure `proc_ref_cursor` accepts a `sys_refcursor` and → development/databases/Oracle/PL-SQL/statements/loop[loops] over that cursor and prints
+  (→ development/databases/Oracle/installed/packages/dbms/output[`dbms_output`]) what it fetches:
+
+  Here's a → development/databases/Oracle/objects/tables[table] that we will use to select from:
+code {
+create table table_ref_cursor (
+   a number,
+   b varchar2(10)
+);
+
+insert into table_ref_cursor values(1, 'one');
+insert into table_ref_cursor values(2, 'two');
+insert into table_ref_cursor values(3, 'three');
+insert into table_ref_cursor values(4, 'four');
+
+commit;
+code }
+
+  And this is the definition of the procedure.
+code {
+create or replace procedure proc_ref_cursor (rc in sys_refcursor) as
+
+   v_a number;
+   v_b varchar2(10);
+  
+begin
+
+   loop
+      fetch rc into v_a, v_b;
+      exit when rc%notfound;
+      dbms_output.put_line(v_a || ' ' || v_b);
+   end loop;
+
+end;
+/
+code }
+
+  Here's the stored procedure (`call_proc_ref_cursor`) that opens a cursor for a → development/databases/Oracle/SQL/select[select statement] (`select * from table_ref_cursor`)
+  and passes that cursor to `proc_ref_cursor`.
+code {
+create or replace procedure call_proc_ref_cursor as
+   v_rc sys_refcursor;
+
+begin
+
+   open v_rc for 
+        select * from table_ref_cursor;
+
+   proc_ref_cursor(v_rc);
+
+   close v_rc;
+end;
+/
+code }
+
+   Execute `call_proc_ref_cursor`:
+code {
+begin
+   call_proc_ref_cursor;
+end;
+/
+code }
+
+}
+
+sa:
+  `sys_refcursor` is defined in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/stdspec_sql[`$ORACLE_HOME/rdbms/admin/stdspec.sql`].
+
+  → http://www.adp-gmbh.ch/ora/plsql/cursors/ref_cursors.html[Ref cursors in PL/SQL]

@@ -1,0 +1,42 @@
+$ Oracle SQL: TO_DATE
+@ to_date
+
+`to_date()` converts a string to a → development/databases/Oracle/SQL/data-types/date[date].
+
+code {
+to_date('...', 'fmt')
+to_date('...', 'fmt', 'nlsparam')
+code }
+
+code {
+to_date('...'  default '...' on conversion error, 'fmt')
+to_date('...'  default '...' on conversion error, 'fmt', 'nlsparam')
+code }
+
+{ Convert a Julian day to a date
+
+  A → Wissenschaft/misc/Bestimmung-von-Daten[Julian Day] can be converted to a date with the `'J'` format specifier:
+code {
+select
+   to_date(2459496, 'J') -- October 8th, 2021
+from
+  dual;
+code }
+   
+
+  Oracle counts the inexsting year 0. Thus, Julian days before the Year 1 are inconsistent with other Julian days:
+code {
+select
+   to_date(1721424, 'J'), --  0001-01-01
+   to_date(1721057, 'J')  -- -0001-12-31
+from
+   dual;
+code }
+
+  The following select statement returns Oracle's earliest date it can process (-4712-01-01). (Note that due to Oracle's special Year-0 counting, the
+  first Julian day is actually -4713-01-01).
+code {
+select to_date(1, 'J') from dual;
+code }
+
+}

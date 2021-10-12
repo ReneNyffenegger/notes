@@ -1,0 +1,61 @@
+$ Oracle: Pipelined PL/SQL functions
+
+*Pipelined functions* are useful to query «virtual» tables or to return data that can not be formulated easily with SQL (Pivot queries come to mind…)
+
+{ Simple demonstration
+
+  The first step is to create a type that defines the names and data types (attributes) of the returned
+  columns:
+code {
+create or replace type tq84_pipeline_columns as object (
+   num  number,
+   txt  varchar2(10),
+   dat  date
+)
+/
+code }
+
+  This type is used to create a table-table:
+code {
+create or replace type tq84_pipeline_table as table of tq84_pipeline_columns
+/
+code }
+
+  The function returns the table type and is declared `PIPELINED`:
+code {
+create or replace function tq84_pipeline_func(nofRecords in integer)
+   return      tq84_pipeline_table
+   PIPELINED
+as begin
+  for r in 1..nofRecords loop
+       pipe row (
+            tq84_pipeline_columns(
+                 r,
+                 to_char(r, 'fmRN'), -- Roman numerals (use fm to trim leading white space)
+                 sysdate - r
+            ));
+   end loop;
+end tq84_pipeline_func;
+/
+code }
+
+  With this function and the `table(…)` modifier, we can query an arbitrary number of records whose data is
+  create by the PL/SQL function in memory:
+code {
+select * from table(tq84_pipeline_func(9));
+code }
+
+  Finally, we clean up the → development/databases/Oracle/objects[objects] we created:
+code {
+drop type     tq84_pipeline_table;
+drop type     tq84_pipeline_columns;
+drop function tq84_pipeline_func;
+code }
+
+}
+
+sa:
+
+  The → development/databases/Oracle/PL-SQL/statements/pipe-row[`pipe row` statement].
+
+  Pipelined functions are unrelated to → development/databases/Oracle/installed/packages/dbms/pipe/[`dbms_pipe`].
