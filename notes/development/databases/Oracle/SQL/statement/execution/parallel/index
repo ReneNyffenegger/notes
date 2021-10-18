@@ -22,7 +22,7 @@ In an → development/databases/Oracle[Oracle] database, parallel → developmen
   sum from the results from the PX servers.
  
 }
-{ Enabling parallel execution
+{ Enabling parallel execution #ora-enable-paralle-execution
 
   By default, Oracle is enabled for parallel execution of queries and → development/databases/Oracle/SQL/DDL[DDL statements].
 
@@ -39,10 +39,11 @@ code }
   → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`].
 code {
 select
-   pdml_enabled,
+-- pdml_enabled, -- Obsolete, replaced by pdml_status
    pdml_status,
    pddl_status,
-   pq_status
+   pq_status,
+   sid
 from
    → development/databases/Oracle/installed/dynamic-performance-views/session[v$session]
 where
@@ -118,3 +119,13 @@ sa:
   → development/databases/Oracle/installed/packages/dbms/parallel_execute[`dbms_parallel_execute`]
 
   → development/databases/Oracle/installed/dynamic-performance-views/px/session[`v$px_session`] shows information about sessions that run parallelly.
+
+  The → development/databases/Oracle/objects/tables/parallel[`parallel` clause] in a `create table` statement.
+
+  When the init parameter → development/databases/Oracle/adminstration/init-parameters/parallel/degree/policy[`parallel_degree_policy`] is set to `auto`, Oracle will queue the
+  → development/databases/Oracle/SQL/statement/execution[execution of SQL statements] that require
+  parallel execution if the necessary number of parallel execution servers is not available.
+
+  → development/databases/Oracle/SQL/statement/nouns/table/create/as-select#ora-ctas-parallel[`create table … PARALLEL as select …`]
+
+  → development/databases/Oracle/errors/ORA-12838_cannot-read-modify-an-object-after-modifying-it-in-parallel
