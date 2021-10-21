@@ -1,4 +1,5 @@
-$ dba_dependencies - all_dependencies - user_dependencies
+$ Oracle: DBA_DEPENDENCIES
+@ dba_dependencies - all_dependencies - user_dependencies
 
 The `*_dependencies` views show dependencies between → development/databases/Oracle/objects[objects] in the database.
 -
@@ -13,11 +14,51 @@ not represented in `XXX_dependencies`).
 { Recursively querying dependencies #oracle-dependencies-cte
 
   The `*_dependencies` views only return the immediate dependencies of an object. In order to select all dependencies, a recursive
-  select statement is required, such as, for example, the following
-  → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[recursive common table expression (CTE)] which
-  queries all dependencies of `all_file_group_files`.
+  select statement is required.
 
-  gh|Oracle-Patterns|/Installed/data-dictionary/dependencies/recursive.sql||
+  { Objects that a given object depends on
+
+    The following → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[recursive common table expression (CTE)] queries
+    all objects on which `all_file_group_files` depends.
+
+    gh|Oracle-Patterns|/Installed/data-dictionary/dependencies/recursive.sql||
+
+  }
+
+  { Objects that are dependent on a given object
+
+    The following SQL statement goes the other route. It recursively shows which objects are dependent on a given object (here: → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/ob[`x$kglob`]).
+code {
+with cur(owner, name, type, lvl) as (
+  select
+     'SYS'       owner,
+     'X$KGLOB'   name ,
+     'TABLE'     type ,
+      0          lvl
+  from
+     dual
+                                  union all
+  select
+     nxt.owner,
+     nxt.name ,
+     nxt.type ,
+     cur.lvl +1
+  from
+     cur                                                            join
+     dba_dependencies nxt on nxt.referenced_owner = cur.owner and
+                             nxt.referenced_name  = cur.name  and
+                             nxt.referenced_type  = cur.type
+)
+search depth first by owner, name, type set order_by
+select
+   lpad(' ', lvl*2) || owner || '.' || name || ' (' || type || ')' as x
+from
+   cur
+order by
+   order_by
+;
+code }
+  }
 
 }
 { Cleaning a schema

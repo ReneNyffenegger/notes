@@ -7,8 +7,6 @@ Unlike → development/databases/Oracle/installed/dynamic-performance-views/sql[
 
 In order to gather statistics for SQL statements whose execution duration is less than five seconds, the → development/databases/Oracle/SQL/hints[`/*+ monitor */`] hint must be used.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/sql/monitor/select.sql||
-
 { «primary key» #sql_monitor-key
 
   The column `key` is like a «virtual» → development/databases/Oracle/objects/tables/constraints/primary-key[primary key], that is, it identifies a record in `v$sql_monitor`.
@@ -22,6 +20,38 @@ select
 from
    v$sql_monitor;
 code }
+
+}
+{ Finding montior key
+
+  The following query joins → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] and
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/area[`v$sqlarea`] with `v$sql_monitor` in order to hopefully find a
+  monitory key:
+code {
+select
+    mon.key              mon_key,
+    mon.sql_exec_start   sql_exec_start,
+    mon.status           mon_st,
+    mon.sql_exec_id      sql_exec_id,
+    ses.sid,
+    ses.serial#,
+    ses.osuser,
+    sql.sql_text
+from
+    v$session               ses                                join
+    v$sql_monitor           mon    on
+            ses.sid              = mon.sid               and
+            ses.serial#          = mon.session_serial#         join
+    v$sqlarea               sql    on
+            sql.sql_id           = mon.sql_id
+order by
+    mon.sql_exec_start desc;
+code }
+
+}
+{ Columns
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/sql/monitor/select.sql||
 
 }
 
