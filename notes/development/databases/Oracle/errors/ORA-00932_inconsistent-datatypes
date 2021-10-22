@@ -1,9 +1,10 @@
 $ ORA-00932: inconsistent datatypes
 
+{ CHAR / NUMBER
+
+ { ORA-00932: inconsistent datatypes: expected CHAR got NUMBER
+
 code {
---
--- ORA-00932: inconsistent datatypes: expected CHAR got NUMBER
---
 select
    case '1'
       when  2  then 'two'
@@ -11,10 +12,12 @@ select
    end
 from
    dual;
+code }
 
---
--- ORA-00932: inconsistent datatypes: expected NUMBER got CHAR
---
+ }
+ { ORA-00932: inconsistent datatypes: expected NUMBER got CHAR
+
+code {
 select
    case  1
       when  2 then 'two'
@@ -23,6 +26,26 @@ select
 from
    dual;
 code }
+
+  }
+
+}
+{ ORA-00932: inconsistent datatypes: expected CHAR got LONG #ora-00932-exp-char-got-long
+
+  The → development/databases/Oracle/SQL/data-types[data type] of the column
+  `data_default` in the → development/databases/Oracle/installed/data-dictionary[data dictionary] view
+  → development/databases/Oracle/installed/data-dictionary/tab/columns[`user_tab_columns`] is
+  → development/databases/Oracle/SQL/data-types/long[`long`] which essentially makes it impossible
+  to formulate a query-condition on that column when selecting from `user_tab_columns`:
+code {
+select *
+from
+   user_tab_columns
+where
+   data_default like '%sysdate%';
+code }
+
+}
 
 sa:
 

@@ -1,3 +1,36 @@
-$ Oracle: show columns of indices
+$ Oracle: Show columns of indices
 
-gh|oracle-patterns|/Installed/data-dictionary/ind/columns/columns-of-index.sql||
+The → development/databases/Oracle/installed/data-dictionary[data dictionary] view
+→ development/databases/Oracle/installed/data-dictionary/ind/columns[`dba_ind_columns`] allows to query the
+→ development/databases/Oracle/objects/tables/columns[columns] that participate in a given
+→ development/databases/Oracle/objects/indexes[index].
+
+
+{ Select column names in their own column
+
+  The following approach selects each column name of a index, up to a maximum of 10 columns, in its own column. 
+  gh|oracle-patterns|/Installed/data-dictionary/ind/columns/columns-of-index.sql||
+
+}
+{ Concatenate column names with commas #dba_ind_columns-listagg
+
+  Using → development/databases/Oracle/SQL/select/aggregate/listagg[`listagg`], the column names of the index can be concatened with separating commas between them:
+code {
+select
+   ico.table_name,
+   ico.index_name,
+   listagg(ico.column_name, ', ') within group (order by ico.column_position) index_columns
+from
+   dba_ind_columns ico
+where
+   ico.index_owner= user     -- and
+-- ico.table_name = '??'
+group by
+   ico.table_name,
+   ico.index_name
+order by
+   ico.table_name,
+   ico.index_name; 
+code }
+
+}
