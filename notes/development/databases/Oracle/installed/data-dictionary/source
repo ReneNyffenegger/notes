@@ -1,6 +1,44 @@
-$ USER_SOURCE / ALL_SOURCE / DBA_SOURCE / CDB_SOURCE
+$ Oracle: DBA_SOURCE
 
-These → development/databases/Oracle/installed/data-dictionary views allow to query the source code of
+`DBA_SOURCE` is a → development/databases/Oracle/installed/data-dictionary view which allows to query the source code of
 → development/databases/Oracle/PL-SQL objects.
 
-Errors in source code is recorded in → development/databases/Oracle/installed/data-dictionary/errors[`dba_errors` etc].
+`DBA_SOURCE` comes in four variants: `USER_SOURCE`, `ALL_SOURCE`, `DBA_SOURCE` and `CDB_SOURCE`.
+
+{ Select source of a given PL/SQL object
+
+  gh|Oracle-Patterns|/Installed/data-dictionary/source/show-package-bodys-source-text.sql||
+
+}
+{ Search for source lines
+
+  The following example searches for a source lines that match a → development/databases/Oracle/SQL/functions/regular_expressions[regular expression] (`regexp_like`):
+
+code {
+select
+   src.owner,
+   src.name,
+   src.line,
+   src.text,
+   src.type
+from
+   dba_source src
+where
+   src.owner not in (select username from dba_users where oracle_maintained = 'Y') and
+   regexp_like(src.text, 'create.*table', 'i')
+order by
+   src.owner,
+   src.name,
+   src.type;
+code }
+
+}
+
+sa:
+
+  Errors in source code is recorded in → development/databases/Oracle/installed/data-dictionary/errors[`dba_errors` etc].
+
+ `dba_source` does not store the source of tables or views. Names of tables and views can be queried from
+  → development/databases/Oracle/installed/data-dictionary/tab/columns[`dba_tab_columns`].
+  -
+  Alternatively, the defintion of tables can be queried using the package → development/databases/Oracle/installed/packages/dbms/metadata[`dbms_metadata`].
