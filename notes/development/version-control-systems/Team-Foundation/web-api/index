@@ -2,7 +2,7 @@ $ TFS Web API
 
 Some simple investigations on using the → development/version-control-systems/Team-Foundation[TFS] Web API with → Windows/PowerShell.
 
-Funtion to request a → development/languages/JavaScript/JSON object from the WebAPI endpoint:
+Function to request a → development/languages/JavaScript/JSON object from the WebAPI endpoint:
 code {
 function get-webApiJson {
    param (
@@ -70,25 +70,10 @@ $repoRoot = get-webApiJson "$collUrl/_apis/tfvc/items?scopePath=$/&recursionLeve
 $repoRoot
 code }
 
-Iterate over last `n` changesets:
-code {
-#
-#  https://docs.microsoft.com/en-us/rest/api/azure/devops/tfvc/changesets/get-changesets?view=azure-devops-rest-6.1
-#
-$top_n  = 100
-$path   = '$/TRAUM/DWH'
-$author = 'Nyffenegger, René'
 
-foreach ($changeSet in (get-webApiJson ("$collUrl/_apis/tfvc/changesets?project=$proj_id" +
-                      "&`$top=$top_n"                        +
-                      "&`searchCriteria.itemPath=$path"     +
-                      "&`searchCriteria.author=$author"
-                      )).value) {
-   write-host ('{0,5} {1,-30} {2,-30} {3}' -f $changeSet.changeSetId, $changeSet.author.displayName, $changeSet.createdDate, $changeSet.comment)
-}
-code }
+{ List items in a TFS directory
  
-A simple function to list the items in a TFS directory:
+  A simple function to list the items in a TFS directory:
 code { 
 function ls-TFSDirectory {
    param (
@@ -110,7 +95,304 @@ function ls-TFSDirectory {
 }
 code }
  
-Using the function:
+  Using the function:
 code { 
 ls-TFSDirectory $collUrl $/path/to/directory
 code }
+
+}
+{ Iterate over change sets
+
+Iterate over last `n` changesets that were checked in by given person under a given path: 
+code {
+#
+#  https://docs.microsoft.com/en-us/rest/api/azure/devops/tfvc/changesets/get-changesets?view=azure-devops-rest-6.1
+#
+$top_n  = 100
+$path   = '$/TRAUM/DWH'
+$author = 'Nyffenegger, René'
+
+foreach ($changeSet in (get-webApiJson ("$collUrl/_apis/tfvc/changesets?project=$project_id" +
+                      "&`$top=$top_n"                       +
+                      "&`searchCriteria.itemPath=$path"     +
+                      "&`searchCriteria.author=$author"
+                      )).value) {
+   write-host ('{0,5} {1,-30} {2,-30} {3}' -f $changeSet.changeSetId, $changeSet.author.displayName, $changeSet.createdDate, $changeSet.comment)
+}
+code }
+
+}
+{ Pipelines
+
+  { List available pipelines
+
+code {
+foreach ($pipeline in (get-webApiJson "$collUrl/$project_id/_apis/pipelines").value ) {
+   '{0,3}: {1,-40} {2,-30} {3}' -f $pipeline.id, $pipeline.name, $pipeline.folder, $pipeline.url
+}
+code }
+
+   The first column printed is the pipeline's id. It might be stored in a → Windows/PowerShell/language/variable to inspect details of a pipeline:
+code {
+$pipeline_id = 48
+code }
+
+  Store the data of an entire pipeline in a variable:
+code {
+$pipeline = get-webApiJson "$collUrl/$project_id/_apis/pipelines/$pipeline_id"
+code }
+
+  }
+  { Show variables of a pipeline
+
+code {
+$pipeline_variables = $pipeline.configuration.designerJson.variables
+
+foreach ($var in $pipeline_variables | get-member -type noteProperty) {
+    $var_name = $var.name
+    '{0,-30}: {1,-90}' -f $var_name, $pipeline_variables.$var_name.value # , ($pipeline_variables.$var_name.allowOverride)
+}
+code }
+
+  }
+  { Run a pipeline
+
+
+   The following POST request runs the pipeline with ID `$pipeline_id` and assigns the value `fooBarBaz` to the
+   variable `VersionFileName`:
+
+code {
+invoke-webRequest `
+
+  -useDefaultCredentials `
+  -method post `
+  -headers  @{ 'Accept'        = 'application/json' ;
+               'Content-Type'  = 'application/json' } `
+  "$collUrl/$project_id/_apis/pipelines/$pipeline_id/runs?api-version=6.0-preview" `
+  -body '{
+    "variables":  {
+          "VersionFileName": {
+              "secret": false,
+              "value": "fooBarBaz"
+           }
+      },
+}'
+code }
+
+  }
+  { Show runs of a pipeline
+
+code {
+foreach ($run in (get-webApiJson "$collUrl/$project_id/_apis/pipelines/$pipeline_id/runs").value) {
+
+    $finishedDate = $run.psObject.members.item('finishedDate')
+
+    if ($finishedDate -ne $null) {
+        $finishedDate = ([datetime] $run.finishedDate).ToLocalTime().ToString('yyyy-MM-dd HH:mm:ss')
+    }
+    else {
+        $finishedDate = '-'
+    }
+    $result = $run.psObject.members.item('result')
+
+    if ($result -ne $null) {
+        $result = $run.result
+    }
+    else {
+        $result = '-'
+    }
+
+   '{0}: {1:yyyy-MM-dd HH:mm:ss} {2,-19}  {3,-60} {4,-10} {5,-10}' -f `
+      $run.id,
+      (([datetime] $run.createdDate ).ToLocalTime()),
+                   $finishedDate,
+                   $run.name,
+                   $run.state,
+                   $result
+}
+code }
+
+  }
+
+}
+{ Builds
+
+  { List builds
+
+    List the 20 most recent builds (`$top=…`)
+code {
+$top = 20
+foreach ($build in (get-webApiJson "$collUrl/$project_id/_apis/build/builds?`$top=$top").value) {
+
+  #
+  # result is empty if status is 'In Progress'
+  #
+    $result = $build.psObject.members.item('result')
+    if ($result -ne $null) {
+        $result = $result.value
+    }
+    else {
+        $result = 'n/a'
+    }
+
+    '{0,5} | {1:yyyy-MM-dd HH:mm:ss} | {2,-40} {3,-30} {4,-11} {5,-11}' -f `
+       $build.id,
+       ([datetime] $build.queueTime).ToLocalTime(),
+       $build.buildNumber,
+       $build.requestedFor.displayName,
+       $build.status,
+       $result
+}
+code }
+
+  }
+  { Show details about a build with a given id
+
+code {
+$build_id = 7141
+$bld_det = get-webApiJson "$collUrl/$project_id/_apis/build/builds/$build_id"
+code }
+
+code {
+write-host "Build Rev Nr.    $($bld_det.buildNumberRevision)"
+write-host "Source version:  $($bld_det.sourceVersion)"
+write-host "Queue:           $($bld_det.queue.name) | Pool: $($bld_det.queue.pool.id) $($bld_det.queue.pool.name)"
+write-host "Definition id:   $($bld_det.definition.id)"
+write-host "           url:  $($bld_det.definition.url)"
+write-host "Logs:            $($bld_det.logs.url)"
+write-host "Parameters:"
+$params_ = $bld_det.parameters |convertFrom-json
+foreach ($param in ($params_ | get-member -type noteProperty)) {
+   write-host "    $($param.name): $($params_.($param.name))"
+}
+write-host "orchestrationPlan: $($bld_det.orchestrationPlan.planid)"
+code }
+
+  }
+  { Build definitions
+
+code {
+foreach ($def in (get-webApiJson "$collUrl/$project_id/_apis/build/definitions").value) {
+
+   write-host ( '{0,3}: {1,-50} {2,-8} | {3,-2} {4,-20} | {5,-10}' -f `
+      $def.id,
+      $def.name,
+      $def.type,        # build ...?
+      $def.queue.id,
+      $def.queue.name,
+      $def.queueStatus  # enabled, paused, ...?
+   )
+
+}
+code }
+
+  }
+
+}
+{ Releases
+
+  { Show definitions
+
+code {
+foreach ($rel in (get-webApiJson "$collUrl/$project_id/_apis/release/definitions").value) {
+   '{0,3}: {1,-60} {2,-20} {3}' -f $rel.id, $rel.name, $rel.path, $rel.releaseNameFormat
+}
+code }
+
+code {
+$release_definition_id = 18
+code }
+
+  }
+  { Print details of a release definition
+
+code {
+function print-release-definition {
+   param (
+       [int] $rel_def_id
+   )
+   $rel_def = get-webApiJson "$collUrl/$project_id/_apis/release/definitions/$rel_def_id"
+   #
+   write-host "id              : $($rel_def.id)"
+   #
+   write-host "Last release: $( ([dateTime] $rel_def.lastRelease.createdOn).ToLocalTime().ToString('yyyy-MM-dd HH:mm:ss'))  ($($rel_def.lastRelease.id))"
+#  write-host "Last release"
+   #
+   write-host "Environments"
+   foreach ($env in $rel_def.environments) {
+      write-host ('   {0,3}: {1}' -f $env.id, $env.name  )
+      write-host ("        Current release: $($env.currentRelease.id) [$($env.currentRelease.url)]")
+      write-host ("        Deploy step    : $($env.deployStep.id)")
+      write-host ("        Badge URL      : $($env.badgeUrl)")
+      #
+      write-host ("        deploy phases  : $($env.deployPhases)")
+      #
+      write-host
+   }
+   #
+   write-host "Artifacts"
+   foreach ($art in $rel_def.artifacts) {
+      write-host ("        $($art.sourceId)")
+      write-host ("        $($art.type)")
+      write-host ("        $($art.alias)")
+      write-host ("        $($art.isPrimary)")
+      #
+      write-host
+   }
+}
+
+print-release-definition $release_definition_id
+code }
+
+  }
+  { Show «executed» releases
+
+code {
+foreach ($rel in (get-webApiJson "$collUrl/$project_id/_apis/release/releases").value) {
+    '{0,4}: {1,-60} {2,-7} {3:yyyy-MM-dd HH:mm:ss}  {4,3}  {5,-30} {6,-20}' -f `
+        $rel.id,
+        $rel.name,
+        $rel.status,
+       ( ([datetime] $rel.createdOn).ToLocalTime()),
+        $rel.releaseDefinition.id,
+        $rel.releaseDefinition.name,
+        $rel.createdBy.displayName
+}
+code }
+
+  }
+  { Show details of a given release
+
+code {
+function print-release-details {
+
+    param (
+        [int] $rel_id
+    )
+ 
+    $rel_det = get-webApiJson "$collUrl/$project_id/_apis/release/releases/$rel_id"
+ 
+    write-host "Release Details for $($rel_det.name) ($($rel_det.id))"
+    write-host "Log container URL: $($rel_det.logsContainerUrl)"
+    write-host "URL:               $($rel_det.url)"
+    foreach ($env in $rel_det.environments) {
+       write-host ('   {0,3}: {1}' -f $env.id, $env.name  )
+       write-host ("        Status             : $($env.status)")
+       write-host ("        Rank               : $($env.rank)")
+       write-host ("        Release            : $($env.release.id)")
+       write-host ("        Release definition : $($env.releaseDefinition.id)")
+       write-host ("        Deploy Steps")
+       foreach ($step in $env.deploySteps) {
+          write-host ("           $($step.id) - $($step.status)")
+          foreach ($phase in $step.releaseDeployPhases) {
+          write-host ("              phase:      $($phase.id)")
+          write-host ("              runPlandId: $($phase.runPlanId)")
+          }
+       }
+    }
+}
+code }
+
+  }
+
+}
