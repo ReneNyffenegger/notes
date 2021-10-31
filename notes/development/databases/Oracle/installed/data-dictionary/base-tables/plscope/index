@@ -1,0 +1,68 @@
+$ Oracle: Base tables that start with PLSCOPE
+
+Base tables that start with `plscope` are
+  • `plscope_action$`
+  • `plscope_identifier$`
+  • `plscope_sql$`
+  • `plscope_statement$`
+
+code {
+select
+   usr.name  obj_owner,
+   obj.name  obj_name,
+-- sql.obj#,
+   sql.sql_id,
+   sql.sql_fulltext
+from
+   plscope_sql$    sql                             join
+   obj$            obj on sql.obj#   = obj.obj#    join
+   user$           usr on obj.owner# = usr.user#
+;
+code }
+
+code {
+select
+   count(*),
+   signature
+from
+   plscope_identifier$
+group by
+   signature
+having
+   count(*) > 1;
+code }
+
+code {
+select
+   usr.name          obj_owner,
+   obj.name          obj_name,
+   idt.symrep        sym_rep,
+   idt.type#,
+   act.line,
+   act.col,
+   act.action,
+   act.context#,
+   act.signature,
+   idt.obj#          idt_obj,
+   act.obj#          act_obj
+from
+   plscope_action$     act                                  join
+   obj$                obj on act.obj#      = obj.obj#      join
+   user$               usr on obj.owner#    = usr.user#     join
+   plscope_identifier$ idt on act.signature = idt.signature
+;
+code }
+
+code {
+select
+   stm.signature,
+   stm.obj#,
+   stm.type#,
+   stm.sql_id,
+   stm.flags
+from
+   plscope_statement$ stm;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/identifiers[`dba_identifiers`]

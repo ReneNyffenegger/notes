@@ -57,10 +57,107 @@ from
    dba_identifiers idt
 code }
 
+{ USAGE_ID  USAGE_CONTEXT_ID
+
+ `usage_id` specifes a «scope». Records in `dba_identifiers` that belong to that scope have a `context_usage_id` whose value corresponds to the `usage_id` of that scope.
+
+  The combination of `usage_id` and `usage_context_id` is unique within an object, the following statement returns
+  no records:
+
+code {
+select
+   count(*),
+   owner,
+   object_name,
+   object_type,
+   usage_id,
+   usage_context_id
+from
+   dba_identifiers
+group by
+   owner,
+   object_name,
+   object_type,
+   usage_id,
+   usage_context_id
+having
+   count(*) > 1;
+
+code }
+
+
+  { Hierarchical query
+
+    The following → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[hierarchical query] starts at the top of a package (`usage_context_id = 0`) and recursively finds
+    records (`idt.*`) that belong to this `usage_context_id` (`idt.usage_context_id = rec.usage_id`).
+
+code {
+with rec (
+    usage_id,
+    name,
+    type,
+    usage,
+    owner,
+    object_name,
+    line,
+    col,
+    lvl
+)
+as (
+   select
+      usage_id,
+      name,
+      usage,      
+      type,
+      owner,
+      object_name,
+      line,
+      col,
+      0
+   from
+      dba_identifiers
+   where
+      owner            = 'SYS'           and
+      object_name      = 'STANDARD'      and
+      usage_context_id =  0 -- No «scope» has value 0, selects «global» records
+UNION ALL
+   select
+      idt.usage_id,
+      idt.name,
+      idt.usage,
+      idt.type,
+      idt.owner,
+      idt.object_name,
+      idt.line,
+      idt.col,
+      rec.lvl + 1
+   from
+      rec                                                  join
+      dba_identifiers idt on
+          idt.owner            = rec.owner           and
+          idt.object_name      = rec.object_name     and
+          idt.usage_context_id = rec.usage_id
+)
+search depth first by usage_id set "_"
+select
+   lpad(' ', lvl * 2) || name name,
+   line,
+   col,
+   usage,
+   type  
+from
+   rec;
+code }
+
+  }
+}
+
 sa:
 
   → development/databases/Oracle/installed/data-dictionary/statements[`dba_statements`]
 
   The init parameter → development/databases/Oracle/adminstration/init-parameters/plscope_settings[`plscope_settings`]
+
+  Base tables that start with → development/databases/Oracle/installed/data-dictionary/base-tables/plscope[`plscope%`].
 
   → development/databases/Oracle/installed/data-dictionary
