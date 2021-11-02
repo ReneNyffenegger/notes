@@ -1,0 +1,51 @@
+$ Oracle: PL/Scope
+@ PL/Scope
+
+
+{ Dictionary views
+
+  The identifers and SQL statements that were gathered with PL/Scope can be queried from the
+  → development/databases/Oracle/installed/data-dictionary[dictionary views]
+    • → development/databases/Oracle/installed/data-dictionary/statements[`dba_statements`] and
+    • → development/databases/Oracle/installed/data-dictionary/identifiers[`dba_identifiers`].
+
+}
+{ Show used settings for PL/SQL objects
+
+code {
+select
+   owner,
+   name,
+   type,
+   plscope_settings
+from
+   → development/databases/Oracle/installed/data-dictionary/plsql/object_settings[dba_plsql_object_settings]
+where
+   owner in (select username from → development/databases/Oracle/installed/data-dictionary/users[dba_users] where oracle_maintained = 'N')
+order by
+   owner,
+   name,
+   type;
+code }
+
+}
+{ Space usage
+
+code {
+select
+   space_usage_kbytes
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sysaux_occupants
+where
+   occupant_name = 'PL/SCOPE'
+order by
+   occupant_name;  
+code }
+
+}
+
+sa:
+
+  The → development/databases/Oracle/adminstration/init-parameters[init parameter] → development/databases/Oracle/adminstration/init-parameters/plscope_settings[`plscope_setting`].
+
+  Base tables whose name → development/databases/Oracle/installed/data-dictionary/base-tables/plscope[start with `plscope`].

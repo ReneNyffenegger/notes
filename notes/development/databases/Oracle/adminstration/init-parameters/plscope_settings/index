@@ -1,13 +1,50 @@
 $ Oracle: init parameter PLSCOPE_SETTINGS
 @ plscope_settings
 
-`plscope_settings` controls the compile time collection, cross reference, and storage of PL/SQL source code identifier and
-→ development/databases/Oracle/SQL/statement data
+`plscope_settings` controls → development/databases/Oracle/PL-SQL/PL-Scope settings: compile time collection, cross reference, and storage of PL/SQL source code identifier and
+→ development/databases/Oracle/SQL/statement data.
+
+{ Possible values
+
+  table { ll
+    `identifiers:all` ☰
+    `identifiers:none` ☰
+    `identifiers:public` ☰
+    `identifiers:sql` ☰
+    `identifiers:plsql` ☰
+    `statements:all` ☰
+    `statements:none` ☰
+  table }
+
+  The setting for `identifiers` and `statements` can be combined:
+code {
+alter session set plscope_settings = 'identifiers:all, statements:all';
+code }
+
+}
+{ Show current plscope value for PL/SQL objects
+
+code {
+select
+   owner,
+   name,
+   type,
+   plscope_settings
+from
+   → development/databases/Oracle/installed/data-dictionary/plsql/object_settings[dba_plsql_object_settings]
+where
+   owner in (select username from → development/databases/Oracle/installed/data-dictionary/users[dba_users] where oracle_maintained = 'N')
+order by
+   owner,
+   name,
+   type;
+code }
+
+}
 
 sa:
 
   → development/databases/Oracle/installed/data-dictionary/statements[`dba_statements`] and
   → development/databases/Oracle/installed/data-dictionary/identifiers[`dba_identifiers`].
-
 
   → development/databases/Oracle/adminstration/init-parameters

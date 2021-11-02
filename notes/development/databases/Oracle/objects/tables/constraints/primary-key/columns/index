@@ -1,0 +1,53 @@
+$ Oracle: Columns of primary keys
+
+The following → development/databases/Oracle/SQL/select[`select` statement] shows the (first 20) columns that participate in a
+→ development/databases/Oracle/objects/tables/constraints/primary-key:
+code {
+select
+   pkc.owner,
+   pkc.table_name,
+   pkc.constraint_name,
+   --
+   max(case when col.position =  1 then col.column_name end) col_01,
+   max(case when col.position =  2 then col.column_name end) col_02,
+   max(case when col.position =  3 then col.column_name end) col_03,
+   max(case when col.position =  4 then col.column_name end) col_04,
+   max(case when col.position =  5 then col.column_name end) col_05,
+   max(case when col.position =  6 then col.column_name end) col_06,
+   max(case when col.position =  7 then col.column_name end) col_07,
+   max(case when col.position =  8 then col.column_name end) col_08,
+   max(case when col.position =  9 then col.column_name end) col_09,
+   max(case when col.position = 10 then col.column_name end) col_20,
+  
+   max(case when col.position = 11 then col.column_name end) col_21,
+   max(case when col.position = 12 then col.column_name end) col_22,
+   max(case when col.position = 13 then col.column_name end) col_23,
+   max(case when col.position = 14 then col.column_name end) col_24,
+   max(case when col.position = 15 then col.column_name end) col_25,
+   max(case when col.position = 16 then col.column_name end) col_26,
+   max(case when col.position = 17 then col.column_name end) col_27,
+   max(case when col.position = 18 then col.column_name end) col_28,
+   max(case when col.position = 19 then col.column_name end) col_29,
+   max(case when col.position = 20 then col.column_name end) col_20,
+   --
+   listagg(col.column_name, ', ') within group (order by col.position)  as cols
+from
+   all_constraints    pkc  join
+   all_cons_columns   col on pkc.owner  = col.owner and
+                             pkc.constraint_name = col.constraint_name
+where
+   pkc.constraint_type = 'P'        and
+   pkc.owner           = 'SBXFIBU'
+group by
+   pkc.owner,
+   pkc.table_name,
+   pkc.constraint_name
+order by
+   pkc.owner,
+   pkc.table_name
+; 
+code }
+
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/ind/columns/columns-of-index[Columns of indices]

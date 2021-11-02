@@ -1,0 +1,62 @@
+$ Oracle SQL: select number of distinct values in a group
+
+code {
+drop table tq84_t;
+
+create table tq84_t (
+   grp varchar2(10),
+   v_1 number,
+   v_2 number,
+   v_3 number
+);
+
+insert into tq84_t values ('A',     1,    1,    0);
+insert into tq84_t values ('A',     1,    1,    1);
+insert into tq84_t values ('A',     1,    1,    1);
+insert into tq84_t values ('A',     1,    1, null);
+
+insert into tq84_t values ('B',     2,    1,    2);
+insert into tq84_t values ('B',     2,    1,    2);
+insert into tq84_t values ('B',     2,    0,    1);
+
+insert into tq84_t values ('C',     3,    1, null);
+insert into tq84_t values ('C',     3,    2,     3);
+insert into tq84_t values ('C',     3,    3, null);
+insert into tq84_t values ('C',     3,    4,    9);
+insert into tq84_t values ('C',     3,    5, null);
+
+insert into tq84_t values ('D',  null, null, null);
+insert into tq84_t values ('D',  null, null, null);
+insert into tq84_t values ('D',  null,    1, null);
+insert into tq84_t values ('D',     1,    1, null);
+
+select
+   grp,
+   v_1,
+   v_2,
+   count(*) over (partition by grp) cnt,
+   count(*) over (partition by grp, v_1, v_2) cnt_distinct
+from
+   tq84_t
+;
+
+
+select
+   grp,
+   max(cnt_recs_in_group) cnt_recs_in_group,
+   max(rank_values      ) cnt_distinct_values
+from (
+   select
+      grp,
+      count     (*) over (partition by grp                  ) cnt_recs_in_group,
+      dense_rank( ) over (partition by grp order by v_1, v_2) rank_values
+   from
+      tq84_t
+)
+group by
+   grp
+; 
+code }
+
+sa:
+  → development/databases/Oracle/SQL/select/analytic/ranking/row_number-rank-dense_rank[`dense_rank` etc.]
