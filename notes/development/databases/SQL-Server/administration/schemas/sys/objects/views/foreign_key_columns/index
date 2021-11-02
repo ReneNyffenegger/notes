@@ -1,0 +1,63 @@
+$ SQL Server: sys.foreign_key_columns
+
+`sys.foreign_key_columns` lists the columns that participate in a 
+  → development/databases/SQL-Server/objects/table/constraints/primary-key[primary]
+  → development/databases/SQL-Server/objects/table/constraints/foreign-key[foeign key] relation.
+
+code {
+select
+   fkc.constraint_column_id,
+   cop.name                    col_fk,
+   cor.name                    col_pk,
+   fkk.name                    foreign_key_name,
+   ret.name                    pk_table,
+   pat.name                    fk_table,
+   fkc.parent_column_id        col_pk_id,
+   fkc.referenced_column_id    col_fk_id
+from
+   sys.foreign_key_columns  fkc                                                join
+   sys.foreign_keys         fkk  on fkc.constraint_object_id = fkk.object_id   join
+   sys.objects              pat  on fkc.parent_object_id     = pat.object_id   join
+   sys.objects              ret  on fkc.referenced_object_id = ret.object_id   join
+   sys.columns              cop  on cop.object_id            = pat.object_id         and
+                                    cop.column_id            = fkc.parent_column_id       join
+   sys.columns              cor  on cor.object_id            = ret.object_id         and
+                                    cor.column_id            = fkc.referenced_column_id
+-- where
+--    fkk.name = 'tq84_fk'
+order by
+   fkc.constraint_column_id;
+
+code }
+
+{ Test data
+
+  The following test object might be used to demonstrate the result set of the above select statement.
+
+  A → development/databases/SQL-Server/objects/table[table] with a → development/databases/SQL-Server/objects/table/constraints/primary-key[primary key] constraint.
+code {
+create table tq84_p (
+   col_1    numeric,
+   pk_1     numeric,
+   col_2    numeric,
+   pk_2     numeric,
+   col_3    numeric,
+   constraint tq84_pk primary key (pk_1, pk_2)
+);
+code }
+  And a table with a → development/databases/SQL-Server/objects/table/constraints/foreign-key[foreign key] constraint:
+code {
+create table tq84_f (
+   col_1    numeric,
+   fk_1     numeric,
+   col_2    numeric,
+   fk_2     numeric,
+   col_3    numeric,
+   constraint tq84_fk foreign key (fk_2, fk_1) references tq84_p
+);
+code }
+
+}
+
+sa:
+  → development/databases/SQL-Server/administration/schemas/sys/objects/views/foreign_keys[`sys.foreign_keys`]
