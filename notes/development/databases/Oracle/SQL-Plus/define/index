@@ -1,0 +1,155 @@
+$ SQL*Plus: define
+@ define
+
+`define` assigns a value to a user or predfefined variable or prints the value that is a assigned to the variable
+
+code {
+--
+--  Assign the value val to the variable var
+--
+define var = 'val'
+code }
+
+The variable is substituted by its value by prepending it with an ampersand `&var`:
+code {
+--
+-- Execute a statement and substitute the value of var with its value
+--
+select
+   '&var'  as theAssignedValue
+from
+   dual;
+code }
+
+Without assigning a value to a variable (`define var`), the command prints the currently assigned value:
+code {
+define var
+code }
+
+`define` by itself prints all currently assigned values:
+code {
+define
+code }
+
+{ Suppressing old and new values
+
+  By default, when SQL*Plus substitutes a defined variable, it prints the original and the substituted lines:
+code {
+SQL> define num=42
+SQL> select &num from dual;
+old   1: select &num from dual
+new   1: select 42 from dual
+
+        42
+----------
+        42
+code }
+
+   This behavior can be turned of by setting `verify` to `off`:
+code {
+SQL> set verify off
+SQL> select &num from dual;
+
+        42
+----------
+        42
+code }
+
+}
+{ Multi-line values
+
+  The value of a variable can be spread over multiple lines by terminating a line to be continued with a hyphen:
+code {
+set verify on
+
+define cols="     -
+  a  number     , -
+  b  varchar(10), -
+  c  date"
+
+create table table_1 (&cols);
+create table table_2 (&cols);
+code }
+
+  However, this technique does not retain the → development/line-break[new line character]:
+code {
+SQL> create table table_1 (&cols);
+old   1: create table table_1 (&cols)
+new   1: create table table_1 (        a  number     ,    b  varchar(10),    c  date)
+SQL> create table table_2 (&cols);
+old   1: create table table_2 (&cols)
+new   1: create table table_2 (        a  number     ,    b  varchar(10),    c  date)
+code }
+
+}
+{ Maximum size
+
+  For an obscure reason, the maximum size of a value in a variable is 240 characters (19c):
+code {
+SQL> define too_long= "-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890-
+123456789012345678901234567890"
+string beginning "" 12345678..." is too long. maximum size is 240 characters.
+code }
+
+  However, *Donna Kray* and *Seth Goodman* pointed me towards a workaround for this limitation which allows to assing values longer than 240 characters:
+code {
+→ development/databases/Oracle/SQL-Plus/column[column] tempalias → development/databases/Oracle/SQL-Plus/new_value[new_value] not_too_long noprint
+
+select
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'||
+   '123456789012345678901234567890'   as tempalias
+from
+   dual;
+
+--define not_too_long
+
+→ development/databases/Oracle/SQL-Plus/set/serveroutput[set serveroutput] on 
+exec → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line('Length is: ' || length('&not_too_long'));
+code }
+
+}
+
+{ Interactively assginging values to a variables
+
+  A value can interactively be assigned to a varable with the `accept` command.
+  -
+  This is sometimes useful in SQL scripts being run in SQL*Plus.
+
+}
+
+{ Predefined variables
+
+  Besides user defined variables, there are also some *predefined variables*:
+  table {ll
+
+    `_CONNECT_IDENTIFIER` ☰ The connection-identifier with which the connection was established.
+    `_DATE` ☰ Evaluates to the current date in `nls_date_format` format
+    `_EDITOR` ☰ Specifies the editor that is fired up with the → development/databases/Oracle/SQL-Plus/edit[`edit`] command.
+    `_O_VERSION` and `_O_RELEASE` ☰ Version and release of the currently installed database
+    `_PRIVILEGE` ☰ Privilege level of current connection
+    `_RC` ☰
+    `_SQLPLUS_RELEASE` ☰ Release number of SQL*Plus component
+    `_USER` ☰ Name of user that made the connection
+    `_SQL_ID` ☰ → development/databases/Oracle/SQL/statement#ora-sql-stmt-ident-sqlid[sql_id] of the (most recent?) SQL statement executed
+
+  table }
+
+}
+
+sa:
+  `→ development/databases/Oracle/SQL-Plus/set[set] define`

@@ -13,7 +13,37 @@ select case when  1  = 'A' then 'yes' else 'no' end from dual;
 select case when '2' =  1  then 'yes' else 'no' end from dual;
 select case when  1  = '2' then 'yes' else 'no' end from dua
 code }
+{ Finding values that are not numerical
 
+  Unfortunately, Oracle does not have a built-in function that checks if a value is numerical. However, it is possible to create a user defined function that returns `y` if a value can be converted to a
+  number and `n` otherwise:
+code {
+create or replace function isnumber(txt in varchar2)
+   return varchar2
+is
+   num number;
+begin
+
+   num := to_number(txt);
+   return 'y';
+
+exception when value_error then
+   return 'n';
+end isnumber;
+/
+code }
+
+code {
+select
+   isNumber(   5.5  ) a,
+   isNumber('-42.3' ) b,
+   isNumber( '17,18') c,
+   isNumber(   9.1 ') d
+from
+   dual;
+code }
+
+}
 { Finding the offending SQL statement with a trace file
 
   By setting the event 01722 (prior to executing the → development/databases/Oracle/SQL/statement[SQL statement]!),
@@ -28,6 +58,7 @@ ORA-01722: invalid number
 code }
 
 }
+
 
 sa:
   → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes
