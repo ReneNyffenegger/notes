@@ -7,7 +7,7 @@ code {
 select
    count(*) over () cnt,
    bh.indx                                 bh_indx,
-   bh.tch                                  touch_count,  -- How often the buffer was accessed. Buffers with high tch are expected to be at the end of the LRU list
+   bh.tch                                  touch_count,  -- How often the buffer was accessed. Buffers with high tch are considered «hot blocks» and are expected to be at the end of the LRU list
    bh.lru_flag,
    bh.inst_id,
    file#,
@@ -107,26 +107,57 @@ select
    bh.obj_flag,
    bh.cr_rfcnt,
    bh.shr_rfcnt,
-   bh.hladdr,
+   --
+-- bh.hladdr,                                -- Hash-Latch address, used to join to → development/databases/Oracle/installed/dynamic-performance-views/latch/children
+   lc.latch#                lc_latch         ,         -- Always 327?
+   lc.child#                lc_child         ,
+   lc.name                  lc_name          ,         -- Always 'cache buffer chains'?
+   lc.wait_time             lc_wait_time     ,
+   lc.gets                  lc_gets          ,
+   lc.immediate_gets        lc_immediate_gets,
+   lc.misses                lc_misses        ,
+   lc.spin_gets             lc_spin_gets     ,
+-- lc.*,
+   --
    bh.cstate,
    bh.dirty_queue,
    bh.set_ds,
    bh.ba,
    bh.con_id
 from
-   x$bh      bh                                 join
-   x$kcbwds  kc on bh.set_ds  = kc.addr         join
-   x$kcbwbpd bp on kc.pool_id = bp.bp_id   left join
-   x$le      le on bh.le_addr = le.le_addr left join
-   obj$      ob on bh.obj     = ob.obj#    left join
-   user$     ow on ob.owner#  = ow.user#
+   x$bh             bh                                 join
+   → development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/ds         kc on bh.set_ds  = kc.addr         join
+   → development/databases/Oracle/architecture/instance/fixed-tables/k/c/b/w/bpd        bp on kc.pool_id = bp.bp_id   left join
+   → development/databases/Oracle/architecture/instance/fixed-tables/le             le on bh.le_addr = le.le_addr left join
+   → development/databases/Oracle/installed/dynamic-performance-views/latch/children lc on bh.hladdr = lc.addr left join
+   → development/databases/Oracle/installed/data-dictionary/base-tables/obj             ob on bh.obj     = ob.obj#    left join
+   → development/databases/Oracle/installed/data-dictionary/base-tables/user            ow on ob.owner#  = ow.user#
 -- where
 --    state != 0
 --    ob.owner# not in (0, 9) -- SYS, SYSTEM
--- order by
---   tim desc
+order by
+   lc.wait_time desc
+-- tim desc
 ;
 code }
+
+{ prv and nxt values
+
+  The various `prv` and `nxt` values are unique (or disitnct):
+code {
+select
+   count(*)                                                  cnt,
+   count(distinct prv_hash) cnt_ph, count(distinct nxt_hash) cnt_nh,
+   count(distinct prv_repl) cnt_pr, count(distinct nxt_repl) cnt_nr,
+   count(distinct us_prv  ) cnt_pu, count(distinct us_nxt  ) cnt_nu,
+   count(distinct wa_prv  ) cnt_pw, count(distinct wa_nxt  ) cnt_nw,
+   count(distinct oq_prv  ) cnt_po, count(distinct oq_nxt  ) cnt_no,
+   count(distinct aq_prv  ) cnt_pa, count(distinct aq_nxt  ) cnt_na
+from
+   x$bh;
+code }
+
+}
 
 sa:
 

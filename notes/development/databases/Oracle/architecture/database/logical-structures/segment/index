@@ -3,9 +3,12 @@ $ Oracle logical database structure: segment
 
 Each *nonpartitioned schema object* and each *partition of an object* is stored in its own segment.
 
-A segment belongs to exactly one → development/databases/Oracle/architecture/database/logical-structures/tablespace.
+A segment belongs to exactly one → development/databases/Oracle/architecture/database/logical-structures/tablespace and consists of
+of one or more → development/databases/Oracle/architecture/database/logical-structures/extent[extents].
 
 The data of a segment is stored in at least one → development/databases/Oracle/architecture/database/files/data[data file], but can easily span multiple data files.
+-
+In the case of a *hybrid partitioned table* however, some data is stored via (ordinary) segments in → development/databases/Oracle/architecture/database/files/data[data files] and other data is stored in external data sources.
 
 In the → development/databases/Oracle/installed/data-dictionary, storage allocation for segments is recorded in → development/databases/Oracle/installed/data-dictionary/segments[`dba_segments`].
 
@@ -14,12 +17,16 @@ Types of segments:
  • → development/databases/Oracle/architecture/database/logical-structures/segment/undo[Undo segments]
  • Temporary segments
 
-A segment consists of one or more → development/databases/Oracle/architecture/database/logical-structures/extent[extents].
+
+A segment in *manual segment space management* (MSSM) maintains a *free list* which keeps track of free blocks below a segment's
+→ development/databases/Oracle/architecture/database/logical-structures/segment/high-water-mark.
+
+
+Some statistical numbers about segment usage is found in → development/databases/Oracle/installed/dynamic-performance-views/segment_statistics[`v$segment_statistics`].
 
 sa:
 
   → development/databases/Oracle/installed/packages/dbms/space[`dbms_space`] can be used to analyze segment growth and space requirements.
 
-  → development/databases/Oracle/architecture/database/logical-structures/segment/high-water-mark
 
   → development/databases/Oracle/architecture/database/logical-structures

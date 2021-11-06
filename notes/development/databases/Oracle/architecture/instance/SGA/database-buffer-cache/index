@@ -38,7 +38,7 @@ When a dirty buffer is not used anymore, it is written to disk by the → develo
 }
 { Cache hit vs cache miss
 
-  When a database uses needs data, Oracle checks with the buffer cache if the relevant data block is already copied into the buffer cache.
+  When a database needs data, Oracle checks with the buffer cache if the relevant data block is already copied into the buffer cache.
   -
   If this is the case, this is referred to as a *cache hit*.
   -
@@ -63,6 +63,33 @@ code {
 code }
 
 }
+{ Interesting hidden init-parameters
+
+  The values of some interesting (imho) hidden → development/databases/Oracle/adminstration/init-parameters[init parameters] that are related to the buffer cache can be queried with the following query:
+code {
+select
+   par.ksppinm   name,
+   par.ksppdesc  description,
+   v.ksppstvl    value
+from
+   x$ksppi  par                      join 
+   x$ksppsv v on par.indx = v.indx
+where
+-- par.ksppinm like '_db_block%'
+   par.ksppinm in (
+      '_db_block_buffers'               ,
+      '_db_block_hash_buckets'          ,
+      '_db_block_hash_latches'          ,
+      '_db_block_lru_latches'           ,
+      '_db_block_max_cr_dba'            ,
+      '_db_block_table_scan_buffer_size',
+      '_db_blocks_per_hash_latch'
+    )
+order by
+   par.ksppinm;
+code }
+
+}
 
 
 sa:
@@ -79,6 +106,8 @@ sa:
   include (or are?)
     • `db file scattered read`
     • `db file sequential read`
+
+  → development/databases/Oracle/tools/oradebug/dump/buffers[`oradebug dump buffers`]
 
 links:
    Craig Shallahamer's → http://blog.orapub.com/20100922/oracle-database-buffer-cache-visualization-and-tool.html[Buffer Cache Visualization Tool]
