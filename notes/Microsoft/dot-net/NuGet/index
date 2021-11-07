@@ -9,6 +9,34 @@ A repository of Nuget packages is → https://www.nuget.org[nuget.org]. As of 20
 There are two NuGet command line tools: → Windows/dirs/Program-Files/dotnet/dotnet_exe[`dotnet.exe`] and
 → Microsoft/dot-net/NuGet/nuget_exe[`nuget.exe`].
 
+{ Download and using nuget packages in PowerShell
+
+  I was somewhat successful trying to download nuget packages with → Windows/PowerShell and then using it with a script like so:
+code {
+$packageName = 'BouncyCastle'
+$version     = '1.8.9.0'          # Leave empty for latest release?
+
+$downloadURL = "https://www.nuget.org/api/v2/package/$packageName/$version"
+
+→ Windows/PowerShell/command-inventory/noun/webRequest/invoke/[invoke-webRequest] $downloadURL -outFile → Windows/PowerShell/language/variable/automatic/pwd[$pwd]/$packageName.zip
+code }
+
+  Extracting the required → Windows/development/Portable-Executable/DLL[DLLs] from the downloaded → development/archive-files/zip
+code {
+→ Windows/PowerShell/command-inventory/noun/type/add[add-type] -assembly System.IO.Compression.FileSystem
+$zip = [IO.Compression.ZipFile]::OpenRead("$pwd/$packageName.zip")
+[→ Microsoft/dot-net/namespaces-classes/System/IO/Compression/ZipFileExtensions[IO.Compression.ZipFileExtensions]]::→ Microsoft/dot-net/namespaces-classes/System/IO/Compression/ZipFileExtensions/ExtractToFile[ExtractToFile]($zip.GetEntry("lib/BouncyCastle.Crypto.dll"), "$pwd/$packageName.dll")
+code }
+
+  Later …
+code {
+add-type -path "$pwd/$packageName.dll"
+…
+… [Org.BouncyCastle.Math.EC.AbstractFpCurve] …
+code }
+
+}
+
 sa:
   → Windows/dirs/Program-Files-x86/Microsoft-SDKs/NuGetPackages[`C:\Program Files (x86)\Microsoft SDKs\NuGetPackages`]
 
