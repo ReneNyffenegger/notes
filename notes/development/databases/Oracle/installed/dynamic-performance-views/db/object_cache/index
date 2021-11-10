@@ -1,0 +1,60 @@
+$ Oracle: V$DB_OBJECT_CACHE
+@ v$db_object_cache
+
+`v$db_object_cache` displays objects that are cached (pinned) in the → http://www.adp-gmbh.ch/ora/concepts/sga.html#library_cache[library cache].
+
+code {
+select
+   cac.type,
+   cac.namespace,
+   cac.addr,  
+   cac.sharable_mem,  
+   cac.owner,
+   cac.status,  
+   cac.name,
+   cac.loads,
+   cac.executions,
+   cac.locks,
+   cac.pins,
+   cac.kept,
+   cac.child_latch,
+   cac.invalidations,
+   cac.hash_value,
+   cac.lock_mode,
+   cac.pin_mode,
+   cac.timestamp,
+   cac.previous_timestamp,
+   cac.locked_total,
+   cac.pinned_total,
+   cac.property,
+   cac.full_hash_value,
+   cac.db_link,  
+   cac.con_id,
+   cac.con_name,
+   cac.edition
+from
+   v$db_object_cache cac;
+code }
+  
+code {
+select
+   count(*)  cnt,
+   sum(sharable_mem) mem,
+   type,
+   namespace
+from
+   v$db_object_cache
+group by
+   type,
+   namespace
+order by
+   namespace,
+   type,
+   cnt desc;
+code }
+
+sa:
+
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  → http://www.adp-gmbh.ch/ora/plsql/dbms_shared_pool.html[`dbms_shared_pool`].

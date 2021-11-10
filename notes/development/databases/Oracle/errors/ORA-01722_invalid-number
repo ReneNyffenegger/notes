@@ -13,6 +13,7 @@ select case when  1  = 'A' then 'yes' else 'no' end from dual;
 select case when '2' =  1  then 'yes' else 'no' end from dual;
 select case when  1  = '2' then 'yes' else 'no' end from dua
 code }
+
 { Finding values that are not numerical
 
   Unfortunately, Oracle does not have a built-in function that checks if a value is numerical. However, it is possible to create a user defined function that returns `y` if a value can be converted to a
@@ -24,7 +25,7 @@ is
    num number;
 begin
 
-   num := to_number(txt);
+   num := → development/databases/Oracle/SQL/functions/type-conversion/to/number[to_number](txt);
    return 'y';
 
 exception when value_error then
@@ -44,6 +45,23 @@ from
 code }
 
 }
+{ Using the DEFAULT val ON CONVERSION ERROR clause of TO_NUMBER
+
+  The → development/databases/Oracle/SQL/functions/type-conversion/to/number[`to_number`] function has a
+  → development/databases/Oracle/SQL/functions/type-conversion/to/number#ora-to_number-default-on-error[`default 'val' on conversion error`] clause with which it is sometimes possible to
+  find offinding characers:
+code {
+select
+   supposed_number,
+   to_number(supposed_number default -9999999999999999 on conversion error)
+from
+   tab
+order by
+   2;
+code }
+
+
+}
 { Finding the offending SQL statement with a trace file
 
   By setting the event 01722 (prior to executing the → development/databases/Oracle/SQL/statement[SQL statement]!),
@@ -61,4 +79,7 @@ code }
 
 
 sa:
+
+  The SQL function → development/databases/Oracle/SQL/functions/type-conversion/to/number[`to_number`]
+
   → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes
