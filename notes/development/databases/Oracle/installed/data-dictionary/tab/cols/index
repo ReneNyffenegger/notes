@@ -1,4 +1,107 @@
-$ user_tab_cols / all_tab_cols / dba_tab_cols
+$ Oracle: DBA_TAB_COLS
+
+This view comes in three variants: `user_tab_cols`, `all_tab_cols` and `dba_tab_cols`.
+
+{ Columns related to statistics
+
+
+code {
+with
+--
+--     Define a few functions to convert the raw values of low_value and high_value
+--     to a humanly readable text.
+--
+   function rawToDate (r in raw) return varchar2 as
+      dt date;
+   begin
+       dbms_stats.convert_raw_value(r, dt);
+       return to_char(dt, 'yyyy-mm-dd hh24:mi:ss');
+   end rawToDate;
+
+   function rawToBinaryFloat (r in raw) return varchar2 as
+       flt binary_float;
+   begin
+       dbms_stats.convert_raw_value(r, flt);
+       return to_char(flt);
+   end rawToBinaryFloat;
+
+   function rawToBinaryDouble (r in raw) return varchar2 as
+       dbl binary_double;
+   begin
+       dbms_stats.convert_raw_value(r, dbl);
+       return to_char(dbl);
+   end rawToBinaryDouble;      
+
+select
+   case col.data_type
+        when 'NUMBER'        then to_char(utl_raw.cast_to_number  (col.low_value))
+        when 'VARCHAR2'      then utl_raw.cast_to_varchar2        (col.low_value)
+        when 'DATE'          then rawToDate                       (col.low_value)
+        when 'CLOB'          then utl_raw.cast_to_varchar2        (col.low_value)     -- Does not seem to work!
+        when 'BINARY_FLOAT'  then rawToBinaryFloat                (col.low_Value)
+        when 'BINARY_DOUBLE' then rawToBinaryDouble               (col.low_Value)
+        else                 rawtohex(col.low_value)
+   end                                                                                   lowValue,
+   --
+   case col.data_type
+        when 'NUMBER'        then to_char(utl_raw.cast_to_number  (col.high_value))
+        when 'VARCHAR2'      then utl_raw.cast_to_varchar2        (col.high_value)
+        when 'DATE'          then rawToDate                       (col.high_value)
+        when 'CLOB'          then utl_raw.cast_to_varchar2        (col.high_value)     -- Does not seem to work!
+        when 'BINARY_FLOAT'  then rawToBinaryFloat                (col.high_value)
+        when 'BINARY_DOUBLE' then rawToBinaryDouble               (col.high_value)
+        else                 rawtohex(col.low_value)
+   end                                                                                   highValue,   
+   --
+   col.low_value,
+   col.high_value,
+   col.sample_size,
+   col.num_distinct,
+   col.num_buckets,
+   col.avg_col_len,
+   col.density,
+   col.histogram,
+   col.global_stats,
+   col.user_stats,
+   col.*
+from
+   dba_tab_columns        col
+where
+   col.owner      = 'RENE' and
+   col.table_name = 'TQ84_T';
+code }
+
+  { Test data
+
+code {
+drop table tq84_t;
+create table tq84_t (
+   id    number,
+   txt   varchar2(10),
+   dt    date,
+   flt   binary_float,
+   dbl   binary_double,
+   ch    char(10),
+   clb   clob
+);
+code }
+
+code {
+insert into tq84_t values (  42, 'forty-two', '2021-08-28 22:23:24', 9.9, -7.7, 'xyz', 'the lob'    );
+insert into tq84_t values (  17, 'seventeen', '2017-08-28 22:23:24',-9.9,  7.7, 'abc', 'another lob');
+code }
+
+code {
+begin
+    dbms_stats.gather_table_stats(user, 'TQ84_T', method_opt=>'for all columns');
+end;
+/
+code }
+
+
+  }
+
+}
 
 sa:
 

@@ -6,6 +6,32 @@ DUMPTYPE       <address> <type> <count>  Print/dump an address with type info
 code }
 
 
+  Get address of variable `ksfdll_`:
+code {
+SQL> → development/databases/Oracle/tools/oradebug/dumpvar sga ksfdll_
+ksfdstll * ksfdll_ [7FF7B20B0A38, 7FF7B20B0A40) = C8954D10 00007FFF
+code }
+
+  Type of struct at found address is `ksfdstll *`, that is a pointer to a `ksfdstll` struct which resides at `0x00007FFFC8954D10`.
+  -
+  Dump the values of that struct:
+code {
+SQL> oradebug dumptype 0x00007FFFC8954D10 ksfdstll 1
+        IO_COMPONENT_ID = 14
+        TIMESTAMP = 1636713503
+        IO_SIZE = 16
+        WAIT_EVENT = <NULL>
+        FILE_NAME = 'C:\ORACLE\DB\ORA19\CTL1.ORA'
+        IO_LATENCY = 641
+        DISK1_NAME = ''
+        DISK1_IO_LATENCY = 641
+        DISK2_NAME = ''
+        DISK2_IO_LATENCY = 0
+        DISK3_NAME = ''
+        DISK3_IO_LATENCY = 0
+code }
+
+
 { Error messages
 
   Trying to dump a structure using an unknown type name results in an *ORA-32512* error:

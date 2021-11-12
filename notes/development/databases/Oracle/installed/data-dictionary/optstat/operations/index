@@ -4,5 +4,38 @@ History of → development/databases/Oracle/optimizer/statistics[statistic] rela
 
 This view selects from `sys.wri$_optstat_opr`.
 
+code {
+create table tq84_optstat_test as select * from all_objects;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats] (
+      user,
+     'TQ84_OPTSTAT_TEST'
+   );
+end;
+/
+
+select
+   ops.id,
+   ops.operation,
+   ops.target,
+   ops.start_time, joh.job_start_time, 
+   ops.end_time  , joh.job_duration,
+   ops.status,
+   joh.client_name     job_client,
+   joh.job_status,
+   joh.window_name     job_window_name,
+   ops.job_name,
+   ops.session_id,
+   ops.notes,
+   joh.job_error,
+   joh.job_info
+from
+   dba_optstat_operations   ops                                 left join
+   dba_autotask_job_history joh on ops.job_name = joh.job_name
+order by
+   start_time desc;
+code }
+
 sa:
   → development/databases/Oracle/installed/data-dictionary/optstat/operation_tasks[`dba_operation_tasks`]

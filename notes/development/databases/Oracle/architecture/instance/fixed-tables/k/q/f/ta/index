@@ -5,20 +5,24 @@ $ Oracle: X$KQFTA
 
 code {
 select
-   tab.kqftanam,
+   tab.kqftanam      x_table,
    fob.flags         fob_flabgs,
--- fob.timestamp     fob_timestamp
+   fob.timestamp  - date '1991-01-01'  same_as_kqftaver,
    tab.kqftaver,
    tab.kqftatyp,
    tab.kqftaflg,
    tab.kqftacoc,
    opt.kqfoptflags,
    tab.kqftarsz,   
-   tab.kqftaobj
+   tab.kqftaobj,
+   count(*) over (partition by tab.kqftanam) c
 from
    x$kqfta    tab                                 left join
    x$kqfopt   opt on tab.kqftaobj = opt.kqfoptobj left join
    fixed_obj$ fob on tab.kqftaobj = fob.obj#
+order by
+   c desc,
+   x_table;
 code }
 
 sa:

@@ -1,0 +1,41 @@
+$ X$KXTT…
+
+{ x$kxttstets
+
+  Session private stats for → development/databases/Oracle/objects/tables/types/global-temporary[GTTs].
+
+code {
+SELECT
+    u.name               owner,
+    o.name               table_name,
+    ses.rowcnt_kxttst_ts nof_rows,
+    decode(bitand(t.property, 64), 0, ses.blkcnt_kxttst_ts, to_number(null)) blocks,
+    decode(bitand(t.property, 64), 0, ses.empcnt_kxttst_ts, to_number(null)) empty_blocks,
+    decode(bitand(t.property, 64), 0, ses.avgspc_kxttst_ts, to_number(null)) avg_space,
+    ses.chncnt_kxttst_ts                                                     chain_count,
+    ses.avgrln_kxttst_ts                                                     avg_row_len,
+    ses.avgspc_flb_kxttst_ts                                                 avg_space_freelist_blocks,
+    decode(bitand(t.property, 64), 0, ses.flbcnt_kxttst_ts, to_number(null)) avg_freelist_blocks,
+    ses.cachedblk_kxttst_ts                                                  avg_cached_blocks,
+    ses.cachehit_kxttst_ts                                                   avg_cache_hit_ratio,
+    ses.samplesize_kxttst_ts                                                 sample_size,
+    ses.analyzetime_kxttst_ts                                                last_analyzed,
+    decode(bitand(ses.flags_kxttst_ts, 8), 0, 'n', 'y')                      global_stats,    -- kketsflg = 8 -> KQLDTVCF_GLS
+    decode(bitand(ses.flags_kxttst_ts, 4), 0, 'n', 'y')                      user_stats       -- kketsflg = 4 -> KQLDTVCF_USS
+FROM
+     sys.x$kxttstets ses,
+     sys.user$       u,
+     sys.obj$        o,
+     sys.tab$        t
+  WHERE
+        o.owner# = u.user#
+    and o.obj# = t.obj#
+    and t.obj# = ses.obj#_kxttst_ts
+    and bitand(t.property, 1) = 0 -- not a typed table
+    and o.subname IS NULL
+    and o.namespace = 1 and o.remoteowner IS NULL and o.linkname IS NULL
+    and bitand(o.flags, 128) = 0 -- not in recycle bin 
+;
+code }
+
+}
