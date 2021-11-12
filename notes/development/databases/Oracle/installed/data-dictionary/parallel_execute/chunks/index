@@ -1,0 +1,39 @@
+$ Oracle: DBA_PARALLEL_EXECUTE_CHUNKS
+@ dba_parallel_execute_chunks
+
+code {
+select
+   chk.chunk_id,
+   chk.task_owner,
+   chk.task_name,
+   chk.status,
+   chk.start_rowid,
+   chk.end_rowid,
+   chk.start_id,
+   chk.end_id,
+   chk.job_name,
+   chk.start_ts,
+   chk.end_ts,
+   chk.error_code,
+   chk.error_message,
+   --
+   tsk.sql_stmt,
+   tsk.status,
+   tsk.table_owner,
+   tsk.table_name
+from
+   dba_parallel_execute_chunks chk                                         join
+   dba_parallel_execute_tasks  tsk on chk.task_owner = tsk.task_owner and
+                                      chk.task_name  = tsk.task_name
+where
+   chk.task_owner = user
+order by
+   chk.start_ts desc;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/parallel_execute/tasks[`dba_parallel_execute_tasks`]
+
+  → development/databases/Oracle/installed/packages/dbms/parallel_execute[`dmbs_parallel_execute`]
+
+  → development/databases/Oracle/installed/data-dictionary

@@ -1,0 +1,30 @@
+$ oradebug setorapid
+
+{ On Windows
+
+code {
+select
+   prc.spid,   -- Use this number for oradebug setospid
+   prc.pid     -- Use this number for oradebug setorapid
+from
+   v$session     ses                                                   join
+   v$process     prc on ses.paddr           = prc.addr
+where
+   ses.sid = sys_context('userenv', 'sid');
+code }
+
+code {
+SQL> oradebug setorapid 52
+Oracle pid: 52, Windows thread id: 15752, image: ORACLE.EXE (SHAD)
+code }
+
+  The *thread id* (here: 15752) corresponds to `prc.spid` in the query above.
+
+}
+
+sa:
+  → development/databases/Oracle/tools/oradebug/setospid[`oradebug setospid`]
+  -
+  → development/databases/Oracle/tools/oradebug/setmypid[`oradebug setmypid`]
+
+  → development/databases/Oracle/tools/oradebug
