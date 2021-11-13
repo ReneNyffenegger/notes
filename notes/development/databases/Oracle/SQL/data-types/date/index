@@ -2,15 +2,13 @@ $ Oracle data type DATE
 @ date
 
 A `date` represents a point in time by internally storing integer values for this point in time's year, month, day, minute and second.
--
-Internally, the year is stored with a byte for the century and a byte for the last two digits of the year, and the other values each require a byte, the size of a `date` is 7 bytes.
 
 A → development/databases/Oracle/SQL/data-types/timestamp[`timestamp`] value differs from a `date` in that it able to store fractional parts of a second.
 
 { Date literals
 
-  A *date literal* is for example `date '2018-08-28'`. It doesn't allow to specify a time which seems to be because of the Ansi standard. In order to also specify hours, minutes and seconds
-  (or microseconds), a *timestamp* literal is needed.
+  A *date literal* is for example `date '2018-08-28'`. It doesn't allow to specify a time which seems to be because of the ANSI standard. In order to also specify hours, minutes and seconds
+  (or microseconds), a *timestamp* literal is needed. However, a timestamp literal evaluates to a timestamp datatype, not a date datatype.
 
 }
 { Convert a date to a Julian day
@@ -18,7 +16,7 @@ A → development/databases/Oracle/SQL/data-types/timestamp[`timestamp`] value d
   A date can be converted to a → Wissenschaft/misc/Bestimmung-von-Daten#julianischer-tag[Julian day] using the format model `J`:
 code {
 select
-   to_number(to_char(sysdate, 'J')) jd
+   to_number(→ development/databases/Oracle/SQL/functions/type-conversion/to/char[to_char](sysdate, 'J')) jd
 from
    dual;
 code }
@@ -85,7 +83,31 @@ code }
   }
 
 }
+{ Internal representation of a date
 
+  Oracle uses 7 bytes to store a date. These bytes correspond to a date's century, the last two digits of the year, month, day, hour, minute and second.
+
+  The year is calculated with `(ByteCentury-100)*100 + ByteYear-100`. 
+
+  In order to get the actual values for hour, minute and seconds, the value 1 must be subtracted from the corresponding byte value.
+
+  The function `dump` allows to print the internal representation of a value:
+code {
+create table tq84_dt(a date);
+insert into tq84_dt values (timestamp '1950-04-08 12:16:20');
+commit;
+
+select dump(a) from tq84_dt;
+--
+-- Typ=12 Len=7: 119,150,4,8,13,17,21
+--
+
+drop table tq84_dt;
+code }
+
+  The internal format is described in → https://support.oracle.com/epmos/faces/DocumentDisplay?&id=69028.1[MOS note 69028.1].
+
+}
 { Misc
 
   The → development/databases/SQL-Server equivalent for date seems to be → development/databases/SQL-Server/T-SQL/data-types/datetime[`datetime`].

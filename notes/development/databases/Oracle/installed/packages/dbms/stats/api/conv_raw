@@ -1,0 +1,49 @@
+$ DBMS_STATS.CONV_RAW
+
+The function `dbms_stats.conv_raw` is related to the procedure → development/databases/Oracle/installed/packages/dbms/stats/api/convert_raw/value[`dbms_stats.convert_raw_value`]: it converts a
+→ development/databases/Oracle/SQL/data-types/raw[`raw`] value that is used to store statistical low high values to readable texts.
+-
+Such raw values are found, for example in the view → development/databases/Oracle/installed/data-dictionary/tab/columns[`dba_tab_columns`].
+
+The function's first parameter takes the `raw` value to be converted, the second paramter the numerical id of the → development/databases/Oracle/SQL/data-types[datatype].
+
+
+code {
+with datatype_name_to_num as (
+    select 'NUMBER'        nam,   2 num from dual union all
+    select 'VARCHAR2'      nam,   1 num from dual union all
+    select 'DATE'          nam,  12 num from dual union all
+    select 'BINARY_FLOAT'  nam, 100 num from dual union all
+    select 'BINARY_DOUBLE' nam, 101 num from dual
+ --
+ -- TODO: Complete numbers here…
+ --
+)
+select
+   dbms_stats.conv_raw(col.low_value, dt.num)  lowValue,
+   dbms_stats.conv_raw(col.high_value,dt.num)  highValue,
+   --
+   col.low_value,
+   col.high_value,
+   col.sample_size,
+   col.num_distinct,
+   col.num_buckets,
+   col.avg_col_len,
+   col.density,
+   col.histogram,
+   col.global_stats,
+   col.user_stats,
+   col.*
+from
+   dba_tab_columns        col               left join
+   datatype_name_to_num   dt  on col.data_type = dt.nam
+where
+   col.owner      = 'RENE' and
+   col.table_name = 'TQ84_T';
+code }
+
+sa:
+
+ `dbms_stats.conv_raw` is used, for example(?), in `dba_tab_histograms`.
+
+  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`].

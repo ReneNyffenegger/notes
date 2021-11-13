@@ -1,0 +1,69 @@
+$ Oracle SQL: TO_CHAR
+@ to_char
+
+`to_char` converts a → development/databases/Oracle/SQL/data-types/number,
+→ development/databases/Oracle/SQL/data-types/date[date/datetime], → development/databases/Oracle/SQL/data-types/timestamp[timestamp]/etc or
+character value to a → development/databases/Oracle/SQL/data-types/varchar2.
+
+code {
+to_char(number|date|datetime [, → development/databases/Oracle/SQL/functions/type-conversion/format-models[format] [, 'nls-parameter']])
+to_char(nchar|clob|nclob|)
+code }
+
+{ Specifying nls parameter to be used #ora-to_char-nls
+
+  The third parameter of `to_char` (when converting dates or numbers to strings) allows to specify → development/databases/Oracle/adminstration/init-parameters/nls[NLS parameter] values for the conversion.
+
+code {
+select
+   to_char(sysdate, 'Dy'   ,  ' nls_date_language=english'   ) day_english,
+   to_char(sysdate, 'Dy'   ,  ' nls_date_language=german'    ) day_german ,
+   to_char(42.42  , '99d99', q'[nls_numeric_characters=', ']') comma      ,
+   to_char(42.42  , '99d99', q'[nls_numeric_characters='.,']') dot
+from
+  dual;
+--
+-- DAY_ENGLISH  DAY_GERM COMMA  DOT
+-- ------------ -------- ------ ------
+-- Sat          Sa        42,42  42.42
+code }
+
+}
+
+{ Inserting a literal character or string
+
+  The following statement produces an ~ORA-01821: date format not recognized~ error:
+code {
+→ development/databases/Oracle/SQL/select[select]
+  to_char(sysdate, 'hh24 hr, mi min, ss sec')
+from
+  dual;
+code }
+
+  This is because some characters or strings that the statement tries to be literally inserted into the result must be quoted with double-quotes
+  -
+  The following example does not produe an error:
+code {
+→ development/databases/Oracle/SQL/select[select]
+  to_char(sysdate, 'hh24 "hr," mi "min," ss "sec"')
+from
+  dual;
+--
+-- 15 hr, 01 min, 57 sec
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/SQL/data-types/timestamp#ora-ts-format[Formatting a timestamp].
+
+  The default date format string for `to_char` is specified with the → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_date_format[`nls_date_format`] setting.
+
+  → development/databases/Oracle/errors/ORA-01861_literal-does-not-match-format-string
+
+  → development/databases/Oracle/SQL/functions
+
+  → development/databases/Oracle/SQL/functions/type-conversion/format-models
+
+ `to_nchar`
