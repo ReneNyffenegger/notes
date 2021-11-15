@@ -1,0 +1,234 @@
+$ Oracle: Importing and exporting optimizer statistics with DBMS_STATS
+
+{ Creating a stat table
+
+  In order to be able to export optimizer statistics, a *stat table* is needed. Such a table can
+  be created with `dbms_stats.create_stat_table`:
+code {
+
+begin
+ 
+   dbms_stats.create_stat_table (
+        ownname           => user,
+        stattab           =>'TQ84_STATS',
+     -- tblspace          =>              -- use default tablespace
+        global_temporary  => false        -- create heap table. Default is global temporary table.
+   );
+ 
+end;
+/
+code }
+
+ 
+  These are the columns of the stat table: 
+code {
+desc tq84_stats
+
+Name    Null? Type                       
+------- ----- ---------------------------
+STATID        VARCHAR2(128)              
+TYPE          CHAR(1)                    
+VERSION       NUMBER                     
+FLAGS         NUMBER                     
+C1            VARCHAR2(128)              
+C2            VARCHAR2(128)              
+C3            VARCHAR2(128)              
+C4            VARCHAR2(128)               
+C5            VARCHAR2(128)              
+C6            VARCHAR2(128)              
+N1            NUMBER                     
+N2            NUMBER                     
+N3            NUMBER                     
+N4            NUMBER                      
+N5            NUMBER                     
+N6            NUMBER                     
+N7            NUMBER                     
+N8            NUMBER                     
+N9            NUMBER                     
+N10           NUMBER                      
+N11           NUMBER                     
+N12           NUMBER                     
+N13           NUMBER                     
+D1            DATE                       
+T1            TIMESTAMP(6) WITH TIME ZONE
+R1            RAW(1000 BYTE)              
+R2            RAW(1000 BYTE)             
+R3            RAW(1000 BYTE)             
+CH1           VARCHAR2(1000)             
+CL1           CLOB                       
+BL1           BLOB        
+code }
+ 
+}
+ 
+ 
+ { Creating a test table
+ 
+   A test table is created …
+code {
+-- drop   table tq84_ix;
+create table tq84_ix (
+     id      number(9),
+     val_1   number(9),
+     val_2   varchar2(10),
+     val_3   number,
+     val_4   varchar2(10),
+     --
+     constraint tq84_ix_pk primary key (id)
+);
+code }
+
+  … and filled with random values:
+code {
+insert into tq84_ix
+select
+   level,
+   trunc(dbms_random.value(1, level)),
+   dbms_random.string('A', dbms_random.value(1,dbms_random.value(1,10))),
+   dbms_random.value (1,100),
+   dbms_random.string('A', 10)
+from
+   dual connect by level <= 100000;
+
+commit;
+code }
+ 
+  Some → development/databases/Oracle/objects/indexes[indexes] cannot hurt:
+code {
+create index tq84_ix_val_1_2 on tq84_ix(val_1, val_2);
+create index tq84_ix_val_3   on tq84_ix(val_3);
+code }
+ 
+} 
+{ Gathering the statistics
+
+code {
+begin
+ 
+   dbms_stats.→ development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[gather_table_stats](
+      ownname    =>  user,
+      tabname    => 'TQ84_IX',
+      method_opt => 'for all columns size auto'
+   );
+ 
+end;
+/
+code }
+ 
+}
+{ Exprorting the statistics
+ 
+ `dbms_stats.export_table_stats` exports the statistics of a given table into a stat table.
+
+  The value of the parameter `statid` is copied into the stat table's column `statid` and allows to identify an export's
+  data.
+code {
+begin
+ 
+   dbms_stats.export_table_stats (
+      ownname         => user,
+      tabname         =>'TQ84_IX',
+      partname        => null,
+      stattab         =>'TQ84_STATS',
+      statid          =>'TQ84_IX_STATS',
+      cascade         => true          , -- export index statistics as well (true is default anyway).
+      statown         => user,
+      stat_category   =>'OBJECT_STATS, SYNOPSES, REALTIME_STATS' -- Use default here
+   );
+  
+end;
+/
+code }
+
+code {
+select * from tq84_stats where statid = 'TQ84_IX_STATS';
+code }
+
+
+   The value of `cascade` in `export_table_stats` was set to `true` which caused the statistics related to indexes to be exported as well.
+   -
+   If desired, the statistics for a given index can be exported with `dbms_stats.export_index_stats`:
+code {
+begin
+ 
+    dbms_stats.export_index_stats (
+         ownname       =>  user,
+         indname       => 'TQ84_IX_VAL_1_2',
+      -- partname      =>  ...
+         stattab       => 'TQ84_STATS'
+      -- statid        => 'VAL_1_2'
+      -- statown       => ...
+    );
+   
+end;
+/
+code }
+ 
+ 
+ 
+code {
+select * from tq84_stats where statid = 'VAL_1_2';
+code }
+
+}
+{ Importing the indexes
+ 
+  The original table is dropped and recreated, yet without inserting data:
+code {
+drop   table tq84_ix;
+create table tq84_ix (
+     id      number(9),
+     val_1   number(9),
+     val_2   varchar2(10),
+     val_3   number,
+     val_4   varchar2(10),
+     --
+     constraint tq84_ix_pk primary key (id)
+);
+create index tq84_ix_val_1_2 on tq84_ix(val_1, val_2);
+create index tq84_ix_val_3   on tq84_ix(val_3);
+code }
+ 
+  The previously exported table statistics is imported again:
+code {
+begin
+   dbms_stats.import_table_stats (
+      ownname         => user,
+      tabname         =>'TQ84_IX',
+      partname        => null,
+      stattab         =>'TQ84_STATS',
+      statid          =>'TQ84_IX_STATS',
+      cascade         => true,
+      statown         => user,
+      no_invalidate   => false,
+      force           => false,
+      stat_category   =>'OBJECT_STATS, SYNOPSES, REALTIME_STATS'
+   );
+end;
+/
+code }
+ 
+  The imported statistics are found in the following → development/databases/Oracle/installed/data-dictionary[data dictionary] views: 
+code { 
+select * from user_tab_statistics      where table_name = 'TQ84_IX';
+select * from user_ind_statistics      where table_name = 'TQ84_IX';
+select * from user_tab_col_statistics  where table_name = 'TQ84_IX';
+code }
+
+}
+{ Dropping the stat table 
+
+  The stat table is not used anymore. It can be dropped:
+code {
+begin
+ 
+   dbms_stats.drop_stat_table (
+        ownname           => user,
+        stattab           =>'TQ84_STATS'
+   );
+ 
+end;
+/
+code }
+
+}

@@ -1,0 +1,54 @@
+$ DBMS_STATS.GATHER_xxx_STATS: parameter ESTIMATE_PERCENT
+
+Create table with one million records:
+code {
+create table tq84_estimate_percent_test (id number, txt varchar2(10));
+
+insert into  tq84_estimate_percent_test
+select
+   level,
+   dbms_random.string('A', 10)
+from
+   dual connect by level <= 1 * 1000 * 1000;
+  
+commit;
+code }
+ 
+ 
+Gather statistics for the table using approximately 10 percent (value of `estimate_percent`) of the data in the table:
+code { 
+begin
+   dbms_stats.gather_table_stats (
+      ownname          =>    user,
+      tabname          =>   'TQ84_ESTIMATE_PERCENT_TEST',
+      estimate_percent => 10
+   );
+end;
+/
+code }
+ 
+ 
+It turns out, statistics were calculated from a basis (sample size) of 99873 records, a little less than 10 percent of the million records in the table.
+-
+Because the sample size is a bit too little, the estimated number of records (`num_rows`) in the table is also reported a bit too little.
+code {
+select
+   sta.num_rows,
+   sta.sample_size
+from
+   user_tab_statistics sta
+where
+   sta.table_name = 'TQ84_ESTIMATE_PERCENT_TEST';
+--
+--   NUM_ROWS SAMPLE_SIZE
+-- ---------- -----------
+--    998730       99873  
+code }
+ 
+ 
+code {
+drop table tq84_estimate_percent_test;
+code }
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]

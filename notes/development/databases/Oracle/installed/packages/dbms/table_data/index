@@ -1,0 +1,54 @@
+$ Oracle: DBMS_TABLE_DATA
+@ dbms_table_data
+
+code {
+create table tq84_td (
+    id  number(5),
+    txt varchar2(20)
+);
+ 
+insert into tq84_td values (42, 'hello world');
+commit;
+ 
+select
+   dump( id, 16), -- Typ=2 Len=2: c1,2b
+   dump(txt, 16)  -- Typ=1 Len=11: 68,65,6c,6c,6f,20,77,6f,72,6c,64
+from
+   tq84_td;
+ 
+declare
+   bytes_of_row  blob;
+   row_id        rowid;
+begin
+ 
+   select rowid into row_id from tq84_td where id = 42;
+ 
+   dbms_table_data.get_bytes_for_row(
+        schema_name  => user,
+        table_name   =>'TQ84_TD',
+        row_id       => row_id,
+        column_data  => bytes_of_row
+   );
+  
+   dbms_output.put_line(rawtohex(bytes_of_row));
+--
+-- C12B68656C6C6F20776F726C64
+--
+end;
+/
+code }
+
+{ Procedures
+ 
+  table { ll
+
+     `get_bytes_for_column` ☰
+     `get_bytes_for_columns` ☰
+     `get_bytes_for_row` ☰
+  
+  table }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms
