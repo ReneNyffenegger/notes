@@ -1,0 +1,84 @@
+$ SQL Server: GROUP BY - ROLLUP clause
+
+code {
+with tab as (
+     select 2020 year_,  1 quarter_,  'A'  grp_1, 'X' grp_2,   7  val union all
+     select 2020 year_,  1 quarter_,  'A'  grp_1, 'X' grp_2,   6  val union all
+     select 2020 year_,  1 quarter_,  'A'  grp_1, 'Y' grp_2,   1  val union all
+     select 2020 year_,  1 quarter_,  'A'  grp_1, 'Y' grp_2,   4  val union all
+     --
+     select 2020 year_,  2 quarter_,  'A'  grp_1, 'Y' grp_2,   6  val union all
+     select 2020 year_,  2 quarter_,  'A'  grp_1, 'Y' grp_2,   5  val union all
+     --
+     select 2020 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   2  val union all
+     select 2020 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   1  val union all
+     select 2020 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   5  val union all
+     --
+     select 2020 year_,  4 quarter_,  'A'  grp_1, 'X' grp_2,   2  val union all
+     select 2020 year_,  4 quarter_,  'A'  grp_1, 'X' grp_2,   2  val union all
+     -------
+     select 2020 year_,  1 quarter_,  'B'  grp_1, 'X' grp_2,   7  val union all
+     select 2020 year_,  1 quarter_,  'B'  grp_1, 'X' grp_2,   6  val union all
+     select 2020 year_,  1 quarter_,  'B'  grp_1, 'Z' grp_2,   1  val union all
+     select 2020 year_,  1 quarter_,  'B'  grp_1, 'Z' grp_2,   4  val union all
+     --
+     select 2020 year_,  2 quarter_,  'B'  grp_1, 'X' grp_2,   6  val union all
+     select 2020 year_,  2 quarter_,  'B'  grp_1, 'X' grp_2,   5  val union all
+     select 2020 year_,  2 quarter_,  'B'  grp_1, 'X' grp_2,   8  val union all
+     select 2020 year_,  2 quarter_,  'B'  grp_1, 'Z' grp_2,   5  val union all
+     --
+     select 2020 year_,  3 quarter_,  'B'  grp_1, 'Y' grp_2,   4  val union all
+     select 2020 year_,  3 quarter_,  'B'  grp_1, 'Z' grp_2,   5  val union all
+     select 2020 year_,  3 quarter_,  'B'  grp_1, 'Z' grp_2,   6  val union all
+     --
+     select 2020 year_,  4 quarter_,  'B'  grp_1, 'Y' grp_2,   2  val union all
+     select 2020 year_,  4 quarter_,  'B'  grp_1, 'Y' grp_2,   2  val union all
+ 
+     -------------------------------------------------------------------------
+ 
+     select 2021 year_,  1 quarter_,  'A'  grp_1, 'X' grp_2,   6  val union all
+     select 2021 year_,  1 quarter_,  'A'  grp_1, 'X' grp_2,   9  val union all
+     select 2021 year_,  1 quarter_,  'A'  grp_1, 'Z' grp_2,   2  val union all
+     --
+     select 2021 year_,  2 quarter_,  'A'  grp_1, 'Y' grp_2,   6  val union all
+     select 2021 year_,  2 quarter_,  'A'  grp_1, 'Y' grp_2,   5  val union all
+     --
+     select 2021 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   2  val union all
+     select 2021 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   1  val union all
+     select 2021 year_,  3 quarter_,  'A'  grp_1, 'Z' grp_2,   5  val union all
+     --
+     select 2021 year_,  4 quarter_,  'A'  grp_1, 'X' grp_2,   2  val union all
+     select 2021 year_,  4 quarter_,  'A'  grp_1, 'X' grp_2,   2  val union all
+     -------
+     select 2021 year_,  1 quarter_,  'B'  grp_1, 'X' grp_2,   4  val union all
+     select 2021 year_,  1 quarter_,  'B'  grp_1, 'X' grp_2,   5  val union all
+     --
+     select 2021 year_,  2 quarter_,  'B'  grp_1, 'Z' grp_2,   1  val union all
+     select 2021 year_,  2 quarter_,  'B'  grp_1, 'Z' grp_2,   2  val union all
+     select 2021 year_,  2 quarter_,  'B'  grp_1, 'Z' grp_2,   3  val union all
+     --
+     select 2021 year_,  3 quarter_,  'B'  grp_1, 'X' grp_2,   4  val union all
+     select 2021 year_,  3 quarter_,  'B'  grp_1, 'Y' grp_2,   5  val union all
+     select 2021 year_,  3 quarter_,  'B'  grp_1, 'Y' grp_2,   6  val union all
+     --
+     select 2021 year_,  4 quarter_,  'B'  grp_1, 'Z' grp_2,   2  val union all
+     select 2021 year_,  4 quarter_,  'B'  grp_1, 'Y' grp_2,   2  val
+)
+select
+-- grouping_id(year_, grp_1, grp_2) g,
+   case grouping_id(grp_1, grp_2)
+        when 1 then 'Total quarter, grp 1'
+        when 3 then 'Total quarter'
+   end " ",
+   year_,
+   quarter_,
+   grp_1,
+   grp_2,
+   sum(val) sum_val
+from
+   tab
+group by
+   year_,
+   quarter_,
+   rollup(grp_1, grp_2)
+code }
