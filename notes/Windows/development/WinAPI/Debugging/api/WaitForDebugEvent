@@ -1,0 +1,40 @@
+
+A debugger uses `WaitForDebugEvent()` to wait for a *debugging event* in the target process.
+
+After calling `WaitForDebugEvent()`, the debugger stops executing until such a debugging event occurs in the target process. When it has occured, all
+→ Windows/development/process/thread[threads]
+in the target process are stopped and execution resumes in the debugger.
+
+The chapter → https://www.microsoftpressstore.com/articles/article.aspx?p=2201303[How Debuggers Work] (Inside Windows Debugging) lays out pseudo code
+that roughly explains how `WaitForDebugEvent()` is used:
+code {
+CreateProcess("target.exe",… , DEBUG_PROCESS, …);
+
+while (1) {
+
+    WaitForDebugEvent(&event, …);
+
+    switch (event) {
+
+        case ModuleLoad:
+            Handle/Ignore;
+            break;
+
+        case TerminateProcess:
+            Handle/Ignore;
+            break;
+
+        case Exception: // (code breakpoint, single step, etc…)
+            Handle/Ignore;
+            break;
+    }
+
+    ContinueDebugEvent(…);
+}
+code }
+
+sa:
+  → Windows/development/WinAPI/Debugging
+
+links:
+  → https://docs.microsoft.com/en-us/windows/win32/debug/writing-the-debugger-s-main-loop[Writing the Debugger's Main Loop]
