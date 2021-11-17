@@ -21,6 +21,26 @@ ID TXT_
 code }
 
 }
+{ ORA-01489: result of string concatenation is too long
+
+ `listagg` can only return up to 4000 characters so that the following statement results in an
+ *ORA-01489: result of string concatenation is too long* error:
+code {
+select
+   listagg(level, '-')
+from
+   dual connect by level < 1023;
+code }
+
+  Such errors can be omitted with the *listagg overflow clause*:
+code {
+select
+   listagg(level, '-' on overflow truncate '...' without count)
+from
+   dual connect by level < 1023;
+code }
+
+}
 
 sa:
   `listagg` being used to → development/databases/Oracle/installed/data-dictionary/ind/columns/columns-of-index#dba_ind_columns-listagg[concatenate the column names] of

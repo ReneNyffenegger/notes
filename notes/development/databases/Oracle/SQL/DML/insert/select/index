@@ -1,0 +1,48 @@
+$ Oracle SQL: INSERT INTO … SELECT * FROM …
+
+{ Errors #ora-insert-select-errors
+
+code {
+create table tq84_insert_select_test (
+    col_1     varchar2(10),
+    col_2     integer generated always as identity,
+    col_3     number,
+    col_4     as        ( col_3 + col_5 ) ,
+    col_5     number
+);
+
+insert into tq84_insert_select_test(col_1, col_3, col_5) values ('abc', 10, 20);
+
+create table tq84_insert_select_test_backup as select * from tq84_insert_select_test;
+
+truncate table tq84_insert_select_test;
+
+insert into tq84_insert_select_test select * from tq84_insert_select_test_backup;
+--
+-- ORA-54013: INSERT operation disallowed on virtual columns
+--     or
+-- ORA-32795: cannot insert into a generated always identity column
+
+
+select
+   listagg(a.column_name, ', ') within group (order by a.column_id)
+from
+   all_tab_cols a
+where
+   a.virtual_column  = 'NO'  and
+   a.identity_column = 'NO'  and
+   a.owner           =  user and
+   a.table_name      = 'TQ84_INSERT_SELECT_TEST'
+;
+
+insert into tq84_insert_select_test (COL_1, COL_3, COL_5)
+   select                            COL_1, COL_3, COL_5
+   from     tq84_insert_select_test_backup;
+
+drop table tq84_insert_select_test;
+code }
+
+  See also → development/databases/Oracle/objects/tables/columns/virtual[virtual] and
+  → development/databases/Oracle/objects/tables/columns/identity/index[generated always columns].
+
+}

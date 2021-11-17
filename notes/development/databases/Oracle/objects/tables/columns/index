@@ -1,6 +1,75 @@
 $ Oracle table columns
 @ column
 
+{ Modifying the table structures
+
+code {
+create table tq84_col_test (
+   col_one   number
+);
+code }
+
+  Add *one* new column
+code {
+alter table tq84_col_test add col_two varchar2(10);
+code }
+
+  Add *muliple columns at once
+code {
+alter table tq84_col_test add (
+   col_three   date,
+   col_four    number not null
+);
+code }
+
+  Change a column:
+code {
+alter table tq84_col_test modify col_three not null;
+code }
+
+
+  A column that contains null values only can be converted to another data type.
+  -
+  If the column already has data, Oracle will throw error *ORA-01439: column to be modified must be empty to change datatype*.
+code {
+alter table tq84_col_test modify col_four varchar2(10);
+code }
+
+  Modifying multiple columns at once:
+code {
+alter table tq84_col_test modify (
+   col_one    number(10, 2),
+   col_two    varchar2(20)  
+);
+code }
+
+  Renaming a column
+code {
+alter table tq84_col_test rename column col_four to col_text;
+code }
+
+  Dropping a column:
+code {
+alter table tq84_col_test drop column col_two;
+code }
+
+  Before dropping a column, it might be considered, especially on large tables, to first set it *unsed* (which is way faster then dropping it directly) and *later* drop it «physically», when
+  the database is not heavily used:
+code {
+alter table tq84_col_test set unused (col_three);
+
+select * from user_tab_cols
+where
+   table_name    = 'TQ84_COL_TEST' and
+   hidden_column = 'YES';
+
+alter table tq84_col_test drop unused columns;
+code }
+
+
+
+}
+
 { Default values
 
   A column can be assigned a default value with which the column is filled in an `insert` statement if no explicit value is stated. This default value can
