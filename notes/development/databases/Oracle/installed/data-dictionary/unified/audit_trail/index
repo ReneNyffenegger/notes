@@ -1,0 +1,53 @@
+$ Oracle: UNIFIED_AUDIT_TRAIL
+
+
+code {
+audit all statements in session current;
+code }
+
+code {
+create table tq84_uat_test_1 (id number, val varchar2(10));
+create table tq84_uat_test_2 (id number, val varchar2(10));
+
+insert into tq84_uat_test_1 values (1, 'one');
+insert into tq84_uat_test_1 values (2, 'two');
+
+insert into tq84_uat_test_2 values (2, 'bar');
+insert into tq84_uat_test_2 values (3, 'baz');
+
+select
+   a.*,
+   b.*
+from
+   tq84_uat_test_1 a                 join
+   tq84_uat_test_2 b on a.id = b.id;
+code }
+
+
+code {
+select
+   uat.event_timestamp,
+   uat.entry_id       ,
+   uat.statement_id   ,  -- A statement, identified by statement_id, may cause multiple audit actions and entries,
+                         -- for example, because a select statement selects from multiple objects, (columns
+                         -- object_schema, object_name)
+   uat.sql_text       ,
+   uat.sql_binds      ,
+   uat.action_name,      -- SELECT,
+   uat.object_schema,
+   uat.object_name,
+   uat.return_code,      -- Oracle error code
+   uat.scn,
+   uat.transaction_id,
+   uat.sessionid,
+   uat.execution_id
+from
+   unified_audit_trail uat
+where
+   uat.dbusername = user
+order by
+   uat.event_timestamp desc;
+code }
+
+sa:
+  → development/databases/Oracle/security/audit

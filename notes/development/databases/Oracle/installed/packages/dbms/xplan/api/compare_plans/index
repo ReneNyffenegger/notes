@@ -1,0 +1,62 @@
+$ Oracle: DBMS_XPLAN.COMPARE_PLANS
+
+Create a simple test table:
+code {
+drop   table  tq84_tab;
+create table tq84_tab (
+    id  number,
+    val varchar2(20),
+    constraint tq84_tab_pk primary key(id)
+);
+code }
+
+Create a table to store the result of `dbms_xplan.compare_plans` to:
+code {
+create table tq84_compared_plans(result clob);
+code }
+
+Create two plans, one of which uses a hint that the primary key index is not used:
+code {
+explain plan
+   set statement_id = 'without hint'
+for
+   select * from tq84_tab where id = 5;
+   
+
+explain plan
+   set statement_id = 'with hint'
+for
+   select /*+ no_index(t) */ * from tq84_tab t where id = 5;
+code }
+   
+
+Compare the two plans:
+code {
+declare
+   diff clob;
+   
+   plan_1 plan_table_object := plan_table_object('SYS', 'PLAN_TABLE$', 'without hint', null);
+   plan_2 plan_table_object := plan_table_object('SYS', 'PLAN_TABLE$', 'with hint'   , null);
+begin
+
+   diff := dbms_xplan.compare_plans(
+      plan_1,
+      plan_object_list(plan_2)
+   );
+   
+   delete from tq84_compared_plans;
+   insert into tq84_compared_plans values(diff);
+
+ --  dbms_output.put_line(diff);
+
+end;
+/
+code }
+
+Get the result
+code {
+select * from tq84_compared_plans;
+code }
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/xplan[`dbms_xplan`]

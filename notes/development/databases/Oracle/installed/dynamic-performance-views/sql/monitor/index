@@ -9,7 +9,7 @@ In order to gather statistics for SQL statements whose execution duration is les
 
 { «primary key» #sql_monitor-key
 
-  The column `key` is like a «virtual» → development/databases/Oracle/objects/tables/constraints/primary-key[primary key], that is, it identifies a record in `v$sql_monitor`.
+  The column `key` acts like a «virtual» → development/databases/Oracle/objects/tables/constraints/primary-key[primary key] and identifie records in `v$sql_monitor`.
 
   The value of `key` can be used to select the monitored statistics of the execution of an SQL statement from → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor[`v$sql_plan_monitor`].
 
@@ -22,7 +22,31 @@ from
 code }
 
 }
-{ Finding montior key
+{ Finding monitor key
+
+  The following query finds a session's most recent record in `v$sql_monitor`:
+code {
+--
+-- Simple select statment using the monitor hint for demonstration purposes.
+--
+select /*+ monitor */ * from dual;
+ 
+--
+-- Find record in v$sql_monitor that corresponds to most recent execution of an SQL statement in the session
+--
+select
+   mon.*
+from
+   v$sql_monitor mon
+where
+   (mon.sid, mon.session_serial#,      mon.sql_id,  mon.sql_exec_id) = (select
+    ses.sid,         ses.serial#, ses.prev_sql_id, ses.prev_exec_id
+        from
+           v$session ses
+        where
+           ses.sid = sys_context('userenv', 'sid')
+   );
+code }
 
   The following query joins → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] and
   → development/databases/Oracle/installed/dynamic-performance-views/sql/area[`v$sqlarea`] with `v$sql_monitor` in order to hopefully find a
