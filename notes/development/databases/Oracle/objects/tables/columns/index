@@ -67,9 +67,39 @@ alter table tq84_col_test drop unused columns;
 code }
 
 
+}
+{ Find columns that might be nullable
+
+  After (fully) analyzing a table with → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[`dbms_stats.gather_table_stats`], it is possible to find columns
+  that are nullable but have no → development/databases/Oracle/SQL/null[`null`] values in them:
+code {
+select
+   col.column_name
+from
+    user_tab_columns col
+where
+   col.table_name = 'DATA' and
+   col.nullable   = 'Y'    and
+   col.num_nulls  =  0;
+code }
+
+   The following statment generates an `alter table` statement with which all such columns can be changed to `not null`:
+code {
+select
+  'alter table ' || col.table_name || ' modify (' || 
+   → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](col.column_name || ' not null', ', ')  ||
+  ')'  stmt
+from
+    user_tab_columns col
+where
+   col.table_name = 'DATA' and
+   col.nullable   = 'Y'    and
+   col.num_nulls  =  0
+group by
+   col.table_name;
+code }
 
 }
-
 { Default values
 
   A column can be assigned a default value with which the column is filled in an `insert` statement if no explicit value is stated. This default value can

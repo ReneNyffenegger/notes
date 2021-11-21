@@ -1,0 +1,70 @@
+$ Oracle: ALTER SYSTEM DUMP DATAFILE
+
+code {
+ALTER SYSTEM DUMP DATAFILE datafileNumber BLOCK blockNumber;
+ALTER SYSTEM DUMP DATAFILE datafileNumber BLOCK MIN blockNumberStart BLOCK MAX blockNumberEnd;
+code }
+
+`alter system dump datafile` allows to dump one block or a contiguous range of blocks from a → development/databases/Oracle/architecture/database/files/data.
+
+{ Dumping a block #ora-dump-block
+
+  The following procedures takes a → development/databases/Oracle/SQL/data-types/rowid and dumps the
+  → development/databases/Oracle/architecture/database/logical-structures/data-block[data block] where this rowid points at to a
+  → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file.
+  gh|Oracle-patterns|/SQL/_nouns/system/alter/dump/dump_block_from_rowid.sql||
+
+  { Testing the procedure
+ 
+    gh|Oracle-patterns|/SQL/_nouns/system/alter/dump/dump_block_from_rowid-test.sql||
+
+  }
+
+}
+{ Dumping a segment header block
+
+code {
+create table tq84_seg_hdr_dump_test (
+   col_1   number,
+   col_2   varchar2(20)
+);
+
+insert into tq84_seg_hdr_dump_test values (1, 'one');
+insert into tq84_seg_hdr_dump_test values (2, 'two');
+
+commit;
+code }
+  
+  A segment header is just a special type of block and can therefore be dumped with `alter system dump …` as well.
+
+  The block number of the segment header can be queried from → development/databases/Oracle/installed/data-dictionary/segments[`dba_segments`]:
+code {
+select
+   header_file,
+   header_block
+from
+   → development/databases/Oracle/installed/data-dictionary/segments[dba_segments]
+where
+   segment_name = 'TQ84_SEG_HDR_DUMP_TEST';
+--
+-- HEADER_FILE HEADER_BLOCK
+-- ----------- ------------
+--           4         2250
+code }
+
+code {
+alter system dump datafile 4 block 2250;
+code }
+
+  After dumping the block, the tracefile is found in → development/databases/Oracle/installed/dynamic-performance-views/diag/info[`v$diag_info`] with the
+  following query:
+code {
+select
+   value trace_file
+from
+   v$diag_info
+where
+   name = 'Default Trace File';
+code }
+
+}
