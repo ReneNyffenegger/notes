@@ -1,0 +1,53 @@
+$ Oracle: DBMS_XPLAN.DISPLAY
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for → development/databases/Oracle/SQL/statement[<sql statement>];
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan[dbms_xplan].display)
+code }
+
+{ Parameter DISPLAY
+
+  The value that is passed with the parameter `display` determines the level of information that
+  is shown by `dbms_xplan.display`.
+
+  The default value is `typical`
+
+code {
+--
+-- Minimal information: operation id, operation name, operation options
+--
+select * from table(dbms_xplan.display(format=>'basic'));
+
+--
+-- Add #rows, #bytes, optimizer costs and, if applicable, pruning
+-- parallel and predicate information
+--
+select * from table(dbms_xplan.display(format=>'typical'));
+
+--
+-- Add projection, alias and, if a distributed query is displayed,
+-- information about the remote SQL statement.
+--
+select * from table(dbms_xplan.display(format=>'all'));
+code }
+
+  More control on the displayed result set can be added with `+xxx` where `xxx` is
+  table { ll
+    `rows` ☰ number of rows estimated by the → development/databases/Oracle/optimizer
+    `bytes` ☰  number of bytes estimated by the → development/databases/Oracle/optimizer
+    `cost`      ☰ → development/databases/Oracle/optimizer cost information
+    `partition` ☰ partition pruning information
+    `parallel`  ☰ → development/databases/Oracle/SQL/statement/execution/parallel#ora-parallel-px[PX] information (distribution method and table queue information)
+    `predicate` ☰ predicate section
+    `projection` ☰ projection section
+    `alias` ☰ → development/databases/Oracle/SQL/statement/query-block[Query block] name / Object alias section
+    `remote` ☰ information for distributed query (e.g. remote from serial distribution and remote SQL)
+    `note` ☰ note section
+  table } 
+
+code {
+select * from table(dbms_xplan.display(format=>'basic +note'));
+code }
+
+}

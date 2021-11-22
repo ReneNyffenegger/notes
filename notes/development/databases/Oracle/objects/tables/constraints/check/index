@@ -1,1 +1,51 @@
 $ Oracle: CHECK constraint
+
+A `check` constraint makes sure that the values of a column adhere to some basic rules which are formulated with SQL expressions.
+
+
+Create a table with constraints on columns:
+code {
+create table tq84_checked_columns (
+   num  integer        check (num between 0 and 1e5)   not null,
+   txt  varchar2(42)   check (length(txt) > 5      )           ,
+   dat  date           check (dat = trunc(dat)     )
+);
+code }
+
+Insert two records: 
+code {
+insert into tq84_checked_columns values (42, null, null);
+insert into tq84_checked_columns values (99, 'hello world', date '2021-05-13');
+code }
+
+The following insert statement throws *ORA-02290: check constraint (RENE.SYS_C0023376) violated*:
+code {
+insert into tq84_checked_columns values ( 4, 'four'       , date '2023-04-03');
+code }
+
+Find violated expression in `user_constraints`:
+code {
+select search_condition from user_constraints where constraint_name = 'SYS_C0023376';
+--
+-- length(txt) > 5    
+code }
+
+{ Using better named constraints
+
+  It's possible to name check constraints with more meaningful names than the system generated ones (`SYS_…`):
+code {
+create table tq84_checked_columns (
+   num  integer        constraint chk_num check (num between 0 and 1e5)   not null,
+   txt  varchar2(42)   constraint chk_txt check (length(txt) > 5      )           ,
+   dat  date           constraint chk_dat check (dat = trunc(dat)     )
+);
+code }
+
+  With «better» named constraints, when an `ORA-02290` occurs, the source of the error becomes clearer more rapidly:
+code {
+insert into tq84_checked_columns values (4, 'four', date '2023-04-03');
+--
+-- ORA-02290: check constraint (RENE.CHK_TXT) violated
+code }
+
+}

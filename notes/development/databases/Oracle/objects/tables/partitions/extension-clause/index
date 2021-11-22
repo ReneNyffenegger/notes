@@ -1,0 +1,45 @@
+$ Oracle: Partition extension clause
+
+In an → development/databases/Oracle/SQL/statement, the *partition  extension clause* allows to treat a single partition of a
+→ development/databases/Oracle/objects/tables/partitions[partitioned] table as an entire table.
+
+A simple case of the partition extension clause is demonstrated with the following statements.
+
+First, we need a partitioned table …
+code {
+create table tq84_tab_part (
+   num   integer           check (num between 0 and 1e5 -1) not null,
+   txt  varchar2(10)
+)
+partition by range (num) (
+   partition  rng_1  values less than (0.25e5  ),
+   partition  rng_2  values less than (0.50e5  ),
+   partition  rng_3  values less than (0.75e5  ),  
+   partition  rng_4  values less than (maxvalue)
+);
+code }
+ 
+… with some data:
+code {
+insert into tq84_tab_part
+select
+   level -1,
+   dbms_random.string('a', 10)
+from
+   dual
+connect by level <= 1e5;
+code }
+ 
+Then, we select from all four partitions and combine results with `union all`. The partition extension clause is `table_name(partition_name)`:
+code {
+select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_1)  union all
+select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_2)  union all
+select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_3)  union all
+select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_4);
+code }
+ 
+
+It's also possible to select from the partition in which a given value of the partition key resides (here, the partition into which the record with `num` equal to 55555 is located):
+code {
+select count(*), min(num), max(num), max(txt) from tq84_tab_part partition for (55555);
+code }

@@ -1,12 +1,21 @@
 $ Oracle: V$DIAG_TRACE_FILE_CONTENTS
+@ v$diag_trace_file_contents
 
 `v$diag_trace_file_contents` shows the contents of → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace files]. 
+
+{ Select content from current trace file
 
 code {
 alter session set events '10046 level 12';
 
+with fil as (
+   select
+      case when platform_name like 'Microsoft Windows %' then '\' else '/' end separator
+   from
+      v$database
+)
 select
-trc.adr_home, trc.trace_filename,
+ 
    trc.payload,
    trc.timestamp,
    trc.section_id,
@@ -22,12 +31,15 @@ trc.adr_home, trc.trace_filename,
    trc.parent_level,
    trc.container_name,
    trc.con_id,
-   trc.con_uid
+   trc.con_uid,
+   trc.adr_home, trc.trace_filename,
+   inf.value
 from
-   v$diag_trace_file_contents  trc  join
-   → development/databases/Oracle/installed/dynamic-performance-views/diag/info[v$diag_info]                 inf on inf.value = trc.adr_home || '\trace\' || trc.trace_filename
-   --                                                              ^^^^^^^^^
-   --                                                               ? ? ? ?
+   fil                                                                                                 cross join
+   v$diag_trace_file_contents  trc                                                                           join
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/info                 inf on inf.value like trc.adr_home || fil.separator || 'trace' || fil.separator || trc.trace_filename
+   --                                                                                 ^^^^^^^
+   --                                                                                 ? ? ? ?
 where
    inf.name = 'Default Trace File'
 order by
@@ -35,6 +47,7 @@ order by
 ;
 code }
 
+}
 
 sa:
 

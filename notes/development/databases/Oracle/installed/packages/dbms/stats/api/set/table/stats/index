@@ -1,0 +1,64 @@
+$ Oracle: DBMS_STATS.SET_TABLE_STATS
+
+{ Artificially blow table size up
+
+
+code {
+create table tq84_blown_up (
+   id number,
+   txt varchar2(500)
+);
+
+insert into tq84_blown_up
+select
+   level,
+   dbms_random.string('a', 500)
+from
+   dual connect by level < 40;
+
+
+declare
+  nofRows pls_integer;
+  nofBlks pls_integer;
+  avgLen  pls_integer;
+
+begin
+
+   dbms_stats.gather_table_stats(
+      ownname =>  user,
+      tabname => 'TQ84_BLOWN_UP'
+   );
+
+   dbms_stats.get_table_stats(
+      ownname =>  user          ,
+      tabname => 'TQ84_BLOWN_UP',
+      numrows =>  nofRows       ,
+      numblks =>  nofBlks       ,
+      avgrlen =>  avgLen
+   );
+
+   dbms_stats.set_table_stats(
+      ownname =>  user           ,
+      tabname => 'TQ84_BLOWN_UP' ,
+      numrows =>  nofRows * 12345,
+      numblks =>  nofBlks * 12345,
+      avgrlen =>  avgLen
+   );
+
+end;
+/
+
+select
+   num_rows,
+   blocks,
+   avg_row_len
+from
+   user_tables
+where
+   table_name = 'TQ84_BLOWN_UP';
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
