@@ -1,0 +1,35 @@
+$ Oracle: X$KTUXE
+@ x$ktuxe
+
+Kernel Transaction: Undo transaXtion Entry
+
+code {
+select
+   x.ktuxesta,
+   x.ktuxecfl,
+   x.ktuxeuel,
+   x.ktuxeusn                                          usn,        -- undo segment number
+   x.ktuxeslt                                          slt,        -- slot number in transaction table
+   x.ktuxesqn                                          wrp,        -- number of times the slot number was used (aka wrap)
+   x.ktuxesiz                                          undoblocks, -- remaining number of undo blocks to be applied in rollback
+   x.ktuxescnw * power(2,32)+x.ktuxescnb               scn,
+   x.ktuxescnw              ,x.ktuxescnb                  ,
+
+  '0x' || to_char(x.ktuxeusn, 'FM0xxxx') || '.' ||
+          to_char(x.ktuxeslt, 'FM0xxx' ) || '.' ||
+          to_char(x.ktuxesqn, 'FM0xxxxxxxx')           xid ,       -- Transaction ID
+   x.ktuxerdbf,
+   x.ktuxerdbb,
+   u.inst# instid,
+   u.name,
+   u.status$
+from
+   x$ktuxe x                          left join
+   undo$   u on x.ktuxeusn = u.us#
+--where
+--  x.ktuxesta = 'ACTIVE' and
+--  x.ktuxecfl like '%DEAD%' ;
+code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/fixed-tables

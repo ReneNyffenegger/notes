@@ -30,6 +30,11 @@ select * from table(dbms_xplan.display(format=>'typical'));
 -- information about the remote SQL statement.
 --
 select * from table(dbms_xplan.display(format=>'all'));
+
+-- Don't show «parallel information», even if if the plan were
+-- for a parallel execution. Otherwise the same as 'typical'
+--
+select * from table(dbms_xplan.display(format=>'serial'));
 code }
 
   More control on the displayed result set can be added with `+xxx` where `xxx` is
@@ -46,8 +51,11 @@ code }
     `note` ☰ note section
   table } 
 
+  The plus sign is optional, thus the following two statements are equivalent:
+
 code {
 select * from table(dbms_xplan.display(format=>'basic +note'));
+select * from table(dbms_xplan.display(format=>'basic  note'));
 code }
 
   Multiple options can be seperated with a comma or by introducing each one with a plus (`+`):
@@ -55,5 +63,18 @@ code {
 select * from table(dbms_xplan.display(format=>'basic +cost +bytes'));
 select * from table(dbms_xplan.display(format=>'basic +cost, bytes'));
 code }
+
+  Options can be turned off with a minus sign. Each option that is to be turned off must
+  be prepended with a minus, otherwise, it's interpreted as a plus:
+code {
+select * from table(dbms_xplan.display(format => 'typical -cost,-rows'));
+code }
+
+}
+
+{ Misc
+
+  I've also encountered `dbms_xplan.display_cursor(format=>’ALLSTATS LAST’)` in the wild. I am not sure how much sense this makes for a plan table that is filled with
+  → development/databases/Oracle/SQL/statement/verbs/explain/index[`explain plan`].
 
 }

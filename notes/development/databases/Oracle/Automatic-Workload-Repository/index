@@ -7,7 +7,7 @@ The *Automatic Workload Repository* (AWR) is a repository of historical performa
   • segments and
   • services.
 
-These statistics are colleted and evaluated in order to detect problems and self-tune the database.
+These statistics are collected and evaluated in order to detect problems and self-tune the database.
 
 { Collected performance statistics
 
@@ -43,6 +43,68 @@ These statistics are colleted and evaluated in order to detect problems and self
   ADDM can be run manually, if needed.
 
 }
+{ Query difference between two periods
+
+code {
+with
+stat_1 as       (-- {
+   select /*+ materialize */
+            stat.sql_id sql_id,
+       sum (stat.executions_delta    )        executions,
+       sum (stat.elapsed_time_delta  ) / 1e6 elapsed_time,
+       sum (stat.cpu_time_delta      )        cpu_time,
+       sum (stat.iowait_delta        )        iowait_time,
+       sum (stat.disk_reads_delta    )        disk_reads,
+       sum (stat.buffer_gets_delta   )        buffer_gets,
+       sum (stat.direct_writes_delta )        writes,
+       sum (stat.parse_calls_delta   )        parses,
+       sum (stat.sorts_delta         )        sorts
+   from
+       dba_hist_sqlstat stat  join
+       dba_hist_snapshot snap using (snap_id)
+   where
+       trunc(snap.end_interval_time) = trunc(sysdate-2)
+   group by
+       stat.sql_id
+   having sum(stat.executions_delta) > 0
+),  -- }
+stat_2 as       (-- {
+   select /*+ materialize */
+            stat.sql_id sql_id,
+       sum (stat.executions_delta    )       executions,
+       sum (stat.elapsed_time_delta  ) / 1e6 elapsed_time ,
+       sum (stat.cpu_time_delta      )       cpu_time,
+       sum (stat.iowait_delta        )       iowait_time,
+       sum (stat.disk_reads_delta    )       disk_reads,
+       sum (stat.buffer_gets_delta   )       buffer_gets,
+       sum (stat.direct_writes_delta )       writes,
+       sum (stat.parse_calls_delta   )       parses,
+       sum (stat.sorts_delta         )       sorts
+   from
+       dba_hist_sqlstat stat  join
+       dba_hist_snapshot snap using (snap_id)
+   where
+       trunc(snap.end_interval_time) = trunc(sysdate-1)
+   group by
+       stat.sql_id
+   having sum(stat.executions_delta) > 0
+)  -- }
+select           -- {
+   sql_id,
+   replace (cast (dbms_lob.substr (text.sql_text, 250) as varchar (250)), chr (10), '')   sql_text,
+   --
+   stat_2.elapsed_time - stat_1.elapsed_time elapsed_time_d, stat_1.elapsed_time elapsed_time_1, stat_2.elapsed_time elapsed_time_2,
+   stat_2.executions   - stat_1.executions   executions_d  , stat_1.executions     executions_1, stat_2.executions     executions_2
+from
+  stat_1                    full outer join
+  stat_2                using (sql_id) join
+  dba_hist_sqltext text using (sql_id)
+order by
+  nvl(stat_2.elapsed_time, 0) - nvl(stat_1.elapsed_time, 0) desc -- }
+;
+code }
+
+}
 sa:
 
   The → development/databases/Oracle/architecture/processes/background/MMON[`MMON`] and
@@ -56,3 +118,5 @@ sa:
   AWR snapshots and display the result of the analysis.
 
   `→ development/databases/Oracle/installed/packages/dbms/xplan[dbms_xplan].display_awr`
+
+  Data stored in the Automatic Workload Recpository can be queried from the `DBA_HIST_*` views.

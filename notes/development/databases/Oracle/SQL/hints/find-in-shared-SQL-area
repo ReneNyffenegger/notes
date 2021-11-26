@@ -1,0 +1,18 @@
+$ Oracle: Finding (undocumented) hints in the shared SQL area
+
+The following SQL statement tries to find SQL statements with
+→ development/databases/Oracle/SQL/hints[hints] in the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache/Shared-SQL-Area. When I wrote
+this statement, I hoped I'd find hints that are undocumented.
+code {
+select
+   distinct
+   → development/databases/Oracle/SQL/functions/regular_expressions/regexp_substr(lower(→ development/databases/Oracle/SQL/select/aggregate/listagg[listagg](t.sql_text, '') within group (order by t.piece)), '/\* *\+[^*]*')
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/text_with_newlines t
+where
+   piece < 20
+group by
+   sql_id
+order by
+   1;
+code }

@@ -8,9 +8,11 @@ DBMS_STATS.GATHER_TABLE_STATS (
    → development/databases/Oracle/installed/packages/dbms/stats/api/parameters/estimate_percent[estimate_percent] NUMBER              DEFAULT  to_estimate_percent_type (get_param('ESTIMATE_PERCENT')),
    block_sample     BOOLEAN             DEFAULT  FALSE,
    method_opt       VARCHAR2            DEFAULT  get_param('METHOD_OPT'),
-   degree           NUMBER              DEFAULT  to_degree_type(get_param('DEGREE')),
-   granularity      VARCHAR2            DEFAULT  GET_PARAM('GRANULARITY'), 
-   cascade          BOOLEAN             DEFAULT  to_cascade_type(get_param('CASCADE')),
+   degree           NUMBER              DEFAULT  to_degree_type(get_param('DEGREE')),                 -- Degree of parallelism used to gather table stats.
+   granularity      VARCHAR2            DEFAULT  GET_PARAM('GRANULARITY'),                            -- Only for partitioned objects: 
+                                                                                                      -- ALL, APPROX_GLOBAL AND PARTITION, AUTO, DEFAULT
+                                                                                                      -- GLOBAL, GLOBAL AND PARTITION, PARTITION or SUBPARTITION
+   cascade          BOOLEAN             DEFAULT  to_cascade_type(get_param('CASCADE')),               -- Should statistics also be collected for a table's indexes.
    stattab          VARCHAR2            DEFAULT  NULL, 
    statid           VARCHAR2            DEFAULT  NULL,
    statown          VARCHAR2            DEFAULT  NULL,
@@ -18,7 +20,22 @@ DBMS_STATS.GATHER_TABLE_STATS (
    stattype         VARCHAR2            DEFAULT 'DATA',
    force            BOOLEAN             DEFAULT  FALSE,
    context          DBMS_STATS.CCONTEXT DEFAULT  NULL, -- non operative
-   options          VARCHAR2            DEFAULT  get_param('OPTIONS'));
+   options          VARCHAR2            DEFAULT  get_param('OPTIONS')
+);
+code }
+
+code {
+begin
+   dbms_stats.gather_table_stats (
+       ownname          =>  user,
+       tabname          => '...',
+   --  partname         =>  ...
+       estimate_percent =>  100,
+       method_opt       => 'for all columns size auto',
+       cascade          =>  true
+   );
+end;
+/
 code }
 
 { Commit or no commit
