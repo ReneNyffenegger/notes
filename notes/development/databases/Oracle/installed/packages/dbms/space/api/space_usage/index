@@ -1,0 +1,67 @@
+$ DBMS_SPACE.SPACE_USAGE
+
+code {
+declare
+   seg_name       varchar2(128) := '...';
+   seg_owner      varchar2(128) := '...';
+   seg_type       varchar2( 25) := '...';
+   part_name      varchar2(128) :=  null;
+  
+   unformatted_blocks      number; unformatted_bytes number;
+   fs1_blocks              number; fs1_bytes         number;
+   fs2_blocks              number; fs2_bytes         number;
+   fs3_blocks              number; fs3_bytes         number;
+   fs4_blocks              number; fs4_bytes         number;
+   full_blocks             number; full_bytes        number;
+  
+   non_admin_blocks        number;
+   cnt_blocks              number;
+ 
+begin
+   
+ 
+   dbms_space.space_usage(
+      segment_owner           => seg_owner,
+      segment_name            => seg_name,
+      segment_type            => seg_type,
+      unformatted_blocks      => unformatted_blocks, unformatted_bytes => unformatted_bytes,
+      fs1_blocks              => fs1_blocks        , fs1_bytes         => fs1_bytes        ,
+      fs2_blocks              => fs2_blocks        , fs2_bytes         => fs2_bytes        ,
+      fs3_blocks              => fs3_blocks        , fs3_bytes         => fs3_bytes        ,
+      fs4_blocks              => fs4_blocks        , fs4_bytes         => fs4_bytes        ,
+      full_blocks             => full_blocks       , full_bytes        => full_bytes       ,
+      partition_name          => part_name
+   );
+ 
+   
+   select blocks into cnt_blocks
+   from
+      dba_segments seg
+   where
+          seg.owner                  =     seg_owner         and
+          seg.segment_name           =     seg_name          and
+      nvl(seg.partition_name, 'n/a') = nvl(part_name, 'n/a') and
+          seg.segment_type           =     seg_type;
+ 
+   non_admin_blocks := full_blocks+ fs1_blocks + fs2_blocks + fs3_blocks + fs4_blocks+unformatted_blocks;
+  
+   dbms_output.put_line('Total blocks  :' || to_char(cnt_blocks , '999,999,990'));  
+   dbms_output.put_line('     100% full:' || to_char(full_blocks, '999,999,990'));  
+   dbms_output.put_line('75 - 100% full:' || to_char(fs1_blocks , '999,999,990'));
+   dbms_output.put_line('50 -  75% full:' || to_char(fs2_blocks , '999,999,990'));
+   dbms_output.put_line('25 -  50% full:' || to_char(fs3_blocks , '999,999,990'));
+   dbms_output.put_line(' 0 -  25% full:' || to_char(fs4_blocks , '999,999,990'));
+   dbms_output.put_line('unformatted   :' || to_char(unformatted_blocks , '999,999,990'));
+--
+-- Bitmap blocks, segment header, and extent map blocks are not accounted for by dbms_space.space_usage,
+-- we need to report those seperately:
+--
+   dbms_output.put_line('Admin blocks  :' || to_char(cnt_blocks - non_admin_blocks, '999,999,990'));
+   
+end;
+
+/
+code }
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/space[`dbms_space`]

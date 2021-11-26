@@ -1,0 +1,50 @@
+$ Oracle optimizer Tracing
+
+Set the event to trace the optimizer for a given → development/databases/Oracle/SQL/statement which is identified by an
+→ development/databases/Oracle/SQL/statement#ora-sql-stmt-ident-sqlid[sqlid]:
+code {
+begin execute immediate q'{
+   alter session set events 'trace[rdbms.SQL_Optimizer.*][sql:}' || dbms_sql_translator.sql_id(
+
+  'select * from user_objects'
+
+   ) ||']''';
+end;
+/
+code }
+
+Execute the query:
+code {
+select * from user_objects;
+code }
+
+Turn off tracing:
+code {
+alter session set events 'trace[rdbms.SQL_Optimizer.*] off';
+code }
+
+Look at the trace file via the dynamic performance views:
+code {
+select
+   line_number,
+   payload,
+   record_type,
+   component_name,
+   operation_name,
+   file_name,
+   function_name
+from
+   v$diag_trace_file_contents
+where
+   payload is not null and 
+-- lower(payload) like '%cost%' and
+-- not regexp_like(payload, '^_\w* *= ')  and
+-- function_name = 'dbktWriteTimestampWCdbInfo'
+   trace_filename = (select regexp_replace(value, '.*[\/]', '')  trace_file from v$diag_info where name = 'Default Trace File') 
+order by
+    line_number
+;
+code }
+
+sa:
+  → development/databases/Oracle/optimizer

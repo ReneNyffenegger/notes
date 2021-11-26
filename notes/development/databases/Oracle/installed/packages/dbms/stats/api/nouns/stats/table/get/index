@@ -1,0 +1,70 @@
+$ Oracle: DBMS_STATS.GET_TABLE_STATS
+
+code {
+
+create table tq84_stats_test (
+    id       integer,
+    col_1    varchar2(4000),
+    col_2    varchar2(4000)
+)
+pctfree 0;
+
+begin
+   for r in 1 .. trunc(dbms_random.value(20, 1000)) loop
+       insert into tq84_stats_test values (
+          r,
+          dbms_random.string('a', dbms_random.value(1, 4000)),
+          dbms_random.string('a', dbms_random.value(1, 4000))
+       );
+   end loop;
+end;
+/
+
+begin
+   dbms_stats.gather_table_stats (
+       ownname          =>  user,
+       tabname          => 'tq84_stats_test',
+   --  partname         =>  ...
+       estimate_percent =>  100,
+       method_opt       => 'for all columns size auto',
+       cascade          =>  true
+   );
+end;
+/
+
+declare
+   nofRows   number;
+   nofBlks   number;
+   avgLen    number;
+begin
+
+   dbms_stats.get_table_stats(
+      ownname =>  user          ,
+      tabname => 'tq84_stats_test',
+      numrows =>  nofRows       ,
+      numblks =>  nofBlks       ,
+      avgrlen =>  avgLen
+   );
+
+   dbms_output.put_line('nofRows: ' || nofRows);
+   dbms_output.put_line('nofBlks: ' || nofBlks);
+   dbms_output.put_line('avgLen:  ' || avgLen );
+end;
+/
+
+select
+   num_rows,
+   blocks,
+   avg_row_len
+from
+   user_tables
+where
+   table_name = 'TQ84_STATS_TEST';
+
+code }
+
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms/stats/api/set/table/stats[`set_table_stats`]
+
+  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
