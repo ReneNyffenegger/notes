@@ -24,6 +24,8 @@ code }
 }
 { Finding a monitor key
 
+  { Most recent monitored SQL statements
+
   The following query finds a session's most recent record in `v$sql_monitor`:
 code {
 --
@@ -48,9 +50,12 @@ where
    );
 code }
 
-  The following query joins → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] and
-  → development/databases/Oracle/installed/dynamic-performance-views/sql/area[`v$sqlarea`] with `v$sql_monitor` in order to hopefully find a
-  monitor key:
+  }
+  { Find a monitor key for a given SQL statement
+
+    The following query joins → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`] and
+    → development/databases/Oracle/installed/dynamic-performance-views/sql/area[`v$sqlarea`] with `v$sql_monitor` in order to hopefully find a
+    monitor key from a given SQL statement:
 code {
 select
     mon.key              mon_key,
@@ -68,9 +73,13 @@ from
             ses.serial#          = mon.session_serial#         join
     v$sqlarea               sql    on
             sql.sql_id           = mon.sql_id
+where
+    sql.sql_text = 'select /*+ monitor */ * from …' 
 order by
     mon.sql_exec_start desc;
 code }
+
+  }
 
 }
 { Columns
