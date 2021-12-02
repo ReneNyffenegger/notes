@@ -80,7 +80,42 @@ code {
 </other_xml>
 code }
 
-{ Querying other_xml with XPATH expressions
+{ Second level XML elements
+
+  The following query is an attempt to find the second level (one below the root element `other_xml`, that is) XML elements:
+code {
+select
+   count(*),
+   t.name
+from
+-- v$sql_plan        p,
+   dba_hist_sql_plan p,
+   xmlTable(
+        '/other_xml/*'
+         passing xmlType(p.other_xml)
+      columns
+         name varchar2(4000) path './name()'
+   ) t
+where
+   p.other_xml is not null
+group by
+   t.name
+order by
+   t.name;
+code }
+  
+On a 19c database, this query returned these elements:
+  • display_map
+  • hint_usage
+  • info
+  • outline_data
+  • peeked_binds
+  • qb_registry
+  • spd
+  • stats
+
+}
+{ Querying OTHER_XML with XPATH expressions
 
  `other_xml` can be queried with → development/XML/XPath expressions.
 

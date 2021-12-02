@@ -1,0 +1,70 @@
+$ SQL*Plus: SET NUMFORMAT / NUMWIDTH
+
+The values of `numformat` and `numwidth` control how → development/databases/Oracle/SQL-Plus formats and displays numbers.
+
+The value of `numwidth` only has an effect if `numformat` is not set.
+-
+The effect of `numwidth` (or `numformat`) can be overwritten for specific columns with → development/databases/Oracle/SQL-Plus/column/format[`column … format …`]
+
+code {
+select
+   1234567890      n_10,
+   12345678901     n_11,
+   123456789012    n_12,
+   1234567890123   n_13,
+   12345678901234  n_14,
+   12345.78901234  n_5_8
+from
+   dual;
+
+     N_10       N_11       N_12       N_13       N_14      N_5_8
+---------- ---------- ---------- ---------- ---------- ----------
+1234567890 1.2346E+10 1.2346E+11 1.2346E+12 1.2346E+13  12345.789
+code }
+
+
+code {
+set numwidth  13
+
+/
+
+         N_10          N_11          N_12          N_13          N_14         N_5_8
+------------- ------------- ------------- ------------- ------------- -------------
+   1234567890   12345678901  123456789012 1234567890123 1.2345679E+13 12345.7890123
+code }
+
+
+code {
+set numwidth  5
+
+/
+
+ N_10  N_11  N_12  N_13  N_14 N_5_8
+----- ----- ----- ----- ----- -----
+##### ##### ##### ##### ##### 12346
+code }
+
+code {
+set numformat 999,999,999,990.999
+
+/
+                N_10                 N_11                 N_12                 N_13                 N_14                N_5_8
+-------------------- -------------------- -------------------- -------------------- -------------------- --------------------
+   1,234,567,890.000   12,345,678,901.000  123,456,789,012.000 #################### ####################           12,345.789
+code }
+
+code {
+column N_13 format 9999999999999999
+
+/
+
+                N_10                 N_11                 N_12              N_13                 N_14                N_5_8
+-------------------- -------------------- -------------------- ----------------- -------------------- --------------------
+   1,234,567,890.000   12,345,678,901.000  123,456,789,012.000     1234567890123 ####################           12,345.789
+code }
+
+sa:
+
+  The → development/databases/Oracle/SQL/data-types/number[`number` datatype].
+
+  → development/databases/Oracle/SQL-Plus
