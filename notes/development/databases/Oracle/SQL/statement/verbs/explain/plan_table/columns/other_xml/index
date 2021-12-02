@@ -107,12 +107,71 @@ code }
 On a 19c database, this query returned these elements:
   • display_map
   • hint_usage
-  • info
+  • → #other_xml-info
   • outline_data
   • peeked_binds
   • qb_registry
   • spd
   • stats
+
+  { info #other_xml-info
+
+    { Attributes of info
+
+      The following query finds the possible attribute names of the `<info>` element. In 19c, these are
+        • id
+        • note
+        • type
+      
+code {
+select
+   count(*),
+   t.name
+from
+-- v$sql_plan p,
+   dba_hist_sql_plan p,
+   xmlTable(
+        '/other_xml/info/@*'
+         passing xmlType(p.other_xml)
+      columns
+         name varchar2(4000) path './name()'
+   ) t
+where
+   p.other_xml is not null
+group by
+   t.name
+order by
+   t.name;
+code }
+
+    }
+    { Values of type
+
+      The values of the `type` attribute can be queried like so:
+code {
+select
+   count(*),
+   t.name
+from
+-- v$sql_plan p,
+   dba_hist_sql_plan p,
+   xmlTable(
+        '/other_xml/info/@type'
+         passing xmlType(p.other_xml)
+      columns
+         name varchar2(4000) path '.'
+   ) t
+where
+   p.other_xml is not null
+group by
+   t.name
+order by
+   t.name;
+code }
+
+    }
+
+  }
 
 }
 { Querying OTHER_XML with XPATH expressions
