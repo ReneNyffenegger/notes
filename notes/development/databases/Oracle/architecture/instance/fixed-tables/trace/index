@@ -31,6 +31,32 @@ code }
 The values in the columns `filename` and `function` allow for some speculations about
 → development/databases/Oracle/internals#ora-intenals-filenames-and-functions[Oracle's internals].
 
+{ Component names and event numbers #ora-x-trace-components-events
+
+  The following query finds component names and associated event numbers in `x$trace`:
+code {
+select
+   case when nvl(lag(component         ) over (order by lower(component), event, function), 'n/a') <> component          then component end component_,
+   case when nvl(lag(component || event) over (order by lower(component), event, function), 'n/a') <> component || event then event     end event_    ,
+   function
+-- count(*)    cnt,
+-- min(data)   min_data,
+-- max(data)   max_data
+from
+   x$trace
+group by
+   component,
+   event,
+   function
+order by
+   lower(component);
+code }
+
+  Compare selected
+    • component names with those reported by → development/databases/Oracle/tools/oradebug/doc/component[`oradebug doc components`].
+    • event numbers with → development/databases/Oracle/adminstration/init-parameters/event/list[the list of possible values for the `event` parameter]
+
+}
 { TODO
 
   What (if) is the relationship to → development/databases/Oracle/architecture/instance/fixed-tables/dbg/tf/view

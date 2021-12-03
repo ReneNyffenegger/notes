@@ -1,4 +1,4 @@
-$ Oracle optimizer
+$ Oracle Optimizer
 @ optimizer
 
 When an → development/databases/Oracle/SQL/statement[SQL statement] is submitted to Oracle, the optimizer evaluates different plans how this SQL statement might be executed.
@@ -11,15 +11,40 @@ The → development/databases/Oracle/SQL/hints[`leading` hint] can be used to in
 
 In order to estimate the costs, the optimizer needs → development/databases/Oracle/optimizer/statistics[optimizer statistics].
 
-The optimizer is influenced by
-  • → development/databases/Oracle/adminstration/init-parameters/index[Initialization parameters]
-  • Table and index statistics gathered by → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
-  • SQL profiles
-  • → development/databases/Oracle/SQL/statement/execution/plan/management[SQL plan management] / stored outlines
-  • → development/databases/Oracle/SQL/hints[SQL hints]
+The optimizer is sometimes also referred to by (its legacy name) *cost based optimizer* (CBO) to distinguish it from the *rule based optimizer* (RBO).
 
-The optimizer is sometimes also referred to by (its legacye nam) *cost based optimizer* (CBO) to distinguish it from the *rule based optimizer* (RBO).
 
+{ Influencing and supporting the optimizer
+
+  The optimizer is influenced by
+    • → development/databases/Oracle/adminstration/init-parameters/index[Initialization parameters]
+    • Table and index statistics gathered by → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
+    • SQL profiles
+    • → development/databases/Oracle/SQL/statement/execution/plan/management[SQL plan management] / stored outlines
+    • → development/databases/Oracle/SQL/hints[SQL hints]
+
+}
+{ Query transformations #ora-optimizer-qry-tran
+
+  For achieving better → development/databases/Oracle/SQL/statement/execution/plan[execution plans], the optimizer might choose to *transform* a query.
+
+  Available transformation techniques include
+  table { ll
+    OR-expansion ☰ `where tab.col_1 = 'foo' or tab.col_2 = 'bar'`  -> `where tab.col_1 = 'foo' … UNION ALL … where tab.col_2 = 'bar'`
+    Simple view merging ☰ Merging *select-project-join* views
+    Complex view merging ☰ Merging views that contain `group by` and `distinct` clauses
+    Predicate pushing ☰ Push a predicate that is formulated on the outer query into the inner query.
+    → development/databases/Oracle/optimizer/features/subquery/unnesting[Subquery unnesting] ☰ Transform a → development/databases/Oracle/SQL/select/subquery into a → development/databases/Oracle/SQL/join operation.
+    Query rewriting ☰ Use a → development/databases/Oracle/objects/views/materialized to improve performance of a query
+    Star tranformation ☰ Avoid full table scans of fact tables in a star schema.
+    In-memory aggregation (vector group by) ☰
+    Cursor duration temporary tables ☰ Temporarily store result of a query blocks that are used multiple times. See also the → development/databases/Oracle/SQL/clauses/with[`with` clause]. 
+    Table expansion ☰ See also the `expand_table` → development/databases/Oracle/SQL/hints[hint]
+    Join factorization ☰  Factorize common computations from branches of a → development/databases/Oracle/SQL/select/set-operators/union/all[`union all`] query.
+  table }
+
+
+}
 { Features # ora-optimizer-features
 
   table { ll

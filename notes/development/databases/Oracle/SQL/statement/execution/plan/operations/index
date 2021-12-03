@@ -3,7 +3,7 @@ $ Oracle: SQL statement execution plan operations
 An → development/databases/Oracle/SQL/statement/execution/plan consists of a series of tree-like nested operations.
 
 There are two types of operations:
-  • Operations that retrieve data from a → development/databases/Oracle/architecture/database/files/data (for example `TABLE ACCESS (FULL)`, or
+  • Operations that retrieve data from a → development/databases/Oracle/architecture/database/files/data (for example `TABLE ACCESS (FULL)`), or
   • Operations that combine or otherwise manipulate the data that it receives from its child operations (for example `NESTED JOIN`).
 
 
@@ -36,7 +36,7 @@ table { llll
    DELETE STATEMENT ☰  ☰ 1 ☰
    EXTENDED DATA LINK ☰ FULL ☰ 1 ☰
    FAST DUAL ☰  ☰ 1 ☰
-   FILTER ☰  ☰ 1 - n ☰ Only pass on rows that match criteria. Compare with the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[column `filter_predicates`] of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
+   FILTER ☰  ☰ 1 - n ☰ Only pass on rows that match criteria. Compare with the plan operation `VIEW` and the  → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[plan table column `filter_predicates`] of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
    FIRST ROW ☰  ☰ 1 ☰
    FIXED TABLE ☰ FIXED INDEX ☰ 1 ☰
    FIXED TABLE ☰ FULL ☰ 1 ☰
@@ -67,7 +67,7 @@ table { llll
    JOIN FILTER ☰ CREATE ☰ 1 ☰
    JOIN FILTER ☰ USE ☰ 1 ☰
    JSONTABLE EVALUATION ☰ ☰ ? ☰ Apparently used to execute statements with → development/databases/Oracle/SQL/functions/json/table[`json_table()`] expression.
-   LOAD AS SELECT ☰ (CURSOR DURATION MEMORY) ☰ 1 - ? ☰
+   LOAD AS SELECT ☰ (CURSOR DURATION MEMORY) ☰ 1 - ? ☰ Related to the *star transformation* → development/databases/Oracle/optimizer#ora-optimizer-qry-tran[query transformation]
    LOAD AS SELECT ☰  ☰ 1 ☰
    LOAD TABLE CONVENTIONAL ☰  ☰ 1 - n ☰
    MERGE ☰  ☰ 1 ☰
@@ -127,7 +127,7 @@ table { llll
    UNION-ALL ☰  ☰ 1 - n ☰
    UPDATE ☰  ☰ 1 - n ☰
    UPDATE STATEMENT ☰  ☰ 1 ☰
-   VIEW ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a seperately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators.
+   VIEW ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a seperately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators. Compare with the plan operation `FILTER`.
    VIEW PUSHED PREDICATE ☰  ☰ 1 ☰
    WINDOW ☰ BUFFER ☰ 1 ☰ Used in `over()` clauses in an → development/databases/Oracle/SQL/select/analytic[analytic function] when the clause does not contain a `partition by` or `order by`.
    WINDOW ☰ SORT ☰ 1 ☰ Used in `over()` clauses when the clause contains a `partition by` or `order by`.
@@ -204,5 +204,9 @@ sa:
 
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[`v$sql_plan_statistics`] provides *actual* (not estimated as in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`])
   statistics for every plan operation of an → development/databases/Oracle/SQL/statement/execution[executed SQL statement].
+  -
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor[`v$sql_plan_monitor`] reports those actual data even broken down to a single
+  → development/databases/Oracle/SQL/statement/execution[execution of an SQL statement].
+
 
   → development/databases/Oracle/SQL/statement/execution/plan[SQL statement execution plan]

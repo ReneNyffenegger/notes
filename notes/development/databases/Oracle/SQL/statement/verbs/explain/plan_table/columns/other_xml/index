@@ -106,7 +106,7 @@ code }
   
 On a 19c database, this query returned these elements:
   • display_map
-  • hint_usage
+  • → #other_xml-hint_usage
   • → #other_xml-info
   • outline_data
   • peeked_binds
@@ -145,9 +145,39 @@ order by
 code }
 
     }
-    { Values of type
+    { Values of the type attribute
 
-      The values of the `type` attribute can be queried like so:
+      The values of the `type` attribute incude
+         • adaptive_plan
+         • baseline_repro_fail
+         • cardinality_feedback
+         • cpu_rate
+         • db_version
+         • derived_cpu_dop
+         • derived_io_dop
+         • dop
+         • dop_op_reason
+         • dop_reason
+         • dynamic_sampling
+         • has_user_tab
+         • idl_reason
+         • index_size
+         • io_rate
+         • nodeid/pflags
+         • parse_schema
+         • pdml_reason
+         • performance_feedback
+         • plan_hash
+         • plan_hash_2
+         • plan_hash_full
+         • px_ext_opns
+         • px_in_memory
+         • px_in_memory_imc
+         • queuing_reason
+         • slave_parse
+         • sql_patch
+
+      These values can be queried like so:
 code {
 select
    count(*),
@@ -172,6 +202,85 @@ code }
     }
 
   }
+  { hint_usage #other_xml-hint_usage
+
+code {
+--
+-- As so often, Frank Pachot's insights were very helpful
+-- https://franckpachot.medium.com/oracle-19c-hint-usage-reporting-345563a461f0
+--
+with h as (
+select
+-- plan.sql_id,
+-- other_xml,
+   plan.qblock_name                                          query_block_name_plan,
+   qb.name                                                   query_block_name,
+   qb.status                                                 query_block_status  ,
+-- qb.hints.getClobVal()                                     hints,
+-- hint.o,                                                   -- ???
+   case  hint.status
+         when 'PE'   then 'Parse error'
+         when 'UR'   then 'Unresolved'
+         when 'NU'   then 'Not used (NU)'
+         when 'PU'   then 'Not used (PU)'
+         else              hint.status
+   end                                                       hint_status   ,
+   --
+   lower(regexp_replace(hint, '([^(]*).*'   , '\1'))         hint_name     ,
+   lower(regexp_substr(hint, '\((*.*)\)'    ))               hint_arguments,  
+   hint.hint                                                               , -- Text of hint
+   hint.reason,   -- index specified in the hint doesn't exist,
+                  -- rejected by IGNORE_OPTIM_EMBEDDED_HINTS
+                  -- same QB_NAME hints for different query blocks
+                  -- ORDER_SUBQ referenced query block name, which cannot be found
+                  -- hint overridden by another in parent query block
+   hint.obj_alias,
+   hint.hint_ts
+from
+-- plan_table        plan,
+-- v$sql_plan        plan,
+   dba_hist_sql_plan plan,
+   xmlTable('/*/hint_usage/q' passing xmltype(other_xml)
+                 columns
+                    name     VARCHAR2(4000) path './n',
+                    status   varchar2(   3) path '@st',  -- @st = status ?
+                    hints    xmlType        path './*'
+   ) qb,
+--
+-- Search for hints with '//h' because
+-- the <h> tag sometimes occurs directly below <hint_usage> and
+-- sometimes below <t>.
+--
+   xmlTable('//h'   passing qb.hints
+                    columns
+                       o              varchar2(   3) path '@o'    ,       -- EM or OU or ?
+                       status         varchar2(   3) path '@st'   ,
+                       hint           varchar2(4000) path 'x'     ,       -- The text of the hint (clob?)
+                       reason         varchar2(4000) path 'r'     ,      
+                       obj_alias      varchar2(4000) path './../f',
+                       hint_ts        varchar2(   3) path './../@st'
+   ) hint  
+where
+   other_xml is not null
+)
+select
+   *
+
+-- hint_status,
+-- hint_name,
+-- hint_arguments
+-- hint,
+-- obj_alias,
+-- hint_ts
+
+   -- count(*), hint_name, hint_status
+from
+   h
+;  
+code }
+
+  }
+
 
 }
 { Querying OTHER_XML with XPATH expressions
