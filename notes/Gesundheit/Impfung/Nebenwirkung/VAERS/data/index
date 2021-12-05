@@ -1,0 +1,100 @@
+$ VAERS data
+
+{ DATA.csv
+
+ *Flags* are stored in the CSV as either a `Y` or an empty string.
+
+  table { lll
+
+      ☰ ~Data type~ ☰ ~Notes~
+    VAERS_ID     ☰ number              ☰ → development/databases/SQL/table/constraint/primary-key[Primary key]. Apparently, vaers IDs can be queried online: → https://medalerts.org/vaersdb/findfield.php?IDNUMBER=1235909 (for VAERS id 1235909).
+    RECVDATE     ☰ date                ☰
+    STATE        ☰ text                ☰ Two letter abbreviation of state or territory (but also null-values). `FR` = Foreign.
+    AGE_YRS      ☰ text                ☰ The age (in years) at the time of vaccination.
+    CAGE_YR      ☰ number              ☰
+    CAGE_MO      ☰ number              ☰ Values in CSV: `.1`, `.2`, `.3` … `.9`, `1`, null
+    SEX          ☰ text                ☰ 'U', 'F' or 'M'
+    RPT_DATE     ☰ date                ☰ The date the report was submitted to VAERS.
+    SYMPTOM_TEXT ☰ long text           ☰ Write-up. Compare with *SYMPTOMS.csv*.
+    DIED         ☰ flag                ☰ Compare with `RECOVD`
+    DATEDIED     ☰ date                ☰
+    L_THREAT     ☰ flag                ☰ Flag whether the event was life-threatening.
+    ER_VISIT     ☰ flag                ☰ ER visit. If value of `ER_VISIT` is `Y`, then `ER_ED_VISIT` not not set.
+    HOSPITAL     ☰ flag                ☰ Wheather the patiant was hospitalized.
+    HOSPDAYS     ☰ number              ☰ Number of days spent in the hospital (if hospitalized).
+    X_STAY       ☰ flag                ☰ Prolongation of existing hospitallization
+    DISABLE      ☰ flag                ☰ Whether the patient was left disabled (Permanent disabilities?). Compare with `RECOVD`
+    RECOVD       ☰ text                ☰ `'N'`, `'Y'`, `'U'`, null; compare with `DIED` and `DISABLE`.
+    VAX_DATE     ☰ date                ☰ Date of vaccination.
+    ONSET_DATE   ☰ date                ☰ The date symptom onset.
+    NUMDAYS      ☰ number              ☰ Number of days between vaccination day and onset day
+    LAB_DATA     ☰ long text           ☰ Diagnostic lab data associated with the event.
+    V_ADMINBY    ☰ text                ☰ Type of facility where vaccine was administered `'SEN'`: Nursing home or senior living facility, `'SCH'`: School, `'WRK'`: Workplace clinic, `'MIL'`: Military, `'PUB'`: Public, `'PHM'`: Pharmacy, `'PVT'`: Private, `'UNK'`, `'OTH'`
+    V_FUNDBY     ☰ text                ☰ Agency funding the vaccination (VAERS 1.0 only) (`'MIL'`, `'OTH'`, `'PUB'`, `'PVT'`, `'UNK'`)
+    OTHER_MEDS   ☰ text                ☰ Other medications
+    CUR_ILL      ☰ long text           ☰ Illnesses at time of vaccination
+    HISTORY      ☰ long text           ☰ Preexisting Conditions
+    PRIOR_VAX    ☰ text                ☰ I cannot imagine that the values in this column can be somehow meaningfully analyzed.
+    SPLTTYPE     ☰ text                ☰ Manufacturer number or Immunization Project number as recorded on the specified field of the form. ¿ CDC Split Type: a field that holds arbitrary text, probably from other databases ?
+    FORM_VERS    ☰ number              ☰ Form version (`1` or `2`).
+    TODAYS_DATE  ☰ date                ☰ Date form was completed (¿ The date the report appeared in VAERS ?)
+    BIRTH_DEFECT ☰ flag                ☰ Congenital anomaly or birth defect
+    OFC_VISIT    ☰ flag                ☰ Whether the patient had a doctor's (or other health care provider's) office visit (VAERS 2.0 only).
+    ER_ED_VISIT  ☰ flag                ☰ Emergency room/department or doctor visit (VAERS 2.0 only). If value of `ER_ED_VISIT` is `Y`, then `ER_VISIT` is not set.
+    ALLERGIES    ☰ long text           ☰ Allergies to medications, food, or other products. VAERS 2.0 only
+
+  table }
+
+}
+{ VAX.csv
+
+  VAX.csv contains remaining vaccine information:
+  table { lll
+
+    VAERS_ID        ☰ number ☰ → development/databases/SQL/table/constraint/foreign-key[Foreign key] to DATA
+    VAX_TYPE        ☰ text   ☰ Administered vaccine type
+    VAX_MANU        ☰ text   ☰ The manufacturer of the vaccines given
+    VAX_LOT         ☰ text   ☰ The lot number of the vaccines given
+    VAX_DOSE_SERIES ☰ text   ☰ The dose number of the vaccines given
+    VAX_ROUTE       ☰ text   ☰ The route of vaccines given. (`UN`: Unknown, `ID`: Intradermal, `IM`: Intramuscular, `SC`: Subcutaneous, `IN`: Intranasal, `PO`: Per Oral, `SYR`: Needle and syrenge (not specified further), `JET`: Needle free jet injector device, `OT`: Other
+    VAX_SITE        ☰ text   ☰ The anatomic site (on the body) where the vaccines were administered 
+    VAX_NAME        ☰ text   ☰ The brand name of the vaccines given
+
+  table }
+
+  `VAX_DOSE` was discontinued in VAERS 2 form.
+
+
+}
+{ SYMPTOMS.csv
+
+  SYMPTOMS.csv contains adverse event coded terms utilizing the MedDRA dictionary.
+
+  `SYMPTOMS` is a denormalized table.
+
+  There can be an unlimited amount of coded terms for a given
+  event. Each row in the .csv will contain up to 5 MedDRA terms per VAERS ID; thus,
+  there could be multiple rows per VAERS ID.
+
+  Terms are included in alphabetical order.
+
+  table { lll
+
+    VAERS_ID        ☰  number ☰ → development/databases/SQL/table/constraint/foreign-key[Foreign key] to DATA
+    SYMPTOM1        ☰  text   ☰
+    SYMPTOMVERSION1 ☰  text   ☰ MedDRA dictionary version number
+    SYMPTOM2        ☰  text   ☰
+    SYMPTOMVERSION2 ☰  text   ☰
+    SYMPTOM3        ☰  text   ☰
+    SYMPTOMVERSION3 ☰  text   ☰
+    SYMPTOM4        ☰  text   ☰
+    SYMPTOMVERSION4 ☰  text   ☰
+    SYMPTOM5        ☰  text   ☰
+    SYMPTOMVERSION5 ☰  text   ☰
+
+  table }
+
+}
+
+sa:
+  → Gesundheit/Impfung/Nebenwirkung/VAERS
