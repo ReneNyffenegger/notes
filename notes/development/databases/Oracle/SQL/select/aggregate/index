@@ -11,6 +11,19 @@ Aggregate functions are allowed in
 
   gh|Oracle-Patterns|/SQL/select/aggregate/distinct.sql||
 
+  Unlike some SQL implementations found in other → development/databases[databases] (for example → development/databases/MySQL), Oracle does not allow to use a (comma-separated) list
+  of expressions in the `count(distinct …)` clause. The following statement raises *ORA-00909: invalid number of arguments*:
+code {
+select count(distinct owner, object_type) from all_objects
+code }
+
+  This short coming is typically circumvented with a subquery:
+code {
+select count(*) from (select distinct owner, object_type from all_objects);
+code }
+
+  See also the `approx_count_distinct(…)` function.
+
 }
 { median
 
