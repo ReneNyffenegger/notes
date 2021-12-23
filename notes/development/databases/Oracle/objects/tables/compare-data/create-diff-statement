@@ -7,6 +7,12 @@ with tabs as (
    from
       dual
 ),
+where_ as (
+   select
+      q'{num = 42 and txt = 'hello world'}' condition
+   from
+      dual
+),
 col as (
    select
         → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](a.column_name, ',') within group (order by b.column_id) as umns
@@ -20,12 +26,16 @@ col as (
        a.column_name = b.column_name
 )
 select 
-   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || ' minus select ' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || ') only_a union all' || chr(10) ||
-   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || ' minus select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || ') only_b'
+   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
+                                             'select ' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ') only_a union all' || chr(10) ||
+   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
+                                             'select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ') only_b'
 from
-   tabs cross join
+   tabs   cross join
+   where_ cross join
    col;
 code }
+
 
   With the following two tables …
 code {
@@ -38,6 +48,10 @@ code {
 select 'only A' where_, only_a.* from (select NUM,TXT from RENE.TQ84_A minus select NUM,TXT from RENE.TQ84_B) only_a union all
 select 'only B' where_, only_b.* from (select NUM,TXT from RENE.TQ84_B minus select NUM,TXT from RENE.TQ84_A) only_b
 code }
+
+
+
+
 
 sa:
   → development/databases/Oracle/objects/tables/compare-data[Compare the data of two tables]

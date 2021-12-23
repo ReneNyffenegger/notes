@@ -61,6 +61,68 @@ $ Oracle PL/SQL: EXECUTE IMMEDIATE
   gh|Oracle-Patterns|/PL-SQL/execute_immediate/select-returning-values.plsql||
 
 }
+{ BULK COLLECT #exec-immediate-bulk_collect
+
+  The following example combines `execute immedidate` with → development/databases/Oracle/PL-SQL/collection-types/return-table-from-function#ora-ret-tab-bulk-collect[`bulk collect`].
+
+  First we need an object and table type into which we select («bulk collect») the data:
+code {
+create or replace type varchar_number as object (
+   v varchar2(10),
+   i number
+)
+/
+
+create or replace type t_varchar_number as table of varchar_number
+/
+code }
+
+  We also need some data to select:
+code {
+create table vn (
+   v varchar2(10),
+   i number
+);
+
+insert into vn values ('uno',1);
+insert into vn values ('due',2);
+insert into vn values ('tre',3);
+
+commit;
+code }
+
+  The function that executes an SQL text and bulk collects into the table-type:
+code {
+create or replace function fct_t return t_varchar_number as
+   ret t_varchar_number;
+begin
+   execute immediate
+     'select varchar_number(v,i) from vn'
+   bulk collect into ret;
+
+   return ret;
+end;
+/
+code }
+
+   Finally: use the function:
+code {
+set serveroutput on size 10000
+
+declare
+   x t_varchar_number;
+begin
+   x := fct_t;
+
+   for r in (select * from table(cast(x as t_varchar_number))) loop
+     dbms_output.put_line(r.v || ', ' || r.i);
+   end loop;
+
+end;
+/
+code }
+
+}
 { Select statements
 
   In order for a → development/databases/Oracle/SQL/select[`select`] statement to be executed with `execute immediate`, at least one of the *into clause* or *bulk collect into clause* must be specifed.
@@ -71,6 +133,18 @@ begin
    execute immediate 'select → development/databases/Oracle/objects/sequences[tq84_seq].nextval from dual';
 end;
 /
+code }
+
+}
+{ Iterate over result (21c)
+
+  In 21c, it's possible to iterate over the result set produced by `execute immediate`:
+code {
+for rec rec_type IN VALUES OF (
+  execute immediate '…'
+) loop
+  …
+end loop;
 code }
 
 }
