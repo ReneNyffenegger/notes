@@ -84,6 +84,24 @@ code }
   Another interesting modifier is `'weekday n'` which returns the next date that falls on the given weekday (`0` = Sunday):
   gh|about-sqlite|/functions/date-time/weekday.sql||
 
+  { Calculating start of week
+    
+   *2021-11-30* is a Tuesday, the start (Sunday) of the corresponding week is *2021-11-28*. The following steps try to explain
+    how this date can be calculated:
+code {
+select                                  date('2021-11-30', 'weekday 0')      ; -- Next sunday: 2021-12-15
+select                        julianday(date('2021-11-30', 'weekday 0'))     ; -- Julian Day is 2459553.5
+select                        julianday(date('2021-11-30', 'weekday 0'))-7   ; -- Subtracting 7 days returns Julian Day 2459546.5
+select                   date(julianday(date('2021-11-30', 'weekday 0'))-7)  ; -- Convert Julian Day to date: 2021-11-28 (which is 2021-11-28)
+select strftime('%Y-%W', date(julianday(date('2021-11-30', 'weekday 0'))-7)) ; -- Select date's year and week (2021-47)
+code }
+
+code {
+select strftime('%Y-%W', date(julianday(date('2021-12-07', 'weekday 0')) -7));
+code }
+
+  }
+
 }
 { julianday #sqlite-julianday
 
