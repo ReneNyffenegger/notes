@@ -3,9 +3,62 @@ $ jsc.exe
 `jsc.exe` is a → development/languages/JScript .NET compiler that produces → Windows/development/Portable-Executable/EXE[executables] from
 → development/languages/JavaScript.
 
+On my current installation of Windows, I found `jsc.exe` under the following locations:
+   • `C:\Windows\Microsoft.NET\Framework\v2.0.50727\jsc.exe`
+   • `C:\Windows\Microsoft.NET\Framework\v4.0.30319\jsc.exe`
+   • `C:\Windows\Microsoft.NET\Framework64\v2.0.50727\jsc.exe`
+   • `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\jsc.exe`
+   • `C:\Windows\WinSxS\amd64_jsc_b03f5f7f11d50a3a_4.0.15805.0_none_02d98290c2a0aa6b\jsc.exe`
+   • `C:\Windows\WinSxS\amd64_netfx-jsc_b03f5f7f11d50a3a_10.0.19041.1_none_014838ef8bea39e9\jsc.exe`
+   • `C:\Windows\WinSxS\msil_jsc_b03f5f7f11d50a3a_10.0.19041.1_none_68bc95ae68779efe\jsc.exe`
+   • `C:\Windows\WinSxS\wow64_jsc_b03f5f7f11d50a3a_4.0.15805.0_none_2ca7c9aa83eb3f88\jsc.exe`
+
+{ Command line options
+
+code {
+C:\> jsc [options] <source files> [[options] <source files> …]
+code }
+
+  table { ll
+
+    `/out:<file>`              ☰ Specify name of binary output file
+    `/t[arget]:exe`            ☰ Create a console application (default)
+    `/t[arget]:winexe`         ☰ Create a windows application (→ Windows/development/Portable-Executable/EXE)
+    `/t[arget]:library`        ☰ Create a library → Microsoft/dot-net/assembly (→ Windows/development/Portable-Executable/DLL)
+    `/platform:<platform>`     ☰ Limit which platforms this code can run on; must be x86, Itanium, x64, or any cpu, which is the default
+
+    `/autoref[+|-]`            ☰ Automatically reference assemblies based on imported namespaces and fully-qualified names (on by default)
+    `/lib:<path>`              ☰ Specify additional directories to search in for references
+    `/r[eference]:<file list>` ☰ Reference metadata from the specified assembly file `<file list>: <assembly name>[;<assembly name>...]`
+
+    `/win32res:<file>`         ☰ Specifies Win32 resource file (.res)
+    `/res[ource]:<info>`       ☰ Embeds the specified resource <info>: <filename>[,<name>[,public|private]]
+    `/linkres[ource]:<info>`   ☰ Links the specified resource to this assembly <info>: <filename>[,<name>[,public|private]]
+
+    `/debug[+|-]`              ☰ Emit debugging information
+    `/fast[+|-]`               ☰ Disable language features to allow better code generation
+    `/warnaserror[+|-]`        ☰ Treat warnings as errors
+    `/w[arn]:<level>`          ☰ Set warning level (0-4)
+
+    `@<filename>`              ☰ Read response file for more options
+    `/?`, `/help`              ☰ Display help
+    `/d[efine]:<symbols>`      ☰ Define conditional compilation symbol(s)
+    `/nologo`                  ☰ Do not display compiler copyright banner
+    `/print[+|-]`              ☰ Provide print() function
+
+    `/codepage:<id>`           ☰ Use the specified code page ID to open source files
+    `/lcid:<id>`               ☰ Use the specified lcid for messages and default code page
+    `/nostdlib[+|-]`           ☰ Do not import standard library (mscorlib.dll) and change autoref default to off
+    `/utf8output[+|-]`         ☰ Emit compiler output in → development/Unicode/UTF-8[UTF-8] → development/Unicode/character-encoding[character encoding]
+    `/versionsafe[+|-]`        ☰ Specify default for members not marked 'override' or 'hide'
+
+  table }
+
+}
+
 { Simple example
 
-  The following source file can be compiled with `jsc src.js` and then executed with `src.exe`.
+  Assuming that the following source file is named `src.js`, it can be compiled with `jsc src.js` and then executed with `src.exe`.
 
 code {
 function add(a,b) {
@@ -13,5 +66,25 @@ function add(a,b) {
 }
 print(add(20, 22))
 code }
+
+}
+{ import statement
+
+  In order to use → Microsoft/dot-net/namespaces-classes[.NET types], the `import` statement is required:
+code {
+import System;
+
+print(System.Environment.CommandLine);
+
+var args = System.Environment.GetCommandLineArgs();
+for (var argNo in args) {
+   print(args[argNo]);
+}
+code }
+
+}
+{ No 'console' object
+
+  By default, there is no `console` object. Source code that contains something like `console.log("…")` will generate the error message *error JS1135: Variable 'console' has not been declared*.
 
 }
