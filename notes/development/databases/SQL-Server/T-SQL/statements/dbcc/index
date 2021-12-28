@@ -27,6 +27,36 @@ dbcc checkident ('TABLE_NAME', reseed, 0);
  The current value of a given trace flag can be queried with `dbcc tracestatus`.
 
 }
+{ Dump content of a page #dbcc-page
+
+Do not send output to errorlog:
+code {
+dbcc traceon (3604);
+code }
+
+  Dump content of page in database `tq84_db` whose file id is 1 and hose page id is 312.
+code {
+dbcc page (
+   /* database name: */ 'tq84_db',
+   /* file id      : */         1,
+   /* page id      : */       312,
+   /* option       : */         3
+) with tableresults;
+code }
+
+   File id and page id of a record can be queried with the → development/databases/SQL-Server/objects/table/column/virtual-system/physLoc[virtual system column `%%physLoc%%`].
+
+
+   The value of option is one of
+   table { rl
+     0 ☰ Page header only.
+     1 ☰ Page header + hex dump per row + page slot array (if available).
+     2 ☰ Page header + hex dump for entire page.
+     3 ☰ page header + detailed explanation for each record in the page.
+   table }
+
+
+}
 { Misc
 
   Check current identity value:
@@ -38,5 +68,11 @@ code }
 code {
 dbcc sqlperf
 code }
+
+  { stackdump
+
+    See also → Windows/dirs/Program-Files/Microsoft-SQL-Server/version/Shared/SqlDumper_exe[`SqlDumper.exe`].
+
+  }
 
 }

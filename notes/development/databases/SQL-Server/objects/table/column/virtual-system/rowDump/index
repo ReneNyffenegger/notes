@@ -1,0 +1,33 @@
+$ SQL Server: Virtual System Columns %%ROWDUMP%%
+
+code {
+create table tq84_tab (
+   id     uniqueidentifier,
+   val_1  numeric,
+   val_2  varchar(20)
+);
+code }
+
+code {
+insert into tq84_tab (val_1, val_2) values (42, 'forty-two'  );
+insert into tq84_tab (val_1, val_2) values (99, 'ninety-nine');
+code }
+
+code {
+select
+   tab.id,
+   tab.val_1,
+   tab.val_2,
+   tab.%%rowDump%%,
+   crk.*
+from
+  tq84_tab                               tab cross apply
+  sys.fn_rowDumpCracker(tab.%%rowDump%%) crk
+code }
+
+code {
+drop table tq84_tab;
+code }
+
+sa:
+  Other → development/databases/SQL-Server/objects/table/column/virtual-system[virtual system columns].

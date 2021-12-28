@@ -1,0 +1,43 @@
+$ SQL Server: Virtual System Columns %%PHYSLOC%%
+
+code {
+create table tq84_tab (
+   id     uniqueidentifier,
+   val_1  numeric,
+   val_2  varchar(20)
+);
+code }
+
+code {
+insert into tq84_tab (val_1, val_2) values (42, 'forty-two'  );
+insert into tq84_tab (val_1, val_2) values (99, 'ninety-nine');
+code }
+
+code {
+select
+   tab.id,
+   tab.val_1,
+   tab.val_2,
+   tab.%%physloc%%,
+   sys.fn_physLocFormatter(tab.%%physloc%%) as dataFileId_dataPageId_slot,
+   crk.file_id,
+   crk.page_id,
+   crk.slot_id
+from
+  tq84_tab tab                                        cross apply
+  sys.fn_physLocCracker  (tab.%%physloc%%) as crk;
+code }
+
+code {
+drop table tq84_tab;
+code }
+
+
+sa:
+
+  The values file_id and page_id that are returned by `sys.fn_physLocCracker` can be used in the  → development/databases/SQL-Server/T-SQL/statements/dbcc#dbcc-page[`dbcc page` statement] to dump the
+  content of the given page.
+
+  `%%physLoc%%` is probably the closest equivalent to Oracle's → development/databases/Oracle/SQL/data-types/rowid.
+
+  Other → development/databases/SQL-Server/objects/table/column/virtual-system[virtual system columns].
