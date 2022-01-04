@@ -1,5 +1,85 @@
 $ SQL Server: SET SHOWPLAN_ALL / SHOWPLAN_TEXT / SHOWPLAN_XML
 
+Do not execute SQL statements, but show the SQL statement's → development/databases/SQL-Server/sql/Query-Optimizer/Execution-Plan#mssql-exec-plan-types[estimated execution plan].
+
+code {
+create table tq84_tab_c (
+   id      integer       primary key,
+   val_a   varchar(10),
+   val_b   numeric
+);
+
+create table tq84_tab_d (
+   id      integer        foreign key references tq84_tab_c,
+   val_1   varchar(10),
+   val_2   numeric
+);
+go
+code }
+
+code {
+set showplan_all on
+go
+
+select
+   c.id,
+   c.val_a,
+   c.val_b,
+   d.val_1,
+   d.val_2
+from
+   tq84_tab_c  c                  join
+   tq84_tab_d  d on c.id = d.id;
+go
+
+set showplan_all off
+go
+code }
+
+code {
+set showplan_text on
+go
+
+select
+   c.id,
+   c.val_a,
+   c.val_b,
+   d.val_1,
+   d.val_2
+from
+   tq84_tab_c  c                  join
+   tq84_tab_d  d on c.id = d.id;
+go
+
+set showplan_text off
+go
+code }
+
+code {
+set showplan_xml on
+go
+
+select
+   c.id,
+   c.val_a,
+   c.val_b,
+   d.val_1,
+   d.val_2
+from
+   tq84_tab_c  c                  join
+   tq84_tab_d  d on c.id = d.id;
+go
+
+set showplan_xml off
+go
+code }
+
+code {
+drop table tq84_tab_d;
+drop table tq84_tab_c;
+code }
+
+
 sa:
 
   With `set statistics profile on`, SQL Server executes an SQL statement and then shows the information found in the → development/databases/SQL-Server/sql/Query-Optimizer/Execution-Plan#mssql-exec-plan-types[actual execution plan].
