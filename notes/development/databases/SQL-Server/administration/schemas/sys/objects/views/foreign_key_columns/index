@@ -2,7 +2,7 @@ $ SQL Server: sys.foreign_key_columns
 
 `sys.foreign_key_columns` lists the columns that participate in a 
   → development/databases/SQL-Server/objects/table/constraints/primary-key[primary]
-  → development/databases/SQL-Server/objects/table/constraints/foreign-key[foeign key] relation.
+  → development/databases/SQL-Server/objects/table/constraints/foreign-key[foreign key] relation.
 
 code {
 select
@@ -15,19 +15,20 @@ select
    fkc.parent_column_id        col_pk_id,
    fkc.referenced_column_id    col_fk_id
 from
-   sys.foreign_key_columns  fkc                                                join
-   sys.foreign_keys         fkk  on fkc.constraint_object_id = fkk.object_id   join
-   sys.objects              pat  on fkc.parent_object_id     = pat.object_id   join
-   sys.objects              ret  on fkc.referenced_object_id = ret.object_id   join
-   sys.columns              cop  on cop.object_id            = pat.object_id         and
-                                    cop.column_id            = fkc.parent_column_id       join
-   sys.columns              cor  on cor.object_id            = ret.object_id         and
+   sys.foreign_key_columns  fkc                                                                 join
+   sys.foreign_keys         fkk  on fkc.constraint_object_id = fkk.object_id                    join
+   sys.objects              pat  on fkc.parent_object_id     = pat.object_id                    join
+   sys.objects              ret  on fkc.referenced_object_id = ret.object_id                    join
+   sys.columns              cop  on cop.object_id            = pat.object_id              and
+                                    cop.column_id            = fkc.parent_column_id             join
+   sys.columns              cor  on cor.object_id            = ret.object_id              and
                                     cor.column_id            = fkc.referenced_column_id
--- where
---    fkk.name = 'tq84_fk'
+where
+-- fkk.name = 'tq84_fk'
+-- pat.name = 'tq84_f'   -- Child  table anme
+   ret.name = 'tq84_p'   -- Parent table name
 order by
    fkc.constraint_column_id;
-
 code }
 
 { Test data
