@@ -1,0 +1,47 @@
+$ ORA-00936: missing expression
+
+{ Using a column name that is a semi-reserved keyword
+
+  Semi-reserved keywords can be used as column names when tables or views are created. However, when using such column names in a query's select list,
+  the query throws a *ORA-00936: missing expression* error, as for example with the following query:
+code {
+select
+   group#,
+   thread#,
+   sequence#,
+   iscurrent,
+   current,
+   first_change#,
+   con_id
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/archive;
+code }
+
+  In order to query a semi-reserved keyword, they need to be quoted (`"…"`):
+code {
+select
+   group#,
+   thread#,
+   sequence#,
+   iscurrent,
+  "CURRENT",
+   first_change#,
+   con_id
+from
+   v$archive;
+code }
+
+  Semi-reserved keywords can be found in → development/databases/Oracle/installed/dynamic-performance-views/reserved_words[`v$reserved_words`]:
+code {
+select
+   keyword
+from
+   v$reserved_words
+where
+   res_semi = 'Y'
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/errors/ORA-00923_FROM-keyword-not-found-where-expected
