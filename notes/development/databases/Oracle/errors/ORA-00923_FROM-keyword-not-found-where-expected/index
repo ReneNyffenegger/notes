@@ -1,0 +1,51 @@
+$ ORA-00923: FROM keyword not found where expected
+
+{ Missing commas in select list
+
+  The error message *ORA-00923: FROM keyword not found where expected* might be caused by a missing comma in
+  the selected columns of a `select` statement:
+  code {
+  select
+     obj.object_name,
+     obj.object_type    -- <== Note the missing comma!
+     obj.last_ddl_time,
+     obj_status
+  from
+     user_objects obj;
+  code }
+
+}
+{ Using a keyword as alias #ora-00923-column-alias
+
+  Another reason for this error is to use a keyword (such as `share`) for a column-alias:
+
+code {
+select
+   '82.3 percent'  as share
+from
+   dual;
+code }
+
+
+  Keywords can be quoted (`"..."`) if the column really needs to be named after a reserved word:
+code {
+select
+   '82.3 percent'  as "SHARE"
+from
+   dual;
+code }
+
+  Keywords can be found in → development/databases/Oracle/installed/dynamic-performance-views/reserved_words[`v$reserved_words`]:
+code {
+select
+   keyword
+from
+   v$reserved_words
+where
+   reserved = 'Y'
+code }
+
+}
+
+sa:
+  ORA-00921: unexpected end of SQL command

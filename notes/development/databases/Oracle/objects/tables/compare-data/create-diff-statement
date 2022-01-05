@@ -1,5 +1,22 @@
 $ Oracle: Create an SQL statement to compare the content of two tables
 
+The result of the → development/databases/Oracle/SQL/statement presented here is *another* SQL statement which then can be used to
+→ development/databases/Oracle/objects/tables/compare-data[compare the data of two tables].
+
+When using this statement, the → development/databases/Oracle/users-roles/users[owners] and → development/databases/Oracle/objects/tables[table] names of the two tables that
+are to be compared need to be changed in the → development/databases/Oracle/SQL/clauses/with[`with` clause] named `tabs`.
+
+The value of `condition` that is specified in the `with` clause named `where_` allows to specify a `where` condition which is applied to both tables when their data is compared.
+The value of this condition must be changed, possibly to a `null` condion, like so:
+code {
+where_ as (
+   select
+      q'{}' condition
+   …
+code }
+
+{ Statement
+
 code {
 with tabs as (
    select  user ownr_a, 'TQ84_A' name_a,
@@ -36,6 +53,8 @@ from
    col;
 code }
 
+}
+{ Example
 
   With the following two tables …
 code {
@@ -43,13 +62,13 @@ create table tq84_A (num  number, txt varchar2(10));
 create table tq84_B (num  number, txt varchar2(10));
 code }
 
-  … The select statement produces the following SQL statement:
+  … the result of the select statement is the following SQL statement:
 code {
 select 'only A' where_, only_a.* from (select NUM,TXT from RENE.TQ84_A minus select NUM,TXT from RENE.TQ84_B) only_a union all
 select 'only B' where_, only_b.* from (select NUM,TXT from RENE.TQ84_B minus select NUM,TXT from RENE.TQ84_A) only_b
 code }
 
-
+}
 
 
 

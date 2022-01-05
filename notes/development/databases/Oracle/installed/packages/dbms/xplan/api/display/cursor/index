@@ -1,0 +1,76 @@
+$ Oracle: DBMS_XPLAN.DISPLAY_CURSOR
+
+If `display_cursor` is executed without specifying any arguments, it formats the exection plan of the last → development/databases/Oracle/SQL/statement[SQL statement] that was executed in the
+session.
+
+In order to display an arbitrary SQL statement that is found in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`], the
+SQL statement's `sql_id` and `child_number` must be provided as arguments to the function
+
+{ Example
+
+  { Execute an SQL statement
+
+    An SQL statement is executed.
+
+    In order to collect execution statistics for the SQL plan, the → development/databases/Oracle/SQL/hints[hint] `gather_plan_statistics` is used.
+
+    The SQL statement also has the text `find-this-statement-01` in a → development/databases/SQL/statement/comment[comment]. This text will be used to
+    find the statement's → development/databases/Oracle/SQL/statement#ora-sql-stmt-ident-sqlid[sql_id] and child number whose values are used in `dbms_xplan.display_cursor`.
+
+  code {
+select
+--+  gather_plan_statistics
+--   find-this-statement-01
+     count(*)       cnt
+from
+     dba_objects    a,
+     dba_objects    b
+where
+     a.created     > b.created      and
+     a.object_name > b.object_name
+;
+code }
+
+  }
+  { Find SQL_ID and child number of executed SQL statement
+
+code {
+select
+   sql_id,
+   child_number,
+   sql_text 
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql
+where
+   sql_text     like '%find-this-statement-01%' and
+   sql_text not like '%v$sql%';
+code }
+
+  }
+  { Execute DBMS_XPLAN.DISPLAY_CURSOR
+
+    With the sql_id and child number quried in the previous statement, we can now execute `dbms_xplan.display_cursor`:
+code {
+select
+   *
+from
+   table(dbms_xplan.display_cursor(
+           sql_id          => '1cb036z54s4hu',
+           cursor_child_no =>  0,
+           format          => 'ALLSTATS LAST'
+        ));
+code }
+
+  }
+
+}
+{ Data being used for DBMS_XPLAN.DISPLAY_CURSOR
+
+  The data that is formatted by `dbms_xplan.display_cursor` is found in
+  → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[`v$sql_plan_statistics_all`],
+  → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`], `v$sql_plan` and `v$sql_shard`.
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/monitoring[Real time SQL monitoring]
