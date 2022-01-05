@@ -1,0 +1,49 @@
+$ Oracle: Find tables with given set of column names
+
+The following queries finds all → development/databases/Oracle/objects/tables[tables] that have the
+→ development/databases/Oracle/objects/tables/columns[column] names listed in the `column_name in (…)` condition.
+-
+If the number of column names is changed in the condition, the value of the → development/databases/Oracle/SQL/select/aggregate/having[`having` clause]
+needs to be changed as well.
+code {
+select
+   owner,
+   table_name
+from
+   dba_tab_cols
+where
+   column_name in ('ID', 'TXT', 'DT', 'FLT', 'DBL')
+group by
+   owner,
+   table_name
+having
+   count(*) = 5   -- <== Change number 
+;
+code }
+
+Sometimes, we can only guess the name of the columns and need to search with `like` (or even → development/databases/Oracle/SQL/functions/regular_expressions/regexp_like[`regexp_like`]) as
+demonstrated in the following query. In order to improve the query's performance, I have also added `where … owner = user`. This condition needs to lifted or modified depending on
+table names and/or schema names that are looked for.
+code {
+select
+   owner,
+   table_name
+from
+   dba_tab_cols
+where
+(  
+   column_name like 'I%'    or
+   column_name like '_X_'   or
+   column_name like '%T'    or
+   column_name like 'F_T'   or
+   column_name like 'DB%'
+)
+and
+   owner = user
+group by
+   owner,
+   table_name
+having
+   count(*) = 5
+;
+code }
