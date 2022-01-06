@@ -1,0 +1,161 @@
+$ Examples for DBMS_METADATA: Recreate tables
+
+code {
+begin
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'DEFAULT'                  );
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'PRETTY'            , false);
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'SQLTERMINATOR'     , true );
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'CONSTRAINTS'       , false);
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'REF_CONSTRAINTS'   , false);
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'EMIT_SCHEMA'       , false);
+   dbms_metadata.set_transform_param (dbms_metadata.session_transform, 'SEGMENT_ATTRIBUTES', false);
+end;
+/
+code }
+
+Possibly, before executing the script in SQL*Plus, `long` might be set:
+code {
+set long 10000
+set lines 200 -- ?
+code }
+
+code {
+with tabl as (
+   select
+      table_name name
+   from
+      user_tables
+   where
+      table_name like 'TQ84_METADATA_TEST_TAB_%'
+),
+stmt as (
+
+   select
+      dbms_metadata.get_ddl('TABLE'         , tabl.name           , user) text, 1 order_by
+   from
+      tabl
+
+                    union all
+
+   select -- First: extract primary keys
+      dbms_metadata.get_ddl('CONSTRAINT'    , pkey.constraint_name, user)     , 2
+   from
+      tabl join user_constraints pkey on pkey.table_name      =  tabl.name and
+                                         pkey.constraint_type = 'P'
+
+                    union all
+
+   select -- Then: foreign keys
+      dbms_metadata.get_ddl('REF_CONSTRAINT', fkey.constraint_name, user) , 3
+   from
+      tabl join user_constraints fkey on fkey.table_name      =  tabl.name and
+                                         fkey.constraint_type = 'R'
+
+                    union all
+
+   select -- Finally other constraints
+      dbms_metadata.get_ddl('CONSTRAINT'    , ocon.constraint_name, user)         , 4
+   from
+      tabl join user_constraints ocon on ocon.table_name      =  tabl.name and
+                                         ocon.constraint_type not in ('P', 'R')
+)
+select
+    stmt.text
+from
+    stmt;
+code }
+
+{ test
+
+  Create some tables with cyclic foreign-primary key dependencies:
+code {
+create table tq84_metadata_test_tab_1 (
+    id   number  ( 9  )             ,
+    val  varchar2(10  )  not null   ,
+    uq   number  ( 5,2)   unique    ,
+    --
+    constraint tq84_metadata_test_tab_1_pk primary key (id)
+);
+
+create index tq84_metadata_test_tab_1_ix on tq84_metadata_test_tab_1 (val);
+
+create table tq84_metadata_test_tab_2 (
+   id    varchar2( 5)                ,
+   txt   varchar2(10)                ,
+   id_1                              ,
+   --
+   constraint tq84_metadata_test_tab_2_pk primary key (id  ),
+   constraint tq84_metadata_test_tab_2_fk foreign key (id_1) references tq84_metadata_test_tab_1
+);
+
+create table tq84_metadata_test_tab_3 (
+   id   varchar2(10)                 ,
+   dt   date           not null      ,
+   id_2                not null      ,
+   --
+   constraint tq84_metadata_test_tab_3_pk primary key (id  ),
+   constraint tq84_metadata_test_tab_3_fk foreign key (id_2) references tq84_metadata_test_tab_2
+);
+
+alter table tq84_metadata_test_tab_1 add constraint tq84_metadata_test_tab_1_fk foreign key(val) references tq84_metadata_test_tab_3;
+code }
+
+  Execute query above, should produce:
+
+code {
+  CREATE TABLE "TQ84_METADATA_TEST_TAB_1"
+   (  "ID" NUMBER(9,0),
+  "VAL" VARCHAR2(10),
+  "UQ" NUMBER(5,2)
+   ) ;
+
+  CREATE TABLE "TQ84_METADATA_TEST_TAB_2"
+   (  "ID" VARCHAR2(5),
+  "TXT" VARCHAR2(10),
+  "ID_1" NUMBER(9,0)
+   ) ;
+
+  CREATE TABLE "TQ84_METADATA_TEST_TAB_3"
+   (  "ID" VARCHAR2(10),
+  "DT" DATE,
+  "ID_2" VARCHAR2(5)
+   ) ;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_1" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_1_PK" PRIMARY KEY ("ID")
+  USING INDEX  ENABLE;"
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_2" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_2_PK" PRIMARY KEY ("ID")
+  USING INDEX  ENABLE;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_3" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_3_PK" PRIMARY KEY ("ID")
+  USING INDEX  ENABLE;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_1" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_1_FK" FOREIGN KEY ("VAL")
+    REFERENCES "TQ84_METADATA_TEST_TAB_3" ("ID") ENABLE;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_2" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_2_FK" FOREIGN KEY ("ID_1")
+    REFERENCES "TQ84_METADATA_TEST_TAB_1" ("ID") ENABLE;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_3" ADD CONSTRAINT "TQ84_METADATA_TEST_TAB_3_FK" FOREIGN KEY ("ID_2")
+    REFERENCES "TQ84_METADATA_TEST_TAB_2" ("ID") ENABLE;
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_1" MODIFY ("VAL" NOT NULL ENABLE);
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_3" MODIFY ("DT" NOT NULL ENABLE);
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_3" MODIFY ("ID_2" NOT NULL ENABLE);
+
+  ALTER TABLE "TQ84_METADATA_TEST_TAB_1" ADD UNIQUE ("UQ")
+  USING INDEX  ENABLE;
+code }
+
+  Drop test tables:
+code {
+alter table tq84_metadata_test_tab_1 drop constraint tq84_metadata_test_tab_1_fk;
+drop  table tq84_metadata_test_tab_3;
+drop  table tq84_metadata_test_tab_2;
+drop  table tq84_metadata_test_tab_1;
+code }
+
+}
+

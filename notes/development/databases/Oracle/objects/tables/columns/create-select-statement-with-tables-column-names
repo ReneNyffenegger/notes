@@ -1,0 +1,43 @@
+$ Oracle: Create a SELECT statment with a table's column names with SQL
+
+code {
+with par as (
+   select
+       'idt'                    as alias     ,
+       'dba_identifiers'        as table_name,
+        user                    as owner
+   from
+      dual
+),
+lines as (
+
+   select 'select'                                                                         stmt, 0 order_by from par union all
+
+   select
+      '   ' ||
+     -- rpad(par.alias || '.' || lower(column_name), 40)||
+     --      par.alias || '_' || lower(column_name)     ||
+             par.alias || '.' || lower(column_name)     ||
+       case when row_number() over (order by column_name) < count(*) over () then ',' end  stmt, 1
+   from
+      par                  cross join
+      dba_tab_columns col
+   where
+      col.owner      = upper(par.owner     )   and
+      col.table_name = upper(par.table_name)                                                                         union all
+
+   select 'from'                                                                               , 2 from dual         union all
+   select '   ' || par.owner || '.' || table_name || ' ' || alias || ';'                       , 3 from par
+)
+select
+   stmt
+from
+   lines
+order by
+   order_by,
+   stmt
+;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/columns

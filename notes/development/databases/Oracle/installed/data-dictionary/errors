@@ -2,7 +2,6 @@ $ USER_ERRORS / ALL_ERRORS / DBA_ERRORS / CDB_ERRORS
 
 Display → development/databases/Oracle/PL-SQL/errors-warnings[errors] or warnings (column `attribute`) of → development/databases/Oracle/PL-SQL objects (stored procedures, functions, packages etc.)
 
-
 { Join with ALL_SOURCE
 
   `ALL_ERRORS` can be joined with → development/databases/Oracle/installed/data-dictionary/source[`ALL_SOURCE`]:
@@ -34,7 +33,7 @@ code }
 { Most recent errors
 
   The following select statement joins `dba_errors` with → development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`] to order the result set
-  with the most recently installed objects first (`order by last_ddl_time desc`):
+  with the most recently modified objects first (`order by → development/databases/Oracle/installed/data-dictionary/objects/created-last_ddl_time-timestamp[timestamp] desc`):
 code {
 select
    err.owner,
@@ -52,9 +51,10 @@ from
                       err.name  = obj.object_name  and
                       err.type  = obj.object_type
 -- where
---    err.owner = user
+--    err.owner          = user
+--    obj.object_name    ='FOO'
 order by
-   obj.last_ddl_time desc nulls last,
+   obj.timestamp     desc nulls last,
    err.sequence;
 code }
 
@@ -69,4 +69,4 @@ sa:
   → development/databases/Oracle/SQL-Plus/sqlpath/err[`err.sql`] is a script to be placed into the → development/databases/Oracle/SQL-Plus/sqlpath[`$SQLPATH`] directory that allows to quickly select the errors
   in a → development/databases/Oracle/SQL-Plus session.
 
-  → development/databases/Oracle/installed/data-dictionary
+  Oracle's → development/databases/Oracle/installed/data-dictionary

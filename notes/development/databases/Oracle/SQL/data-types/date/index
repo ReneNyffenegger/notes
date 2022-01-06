@@ -11,6 +11,41 @@ A → development/databases/Oracle/SQL/data-types/timestamp[`timestamp`] value d
   (or microseconds), a *timestamp* literal is needed. However, a timestamp literal evaluates to a timestamp datatype, not a date datatype.
 
 }
+{ Subtracting dates from one another
+
+  A date can be subtracted from another date. The result is the difference between those dates measured in (fractional) units of days.
+
+  { Human readable representation of a date difference
+
+    Such a difference can be represented with a variation of the outlined idea below:
+code {
+with da as (
+   select
+            81           + -- days
+             7/24        + -- hours
+            25/24/60     + -- minutes
+            38/24/60/60    -- seconds
+   as   ys
+   from dual
+)
+select
+   da.ys,
+   --
+   trunc(da.ys) || ' days ' ||
+   to_char(
+      trunc(sysdate) + 
+      mod(da.ys, 1)  , --  Add date difference's fractional part to start of 'today'
+     'hh24 "hours" mi "minutes" ss "seconds"'
+   )                                                     humanly_readable
+from
+   da;
+code }
+
+   The value of `humanly_readable` of the previous query is: `81 days 07 hours 25 minutes 38 seconds`.
+
+  }
+
+}
 { Convert a date to a Julian day
 
   A date can be converted to a → Wissenschaft/misc/Bestimmung-von-Daten#julianischer-tag[Julian day] using the format model `J`:

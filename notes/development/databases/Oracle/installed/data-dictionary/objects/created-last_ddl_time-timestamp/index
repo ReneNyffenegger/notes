@@ -1,0 +1,37 @@
+$ Oracle: DBA_OBJECTS - columns CREATED, LAST_DDL_TIME and TIMESTAMP
+
+→ development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`] has three
+→ development/databases/Oracle/objects/tables/columns[columns] that store date-related information:
+table { ll
+  `created` ☰ Corresponds to the point in time when the corresponding → development/databases/Oracle/objects was created.
+  `last_ddl_time` ☰ Last modification (→ development/databases/Oracle/SQL/DDL[DDL statement]) of the object or dependent objects. This includes grants and revokes
+  `timestamp` ☰ Last modification of the *structure* of the object
+table }
+
+
+The → development/databases/Oracle/SQL/data-types[datatype] of `created` and `last_ddl_time` is → development/databases/Oracle/SQL/data-types/date[`date`], the datatype of
+`timestamp` is → development/databases/Oracle/SQL/data-types/varchar2[`varchar2`] (!) in the format `YYYY-MM-DD:HH24:MI:SS`.
+
+code {
+select
+   obj.object_name,
+   obj.subobject_name,
+   obj.object_type,
+   obj.created,
+   obj.last_ddl_time,
+   to_date(obj.timestamp, 'YYYY-MM-DD:HH24:MI:SS') timestamp_,
+   obj.status
+from
+   user_objects obj
+where
+-- obj.object_name     like '%FOOBAR%'     and
+   obj.object_name not like 'TQ84%'        and
+   obj.object_name not like 'ERR$%'        and
+   obj.object_type not in ('INDEX', 'LOB')
+order by
+   obj.timestamp desc;
+code }
+
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`]
