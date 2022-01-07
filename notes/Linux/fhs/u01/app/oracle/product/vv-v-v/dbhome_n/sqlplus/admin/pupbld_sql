@@ -1,9 +1,37 @@
 $ $ORACLE_HOME/sqlplus/admin/pupbld.sql
 
 `$ORACLE_HOME/sqlplus/admin/pupbld.sql` is the script that install the
-→ development/databases/Oracle/SQL-Plus[SQL*Plus] `PRODUCT_USER_PROFILE` tables.
+→ development/databases/Oracle/SQL-Plus[SQL*Plus] `PRODUCT_USER_PROFILE` → development/databases/Oracle/installed/data-dictionary/tables[table]
+and the `PRODUCT_PRIVS` → development/databases/Oracle/objects/views[view].
 
-These tables are only used by SQL*Plus and allow to disable commands per user.
+This table allows to disable SQL*Plus commands per → development/databases/Oracle/users-roles/users.
+
+These tables are only used by SQL*Plus and have no affect on other Oracle clients.
+
+code {
+create table sqlplus_product_profile (
+  product        varchar2 (30) not null,  -- Or varchar2(128)
+  userid         varchar2 (128),
+  attribute      varchar2 (240),
+  scope          varchar2 (240),
+  numeric_value  decimal (15,2),
+  char_value     varchar2 (240),
+  date_value     date,
+  long_value     long
+);
+code }
+
+code {
+create view product_privs as
+  select product, userid, attribute, scope,
+         numeric_value, char_value, date_value, long_value
+  from sqlplus_product_profile
+  where userid = 'public' or 
+        userid like sys_context('userenv','current_user');
+code }
 
 sa:
-  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/sqlplus/admin/index
+
+  SQL*Plus's → development/databases/Oracle/SQL-Plus#sql-plus-start-options[command line option] → development/databases/Oracle/SQL-Plus/_command-line/options/restrict[`-restrict`].
+
+  The parent directory → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/sqlplus/admin[`$ORACLE_HOME/sqlplus/admin`]
