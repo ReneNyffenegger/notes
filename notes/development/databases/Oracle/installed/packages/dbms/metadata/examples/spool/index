@@ -1,0 +1,104 @@
+$ Oracle DBMS_METADATA: Write selected DDL statements in a file with SQL*Plus' command SPOOL 
+
+An → development/databases/Oracle/SQL/statement with such a long line causes a problem when the statement is stored in an SQL script file which should be executed with
+SQL*Plus → development/databases/Oracle/SQL-Plus/start[`start` or `@`] command because the maximal length of an input line is 3000 characters after variable substitution and 4999 characters before variable substitution.
+-
+If one of these limits is exceeded, SQL*plus throws either the → development/databases/Oracle/SQL-Plus/_errors/SP2-0027_Input-is-too-long_4999-characters_line-ignored/ or
+→ development/databases/Oracle/SQL-Plus/_errors/SP2-0341_line-overflow-during-variable-substitution error message.
+
+This page resulted from a few frustrating moments when I tried to use → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`dbms_metadata.get_ddl`] together
+with SQL*Plus' → development/databases/Oracle/SQL-Plus/spool[`spool`] because I experienced exactly those two errors.
+
+{ Create a view with a very long text
+
+  In order to really go to the limits, I create a → development/databases/Oracle/objects/views[view] that has a ridiculously long line:
+code {
+declare
+   stmt varchar2(32000);
+begin
+
+   stmt := 'create or replace force view tq84_view_with_long_text as select 1 col_001';
+
+   for i in 2 .. 999 loop
+       stmt := stmt || ', ' || i || ' col_' || to_char(i, 'fm0009');
+   end loop;
+
+   stmt := stmt || ' from dual';
+
+   execute immediate stmt;
+
+end;
+/
+code }
+
+  In fact, the length of the line is 13892 characters.
+code {
+select
+   text_length,
+   text
+from
+   → development/databases/Oracle/installed/data-dictionary/views[user_views]
+where
+   view_name = 'TQ84_VIEW_WITH_LONG_TEXT';
+code }
+
+  The length of this text is sufficient to challenge the limits of SQL*Plus.
+
+}
+{ Spooling the DDL statements
+
+  The following script is a variation of the script which I used in SQL*Plus to spool the result of
+  → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`dbms_metadata.get_ddl`] to a file:
+code {
+begin
+--     dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'PRETTY'       , true );
+       dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SQLTERMINATOR', true );
+end;
+/
+
+set    → development/databases/Oracle/SQL-Plus/set/long[long]           100000000
+set    longchunksize  100000000
+set    → development/databases/Oracle/SQL-Plus/set/pagesize[pagesize]               0
+set    → development/databases/Oracle/SQL-Plus/set/linesize[linesize]           32000
+set    trimspool             on
+set    termout              off
+
+--
+--     Prevent
+--        SP2-0027: Input is too long (> 4999 characters) - line ignored and
+--        SP2-0341: line overflow during variable substitution (>3000 characters at line 1)
+--     when created file is spooled:
+--
+→ development/databases/Oracle/SQL-Plus/column[column] stmt format a3000 word_wrapped
+
+--
+--    Specify name of SQL script file to be created:
+--
+spool view-definition.sql
+
+select
+  dbms_metadata.get_ddl('VIEW', 'TQ84_VIEW_WITH_LONG_TEXT') stmt
+from
+  dual;
+
+spool off
+
+set termout               on
+code }
+
+  Such a script file can be executed in SQL*Plus with the → development/databases/Oracle/SQL-Plus/start[`start` or `@`] command:
+code {
+SQL> @create-ddl-file.sql
+code }
+
+  Executing `create-ddl-file.sql` creates the file `view-definition.sql` which contains the `create view` statement that (re-)creates the original `tq84_view_with_long_text` view.
+
+}
+{ (Re-) creating the original view
+
+  The original view can now be recreated by executing `view-definition.sql` in SQL*Plus:
+code {
+SQL> @view-definition
+code }
+
+}
