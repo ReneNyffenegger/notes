@@ -1,13 +1,17 @@
 $ Oracle DBMS_METADATA: Write selected DDL statements in a file with SQL*Plus' command SPOOL 
 
-An → development/databases/Oracle/SQL/statement with such a long line causes a problem when the statement is stored in an SQL script file which should be executed with
-SQL*Plus → development/databases/Oracle/SQL-Plus/start[`start` or `@`] command because the maximal length of an input line is 3000 characters after variable substitution and 4999 characters before variable substitution.
+The maximal length of an input line that SQL*Plus' can process is 3000 characters after variable substitution and 4999 characters before variable substitution.
 -
-If one of these limits is exceeded, SQL*plus throws either the → development/databases/Oracle/SQL-Plus/_errors/SP2-0027_Input-is-too-long_4999-characters_line-ignored/ or
+Therefore, SQL*Plus cannot be used to process → development/databases/Oracle/SQL/statement to execute SQL scripts 
+with SQL*Plus → development/databases/Oracle/SQL-Plus/start[`start` or `@`] command if only one line exceeds this limit.
+-
+If trying to execute such scripts, SQL*plus will throw either the → development/databases/Oracle/SQL-Plus/_errors/SP2-0027_Input-is-too-long_4999-characters_line-ignored/ or
 → development/databases/Oracle/SQL-Plus/_errors/SP2-0341_line-overflow-during-variable-substitution error message.
 
 This page resulted from a few frustrating moments when I tried to use → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`dbms_metadata.get_ddl`] together
 with SQL*Plus' → development/databases/Oracle/SQL-Plus/spool[`spool`] because I experienced exactly those two errors.
+
+The following steps is a summary on how it should be possible to extract DDL statements into an SQL script file and then to execute this script file to (re-)create the object.
 
 { Create a view with a very long text
 
