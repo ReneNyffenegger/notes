@@ -26,7 +26,7 @@ with tabs as (
 ),
 where_ as (
    select
-      q'{num = 42 and txt = 'hello world'}' condition
+      q'{grp = 'X'}' condition
    from
       dual
 ),
@@ -43,10 +43,12 @@ col as (
        a.column_name = b.column_name
 )
 select 
+  'select count(*) over () cnt_of_diffs, diffs.* from (' || chr(10) ||
    q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
                                              'select ' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ') only_a union all' || chr(10) ||
    q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
-                                             'select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ') only_b'
+                                             'select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ') only_b' || chr(10) ||
+   ') diffs'                                              
 from
    tabs   cross join
    where_ cross join
@@ -58,15 +60,42 @@ code }
 
   With the following two tables …
 code {
-create table tq84_A (num  number, txt varchar2(10));
-create table tq84_B (num  number, txt varchar2(10));
+create table tq84_A (grp char(1), num  number, txt varchar2(10), val number);
+create table tq84_B (grp char(1), num  number, txt varchar2(10)            );
 code }
 
   … the result of the select statement is the following SQL statement:
 code {
-select 'only A' where_, only_a.* from (select NUM,TXT from RENE.TQ84_A minus select NUM,TXT from RENE.TQ84_B) only_a union all
-select 'only B' where_, only_b.* from (select NUM,TXT from RENE.TQ84_B minus select NUM,TXT from RENE.TQ84_A) only_b
+select count(*) over () cnt_of_diffs, diffs.* from (
+select 'only A' where_, only_a.* from (select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X') only_a union all
+select 'only B' where_, only_b.* from (select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X') only_b
+) diffs
 code }
+
+  { Test data
+
+    Here's some data in order to test the generated SQL statement.
+
+code {
+insert into tq84_a values ('X', 1, 'one'  ,  2.3 );
+insert into tq84_b values ('X', 1, 'one'         );
+
+insert into tq84_a values ('X', 2, 'TWO'  ,  4.1 );
+insert into tq84_b values ('X', 2, 'two'         );
+
+insert into tq84_a values ('X', 3, 'three',  2.9 );
+insert into tq84_b values ('X', 3, 'three'       );
+
+insert into tq84_a values ('X', 4, 'four' , null );
+insert into tq84_b values ('X', 5, 'five'        );
+
+insert into tq84_a values ('Y', 7, 'seven',  5.7 );
+insert into tq84_b values ('Y', 9, 'nine'        );
+insert into tq84_b values ('Y', 8, 'eight'       );
+code }
+
+
+  }
 
 }
 

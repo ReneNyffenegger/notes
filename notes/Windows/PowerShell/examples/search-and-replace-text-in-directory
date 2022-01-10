@@ -1,0 +1,22 @@
+$ PowerShell: Search and replace text in a directory
+
+The following example tries to demonstrate how text can be searched/replaced in files in a directory and its subdirectories.
+
+I use the encoding *iso-8859-1* so that I can replace files in both, latin-1 and UTF-8 encoded files
+(as long as the text searched for and replaced with is does not have characters that cannot be represented with latin-1?).
+
+code {
+$enc = [System.Text.Encoding]::GetEncoding('iso-8859-1')
+
+get-childItem -recurse -attribute !d *.sql | % {
+
+   $fileContentBytes = [System.IO.File]::ReadAllBytes($_.FullName)
+   $fileContent = $enc.GetString($fileContentBytes)
+
+   $fileContent = $fileContent -replace 'rabenschwarz', 'hellgelb'
+
+   $fileContentBytes=$enc.GetBytes($fileContent)
+  [System.IO.File]::WriteAllBytes($_.FullName, $fileContentBytes)
+
+}
+code }
