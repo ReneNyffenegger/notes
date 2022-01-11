@@ -4,29 +4,31 @@ The result of the → development/databases/Oracle/SQL/statement presented here 
 → development/databases/Oracle/objects/tables/compare-data[compare the data of two tables].
 
 When using this statement, the → development/databases/Oracle/users-roles/users[owners] and → development/databases/Oracle/objects/tables[table] names of the two tables that
-are to be compared need to be changed in the → development/databases/Oracle/SQL/clauses/with[`with` clause] named `tabs`.
+are to be compared need to be changed in the → development/databases/Oracle/SQL/clauses/with[`with` clause] named `params`.
 
-The value of `condition` that is specified in the `with` clause named `where_` allows to specify a `where` condition which is applied to both tables when their data is compared.
+The value of `condition`, also specified in this `with` clause,  allows to specify a `where` condition which is applied to both tables when their data is compared.
 The value of this condition must be changed, possibly to a `null` condion, like so:
 code {
-where_ as (
+wth params as (
    select
+      …
       q'{}' condition
-   …
+      …
 code }
 
 { Statement
 
 code {
-with tabs as (
-   select  user ownr_a, 'TQ84_A' name_a,
-           user ownr_b, 'TQ84_B' name_b
-   from
-      dual
-),
-where_ as (
+with params as (
    select
-      q'{grp = 'X'}' condition
+
+      user owner_tab_1, 'TQ84_A'     name_tab_1,
+      user owner_tab_2, 'TQ84_B'     name_tab_2,
+
+      q'{grp = 'X'}'                 condition,
+
+      sys.dbms_debug_vc2coll('')     excluded_columns -- Add columns that need to be excluded from the comparison
+
    from
       dual
 ),
@@ -34,24 +36,25 @@ col as (
    select
         → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](a.column_name, ',') within group (order by b.column_id) as umns
    from
-       tabs                                                  join
-       → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] a on a.owner      = tabs.ownr_a and
-                            a.table_name = tabs.name_a       join
-       → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] b on b.owner      = tabs.ownr_b and
-                            b.table_name = tabs.name_b
+       params                                                  join
+       → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] a on a.owner      = params.owner_tab_1 and
+                            a.table_name = params.name_tab_1       join
+       → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] b on b.owner      = params.owner_tab_2 and
+                            b.table_name = params.name_tab_2
    where                           
-       a.column_name = b.column_name
+       a.column_name = b.column_name                                                   and
+       a.column_name not in (select column_value from table(params.excluded_columns))
 )
 select 
   'select count(*) over () cnt_of_diffs, diffs.* from (' || chr(10) ||
-   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
-                                             'select ' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ') only_a union all' || chr(10) ||
-   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || tabs.ownr_b || '.' || tabs.name_b || case when where_.condition is not null then ' where ' || where_.condition end || ' minus ' ||
-                                             'select ' || col.umns || ' from ' || tabs.ownr_a || '.' || tabs.name_a || case when where_.condition is not null then ' where ' || where_.condition end || ') only_b' || chr(10) ||
+   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
+                                             'select ' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ') only_a union all' || chr(10) ||
+
+   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
+                                             'select ' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ') only_b' || chr(10) ||
    ') diffs'                                              
 from
-   tabs   cross join
-   where_ cross join
+   params   cross join
    col;
 code }
 
