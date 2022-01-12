@@ -6,7 +6,7 @@ $ Oracle: DBMS_SQL_TRANSLATOR
   table { ll
 
     `clear_sql_translation_error` ☰
-    `create_profile` ☰
+    `create_profile` ☰ Create an *SQL translation profile* (schema level) object
     `deregister_error_translation` ☰
     `deregister_sql_translation` ☰
     `drop_profile` ☰
@@ -28,6 +28,45 @@ $ Oracle: DBMS_SQL_TRANSLATOR
   table }
 
 }
+{ Simple example
+
+  The specification of the PL/SQL package that translates SQL statements …
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/spec.sql||
+
+  … and its body:
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/body.sql||
+
+  Create a translation profile. Drop it, if it already exists
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/profile.sql||
+
+  Use the new profile in the current → development/databases/Oracle/architecture/session:
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/set-profile.sql||
+
+  Check the translation of an SQL statement.
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/get-translated.sql|
+
+  Yes, this seems to be necessary in order to *actually* translate the text of an SQL statement:
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/set-events.sql||
+
+  Execute an SQL statement, let Oracle translate it and return the translated statement's result set:
+  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/select.sql||
+
+}
+
+{ TODO
+
+code {
+select * from dba_sql_translation_profiles;
+select * from dba_objects where object_type = 'SQL TRANSLATION PROFILE';
+code }
+
+code {
+alter session set sql_translation_profile = …;
+alter session set events = '10601 trace name context forever, level 32';
+code }
+
+}
 
 sa:
+
   → development/databases/Oracle/installed/packages/dbms
