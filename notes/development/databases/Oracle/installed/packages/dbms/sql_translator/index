@@ -31,25 +31,26 @@ $ Oracle: DBMS_SQL_TRANSLATOR
 { Simple example
 
   The specification of the PL/SQL package that translates SQL statements …
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/spec.sql||
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/spec.sql||
 
   … and its body:
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/body.sql||
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/body.sql||
 
   Create a translation profile. Drop it, if it already exists
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/profile.sql||
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/profile.sql||
 
   Use the new profile in the current → development/databases/Oracle/architecture/session:
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/set-profile.sql||
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/set-profile.sql||
 
   Check the translation of an SQL statement.
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/get-translated.sql|
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/get-translated.sql||
 
-  Yes, this seems to be necessary in order to *actually* translate the text of an SQL statement:
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/set-events.sql||
+  Yes, this seems to be necessary in order to *actually* translate the text of an SQL statement. Setting event 10601 to level 32 speicifies that the
+  following SQL statemnt is one with *foreign syntax* (rather than *native syntax*). (TODO: This strange thing possibly goes away when setting `attr_foreign_sql_syntax` to `false`).
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/set-events.sql||
 
   Execute an SQL statement, let Oracle translate it and return the translated statement's result set:
-  gh|oracle-patterns|/Installed/dbms/dbms_sql_translator/interface-package/select.sql||
+  gh|oracle-patterns|/Installed/dbms/sql_translator/interface-package/select.sql||
 
 }
 
@@ -63,6 +64,11 @@ code }
 code {
 alter session set sql_translation_profile = …;
 alter session set events = '10601 trace name context forever, level 32';
+code }
+
+  → development/databases/Oracle/errors/ORA-01031_insufficient-privileges
+code {
+grant translate sql to rene;
 code }
 
 }
