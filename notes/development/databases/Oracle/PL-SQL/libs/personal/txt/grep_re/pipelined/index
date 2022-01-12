@@ -1,0 +1,39 @@
+$ Oracle PL/SQL package TXT: function GREP_RE_PIPELINED
+
+Create a table with a clob column:
+code {
+create table tq84_test_large_clob(id integer, txt clob);
+code }
+
+Fill in a clob that is larger than 32K:
+code {
+declare
+   c clob;
+begin
+   dbms_lob.createtemporary(c, false);
+   for i in 1 .. 10 loop
+       dbms_lob.append(c, to_char(i, 'fm9999') || ': ' || lpad('.', 5000, '.') || case when mod(i,2) = 0 then chr(13) end || chr(10));
+   end loop;
+   insert into tq84_test_large_clob values (1, c);
+end;
+/
+code }
+
+Use `txt.grep_re_pipelined` to turn the clob into lines:
+code {
+select
+   line.column_value
+from
+   tq84_test_large_clob lc,
+   table(txt.grep_re_pipelined(lc.txt, '[^' || chr(10) || chr(13) || ']+')) line
+where
+   lc.id = 1
+;
+code }
+
+code {
+drop table tq84_test_large_clob;
+code }
+
+sa:
+  → development/databases/Oracle/PL-SQL/libs/personal/txt
