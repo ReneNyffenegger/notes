@@ -5,8 +5,52 @@ The value of `cursor_sharing` can be set either to
   • `force` or
   • `exact`
 
+Ideally, the value of `cursor_sharing` is set to `exact`. But sometimes, there are applications that don't use bind variables. In that case, the value
+of `cursor_sharing` can be set to `force` in which case Oracle will substiute constants with bind variables and provide the substituted value for the bind variable.
+
+code {
+alter session set cursor_sharing = force;
+
+select /* cursor_sharing = force */ * from dual where 0 = 1;
+select /* cursor_sharing = force */ * from dual where 0 = 2;
+select /* cursor_sharing = force */ * from dual where 0 = 3;
+
+alter session set cursor_sharing = exact;
+
+select /* cursor_sharing = exact */ * from dual where 0 = 4;
+select /* cursor_sharing = exact */ * from dual where 0 = 5;
+select /* cursor_sharing = exact */ * from dual where 0 = 6;
+
+select
+   substr(sql_text, 1, 59) sql_text,
+   executions,
+   parse_calls,
+   sharable_mem,
+   persistent_mem,
+   runtime_mem
+from
+   v$sql
+where
+   sql_text like 'select /* cursor_sharing =%'
+order by
+   sql_text;
+--
+-- SQL_TEXT                                                    EXECUTIONS PARSE_CALLS SHARABLE_MEM PERSISTENT_MEM RUNTIME_MEM
+-- ----------------------------------------------------------- ---------- ----------- ------------ -------------- -----------
+-- select /* cursor_sharing = exact */ * from dual where 0 = 4          1           1        19420          16248       14840
+-- select /* cursor_sharing = exact */ * from dual where 0 = 5          1           1        19420          16248       14840
+-- select /* cursor_sharing = exact */ * from dual where 0 = 6          1           1        19420          16248       14840
+-- select /* cursor_sharing = force */ * from dual where :"SYS          3           3        23598          32552       30904
+code }
+
 sa:
 
+  The value of `cursor_sharing` can be set to `exact` for the duration of the → development/databases/Oracle/SQL/statement/execution[execution of an SQL statement] with the
+ `→ development/databases/Oracle/SQL/hints/list/cursor_sharing_exact` SQL → development/databases/Oracle/SQL/hints.
+
   It turned out that the value of `cursor_sharing` must be set to `exact` for the → development/databases/Oracle/Data-Cartridge/interfaces/table[ODCI table example].
+
+  → development/databases/Oracle/SQL/functions/type-conversion/to/number#ora-to_number-default-on-error[`to_number(… default on version error)` fails with the error message
+  → development/databases/Oracle/errors/ORA-43907_This-argument-must-be-a-literal-or-bind-variable if `cursor_sharing` is set to `force`.
 
   → development/databases/Oracle/adminstration/init-parameters

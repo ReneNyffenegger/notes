@@ -36,23 +36,23 @@ col as (
    select
         → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](a.column_name, ',') within group (order by b.column_id) as umns
    from
-       params                                                  join
+       params                                                      join
        → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] a on a.owner      = params.owner_tab_1 and
                             a.table_name = params.name_tab_1       join
        → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] b on b.owner      = params.owner_tab_2 and
                             b.table_name = params.name_tab_2
-   where                           
+   where
        a.column_name = b.column_name                                                   and
        a.column_name not in (select column_value from table(params.excluded_columns))
 )
-select 
+select
   'select count(*) over () cnt_of_diffs, diffs.* from (' || chr(10) ||
    q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
                                              'select ' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ') only_a union all' || chr(10) ||
 
    q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
                                              'select ' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ') only_b' || chr(10) ||
-   ') diffs'                                              
+   ') diffs'
 from
    params   cross join
    col;

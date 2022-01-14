@@ -1,0 +1,24 @@
+$ ORA-43907: This argument must be a literal or bind variable.
+
+Setting `→ development/databases/Oracle/adminstration/init-parameters/cursor_sharing` to `force` causes `to_number( … on conversion error)` to throw an *ORA-43907: This argument must be a literal or bind variable*
+error:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session] set → development/databases/Oracle/adminstration/init-parameters/cursor_sharing = force;
+
+select → development/databases/Oracle/SQL/functions/type-conversion/to/number(1 default -1 → development/databases/Oracle/SQL/functions/type-conversion/to/number#ora-to_number-default-on-error[on conversion error]) from dual;
+code }
+
+With the `→ development/databases/Oracle/SQL/hints/list/cursor_sharing_exact` hint, the error goes away.
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/cursor_sharing_exact */ to_number(1 default -1 on conversion error) from dual;
+code }
+
+Or alternatively, set `cursor_sharing` to `exact`:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session] set → development/databases/Oracle/adminstration/init-parameters/cursor_sharing = exact;
+
+select to_number(1 default -1 on conversion error) from dual;
+code }
+
+sa:
+  → development/databases/Oracle/errors/ORA-43918_This-argument-must-a-literal
