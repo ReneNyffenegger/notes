@@ -1,4 +1,5 @@
-$ PowerShell cmdLet format-table
+$ PowerShell cmdLet Format-Table
+@ format-table
 
 { Render property-values in table
 
@@ -93,6 +94,73 @@ code }
 code {
 PS C:\> $formatted[-1].GetType().FullName
 → Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/Internal/Format/FormatEndData[Microsoft.PowerShell.Commands.Internal.Format.FormatEndData]
+code }
+
+}
+{ Implicit invocation of Format-Table by Out-Default
+
+  The → Windows/PowerShell/command-inventory/noun/default/out[`Out-Default`] cmdlet, into which all → Windows/PowerShell/language/object[objects] produced in a
+  → Windows/PowerShell/pipeline are eventually piped, might decide to implicitely use
+ `Format-Table` internally to render objects.
+
+  A typical kind of objects for which `Out-Default` renders with `Format-Table` are *custom objects* with up to four properties and without a defined custom formatting.
+  -
+  Such objects are created, for example, by selecting less than five properties with → Windows/PowerShell/command-inventory/noun/object/select[`Select-Object`]. Thus, the output of the
+  following pipeline is rendered using `Format-Table`:
+code {
+→ Windows/PowerShell/command-inventory/noun/childItem/get | select-object name, length, isReadOnly, creationTime
+code }
+
+
+}
+{ 300 Millisecond delay when implicitely invoked
+
+  When `Format-Table` is (implicitely?) invoked, there is a period of 300 milliseconds in which the command collects objects in order to determine the widht's of the columns.
+  -
+  The longest width encountered during this period is then taken as width for the columns. Column values that exceed these widths are truncated.
+  -
+  This behavior is demonstrated with the following → Windows/PowerShell/script[PowerShell script]:
+  gh|about-PowerShell|/cmdlets/table/format/generate-objects-for-x-ms.ps1||
+
+  The script has one parameter which roughly specifies the duration after which the first «long» value for `txt` is produced.
+
+  Calling the script with 250 milliseconds produces:
+code {
+PS> .\generate-objects-for-x-ms.ps1 250
+
+num txt
+--- ---
+  1 abcdefghi
+  2 abcdefghi
+  3 abcdefghi
+  4 abcdefghi
+  5 abcdefghi
+  6 abcdefghijklmnopqrstuvwxyz
+  7 abcdef
+code }
+
+  With more than 300 milliseconds, the output of `txt` becomes truncated:
+code {
+PS> .\generate-objects-for-x-ms.ps1 350
+
+num txt
+--- ---
+  1 abcdefghi
+  2 abcdefghi
+  3 abcdefghi
+  4 abcdefghi
+  5 abcdefghi
+  6 abcdefghi
+  7 abcdef...
+  8 abcdef
+code }
+
+  If `Format-Table` is invoked with the option `-AutoSize`, the command will collect *all* objects before writing them to the console, thus, with `-AutoSize`, there is no truncating taking place.
+  -
+  However, there is no immediate output for each object received by the command, as demonstrated with the two following commands:
+code {
+PS> .\generate-objects-for-x-ms.ps1 3000 | format-table             # Continous but truncated output
+PS> .\generate-objects-for-x-ms.ps1 3000 | format-table -autoSize   # No trunctaion, but need to wait for script to be finished until first output appears.
 code }
 
 }
