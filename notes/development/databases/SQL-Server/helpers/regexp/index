@@ -1,0 +1,66 @@
+$ SQL Server: Regular expression functions
+
+Apparently, → development/databases/SQL-Server[SQL Server] does not come with functions that handle → development/regular-expressions[regular expressions].
+-
+However, it is possible to use *OLE automation* along with the
+→ Windows/development/COM/Useful-object-libraries/Microsoft-VBScript-Regular-Expressions[Microsoft VBScript Regular Expressions] COM library within
+→ development/databases/SQL-Server/T-SQL/user-defined-functions[user defined functions] with which it is possible to create functions that handle regular expressions:
+ • `→ #mssql-regexp_replace`
+ • `→ #mssql-regexp_like`
+ • `→ #mssql-regexp_substr`
+
+
+
+{ Enabling OLE automation
+
+  In order to execute these functions, we need to enable OLE automation (with → development/databases/SQL-Server/administration/schemas/sys/objects/stored-procedures/sp_configure[`sp_configure`]).
+
+  Without enabling it, SQL Server throws the error message
+ *SQL Server blocked access to procedure 'sys.sp_OACreate' of component 'Ole Automation Procedure' because this component is turned off as part of the security configuration for this server. …*
+
+  gh|SQL-Server-helpers|/regexp/enable-OLE.sql||
+
+}
+
+{ regexp_replace #mssql-regexp_replace
+
+  Then, we can create a `regexp_replace(…)` function:
+
+  gh|SQL-Server-helpers|/regexp/replace.sql||
+
+  The following example shows `regexp_replace` in action. The parentheses capture words that that then can be reused in
+  the replace string (`$n`):
+  gh|SQL-Server-helpers|/regexp/example_regexp_replace.sql||
+
+
+}
+{ regexp_like #mssql-regexp_like
+
+  gh|SQL-Server-helpers|/regexp/like.sql||
+
+}
+{ regexp_substr #mssql-regexp_substr
+
+  gh|SQL-Server-helpers|/regexp/substr.sql||
+
+  Testing `regexp_substr`:
+code {
+declare
+   @txt varchar(4000) = 'ninty-nine: 99, fourty-two: 42, eleven: 11',
+   @num varchar(4000);
+
+   print(dbo.regexp_substr(@txt, '\d+', 1));
+   print(dbo.regexp_substr(@txt, '\d+', 2));
+   print(dbo.regexp_substr(@txt, '\d+', 3));
+go
+code }
+
+}
+
+sa:
+
+  → development/databases/SQL-Server/helpers[Other SQL Server helpers]
+
+  → development/databases/Oracle/SQL/functions/regular_expressions[Oracle regular expression functions]
+
+  → development/databases/SQL-Server/T-SQL/functions
