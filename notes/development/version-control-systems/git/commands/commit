@@ -3,5 +3,52 @@ $ git commit
 
 Record changes to the → development/version-control-systems/git/repository[repository].
 
+{ Set the author date
+
+  The `--date` option allows to specify (or more accuratly override) the commit's so-called *author date*. The author date is typically interpreted as the timestamp when a
+  → development/version-control-systems/git/objects/commit[commit object] was first
+  added to a → development/version-control-systems/git/repository.
+
+  In order to demonstrate this, a git repository is created:
+code {
+$ mkdir repo
+$ cd    repo
+
+$ → development/version-control-systems/git/commands/init
+code}
+
+  Then, three commit objects are created, each with an arbitrary author date:
+code {
+'one'    > file.txt
+→ development/version-control-systems/git/commands/add    file.txt
+→ development/version-control-systems/git/commands/commit     file.txt -m "add numbers.txt" --date '2021-01-01 11:12:13'
+
+'two'    > file.txt
+git commit file.txt -m "Version 2"       --date '2021-02-02 12:22:20'
+
+'three'  > file.txt
+git commit file.txt -m "Version 3"       --date '2021-03-13 03:33:30'
+code }
+
+  Finally, the file's log is inspected, using a format that just prints the author date (`%ai`) and the commit message's (`%s`) subject:
+code {
+→ development/version-control-systems/git/commands/log --format='%ai  %s' --reverse file.txt
+code }
+
+  The command prints
+code {
+2021-01-01 11:12:13 +0100  add numbers.txt
+2021-02-02 12:22:20 +0200  Version 2
+2021-03-13 03:33:30 +0300  Version 3
+code }
+
+  Cleaning up:
+code {
+cd ..
+rmdir -r -force repo
+code }
+
+}
+
 sa:
   → development/version-control-systems/git/commands
