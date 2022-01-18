@@ -6,6 +6,7 @@ Exisisting `formatCondition` objects can be found in a → Microsoft/Office/Exce
 
   table { ll
 
+    ~Property~ or ~method~ ☰ ~Comment~
    `application` ☰
    `appliesTo` ☰ The → Microsoft/Office/Excel/Object-Model/Range[`range`] which is covered by the format condition.
    `borders` ☰
@@ -13,8 +14,7 @@ Exisisting `formatCondition` objects can be found in a → Microsoft/Office/Exce
    `dateOperator` ☰
    `delete()` ☰
    `font` ☰
-   `formula1` ☰
-   `formula2` ☰
+   `formula1` and `formula2` ☰ It seems like in order to assign a formula value, the value of the *list separator* must be taken into account, see → Microsoft/Office/Excel/functions/_semicolon-or-comma[separating function arguments with comma or semicolon].
    `interior` ☰
    `modify()` ☰
    `modifyAppliesToRange()` ☰
@@ -121,7 +121,8 @@ code }
 
     Again highlighting differences between the the values in the row above and the current row, but this time using the immediate window:
 code {
-set cond = selection.formatConditions.add( type:= xlExpression, formula1 := "=→ Microsoft/Office/Excel/functions/indirect(→ Microsoft/Office/Excel/functions/address(→ Microsoft/Office/Excel/functions/row-column[row()], → Microsoft/Office/Excel/functions/row-column[column()])) <> indirect(address(row()-1, column()))")
+c = → Microsoft/Office/Excel/Object-Model/Application/international[application.international(xlListSeparator)]
+set cond = selection.formatConditions.add( type:= xlExpression, formula1 := "=→ Microsoft/Office/Excel/functions/indirect(→ Microsoft/Office/Excel/functions/address(→ Microsoft/Office/Excel/functions/row-column[row()]" & c & " → Microsoft/Office/Excel/functions/row-column[column()])) <> indirect(address(row()-1" & c & "column()))")
 cond.interior.color = rgb(255, 140, 190)
 code }
 
@@ -131,7 +132,9 @@ cond.delete
 code }
 
 
-    This example is using the → Microsoft/Office/Excel/functions/offset[`offset` worksheet function] so that values are compared even if cells are moved around.
+    This example is using the `→ Microsoft/Office/Excel/functions/indirect`, `→ Microsoft/Office/Excel/functions/address`,
+    → Microsoft/Office/Excel/functions/row-column[`row` and `column`] → Microsoft/Office/Excel/functions[worksheet function] so that values are compared even if
+    → Microsoft/Office/Excel/Object-Model/Range/cell[cells] are moved around.
 
   }
 
