@@ -127,6 +127,32 @@ PS C:\> enable-→ Windows/PowerShell/command-inventory/noun/experimentalFeature
 code }
 
 }
+{ Error message: An empty pipe element is not allowed
+
+  The following simple pipeline will cause an *An empty pipe element is not allowed* error message:
+code {
+foreach ($i in 1 .. 10) {
+   "line $i"
+}  |  foreach-object {$_}
+code }
+
+  This is because some → Windows/PowerShell/language/statement[PowerShell statements] cannot be used to pass → Windows/PowerShell/language/object[objects] down a pipeline:
+    • `if … else`
+    • `do … while`
+    • `foreach`
+    • `switch`
+    • `while`
+  
+  If such statements are put into a `& { … }` block, their output *can* be piped further down the pipeline:
+code {
+& {
+  foreach ($i in 1 .. 10) {
+     "line $i"
+  }
+} | foreach-object {$_}
+code }
+
+}
 
 sa:
   The `$_` → Windows/PowerShell/language/variable/automatic[automatic variable].
