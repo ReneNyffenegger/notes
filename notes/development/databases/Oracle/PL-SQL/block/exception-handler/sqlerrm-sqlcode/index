@@ -1,6 +1,59 @@
 $ Oracle: SQLERRM and SQLCODE
 
+`sqlerrm` and `sqlcode` are two functions related to Oracle error messages.
+
+Both functions cannot be used in an → development/databases/Oracle/SQL/statement.
+
+{ SQLCODE
+
+  In an → development/databases/Oracle/PL-SQL/block/exception-handler, `sqlcode` returns a number that corresponds to the → development/databases/Oracle/PL-SQL/exception
+  that is being handled in the exception handler.
+
+  Values of `sqlcode`:
+    • Outside of an exception handler, `sqlcode` always evaluates to `0`.
+    • The value for the *no data found* exception is 100
+    • For user defined exceptions, the value is either the default 1 or the value that is associated by the `exception_init` pragma.
+    • In all other cases, the value is negative.
+
+}
+{ SQLERRM
+
+  The function `sqlerrm(errCode)` returns a string that describes the error whose code is `errCode`.
+  -
+  The maximum size of the value returned is 512 bytes.
+
+  The following block prints the error message for the SQL code -1045:
+code {
+begin
+   dbms_output.put_line(sqlerrm(-1045));
+end;
+/
+→ development/databases/Oracle/errors/ORA-01045_user-lacks-CREATE-SESSION-privilege_logon-denied
+code }
+
+ `sqlerrm` can be called without passing the argument. In this case, `sqlerrm` prints the error message that is associated with the
+  value of `sqlcode`.
+  -
+  Thus, calling `sqlerrm` without argument is only useful in an exception handler.
+
+}
+
+rem {
+The function `sqlerrm` is used in a PL/SQL exception hander: it returns the last error message. 
+rem }
+
+
+{ Misc
+
+  Oracle recommends to use → development/databases/Oracle/installed/packages/dbms/utility/format[`dbms_utility.format_error_stack`]
+  rather than `sqlerrm`  unless the `forall` statement with its `save exceptions`
+  clause is being used.
+
+}
+
 sa:
   → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode/nested
+
+  → development/databases/Oracle/errors#ora-find-error-msgs[Find Oracle error messages] that match a given pattern or criteria.
 
   Using `SQLERRM` to create a → development/databases/Oracle/adminstration/init-parameters/event/list[list of Oracle events].

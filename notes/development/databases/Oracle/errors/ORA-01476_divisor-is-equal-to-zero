@@ -1,0 +1,37 @@
+$ ORA-01476: divisor is equal to zero
+
+code {
+
+create table tq84_div (
+   n1  number,
+   n2  number
+);
+
+insert into tq84_div values (42,    7);
+insert into tq84_div values (99, null);
+insert into tq84_div values ( 1,    0);
+insert into tq84_div values (21,    3);
+code }
+
+  Cause a *ORA-01476: divisor is equal to zero*:
+code {
+select
+   n1,
+   n2,
+   n1/n2            division_by_zero_error
+from
+   tq84_div;
+code }
+
+  Use → development/databases/Oracle/SQL/functions/null-related#nullif[`nullif`] to prevent the error.0
+code {
+select
+   n1,
+   n2,
+   n1/nullif(n2, 0) no_divizion_by_zero_error
+from
+   tq84_div;
+code }
+
+sa:
+  The → development/databases/Oracle/PL-SQL/exception#ora-predef-exc[predefined exception] `zero_divide`

@@ -1,7 +1,37 @@
-$ Oracle: trace file
+$ Oracle: Trace file
 @ trace file
 
-{ Enabling/disabling trace files
+Each → development/databases/Oracle/architecture/processes writes some messages to a tracefile.
+-
+The processes's trace file paths can be queried
+from → development/databases/Oracle/installed/dynamic-performance-views/process[`v$prcess`]:
+code {
+select
+   tracefile
+from
+   v$process
+where
+   …
+;
+code }
+
+The content of the tracefile can be queried from `→ development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents`.
+code {
+select
+   trc.payload,
+   trc.timestamp
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/info inf   join
+   v$diag_trace_file_contents  trc on regexp_replace(inf.value, '.*[\\/]', '') = trc.trace_filename
+where
+   inf.name = 'Default Trace File'
+order by
+   trc.line_number
+;
+code }
+
+
+{ Enabling/disabling certain information that is written to trace files
 
 code {
 → development/databases/Oracle/SQL/statement/nouns/system/alter[alter system]  set → development/databases/Oracle/adminstration/init-parameters/event[event] = '…' /* set init-parameter named 'event'          */ ;

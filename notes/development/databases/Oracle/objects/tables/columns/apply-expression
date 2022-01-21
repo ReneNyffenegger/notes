@@ -1,0 +1,21 @@
+$ Oracle: Apply an expression on all columns of a table
+
+code {
+with params as (
+   select '% is null' as expr,
+          'or'        as joiner from dual   
+)
+select
+   listagg(regexp_replace(params.expr, '%', c.column_name),
+           ' ' || params.joiner || chr(10)
+   )
+from
+   params            cross join
+   dba_tab_columns c
+where
+   owner      = 'SYS'        and
+   table_name = 'DBA_USERS'
+group by
+   params.joiner  -- prevent potential ORA-30496: Argument should be a constant.
+--
+code }

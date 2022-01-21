@@ -1,0 +1,43 @@
+$ ORA-00918: column ambiguously defined
+
+code {
+create table tq84_tab_a (id_a  integer, num number, txt varchar2(10));
+create table tq84_tab_b (id_b  integer, num number, dt  date        );
+code }
+
+OK:
+code {
+select
+   id_a,
+   txt
+from
+   tq84_tab_a    join
+   tq84_tab_b on id_a = id_b;
+code }
+   
+The → development/databases/Oracle/objects/tables/columns `num` is found in both tables, → development/databases/Oracle/objects/tables[tables], `tq84_tab_a` and `tq84_tab_b`, the identifier is therefore abmbiguous and
+causes the error *ORA-00918: column ambiguously defined*:
+code {
+select
+   id_a,
+   num
+from
+   tq84_tab_a                 join
+   tq84_tab_b on id_a = id_b;
+code }
+
+
+Use *table aliases* to get rid of the error:
+code {
+select
+   A.id_a,
+   B.num
+from
+   tq84_tab_a A                      join
+   tq84_tab_b B  on A.id_a = B.id_b;
+code }
+
+code {
+drop table tq84_tab_a;
+drop table tq84_tab_b;
+code }

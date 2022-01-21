@@ -1,0 +1,34 @@
+$ ORA-12727: invalid back reference in regular expression
+
+Ok:
+code {
+select
+   → development/databases/Oracle/SQL/functions/regular_expressions/regexp_substr('foo bar baz', 'foo bar (\w*)', '\1')
+from
+   dual;
+code }
+
+Also ok, although `\2` references a group that does not exist in the pattern.
+code {
+select
+   regexp_replace('foo bar baz', 'foo bar (\w*)', '\2')
+from
+   dual;
+code }
+
+Also ok:
+code {
+select
+   regexp_replace('abc def ghi ghi jkl', '.* (\w+) \1.*', '\1')  ghi
+from
+   dual;
+code }
+
+
+This causes *ORA-12727: invalid back reference in regular expression* because `\2` references a group that is not defined in the *pattern*.
+code {
+select
+   regexp_replace('abc def ghi ghi jkl', '.* (\w+) \2.*', '\1')  ghi
+from
+   dual;
+code }

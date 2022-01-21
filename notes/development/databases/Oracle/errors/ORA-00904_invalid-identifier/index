@@ -1,6 +1,28 @@
 $ ORA-00904: invalid identifier
 
-The error message *ORA-00904: invalid identifier* might be caused by the following statement:
+*ORA-00940: invalid identifier* typically indicates that the SQL parser recognized a token as an identifier but the identifier referred to nothing.
+-
+For exampile, `dual` has no column named `no_such_column`, therefore, the following SQL statement throws this error:
+code {
+select
+   dummy,
+   no_such_column
+from
+   dual;
+code }
+
+This error is often seen when a user thinks a function exists which in reality does not. For example, a developer coming from
+→ development/databases/SQL-Server might think Oracle has a function named → development/databases/SQL-Server/T-SQL/functions#t-sql-isNull[`isNull`] and hit such an error:
+code {
+select
+   isnull(dummy, 'Y') dummy_
+   from
+     dual;
+code }
+
+
+The error message *ORA-00904: invalid identifier* might also be caused in a `create table` statement if where a
+→ development/databases/Oracle/objects/tables/columns name was expected but none was given:
 code {
 create table tq84_invalid_identifier (
    id    number(9)    primary key,
@@ -8,5 +30,7 @@ create table tq84_invalid_identifier (
 );
 code }
 
+
 sa:
-  → development/databases/Oracle/errors/ORA-00936_missing-expression
+  → development/databases/Oracle/errors/ORA-00936_missing-expression,
+  → development/databases/Oracle/errors/ORA-00942_table-or-view-does-not-exist.

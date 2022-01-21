@@ -3,6 +3,44 @@ $ Oracle data type: NUMBER
 
 gh|Oracle-Patterns|/SQL/datatypes/number/table.sql||
 
+{ Determine minimal required precision and scale
+
+code {
+drop table tq84_num;
+
+create table tq84_num (a number);
+
+insert into tq84_num values (27.3);
+insert into tq84_num values ( 0.3);
+insert into tq84_num values (999 );
+insert into tq84_num values (-1.123 );
+insert into tq84_num values (-21.1234 );
+
+with x as (
+   select
+      a,
+      ceil(log(10,  abs(a)))              digits_left,
+      length(abs(a) - trunc(abs(a))) -1   digits_right
+   from
+      tq84_num
+)
+select
+    'number(' || (max(digits_left) + max(digits_right))  || ',' || max(digits_right)  || ')' minimal_num_format
+from
+   x;
+
+drop table tq84_num_;
+
+create table tq84_b (b number(7,4));
+
+insert into tq84_num_ select a from tq84_num;
+
+select * from tq84_num_ minus
+select * from tq84_num;
+code }
+
+}
+
 sa:
 
   The SQL function → development/databases/Oracle/SQL/functions/type-conversion/to/number[`to_number`] converts an expression into a value whose

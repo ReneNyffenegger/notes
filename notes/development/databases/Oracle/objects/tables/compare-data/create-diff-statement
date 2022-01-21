@@ -43,7 +43,8 @@ col as (
                             b.table_name = params.name_tab_2
    where
        a.column_name = b.column_name                                                   and
-       a.column_name not in (select column_value from table(params.excluded_columns))
+--     a.column_name not in (select column_value from table(params.excluded_columns))
+       not exists           (select column_value from table(params.excluded_columns) where column_value = a.column_name)
 )
 select
   'select count(*) over () cnt_of_diffs, diffs.* from (' || chr(10) ||
@@ -52,7 +53,7 @@ select
 
    q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
                                              'select ' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ') only_b' || chr(10) ||
-   ') diffs'
+   ') diffs;'
 from
    params   cross join
    col;
