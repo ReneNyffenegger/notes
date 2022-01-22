@@ -1,17 +1,46 @@
 $ vim option: magic
 @ magic
 
-The (boolean) value of `magic` specifies how special characters can be used in search patterns of
-→ development/vim/regular-expressions[regular expressions]. Noteable examples of differences are:
-table { lll
-  ~magic~ ☰ ~nomagic~ ☰ ~meaning~
-  `*` ☰ `\*` ☰ Zero or more
-  `.` ☰ `\.` ☰ Any character
-  `~` ☰ `\~` ☰ Latest substitute string
-table }
+The (boolean) value of `magic` specifies how the backslash changes the meaning of the following character when constructing
+→ development/vim/regular-expressions[regular expressions].
 
+{ nomagic
 
-{ Chaning the default of magic to nomagic
+  If the value turned *off (or to *nomagic*), all except three characters match themselves. The three exceptions are
+    • `^` (match start of line),
+    • `$` (match end of line) and
+    • `\` (in order to change the meanning of the following character).
+
+  So, in nomagic mode, `..f*` matches only if it finds exactly two dots followed by one f followed by a star.
+
+  In order to use the full power of the regular expression notation, a lot of backslashes are required. In order to match any two characters followed by zero or more f's, the following pattern must be used:
+ `\.\.f\*`.
+
+}
+{ magic
+
+  The intention of magic is to make it easier for the user to enter regular expression by removing the requirement to preceede a regular expression instruction with a backslash.
+  -
+  This mode is magic because characters magically change their meaning.
+
+  These three characters are `*`, `.` and `~`, resulting in the following three differences between magic and nomagic:
+  table { lll
+    ~magic~ ☰ ~nomagic~ ☰ ~meaning~
+    `*` ☰ `\*` ☰ Zero or more
+    `.` ☰ `\.` ☰ Any character
+    `~` ☰ `\~` ☰ Latest substitute string
+  table }
+
+}
+{ Very magic
+
+ *Very magic* goes a step further than magic.
+
+  With very magic, all ASCII characters except `0`…`9`, `a`…`A`, `A`…`Z` and `_` become a a special meaning. In this mode, searching for text becomes very magic.
+
+}
+
+{ Changing the default of magic to nomagic
 
   It is adviced not to set `nomagic` in VIM scripts prior to → development/vim/script/9[VIM 9 script] because this might break scripts that rely on having `magic` (which the default) set.
 
