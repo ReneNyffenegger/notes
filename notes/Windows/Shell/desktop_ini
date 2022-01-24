@@ -2,8 +2,11 @@ $ desktop.ini
 
 The `desktop.ini` file can be used to customize some aspects of a *folder*, for example the icon that's displayed with the folder
  
-In order for the `desktop.ini` file to have any effect, the folder that contains it needs to have the *system* attribute set. This attribut can be set with the
-→ Windows/dirs/Windows/System32/attrib_exe[`attrib.exe +s folder-name`].
+In order for the `desktop.ini` file to have any effect, the folder that contains it needs to have the *system* attribute set. This attribut can be set on the command
+line (→ Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], → Windows/PowerShell) with
+code {
+→ Windows/dirs/Windows/System32/attrib_exe[attrib.exe +s folder-name]
+code }
 
 { Referencing an icon in dll
 
@@ -24,6 +27,44 @@ code {
 [.ShellClassInfo]
 IconFile=32x32.bmp
 IconIndex=0
+code }
+
+}
+{ Creating a red directory in PowerShell
+
+  Create the directory:
+code {
+→ Windows/PowerShell/language/variable/automatic/null[$null] = mkdir red-directory
+→ Windows/PowerShell/command-inventory/noun/location/set/[cd]            red-directory
+code }
+
+  Add a `.bmp`:
+code {
+→ Windows/PowerShell/command-inventory/noun/type/add -assembly 'System.Drawing'
+$bmp_16x16 = → Windows/PowerShell/command-inventory/noun/object/new → Microsoft/dot-net/namespaces-classes/System/Drawing/Bitmap[Drawing.Bitmap] 16, 16
+
+$canvas = [Drawing.Graphics]::FromImage($bmp_16x16);
+$brushRect = new-object Drawing.SolidBrush ([Drawing.Color]::FromArgb(255, 255, 0, 0));
+$canvas.FillRectangle($brushRect, [Drawing.Rectangle]::FromLTRB(0, 0, 16, 16));
+
+$bmp_16x16.Save("$(get-location)\16x16-red.bmp", [System.Drawing.Imaging.ImageFormat]::Bmp);
+code }
+
+  create `desktop.ini` file:
+code {
+@'
+[.ShellClassInfo]
+ConfirmFileOp=0
+IconFile=16x16-red.bmp
+IconIndex=0
+InfoTip=This is the info tip
+'@ | → Windows/PowerShell/command-inventory/noun/file/out → Windows/PowerShell/command-inventory/noun/file/out/index[-encoding] utf8 desktop.ini
+code }
+   
+   Set system attribute for directory and `desktop.ini`:
+code {
+(→ Windows/PowerShell/command-inventory/noun/itemProperty/get .\desktop.ini  ).attributes += 'system'
+(→ Windows/PowerShell/command-inventory/noun/itemProperty/get → Windows/PowerShell/language/variable/automatic/pwd           ).attributes += 'system'
 code }
 
 }

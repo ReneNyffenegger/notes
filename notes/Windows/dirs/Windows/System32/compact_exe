@@ -2,5 +2,59 @@ $ compact.exe
 
 `compact.exe` displays or alters the compression of files on → Windows/file-system/NTFS partitions.
 
+
+code {
+compact [command-line-options] [ filename-1[, filename-2 …]
+code }
+
+`compact` can be invoked without command line parameters in which case it simply reports the compression state of the current directory and any files it contains.
+-
+Wildcards are supported.
+-
+Multiple filenames and wildcards can be specified.
+-
+Note that hidden and system files are not displayed by default. `/a` is needed to show them as well.
+
+{ Command line options
+
+
+  table { ll
+
+    `/c`         ☰ Compresses the specified files. Directories will be marked so that files added afterward will be compressed unless `/exe` is specified.
+    `/u`         ☰ Uncompresses the specified files. Directories will be marked so that files added afterward will not be compressed. If `/exe` is specified, only files compressed as executables will be uncompressed; if this is omitted, only NTFS compressed files will be uncompressed.
+    `/s:dir`     ☰ Performs the specified operation on files in the given directory and all subdirectories. If ommited, it defaults to the current directory.
+    `/a`         ☰ Displays files with the hidden or system attributes. These files are omitted by default.
+    `/i`         ☰ Continues performing the specified operation even after errors have occurred. By default, `compact` stops when an error is encountered.
+    `/f`         ☰ Forces the compress operation on all specified files, even those which are already compressed. Already-compressed files are skipped by default.
+    `/q`         ☰ Reports only the most essential information.
+    `/exe:→ #compact-exe-alg[algorithm]` ☰ Specify compression method.
+    `/compactOs` ☰ Set or query the system's compression state. Supported options are: `query`: Query the system's Compact state; `always`: Compress all OS binaries and set the system state to *compact* which remains unless administrator changes it; `never`: Uncompress all OS binaries and set the system state to *non-compact* which remains unless administrator changes it.
+    `/winDir`    ☰ Used with `/CompactOs:query` when querying the offline OS to secifies the directory where Windows is installed.
+
+
+  table }
+
+}
+{ Supported algorithms #compact-exe-alg
+
+ `compact.exe` supports the following algorithms for the `/exe` paramter:
+    • `XPRESS4K` (fastest and also default)
+    • `XPRESS8K`
+    • `XPRESS16K`
+    • `LZX` (most compact)
+
+}
+
+{ Example
+
+code {
+→ Windows/dirs/Windows/System32/cmd_exe/commands/cd       %temp%
+→ Windows/dirs/Windows/System32/cmd_exe/commands/mkdir    test-dir-for-compact
+→ Windows/dirs/Windows/System32/cmd_exe/commands/dir     → Windows/dirs/Windows/System32/cmd_exe/commands/dir#dir-s[/s /b] c:\windows\System32 > test-dir-for-compact\files-system32.txt
+compact /c /s:test-dir-for-compact /exe:LZX 
+code }
+
+}
+
 sa:
    → Windows/dirs/Windows/System32/expand_exe[`expand.exe`]

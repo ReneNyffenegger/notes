@@ -1,0 +1,103 @@
+$ Libre Office Basic
+
+Like → development/languages/VBA, Libre Office Basic is not case sensitive.
+
+{ Comments
+
+  Comments can be introduced with `rem` or with a quote character:
+
+code {
+…
+rem    This is a comment
+ '     So is this
+…
+code }
+
+}
+{ Message boxes
+
+code {
+sub main
+
+    dim answer as integer
+
+    answer = msgBox("Should we go now?", mb_yesno)
+
+    if     answer = idyes then
+           msgBox "Let's go"
+    elseif answer = idno  then
+           msgBox "Let's stay here"
+    else
+           msgBox "This is rather unexpected"
+    end if
+
+end sub
+code }
+
+  { Print
+
+   `Print` opens a message box, too. Is there nothing like VBA's `debug.print` in order to print messages to a console rather than a message box?
+code {
+sub main
+
+    print "This opens a message box, too"
+
+end sub
+code }
+
+  }
+
+}
+{ CreateUnoService
+
+ `CreateUnoService` seems to be rather important function: it instantiates a *Uno service* (whatever this is) with the *ProcessServiceManager* (whatever this is).
+
+  A list of services (that can be instantiated?) is → https://api.libreoffice.org/docs/idl/ref/namespacecom_1_1sun_1_1star.html[here].
+
+  UNO stands for *Universal Network Objects*.
+
+}
+{ Calc
+
+  { Resize column
+
+code {
+sub main
+
+    dim sh       as object
+    dim cols     as object
+    dim col_2    as object
+
+    sh   = thisComponent.getSheets().getByName("Sheet1")
+    cols = sh.getColumns()
+    
+    col_2 = cols.getByName("B")
+
+    print "current width is " & col_2.width
+    col_2.width = 4000
+  
+end sub
+code }
+
+  }
+  { Run VBA code #libre-office-basic-vba
+
+    It possible to run → development/languages/VBA code in Libre Office:
+
+code {
+'      attribute VBA_ModuleType=VBAModule  
+option VBASupport 1
+ 
+sub main
+
+    dim rng   as → Microsoft/Office/Excel/Object-Model/Range[range]
+
+    set rng   =  → Microsoft/Office/Excel/Object-Model/Application/index#excel-application-active-objects[activeSheet].range("B4")
+    rng.value = "fourth row, second column"
+ 
+end sub
+code }
+
+  }
+
+}
