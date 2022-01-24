@@ -1,0 +1,85 @@
+$ Oracle SQL: MODEL clause
+
+{ Test data
+
+  gh|Oracle-patterns|/SQL/select/model/intro/test-data.sql||
+
+}
+{ Minimal select statement with model claues
+
+  In order to use the model clause, the columns of a select statement must be assigned to *dimensions*, *measures* and, optionally, to *partitions*.
+
+  The columns that are assigned to *dimensions* will be used to identify the rows where values of the columns assigned to *measures* can be updated.
+  -
+  If *partitions* are used, the rules formulated in an → development/databases/Oracle/SQL/statement with a *model clause* will act independently from each other on each partition.
+
+  The following select statement does not bother to use the partition clause and assigns one dimension only: `row_`.
+
+  Because no rules are defined, the values from the select statement won't be modified:
+  gh|Oracle-patterns|/SQL/select/model/intro/minimal.sql||
+
+}
+{ Update a column
+
+  Update all values in `col_3` (that is where `row_` has `any`value):
+  gh|Oracle-patterns|/SQL/select/model/intro/update-col-3.sql||
+
+}
+{ Add a condition
+
+  Update only values where `row_ > 3`:
+  gh|Oracle-patterns|/SQL/select/model/intro/condition.sql||
+
+}
+{ Add a record to the result set
+
+  Referencing a combination of dimension-values that does not yet exist creates this dimension.
+  
+  There is no record with `row_ = 7` in the test data, therefore, such a row will be created:
+  gh|Oracle-patterns|/SQL/select/model/intro/add-record.sql||
+
+}
+{ Use dimension value
+
+ `CV(dimension-column)` evaluates to the value of the current dimension of `dimension-column`
+  gh|Oracle-patterns|/SQL/select/model/intro/use-dimension-value.sql||
+
+}
+{ Update value with value from «previous» record
+
+  Update `col_3` with value from «previous» `col_2`:
+  gh|Oracle-patterns|/SQL/select/model/intro/update-with-previous.sql||
+
+}
+{ Error messages
+
+  { ORA-32611: incorrect use of MODEL CV operator
+
+    gh|Oracle-patterns|/SQL/select/model/intro/err-32611.sql||
+
+  }
+  { ORA-32613: not a MODEL cell
+
+    gh|Oracle-patterns|/SQL/select/model/intro/err-32613.sql||
+
+  }
+  { ORA-32622: illegal multi-cell reference
+
+    gh|Oracle-patterns|/SQL/select/model/intro/err-32622.sql||
+
+  }
+  { ORA-00984: column not allowed here
+
+    gh|Oracle-patterns|/SQL/select/model/intro/err-00984.sql||
+
+  }
+
+}
+
+sa:
+
+  → development/databases/Oracle/SQL/select/model/measures/add-column[Adding a column] with `measures(…)`.
+
+  Examples:
+    • → development/databases/Oracle/SQL/select/model/examples/forecast[Forecasting values]
+    • → development/databases/Oracle/SQL/select/model/examples/date-generator[Date series generator]

@@ -16,7 +16,7 @@ $ Oracle: DBA_SOURCE
 
 code {
 select
-   src.owner,
+   owner,
    src.name,
    src.line,
    src.text,
@@ -31,6 +31,62 @@ order by
    src.name,
    src.type;
 code }
+
+  { Search for N lines before and M lines after matched source code line
+
+    The previous select statement finds exactly those source code lines that match a regular expression. Oftentimes, I find this not really satisfactory because I'd like to see
+    a matched line's preceeding M and following N lines.
+    -
+    This is possible with analytic functions, but it somewhat blows up the size of the → development/databases/Oracle/SQL/statement:
+code {
+with find_matches as (
+   select
+      owner, name, line, text, type,
+      case when regexp_like(text,
+      ----------------------------------
+      -- Regexp to search for goes here:
+      --
+        'return clob', 'i'
+      --
+      ----------------------------------
+      ) then 1 end match
+   from
+      dba_source
+   where
+      owner not in (select username from dba_users where oracle_maintained = 'Y')
+),
+partitions as (
+   select
+      owner, name, line, text, type, match,
+      sum(match) over(partition by owner, name, type order by line  asc) partition_match_asc,
+      sum(match) over(partition by owner, name, type order by line desc) partition_match_desc
+   from
+      find_matches
+),
+row_numbers as (
+   select
+      owner, name, line, text, type, match,
+      row_number() over (partition by owner, name, type, partition_match_asc  order by line  asc ) rn_asc,
+      row_number() over (partition by owner, name, type, partition_match_desc order by line  desc) rn_desc,
+      partition_match_asc,
+      partition_match_desc
+   from
+      partitions
+)
+select
+   case when match = 1 then '*' end match,
+   owner, name, line, text, type
+-- rn_asc, rn_desc
+from
+   row_numbers
+where
+   (partition_match_asc  is not null and rn_asc  <= 3) or -- Preceeding n lines
+   (partition_match_desc is not null and rn_desc <= 4)    -- Following  m lines
+order by
+   owner, name, type, line;
+code }
+
+  }
 
 }
 

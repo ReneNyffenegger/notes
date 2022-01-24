@@ -1,0 +1,58 @@
+$ Oracle SQL MODEL clause example: Forecasting
+
+code {
+create table sales (
+   ctry  varchar2(20),
+   prod  varchar2(20),
+   yr    number  ( 4),
+   qty   number  ( 5)
+);
+code }
+
+code {
+insert into sales values ('Argentina', 'Table', 2020,  220);
+insert into sales values ('Argentina', 'Table', 2021,  248);
+insert into sales values ('Brazil',    'Table', 2020,  515);
+insert into sales values ('Brazil',    'Table', 2021,  602);
+insert into sales values ('Chile',     'Table', 2020,   29);
+insert into sales values ('Chile',     'Table', 2021,   42);
+
+insert into sales values ('Argentina', 'Chair', 2020,  115);
+insert into sales values ('Argentina', 'Chair', 2021,  134);
+insert into sales values ('Brazil',    'Chair', 2020,  297);
+insert into sales values ('Brazil',    'Chair', 2021,  368);
+insert into sales values ('Chile',     'Chair', 2020,   14);
+insert into sales values ('Chile',     'Chair', 2021,   22);
+
+insert into sales values ('Argentina', 'Phone', 2020, 1244);
+insert into sales values ('Argentina', 'Phone', 2021, 1590);
+insert into sales values ('Brazil',    'Phone', 2020, 8190);
+insert into sales values ('Brazil',    'Phone', 2021,10844);
+insert into sales values ('Chile',     'Phone', 2020, 3103);
+insert into sales values ('Chile',     'Phone', 2021, 4965);
+code }
+
+Add a record for the year 2022, assuming that a product's growth in a country remains constant:
+code {
+select 
+   ctry,
+   prod,
+   yr,
+   qty 
+from 
+   sales
+model
+   partition by (prod, ctry)
+   dimension by (yr)
+   measures     (qty)
+   rules (
+     qty[2022] = qty[2021] * (qty[2021]/qty[2020])
+   )
+order by
+   yr,
+   ctry,
+   prod;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/select/model[`model`] clause.
