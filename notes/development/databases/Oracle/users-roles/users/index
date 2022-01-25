@@ -1,6 +1,65 @@
 $ Oracle: User
 @ user
 
+{ Connecting to a database
+
+  A → development/databases/Oracle/users-roles/users[user] must be → development/databases/Oracle/security/authentication[authenticated] by Oracle in order to be able to a database.
+
+  { Error messages
+
+    Error messages that are related to failed attempts to log on the database include
+      • → development/databases/Oracle/errors/ORA-01017_invalid-username-password_logon-denied
+      • → development/databases/Oracle/errors/ORA-01045_user-lacks-CREATE-SESSION-privilege_logon-denied
+      • → development/databases/Oracle/errors/ORA-28000_The-account-is-locked
+   
+    Sometimes, its not even possible to connect to the database because of network problems or wrong configuration.
+    In such a case, the user will receive one of the → development/databases/Oracle/Net#ora-net-error-messages[Oracle net error messages].
+
+  }
+}
+{ Oracle maintained users
+
+  Some → development/databases/Oracle/users-roles/users/oracle-maintained[Oracle maintained users] are:
+  table { ll
+    ANONYMOUS ☰
+    APPQOSSYS ☰
+    AUDSYS ☰
+    DBSFWUSER ☰
+    DBSNMP ☰
+    DIP ☰
+    GGSYS ☰
+    GSMADMIN_INTERNAL ☰
+    GSMCATUSER ☰
+    GSMUSER ☰
+    ORACLE_OCM ☰
+    OUTLN ☰
+    REMOTE_SCHEDULER_AGENT ☰
+    → development/databases/Oracle/users-roles/users/oracle-maintained/sys[SYS] ☰
+    SYS$UMF ☰
+    SYSBACKUP ☰
+    SYSDG ☰
+    SYSKM ☰
+    SYSRAC ☰
+    SYSTEM ☰
+    XDB ☰
+    XS$NULL ☰
+table }
+
+  This list was created with
+code {
+select
+   username
+from
+   → development/databases/Oracle/installed/data-dictionary/users[dba_users]
+where
+   oracle_maintained = 'Y'
+order by
+   username
+code }
+
+
+}
+
 sa:
 
   → development/databases/Oracle/installed/data-dictionary/users[`dba_users`, `all_users`, `user_users`],
@@ -13,8 +72,11 @@ sa:
   → development/databases/Oracle/installed/data-dictionary/users/with_defpwd[`dba_users_with_defpwd`] lists users that are still using their default passwords.
 
   A user can be assigned a default → development/databases/Oracle/architecture/database/logical-structures/tablespace.
-  -
-  For each tablespace, a certain quota can be defined to the user.
+
+  Each user is assigned a → development/databases/Oracle/users-roles/profile which defines some database resource usage limits and constraints related
+  to passwords.
+
+  For each → development/databases/Oracle/architecture/database/logical-structures/tablespace, a certain quota can be defined to the user.
 
   Compiling a user's schema with → development/databases/Oracle/installed/packages/dbms/utility/api/compile_schema[`dbms_utility.compile_schema`].
 
