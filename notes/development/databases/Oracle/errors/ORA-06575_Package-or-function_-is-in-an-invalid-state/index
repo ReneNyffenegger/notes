@@ -1,0 +1,49 @@
+$ ORA-06575: Package or function … is in an invalid state
+
+code {
+create table tq84_tab (num number);
+insert into tq84_tab values(42);
+code }
+
+code {
+create or replace function tq84_fnc return number as
+   ret number;
+begin
+   select max(num) into ret from tq84_tab;
+   return ret;
+end tq84_fnc;
+/
+code }
+
+
+code {
+drop table tq84_tab;
+code }
+
+Error not yet recognized:
+code {
+select * from user_errors where name = 'TQ84_FNC';
+code }
+
+Only by executing the following `select` statement, Oracle realizes that the function has become invalid and throws
+*ORA-06575: Package or function TQ84_FNC is in an invalid state*.
+code {
+select tq84_fnc from dual;
+code }
+
+Because `tq84_fnc` was recompiled to be used in the `select` statement, an error is now recored in
+→ development/databases/Oracle/installed/data-dictionary/errors[`user_errors`]:
+code {
+select text from user_errors where name = 'TQ84_FNC';
+--
+-- PL/SQL: ORA-00942: table or view does not exist
+-- PL/SQL: SQL Statement ignored
+--
+code }
+
+
+Cleaning up
+code {
+drop table tq84_tab;
+drop function tq84_fnc;
+code }

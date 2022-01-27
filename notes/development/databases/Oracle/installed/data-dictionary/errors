@@ -1,4 +1,4 @@
-$ ORacle: DBA_ERRORS
+$ Oracle: DBA_ERRORS
 
 `dba_errors` (and its variants `all_errors, `user_errors` and `cdb_errors`) display
 → development/databases/Oracle/PL-SQL/errors-warnings[errors] or warnings (column `attribute`) of → development/databases/Oracle/PL-SQL objects (stored procedures, functions, packages etc.)
@@ -8,11 +8,32 @@ $ ORacle: DBA_ERRORS
   `ALL_ERRORS` can be joined with → development/databases/Oracle/installed/data-dictionary/source[`ALL_SOURCE`]:
 code {
 select
-   cast(err.name as varchar2(50))                  name,
-        err.type                                   type,
-   cast(substr(err.text, 1, 100) as varchar2(100)) err_text,
-   err.line,
-   cast(substr(src.text, 1, 100) as varchar2(100)) src_text
+   err.owner,
+   err.name                                                    err,
+-- cast(err.name as varchar2(50))                              name,
+-- cast(substr(err.text, 1, 100) as varchar2(100))             err_text,
+   regexp_replace(err.text, chr(10) || '.*', '', 1, 1, 'mni')  err_text_no_new_line,
+--                err.text                                     err_text,
+   -------------------
+   case
+   when err.text like 'PL/SQL: ORA-04063:%' then
+        regexp_replace(err.text, 'PL/SQL: ORA-04063: view "([^"]+)" has errors'       , '\1')
+   when err.text like 'PLS-00201: identifier%' then
+        regexp_replace(err.text, 'PLS-00201: identifier ''([^'']+)'' must be declared', '\1')
+   when err.text like 'PLS-00905:%' then
+        regexp_replace(err.text, 'PLS-00905: object (\S+) is invalid', '\1')
+   when err.text like 'ORA-00904:%' then
+        regexp_replace(err.text, 'ORA-00904: ([^:]+): invalid identifier', '\1')
+   when err.text like'%ORA-00942:%' then
+        regexp_replace(substr(src.text, err.position), '([a-z._$#]+).*', '\1', 1, 1, 'i')
+   end                                                         identifier,
+   -------------------
+        src.text                                               src_text,
+-- err.message_number                                          msg#,
+-- cast(substr(src.text, 1, 100) as varchar2(100))             src_text
+        err.type                                               plsql_type,
+        err.line,
+        err.position
 from
    all_errors  err left join
    all_source  src on err.name  = src.name and
@@ -20,7 +41,10 @@ from
                       err.line  = src.line and
                       err.owner = src.owner
 where
-   err.owner = 'RENE' and
+-- err.text like '%00904%'                           and
+   err.text !=       'PL/SQL: SQL Statement ignored' and
+   err.text !=           'PL/SQL: Statement ignored' and
+   err.owner = 'USR_02'                              and
    substr(err.name, 1, 3) != 'SH_'
 order by
    err.owner,

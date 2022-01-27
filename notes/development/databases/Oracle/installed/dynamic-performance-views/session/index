@@ -77,6 +77,22 @@ Each record in `v$session` shows information about a «current» → developmen
   An attempt to find views that can be joined to `v$session` with a → development/databases/Oracle/SQL/select[select statement]
   is → development/databases/Oracle/installed/dynamic-performance-views/session/joinable[here].
 
+  { Joining V$SESSION to V$SQL
+  
+    There are (at least) three separate ways to join `v$session` to `v$sql`:
+code {
+select
+   count(ses.sid   ) cnt_ses,
+   count(sql.sql_id) cnt_sql
+from
+   v$session ses left join v$sql sql on ses.sql_id         = sql.sql_id     and ses.sql_child_number = sql.child_number
+-- v$session ses left join v$sql sql on ses.sql_address    = sql.address    and ses.sql_child_number = sql.child_number
+-- v$session ses left join v$sql sql on ses.sql_hash_value = sql.hash_value and ses.sql_child_number = sql.child_number
+;
+code }
+
+  }
+
 }
 { sid
 
