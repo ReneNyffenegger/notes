@@ -3,9 +3,9 @@ $ Oracle data types BLOB, CLOB and NCLOB
 
 Clobs and blobs (commonly referred to as LOBs) are a set of → development/databases/Oracle/SQL/data-types[data types] that are designed to hold large amounts of data.
 
-`clob` stands for *character lob*, `blob` for *binary lob*; lob stands for *large object*.
+`CLOB` stands for *character lob*, `BLOB` for *binary lob*, LOB stands for *large object*.
 -
-A `blob` (as also → development/databases/Oracle/SQL/data-types/raw[`raw` and `long raw`]) stores a sequence of bytes that is independent from an
+A `BLOB` (as also → development/databases/Oracle/SQL/data-types/raw[`raw` and `long raw`]) stores a sequence of bytes that is independent from an
 → development/Unicode/character-encoding[encoding]. a `clob` also stores a sequence of bytes, but unlike in a `blob`, this sequence is interpreted within an encoding.
 
 The → development/databases/SQL-Server equivalent for clob is `text` and `image` for blobs.
@@ -20,18 +20,32 @@ The → development/databases/SQL-Server equivalent for clob is `text` and `imag
   An empty LOB locator is returned by → development/databases/Oracle/SQL/functions/lob#ora-func-empty_xlob[`empty_blob()` and `empty_clob()`] or
   → development/databases/Oracle/installed/packages/dbms/lob#dbms_lob-createTemporary[`dbms_lob.createTemporary`].
 
-  LOB locators can be manipulated with the → development/databases/Oracle/installed/packages/dbms/lob[`dbms_lob`] package.
+  LOB locators can be manipulated with the → development/databases/Oracle/installed/packages/dbms/lob[`dbms_lob`] package. In fact,
+  all procedures and functions of this package must be called with a lob locator.
 
 }
-{ Internal and external LOBs
+{ Three types of LOBs #ora-lob-3-types
 
-  LOB data whose → development/databases/Oracle/SQL/data-types[data type] is either `blob`, `clob` or `nclob` are stored in a → development/databases/Oracle/objects/tables and are subject to
-  → development/databases/Oracle/architecture/transaction[transactions].
-  -
-  Because these data types are stored *in* the → development/databases/Oracle/architecture/database, they're referred to as *internal lobs*.
+  There are three types of LOBs:
+  table { ll
+     Persistent LOBs ☰ The data of persistent LOBs is stored with tables and are subject to → development/databases/Oracle/architecture/transaction[transactions].
+     Temporary LOBs ☰ They reside in either a process's → development/databases/Oracle/architecture/instance/PGA[PGA] or → development/databases/Oracle/architecture/database/logical-structures/tablespace/temporary[temporary tablespace], depending on their size. 
+     BFILEs ☰ The data is stored in a → Linux/filesystem/filesystems[file system].
+  table }
 
- *External LOBs*, on the other hand, are not stored in a database (but in a file system). They are not subject to transactions.
+  LOBs returned from SQL or PL/SQL built-in functions are temporary LOBs.
 
+ `→ development/databases/Oracle/installed/dynamic-performance-views/temporary_lobs` shows a → development/databases/Oracle/architecture/session[session's] number of temporary LOBs.
+
+  { Internal and external LOBs
+
+    Because *persistent* and *temporary* LOBs are stored *in* the → development/databases/Oracle/architecture/database, they're referred to as *internal lobs*.
+
+    BFILEs, on the other hand, are not stored in a database and are therefore referred to as *external LOBs*.
+
+    Available → development/databases/Oracle/SQL/data-types[data types] for internal LOBs are `CLOB`, `NCLOB` and `BLOB`.
+  
+  }
 }
 { ORA-06502: PL/SQL: numeric or value error: character string buffer too small #lob-ora-06502
 

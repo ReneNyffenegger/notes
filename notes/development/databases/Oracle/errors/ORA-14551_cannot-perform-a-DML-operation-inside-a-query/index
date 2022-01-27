@@ -1,0 +1,52 @@
+$ ORA-14551: cannot perform a DML operation inside a query 
+
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+begin
+
+    execute immediate stmt;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+code {
+create table tq84_test(a number);
+code }
+
+The following statement throws a *ORA-14551: cannot perform a DML operation inside a query* error message:
+code {
+select
+   exec_immediate('insert into tq84_test values(42)')
+from
+   dual;
+code }
+
+Compile the function with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`] …
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+    PRAGMA AUTONOMOUS_TRANSACTION;
+begin
+
+    execute immediate stmt;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+… and try again. This time, it throws *ORA-06519: active autonomous transaction detected and rolled back*.
+code {
+select
+   exec_immediate('insert into tq84_test values(42)')
+from
+   dual;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors/ORA-14552_cannot-perform-a-DDL-commit-or-rollback-inside-a-query-or-DML
+  -
+  → development/databases/Oracle/errors/ORA-06519_active-autonomous-transaction-detected-and-rolled-back
+

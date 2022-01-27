@@ -1,0 +1,45 @@
+$ ORA-06519: active autonomous transaction detected and rolled back
+
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+    pragma autonomous_transaction;
+begin
+
+    execute immediate stmt;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+code {
+create table tq84_test(a number);
+code }
+
+The following statement throws *ORA-06519: active autonomous transaction detected and rolled back*:
+code {
+select
+   exec_immediate('insert into tq84_test values(42)')
+from
+   dual;
+code }
+
+In order to prevent this error, an explicit `commit` (or `rollback`) is required in the function:
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+    pragma autonomous_transaction;
+begin
+
+    execute immediate stmt;
+
+    COMMIT;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+sa:
+  → development/databases/Oracle/errors/ORA-14552_cannot-perform-a-DDL-commit-or-rollback-inside-a-query-or-DML
+  -
+  → development/databases/Oracle/errors/ORA-14551_cannot-perform-a-DML-operation-inside-a-query
