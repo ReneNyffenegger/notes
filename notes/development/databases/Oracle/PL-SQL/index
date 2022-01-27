@@ -9,6 +9,35 @@ PL/SQL is → development/databases/Oracle[Oracle's] implementation of the → m
 
 → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utlrp_sql[`$ORACLE_HOME/rdbms/admin/utlrp.sql`] recompiles all existing PL/SQL modules that were previously in an INVALID state, such as packages, procedures, and types.
 
+{ Compile all PL/SQL objects in a given schema #compile-plsql-objs
+  
+  The following anonymous block compiles PL/SQL objects in a given schema. It is intended to used with a selection critera in order to limit the objects that will be compiled.
+  Compare with → development/databases/Oracle/installed/packages/dbms/utility/api/compile_schema[`dbms_utility.compile_schema`].
+code {
+begin
+   for obj in (select object_name name, object_type type from user_objects where object_type in ('TYPE', 'PACKAGE', 'PROCEDURE', 'FUNCTION')) loop
+       begin
+       
+       execute immediate 'alter ' || obj.type || ' ' || obj.name || ' compile';
+       exception when others then
+           if sqlcode in (
+              - 2311, -- cannot alter with COMPILE option a valid type with type or table dependents
+              - 6545, -- PL/SQL: compilation error - compilation aborted
+              -24344  -- success with compilation error
+           ) then
+              null;
+           else
+              dbms_output.put_line(sqlerrm);
+              dbms_output.put_line('alter ' || obj.type || ' ' || obj.name || ' compile');
+           end if;
+       end;
+   end loop;
+end;
+/
+code }
+
+}
+
 sa:
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dplsql_bsq[`$ORACLE_HOME/rdbms/admin/dplsql.bsq`] creates PL/SQL related dynamic performance tables such as
  `procedure$`, `source$`, `idl_char$`, `idl_ub2$`, …

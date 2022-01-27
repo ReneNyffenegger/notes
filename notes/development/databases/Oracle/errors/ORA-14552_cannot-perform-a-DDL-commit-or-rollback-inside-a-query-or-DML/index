@@ -1,0 +1,39 @@
+$ ORA-14552: cannot perform a DDL, commit or rollback inside a query or DML 
+
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+begin
+
+    execute immediate stmt;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+
+The following select statement throws a *ORA-14552: cannot perform a DDL, commit or rollback inside a query or DML* error message:
+code {
+select
+   exec_immediate('create table tq84_test(a number)')
+from
+   dual;
+code }
+
+Compile the function with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`] to be able execute the function.
+code {
+create or replace function exec_immediate(stmt clob) return clob as
+    PRAGMA AUTONOMOUS_TRANSACTION;
+begin
+
+    execute immediate stmt;
+    return stmt;
+
+end exec_immediate;
+/
+code }
+
+sa:
+  → development/databases/Oracle/errors/ORA-14551_cannot-perform-a-DML-operation-inside-a-query
+  -
+  → development/databases/Oracle/errors/ORA-06519_active-autonomous-transaction-detected-and-rolled-back
