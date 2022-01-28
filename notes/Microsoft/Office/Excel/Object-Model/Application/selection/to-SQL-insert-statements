@@ -1,0 +1,28 @@
+$ Excel: Turn selected region into SQL Insert Statements
+
+The following code, when executed in the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window/index, turns the selected region
+(i.e. the → Microsoft/Office/Excel/Object-Model/Application/selection[`selection` property of the → Microsoft/Office/Excel/Object-Model/Application[`application` object)
+into SQL insert statements:
+code {
+for each r in selection.rows                                     : _
+    r_= application.transpose(application.transpose(r.value))    : _
+    c_ = r_                                                      : _
+    i = 1                                                        : _
+    for each c in r.value                                        : _
+        select case vartype(c      )                             : _
+          case vbInteger, vbLong, vbSingle, vbDouble             : _
+               c_(i) = c                                         : _
+          case vbDate                                            : _
+               c_(i) = "date '" & format(c, "yyyy-mm-dd") & "'"  : _
+          case vbString                                          : _
+               c_(i) = "'" & replace(c, "'", "''") & "'"         : _
+          case vbEmpty                                           : _
+               c_(i) = "null"                                    : _
+          case else                                              : _
+               c_(i) = "? " & vartype(c) & " ? "                 : _
+        end select                                               : _
+        i    = i+1                                               : _
+    next c                                                       : _
+    debug.print("insert into xxx values(" & join(c_, ",")) & ")" : _ 
+next r
+code }
