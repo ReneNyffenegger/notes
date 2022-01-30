@@ -5,6 +5,35 @@ a → development/version-control-systems/git/objects/blob[blob] from a file.
 
 A file's hash can be determined without being in a git repository.
 
+{ Influence of the core.autocrlf option #git-hash-object-autocrlf
+
+  The following commands demonstrate the influence of the `→ development/version-control-systems/git/options/core-autocrlf` option on calculating a file's hash.
+
+  First a → development/version-control-systems/git/repository is → development/version-control-systems/git/commands/init[initialized]:
+  gh|about-git|/commands/hash-object/core.autocrlf/init.ps1||
+
+  Two files are created, one with the traditional Unix → development/line-break[end of line] byte, `0x0A`, named `unix.txt`, and another one, named `dos.txt`, with the
+  traditional Windows end of line semantics, `0x0D 0x0A`. I use
+  the method → Microsoft/dot-net/namespaces-classes/System/IO/File/ReadAllBytes-WriteAllBytes[`WriteAllBytes`] of the → Microsoft/dot-net class
+  → Microsoft/dot-net/namespaces-classes/System/IO/File[`System.IO.File`] in order to make sure that precisly those bytes get written I intend to.
+  gh|about-git|/commands/hash-object/core.autocrlf/create-files.ps1||
+
+  The `→ development/version-control-systems/git/options/core-autocrlf` is → development/version-control-systems/git/commands/config[configured] to `false` …
+  gh|about-git|/commands/hash-object/core.autocrlf/autocrlf.false.ps1||
+
+  … and the files' hashes are calculated.
+  gh|about-git|/commands/hash-object/core.autocrlf/hash-objects.ps1||
+
+  The command reports the hash of `unix.txt` to be `257cc5642cb1a054f08cc83f2d943e56fd3ebe99` and the hash of `dos.txt` to be
+ `e48b03ece74f47d1ae20075200c64aeaa01a9cdb`. So, these files differ, as expected.
+
+  However, with setting `core.autocrlf` to `true` … 
+  gh|about-git|/commands/hash-object/core.autocrlf/autocrlf.true.ps1||
+  … both files will be reported to have the same hash: the hash of `unix.txt`. 
+  gh|about-git|/commands/hash-object/core.autocrlf/hash-objects.ps1||
+
+}
+
 sa:
   → http://renenyffenegger.ch/development/git-internals/hash-object[Git internals: hash-object]
 

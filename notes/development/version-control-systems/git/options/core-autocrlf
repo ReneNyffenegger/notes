@@ -1,0 +1,55 @@
+$ Git option: core.autocrlf
+@ core.autocrlf
+
+If `core.autocrlf` is set to true, Git will automatically convert Windows → development/line-break[line endings] (`0x0D 0x0A`) to Unix line endings (`0x0A`) when
+adding/commit files to the index/repository and do the reverese when doing the opposite.
+
+The idea of this behavior is to ensure that file hashes stay the same regardless of their line endings.
+
+When setting `core.autocrlf` to `false`, no modification of line endings takes place.
+
+As → https://stackoverflow.com/a/68265163/180275[per sthis stackoverflow answer], `core.autocrlf` should be to `false` because the value
+of `core.autocrlf`
+  • applies to all files, even binary ones and
+  • is local, not versionized in a repository.
+
+The `eol` directive in → development/version-control-systems/git/_gitattributes[`.gitattributes`] is therefore the preferred alternative.
+
+`core.autocrlf` can also be set to `input` which only does the conversion from Dos to Unix line endings when
+→ development/version-control-systems/git/commands/commit[commiting] but not on when getting a file from the repository into the
+→ development/version-control-systems/git/working-tree.
+
+{ Example
+
+  This example demonstrates the effect of setting `core.autocrlf` to `input`.
+
+  First, we → development/version-control-systems/git/commands/init[initialize] a new → development/version-control-systems/git/repository for this demonstration …
+  gh|about-git|/options/core/autocrlf/init.ps1||
+
+  … and set the option `core.autocrlf` to `input`:
+  gh|about-git|/options/core/autocrlf/config.ps1||
+
+  We create two files, one with a DOS line ending and one with a Unix line ending:
+  gh|about-git|/options/core/autocrlf/create-files.ps1||
+
+  These files are then → development/version-control-systems/git/commands/add[added] to the → development/version-control-systems/git/index_:
+  gh|about-git|/options/core/autocrlf/add.ps1||
+
+  The two files are removed from the → development/version-control-systems/git/working-tree (but not from the index) …
+  gh|about-git|/options/core/autocrlf/rm.ps1||
+
+  … and → development/version-control-systems/git/commands/restore[restored] from the index into the working tree:
+  gh|about-git|/options/core/autocrlf/restore.ps1||
+
+  Showing the files's bytes shows that both files now have a Unix line ending:
+  gh|about-git|/options/core/autocrlf/show-bytes.ps1||
+
+}
+
+sa:
+
+  The influence of the value of `core.autocrlf` on → development/version-control-systems/git/commands/hash-object#git-hash-object-autocrlf[calculating file hashes with `git hash-object`].
+
+  The `core.safecrl` option.
+
+  Other → development/version-control-systems/git/options[Git options].
