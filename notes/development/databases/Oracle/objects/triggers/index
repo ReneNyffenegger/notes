@@ -1,4 +1,5 @@
 $ Oracle triggers
+@ trigger
 
 { Commit and rollback not permitted
 
@@ -6,7 +7,7 @@ $ Oracle triggers
   declared with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`].
 
 }
-{ Logon trigger
+{ Logon trigger #ora-logon-triggers
 
   The following code is a *simple* example that tries to demonstrate how a logon trigger might be formulated. In real life, to record user logons, `aud$` would be used.
 code {
@@ -30,20 +31,111 @@ drop trigger someone_logged_on;
 drop table   logon_trigger_test;
 code }
 
+  { Logon triggers on a schema
+
+    It's possible to create a trigger that just tracks the logons of a specific user (`after logon on schema` for the user creating the trigger,
+    or `after logon on rene.schema` for the user `rene`):
+code {
+create table my_logons (d date);
+
+create or replace trigger logon_trg after logon on schema
+begin
+   insert into my_logons values (sysdate);
+   commit;
+end logon_trg;
+/
+code }
+
+    A failing logon trigger on schema does not prevent the user from logging in!
+
+  }
   { Disabling logon triggers
 
     Logon triggers (as well as other system triggers) can be disabled by setting `_system_trigger_enabled` to `false`. This could be necessary if a logon trigger was written badly and prevents users from
-    loggin in.
+    logging in.
 code {
-alter system set "_system_trig_enabled" = false scope=both;
+→ development/databases/Oracle/SQL/statement/nouns/system/alter set "_system_trig_enabled" = false scope=both;
 code }
 
   }
+  { Finding logon triggers in DBA_TRIGGERS
+
+    Logon triggers are recorded in `→ development/databases/Oracle/installed/data-dictionary/triggers` with a
+    → development/databases/Oracle/installed/data-dictionary/triggers#dba_triggers_logon[trailing space in `triggering_event`].
+
+  }
+
+}
+{ Catching erroneous SQL statements #ora-trigger-erroneous-sql
+
+  The following example demonstrates how a `servererror` trigger can be used to catch erroneous
+  → development/databases/Oracle/SQL/statement[SQL statements].
+
+  First, we need a table to record the timestamp, the → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[SQL error-code] and
+  the failing SQL statement to:
+code {
+create table tq84_error (
+    ts               timestamp,
+    ora_server_error varchar2(4000),
+    sql_stmt         clob
+);
+code }
+
+  Then we create the trigger that gets fired when an SQL error is encountered:
+code {
+create or replace trigger tq84_error -- Triggers can have same name as other objects in schema - let's take advantage of this feature!
+       after servererror on schema
+declare
+   stmt_pieces ora_name_list_t;
+   nof_pieces  number;
+   stmt        clob;
+begin
+
+   nof_pieces := ora_sql_txt(stmt_pieces);
+
+   for piece in 1 .. nof_pieces loop
+       stmt := stmt || stmt_pieces(piece);
+   end loop;
+
+   insert into tq84_error values (
+       systimestamp,
+       ora_server_error(1),
+       stmt
+   );
+
+   commit;
+
+exception when others then
+--
+-- Do not permit recursive errors.
+--
+   null;
+end;
+/
+code }
+
+  Provoke an error on purpose to test the trigger:
+code {
+create table tq84_foo(a number, b varchar2(20));
+insert /* stmt 1 */ into tq84_foo values (1, 'one');
+insert /* stmt 2 */ into tq84_foo values ('a', 'two');
+--  ORA-01722: invalid number
+select * from tq84_error order by ts desc;
+code }
+
+}
+{ Names of triggers
+
+  A trigger can have the same name as another → development/databases/Oracle/objects[object] in the same schema.
 
 }
 
 sa:
 
   → development/databases/Oracle/installed/data-dictionary/procedures[`ALL_PROCEDURES`]
+
+  `→ development/databases/Oracle/installed/data-dictionary/triggers`,
+  `dba_trigger_ordering` and
+  `dba_internal_triggers`
 
   → development/databases/Oracle/objects

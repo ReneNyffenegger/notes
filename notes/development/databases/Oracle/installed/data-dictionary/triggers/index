@@ -1,0 +1,53 @@
+$ Oracle: DBA_TRIGGERS
+@ dba_triggers
+
+code {
+select
+   trg.owner,
+   trg.trigger_name,
+    --
+   trg.action_type,                            -- PL/SQL or CAL
+   trg.trigger_type,                           -- [BEFORE|AFTER] STATEMENT, [BEFORE|AFTER] EACH ROW, INSTEAD, COMPOUND
+   --
+   trg.before_row      , trg.after_row,
+   trg.before_statement, trg.after_statement,
+   --
+   trg.when_clause                             -- An expression that must evaluate to true in order for the → development/databases/Oracle/objects/triggers to fire
+   --
+   trg.apply_server_only,                      -- YES:  Trigger will only fire for a Replication Apply or SQL Apply process.
+   trg.base_object_type,                       -- TABLE, VIEW, SCHEMA or DATABASE
+   trg.column_name,
+   trg.crossedition,
+   trg.description,
+   trg.fire_once,
+   trg.instead_of_row,
+   trg.referencing_names,
+   trg.status,
+   trg.table_name,
+   trg.table_owner,
+   trg.trigger_body,
+   trg.triggering_event
+from
+   SYS.dba_triggers trg;
+code }
+
+{ Finding LOGON triggers #dba_triggers_logon
+
+  The value of `triggering_event` has a trailing space for → development/databases/Oracle/objects/triggers#ora-logon-triggers[logon triggers].
+
+code {
+select
+   *
+from
+   dba_triggers
+where
+   triggering_event = 'LOGON ' -- Note the trailing space.
+;
+code }
+
+}
+
+sa:
+
+  `dba_internal_triggers`,
+  `dba_trigger_ordering`
