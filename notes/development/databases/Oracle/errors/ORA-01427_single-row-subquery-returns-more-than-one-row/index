@@ -1,0 +1,124 @@
+$ ORA-01427: single-row subquery returns more than one row
+
+{ Test data
+
+  The tst data for the SQL and PL/SQL examples below:
+code {
+create table tq84_tab_A (grp varchar2(10), val number);
+create table tq84_tab_B (id  integer, txt varchar2(10), grp varchar2(10));
+
+insert into tq84_tab_A values ('foo', 1);
+insert into tq84_tab_A values ('bar', 2);
+insert into tq84_tab_A values ('bar', 3);
+insert into tq84_tab_A values ('baz', 4);
+
+insert into tq84_tab_B values (1, 'one'  , 'foo');
+insert into tq84_tab_B values (2, 'two'  , 'bar');
+insert into tq84_tab_B values (3, 'three', 'foo');
+insert into tq84_tab_B values (4, 'four' , 'baz');
+insert into tq84_tab_B values (5, 'five' , 'foo');
+code }
+
+}
+{ SQL example
+
+
+No problem, value `foo` is unique in `tq84_tab_A`:
+code {
+select
+   b.id,
+   b.txt,
+  (select a.val from tq84_tab_A a where a.grp = b.grp) val_a
+from
+   tq84_tab_B b
+where
+   b.grp = 'foo'
+;
+code }
+
+Throws *ORA-01427: single-row subquery returns more than one row* because `bar` is not unique in `tq84_tab_A`:
+code {
+select
+   b.id,
+   b.txt,
+  (select a.val from tq84_tab_A a where a.grp = b.grp) val_a
+from
+   tq84_tab_B b
+;
+code }
+
+
+}
+{ PL/SQL example
+
+  A function without a `too_many_rows` exception catcher:
+code {
+create or replace function tq84_get_val(p_grp  varchar2) return number
+is
+   a_val number;
+begin
+   select
+      a.val into a_val
+   from
+      tq84_tab_A a
+   where
+      a.grp = p_grp;
+
+   return a_val;
+end tq84_get_val;
+/
+code }
+
+   OK:
+code {
+begin
+   dbms_output.put_line(tq84_get_val('foo'));
+end;
+/
+code }
+
+   Throw ORA-01427:
+code {
+begin
+   dbms_output.put_line(tq84_get_val('bar'));
+end;
+/
+code }
+
+  Add `too_many_rows` exception catcher to function:
+code {
+create or replace function tq84_get_val(p_grp  varchar2) return number
+is
+   a_val number;
+begin
+   select
+      a.val into a_val
+   from
+      tq84_tab_A a
+   where
+      a.grp = p_grp;
+
+   return a_val;
+
+EXCEPTION
+   WHEN TOO_MANY_ROWS THEN
+
+      dbms_output.put_line('grp ' || p_grp || ' returns more than one row.');
+      return null;
+
+end tq84_get_val;
+/
+code }
+
+}
+{ Clean up test data
+
+code {
+drop table tq84_tab_A;
+drop table tq84_tab_B;
+code }
+
+}
+
+sa:
+  The → development/databases/Oracle/PL-SQL/exception#ora-predef-exc[predefined exception] `too_many_rows`.
