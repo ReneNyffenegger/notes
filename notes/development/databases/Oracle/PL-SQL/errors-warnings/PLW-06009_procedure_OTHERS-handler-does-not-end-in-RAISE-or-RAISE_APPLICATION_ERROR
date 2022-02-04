@@ -1,0 +1,42 @@
+$ PLW-06009: procedure "…" OTHERS handler does not end in RAISE or RAISE_APPLICATION_ERROR
+
+
+The following snippet warns about a missing `raise` although the function clearly has one.
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] → development/databases/Oracle/adminstration/init-parameters/plsql_warnings = 'enable:all';
+
+create or replace function tq84_plsql_warning(p varchar2) return varchar2
+   authid definer
+as   
+    ret varchar2(1);
+begin
+
+    select * into ret from dual where dummy = p;
+    return ret;
+
+exception when others then
+
+   if sysdate < date '2021-12-12' then
+      return 'x';
+   end if;
+
+   raise;
+
+end tq84_plsql_warning;
+/
+
+show errors
+code }
+
+{ Pragma SUPPRESSES_WARNING_6009
+
+  With Oracle 21c(?), the warning about the missing `raise` or `raise_application_error` statements can be prevented by using the
+ `suppresses_warning_6009` → development/databases/Oracle/PL-SQL/pragma.
+
+}
+
+sa:
+
+ `→ development/databases/Oracle/PL-SQL/exception/raise_application_error`
+
+  → development/databases/Oracle/PL-SQL/errors-warnings

@@ -98,7 +98,71 @@ select count(*), signature from dba_identifiers where usage = 'DECLARATION' grou
 code }
 
 }
-{ USAGE_ID  USAGE_CONTEXT_ID
+{ Column TYPE
+
+  The possible values of `TYPE` can be queried with the following statement:
+code {
+select
+   sig.type,
+   case when count(case when def.signature is not null then 1 end) > 0 then 'x' end has_definition,
+   count(*)                                                                         cnt,
+   count(case when def.signature is not null then 1 end)                            cnt_with_definition
+from
+   dba_identifiers sig                                                                left join
+   dba_identifiers def on sig.signature = def.signature and def.usage = 'DEFINITION'
+group by
+   sig.type
+order by
+   type;
+code }
+
+  On my installation, the query returns the following types and indication if a type is associated with a definition:
+  table { ll
+    ASSOCIATIVE ARRAY	 ☰ 
+    BFILE DATATYPE	 ☰ 
+    BLOB DATATYPE	 ☰ 
+    BOOLEAN DATATYPE	 ☰ 
+    CHARACTER DATATYPE	 ☰ 
+    CLOB DATATYPE	 ☰ 
+    COLUMN	 ☰ 
+    CONSTANT	 ☰ 
+    DATE DATATYPE	 ☰ 
+    EXCEPTION	 ☰ 
+    FORMAL IN	 ☰ x
+    FORMAL IN OUT	 ☰ 
+    FORMAL OUT	 ☰ 
+    FUNCTION	 ☰ x
+    INDEX TABLE	 ☰ 
+    INTERVAL DATATYPE	 ☰ 
+    ITERATOR	 ☰ 
+    LABEL	 ☰ 
+    NESTED TABLE	 ☰ 
+    NUMBER DATATYPE	 ☰ 
+    OBJECT	 ☰ x
+    OBJECT ATTRIBUTE	 ☰ 
+    OPAQUE	 ☰ 
+    PACKAGE	 ☰ x
+    PROCEDURE	 ☰ x
+    RECORD	 ☰ 
+    RECORD FIELD	 ☰ 
+    RECORD ITERATOR	 ☰ 
+    REFCURSOR	 ☰ 
+    SEQUENCE	 ☰ 
+    SUBTYPE	 ☰ 
+    SYNONYM	 ☰ 
+    TABLE	 ☰ 
+    TIME DATATYPE	 ☰ 
+    TIMESTAMP DATATYPE	 ☰ 
+    TRIGGER	 ☰ x
+    UROWID	 ☰ 
+    VARIABLE	 ☰ x
+    VARRAY	 ☰ 
+    VIEW	 ☰ 
+  table }
+
+
+}
+{ USAGE_ID / USAGE_CONTEXT_ID
 
  `USAGE_ID` specifes a «scope». Records in `DBA_IDENTIFIERS` that belong to that scope have a `CONTEXT_USAGE_ID` whose value corresponds to the `USAGE_ID` of that scope.
 

@@ -1,0 +1,33 @@
+code {
+connect / as sysdba
+
+   create user tq84_view_owner identified by pw default tablespace data quota unlimited on data;
+   create user tq84_view_user  identified by pw;
+
+   grant create session, create table, create view to tq84_view_owner;
+   grant create session                            to tq84_view_user ;
+
+connect tq84_view_owner/pw;
+
+   create table xyz(num number, txt varchar2(10));
+   create view  xyz_v as select num*2 dbl, txt from xyz;
+   grant select on xyz_v to tq84_view_user;
+
+connect tq84_view_user/pw;
+
+   select * from tq84_view_owner.xyz_v;
+
+   → development/databases/Oracle/SQL/statement/verbs/explain[explain plan] for select * from tq84_view_owner.xyz_v;
+--
+-- ERROR at line 1:
+-- ORA-01039: insufficient privileges on underlying objects of the view
+--
+
+connect / as sysdba
+
+   drop user tq84_view_user;
+   drop user tq84_view_owner cascade;
+code }
+
+sa:
+  → development/databases/Oracle/errors/ORA-01031_insufficient-privileges

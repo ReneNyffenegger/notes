@@ -1,0 +1,104 @@
+$ Oracle pseudo column ORA_ROWSCN
+@ ora_rowscn
+
+`ora_rowscn` is a → development/databases/Oracle/objects/tables/columns/pseudo.
+
+The value of `ora_rowscn` is equal to or grater than the → development/databases/Oracle/architecture/transaction/SCN of the
+→ development/databases/Oracle/architecture/transaction that commited the record.
+
+{ ROWDEPENDENCIES vs NOROWDEPENDENCIES
+
+  If a table is created with `norowdependencies`, the value of `ora_rowscn` will be the same
+  for all rows within the same
+  → development/databases/Oracle/architecture/database/logical-structures/data-block.
+
+  Tables create with `rowdependencies` will have a value that is associated with the row itself rather than the database block.
+
+  This is shown in the output for the following select statement. (Note the jumps of three seconds).
+
+code {
+drop table norowdependencies_tab;
+drop table   rowdependencies_tab;
+
+create table norowdependencies_tab (
+   num   number,
+   tim   timestamp,
+   scn   number
+)  norowdependencies;
+
+create table rowdependencies_tab (
+   num   number,
+   tim   timestamp,
+   scn   number
+)  rowdependencies;
+
+begin
+
+  for i in 1 .. 10 loop
+    insert into   rowdependencies_tab values (i, systimestamp, dbms_flashback.get_system_change_number);
+    insert into norowdependencies_tab values (i, systimestamp, dbms_flashback.get_system_change_number);
+
+    commit;
+    dbms_lock.sleep(1);
+  end loop;
+
+end;
+/
+code }
+
+code {
+select
+   ora_rowscn                   scn_row,
+   scn,
+   → development/databases/Oracle/SQL/functions/scn/scn_to_timestamp[scn_to_timestamp](ora_rowscn) scn_tim,
+   tim
+from
+   norowdependencies_tab
+order
+  by num;
+--
+--   SCN_ROW        SCN SCN_TIM                       TIM                          
+-- ---------- ---------- ----------------------------- -----------------------------
+--   23805103   23805059 2022-02-04 19:20:17.000000000 2022-02-04 19:20:10.722000000
+--   23805103   23805063 2022-02-04 19:20:17.000000000 2022-02-04 19:20:11.724000000
+--   23805103   23805066 2022-02-04 19:20:17.000000000 2022-02-04 19:20:12.735000000
+--   23805103   23805069 2022-02-04 19:20:17.000000000 2022-02-04 19:20:13.741000000
+--   23805103   23805071 2022-02-04 19:20:17.000000000 2022-02-04 19:20:14.749000000
+--   23805103   23805074 2022-02-04 19:20:17.000000000 2022-02-04 19:20:15.755000000
+--   23805103   23805077 2022-02-04 19:20:17.000000000 2022-02-04 19:20:16.762000000
+--   23805103   23805096 2022-02-04 19:20:17.000000000 2022-02-04 19:20:17.769000000
+--   23805103   23805099 2022-02-04 19:20:17.000000000 2022-02-04 19:20:18.771000000
+--   23805103   23805102 2022-02-04 19:20:17.000000000 2022-02-04 19:20:19.775000000
+code }
+
+code {
+select
+   ora_rowscn                   scn_row,
+   scn,
+   scn_to_timestamp(ora_rowscn) scn_tim,
+   tim
+from
+   rowdependencies_tab
+order
+   by num;
+--
+--    SCN_ROW        SCN SCN_TIM                       TIM                          
+-- ---------- ---------- ----------------------------- -----------------------------
+--   23805061   23805054 2022-02-04 19:20:08.000000000 2022-02-04 19:20:10.701000000
+--   23805064   23805063 2022-02-04 19:20:08.000000000 2022-02-04 19:20:11.724000000
+--   23805067   23805066 2022-02-04 19:20:11.000000000 2022-02-04 19:20:12.735000000
+--   23805070   23805069 2022-02-04 19:20:11.000000000 2022-02-04 19:20:13.739000000
+--   23805072   23805071 2022-02-04 19:20:11.000000000 2022-02-04 19:20:14.748000000
+--   23805075   23805074 2022-02-04 19:20:14.000000000 2022-02-04 19:20:15.755000000
+--   23805078   23805077 2022-02-04 19:20:14.000000000 2022-02-04 19:20:16.762000000
+--   23805097   23805096 2022-02-04 19:20:14.000000000 2022-02-04 19:20:17.769000000
+--   23805100   23805099 2022-02-04 19:20:17.000000000 2022-02-04 19:20:18.771000000
+--   23805103   23805102 2022-02-04 19:20:17.000000000 2022-02-04 19:20:19.775000000
+code }
+
+
+}
+
+sa:
+  SQL Developer's menu → development/Software/Oracle-SQL-Developer/GUI/menu/Tools/Preferences/Database/Object-Viewer[Tools -> Preferences -> Database -> Object Viewer].
+
