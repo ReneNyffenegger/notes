@@ -1,41 +1,42 @@
 $ Oracle: DBA_IDENTIFIERS
 
-`dba_identifiers` lists all identifiers that are found in PL/SQL code. This → development/databases/Oracle/installed/data-dictionary view comes in all four variants:
+`dba_identifiers` lists all identifiers that are found in → development/databases/Oracle/PL-SQL code. This → development/databases/Oracle/installed/data-dictionary view comes in all four variants:
 `user_identifiers`, `all_identifiers`, `dba_identifiers` and `cdb_identifiers`.
 
-In order for this view to be populated with the information about identifiers, the PL/SQL compilation parameter `psscope_settings` must be set to
-`identifiers:all`.
+In order for this view to be populated with the information about identifiers, the PL/SQL compilation parameter
+`→ development/databases/Oracle/adminstration/init-parameters/plscope_settings` must be set to `identifiers:all`.
 
 `dba_identifiers` only stores information about basic type names (`variable`). To determine the exact type of a `variable`, the information from
 `usage_context_id` must be used.
 
 code {
 select
-   --
-   -- Identification of the identifier being described
-   --
-   idt.signature,
+--
+-- Identification of the identifier being described
+--
    idt.owner,
    idt.name,
    idt.type,
-   --
-   -- Identification of the PL/SQL object and location where
-   -- the identifier being described in the current record
-   -- is found:
-   --
-   idt.object_name,
-   idt.object_type,
-   idt.line,
-   idt.col,
-   --
-   --
+--
+-- Identification of the PL/SQL object, table or view and the source line and
+-- source column where the identifier is found:
+--
+   idt.object_name            src_name,
+   idt.object_type            src_type,
+   idt.line                   src_line,
+   idt.col                    src_col ,
+--
+-- Identification of the PL/SQL object and location where
+-- the identifier being described in the current record
+-- is found:
+--
+   idt.declared_object_name   ,
+   idt.declared_object_type   ,
+   idt.declared_owner         ,
    --
    idt.usage,
    idt.usage_context_id,
    idt.usage_id,
-   idt.declared_object_name,
-   idt.declared_object_type,
-   idt.declared_owner,
    --
    idt.attribute,
    idt.character_set,
@@ -45,21 +46,61 @@ select
    idt.length,
    idt.lower_range,
    idt.null_constraint,
-
-
+   --
    idt.origin_con_id,
    idt.precision,
    idt.precision2,
    idt.scale,
    idt.sql_builtin,
-   idt.upper_range
+   idt.upper_range,
+--
+-- Unique ID of the the «thing» being referred to
+-- by the identifier:
+--
+   idt.signature
 from
    dba_identifiers idt
+where
+   idt.owner       =  user        and
+   idt.usage       = 'DEFINITION' and
+   idt.object_name = 'TQ84_PKG'   and
+   idt.name        = 'PROC_FOO'
+;
 code }
 
+{ Column USAGE
+
+  The value of the column `USAGE` is one of
+  table { ll
+    `REFERENCE`   ☰
+    `CALL`        ☰
+    `ASSIGNMENT`  ☰
+    `DECLARATION` ☰
+    `DEFINITION`  ☰
+  table }
+
+}
+{ Columns DECLARED*
+
+  The three columns `DECLARED_OWNER`, `DECLARED_OBJECT_NAME` and `DECLARED_OBJECT_TYPE` identify the PL/SQL object (package, procedure etc.*),
+  the → development/databases/Oracle/objects/tables or the → development/databases/Oracle/objects/views that is being referred to by the identifier.
+
+}
+{ Column SIGNATURE
+
+  The value of `SIGNATURE` identifies the the «thing» which the identifer refers to.
+  Hence, there is at most one record with `usage = 'DECLARATION'` and at most one record with `usage = 'DEFINITION'` for a given signature:
+
+  Both of the following statements should theoretically return a constant `count(*)` of `1`. It turns out, that on my current system, there is *one* exception (because of a bug in Oracle?):
+code {
+select count(*), signature from dba_identifiers where usage = 'DEFINITION'  group by signature order by count(*) desc;
+select count(*), signature from dba_identifiers where usage = 'DECLARATION' group by signature order by count(*) desc;
+code }
+
+}
 { USAGE_ID  USAGE_CONTEXT_ID
 
- `usage_id` specifes a «scope». Records in `dba_identifiers` that belong to that scope have a `context_usage_id` whose value corresponds to the `usage_id` of that scope.
+ `USAGE_ID` specifes a «scope». Records in `DBA_IDENTIFIERS` that belong to that scope have a `CONTEXT_USAGE_ID` whose value corresponds to the `USAGE_ID` of that scope.
 
   The combination of `usage_id` and `usage_context_id` is unique within an object, the following statement returns
   no records:
@@ -82,7 +123,6 @@ group by
    usage_context_id
 having
    count(*) > 1;
-
 code }
 
 

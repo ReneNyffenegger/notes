@@ -1,0 +1,30 @@
+$ Oracle: DBA_SQL_PLAN_BASELINES
+@ dba_sql_plan_baselines
+
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] optimizer_capture_sql_plan_baselines=true;
+
+select * from tq84_sqllog_test where txt = 'AAA';
+select * from → development/databases/Oracle/installed/data-dictionary/base-tables/sqllog[sys.sqllog$];
+-- Signature of statement is entered into sqllog$
+
+select * from dba_sql_plan_baselines where sql_text like 'select * from tq84_sqllog_test%';
+--
+-- No record
+
+select * from tq84_sqllog_test where txt = 'BBB';
+select * from sys.sqllog$;
+--
+-- Signature of statement is entered into sqllog$
+
+select * from dba_sql_plan_baselines where sql_text like 'select * from tq84_sqllog_test%';
+--
+-- Still no record (because statement is executed only once, and is not repeatable)
+
+select * from tq84_sqllog_test where txt = 'AAA';
+select * from dba_sql_plan_baselines where sql_text like 'select * from tq84_sqllog_test%';
+--
+-- One record found, statement has become repeatable.
+code }
+
+

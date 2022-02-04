@@ -1,39 +1,109 @@
 $ Oracle Objects
 @ objects
 
-A *Database Link* allows to access objects that are stored in other databases. If the other database is not an Oracle database system, they must be accessed
-with *Oracle Heterogeneous Services*.
 
-A *Directory* is an abstraction for a directory/folder on the file system where the Oracle Instance is running.
--
-Such directories can be used for example in conjunction with the *BFILE* → development/databases/Oracle/SQL/data-types[data type].
+{ Object types
 
-→ development/databases/Oracle/objects/indexes[Indexes]
+  There is quite a list of available *object types*. The list of object types can be queried by first expanding the SQL statement text of
+ `→ development/databases/Oracle/installed/data-dictionary/objects` …
+code {
+declare
+   c clob;
+begin
+   → development/databases/Oracle/installed/packages/dbms/utility/api/expand_sql_text[dbms_utility.expand_sql_text]('select*from"DBA_OBJECTS"', c);
+   dbms_output.put_line(c);
+end;
+code }
+  … and then finding the relevant `decode` statement:
+code {
+decode("A14"."TYPE#",
+  0, 'NEXT OBJECT',
+  1, 'INDEX'      ,
+  2, 'TABLE'
+  …
+)
+code }
 
-A → development/databases/Oracle/objects/views/materialized[Materialized View] stores the result of an SQL query.
--
-Associated with a → development/databases/Oracle/objects/views/materialized[Materialized View] is the *Materialized View Log*.
+  This gives me the list of possible object types (19c):
+table { rll
 
-A *Queue* enqueues and dequeues messages and is managed by Oracle Streams Advanced Queueing (AQ).
--
-These messages are stored in *Queue Tables*.
+  152 ☰ ANALYTIC VIEW ☰
+   61 ☰ APPLY ☰
+   87 ☰ ASSEMBLY ☰
+  151 ☰ ATTRIBUTE DIMENSION ☰
+   60 ☰ CAPTURE ☰
+   79 ☰ CHAIN ☰
+    3 ☰ → development/databases/Oracle/objects/clusters[CLUSTER] ☰ A is an object that stores data from one or more → development/databases/Oracle/objects/tables[tables]
+   48 ☰ CONSUMER GROUP ☰
+  111 ☰ CONTAINER ☰
+   44 ☰ → development/databases/Oracle/objects/contexts[CONTEXT] ☰
+   90 ☰ CREDENTIAL ☰
+   95 ☰ CUBE BUILD PROCESS ☰
+   93 ☰ CUBE ☰
+   92 ☰ CUBE DIMENSION ☰
+  101 ☰ DESTINATION ☰
+   43 ☰ DIMENSION ☰
+   23 ☰ DIRECTORY ☰ A *Directory* is an abstraction for a directory/folder on the file system where the Oracle Instance is running. Such directories can be used for example in conjunction with the *BFILE* → development/databases/Oracle/SQL/data-types[data type].
+   57 ☰ EDITION ☰
+   62 ☰ EVALUATION CONTEXT ☰
+   81 ☰ FILE GROUP ☰
+  100 ☰ FILE WATCHER ☰
+    8 ☰ FUNCTION ☰
+  150 ☰ HIERARCHY ☰
+    1 ☰ → development/databases/Oracle/objects/indexes[INDEX] ☰
+   35 ☰ INDEX SUBPARTITION ☰
+   20 ☰ INDEX PARTITION ☰
+   32 ☰ INDEXTYPE ☰
+   56 ☰ JAVA DATA ☰
+   30 ☰ JAVA RESOURCE ☰
+   28 ☰ JAVA SOURCE ☰
+   29 ☰ JAVA CLASS ☰
+   66 ☰ JOB ☰
+   68 ☰ JOB CLASS ☰
+   22 ☰ LIBRARY ☰
+   41 ☰ LOB SUBPARTITION ☰
+   40 ☰ LOB PARTITION ☰
+   21 ☰ LOB ☰
+   52 ☰ LOCATION ☰
+  148 ☰ LOCKDOWN PROFILE ☰
+   42 ☰ → development/databases/Oracle/objects/views/materialized[MATERIALIZED VIEW], REWRITE EQUIVALENCE or MATERIALIZED ZONEMAP ☰ Object type further determined based on value of `xpflags` in joined table → development/databases/Oracle/installed/data-dictionary/base-tables/sum[`sys.sum$`]. A Materialized View stores the result of an SQL query. Associated with a → development/databases/Oracle/objects/views/materialized[Materialized View] is the *Materialized View Log*.
+   94 ☰ MEASURE FOLDER ☰
+   82 ☰ MINING MODEL ☰
+  144 ☰ MINING MODEL PARTITION ☰
+    0 ☰ NEXT OBJECT ☰
+   33 ☰ OPERATOR ☰
+   11 ☰ PACKAGE BODY ☰
+    9 ☰ PACKAGE ☰
+    7 ☰ PROCEDURE ☰
+   67 ☰ PROGRAM ☰
+   24 ☰ QUEUE ☰ A *Queue* enqueues and dequeues messages and is managed by Oracle Streams Advanced Queueing (AQ).  These messages are stored in *Queue Tables*.
+   47 ☰ RESOURCE PLAN ☰
+   46 ☰ RULE SET ☰
+   59 ☰ RULE ☰
+   74 ☰ SCHEDULE ☰
+   72 ☰ SCHEDULER GROUP ☰
+    6 ☰ → development/databases/Oracle/objects/sequences[SEQUENCE] ☰
+  114 ☰ SQL TRANSLATION PROFILE ☰ AN *SQL Translator* converts a non-Oracle SQL dialect to SQL Statements that are understood by Oracle.
+   51 ☰ SUBSCRIPTION ☰
+    5 ☰ SYNONYM ☰
+    2 ☰ → development/databases/Oracle/objects/tables[TABLE] ☰
+   19 ☰ → development/databases/Oracle/objects/tables/partitions[TABLE PARTITION] ☰
+   34 ☰ TABLE SUBPARTITION ☰
+   12 ☰ → development/databases/Oracle/objects/triggers[TRIGGER] ☰
+   14 ☰ TYPE BODY ☰
+   13 ☰ TYPE ☰
+  115 ☰ UNIFIED AUDIT POLICY ☰
+    4 ☰ → development/databases/Oracle/objects/views[VIEW] ☰
+   69 ☰ WINDOW ☰
+   55 ☰ XML SCHEMA ☰
 
-→ development/databases/Oracle/objects/sequences[Sequences]
+table }
 
-AN *SQL Translator* converts a non-Oracle SQL dialect to SQL Statements that are understood by Oracle.
+  I thought a  *Database Link* is an object type as well, but apparently is not so.
+  -
+  A Database Link allows to access objects that are stored in other databases. If the other database is not an Oracle database system, they must be accessed with *Oracle Heterogeneous Services*.
 
-→ development/databases/Oracle/objects/tables[Tables]
--
-→ development/databases/Oracle/objects/tables/partitions[Table partitions]
-
-→ development/databases/Oracle/objects/triggers[Triggers]
-
-→ development/databases/Oracle/objects/views[Views]
-
-A → development/databases/Oracle/objects/clusters[cluster] is an object that stores data from one or more → development/databases/Oracle/objects/tables[tables]
-
-→ development/databases/Oracle/objects/contexts[Context]
-
+}
 { Data dictionary
 
   Oracle stores information about database objects in the → development/databases/Oracle/installed/data-dictionary.
@@ -42,6 +112,11 @@ A → development/databases/Oracle/objects/clusters[cluster] is an object that s
   -
   Invalid objects are listed in → development/databases/Oracle/installed/data-dictionary/invalid_objects[`dba_invalid_objects`]
 
+  { OBJ$
+  
+    Internally, «under the hood», Oracle stores basic object information in → development/databases/Oracle/installed/data-dictionary/base-tables/obj[`sys.obj$`].
+  
+  }
 
 }
 { Privileges

@@ -34,7 +34,7 @@ with params as (
 ),
 col as (
    select
-        → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](a.column_name, ',') within group (order by b.column_id) as umns
+       → development/databases/Oracle/SQL/select/aggregate/listagg[listagg](a.column_name, ',') within group (order by b.column_id) as umns
    from
        params                                                      join
        → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns] a on a.owner      = params.owner_tab_1 and
@@ -48,12 +48,14 @@ col as (
 )
 select
   'select count(*) over () cnt_of_diffs, diffs.* from (' || chr(10) ||
-   q'[select 'only A' where_, only_a.* from (select ]' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
-                                             'select ' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ') only_a union all' || chr(10) ||
+   q'[select 'only A' orig, only_a.* from (select ]' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
+                                          'select '  || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ') only_a union all' || chr(10) ||
 
-   q'[select 'only B' where_, only_b.* from (select ]' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
-                                             'select ' || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ') only_b' || chr(10) ||
-   ') diffs;'
+   q'[select 'only B' orig, only_b.* from (select ]' || col.umns || ' from ' || params.owner_tab_2 || '.' || params.name_tab_2 || case when params.condition is not null then ' where ' || params.condition end || ' minus ' ||
+                                          'select '  || col.umns || ' from ' || params.owner_tab_1 || '.' || params.name_tab_1 || case when params.condition is not null then ' where ' || params.condition end || ') only_b' || chr(10) ||
+   ') diffs
+order by
+   ' || col.umns || ',' || 'orig;'
 from
    params   cross join
    col;
@@ -71,9 +73,11 @@ code }
   … the result of the select statement is the following SQL statement:
 code {
 select count(*) over () cnt_of_diffs, diffs.* from (
-select 'only A' where_, only_a.* from (select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X') only_a union all
-select 'only B' where_, only_b.* from (select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X') only_b
+select 'only A' orig, only_a.* from (select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X') only_a union all
+select 'only B' orig, only_b.* from (select GRP,NUM,TXT from RENE.TQ84_B where grp = 'X' minus select GRP,NUM,TXT from RENE.TQ84_A where grp = 'X') only_b
 ) diffs
+order by
+   GRP,NUM,TXT,orig;
 code }
 
   { Test data

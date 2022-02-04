@@ -1,4 +1,4 @@
-$ Oracle: init parameter PLSCOPE_SETTINGS
+$ Oracle: Init parameter PLSCOPE_SETTINGS
 @ plscope_settings
 
 `plscope_settings` controls → development/databases/Oracle/PL-SQL/PL-Scope settings: compile time collection, cross reference, and storage of PL/SQL source code identifier and
@@ -18,11 +18,14 @@ $ Oracle: init parameter PLSCOPE_SETTINGS
 
   The setting for `identifiers` and `statements` can be combined:
 code {
-alter session set plscope_settings = 'identifiers:all, statements:all';
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plscope_settings = 'identifiers:all, statements:all';
 code }
 
 }
-{ Show current plscope value for PL/SQL objects
+{ Show current plscope values for PL/SQL objects
+
+  The value of `plscope_settings` with which a PL/SQL object was compiled can be queried from
+  `→ development/databases/Oracle/installed/data-dictionary/plsql/object_settings[dba_plsql_object_settings]`.
 
 code {
 select
@@ -38,6 +41,39 @@ order by
    owner,
    name,
    type;
+code }
+
+}
+{ Modify PLSCOPE settings for all PL/SQL objects of a given schema
+
+code {
+alter session set plscope_settings = 'identifiers:all, statements:all';
+
+begin
+   for p in (
+      select
+         owner,
+         object_type,
+         object_name
+      from
+         all_objects
+      where
+         owner = user and
+         object_type in ('PACKAGE', 'PROCEDURE', 'FUNCTION', 'TYPE')
+   ) loop
+
+     begin
+        execute immediate 'alter ' || p.object_type || ' ' || p.owner || '.' || p.object_name || ' compile';
+
+     exception when others then
+        if sqlcode = -24344 then -- ORA-24344: success with compilation error
+           dbms_output.put_line('Ok with error: ' || p.object_type || ' ' || p.object_name);
+        end if;
+     end;
+
+   end loop;
+end;
+/
 code }
 
 }
