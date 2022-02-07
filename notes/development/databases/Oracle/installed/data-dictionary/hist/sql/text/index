@@ -1,0 +1,100 @@
+$ Oracle: DBA_HIST_SQLTEXT
+@ dba_hist_sqltext
+
+
+{ Find SQL statements in the AWR
+
+code {
+select
+   ash.sample_time, -- ash.sample_time_utc,
+   ash.sql_exec_start,
+   usr.username,
+   txt.sql_text,
+
+   --
+   ash.sql_id, ash.sql_child_number, ash.sql_exec_id,
+
+   ash.sql_full_plan_hash_value, ash.sql_plan_hash_value,
+
+   ash.sql_plan_line_id, ash.sql_plan_operation, ash.sql_plan_options,
+   
+   ash.is_sqlid_current,
+   ash.force_matching_signature,
+
+   ash.action,
+   ash.client_id,
+   --
+   ash.delta_interconnect_io_bytes,
+   ash.delta_read_io_bytes,
+   ash.delta_read_io_requests,
+   ash.delta_time,
+   ash.delta_write_io_bytes,
+   ash.delta_write_io_requests,
+
+   ash.tm_delta_cpu_time, ash.tm_delta_db_time, ash.tm_delta_time,
+   --
+   ash.temp_space_allocated,
+   --
+   ash.event, ash.event_id,
+   --
+   ash.in_sequence_load,
+   ash.in_sql_execution,
+   ash.in_tablespace_encryption,
+   ash.instance_number,
+   ash.machine,
+   ash.module, ash.program,
+   --
+   ash.p1, ash.p1text,
+   ash.p2, ash.p2text,
+   ash.p3, ash.p3text,
+   --
+   ash.pga_allocated,
+   --
+   ash.plsql_entry_object_id,
+   ash.plsql_entry_subprogram_id,
+   ash.plsql_object_id,
+   ash.plsql_subprogram_id,
+   --
+   ash.usecs_per_row,
+   --
+   ash.px_flags,
+   ash.qc_instance_id,
+   ash.qc_session_id,
+   ash.qc_session_serial#,
+   ash.remote_instance#,
+   ash.seq#,
+   ash.session_id, ash.session_serial#,
+   ash.session_state,
+   ash.session_type,
+   ash.snap_id,
+   ash.sql_adaptive_plan_resolved,
+   --
+   --
+   ash.time_model,
+   ash.time_waited,
+   ash.top_level_call#,
+   ash.top_level_call_name,
+   ash.top_level_sql_id,
+   ash.top_level_sql_opcode,
+   ash.user_id,
+   ash.wait_class,
+   ash.wait_class_id,
+   ash.wait_time,
+   ash.xid
+from
+   sys.dba_hist_active_sess_history     ash                               left join
+   sys.dba_hist_sqltext                 txt on ash.sql_id  = txt.sql_id   left join
+   sys.dba_users                        usr on ash.user_id = usr.user_id
+where
+   txt.sql_text like '…'
+-- usr.username = 'RENE'   
+-- txt.sql_id is not null
+order by
+   ash.sample_time desc
+;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/hist[`dba_hist*` views]

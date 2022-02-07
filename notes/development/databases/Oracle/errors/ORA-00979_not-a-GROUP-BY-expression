@@ -1,0 +1,56 @@
+$ ORA-00979: not a GROUP BY expression
+
+A `select` with a `group by` clause requires all non-aggregated columns to be present in the `group by` clause also, otherwise, Oracle throws
+a *ORA-00979: not a GROUP BY expression* error message, as demonstrated below:
+code {
+create table tq84_00979 (
+    val    number,
+    grp_1  varchar2(10),
+    grp_2  varchar2(10),
+    col    date
+);
+
+--
+-- Cause ORA-00979:
+--
+select
+   max(val),
+   grp_1,
+   grp_2
+from
+   tq84_00979
+group by
+   grp_1;
+
+--
+-- This one is OK
+--
+select
+   max(val),
+   grp_1,
+   grp_2
+from
+   tq84_00979
+group by
+   grp_1,
+   grp_2;
+
+
+--
+-- This one also causes an ORA-00979 because
+-- of the col expression in the order by clause
+--
+select
+   max(val),
+   grp_1,
+   grp_2
+from
+   tq84_00979
+group by
+   grp_1,
+   grp_2
+order by
+   col;
+
+drop table tq84_00979;
+code }
