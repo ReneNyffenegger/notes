@@ -1,0 +1,92 @@
+$ Oracle: Private Temporary Tables
+
+Private temporary tables are stored in memory. Private temporary tables exist no longer than the
+→ development/databases/Oracle/architecture/session in which they were created.
+
+The prefix of the name of a *private temporary table* must be the same as the value of the init parameter
+`→ development/databases/Oracle/adminstration/init-parameters/private_temp_table_prefix` (which defaults to `ORA$PTT_`).
+
+Although the data of a private temporary is only visible in the session where the table was created, the table name
+can be queried from `→ development/databases/Oracle/installed/data-dictionary/private_temp_tables`.
+
+{ Creating a private temporary table
+
+  Note the prefix of the table name:
+code {
+create private temporary table ora$ptt_renes_temp_table (
+   num   number,
+   txt   varchar2(20)
+);
+code }
+
+When created, → development/databases/Oracle/SQL/DML[DML] and → development/databases/Oracle/SQL/select[`select`] statements can be performed on the table as being used from ordinary heap tables:
+code {
+insert into   ora$ptt_renes_temp_table values (1, 'x');
+insert into   ora$ptt_renes_temp_table values (2, 'y');
+update        ora$ptt_renes_temp_table set num = 3 where txt = 'y';
+delete   from ora$ptt_renes_temp_table where num = 1;
+select * from ora$ptt_renes_temp_table;
+code }
+
+However, when the → development/databases/Oracle/architecture/transaction ends (and the table was not created with `on commit preserve definition`), the table automatically gets deleted:
+code  {
+→ development/databases/Oracle/SQL/TCL/commit[commit];
+
+select * from ora$ptt_renes_temp_table;
+--
+-- ORA-00942: table or view does not exist
+code }
+
+}
+{ ON COMMIT PRESERVE DEFINITION
+
+  The `on commit preserve defnition` clause allows a temporary private table to be outlive a transaction:
+
+code {
+create private temporary table ora$ptt_xyz (
+   num   number,
+   txt   varchar2(20)
+)
+on commit preserve definition;
+
+insert into ora$ptt_xyz values (1, 'one');
+commit;
+select * from ora$ptt_xyz;
+code }
+
+}
+{ Creation of a private temporary table does not commit the current transaction
+
+code {
+create table tq84_trx (id number);
+
+insert into tq84_trx values(1);
+commit;
+
+insert into tq84_trx values(2);
+
+--
+-- Following statement does not commit (or rollback)
+-- the current transaction
+--
+create private temporary table ora$ptt_trx (
+   num   number,
+   txt   varchar2(20)
+)
+on commit preserve definition;
+
+--
+-- Removes uncommited number 2 from tq84_trx
+--
+rollback;
+
+--
+-- Selects one record with num = 1
+--
+select * from tq84_trx;
+code }
+
+}
+
+sa:
+  `→ development/databases/Oracle/installed/data-dictionary/private_temp_tables`
