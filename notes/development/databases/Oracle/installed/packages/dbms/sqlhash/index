@@ -1,0 +1,59 @@
+$ Oracle: DBMS_SQLHASH
+@ dbms_sqlhash
+
+`dbms_sqlhash` has one function: `gethash` which returns the hashed value of an SQL result and thus allows to ensure data integrity or
+compare result sets over time or accross databases.
+
+Execution must be granted to roles and/or users that want to execute `dbms_sqlhash.gethash`:
+code {
+connect / as sysdba;
+grant execute on dbms_sqlhash to rene;
+code }
+
+
+The return value depends not only on the data of the result set but also on the order in which they are selected:
+code {
+create table tq84_sqlhash_test (num number, txt varchar2(20));
+
+insert into tq84_sqlhash_test values (1, 'one');
+insert into tq84_sqlhash_test values (2, 'two');
+insert into tq84_sqlhash_test values (3, 'three');
+
+commit;
+
+select
+   sys.dbms_sqlhash.gethash(
+      sqltext     => 'select * from tq84_sqlhash_test order by num asc',
+      digest_type =>  2
+   ) order_by_num_asc,
+   sys.dbms_sqlhash.gethash(
+      sqltext     => 'select * from tq84_sqlhash_test order by num desc',
+      digest_type =>  2
+   )  order_by_num_desc
+from
+   dual;
+code }
+
+{ DIGEST_TYPE
+
+  table { ll
+
+   1 ☰ MD4
+   2 ☰ MD5
+   3 ☰ SHA-1
+   4 ☰ SHA-256
+   5 ☰ SHA-384
+   6 ☰ SHA-512
+
+  }
+
+}
+
+
+sa:
+
+  The → development/databases/Oracle/Releases-and-versions/21c#ora-21c-checksum[`checksum`] aggregated function that was introduced with 21c.
+
+ `→ development/databases/Oracle/installed/packages/dbms/crypto/api/hash`
+
+  → development/databases/Oracle/installed/packages/dbms

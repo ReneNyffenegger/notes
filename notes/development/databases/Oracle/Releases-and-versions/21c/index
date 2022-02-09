@@ -1,0 +1,98 @@
+$ Oracle 21c
+@ 21c
+
+{ Blockchain tables #ora-21c-blockchain-tables
+
+  A blockchain-→ development/databases/Oracle/objects/tables is an *insert-only* and *tamperproof* table.
+
+  Block chain tables were backported to 19.10 with patch 32431413 (requires `compatible` to  be set to at least `19.10.0`).
+  -
+  19.11 does not require this patch.
+
+
+}
+{ GROUP BY #ora-21c-group-by
+
+  { ANY_VALUE #ora-21c-any_value
+
+    The `ANY_VALUE(…)` «→ development/databases/Oracle/SQL/select/aggregate» evaluates to the first non-→ development/databases/Oracle/SQL/null[`null`] value encountered in
+    a group of a select statement using the → development/databases/Oracle/SQL/select/group-by[`group by`] clause.
+code {
+select
+   grp_1,
+   grp_2,
+   max(val_1),
+   ANY_VALUE(val_2)
+from
+   tab
+→ development/databases/Oracle/SQL/select/group-by
+   grp_1,
+   grp_2
+code }
+
+  }
+  { BIT_AND_AGG, BIT_OR_AGG, BIT_XOR_AGG  
+
+    21c introduced the `BIT_AND_AGG`, `BIT_OR_AGG` and `BIT_XOR_AGG` aggregated functions.
+
+  }
+}
+{ Aggregate functions
+
+  { CHECKSUM #ora-21c-checksum
+
+    The `checksum(…)` aggregate function a deterministic 8-byte value as a `→ development/databases/Oracle/SQL/data-types/number`.
+    -
+    This value can be used to verify if the values of a column (per table or in a group) have changed between two executions of the
+    SQL statement.
+
+    See also the `→ development/databases/Oracle/installed/packages/dbms/sqlhash` package.
+
+  }
+
+}
+{ Analytical functions #ora-21c-analytic
+
+  21c improves some aspects of → development/databases/Oracle/SQL/select/analytic[analytic functions].
+
+  The `window` clause allows to name `over(partition by … order by …)` definition once and then be used multiple times:
+code {
+select
+   first_value(col) over wnd as …,
+   last_value (col) over wnd as …
+from
+   tab
+WINDOW wnd as (partition by … order by …)
+code }
+
+  Besides `rows between …` and `range between …`, there is also a `groups between`:
+code {
+select
+   count(col) over wnd_row as cnt_row,
+   count(col) over wnd_rng as cnt_rng,
+   count(col) over wnd_grp as cnt_grp
+from
+   tab
+window
+   wnd_row as (order by col rows   between 1 preceding and current row),
+   wnd_rng as (order by col range  between 1 preceding and current row),
+   wnd_grp as (order by col groups between 1 preceding and current row)
+;
+code }
+
+  The exclude clause:
+code {
+… over (… exclude no other   ) …
+… over (… exclude current row) …
+… over (… exclude group      ) …
+… over (… exclude ties       ) …
+code }
+
+}
+{ DBMS_XPLAN #ora-21c-dbms_xplan
+
+  21c introduced two new, but undocumented, functions to `→ development/databases/Oracle/installed/packages/dbms/xplan`
+    • `compare_cursor`
+    • `compare_xplan`
+
+}
