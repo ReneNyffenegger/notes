@@ -19,6 +19,43 @@ from
    sys.dba_role_privs rpr;
 code }
 
+{ Querying role hierarchy
+
+  The following select statement hierarchically queries the (direct and indirect) roles granted to a user (here: `USR_HIR`):
+code {
+with role_hierarchy (usrrol, lvl) as (
+   select 'USR_HIR'    , 0     from dual union all
+   select  granted_role, lvl+1 from role_hierarchy h join dba_role_privs p on p.grantee = h.usrrol
+)
+search depth first by usrrol set ord
+select
+   lpad(' ', rh.lvl*2) || usrrol
+from
+   role_hierarchy rh;
+code }
+
+}
+{ Find the roles via which a user is granted a given privilege
+
+code {
+with role_hierarchy (usrrol, usrrol_concat) as (
+   select 'USR_HIR_1'  , 'USR_HIR_1'                              from dual                                                           union all
+   select  granted_role,  usrrol_concat || ' -> ' || granted_role from role_hierarchy h join dba_role_privs p on p.grantee = h.usrrol
+)
+select
+   rh.usrrol_concat
+from
+   role_hierarchy  rh                             join
+--
+-- Alternatively, join with dba_tab_privs:
+--
+   dba_sys_privs   pr on rh.usrrol = pr.grantee
+where
+   pr.privilege = 'CREATE TABLE';
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/security/privileges
