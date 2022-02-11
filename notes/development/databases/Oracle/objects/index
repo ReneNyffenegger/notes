@@ -1,7 +1,6 @@
 $ Oracle Objects
 @ objects
 
-
 { Object types
 
   There is quite a list of available *object types*. The list of object types can be queried by first expanding the SQL statement text of
@@ -127,7 +126,26 @@ table }
   → development/databases/Oracle/installed/data-dictionary/tab/privs[`dba_tab_privs`, `all_tab_privs` and `user_tab_privs`].
 
 }
-{ Object names
+{ Object names #ora-obj-name
+
+  Every object has a name.
+
+  All names must be unique within an → development/databases/Oracle/objects/_namespace[object namespace].
+
+  The maximum length of the name is 128 bytes if `→ development/databases/Oracle/adminstration/init-parameters/compatible` is set to at least `12.2.0` and 30 bytes otherwise.
+
+  If names are unquoted, they are silently converted to uppercase. Thus, the following two statements are considered equal:
+code {
+SELECT col_a, col_b from TAB;
+SELECT COL_A, COL_B from TAB;
+code }
+
+  Names can be quoted with double-apostrophes. Quoted names are case sensitive and allow for funny characters:
+code {
+create table "The bad & the ugly!" ("x/y" number, "20% rule" varchar2(10));
+code }
+
+  Object names should not start with either `SYS_` or `ORA_` because `SYS_*` is used objects implicitely created by Oracle and `ORA_` is used for Oracle supplied objects.
 
   An object (except a → development/databases/Oracle/objects/tables/types/temporary/private[private temporary table]) whose name starts with the prefix which is specified for
   → development/databases/Oracle/objects/tables/types/temporary/private[private temporary tables] (i. e. the value of the init
