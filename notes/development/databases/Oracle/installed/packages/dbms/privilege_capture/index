@@ -1,0 +1,67 @@
+$ Oracle: DBMS_PRIVILEGE_CAPTURE
+
+{ Procedures
+
+   table { ll
+     `capture_dependency_privs` ☰
+     `create_capture` ☰
+     `delete_run` ☰
+     `disable_capture` ☰
+     `drop_capture` ☰
+     `enable_capture` ☰
+     `generate_result` ☰
+   table }
+
+}
+
+{ Simple example
+
+  Create and enable a capture…
+code {
+begin
+   dbms_privilege_capture.create_capture(
+       name          => 'priv_capture_test',
+       description   => 'Captures my_app_developer role use'
+--     type          =>  dbms_privilege_capture.g_role,
+--     roles         =>  role_name_list('…')
+   );
+   dbms_privilege_capture.enable_capture('priv_capture_test');
+end;
+/
+code }
+
+  Let some time pass nad users do their work…
+
+   Disable the capture and generate the result:
+code {
+begin
+   dbms_privilege_capture.disable_capture('priv_capture_test');
+   dbms_privilege_capture.generate_result('priv_capture_test');
+end;
+/
+code }
+
+  Query the result:
+code {
+select
+   upr.*
+from
+   dba_used_privs upr
+where
+   upr.capture  ='priv_capture_test' and
+   upr.username = user;
+code }
+
+  Drop the capture
+code {
+begin
+   dbms_privilege_capture.drop_capture('priv_capture_test');
+end;
+/
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/installed/packages/dbms
