@@ -1,4 +1,4 @@
-$ Oracle instance: startup and shutdown
+$ Oracle Instance: Startup and shutdown
 
 An → development/databases/Oracle/architecture/instance is started in phases:
   • shutdown (No processes running at all)
@@ -70,7 +70,7 @@ ERROR at line 1:
 ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only
 
 
-select * from x$kcccp
+select * from → development/databases/Oracle/architecture/instance/fixed-tables/k/c/c/pe;
               *
 ERROR at line 1:
 ORA-01507: database not mounted
@@ -129,10 +129,14 @@ ADDR                         INDX          INST_ID           CON_ID D
 00007FF77465A43C                0                1                0 X
 code }
 
-  TODO: What happens if I query
+  The following statement causes *ORA-01507: database not mounted*:
 code {
 select * from v$database;
-select * from v$instance;
+code }
+
+  The following statement returns a record:
+code {
+select instance_name, startup_time, status, database_status from v$instance;
 code }
 
 }
@@ -140,9 +144,12 @@ code }
 
   In order to mount a database, the → development/databases/Oracle/architecture/instance opens the
   → development/databases/Oracle/architecture/database/files/control as specified in the
-  → development/databases/Oracle/adminstration/init-parameters#control_files[`control_files` init parameter].
+  → development/databases/Oracle/adminstration/init-parameters#control_files[`control_files` init parameter]:
+code {
+select value from v$parameter where name = 'control_files';
+code }
 
-  A mounted database is closed for ordinary users. Only adminsitrators have access to it for a restricted set of operations.
+  A mounted database is closed for ordinary users. Only administrators have access to it for a restricted set of operations.
 
 code {
 alter database mount;
@@ -170,7 +177,7 @@ code }
 
 
 }
-{ mount -> open
+{ Mount -> open
 
   The control file that was opened in the previous step records the locations of the
   → development/databases/Oracle/architecture/database/files/data[data files] and
@@ -185,6 +192,18 @@ code }
     • The *online* data files that belong to a non-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/undo are opened
     • An → development/databases/Oracle/architecture/database/logical-structures/tablespace/undo is acquired
     • The → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] are opened
+
+  Part of the mount->open process is to execute the DDL statements recorded in `→ development/databases/Oracle/installed/data-dictionary/base-tables/bootstrap`.
+  -
+  A 10046 → development/databases/Oracle/adminstration/init-parameters/event/list[event] can be used to show the statements executed in the *mount -> open* phase:
+code {
+alter session set events '10046 trace name context forever, level 12';
+alter database open;
+alter session set events '10046 trace name context off';
+oradebug setmypid
+oradebug tracefile_name
+code }
+
 
   Note: It's also possible to open a database in read only mode.
 

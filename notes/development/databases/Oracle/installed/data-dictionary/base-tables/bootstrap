@@ -1,0 +1,31 @@
+$ Oracle: BOOTSTRAP$
+@ bootstrap$
+
+`bootstrap$` contains the DDL statements to create other bootstrap tables.
+
+The text in `sql_text` in the table `bootstrap$` corresponds to the first SQL statements found
+in the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/sql_bsq[`sql.bsq`] script (which
+is executed as part of a database creation).
+
+Accordingly, the last statement recorded in `bootstrap$` is the
+`CREATE TABLE BOOTSTRAP$ …`:
+
+? The statements recorded in `bootstrap$` are also executed when → development/databases/Oracle/architecture/instance/startup-shutdown starting[up an instance] between the *mount* and *open* stage.
+
+code {
+select
+    bts.line#,
+    obj.name,
+    bts.sql_text
+from
+   bootstrap$ bts     left join
+   obj$       obj on bts.obj# = obj.obj#
+order by
+   bts.line#;
+code }
+
+sa:
+
+  → development/databases/Oracle/adminstration/init-parameters/event/list[Event] 38003
+
+  → development/databases/Oracle/errors/ORA-00704_bootstrap-process-failure

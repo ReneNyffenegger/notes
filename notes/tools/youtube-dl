@@ -62,11 +62,25 @@ code }
   }
 
 }
+{ Download videos from from rumble.com
 
-{ Download vides from from rumble.com
-
-  `rumble.com` pages contain an embedded URL that can be found in the page source. The pattern of that URL is
+  `rumble.com` pages contain an embedded → development/web/URI-URL-URN-IRI-URC#url[URL] that can be found in the page source. The pattern of that URL is
   `"embedUrl":"https://rumble.com/embed/xyzabc/"`. With this embedded URL, it is possible, to download rumble.com videos.
+
+  The following simple sequence of → Windows/PowerShell statements extracts the video URL from a Rumble-Video URL and then downloads the video:
+code {
+$rumble_url      = 'https://rumble.com/vur7ah-samantha-kistner-im-gesprch.html'
+$rumble_response =  → Windows/PowerShell/command-inventory/noun/webRequest/invoke $rumble_url
+
+$rumble_response.content → Windows/PowerShell/language/operator/comparison/match_notmatch[-match] '(https://rumble.com/embed/[^"]+)'
+
+youtube-dl --no-check-certificate $matches[1]
+code }
+
+}
+{ ERROR: unable to download video data: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed
+
+  This error can be circumvented by using the `--no-check-certificate` command line option.
 
 }
 { Dependency on ffmpeg and/or aconv
@@ -225,7 +239,7 @@ code }
   { Workarounds:
    table { ll
 `--encoding ENCODING`                  ☰ Force the specified encoding (experimental)
-`--no-check-certificate`               ☰ Suppress HTTPS certificate validation
+`--no-check-certificate`               ☰ Suppress → development/web/HTTPS → development/security/cryptography/Public-key-certificate validation (can be used to prevent *SSL: CERTIFICATE_VERIFY_FAILED* errors.
 `--prefer-insecure`                    ☰ Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)
 `--user-agent UA`                      ☰ Specify a custom user agent
 `--referer URL`                        ☰ Specify a custom referer, use if the video access is restricted to one domain

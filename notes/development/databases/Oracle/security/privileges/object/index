@@ -1,4 +1,63 @@
 $ Oracle: Object privileges
 
+{ Show list of grantable object privileges #ora-obj-privs
+
+  The list of grantable object privileges can be queried from the table `table_privilege_map` (which is created and populated by the
+  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dsec_bsq[`dsec.bsq`] script).
+
+  Each privilege is associated with a numerical id (auditing number) which is also stored in this table.
+code {
+select
+   privilege,  -- The numerical id of the privilege
+   name
+from
+   sys.table_privilege_map
+order by
+   name;
+code }
+
+  table { rll
+    ~ID~ ☰ ~Name~ ☰ ~Comment~
+    0 ☰ ALTER ☰
+    1 ☰ AUDIT ☰
+    2 ☰ COMMENT ☰
+    16 ☰ CREATE ☰
+    26 ☰ DEBUG ☰
+    3 ☰ DELETE ☰
+    21 ☰ DEQUEUE ☰
+    20 ☰ ENQUEUE ☰
+    12 ☰ EXECUTE ☰
+    27 ☰ FLASHBACK ☰
+    30 ☰ FLASHBACK ARCHIVE ☰
+    4 ☰ GRANT ☰
+    5 ☰ INDEX ☰
+    6 ☰ INSERT ☰
+    7 ☰ LOCK ☰
+    28 ☰ MERGE VIEW ☰
+    23 ☰ ON COMMIT REFRESH ☰
+    24 ☰ QUERY REWRITE ☰
+    17 ☰ READ ☰ Compare with `WRITE` and `SELECT`
+    11 ☰ REFERENCES ☰
+    8 ☰ RENAME ☰
+    9 ☰ SELECT ☰
+    22 ☰ UNDER ☰
+    10 ☰ UPDATE ☰
+    29 ☰ USE ☰
+    18 ☰ WRITE ☰ Compare with `READ`, `UPDATE`, `INSERT` and `DELETE`
+  table }
+
+   A comment in `dsec.bsq` asks, if the `UPSERT` privilege is missing.
+
+   Compare this result with the table → development/databases/Oracle/security/privileges/system#ora-sys-privs[`system_privilege_map`] which lists
+   the available → development/databases/Oracle/security/privileges/system[system privileges].
+
+   See also the four records in `user_privilege_map` which stores the privileges
+     • INHERIT PRIVILEGES
+     • TRANSLATE SQL
+     • INHERIT REMOTE PRIVILEGES
+     • DEBUG CONNECT
+
+}
+
 sa:
   → development/databases/Oracle/security/privileges/system[System privileges]

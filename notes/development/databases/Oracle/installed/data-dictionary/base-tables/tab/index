@@ -1,22 +1,30 @@
 $ Oracle: TAB$
+@ tab$
 
 code {
 select
 -- tab.obj#,
-   obj.name,
+   own.name      as tab_owner,
+   obj.name      as tab_name,
    tab.dataobj#,
    tab.ts#,
-   tab.file#     as segmeht_header_file_id,
-   tab.block#    as segment_header_block_id,
-   tab.bobj#,
-   tab.tab#,
-   tab.cols,
+   tab.file#      as segmeht_header_file_id,
+   tab.block#     as segment_header_block_id,
+   tab.bobj#      as base_obj,
+   tab.tab#,      -- Table number in cluster (if not null)
+   tab.cols       as nof_cols,
+   tab.intcols    as nof_int_cols,      -- internal columns
+   tab.kernelcols as nof_kernel_cols,   -- Real columns
    tab.clucols,
    tab.pctfree$,
    tab.pctused$,
    tab.initrans,
    tab.maxtrans,
+
    tab.flags,
+   case when bitand(tab.flags, power(2,0)) > 0 then 'yes' end modif_since_last_backup,
+   case when bitand(tab.flags, power(2,3)) > 0 then 'yes' end cache,
+
    tab.audit$,
    tab.rowcnt,
    tab.blkcnt,
@@ -30,9 +38,8 @@ select
    tab.samplesize,
    tab.degree,
    tab.instances,
-   tab.intcols,
-   tab.kernelcols,
    tab.property,
+   case when bitand(tab.property, power(2, 89)) > 0 then 'yes' end sensitive_columns, -- Table contains → development/databases/Oracle/objects/tables/columns/sensitive[sensitive columns]
    tab.trigflag,
    tab.spare1,
    tab.spare2,
@@ -47,9 +54,14 @@ select
    tab.acdrflags,
    tab.acdrtsobj#
 from
-   sys.tab$ tab                        join
-   sys.obj$ obj on tab.obj# = obj.obj#
+   sys.tab$  tab                           join
+   sys.obj$  obj on tab.obj#   = obj.obj#  join
+   sys.user$ own on obj.owner# = own.user#
+;
 code }
 
 sa:
+
+ `→ development/databases/Oracle/installed/data-dictionary/base-tables/col`
+
   `spare1`: Event 10058 (use table scan cost in tab$.spare1)

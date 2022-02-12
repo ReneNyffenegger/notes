@@ -1,0 +1,57 @@
+$ Oracle: Sensitive columns
+
+Senstitive → development/databases/Oracle/objects/tables/columns[columns] can be queried from the base tables like so:
+code {
+select
+   own.name owner,
+   obj.name obj_name,
+   col.name col_name
+from
+   sys.obj$       obj                               join
+   sys.user$      own  on obj.owner# = own.user#    join
+   sys.col$       col  on obj.obj#   = col.obj#
+where
+   bitand(col.property, 8796093022208) > 0
+order by
+   owner,
+   obj_name,
+   col_name;
+
+
+OWNER  OBJ_NAME              COL_NAME
+------ --------------------- -------------
+SYS    CDB_LOCAL_ADMINAUTH$  PASSWD
+SYS    DEFAULT_PWD$          PWD_VERIFIER
+SYS    ENC$                  COLKLC
+SYS    HISTGRM$              ENDPOINT
+SYS    HISTGRM$              EPVALUE
+SYS    HISTGRM$              EPVALUE_RAW
+SYS    HIST_HEAD$            HIVAL
+SYS    HIST_HEAD$            LOWVAL
+SYS    HIST_HEAD$            MAXIMUM
+SYS    HIST_HEAD$            MINIMUM
+SYS    LINK$                 AUTHPWD
+SYS    LINK$                 AUTHPWDX
+SYS    LINK$                 PASSWORD
+SYS    LINK$                 PASSWORDX
+SYS    PDB_CREATE$           SQLSTMT
+SYS    PDB_SYNC$             LONGSQLTXT
+SYS    PDB_SYNC$             SQLSTMT
+SYS    USER_HISTORY$         PASSWORD
+SYS    XS$VERIFIERS          VERIFIER
+code }
+
+→ development/databases/Oracle/objects/tables[Tables] with sensititive columns can be queried like so:
+code {
+select
+   own.name      as tab_owner,
+   obj.name      as tab_name
+from
+   sys.tab$  tab                           join
+   sys.obj$  obj on tab.obj#   = obj.obj#  join
+   sys.user$ own on obj.owner# = own.user#
+where
+   bitand(tab.property, power(2, 89)) > 0
+order by
+   tab_name
+code }
