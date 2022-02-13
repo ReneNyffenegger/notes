@@ -1,3 +1,27 @@
 $ Oracle: SYS.AUTHOBJ$
--
-@ authobj$
+@ autobj$
+
+code {
+select
+   gre.name                                            grantee,
+   own.name                                            owner,
+   obj.name                                            table_name,
+   col.name                                            column_name,
+   grr.name                                            grantor,
+   tpm.name                                            privilege,
+   bitand(aut.option$,   4)                            opt___4  ,            -- ? 
+   bitand(aut.option$,   8)                            opt___8  ,            -- commonly granted privilege?
+   bitand(aut.option$,  16)                            opt__16  ,            -- "
+   bitand(aut.option$,  64)                            opt__64  ,            -- Federationally granted privilege?
+   bitand(aut.option$, 128)                            opt_128  ,            -- "
+   decode(mod(aut.option$,2), 1, 'YES', 'NO')          grantable
+from
+   sys.objauth$               aut                                         join
+   sys."_CURRENT_EDITION_OBJ" obj on aut.obj#       = obj.obj#            join
+   sys.user$                  own on obj.owner#     = own.user#           join
+   sys.user$                  grr on aut.grantor#   = grr.user#           join
+   sys.user$                  gre on aut.grantee#   = gre.user#           join
+   table_privilege_map        tpm on aut.privilege# = tpm.privilege  left join
+   sys.col$                   col on aut.col#       = col.obj#
+;
+code }

@@ -1,0 +1,66 @@
+$ Oracle: Grant privileges on columns
+@ Grant privileges on columns
+
+Oracle allows to grant certain → development/databases/Oracle/security/privileges[privileges] on → development/databases/Oracle/objects/tables/columns[columns].
+-
+The privleges that can be granted on columns are: `insert`, `update` and `references`.
+
+code {
+connect / as sysdba
+
+create user usr_tab_owner
+       identified by pw_1
+       default tablespace data
+       quota unlimited on data;
+
+create user usr_tab_user
+       identified by pw_2;
+
+grant create table, create session to usr_tab_owner;
+grant               create session to usr_tab_user ;
+
+connect usr_tab_owner/pw_1;
+
+create table tab_col_grant_test (
+    col_1    number,
+    col_2    number,
+    col_3    number,
+    col_4    number
+);
+
+grant
+   select,
+   update(col_2),
+   insert(col_2, col_3)
+on
+   tab_col_grant_test
+to
+   usr_tab_user;
+
+insert into tab_col_grant_test values(1, 10, 100, 1000);
+insert into tab_col_grant_test values(2, 20, 200, 2000);
+commit;
+
+connect usr_tab_user/pw_2;
+
+insert into usr_tab_owner.tab_col_grant_test(col_2, col_3) values (11, 111);
+update      usr_tab_owner.tab_col_grant_test set col_2 = -1 where col_2 = 1;
+
+connect / as sysdba
+
+select
+   column_name,
+   privilege,
+   grantable,
+   common,
+   inherited
+from
+   → development/databases/Oracle/installed/data-dictionary/col/privs
+where
+   grantor    = 'USR_TAB_OWNER' and
+   grantee    = 'USR_TAB_USER'  and
+   table_name = 'TAB_COL_GRANT_TEST';
+
+drop user usr_tab_owner cascade;
+drop user usr_tab_user  cascade;
+code }
