@@ -1,0 +1,48 @@
+$ Oracle SQL noun: CONSTRAINTS
+
+{ Example: SET CONSTRAINTS … DEFERRABLE
+
+code {
+create table tq84_p (
+   id  integer,
+   val varchar2(10),
+ constraint
+   tq84_p_pk primary key(id)
+);
+
+create table tq84_c (
+   id_p,
+   num    number,
+ constraint
+   tq84_c_fk foreign key (id_p) references tq84_p deferrable
+);
+
+set constraints tq84_c_fk deferred;
+
+insert into tq84_c values (1, 11);
+
+--
+-- Cannot commit here. A commit would cause
+--   ORA-02091: transaction rolled back
+--   ORA-02291: integrity constraint (RENE.TQ84_C_FK) violated - parent key not found
+
+
+insert into tq84_p values (1, 'one');
+
+commit;
+
+drop table tq84_c;
+drop table tq84_p;
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/objects/tables/constraints[Constraints]
+
+  → development/databases/Oracle/architecture/transaction[Transactions]
+
+  The → development/databases/Oracle/SQL/statement/nouns/session/set/constraints[alter session set constraints`] statement.
+
+  ORA-02447: cannot defer a constraint that is not deferrable

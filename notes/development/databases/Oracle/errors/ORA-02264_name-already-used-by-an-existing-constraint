@@ -1,0 +1,40 @@
+$ ORA-02264: name already used by an existing constraint
+
+code {
+create table tq84_tab_abc (
+   id    number,
+   val   number,
+   --
+   constraint tq84_pk   primary key(id),
+   constraint tq84_gt_9 check      (val > 9)
+);
+
+create table tq84_tab_xyz (
+   id    number,
+   val   number,
+   --
+   constraint tq84_pk   primary key(id),
+   constraint tq84_gt_5 check      (val > 5)
+);
+--
+-- ORA-02264: name already used by an existing constraint
+--
+
+--
+-- Rename constraint AND index:
+--
+alter table tq84_tab_abc rename constraint tq84_pk to tq84_pk_abc;
+alter index tq84_pk rename to tq84_pk_abc;
+
+
+create table tq84_tab_xyz (
+   id    number,
+   val   number,
+   --
+   constraint tq84_pk   primary key(id),
+   constraint tq84_gt_5 check      (val > 5)
+);
+
+drop table tq84_tab_abc;
+drop table tq84_tab_xyz;
+code }

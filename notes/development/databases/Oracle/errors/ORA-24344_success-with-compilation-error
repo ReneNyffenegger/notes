@@ -1,7 +1,10 @@
 $ ORA-24344: success with compilation errors
 
-*ORA-24344: success with compilation errors* indicates that the executed SQL statement is *syntactically* correct, but *logically* incorrect, for example because it references
-a table that does not exist etc.
+*ORA-24344: success with compilation errors* occurs when using `→ development/databases/Oracle/PL-SQL/execute-immediate` to execute statments such as
+`create or replace view`, `create procedure`, `alter procedure` etc. and the → development/databases/Oracle/objects[object] that is being modified or created
+(i.e.  the → development/databases/Oracle/objects/views[view], procedure etc.) have an error, for example because they reference a table that does not exist etc.
+
+{ CREATE OR REPLACE VIEW
 
 This error is for example thrown when creating a view with the *force* option on a table that is inexistant, as is demonstrated in
 the following anonymous → development/databases/Oracle/PL-SQL/block[PL/SQL block]:
@@ -22,6 +25,28 @@ exception when others then
 end;
 /
 code }
+
+}
+{ CREATE PROCEDURE
+
+  The procedure which the `execute immediate` statement tries to create is syntactially incorrect: it lacks a semicolon after a statement:
+code {
+begin
+   execute immediate q'[
+create procedure tq84_ora_24344_prc as
+   dbms_output.put_line('hello world')  -- Note the missing semicolon!
+end tq84_ora_24344_prc;
+]';
+end;
+/
+
+ERROR:
+ORA-24344: success with compilation error
+ORA-06512: at line 2
+code }
+
+
+}
 
 sa:
   Other → http://www.adp-gmbh.ch/ora/err/index.html[Oracle error messages].

@@ -1,0 +1,58 @@
+$ Oracle: ALTER SESSION SET CONSTRAINTS …
+
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] set → development/databases/Oracle/objects/tables/constraints[constraints] = [ immediate | deferred | default ];
+code }
+
+code {
+create table tq84_p (
+   id  integer,
+   val number,
+ constraint
+   tq84_p_pk primary key(id)
+);
+
+create table tq84_c (
+   id_p,
+   num    varchar2(20),
+ constraint
+   tq84_c_fk foreign key (id_p) references tq84_p deferrable
+);
+
+→ development/databases/Oracle/SQL/statement/nouns/session[alter session] set constraints = deferred;
+
+insert into tq84_p values ( 1,  11        );
+insert into tq84_p values ( 9,  99        );
+
+insert into tq84_c values ( 1, 'one'      );
+insert into tq84_c values ( 2, 'two'      );
+insert into tq84_c values (42, 'forty-two');
+
+--
+--  Cannot commit here, Oracle would throw
+--    ORA-02091: transaction rolled back
+--    ORA-02291: integrity constraint (RENE.TQ84_C_FK) violated - parent key not found
+--
+
+--
+--  Add 'missing' primary keys
+--
+insert into tq84_p
+select
+   id_p, id_p * 11
+from
+   tq84_c
+where
+   id_p not in (select id from tq84_p);
+
+commit;
+
+drop table tq84_c;
+drop table tq84_p;
+code }
+
+sa:
+
+  The statements
+    • `alter → development/databases/Oracle/SQL/statement/nouns/session[session]` and
+    • `set → development/databases/Oracle/SQL/statement/nouns/constraints[constraints`]
