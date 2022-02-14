@@ -1,0 +1,39 @@
+$ PLW-07204: conversion away from column type may result in sub-optimal query plan
+
+code {
+create table tq84_plw_07204_tab (
+    id   integer primary key,
+    txt  varchar2(10),
+    val  number
+);
+
+create or replace function tq84_plw_07204_fnc (
+   p_txt  in number
+) return number
+   authid definer
+is
+   ret number;
+begin
+   select
+      sum(val) into ret
+   from
+      tq84_plw_07204_tab
+   where
+      txt = p_txt; -- << PLW-07204: conversion away from column type ... 
+
+   return ret;
+end tq84_plw_07204_fnc;
+/
+
+
+drop function tq84_plw_07204_fnc;
+drop table    tq84_plw_072
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan[Execution plans]
+
+  → development/databases/Oracle/SQL/data-types[Datatypes]
+  
+  → development/databases/Oracle/PL-SQL/errors-warnings
