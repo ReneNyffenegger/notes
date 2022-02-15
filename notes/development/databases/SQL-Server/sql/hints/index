@@ -1,0 +1,108 @@
+$ SQL Server: Hints
+
+SQL Server distinguishes between three types of hints:
+table { ll
+  → #mssql-query-hint[Query hints] ☰ Query hints influence `select`, `insert`, `update`, `delete` and `merge` statements and are specified as part of the `option` clause.
+  → #mssql-uooin-hint[Join hints] ☰ A join hint specifies the join strategy between two tables in `select`, `delete` and `update` statements.
+  Table hints ☰ 
+table }
+
+{ Query hint #mssql-query-hint
+
+  table { ll
+   `[HASH | ORDER] GROUP` ☰ Whether distinct values in `group by` and `distinct` clauses should be determined calculating a hash or by sorting them
+   `[CONCAT | HASH | MERGE] UNION` ☰ How equal records of `union` statements are deteremined
+   `[LOOP | MERGE | HASH] JOIN` ☰ Specifies that *all* join operations of a query are performed with the same strategy. Compare with with → #mssql-join-hint[join hints] which allow to specify different strategies when joining multiple tables.
+   `EXPAND VIEWS` ☰ Expand indexed views.
+   `FAST n` ☰ Optimize for fast retrieval of the first `n` records. Compare with Oracle's → development/databases/Oracle/SQL/hints[`first_rows` hint].
+   `FORCE ORDER` ☰ Preserve the join order specified in the `from` clause of the SQL statement. Compare with Oracle's → development/databases/Oracle/SQL/hints[`ordered` hint].
+   `[FORCE | DISABLE] EXTERNALPUSHDOWN` ☰ Force/disable the pushdown of the computation of qualifying expressions in Hadoop. Only applies to → development/databases/SQL-Server/features/PolyBase, has no effect on → Microsoft/Azure/products/Storage.
+   `[FORCE | DISABLE] SCALEOUTEXECUTION` ☰
+   `IGNORE_NONCLUSTERED_COLUMNSTORE_INDEX` ☰ 
+   `KEEP PLAN` ☰ Relax estimated recompile threshold for a query. (The threshold determines when an automatic query-recompilation takes place because of a change of the number of indexed columns in DML queries)
+   `KEEPFIXED PLAN` ☰ Do not recompile a plan even if statistics have changed. With `keepfixed plan`, a query is only recompiled if the schema of the underlying tables changes or if `sp_recompile` is executed against these tables.
+   `MAX_GRANT_PERCENT|MIN_GRANT_PERCENT = n` ☰ Maximum/minimum granted memory as percentage of configured memory limit (`n = 0 … 100`)
+   `MAXDOP <integer_value>` ☰ Override the maximum degree of parallelism (see `sp_configure`). Setting this value to `0` lets SQL Server choose the max degree of the parallelism.
+   `MAXRECURSION n` ☰ Maximum number of recursion that is allowed for the query. (Probably useful in conjunction with the `with` common table expressions).
+   `NO_PERFORMANCE_SPOOL` ☰
+   `OPTIMIZE FOR (@var { UNKNOWN | = <literal_constant> } [ , …n ] )` ☰ Optimize the query for a specified value for the variable `@var`. `UNKNOWN` lets SQL server use statistical data instead of the initial data.
+   `OPTIMIZE FOR UNKNOWN` ☰ Use average selectivity for predicates.
+   `PARAMETERIZATION { SIMPLE | FORCED }` ☰
+   `QUERYTRACEON n` ☰
+   `RECOMPILE` ☰ Create a new and temporary plan just for the execution of the given SQL statement.
+   `ROBUST PLAN` ☰
+   `USE HINT ( hint-name [ , …n ] )` ☰ Provide additional hints which are specified by `hint-name`.
+   `USE PLAN N'<xml_plan>'` ☰
+   `TABLE HINT ( <exposed_object_name> [ , <table_hint> [ [, ]...n ] ] )` ☰
+ table }
+
+}
+{ Join hint #mssql-join-hint
+
+  A join hint specifies the algorithm with which the data of two tables is joined.
+
+code {
+select … from tab_L [outer|inner] HASH   join tab_R …
+select … from tab_L [outer|inner] LOOP   join tab_R …
+select … from tab_L [outer|inner] MERGE  join tab_R …
+select … from tab_L       [inner] REMOTE join tab_R …
+code }
+
+  { Remote join
+
+    A `remote join` hint specifies that the join is performed on the site where `tab_R` is located.
+
+    A `remote join` hint should only be used if `tab_L` has fewer rows than `tab_R`.
+
+  }
+
+}
+{ Table hints
+
+  table { ll
+
+    `NOEXPAND [ , INDEX ( <index_value> [, …n ] ) | INDEX = ( <index_value> ) ]` ☰ Do not expand indexed views to access underlying tables.
+    `INDEX( <index_value> [, …n ] ) | INDEX = ( <index_value> )` ☰ Use the specified index when accessing table data. For non clustered tables, `index(0)` forces a full table scan.
+    `FORCESEEK [ ( <index_value> ( <index_column_name> [,... ] ) ) ]` ☰
+    `FORCESCAN` ☰
+    `FORCESEEK` ☰ 
+    `HOLDLOCK` ☰
+    `KEEPIDENTITY` ☰ Specifies that *identity values* of an imported data file should be used for identity columns. Applicable for `insert` statements when `bulk` option is used with `openrowset`.
+    `KEEPDEFAULTS` ☰ Inserts a column's default values if inserted value is `null`. Applicable for `insert` statements when `bulk` option is used with `openrowset`.
+    `NOLOCK` ☰
+    `NOWAIT` ☰ Equivalent to specifying `set lock_timeout 0` for a specific table. Has no effect in combiantion with `tablock`.
+    `PAGLOCK` ☰
+    `READCOMMITTED` ☰
+    `READCOMMITTEDLOCK` ☰
+    `READPAST` ☰
+    `READUNCOMMITTED` ☰
+    `REPEATABLEREAD` ☰
+    `ROWLOCK` ☰
+    `SERIALIZABLE` ☰
+    `SNAPSHOT` ☰
+    `SPATIAL_WINDOW_MAX_CELLS = <integer_value>` ☰
+    `TABLOCK` ☰ Acquire a lock on table level. The type of lock depends on the statement.
+    `TABLOCKX` ☰ Take an exclusive lock on the table. Compare with `XLOCK`.
+    `UPDLOCK` ☰
+    `XLOCK` ☰ Take an exclusive lock on the table and hold it until the transaction finishes. Compare with `TABLOCKX`.
+  table }
+
+code {
+select
+…
+from
+   tab_xyz WITH (tablock)
+code }
+
+
+code {
+select
+…
+from
+   tab_xyz WITH (tablock, index(tab_xyz_ix)
+code }
+
+}
+
+sa:
+  `sys.dm_exec_valid_use_hints`
