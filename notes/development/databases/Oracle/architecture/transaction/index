@@ -1,11 +1,21 @@
 $ Oracle Architecture: Transaction
 @ transaction
 
-A transaction is implicitely started by any operation that obtains a *TX lock*:
-  • → development/databases/Oracle/SQL/DML[DML statements]
-  • `select for update` statements
-  • Executing `set → development/databases/Oracle/SQL/statement/nouns/transaction`
-  • Using `dbms_transaction`
+{ Duration of stransactions
+
+  A transaction is implicitely started by any operation that obtains a *TX lock*:
+    • → development/databases/Oracle/SQL/DML[DML statements]
+    • `select for update` statements
+    • Executing `set → development/databases/Oracle/SQL/statement/nouns/transaction`
+    • Using `→ development/databases/Oracle/installed/packages/dbms/transaction`
+
+
+  The transaction is ended
+    • explicitely by either executing a `commit` or a `rollback` or
+    • implicitely ended by executing a → development/databases/Oracle/SQL/DDL[DDL statement]
+
+
+}
 
 { Committing a transaction
 
@@ -24,6 +34,19 @@ A transaction is implicitely started by any operation that obtains a *TX lock*:
 
   It should be noted that LGWR, in order to reduce I/O, also writes redo log entries of transactions that have not yet been commited.
   In case of a recovery, these can be rolled back.
+
+}
+{ Read-only transactions #ora-trx-read-only
+
+  A transaction can be marked as read only when starting it with `set → development/databases/Oracle/SQL/statement/nouns/transaction[transaction] read only`.
+
+  In a read only transaction, only the following statements are allowed:
+    • `select` statements (without the *for update clause*)
+    • `lock table`
+    • `set role`
+    • `alter session`
+    • `alter system`
+
 
 }
 { Preventing COMMIT or ROLLBACK in PL/SQL procedures
