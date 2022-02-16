@@ -1,0 +1,43 @@
+$ Oracle SQL: WHERE clause in hierarchical queries
+
+In → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[`start with` … `connect by` hierarchical queries], the `where` clause is evaluated *after*
+hierarchically selecting the records:
+
+Test data:
+code {
+drop   table tq84_hq;
+create table tq84_hq (id number, parent_id number, txt varchar2(20));
+
+insert into tq84_hq values (1, null, 'ROOT');
+insert into tq84_hq values (2,    1, 'sub a');
+insert into tq84_hq values (3,    1, 'sub b');
+insert into tq84_hq values (4,    2, 'sub a sub 1');
+insert into tq84_hq values (5,    3, 'sub b sub 1');
+insert into tq84_hq values (6,    3, 'sub b sub 2');
+code }
+
+Query:
+code {
+select
+   id,
+   txt,
+   level
+from
+   tq84_hq
+where
+   id between 3 and 5
+start with
+   parent_id is null
+connect by
+   prior id = parent_id
+;
+code }
+
+The above query returns;
+code {
+        ID TXT                       LEVEL
+---------- -------------------- ----------
+         4 sub a sub 1                   3
+         3 sub b                         2
+         5 sub b sub 1                   3
+code }

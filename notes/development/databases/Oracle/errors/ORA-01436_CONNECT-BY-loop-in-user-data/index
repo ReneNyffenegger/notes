@@ -1,0 +1,70 @@
+$ ORA-01436: CONNECT BY loop in user data
+
+code {
+drop table tq84_edge;
+drop table tq84_node;
+
+create table tq84_node (
+   id   number primary key,
+   name varchar2(10)
+);
+
+create table tq84_edge (
+   node_from not null references tq84_node,
+   node_to   not null references tq84_node
+);
+
+insert into tq84_node values (1, 'n1');
+insert into tq84_node values (2, 'n2');
+insert into tq84_node values (3, 'n3');
+insert into tq84_node values (4, 'n4');
+insert into tq84_node values (5, 'n5');
+
+insert into tq84_edge values (3, 2);
+insert into tq84_edge values (2, 4);
+insert into tq84_edge values (2, 1);
+insert into tq84_edge values (1, 5);
+
+--
+-- uh oh:
+--   the following record will cause
+--   ORA-01436: CONNECT BY loop in user data
+--
+insert into tq84_edge values (1, 3);
+code }
+
+code {
+select
+   level,
+   nf.name    node_from,
+   nt.name    node_to
+from
+   tq84_edge   ed                          join
+   tq84_node   nf on nf.id = ed.node_from  join
+   tq84_node   nt on nt.id = ed.node_to
+start with
+   ed.node_from =  3
+connect by
+   prior ed.node_to = ed.node_from
+;
+code }
+
+{ Dump offending (circular) id into trace file
+
+  The offending (circular) id can be dumped into the process's → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace file] by
+  setting the undocumented(?) → development/databases/Oracle/adminstration/init-parameters[parameter] `_dump_connect_by_loop_data`.
+
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "_dump_connect_by_loop_data" = true;
+code }
+
+  With the example above, the following line will be found in the
+  → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file[trace file]:
+code {
+CONNECT BY loop in user data :  (2) --> (1) --> (3) --> (2)
+code }
+
+}
+sa:
+  The → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/nocycle[`nocycle`] clause prevents such errors in statements using
+  → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[`start with` … `connect by`].

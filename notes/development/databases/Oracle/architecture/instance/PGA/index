@@ -4,22 +4,32 @@ $ Oracle Program Global Area
 The PGA is (non-shared) memory that is used by → development/databases/Oracle/architecture/processes/server[server] (and
 → development/databases/Oracle/architecture/processes/background[background]?) → development/databases/Oracle/architecture/processes[processes].
 
-A PGA consists of
-  • Stack space (session variables, arrays …)
-  • Hash area (for → development/databases/Oracle/SQL/join/hash[hash joins])
-  • Bitmap merge area (to merge data from scans of multiple bitmap indexes)
-  • User Global Area (→ development/databases/Oracle/architecture/instance/UGA) (in dedicated server environments)
-  • SQL work area (sort area?), used by → development/databases/Oracle/SQL/select/group-by[`group by`] and → development/databases/Oracle/SQL/select/order-by[`order by`]
-  • → development/databases/Oracle/architecture/session[Session] memory (Logon information)
-  • → development/databases/Oracle/architecture/instance/PGA/private-SQL-area[Private SQL area] (Values of bind variables, session specific information for processing etc.)
-  • → development/databases/Oracle/SQL/data-types/lob#ora-lob-3-types[Temporary LOBs]
+{ Instance PGA
 
-In shared server environments (as opposed to non-dedicated server environments), the UGA moves into the → development/databases/Oracle/architecture/instance/SGA/Large-Pool because multiple clients share the
-same → development/databases/Oracle/architecture/processes/server[server process].
+  Each process has its own PGA, the entirety of all PGAs in an instance is referred to as *instance PGA*.
 
-Because the memory of the PGA is not shared between processes, there is no need to protect its data structures with *latches*.
+  → development/databases/Oracle/adminstration/init-parameters[Initialization parameters] related to the PGA set the size of the
+  instance PGA, not the size of the processes' PGA.
 
+  Because the memory of a process' PGA is not shared between processes, there is no need to protect its data structures with → development/databases/Oracle/architecture/instance/SGA/latch[latches].
 
+}
+{ Components of a PGA
+
+  A PGA consists of
+    • Stack space (session variables, arrays …)
+    • Hash area (for → development/databases/Oracle/SQL/join/hash[hash joins])
+    • Bitmap merge area (to merge data from scans of multiple bitmap indexes)
+    • User Global Area (→ development/databases/Oracle/architecture/instance/UGA) (in dedicated server environments)
+    • → development/databases/Oracle/architecture/instance/PGA/SQL-work-areas[SQL work areas],  used by → development/databases/Oracle/SQL/select/group-by[`group by`] and → development/databases/Oracle/SQL/select/order-by[`order by`]
+    • → development/databases/Oracle/architecture/session[Session] memory (Logon information)
+    • → development/databases/Oracle/architecture/instance/PGA/private-SQL-area[Private SQL area] (Values of bind variables, session specific information for processing etc.)
+    • → development/databases/Oracle/SQL/data-types/lob#ora-lob-3-types[Temporary LOBs]
+
+  In shared server environments (as opposed to non-dedicated server environments), the UGA moves into the → development/databases/Oracle/architecture/instance/SGA/Large-Pool because multiple clients share the
+  same → development/databases/Oracle/architecture/processes/server[server process].
+
+}
 { Queries
 
   { PGA statistics
@@ -113,8 +123,8 @@ sa:
   → development/databases/Oracle/adminstration/memory-management
 
   → development/databases/Oracle/adminstration/init-parameters[init parameters]:
-   • → development/databases/Oracle/adminstration/init-parameters#pga_aggregate_limit[`pga_aggregate_limit`]
-   • → development/databases/Oracle/adminstration/init-parameters#pga_aggregate_target[`pga_aggregate_target`]
+   • → development/databases/Oracle/adminstration/init-parameters/pga_aggregate/limit[`pga_aggregate_limit`]
+   • → development/databases/Oracle/adminstration/init-parameters/pga_aggregate/target[`pga_aggregate_target`]
    • `memory_target`
 
   `→ development/databases/Oracle/tools/oradebug/dumpvar[oradebug dumpvar pga …]`

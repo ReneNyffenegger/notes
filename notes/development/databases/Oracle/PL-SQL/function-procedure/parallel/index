@@ -1,0 +1,34 @@
+$ Oracle: Enabling PL/SQL functions for parallel execution
+
+code {
+create or replace package tq84_pkg
+    authid definer
+as
+    function f_non_parallel (p number)    return number;
+    
+    function f_parallel     (p number)    return number
+                                          PARALLEL_ENABLE;
+end tq84_pkg;
+/
+code }
+
+code {
+select
+   procedure_name,
+   parallel
+from
+   → development/databases/Oracle/installed/data-dictionary/procedures[user_procedures]
+where
+   object_name = 'TQ84_PKG' and
+   procedure_name is not null;
+code }
+
+{ TODO
+
+ *PDML disabled because function is not pure and not declared parallel enabled*
+
+}
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/parallel[Parallel SQL execution]

@@ -18,7 +18,26 @@ $ Oracle: V$ACTIVE_SESSION_HISTORY
   gh|oracle-patterns|/Installed/dynamic-performance-views/active/session_history/did-user-exec.sql||
 
 }
-{ session_state
+{ Aggregated values per period
+
+  The following query aggregates the values for `pga_allocated` and `temp_space_allocated` per period:
+code {
+select
+   count(*)                                    cnd,
+   max(ash.sample_time         )               sample_time,
+   sum(ash.pga_allocated       ) /1024/1024    pga_allocated,
+   sum(ash.temp_space_allocated)/1024/1024     temp_space_allocated,
+   ash.sample_id
+from
+   v$active_session_history ash
+group by
+   ash.sample_id
+order by
+   ash.sample_id desc;
+code }
+
+}
+{ Column SESSION_STATE
 
   The value of `session_state` is either
     • `WAITING` or
@@ -34,7 +53,7 @@ $ Oracle: V$ACTIVE_SESSION_HISTORY
   gh|oracle-patterns|/Installed/dynamic-performance-views/active/session_history/minutes_covered.sql||
 
 }
-{ top_level_call_name
+{ column TOP_LEVEL_CALL_NAME
 
   The values of `top_level_call_name` seem to be rather limited:
 code {
