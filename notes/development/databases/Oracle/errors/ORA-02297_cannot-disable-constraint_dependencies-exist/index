@@ -1,0 +1,68 @@
+$ ORA-02297: cannot disable constraint … - dependencies exist
+
+Create some tables in parent child relationship:
+
+code {
+create table tq84_P (
+   id  number,
+   constraint tq84_P_pk primary key (id)
+);
+
+create table tq84_C (
+   id   number,
+   id_P not null,
+   --
+   constraint tq84_C_pk primary key (id  ),
+   constraint tq84_C_fk foreign key (id_P) references tq84_P
+);
+
+create table tq84_CC (
+   id   number,
+   id_C not null,
+   --
+   constraint tq84_CC_pk primary key (id  ),
+   constraint tq84_CC_fk foreign key (id_C) references tq84_C
+);
+code }
+
+Try to disable a → development/databases/Oracle/objects/tables/constraints/primary-key. It does not work because there is a referring table.
+-
+The error *ORA-02297: cannot disable constraint (RENE.TQ84_P_PK) - dependencies exist* will be thrown:
+code {
+alter table tq84_P disable primary key;
+code }
+
+With the `cascade` clause, however, the primary key can be disabled.
+code {
+alter table tq84_P disable primary key CASCADE;
+code }
+
+The previous command also disabled the foreign key of `TQ84_C` (but not of `TQ84_CC`):
+code {
+select
+   con.table_name,
+   con.constraint_type,
+   con.constraint_name,
+   con.status,
+   con.deferred
+from
+   user_constraints con
+where
+   con.table_name      in ('TQ84_P', 'TQ84_C', 'TQ84_CC') and
+   con.constraint_type in ('P', 'R')
+order by
+   con.table_name;
+code }
+   
+
+Note: there is no corresponding `alter table enable primary key cascade`, unfortunately.
+
+
+code {
+drop table tq84_CC;
+drop table tq84_C ;
+drop table tq84_P ;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/constraints
