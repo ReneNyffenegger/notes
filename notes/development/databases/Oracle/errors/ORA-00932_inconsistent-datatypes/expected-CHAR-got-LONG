@@ -1,0 +1,26 @@
+$ ORA-00932: inconsistent datatypes: expected CHAR got LONG
+
+The error message *→ development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes: expected CHAR got LONG* can somewhat be relaxed with
+`→ development/databases/Oracle/installed/packages/dbms/duma_internal`:
+
+code {
+select
+   view_name,
+   owner,
+   substr(text, 5, 10) t_5_10
+from
+   dba_views;
+--
+-- --> ORA-00932: inconsistent datatypes: expected CHAR got LONG
+--
+
+select
+   obj.name  view_name,
+   own.name  owner,
+   substr(to_clob(DBMS_DUMA_INTERNAL.READ_LONG_TO_BLOB('SYS', 'VIEW$', 'TEXT', viw.rowid)), 5, 10) t_5_10
+from
+   sys."_CURRENT_EDITION_OBJ" obj                           join
+   sys.view$                  viw on obj.obj# = viw.obj#    join
+   sys.user$                  own on obj.owner# = own.user#
+;
+code }
