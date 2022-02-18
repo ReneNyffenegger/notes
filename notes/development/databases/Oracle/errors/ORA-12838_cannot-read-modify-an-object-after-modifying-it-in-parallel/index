@@ -1,6 +1,41 @@
 $ ORA-12838: cannot read/modify an object after modifying it in parallel
 
+Make sure our session is enabled for parallel DML:
+code {
+select pdml_status from v$session where sid = sys_context('userenv', 'sid');
+alter session enable parallel dml;
+code }
 
+Create a table for the result:
+code {
+create table tq84_objs (own varchar2(128), nam varchar2(128));
+code }
+
+Insert data with parallel execution:
+code {
+insert /*+ parallel */ into tq84_objs
+select
+   owner,
+   object_name
+from
+   dba_objects;
+code }
+
+Verify if statement was executed in parallel:
+code {
+select * from v$pq_sesstat order by statistic;
+code }
+
+Following statement throws *ORA-12838: cannot read/modify an object after modifying it in parallel*:
+code {
+delete from tq84_objs where own = 'SYS';
+code }
+
+We have to commit the transaction in order to further modify data in the table:
+code {
+commit;
+delete from tq84_objs where own = 'SYS';
+code }
 sa:
 
   Using the → development/databases/Oracle/SQL/DML/insert/append-hint[`append` hint] in `insert` statements.

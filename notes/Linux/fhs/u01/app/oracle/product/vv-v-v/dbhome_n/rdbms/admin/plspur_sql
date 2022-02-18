@@ -1,4 +1,41 @@
 $ $ORACLE_HOME/rdbms/admin/plspur.sql
 
-Package definition for `sys.sys_stub_for_purity_analysis`.
+Package definition for the `sys.sys_stub_for_purity_analysis` → development/databases/Oracle/PL-SQL package.
 
+The package only has a specification but no body.
+
+As per a comment in the `plspur.sql` file, this pacakge is somehow related to *interop purity*.
+
+The package specification has the following procedures:
+  • `prds`
+  • `pwds`
+  • `prps`
+  • `pwps`
+
+
+Create a simple procedure:
+code {
+create or replace procedure tq84_dep_test as begin
+   null;
+end;
+/
+code }
+
+procedure is not dependent on `sys_stub_for_purity_analysis`:
+code {
+select * from dba_dependencies
+where
+   referenced_owner = 'SYS'              and
+   referenced_name  = 'SYS_STUB_FOR_PURITY_ANALYSIS'
+and
+   owner            =  user             and
+   name             = 'TQ84_DEP_TEST';
+code }
+
+However, when adding a statement to the procedure (which as I assume is dependent on `sys_stub_for_purity_analysis`), the procedures (also?) becomes dependent on `sys_stub_for_purity_analysis`:
+code {
+create or replace procedure tq84_dep_test as begin
+   dbms_output.put_line('xxx');
+end;
+/
+code }
