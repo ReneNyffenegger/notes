@@ -12,6 +12,7 @@ table { llll
   ~Operation~ ☰ ~Option~ ☰ ~nof inputs~ ☰ ~Comment~
    ? AND-EQUAL ☰ ☰ ☰
    BITMAP AND ☰  ☰ 2 ☰
+   BITMAP CONSTRUCTION ☰ ☰ ☰
    BITMAP CONVERSION ☰ TO ROWIDS ☰ 1 ☰
    ? BITMAP CONVERSION ☰ FROM ROWIDS ☰ ? ☰
    BITMAP CONVERSION ☰ COUNT ☰ ? ☰ Count bits in a bitmap index (`select count(*) from tab;`, `tab` having a bitmap index).
@@ -67,10 +68,10 @@ table { llll
    JOIN FILTER ☰ CREATE ☰ 1 ☰
    JOIN FILTER ☰ USE ☰ 1 ☰
    JSONTABLE EVALUATION ☰ ☰ ? ☰ Apparently used to execute statements with → development/databases/Oracle/SQL/functions/json/table[`json_table()`] expression.
-   LOAD AS SELECT ☰  ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT] ☰  ☰ 1 ☰
    LOAD AS SELECT ☰ (CURSOR DURATION MEMORY) ☰ 1 - ? ☰ Related to the *star transformation* → development/databases/Oracle/optimizer#ora-optimizer-qry-tran[query transformation]
    LOAD AS SELECT ☰ (HYBRID TSM/HWMB) ☰ 1 ☰ TSM = Temp Segment Merge, HWMB = High Water Mark Brokering
-   LOAD TABLE CONVENTIONAL ☰  ☰ 1 - n ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL] ☰  ☰ 1 - n ☰
    MERGE ☰  ☰ 1 ☰
    MERGE JOIN ☰ ANTI ☰ 2 ☰
    MERGE JOIN ☰ CARTESIAN ☰ 2 ☰
@@ -84,15 +85,17 @@ table { llll
    NESTED LOOPS ☰ OUTER ☰ 2 ☰
    NESTED LOOPS ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰
    NESTED LOOPS ☰  ☰ 1 - 3(?) ☰
-   OPTIMIZER STATISTICS GATHERING ☰  ☰ 1 ☰ See → development/databases/Oracle/optimizer/statistics/gathering/online[Online statistics gathering]. Compare with `STATISTICS COLLECTOR`
+   → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering[OPTIMIZER STATISTICS GATHERING] ☰  ☰ 1 ☰ See → development/databases/Oracle/optimizer/statistics/gathering/online[Online statistics gathering]. Compare with `STATISTICS COLLECTOR`
    PARTITION LIST ☰ ALL ☰ 1 ☰
    PARTITION LIST ☰ ITERATOR ☰ ? ☰
    PARTITION LIST ☰ SINGLE ☰ 1 ☰ Access *one* partition only, see → development/databases/Oracle/objects/tables/partitions/distribution-techniques/list#ora-list-part-single[this example].
    PARTITION RANGE ☰ ALL ☰ 1 ☰
    PARTITION RANGE ☰ OR ☰ 1 ☰
    PARTITION RANGE ☰ SINGLE ☰ 1 ☰
-   PX BLOCK ☰ ITERATOR ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block[PX BLOCK] ☰ ITERATOR ☰ 1 ☰
+   PX BLOCK ☰ ITERATOR ADAPTIVE ☰ 1 ☰
    PX COORDINATOR ☰  ☰ 1 ☰
+   PX COORDINATOR ☰ FORCED SERIAL ☰ ? ☰
    PX PARTITION LIST ☰ ALL ☰ 1 ☰
    PX RECEIVE ☰  ☰ 1 ☰
    PX SELECTOR ☰  ☰ 1 ☰
@@ -201,6 +204,38 @@ order by
    p_options;
 code }
 
+{ TODO
+
+  Find parent child operation relations:
+code {
+select
+   count(*) cnt,
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+from
+   v$sql_plan    p                                                                                                           left join
+   v$sql_plan    c1 on p.sql_id = c1.sql_id and p.child_number = c1.child_number and p.id = c1.parent_id and c1.position = 1 left join
+   v$sql_plan    c2 on p.sql_id = c2.sql_id and p.child_number = c2.child_number and p.id = c2.parent_id and c2.position = 2 left join
+   v$sql_plan    c3 on p.sql_id = c3.sql_id and p.child_number = c3.child_number and p.id = c3.parent_id and c3.position = 3
+where
+   p.operation = 'PX BLOCK'
+group by
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+order by
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+;
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[`v$sql_plan_statistics`] provides *actual* (not estimated as in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`])
@@ -208,6 +243,5 @@ sa:
   -
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor[`v$sql_plan_monitor`] reports those actual data even broken down to a single
   → development/databases/Oracle/SQL/statement/execution[execution of an SQL statement].
-
 
   → development/databases/Oracle/SQL/statement/execution/plan[SQL statement execution plan]

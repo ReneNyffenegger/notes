@@ -1,0 +1,108 @@
+$ Oracle execution plan operation OPTIMIZER STATISTICS GATHERING
+
+The following → development/databases/Oracle/SQL/statement[SQL statements] are suppposed to demonstrate
+→ development/databases/Oracle/optimizer/statistics/gathering/online[online statistics gathering] with regards to the
+→ development/databases/Oracle/SQL/statement/execution/plan/operations[execution plan operation] `OPTIMIZER STATISTICS GATHERING`:
+
+First, we need a → development/databases/Oracle/objects/tables:
+code {
+create table tq84_A(col varchar2(1000));
+code }
+
+We let oracle choose a plan for inserting some random data into the table:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain[explain plan for]
+   insert into tq84_A
+   select
+      → development/databases/Oracle/installed/packages/dbms/random.string('a', 1000)
+   from
+      dual → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] level <= 10000;
+code }
+
+Nothing special, so far:
+code {
+select * from table(dbms_xplan.display(format=> 'basic'));
+--
+-- 
+-- ------------------------------------------------
+-- | Id  | Operation                     | Name   |
+-- ------------------------------------------------
+-- |   0 | INSERT STATEMENT              |        |
+-- |   1 |  LOAD TABLE CONVENTIONAL      | TQ84_A |
+-- |   2 |   CONNECT BY WITHOUT FILTERING|        |
+-- |   3 |    FAST DUAL                  |        |
+-- ------------------------------------------------
+code }
+
+
+However, when using the → development/databases/Oracle/SQL/hints/list/append[`append`] hint …
+code {
+explain plan for
+   insert /*+ append */ into tq84_A
+   select
+      dbms_random.string('a', 1000)
+   from
+      dual connect by level <= 10000;
+code }
+
+
+… online statistics will be gathered, indicated by the
+→ development/databases/Oracle/SQL/statement/execution/plan/operations[execution plan operation] `OPTIMIZER STATISTICS GATHERING`:
+code {
+select * from table(dbms_xplan.display(format=> 'basic'));
+-- 
+-- ---------------------------------------------------
+-- | Id  | Operation                        | Name   |
+-- ---------------------------------------------------
+-- |   0 | INSERT STATEMENT                 |        |
+-- |   1 |  LOAD AS SELECT                  | TQ84_A |
+-- |   2 |   OPTIMIZER STATISTICS GATHERING |        |
+-- |   3 |    CONNECT BY WITHOUT FILTERING  |        |
+-- |   4 |     FAST DUAL                    |        |
+-- ---------------------------------------------------
+code }
+
+Execute the statement:
+code {
+insert /*+ append */ into tq84_A
+select
+   dbms_random.string('a', 1000)
+from
+   dual connect by level <= 10000;
+code }
+
+Prevent → development/databases/Oracle/errors/ORA-12838_cannot-read-modify-an-object-after-modifying-it-in-parallel
+code {
+commit;
+code }
+
+Explaining the plan for a → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[`create table … as select`] statement:
+code {
+explain plan for
+   create table  tq84_B as
+   select * from tq84_A;
+code }
+
+A CTAS also gathers online statistics:
+code {
+select * from table(dbms_xplan.display(format=> 'basic'));
+--
+-- ---------------------------------------------------
+-- | Id  | Operation                        | Name   |
+-- ---------------------------------------------------
+-- |   0 | CREATE TABLE STATEMENT           |        |
+-- |   1 |  LOAD AS SELECT                  | TQ84_B |
+-- |   2 |   OPTIMIZER STATISTICS GATHERING |        |
+-- |   3 |    TABLE ACCESS FULL             | TQ84_A |
+-- ---------------------------------------------------
+code }
+
+
+Cleaning up:
+code {
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/hints/list/append[`append` hint].

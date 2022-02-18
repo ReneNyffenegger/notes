@@ -1,0 +1,36 @@
+$ Oracle SQL Plan operation: PX BLOCK
+
+Options I have seen together with th `PX BLOCK` operation are
+  • `ITERATOR`
+  • `ITERATOR ADAPTIVE`
+
+`PX BLOCK` has exactly one child. I have seen the following child operations:
+  • `BITMAP CONSTUCTION`
+  • `BITMAP CONVERSION`
+  • `INDEX`
+  • `TABLE ACCESS`
+  • `VIEW`
+
+code {
+create table tq84_px_block (a number, b varchar2(10));
+
+explain plan for
+select /*+ parallel */ * from tq84_px_block;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ----------------------------------------------
+-- | Id  | Operation            | Name          |
+-- ----------------------------------------------
+-- |   0 | SELECT STATEMENT     |               |
+-- |   1 |  PX COORDINATOR      |               |
+-- |   2 |   PX SEND QC (RANDOM)| :TQ10000      |
+-- |   3 |    PX BLOCK ITERATOR |               |
+-- |   4 |     TABLE ACCESS FULL| TQ84_PX_BLOCK |
+-- ----------------------------------------------
+
+drop table tq84_px_block;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

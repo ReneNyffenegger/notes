@@ -1,0 +1,58 @@
+$ Oracle hint: APPEND
+@ append
+
+Create two tables to test the influence of the `append` → development/databases/Oracle/SQL/hints[hint]:
+code {
+create table tq84_src (id number, val varchar2(100));
+create table tq84_dest(id number, val varchar2(100));
+code }
+
+Explain the plan for an → development/databases/Oracle/SQL/DML/insert/select[`insert into … select from`] statement …
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain[explain plan] for
+   insert into tq84_dest
+   select * from tq84_src;
+code }
+
+… and display the plan:
+code {
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ----------------------------------------------
+-- | Id  | Operation                | Name      |
+-- ----------------------------------------------
+-- |   0 | INSERT STATEMENT         |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL] | TQ84_DEST |
+-- |   2 |   TABLE ACCESS FULL      | TQ84_SRC  |
+-- ----------------------------------------------
+code }
+
+Same thing, but this time using the `append` hint:
+code {
+explain plan for
+   insert into tq84_dest
+   select /*+ append */ * from tq84_src;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ------------------------------------------------------
+-- | Id  | Operation                        | Name      |
+-- ------------------------------------------------------
+-- |   0 | INSERT STATEMENT                 |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT]                  | TQ84_DEST |
+-- |   2 |   → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering[OPTIMIZER STATISTICS GATHERING] |           |
+-- |   3 |    TABLE ACCESS FULL             | TQ84_SRC  |
+-- ------------------------------------------------------
+code }
+
+Cleaning up:
+code {
+drop   table tq84_dest;
+drop   table tq84_src ;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/DML/insert/paths[Direct path loads].
+
+  → development/databases/Oracle/SQL/hints
