@@ -23,6 +23,93 @@ where
    procedure_name is not null;
 code }
 
+{ Execution plan
+
+  The influence of PL/SQL functions that are enabled for parallel executions on the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] is demonstrated below.
+
+  First, we need  a table to select from. The table has the *parallel attribute*:
+code {
+create table tq84_px_t (
+  id  number,
+  val varchar2(10)
+) parallel 4;
+code }
+
+  The following package specification has two functions: `non_px_f` is an ordinary function, `px_f` is enabled for parallel execution:
+code {
+create or replace package tq84_px_p
+   authid definer
+as
+
+   function  non_px_f(v varchar2) return number;
+   function      px_f(v varchar2) return number parallel_enable;
+
+end tq84_px_p;
+/
+code }
+
+  The package's body:
+code {
+create or replace package body tq84_px_p as
+
+
+   function  non_px_f(v varchar2) return number is begin
+      return case when v = 'xyz' then 1 else 0 end;
+   end non_px_f;
+
+   function  px_f(v varchar2) return number is begin
+      return case when v = 'xyz' then 1 else 0 end;
+   end px_f;
+
+end tq84_px_p;
+/
+code }
+
+  Show the execution plan when using the non parallel function:
+code {
+explain plan for
+   select * from tq84_px_t
+   where
+      tq84_px_p.non_px_f(val) = 1;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation         | Name      |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT  |           |
+-- |   1 |  TABLE ACCESS FULL| TQ84_PX_T |
+-- ---------------------------------------
+code }
+
+  With the parallel enabled function, the statement will be executed in parallel:
+code {
+explain plan for
+   select  * from tq84_px_t
+   where
+      tq84_px_p.px_f(val) = 1;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation            | Name      |
+-- ------------------------------------------
+-- |   0 | SELECT STATEMENT     |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[PX COORDINATOR]      |           |
+-- |   2 |   PX SEND QC (RANDOM)| :TQ10000  |
+-- |   3 |    PX BLOCK ITERATOR |           |
+-- |   4 |     TABLE ACCESS FULL| TQ84_PX_T |
+-- -----------------------------------------
+code }
+
+  Cleaning up:
+code {
+drop table   tq84_px_t;
+drop package tq84_px_p;
+code }
+
+}
+
 { TODO
 
  *PDML disabled because function is not pure and not declared parallel enabled*

@@ -1,0 +1,35 @@
+$ Oracle SQL Plan operation: PX COORDINATOR
+
+`PX COORDINATOR` is the row source that corresponds to  Query Coordinator (QC). This operation controls and schedules the parallel plan appearing below it in the plan tree.
+
+This operation always has exactly *one* child row source which is `PX SEND`.
+
+
+code {
+create table tq84_px_t (
+  id  number,
+  val varchar2(10)
+) parallel 4;
+
+explain plan for
+   select * from tq84_px_t
+   where
+      val = 'xyz';
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ------------------------------------------
+-- | Id  | Operation            | Name      |
+-- ------------------------------------------
+-- |   0 | SELECT STATEMENT     |           |
+-- |   1 |  PX COORDINATOR      |           |
+-- |   2 |   PX SEND QC (RANDOM)| :TQ10000  |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block[PX BLOCK] ITERATOR |           |
+-- |   4 |     TABLE ACCESS FULL| TQ84_PX_T |
+-- ------------------------------------------
+
+drop table tq84_px_t;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

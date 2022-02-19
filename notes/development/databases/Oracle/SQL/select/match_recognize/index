@@ -1,0 +1,85 @@
+$ Oracle SQL: MATCH_RECOGNIZE clause
+
+{ Stock prices
+
+  This is a variation of the «stock price» example that is typically used to explain the `match_recognize` clause. The select statement is suppposed to find prices at their (local) highs and bottoms.
+
+  First, we need a table and some data. The column `dt` is supposed to be date, but to make things a bit easier, it's just a number:
+  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/data.sql||
+
+  The following query is a poor man's attempt to visualize each company's stock price. It can be seen, for example, that *DEF has a bottom prices at days 2, 6 and 9 and high prices at days 5, 8 and 11:
+  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/visualization.sql||
+
+  Now for the select statement.
+  -
+  *NOTE*: ABC is not reported at all because the price at `dt=1` is not recognized as bottom date, nor is the price at `dt=11` recognized as high date
+  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/select.sql||
+
+}
+{ Find consecutive rows
+
+  gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/data.sql||
+
+  { One row per match
+
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/one-row-per-match.sql||
+
+  }
+  { Find ALL consecutive rows
+
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/all.sql||
+
+  }
+
+}
+{ Find foo bar baz
+
+  Find records with `foo`, followed by records with `bar`, followed by records with `baz`.
+
+  gh|Oracle-Patterns|/SQL/select/match_recognize/find-foo-bar-baz.sql||
+
+}
+{ Find a sequence of the same
+
+  Find the first id of sequence of the same words:
+  gh|Oracle-Patterns|/SQL/select/match_recognize/find-sequence-of-same.sql||
+
+}
+{ Find three in a row
+
+  gh|Oracle-Patterns|/SQL/select/pattern-matching/find-three-in-a-row.sql||
+
+}
+
+
+{ TODO
+
+  Pattern variables
+
+ *Running semantics* is used while the rows are being matched into a pattern. When the complete match is established, *final semantics* becomes possible.
+  -
+  This explains, why final semantics is only possible in the `measures` clause.
+
+  Row pattern navigation operations:
+   • `prev(val[, phsical-offset])`, `next(val [, physical-offset])`. (`prev` and `next` always have *running semantics*)
+   • `first(val[, logical-offset])`, `last(val [, logical-offset])`. (`first` and `last` support *running* and *final semantics*)
+
+ `match_number()` assigns a sequential number, starting with `0`, to each match within a partition.
+ 
+ `classifier()` returns a text that corresponds to the pattern variable to which a row is mapped.
+
+ `AFTER MATCH SKIP`
+   • `TO NEXT ROW`
+   • `PAST LAST ROW`
+   • `TO [FIRST|LAST] pattern_variable` (`TO pattern_variable` is equal to `TO LAST pattern_variable`)
+
+  The *universal row pattern variable* references the entire set of all rows in a match.
+
+  Expressions in the `measures` and `define` clauses have the same syntax and semantics *except* that the `measures` claus also supports «final semantics»
+
+ `mrvar`
+
+}
+sa:
+
+  → misc/ISO/9075/features/R010[SQL Feature R010: Row pattern recognition: `from` clause]
