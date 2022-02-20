@@ -1,0 +1,125 @@
+$ Oracle Parallel Execution: Distribution Methods
+
+When *parallel execution servers* exchange data among each other, they use a *distribution method*.
+
+Some distribution methods are:
+table { ll
+  Hash  ☰ The producer selects the consumer for a row by applying a hash function on one or more → development/databases/Oracle/objects/tables/columns[columns].
+  Broadcast ☰ A producer sends a row to all consumers.
+  Range ☰ The producer selects the consumer for a row according to which range a value belongs.
+  Round-robin ☰ Rows are randomly distributued
+  QC (RANDOM) ☰ Rows are randomly sent to QC. This method is used when a statement does not have an → development/databases/Oracle/SQL/select/order-by[`order by` clause].
+  QC (ORDER) ☰ Rows are sent to QC in order, used when statement has an `order by` clause.
+  Hybrid Hash ☰ The applied method is chosen at runtime.
+
+table }
+
+{ TODO
+
+code {
+create table tq84_t (grp number, val varchar2(20)) parallel;
+code }
+
+code {
+explain plan for
+   select * from tq84_t
+  ;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation            | Name     |
+-- -----------------------------------------
+-- |   0 | SELECT STATEMENT     |          |
+-- |   1 |  PX COORDINATOR      |          |
+-- |   2 |   PX SEND QC (RANDOM)| :TQ10000 |
+-- |   3 |    PX BLOCK ITERATOR |          |
+-- |   4 |     TABLE ACCESS FULL| TQ84_T   |
+-- -----------------------------------------
+code }
+
+code {
+explain plan for
+   select * from tq84_t
+   order by grp
+  ;
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- --------------------------------------------
+-- | Id  | Operation               | Name     |
+-- --------------------------------------------
+-- |   0 | SELECT STATEMENT        |          |
+-- |   1 |  PX COORDINATOR         |          |
+-- |   2 |   PX SEND QC (ORDER)    | :TQ10001 |
+-- |   3 |    SORT ORDER BY        |          |
+-- |   4 |     PX RECEIVE          |          |
+-- |   5 |      PX SEND RANGE      | :TQ10000 |
+-- |   6 |       PX BLOCK ITERATOR |          |
+-- |   7 |        TABLE ACCESS FULL| TQ84_T   |
+-- --------------------------------------------
+code }
+
+code {
+create table tq84_L ( id  number, val varchar2(10) ) parallel;
+create table tq84_R ( id  number, val varchar2(10) ) parallel;
+code }
+
+code {
+explain plan for
+   select * from tq84_L l join tq84_R r on l.id = r.id;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation                  | Name     |
+-- -----------------------------------------------
+-- |   0 | SELECT STATEMENT           |          |
+-- |   1 |  PX COORDINATOR            |          |
+-- |   2 |   PX SEND QC (RANDOM)      | :TQ10002 |
+-- |   3 |    HASH JOIN BUFFERED      |          |
+-- |   4 |     PX RECEIVE             |          |
+-- |   5 |      PX SEND HYBRID HASH   | :TQ10000 |
+-- |   6 |       STATISTICS COLLECTOR |          |
+-- |   7 |        PX BLOCK ITERATOR   |          |
+-- |   8 |         TABLE ACCESS FULL  | TQ84_L   |
+-- |   9 |     PX RECEIVE             |          |
+-- |  10 |      PX SEND HYBRID HASH   | :TQ10001 |
+-- |  11 |       PX BLOCK ITERATOR    |          |
+-- |  12 |        TABLE ACCESS FULL   | TQ84_R   |
+-- -----------------------------------------------
+code }
+
+code {
+begin
+   dbms_stats.set_table_stats (user, 'tq84_L', numrows =>       3, numblks =>    1);
+   dbms_stats.set_table_stats (user, 'tq84_R', numrows => 1000000, numblks => 1400);
+end;
+/
+
+explain plan for
+   select * from tq84_L l join tq84_R r on l.id = r.id;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ------------------------------------------
+-- | Id  | Operation             | Name     |
+-- ------------------------------------------
+-- |   0 | SELECT STATEMENT      |          |
+-- |   1 |  PX COORDINATOR       |          |
+-- |   2 |   PX SEND QC (RANDOM) | :TQ10000 |
+-- |   3 |    HASH JOIN          |          |
+-- |   4 |     TABLE ACCESS FULL | TQ84_L   |
+-- |   5 |     PX BLOCK ITERATOR |          |
+-- |   6 |      TABLE ACCESS FULL| TQ84_R   |
+-- ------------------------------------------
+code }
+
+code {
+drop table tq84_t;
+drop table tq84_L;
+drop table tq84_R;
+code }
+}
+
+sa:
+  The `→ development/databases/Oracle/SQL/hints/list/pq/distribute` hint specifies the distribution method in a query.

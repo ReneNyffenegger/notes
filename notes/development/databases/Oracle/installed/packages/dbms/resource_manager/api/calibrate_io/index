@@ -1,0 +1,39 @@
+$ DBMS_RESOURCE_MANAGER.CALIBRATE_IO
+
+`dbms_resource_manager.calibrate_io` calibrates I/O capabilities by gathering statistics on I/O operations.
+This is typically required only after hardware has changed.
+
+
+
+code {
+declare
+   max_io_per_second pls_integer;
+   max_mb_per_second pls_integer;
+   actual_latency    pls_integer;
+
+begin
+
+   dbms_resource_manager.calibrate_io(
+   -- num_physical_disks    =>   use default
+   -- max_latency           =>   use default
+      max_iops              =>   max_io_per_second,
+      max_mbps              =>   max_mb_per_second,
+      actual_latency        =>   actual_latency
+   );
+
+
+   dbms_output.put_line('Max io/s: ' || to_char(max_io_per_second, '9999990'      ));
+   dbms_output.put_line('Max MB/s: ' || to_char(max_mb_per_second, '9999990'      ));
+   dbms_output.put_line('Act. lat: ' || to_char(actual_latency   ,    '9990.99999'));
+
+end;
+/
+
+select * from → development/databases/Oracle/installed/dynamic-performance-views/io/calibration_status;
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/io_calibrate;
+code }
+
+sa:
+
+
+  `→ development/databases/Oracle/installed/packages/dbms/resource_manager`

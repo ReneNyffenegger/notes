@@ -1,0 +1,93 @@
+$ Oracle: Default Degree of Parallelism for tables
+
+Create two tables, intiallly without any → development/databases/Oracle/SQL/statement/execution/parallel#ora-parallel-dop[degree of parallelism]:
+code {
+create table tq84_L (id  number, val varchar2(10));
+create table tq84_R (id  number, val varchar2(10));
+code }
+
+Display the execution plan for a select statement that joins both tables:
+code {
+explain plan for
+   select
+      *
+   from
+      tq84_L l join tq84_R r on l.id = r.id;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | SELECT STATEMENT   |        |
+-- |   1 |  HASH JOIN         |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] FULL| TQ84_L |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] FULL| TQ84_R |
+-- -------------------------------------
+code }
+
+Modify default DOP for one table…
+code {
+alter table tq84_L parallel 4;
+code }
+
+… and show the plan for the same query again. The → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[`PX COORDINATOR`] operation indicates that the query is executed in parallel.
+-
+`TQ84_L` is accessed with the parallel → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block[`PX BLOCK`] operation:
+code {
+-----------------------------------------------
+| Id  | Operation                  | Name     |
+-----------------------------------------------
+|   0 | SELECT STATEMENT           |          |
+|   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator/[PX COORDINATOR]            |          |
+|   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send[PX SEND] QC (RANDOM)      | :TQ10002 |
+|   3 |    HASH JOIN BUFFERED      |          |
+|   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/receive[PX RECEIVE]             |          |
+|   5 |      PX SEND HYBRID HASH   | :TQ10000 |
+|   6 |       STATISTICS COLLECTOR |          |
+|   7 |        PX BLOCK ITERATOR   |          |
+|   8 |         TABLE ACCESS FULL  | TQ84_L   |
+|   9 |     PX RECEIVE             |          |
+|  10 |      PX SEND HYBRID HASH   | :TQ10001 |
+|  11 |       PX SELECTOR          |          |
+|  12 |        TABLE ACCESS FULL   | TQ84_R   |
+-----------------------------------------------
+code }
+
+
+Modify the other table's default DOP as well …
+code {
+alter table tq84_R parallel 4;
+code }
+
+… and display the plan again. This time, also `TQ84_R` is accessed with the parallel `PX BLOCK` operation:
+code {
+-----------------------------------------------
+| Id  | Operation                  | Name     |
+-----------------------------------------------
+|   0 | SELECT STATEMENT           |          |
+|   1 |  PX COORDINATOR            |          |
+|   2 |   PX SEND QC (RANDOM)      | :TQ10002 |
+|   3 |    HASH JOIN BUFFERED      |          |
+|   4 |     PX RECEIVE             |          |
+|   5 |      PX SEND HYBRID HASH   | :TQ10000 |
+|   6 |       STATISTICS COLLECTOR |          |
+|   7 |        PX BLOCK ITERATOR   |          |
+|   8 |         TABLE ACCESS FULL  | TQ84_L   |
+|   9 |     PX RECEIVE             |          |
+|  10 |      PX SEND HYBRID HASH   | :TQ10001 |
+|  11 |       PX BLOCK ITERATOR    |          |
+|  12 |        TABLE ACCESS FULL   | TQ84_R   |
+-----------------------------------------------
+code }
+
+Cleaning up:
+code {
+drop table tq84_L;
+drop table tq84_R;
+code }
+
+sa:
+  The → development/databases/Oracle/objects/tables/parallel[`PARALLEL` clause] in `CREATE TABLE` or `ALTER TABLE` statements.
+
+  → development/databases/Oracle/objects/tables[Tables]
