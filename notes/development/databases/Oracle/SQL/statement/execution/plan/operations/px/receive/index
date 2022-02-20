@@ -1,0 +1,46 @@
+$ Oracle SQL Plan operation: PX RECEIVE
+
+The `PX RECEIVE` row source always has exactly one the child which is → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send[`PX SEND`].
+
+This parent-child relationship connects two sets of parallel execution servers.
+
+
+
+code {
+create table tq84_t (
+   grp  number,
+   val  varchar2(20)
+) parallel;
+
+
+explain plan for
+   select
+      grp,
+      sum(val) sum_val
+   from
+      tq84_t
+   group by
+      grp
+;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ---------------------------------------------
+-- | Id  | Operation                | Name     |
+-- ---------------------------------------------
+-- |   0 | SELECT STATEMENT         |          |
+-- |   1 |  PX COORDINATOR          |          |
+-- |   2 |   PX SEND QC (RANDOM)    | :TQ10001 |
+-- |   3 |    HASH GROUP BY         |          |
+-- |   4 |     PX RECEIVE           |          |
+-- |   5 |      PX SEND HASH        | :TQ10000 |
+-- |   6 |       HASH GROUP BY      |          |
+-- |   7 |        PX BLOCK ITERATOR |          |
+-- |   8 |         TABLE ACCESS FULL| TQ84_T   |
+-- ---------------------------------------------
+
+drop table   tq84_t;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations

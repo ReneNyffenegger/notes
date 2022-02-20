@@ -1,4 +1,4 @@
-$ Oracle: Parallel SQL execution
+$ Oracle: Parallel SQL Execution
 
 In an → development/databases/Oracle[Oracle] database, parallel → development/databases/Oracle/SQL/statement/execution[SQL execution] is based on
   • the Query Coordinator (QC) and
@@ -24,12 +24,14 @@ In an → development/databases/Oracle[Oracle] database, parallel → developmen
   -
   Oracle can dynamically add more PX servers, up to a maximum defined by the parameter `parallel_max_servers`.
 
+  Pre-allocated PX servers are listed in `→ development/databases/Oracle/installed/dynamic-performance-views/px/process`.
+
 }
-{ QC and  PX
+{ QC and PX
 
   For example, in a parallel select statement with a `sum()`, the PX servers sum part of the data while the QC in the end will calculate the final
   sum from the results from the PX servers.
- 
+
 }
 { Enabling parallel execution #ora-enable-paralle-execution
 
@@ -42,7 +44,7 @@ code {
 → development/databases/Oracle/SQL/statement/nouns/session[alter session] enable parallel ddl;
 
 → development/databases/Oracle/SQL/statement/nouns/session[alter session] force  parallel dml parallel 16;
-code } 
+code }
 
   After enabling parallel dml or query, the new state is reflected in
   → development/databases/Oracle/installed/dynamic-performance-views/session[`v$session`].
@@ -85,9 +87,30 @@ code }
   }
 
 }
-{ Default degree of parallelism
+{ Granules
 
-  The default degree of parallelism is determined by the product of the two init-parameters `cpu_count` and `parallel_threads_per_cpu`:
+  A *granule* is a unit of work into which parallelized operations can be divided.
+
+  These granules are passed to  *parallel execution servers* (PX) to let them process one after another.
+
+  The number of granules and their size is dependent on the degree of parallelism (DOP).
+
+}
+{ Degree of Parallelism (DOP) #ora-parallel-dop
+
+  DOP: *Degree of parallelism*. The DOP defines the number of parallel *streams* with which a statement will be processed.
+
+  In most cases, each stream has a sender and a receiver of data. In these cases, the number of parallel execution servers is twice the DOP.
+  -
+  An example where only and server is needed per DOP is a *single table scan*.
+
+
+  See also the init parameter `→ development/databases/Oracle/adminstration/init-parameters/parallel/degree/min`
+
+
+  { Default degree of parallelism
+
+    In a *single instance environment*, the default degree of parallelism is determined by the product of the two parameters `cpu_count` and `parallel_threads_per_cpu`:
 code {
 with p as (
   select
@@ -104,21 +127,18 @@ from
   p;
 code }
 
-}
-{ Granules
-
-  A *granule* is a unit of work into which parallelized operations can be divided.
-
-  These granules are passed to  *parallel execution servers* (PX) to let them process one after another.
-
-  The number of granules and their size is dependent on the degree of parallelism (DOP).
+  }
 
 }
 { TODO
 
-  DOP: Degree of parallelism
+  DFO: Data flow operation.
+  -
+  In an execution plan, a DFO corresponds to the → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send[`PX SEND`] operation.
+  -
+  DFOs are arranged in an DFO tree (PX Coordinator).
 
-  DFO: Data flow operator
+  TQ: Table Queue
 
   { ORA-12801 and ORA-12805
 
@@ -141,7 +161,7 @@ sa:
   -
  `→ development/databases/Oracle/installed/dynamic-performance-views/pq/sysstat`,
  `→ development/databases/Oracle/installed/dynamic-performance-views/pq/sesstat`
- 
+
 
   The → development/databases/Oracle/objects/tables/parallel[`parallel` clause] in a `create table` statement.
 

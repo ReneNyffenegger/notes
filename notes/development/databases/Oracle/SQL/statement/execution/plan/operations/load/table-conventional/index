@@ -4,6 +4,29 @@ The `LOAD TABLE CONVENTIONAL` → development/databases/Oracle/SQL/statement/exe
 → development/Data is inserted into a → development/databases/Oracle/objects/tables using the
 → development/databases/Oracle/SQL/DML/insert/paths[conventional path (as opposed to the direct path)].
 
+code {
+create table tq84_t (
+   id  number,
+   val varchar2(20)
+);
+
+
+explain plan for
+   insert into tq84_t values(42, 'forty-two');
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -------------------------------------------
+-- | Id  | Operation                | Name   |
+-- -------------------------------------------
+-- |   0 | INSERT STATEMENT         |        |
+-- |   1 |  LOAD TABLE CONVENTIONAL | TQ84_T |
+-- -------------------------------------------
+
+
+drop table   tq84_t;
+code }
+
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[`LOAD AS SELECT`]
   
