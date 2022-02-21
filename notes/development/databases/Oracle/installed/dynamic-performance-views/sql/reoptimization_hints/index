@@ -1,5 +1,30 @@
-$ v$sql_reoptimization_hints
--
+$ Oracle: V$SQL_REOPTIMIZATION_HINTS
+@ v$sql_reoptimization_hints
+
+code {
+select
+   srh.hint_id,
+   srh.hint_text,
+   srh.reparse,
+   sql.first_load_time,
+   sql.*
+from
+   v$sql_reoptimization_hints srh                                           join
+   v$sql                      sql on srh.address      = sql.address     and
+                                     srh.hash_value   = sql.hash_value  and
+                                     srh.child_number = sql.child_number
+-- where
+--    srh.sql_id = 'aqs87yn1yhw2j'
+order by
+   sql.sql_id,
+   sql.child_number,
+   srh.hint_id
+;
+code }
 
 sa:
+
+
+  The → development/databases/Oracle/SQL/hints/list/opt/estimate[`opt_estimate` hint].
+
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

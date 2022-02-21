@@ -1,0 +1,31 @@
+$ DBMS_XPLAN.DISPLAY_CURSOR: cannot fetch plan for SQL_ID …
+
+code {
+select 'abc' xyz from dual;
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor[dbms_xplan.display_cursor](format => 'allstats last'));
+
+PLAN_TABLE_OUTPUT                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SQL_ID  5yaurap8h97nx, child number 1
+                                     
+declare
+     l_line varchar2(32767);
+…
+
+NOTE: cannot fetch plan for SQL_ID: 5yaurap8h97nx, CHILD_NUMBER: 1
+      Please verify value of SQL_ID and CHILD_NUMBER; 
+      It could also be that the plan is no longer in cursor cache (check v$sql_plan)
+ 
+code }
+
+A possible reason for this «note» is that `dbms_xplan.display_cursor` was executed in a script with → development/databases/Oracle/SQL-Plus/set/serveroutput[`serveroutput`] set to `on`. In this case,
+the script interpreters → development/databases/Oracle/SQL-Plus and → development/Software/Oracle-SQL-Developer[SQL Developer] execute a statement to read the buffer written to with `dbms_output` *after*
+executing a `select` statement. Thus, when executing `dbms_xplan.display_cursor`, the most recent statement to have been executed is not the select statement anymore.
+-
+If this is the case, the desired functionality can be put in place by executing `set serveroutput off` (at least for the duration of the select statement):
+code {
+set serveroutput off
+select 'abc' xyz from dual;
+select * from table(dbms_xplan.display_cursor(format => 'allstats last'));
+set serveroutput on format wrapped size unlimited
+code }

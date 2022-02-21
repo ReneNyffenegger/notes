@@ -1,0 +1,55 @@
+$ Oracle: Change data types in a table
+
+{ Simple example: CHAR to VARCHAR2
+
+  A table, with a possibly old fashioned or even wrong data type → development/databases/Oracle/SQL/data-types/char[`char`], is created …
+code {
+create table tq84_char_2_varchar2 (
+   id   number,
+   txt  char(20)
+);
+code }
+
+  … and populated with some data:
+code {
+insert into tq84_char_2_varchar2 values ( 1, 'one');
+insert into tq84_char_2_varchar2 values (42, 'forty-two');
+insert into tq84_char_2_varchar2 values (99, 'ninte-nine');
+
+commit;
+code }
+
+  Oracle right fills data in `char` columns with spaces, so each length of `txt` is 20:
+code {
+select length(txt) from tq84_char_2_varchar2;
+code }
+
+  Change the data type:
+code {
+alter table tq84_char_2_varchar2 modify txt varchar2(20);
+code }
+
+  The data type has changed, but the data is still right padded with spaces:
+code {
+select length(txt) from tq84_char_2_varchar2;
+code }
+
+  Therefore, we remove the spaces on the right side of `txt`:
+code {
+update tq84_char_2_varchar2 set txt = → development/databases/Oracle/SQL/functions/text/ltrim-rtrim-trim[rtrim](txt);
+code }
+
+code {
+select length(txt) from tq84_char_2_varchar2;
+--
+--  TXT                  LENGTH(TXT)
+--  -------------------- -----------
+--  one                            3
+--  forty-two                      9
+--  ninte-nine                    10
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/data-types[Datatypes]
