@@ -1,4 +1,4 @@
-$ Oracle: Dynamic optimizer statistics
+$ Oracle: Dynamic Optimizer Statistics
 
 When an → development/databases/Oracle/SQL/statement is → development/databases/Oracle/SQL/statement/executiontion#ora-hard-soft-parse[hard parsed] and the relevant
 → development/databases/Oracle/optimizer/statistics[statistics] are stale, missing or insufficent, Oracle scans a small portion («sample») of the underlying data to get
@@ -9,6 +9,8 @@ some *dynamic statistics* that can be used to generate an → development/databa
   The behavior of gathering dynamic statistics can be controlled with a number that is speciied with
     • the → development/databases/Oracle/adminstration/init-parameters[init parameter `optimizer_dynamic_sampling`], or
     • the → development/databases/Oracle/SQL/hints[`dynamic_sampling` hint].
+
+  These names contain «dynamic sampling» because in earlier releases (11g?), dynamic optimizer statistics was named *dynamic sampling*.
 
   This number is an integer between 0 and 10 with the following meaning:
   table { ll
@@ -27,5 +29,115 @@ some *dynamic statistics* that can be used to generate an → development/databa
    • The unanalyzed table is joined to another table or appears in a → development/databases/Oracle/SQL/select/subquery or *non-mergeable view*
    • The unanalyzed table has no indexes
    • The unanalyzed table has more blocks than the number of blocks that would be used for dynamic sampling of this table. The number of blocks sampled is the default number of dynamic sampling blocks (32).
+
+}
+{ TODO
+
+  The following tests were conducted with the default value of `optimizer_dynamic_sampling` which is 2:
+code {
+select * from v$parameter where name in ('optimizer_dynamic_sampling');
+code }
+
+  A table is needed for the test:
+code {
+create table tq84_t(id number, val varchar2(10));
+code }
+
+  The table needs some data::
+code {
+insert into tq84_t
+select
+   mod(level,     3) *
+   mod(level,     5) *
+   mod(level,     7) *
+   mod(level,    11) +
+   mod(level, 10101),
+  'xxx'
+from
+   dual connect by level <= 100000;
+code }
+
+  The insert statement didn't generate any sort of auto statistics, `num_rows` and `blocks` is reported as `null`:
+code {
+select
+   num_rows,
+   blocks
+from
+   → development/databases/Oracle/installed/data-dictionary/tables[user_tables]
+where
+   table_name = 'TQ84_T';
+code }
+
+  There are 11 rows in the table whose `id` is `111`:
+code {
+select count(*) from tq84_t where id = 111;
+code }
+
+  Because of the missing statistics, the optimizer uses *dynamic statistics* (referred to as «dynamic sampling» in the note of the following output) when a simple `select` statement is explained.
+  With dynamic sampling, the optimizer estimates the number of records with `id = 111` to be `4`:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain[explain plan] for
+select * from tq84_t where id = 111;
+
+select * from table(dbms_xplan.display);
+--
+-- ----------------------------------------------------------------------------
+-- | Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-- ----------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |        |     4 |    80 |    68   (0)| 00:00:01 |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] FULL| TQ84_T |     4 |    80 |    68   (0)| 00:00:01 |
+-- ----------------------------------------------------------------------------
+--  
+-  …
+--  
+-- Note
+-- -----
+--    - dynamic statistics used: dynamic sampling (level=2)
+code }
+
+  Gathering statistics for the table;
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_t');
+end;
+/
+code }
+
+  This time, explaining the plan for the same select statement shows that with gathered statistics, the estimation of returned rows is `10`, much better than before, but not correct. Also: the note
+  of the previous plan about *dynamic statistics used* is gone:
+code {
+----------------------------------------------------------------------------
+| Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT  |        |    10 |    80 |    69   (2)| 00:00:01 |
+|*  1 |  TABLE ACCESS FULL| TQ84_T |    10 |    80 |    69   (2)| 00:00:01 |
+----------------------------------------------------------------------------
+code }
+
+  When executing the query with the `→ development/databases/Oracle/SQL/hints/list/gather/plan_statistics` hint…
+code {
+→ development/databases/Oracle/SQL-Plus/set/serveroutput off
+select /*+ gather_plan_statistics */
+   *
+from tq84_t where id = 111;
+code }
+
+… we can use → development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor[`dbms_xplan.display_cursor`] to show the actual values of that the query execution processed:
+code {
+select * from table(dbms_xplan.display_cursor(format => 'allstats last'));
+--
+-- --------------------------------------------------------------------------------------
+-- | Id  | Operation         | Name   | Starts | E-Rows | A-Rows |   A-Time   | Buffers |
+-- --------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |        |      1 |        |     11 |00:00:00.01 |     202 |
+-- |*  1 |  TABLE ACCESS FULL| TQ84_T |      1 |     10 |     11 |00:00:00.01 |     202 |
+-- --------------------------------------------------------------------------------------
+code }
+
+ `E-Rows` shows the *estimated rows* (= 10, as estimated in the execution plan), while `A-Rows` (= actual rows)
+  shows the value of the actual rows.
+
+  Note, I used `set serveroutput off` in order to prevent → development/Software/Oracle-SQL-Developer[SQL Developer] not to execute the statement which reads the `dbms_output` buffer which would have interfered
+  with the last `dbms_output.display_cursor` statement.
 
 }
