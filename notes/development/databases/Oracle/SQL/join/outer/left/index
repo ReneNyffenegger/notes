@@ -1,4 +1,99 @@
-$ Oracle: left outer join
+$ Oracle: LEFT OUTER JOIN
+
+code {
+create table tq84_L (
+   id    number        primary key,
+   val   varchar2(10)
+);
+
+create table tq84_R (
+   id_L  number references tq84_L,
+   val   varchar2(10)
+);
+
+insert into tq84_L values (1, 'A');
+insert into tq84_L values (2, 'B');
+insert into tq84_L values (3, 'C');
+insert into tq84_L values (4, 'D');
+
+insert into tq84_R values (1, 'aa' );
+insert into tq84_R values (2, 'bb' );
+insert into tq84_R values (2, 'bbb');
+insert into tq84_R values (4, 'dd' );
+
+select
+   l.id,
+   l.val   val_L,
+   r.val   val_R
+from
+   tq84_L l                   left join
+   tq84_R r on l.id = r.id_l
+order by
+   l.id
+;
+--
+--     ID VAL_L      VAL_R     
+--  ----- ---------- ----------
+--      1 A          aa        
+--      2 B          bb        
+--      2 B          bbb       
+--      3 C                    
+--      4 D          dd        
+
+
+
+create table tq84_A (
+   id_l  references tq84_L,
+   val   varchar2(10)
+);
+
+
+insert into tq84_A values (1, 'aaa');
+insert into tq84_A values (4, 'ddd');
+-- insert into tq84_A values (3, 'ccc');
+
+select
+   l.id,
+   l.val   val_L,
+   r.val   val_R,
+   a.val   val_A
+from
+   tq84_L l                   left join
+   tq84_R r on l.id = r.id_l       join
+   tq84_A a on l.id = a.id_l
+order by
+   l.id
+;
+--
+--     ID VAL_L      VAL_R      VAL_A     
+--  ----- ---------- ---------- ----------
+--      1 A          aa         aaa       
+--      4 D          dd         ddd    
+
+
+select
+   l.id,
+   l.val   val_L,
+   r.val   val_R,
+   a.val   val_A
+from
+   tq84_L l                        join
+   tq84_A a on l.id = a.id_l  left join
+   tq84_R r on l.id = r.id_l
+order by
+   l.id
+;
+--
+--     ID VAL_L      VAL_R      VAL_A     
+--  ----- ---------- ---------- ----------
+--      1 A          aa         aaa       
+--      4 D          dd         ddd       
+
+
+drop table tq84_A;
+drop table tq84_R;
+drop table tq84_L;
+code }
 
 sa:
 

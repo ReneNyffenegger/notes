@@ -1,11 +1,47 @@
-$ Oracle SQL: commit
+$ Oracle SQL: COMMIT
 @ commit
+
+{ COMMIT WRITE WAIT vs NOWAIT, BATCH vs IMMEDIATE
+
+  A rudimentary script to measure commit times using `commit write` options
+code {
+create table tq84_commit_test (
+   id   number,
+   txt  varchar2(100)
+);
+
+declare
+   t0 timestamp := systimestamp;
+   t_  interval day to second(1);
+
+   st  number := 1 * 1000 * 1000;
+   tx  varchar2(100) := lpad('x', 100, 'x');
+begin
+
+   for i in st .. st + 100 * 1000 loop
+       insert into tq84_commit_test values (i, tx);
+   --  commit write nowait     batch;
+       commit write   wait immediate;
+   end loop;
+
+   t_ := systimestamp - t0;
+
+   dbms_output.put_line(t_);
+
+end;
+/
+
+
+drop table tq84_commit_test;
+code }
+
+}
 
 sa:
 
   → development/databases/Oracle/architecture/transaction[transactions]
 
-  → development/databases/Oracle/PL-SQL procedures can be prevented from executing `commit` (or `rollback`) by
+  → development/databases/Oracle/PL-SQL procedures can be prevented from executing `commit` (or `→ development/databases/Oracle/SQL/TCL/rollback`) by
   executing → development/databases/Oracle/SQL/statement/nouns/session/alter/disable-enable/commit-in-procedure[`alter session disable commit in procedure`]
 
   → development/databases/Oracle/architecture/database/redo-data

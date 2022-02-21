@@ -1,0 +1,57 @@
+$ Oracle PLAN_TABLE: column DISTRIBUTION
+@ distribution
+
+The value of the column `distribution` in a → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[plan table] lists an
+→ development/databases/Oracle/SQL/statement/execution/plan/operations[operation's]
+→ development/databases/Oracle/SQL/statement/execution/parallel/distribution-methods[distribution method] in an execution plan of a
+→ development/databases/Oracle/SQL/statement/execution/parallel[parallel statement].
+
+This value is only relevant for the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation]
+→ development/databases/Oracle/SQL/statement/execution/plan/operations/px/send[`PX SEND`]. Thus, the following query returns `0`:
+code {
+select
+   count(*)
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan
+where
+   distribution is not null and
+   operation <> 'PX SEND'
+;
+code }
+
+In records where `distribution` is not `null` (i. e. in `PX SEND` records), the value of distribution is equal to that of `options`: the following
+query return `0`:
+code {
+select
+   count(*)
+from
+   v$sql_plan
+where
+   distribution is not null and
+   nvl(options, 'x') <> distribution
+;
+code }
+
+code {
+select
+-- count(*),
+   distribution
+from
+   v$sql_plan
+where
+   distribution  is not null
+group by
+   distribution
+order by
+   distribution
+;
+--
+-- BROADCAST
+-- HASH
+-- HASH (BLOCK ADDRESS)
+-- HASH (NULL RANDOM)
+-- QC (ORDER)
+-- QC (RANDOM)
+-- RANGE
+-- ROUND-ROBIN
+code }
