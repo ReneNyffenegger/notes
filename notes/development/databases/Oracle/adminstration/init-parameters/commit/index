@@ -1,0 +1,58 @@
+$ Oracle: Init parameters COMMIT_LOGGING and COMMIT_WAIT
+
+code {
+create table tq84_commit_test (
+   id   number          primary key,
+   txt  varchar2(100)
+);
+
+create or replace procedure tq84_insert_data
+   authid definer
+is
+
+   t0  timestamp := systimestamp;
+   t_  interval day to second(1);
+
+   st  number := 1 * 1000 * 1000;
+   tx  varchar2(100) := lpad('x', 100, 'x');
+
+begin
+
+   for i in st .. st + 100 * 1000 loop
+       insert into tq84_commit_test values (i, tx);
+       → development/databases/Oracle/SQL/TCL/commit;
+   end loop;
+
+   t_ := systimestamp - t0;
+
+   dbms_output.put_line(t_);
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] commit_logging = immediate;
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] commit_wait    = wait;
+
+begin
+   tq84_insert_data;
+end;
+/
+
+truncate table tq84_commit_test;
+
+alter session set commit_logging = batch;
+alter session set commit_wait    = nowait;
+
+begin
+   tq84_insert_data;
+end;
+/
+
+drop table     tq84_commit_test;
+drop procedure tq84_insert_data;
+
+alter session set commit_logging = immediate;
+alter session set commit_wait    = wait;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/TCL/commit#ora-commit-write[`commit write …`] statement.
