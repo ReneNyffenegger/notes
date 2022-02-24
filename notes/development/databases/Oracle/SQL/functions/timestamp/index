@@ -1,0 +1,38 @@
+$ TIMESTAMP related Oracle SQL functions
+
+{ ADJ_DATE #ora-adj_date
+
+ The undocumented function `adj_date` round (truncates) a `→ development/databases/Oracle/SQL/data-types/timestamp` down to a non-fractional second.
+code {
+create table tq84_t (
+   ts  timestamp
+);
+
+insert into tq84_t values (systimestamp);
+
+select
+   ts,
+   adj_date(ts)  ts_
+from
+   tq84_t;
+--
+-- TS                            TS_                          
+-- ----------------------------- -----------------------------
+-- 2022-02-23 18:46:58.658000000 2022-02-23 18:46:59.000000000
+
+drop table tq84_t;
+code }
+  
+  It seems that the function can only be used when applied on a column value. The following statement throws a
+ *→ development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes/[ORA-00932: inconsistent datatypes]: expected DATE got TIMESTAMP WITH TIME ZONE* error.
+code {
+select
+   adj_date(systimestamp)
+from
+   dual;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/functions

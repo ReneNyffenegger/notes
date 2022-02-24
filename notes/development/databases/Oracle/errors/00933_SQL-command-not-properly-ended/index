@@ -1,10 +1,35 @@
 $ ORA-00933: SQL command not properly ended
 
+{ Trailing semicolons
+
+  Semicolons are typically used in SQL scripts to separated SQL statements from one another, but they don't technically belong to the SQL statement and cause the
+ *ORA-00933: SQL command not properly ended* error in the following example:
+code {
+create table tq84_test_tab(a number);
+
+begin
+--
+-- Note the trailing semicolon in the insert statement:
+--
+   execute immediate '
+      insert into tq84_test_tab values(42);
+   ';
+end;
+/
+
+drop table tq84_test_tab;
+code }
+
+
+  Sometimes, a trailing semicolon also raises the → development/databases/Oracle/errors/00922_missing-or-invalid-option error message.
+
+
+}
 { GROUP BY
 
-  This error might be thrown if the alias of a
+  This error might also be thrown if the alias of a
   → development/databases/Oracle/objects/tables/columns in a → development/databases/Oracle/SQL/select[`select`] statement's select list is copied down to the
- `→ development/databases/Oracle/SQL/select/group-by`] clause:
+ `→ development/databases/Oracle/SQL/select/group-by` clause:
 
 code {
 select

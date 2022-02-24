@@ -1,4 +1,4 @@
-$ SQL: group by
+$ SQL: GROUP BY
 
 → development/databases/SQL/select/group-by/aggregate-functions[Aggregate functions].
 -
@@ -7,6 +7,58 @@ $ SQL: group by
 → development/databases/SQL/select/group-by/having[`having`]
 
 In a `group by` aggregate, all → development/databases/SQL/data-types/null[null values] form *one* group (although each null not equal to every other null!).
+
+{ Appearing and disappearing records
+
+  Create a table without any records:
+code {
+create table tq84_empty (
+   val   integer
+);
+code }
+
+  The following query returns one record, although `tq84_empty` is still empty:
+code {
+select
+   avg(val)   avg_val,
+   const_num
+from (
+   select
+      val,
+      42      const_num
+   from
+      tq84_empty
+);
+--    AVG_VAL  CONST_NUM
+-- ---------- ----------
+--                     4
+code }
+
+   Adding the `group by` clause to the prior query makes that row disappear again:
+code {
+select
+   avg(val)   avg_val,
+   const_num
+from (
+   select
+      val,
+      42      const_num
+   from
+      tq84_empty
+)
+group by
+   const_num;
+--
+-- no rows selected
+code }
+
+  Cleaning up:
+code {
+drop table tq84_empty;
+code }
+
+}
+
 
 sa:
 

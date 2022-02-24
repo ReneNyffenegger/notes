@@ -1,0 +1,126 @@
+$ DBMS_PARALLEL_EXECUTE examples
+
+code {
+create table tq84_parex_src (
+   id    number,
+   txt   varchar2(50)
+);
+
+create table tq84_parex_dest (
+   id        number,
+   txt       varchar2( 50),
+   info      varchar2(100)
+);
+
+insert into tq84_parex_src
+select
+   level,
+   rpad(
+      chr(ascii('A') + mod(level, 26)),
+      5+mod(level, 45),
+      chr(ascii('A') + mod(level+mod(level, 7) + mod(level,11), 26))
+   )
+from
+   dual connect by level <= 100000;
+
+
+begin
+   dbms_parallel_execute.create_task('tq84_parex_task src->dest');
+end;
+/
+
+select *
+from
+   user_parallel_execute_tasks
+where
+   task_name = 'tq84_parex_task src->dest';
+
+begin
+  dbms_parallel_execute.create_chunks_by_rowid(
+     task_name   => 'tq84_parex_task src->dest',
+     table_owner =>  user,
+     table_name  => 'TQ84_PAREX_SRC',     -- Must be uppercase to prevent >> ORA-29491: invalid table for chunking <<
+     by_row      =>  true,                -- true: chunk_size refers to rows (false: to blocks)
+     chunk_size  =>  5000);               -- Approximate number or rows (or blocks) per commit cycle
+end;
+/
+
+select *
+   --
+   -- Columns now filled:
+   --    STATUS     : CHUNKED
+   --    CHUNK_TYPE : ROWID_RANGE
+   --    TABLE_OWNER: ...
+   --    TABLE_NAME : TQ84_PAREX_SRC
+from
+   user_parallel_execute_tasks
+where
+   task_name = 'tq84_parex_task src->dest';
+
+select
+   chn.chunk_id,
+   chn.status,
+   chn.start_rowid,
+   chn.end_rowid,
+   count(tab.rowid)              cnt_chunk,
+   sum(count(tab.rowid)) over () cnt_total
+from
+   user_parallel_execute_chunks   chn                                                           left join
+   tq84_parex_src                 tab on tab.rowid between chn.start_rowid and chn.end_rowid
+where
+   task_name = 'tq84_parex_task src->dest'
+group by
+   chn.chunk_id,
+   chn.status,
+   chn.start_rowid,
+   chn.end_rowid
+order by
+   chunk_id
+;
+
+begin
+   dbms_parallel_execute.run_task(
+       task_name      => 'tq84_parex_task src->dest',
+       sql_stmt       => q'[
+          insert into tq84_parex_dest
+             select
+                id,
+                txt,
+               'ses:'  || to_char(sys_context('userenv', 'sessionid')) ||
+             ', trx: ' || dbms_transaction.local_transaction_id        ||
+             ', rng: ' || :start_id || ' - ' || :end_id
+          from
+             tq84_parex_src
+         where
+             rowid between :start_id  and :end_id
+       ]',
+       language_flag  => dbms_sql.native,
+       parallel_level => 4
+   );
+end;
+/
+
+
+select * from tq84_parex_dest;
+
+select
+   count(*)   cnt,
+   info
+from
+   tq84_parex_dest
+group by
+   info;
+
+
+begin
+   dbms_parallel_execute.drop_task('tq84_parex_task src->dest');
+end;
+/
+
+drop table tq84_parex_dest;
+drop table tq84_parex_src;
+code }
+
+sa:
+
+  `→ development/databases/Oracle/installed/packages/dbms/parallel_execute`
