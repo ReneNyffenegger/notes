@@ -1,0 +1,41 @@
+$ ORA-32034: unsupported use of WITH clause
+
+code {
+create table tq84_t (n number);
+
+--
+-- Following statement causes
+--   ORA-32034: unsupported use of WITH clause
+-- error:
+--
+insert into tq84_t
+   with function f(i number) return number as begin
+        return i*2;
+   end f;
+select
+   f(level)
+from
+   dual connect by level <= 10;
+/
+
+
+--
+-- The WITH_PLSQL hint is required to
+-- prevent this error:
+insert /*+ with_plsql */ into tq84_t
+   with function f(i number) return number as begin
+        return i*2;
+   end f;
+select
+   f(level)
+from
+   dual connect by level <= 10;
+/
+
+select * from tq84_t;
+
+drop table tq84_t;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/clauses/with[`with` clause]

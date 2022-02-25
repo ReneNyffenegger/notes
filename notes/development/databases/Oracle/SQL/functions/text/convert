@@ -1,0 +1,39 @@
+$ Oracle SQL function: CONVERT
+@ convert
+
+`convert` converts a string from one → development/Unicode/character-set to another.
+
+Oracle discourages using `convert`.
+
+code {
+declare
+    nls_charset  varchar2(20);
+    nls_charsetn varchar2(20);
+    
+    text_from     varchar2(30) := 'René';
+    text_to      nvarchar2(30);
+begin
+   select value into nls_charset  from nls_database_parameters where parameter = 'NLS_CHARACTERSET'      ;
+   select value into nls_charsetn from nls_database_parameters where parameter = 'NLS_NCHAR_CHARACTERSET';
+
+   dbms_output.put_line('Converting from ' || nls_charset || ' to ' || nls_charsetn);
+   text_to := convert(text_from, nls_charsetn, nls_charset);
+   
+   for r in (select
+      dump(text_from, 16, 1, lengthb(text_from)) a,
+      dump(text_to  , 16, 1, lengthb(text_to  )) b
+   from
+      dual
+   ) loop
+      dbms_output.put_line(r.a);
+      dbms_output.put_line(r.b);
+   end loop;
+end;
+/
+code }
+
+sa:
+
+  → development/databases/Oracle/installed/packages/utl/raw/api/convert[`utl_raw.convert`]
+
+  → development/databases/Oracle/SQL/functions/text[Text related] SQL functions

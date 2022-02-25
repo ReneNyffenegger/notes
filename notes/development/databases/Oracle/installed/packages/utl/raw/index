@@ -22,7 +22,7 @@ $ Oracle: UTL_RAW
     `cast_to_varchar2` ☰
     `compare` ☰
     `concat` ☰
-    `convert` ☰ Interprets a `raw` as a string encoded in a given → development/Unicode/character-set and converts this string to a `raw` encoded in a different character set. Compare with → development/databases/Oracle/installed/packages/utl/i18n/api/string_to_raw[`utl_i18n.string_to_raw`].
+    → development/databases/Oracle/installed/packages/utl/raw/api/convert[`convert`] ☰ Interprets a `raw` as a string encoded in a given → development/Unicode/character-set and converts this string to a `raw` encoded in a different character set. Compare with → development/databases/Oracle/installed/packages/utl/i18n/api/string_to_raw[`utl_i18n.string_to_raw`].
     `copies` ☰
     `length` ☰
     `overlay` ☰
@@ -30,9 +30,33 @@ $ Oracle: UTL_RAW
     `substr` ☰
     `translate` ☰
     `transliterate` ☰
-    `xrange` ☰
+    → development/databases/Oracle/installed/packages/utl/raw/api/xrange[`xrange`] ☰
 
   table }
+
+}
+{ Access bytes in a raw
+
+code {
+declare
+   bytes raw(10);
+
+begin
+
+   bytes := utl_i18n.string_to_raw('AZ' || chr(0) || chr(7), 'we8mswin1252'); 
+
+   for b in 1 .. utl_raw.length(bytes) loop
+       dbms_output.put_line(
+          b || ': ' ||
+          utl_raw.cast_to_binary_integer( 
+            utl_raw.substr(bytes, b, 1)
+         )
+       );
+   end loop;
+
+end;
+/
+code }
 
 }
 
