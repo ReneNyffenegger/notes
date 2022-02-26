@@ -1,0 +1,42 @@
+$ ORA-32638: Non unique addressing in MODEL dimensions
+
+creating a test table
+code {
+create table tq84_tab (
+   dim_1  number,
+   dim_2  varchar2(10),
+   val_1  number,
+   val_2  number
+);
+code }
+
+Insert some values for which the combination of `dim_1` and `dim_2` is unique:
+code {
+insert into tq84_tab values (1, 'aaa', 17,  9);
+insert into tq84_tab values (1, 'bbb', 12,  7);
+insert into tq84_tab values (1, 'ccc',  4, 12);
+insert into tq84_tab values (2, 'aaa',  2,  6);
+code }
+
+Inserting this record will cause *ORA-32638: Non unique addressing in MODEL dimensions* error with following `select` statement because values of specified dimensions are not unique:
+code {
+insert into tq84_tab values (1, 'bbb', 12,  7);
+code }
+
+Select statement to try model clause
+code {
+select * from tq84_tab
+model
+   dimension by (dim_1, dim_2)
+   measures     (val_1, val_2)
+   rules        (            )
+;
+code }
+
+Cleaning up:
+code {
+drop table tq84_tab;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/select/model[MODEL clause]

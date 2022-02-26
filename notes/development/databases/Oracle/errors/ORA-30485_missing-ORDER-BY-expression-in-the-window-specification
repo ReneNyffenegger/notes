@@ -1,0 +1,27 @@
+$ ORA-30485: missing ORDER BY expression in the window specification
+
+Some → development/databases/Oracle/SQL/select/analytic[analytic functions] require an `ORDER BY` expression. Without such an expression, the
+*ORA-30485: missing ORDER BY expression in the window specification* is thrown, as for example in the following SQL statement:
+code {
+select
+       object_type                                     typ,
+       object_name                                     obj,
+   lag(object_name, 1) over (partition by object_type) obj_lag
+from
+   user_objects
+order by
+   object_name
+;
+code }
+
+The following statement has such on `order by` clause and doesn't throw this error:
+code {
+select
+       object_type                                     typ,
+       object_name                                     obj,
+   lag(object_name, 1) over (partition by object_type
+                             ORDER     BY object_name) obj_lag
+from
+   user_objects
+;
+code }

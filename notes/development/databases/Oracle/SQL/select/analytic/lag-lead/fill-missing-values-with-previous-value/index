@@ -1,0 +1,50 @@
+$ Oracle SQL: Fill missing values (gaps) with previous value
+
+code {
+create table tq84_tab (
+   nm  number,
+   tx  varchar2(5)
+);
+
+insert into tq84_tab values ( 1,  null);
+insert into tq84_tab values ( 2, 'abc');
+insert into tq84_tab values ( 3,  null);
+insert into tq84_tab values ( 4,  null);
+insert into tq84_tab values ( 5, 'def');
+insert into tq84_tab values ( 6,  null);
+insert into tq84_tab values ( 7,  null);
+insert into tq84_tab values ( 8,  null);
+insert into tq84_tab values ( 9, 'ghi');
+insert into tq84_tab values (10,  null);
+
+select
+   nm,
+   tx,
+   nvl (                   -- If current value of tx
+      tx,                  -- is not null, then evaluate to tx,
+      lag(tx)              -- otherwise, evaluate to preceeding
+        ignore nulls       -- non-null value of tx.
+        over (order by nm) -- order by clause required to
+                           -- determine «preceeding»
+   ) as tx_
+from
+   tq84_tab;
+--
+--    NM TX    TX_ 
+-- ----- ----- -----
+--     1           
+--     2 abc   abc 
+--     3       abc 
+--     4       abc 
+--     5 def   def 
+--     6       def 
+--     7       def 
+--     8       def 
+--     9 ghi   ghi 
+--    10       ghi 
+
+drop   table tq84_tab;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/select/analytic[analytic functions] → development/databases/Oracle/SQL/select/analytic/lag-lead[`LEAD` and `LAG`].

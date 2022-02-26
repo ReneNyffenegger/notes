@@ -2,5 +2,28 @@ $ Oracle: SELECT with UNPIVOT clause
 
 gh|Oracle-Patterns|/SQL/select/pivot/unpivot_01.sql||
 
+{ Table alias
+
+  A table alias, if specified, goes *after* the unpivot clause, not after the table name:
+code {
+
+select
+   obj.object_name,
+   obj.object_type,
+   obj.action,
+   obj.date_
+from
+   user_objects
+   unpivot (
+       date_ for action in (
+           created       as 'create',
+           last_ddl_time as 'DDL'
+       )
+   ) obj -- <== ALIAS goes here.
+;
+code }
+
+}
+
 sa:
  The → development/databases/Oracle/SQL/select/pivot[`pivot` clause].
