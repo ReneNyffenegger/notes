@@ -1,5 +1,57 @@
 $ Oracle SQL Plan operation FILTER
--
+
+{ Examples
+
+code {
+create table tq84_tab(
+   nm   number,
+   tx   varchar2(10)
+);
+code }
+
+code {
+explain plan for
+select
+   max(nm) max_nm,
+   tx
+from
+   tq84_tab
+group by
+   tx
+having
+   max(nm) in (2,3,4)
+;
+select * from table(dbms_xplan.display(format => 'all'));
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ----------------------------------------
+-- | Id  | Operation           | Name     |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT    |          |
+-- |   1 |  FILTER             |          |
+-- |   2 |   HASH GROUP BY     |          |
+-- |   3 |    TABLE ACCESS FULL| TQ84_TAB |
+-- ----------------------------------------
+code }
+
+  The following query is semantically equal to the previous one and produces the same plan 
+code {
+explain plan for
+select * from (
+   select
+      max(nm) max_nm,
+      tx
+   from
+      tq84_tab
+   group by
+      tx
+)
+where
+   max_nm in (2,3,4)
+;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

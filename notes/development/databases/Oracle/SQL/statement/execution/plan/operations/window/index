@@ -1,0 +1,139 @@
+$ Oracle SQL Plan operation: WINDOW
+
+code {
+create table tq84_tab (
+   part  varchar2(10),
+   num   number
+);
+code }
+
+{ WINDOW BUFFER
+
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] `window` in combination with the option `buffer` is used for
+  → development/databases/Oracle/SQL/select/analytic[analytic functions] without `order by` or `partition by` clause:
+code {
+explain plan for
+select
+   part,
+   num,
+   sum(num) over () cnt
+from
+   tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  WINDOW BUFFER     |          |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+
+}
+
+{ WINDOW SORT
+
+  An analytic function with a `partition by` or `order by` clause requires the `window` operation with the `sort` option.
+
+code {
+explain plan for
+select
+   part,
+   num,
+   count(num) over (partition by part) cnt
+from
+   tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  WINDOW SORT       |          |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+code {
+explain plan for
+select
+   part,
+   num,
+   sum(num) over (order by num) cnt
+from
+   tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  WINDOW SORT       |          |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+}
+{  WINDOW SORT PUSHED RANK
+
+   The operation `window` requires a `sort pushed rank` operation if the analytic function `rank() over ()` is used to in a subquery to
+   limit the number of returned records.
+
+   The following query has a `rank() over ()` analytic function, but it does not occur in a subquery. The operation is `window`, the option is `sort`:
+code {
+explain plan for
+select
+   t.*,
+   rank() over (order by t.num) rn
+from
+   tq84_tab t;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  WINDOW SORT       |          |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+
+   However, if the previous query is used a subquery and the outer query uses the value returned by the `rank()` analytic function, the option of the `window` operation changes
+   from `sort` to `sort pushed rank`:
+code {
+explain plan for
+select
+   part,
+   num
+from (
+   select
+      t.*,
+      rank() over (order by t.num) rn
+   from
+      tq84_tab t
+)
+where
+   rn <= 42;
+--
+-- ---------------------------------------------
+-- | Id  | Operation                | Name     |
+-- ---------------------------------------------
+-- |   0 | SELECT STATEMENT         |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view[VIEW]                    |          |
+-- |   2 |   WINDOW SORT PUSHED RANK|          |
+-- |   3 |    TABLE ACCESS FULL     | TQ84_TAB |
+-- ---------------------------------------------
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations

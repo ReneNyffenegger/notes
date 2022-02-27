@@ -37,7 +37,7 @@ table { llll
    DELETE STATEMENT ☰  ☰ 1 ☰
    EXTENDED DATA LINK ☰ FULL ☰ 1 ☰
    FAST DUAL ☰  ☰ 1 ☰
-   FILTER ☰  ☰ 1 - n ☰ Only pass on rows that match criteria. Compare with the plan operation `VIEW` and the  → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[plan table column `filter_predicates`] of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[FILTER] ☰  ☰ 1 - n ☰ Only pass on rows that match criteria. Compare with the plan operation → development/databases/Oracle/SQL/statement/execution/plan/operations/view[`VIEW`] and the  → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[plan table column `filter_predicates`] of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
    FIRST ROW ☰  ☰ 1 ☰
    FIXED TABLE ☰ FIXED INDEX ☰ 1 ☰
    FIXED TABLE ☰ FULL ☰ 1 ☰
@@ -145,9 +145,9 @@ table { llll
    UNPIVOT ☰  ☰ ☰
    UPDATE ☰  ☰ 1 - n ☰
    UPDATE STATEMENT ☰  ☰ 1 ☰
-   VIEW ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a seperately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators. Compare with the plan operation `FILTER`.
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/view[VIEW] ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a seperately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators. Compare with the plan operation → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[`FILTER`].
    VIEW PUSHED PREDICATE ☰  ☰ 1 ☰
-   WINDOW ☰ BUFFER ☰ 1 ☰ Used in `over()` clauses in an → development/databases/Oracle/SQL/select/analytic[analytic function] when the clause does not contain a `partition by` or `order by`.
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/window[WINDOW] ☰ BUFFER ☰ 1 ☰ Used in `over()` clauses in an → development/databases/Oracle/SQL/select/analytic[analytic function] when the clause does not contain a `partition by` or `order by`.
    WINDOW ☰ SORT ☰ 1 ☰ Used in `over()` clauses when the clause contains a `partition by` or `order by`.
    WINDOW ☰ SORT PUSHED RANK ☰ 1 ☰
    WINDOW (IN SQL MODEL) ☰ ORDERED ☰ ☰
@@ -247,6 +247,37 @@ order by
    c2.operation, c2.options,
    c3.operation, c3.options
 ;
+code }
+
+  Find plans with a given operation
+code {
+with s as (
+   select distinct
+      sql_id,
+      child_number
+   from
+      v$sql_plan
+   where
+      operation = 'VIEW'
+)
+select
+    lpad(' ', 2*p.depth) || p.operation || ' ' || p.options,
+    p.object_name,
+    p.object_alias,
+    p.object_type,
+    t.sql_text,
+    count(*) over (partition by s.sql_id, s.child_number) cnt
+from
+    s                                                 join
+    v$sql_plan p on s.sql_id       = p.sql_id and
+                    s.child_number = p.child_number  join
+    v$sqlarea  t on t.sql_id       = p.sql_id
+order by
+    cnt,
+    s.sql_id,
+    s.child_number,
+    p.id;
+    
 code }
 
 }
