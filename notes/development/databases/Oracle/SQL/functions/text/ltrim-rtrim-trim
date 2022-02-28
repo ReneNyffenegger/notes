@@ -1,8 +1,14 @@
 $ Oracle SQL functions: RTRIM, LTRIM, TRIM
 
-`TRIM(string)` removes spaces from both side of a text (`string`), `LTRIM(string)` only from the string's left side, `RTRIM(string)` only from the string's right side.
+`TRIM(string)` removes a given character or characters of a given set from both side of a text (`string`), `LTRIM(string)` only from the string's left side, `RTRIM(string)` only from the string's right side.
+-
+If the character to be removed is not explicitely specified, it defaults to the space.
 
-None of these functions removes spaces within the string.
+None of these functions remove the character (or space) from within the string.
+
+{ Examples
+
+  { Remove spaces
 
 code {
 create table tq84_trim_test (
@@ -24,6 +30,43 @@ from
 --  >foo<                  >foo    <              >   foo<              
 --  >bar   baz<            >bar   baz   <         >  bar   baz<         
 code }
+
+  }
+  { Remove a specified character
+
+    The following example removes stars from either end of the strings
+
+code {
+select
+   '>'  ||
+      trim ('*' from '*** removing stars * at both sides ***')
+   || '<'
+           "Stars, but not spaces removed"
+  from dual;
+--
+-- Stars, but not spaces removed     
+-- ----------------------------------
+-- > removing stars * at both sides <
+code }
+
+  }
+  { Remove multiple characters
+
+    The following query removes the characters in the string `({<#!$./"?>})` from the left side of `#!$Hello World.`:
+code {
+select
+   LTRIM('#!$Hello World.', '({<#!$./"?>})') xyz
+from
+   dual;
+--
+-- XYZ         
+-- ------------
+-- Hello World.
+code }
+
+  }
+
+}
 
 sa:
   → development/databases/Oracle/SQL/functions/text[Functions related to text and strings]
