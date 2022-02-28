@@ -1,0 +1,27 @@
+$ Oracle SQL example: lendings
+
+For this example, we need a table…
+gh|Oracle-patterns|/SQL/_examples/lendings/table.sql||
+
+… and some data:
+gh|Oracle-patterns|/SQL/_examples/lendings/data.sql||
+
+Each record needs to be duplicated, one record for the start of the lending and the other one for the end of the lending.
+The → development/databases/Oracle/SQL/select/pivot/un[`unpivot` clause] comes in handy for exactly this kind of task:
+gh|Oracle-patterns|/SQL/_examples/lendings/unpivot.sql||
+
+We want at most *one* record per person, month and start or end. This can be achieved with a
+→ development/databases/Oracle/SQL/select/group-by[`group by`]:
+
+gh|Oracle-patterns|/SQL/_examples/lendings/group-by.sql||
+
+When a period starts, a value must be added, when the period ends, the value must be subtracted. This is achieved with the following
+statement:
+gh|Oracle-patterns|/SQL/_examples/lendings/active-months.sql||
+
+Unfortunately, the previous statement only returns records for months where a lending started or ended. We have to add the missing months and
+→ development/databases/Oracle/SQL/select/analytic/lag-lead/fill-missing-values-with-previous-value[fill in missing values with previous values].
+gh|Oracle-patterns|/SQL/_examples/lendings/all-months.sql||
+
+Almost the same thing but with the → development/databases/Oracle/SQL/select/model[`model` clause]:
+gh|Oracle-patterns|/SQL/_examples/lendings/model.sql||
