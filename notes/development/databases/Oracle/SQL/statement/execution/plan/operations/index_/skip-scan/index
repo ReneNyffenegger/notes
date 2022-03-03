@@ -1,0 +1,76 @@
+$ Oracle SQL Plan operation INDEX SKIP SCAN
+
+code {
+create table tq84_skip_scan (
+   col_idx_1    number(1)    not null check (col_idx_1 in (0,1)),
+   col_idx_2    number       not null,
+   col_idx_3    varchar2(10) not null,
+   col_val_1    number       not null,
+   col_val_2    varchar2(10) not null
+);
+code }
+
+code {
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_skip_scan
+select
+   trunc(dbms_random.value * 2),
+   round(dbms_random.value(0, 1000), 1),
+   dbms_random.string('a', 10),
+   round(dbms_random.value(0, 1000), 1),
+   dbms_random.string('x', 10)
+from
+   dual connect by level <= 100 * 10000;
+code }
+
+code {
+create index tq84_skip_scan_ix
+   on tq84_skip_scan
+(
+   col_idx_1,
+   col_idx_2,
+   col_idx_3
+);
+code }
+
+Ensure up-to-date → development/databases/Oracle/optimizer/statistics:
+code {
+begin
+   dbms_stats.gather_table_stats(user, 'TQ84_SKIP_SCAN');
+end;
+/
+code }
+
+Use the index to locate the row. The index can be used although the index's
+leading column is not specified in the `where` clause:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select * from tq84_skip_scan
+   where
+      col_idx_2 =  341.9 and
+      col_idx_3 = 'zhxfayqMkA'
+   ;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic +predicate'));
+--
+-- -----------------------------------------------------------------
+-- | Id  | Operation                           | Name              |
+-- -----------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |                   |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] BY INDEX ROWID BATCHED| TQ84_SKIP_SCAN    |
+-- |*  2 |   INDEX SKIP SCAN                   | TQ84_SKIP_SCAN_IX |
+-- -----------------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    2 - access("COL_IDX_2"=341.9 AND "COL_IDX_3"='zhxfayqMkA')
+--        filter("COL_IDX_3"='zhxfayqMkA' AND "COL_IDX_2"=341.9)
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

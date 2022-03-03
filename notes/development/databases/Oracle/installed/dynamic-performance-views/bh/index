@@ -7,6 +7,62 @@ accurately, `v$bh` exposes the information that is stored in → development/dat
 
 gh|oracle-patterns|/Installed/dynamic-performance-views/bh/select.sql||
 
+{ Count number of blocks of objects in the buffer cache
+
+code {
+select
+   count(*) cnt,
+   obj_owner,
+   obj_name,
+   obj_type,
+   bh_class,
+   bh_status,
+   bh_dirty
+from
+(
+   select
+      bh.status                               bh_status,
+      bh.dirty                                bh_dirty,
+      ob.owner                                obj_owner,
+      ob.object_name                          obj_name,
+      ob.object_type                          obj_type,
+      decode(class#,
+        1, 'data block'            ,
+        2, 'sort block'            ,
+        3, 'save undo block'       ,
+        4, 'segment header'        ,
+        5, 'save undo header'      ,
+        6, 'free list'             ,
+        7, 'extent map'            ,
+        8, '1st level bitmap block',
+        9, '2nd level bitmap block',
+       10, '3rd level bitmap block',
+       11, 'bitmap block'          ,
+       12, 'bitmap index block'    ,
+       13, 'file header block'     ,
+       14, 'unused'                ,
+       15, 'system undo header'    ,
+       16, 'system undo block'     ,
+       17, 'undo header'           ,
+       18, 'undo block')                      bh_class,
+      bh.con_id                               bh_con_id
+   from
+      v$bh             bh                                 left join
+      dba_objects      ob on  bh.objd = ob.object_id
+)
+where
+   obj_name like 'TQ84%'
+group by
+   obj_owner,
+   obj_name,
+   obj_type,
+   bh_class,
+   bh_status,
+   bh_dirty
+;
+code }
+
+}
 { TODO 
 
   gh|oracle-patterns|/Installed/dynamic-performance-views/bh/compare-with_Buffer_Cache_Size.sql||

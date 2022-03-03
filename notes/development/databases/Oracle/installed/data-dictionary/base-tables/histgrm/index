@@ -2,10 +2,22 @@ $ Oracle: HISTGRM$
 
 code {
 select
-   own.name owner,
-   obj.name obj_name,
-   col.name col_name,
-   hgr.*
+   own.name owner     ,
+   obj.name obj_name  ,
+   col.name col_name  ,
+   --
+   hgr.obj#           , -- object number 
+   hgr.col#           , -- column number 
+   hgr.row#           , -- row number (in row cache) 
+   hgr.bucket         , -- bucket number 
+   hgr.endpoint       , -- endpoint hashed value 
+   hgr.intcol#        , -- internal column number 
+   hgr.epvalue        , -- endpoint value information 
+   hgr.ep_repeat_count, -- frequency of the endpoint 
+   hgr.epvalue_raw    , -- endpoint raw value 
+   hgr.spare1         , --
+   hgr.spare2         , --
+   hgr.endpoint_enc     -- encrypted endpoint 
 from
    sys.obj$       obj                                    join
    sys.user$      own  on obj.owner# = own.user#         join
@@ -20,5 +32,8 @@ where
 code } 
 
 sa:
+
   The view `"_HISTGRM_DEC"` calls `dbms_crypto_internal.statsDecryptNum` and `dbms_crypto_internal.statsDecryptRaw` on `endpoint_enc` and `epvalue_raw` to decrypt
   their values, see → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`].
+
+ `histgrm$` is a → development/databases/Oracle/installed/data-dictionary/base-tables/_bootstrap-tables#ora-pseudo-bootstrap-tables[pseudo bootstrap table].

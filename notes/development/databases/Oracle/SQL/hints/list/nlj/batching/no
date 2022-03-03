@@ -1,0 +1,92 @@
+$ Oracle hint: NO_NLJ_BATCHING
+@ no_nlj_batching
+
+The `no_nlj_batching(tab)` → development/databases/Oracle/SQL/hints instructs to not join `tab`  with a
+→ development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops/nested[nested nested-loop].
+
+code {
+create table tq84_P (
+   id         number,
+   val_1      varchar2(  10),
+   val_2      varchar2(1000),
+   --
+   constraint tq84_P_pk primary key(id)
+);
+
+
+create table tq84_C (
+   col_1      number,
+   col_2      varchar2(20),
+   id_p       not null,
+   --
+   constraint tq84_C_fk foreign key (id_p) references tq84_P
+);
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/random[dbms_random].seed(42);
+end;
+/
+
+
+insert into tq84_P
+select
+   mod(773*level, 1009), -- 773 and 1009 are primes
+   dbms_random.string('a', 10),
+   rpad('x', 1000, 'x')
+from
+   dual connect by level <= 1009;
+
+
+insert into tq84_C
+select
+   round(dbms_random.value(1,1000), 1),
+   dbms_random.string('a', 20),
+   trunc(dbms_random.value(100, 105))
+from
+   dual connect by level <= 100*1000;
+
+
+create index tq84_C_ix on tq84_C(col_1);
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_P');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_C');
+end;
+/
+
+
+--
+-- Without the hint, the following query would produce a plan with
+-- a nested nested-loop. Howerver, with the hint, it produces a
+-- plan with a «simple» nested loop:
+--
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_nlj_batching(p) */
+   c.col_2,
+   p.val_1
+from
+   tq84_C  c                          join
+   tq84_P  p  on c.id_p = p.id
+where
+   c.col_1 = 12.3;
+
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic +note'));
+--
+-- -----------------------------------------------------------
+-- | Id  | Operation                             | Name      |
+-- -----------------------------------------------------------
+-- |   0 | SELECT STATEMENT                      |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]  | TQ84_P    |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS]                        |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_C    |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                  | TQ84_C_IX |
+-- |   5 |    INDEX UNIQUE SCAN                  | TQ84_P_PK |
+-- -----------------------------------------------------------
+
+
+drop   table tq84_C;
+drop   table tq84_P;
+code }

@@ -1,0 +1,50 @@
+$ Oracle SQL Plan operation TABLE ACCESS BY [LOCAL|GLOBAL] INDEX ROWID [BATCHED]
+
+{ TABLE ACCESS BY INDEX ROWID BATCHED #ora-table-access-by-index-rowid-batched
+
+code {
+create table tq84_tab(
+   nm  number,
+   tx  varchar2(200)
+);
+
+insert into tq84_tab
+select
+   round(→ development/databases/Oracle/installed/packages/dbms/random[dbms_random].value(1, 1000), 1),
+   rpad('x', 200)
+from
+   dual connect by level <= 100000
+;
+
+create index tq84_tab_ix on tq84_tab(nm);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   tx
+from
+   tq84_tab
+where
+   nm between 100 and 105;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- -----------------------------------------------------------
+-- | Id  | Operation                           | Name        |
+-- -----------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |             |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_TAB    |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                  | TQ84_TAB_IX |
+-- -----------------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]
