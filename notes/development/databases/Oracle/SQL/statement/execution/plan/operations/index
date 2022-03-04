@@ -3,7 +3,7 @@ $ Oracle: SQL statement execution plan operations
 An → development/databases/Oracle/SQL/statement/execution/plan consists of a series of tree-like nested operations (aka row sources).
 
 There are two types of operations:
-  • Operations that retrieve data from a → development/databases/Oracle/architecture/database/files/data (for example `TABLE ACCESS (FULL)`), or
+  • Operations that retrieve data from a → development/databases/Oracle/architecture/database/files/data (for example → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS (FULL)`]), or
   • Operations that combine or otherwise manipulate the data that it receives from its child operations (for example `NESTED JOIN`).
 
 
@@ -19,7 +19,8 @@ table { llll
    BITMAP INDEX ☰ FAST FULL SCAN ☰ 1 ☰ Same as `FULL SCAN`?
    ? BITMAP INDEX ☰ RANGE SCAN ☰ ? ☰
    BITMAP INDEX ☰ SINGLE VALUE ☰ 1 ☰
-   BUFFER ☰ SORT ☰ 1 - 2 ☰ In spite of the `SORT` in the name, this operation does not necessarily sort its input, rather it only uses the buffering functionality of a «traditional» sort to store data in the → development/databases/Oracle/architecture/instance/PGA or → development/databases/Oracle/architecture/instance/UGA to reduce full table scans. Compare with `SORT (…)`. See also → http://sadique-sadiqulislam.blogspot.com/2011/01/buffer-sort-reason-and-problems.html[Sadique's blog]
+   BUFFER ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[SORT] ☰ 1 - 2 ☰ In spite of the `SORT` in the name, this operation does not necessarily sort its input, rather it only uses the buffering functionality of a «traditional» sort to store data in the → development/databases/Oracle/architecture/instance/PGA or → development/databases/Oracle/architecture/instance/UGA to reduce full table scans. Compare with `SORT (…)`. See also → http://sadique-sadiqulislam.blogspot.com/2011/01/buffer-sort-reason-and-problems.html[Sadique's blog]
+   BUFFER ☰ SORT (REUSE) ☰ 
    COLLECTION ITERATOR ☰ PICKLER FETCH ☰ 1 ☰ Column → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type[`object_type`] in → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] often set to `PROCEDURE` and `object_owner` and `object_type` set to, for example, `dbms_xplan` and `display`.
    CONCATENATION ☰  ☰ 2 - 3 (?) ☰
    CONNECT BY ☰ NO FILTERING WITH START-WITH ☰ 1 ☰
@@ -42,7 +43,7 @@ table { llll
    FIXED TABLE ☰ FIXED INDEX ☰ 1 ☰
    FIXED TABLE ☰ FULL ☰ 1 ☰
    FOR UPDATE ☰  ☰ 1 ☰
-   HASH ☰ GROUP BY ☰ 1 ☰
+   HASH ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[GROUP BY] ☰ 1 ☰
    HASH ☰ UNIQUE ☰ 1 ☰
    HASH JOIN ☰ ANTI ☰ 2 ☰
    HASH JOIN ☰ ANTI NA ☰ 2 ☰
@@ -55,7 +56,7 @@ table { llll
    HASH JOIN ☰ RIGHT SEMI BUFFERED ☰ 2 ☰
    HASH JOIN ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰ HASH JOIN SEMI seems to be the (left) counterpart to HASH JOIN RIGHT SEMI (so there is no HASH JOIN LEFT SEMI).
    HASH JOIN ☰  ☰ 2 - 3(?) ☰
-   INDEX ☰ FAST FULL SCAN ☰ 1 ☰ Similar to `TABLE ACCESS (FULL)` but get requested values (attributes/columns) from an index rather than the table. Thus, the index is not used to locate rows. Compare with `INDEX FULL SCAN`.
+   INDEX ☰ FAST FULL SCAN ☰ 1 ☰ Similar to → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS (FULL)`] but get requested values (attributes/columns) from an index rather than the table. Thus, the index is not used to locate rows. Compare with `INDEX FULL SCAN`.
    INDEX ☰ FULL SCAN ☰ 1 ☰
    INDEX ☰ FULL SCAN (MIN/MAX) ☰ 1 ☰
    INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[RANGE SCAN] ☰ 1 - 2 ☰
@@ -74,7 +75,7 @@ table { llll
    → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL] ☰  ☰ 1 - n ☰
    MERGE ☰  ☰ 1 ☰
    MERGE JOIN ☰ ANTI ☰ 2 ☰
-   MERGE JOIN ☰ CARTESIAN ☰ 2 ☰
+   MERGE JOIN ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[CARTESIAN] ☰ 2 ☰
    MERGE JOIN ☰ OUTER ☰ 2 ☰
    MERGE JOIN ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰
    MERGE JOIN ☰  ☰ 2 ☰
@@ -118,7 +119,7 @@ table { llll
    RESULT CACHE ☰  ☰ 1 ☰
    SELECT STATEMENT ☰  ☰ 1 - n ☰
    SEQUENCE ☰  ☰ 1 ☰
-   SORT ☰ AGGREGATE ☰ 1 - 2 ☰ Used when → development/databases/Oracle/SQL/select/aggregate[aggregate functions] are applied to an entire table/subquery without → development/databases/Oracle/SQL/select/group-by[`group by`]. Compare with `BUFFER (SORT)`
+   SORT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[AGGREGATE] ☰ 1 - 2 ☰ Used when → development/databases/Oracle/SQL/select/aggregate[aggregate functions] are applied to an entire table/subquery without → development/databases/Oracle/SQL/select/group-by[`group by`]. Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[`BUFFER (SORT)`].
    SORT ☰ AGGREGATE APPROX ☰ 1 ☰ `AGGREGATE APPROX` is used, for example, in → development/databases/Oracle/SQL/functions/approx/count/distinct[`approx_count_distinct`].
    SORT ☰ GROUP BY ☰ 1 ☰
    SORT ☰ GROUP BY NOSORT ☰ 1 ☰
@@ -135,7 +136,7 @@ table { llll
    TABLE ACCESS ☰ BY LOCAL INDEX ROWID BATCHED ☰ 1 ☰
    TABLE ACCESS ☰ BY USER ROWID ☰ 1 ☰
    TABLE ACCESS ☰ CLUSTER ☰ 1 ☰
-   TABLE ACCESS ☰ FULL ☰ 1 ☰
+   TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[FULL] ☰ 1 ☰
    TABLE ACCESS ☰ HASH ☰ 1(?) ☰
    TABLE ACCESS ☰ SAMPLE ☰ 1 ☰
    TABLE ACCESS ☰ SAMPLE BY ROWID RANGE ☰ 1 ☰

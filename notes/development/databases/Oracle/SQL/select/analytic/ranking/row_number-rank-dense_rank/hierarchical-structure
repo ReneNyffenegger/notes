@@ -1,0 +1,136 @@
+$ Oracle SQL: Selecting data with a hierarchical structure
+
+code {
+--
+--     First hierarchy
+--
+create table tq84_category (
+   id   number primary key,
+   nam  varchar2(5)
+);
+
+--
+--     Second hierarchy
+--
+create table tq84_item (
+   id   number primary key,
+   nam  varchar2(6),
+   cat  references tq84_category
+);
+
+--
+--      Data (below 2nd hierarchy)
+--
+create table tq84_data (
+   lin   number(2)     not null,
+   val   varchar2(10),
+   itm   references tq84_item,
+   --
+   unique(lin, itm)
+);
+
+--
+-- Fill test data
+--
+begin
+
+insert into tq84_category values (1, 'cat A'   );
+insert into tq84_category values (2, 'cat B'   );
+insert into tq84_category values (3, 'cat C'   );
+
+insert into tq84_item     values (1, 'itm e', 1);
+insert into tq84_item     values (2, 'itm m', 2);
+insert into tq84_item     values (3, 'itm n', 2);
+insert into tq84_item     values (4, 'itm x', 3);
+
+insert into tq84_data     values (1, 'abc'  , 1);
+insert into tq84_data     values (2, 'def'  , 1);
+
+insert into tq84_data     values (1, 'foo'  , 2);
+insert into tq84_data     values (2, 'bar'  , 2);
+insert into tq84_data     values (3, 'baz'  , 2);
+
+insert into tq84_data     values (1, 'FOO'  , 3);
+insert into tq84_data     values (2, 'BAR'  , 3);
+insert into tq84_data     values (3, 'BAZ'  , 3);
+
+insert into tq84_data     values (1, 'Www'  , 4);
+insert into tq84_data     values (2, 'Xxx'  , 4);
+insert into tq84_data     values (3, 'Yyy'  , 4);
+insert into tq84_data     values (4, 'Zzz'  , 4);
+
+end;
+/
+
+
+--
+--  Select data
+--
+with
+dup as (
+    select 'cat' sel from dual union all -- Used to select values of 1st hierarchy
+    select 'itm' sel from dual union all -- Used to select values of 2nd hierarchy
+    select 'dat' sel from dual           -- Used to select actual data
+),
+rec as (
+    select
+       row_number() over (partition by cat.id          order by cat.nam, itm.nam, lin) cat_r,
+       row_number() over (partition by cat.id, itm.id  order by itm.nam) itm_r,
+       cat.nam   category,
+       itm.nam   item,
+       dat.lin,
+       dat.val,
+       cat.id    cat_id,
+       itm.id    itm_id
+    from
+       tq84_category cat                        join
+       tq84_item     itm  on  cat.id = itm.cat  join
+       tq84_data     dat  on  itm.id = dat.itm
+)
+select
+   case when dup.sel = 'cat' then rec.category end c,
+   case when dup.sel = 'itm' then rec.item     end i,
+   case when dup.sel = 'dat' then rec.lin      end l,
+   case when dup.sel = 'dat' then rec.val      end v
+from
+   dup                                                join
+   rec   on ( dup.sel = 'cat' and rec.cat_r = 1) or
+            ( dup.sel = 'itm' and rec.itm_r = 1) or
+            ( dup.sel = 'dat'                  )
+order by
+   rec.category,
+   rec.item,
+   rec.lin,
+   dup.sel
+;
+--
+-- C     I               L V         
+-- ----- ------ ---------- ----------
+-- cat A                             
+--       itm e                       
+--                       1 abc       
+--                       2 def       
+-- cat B                             
+--       itm m                       
+--                       1 foo       
+--                       2 bar       
+--                       3 baz       
+--       itm n                       
+--                       1 FOO       
+--                       2 BAR       
+--                       3 BAZ       
+-- cat C                             
+--       itm x                       
+--                       1 Www       
+--                       2 Xxx       
+--                       3 Yyy       
+--                       4 Zzz  
+
+
+drop table tq84_data;
+drop table tq84_item;
+drop table tq84_category;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/select/analytic/ranking/row_number-rank-dense_rank[`row_number`, `rank` and `dense_rank`]

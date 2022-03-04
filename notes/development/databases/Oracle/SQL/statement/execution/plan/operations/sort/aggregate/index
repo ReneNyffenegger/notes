@@ -1,0 +1,38 @@
+$ Oracle SQL Plan operation SORT AGGREGATE
+
+The *sort aggregate* operation is used Used when → development/databases/Oracle/SQL/select/aggregate[aggregate functions] are applied to an entire table/subquery
+without → development/databases/Oracle/SQL/select/group-by[`group by`].
+-
+Compare with `BUFFER (SORT)` and → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[`HASH GROUP BY`].
+
+
+code {
+create table tq84_tab (
+   val number,
+   grp varchar2(5)
+);
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select count(*) from tq84_tab
+-- select max(grp) from tq84_tab
+-- select avg(val) from tq84_tab
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  SORT AGGREGATE    |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+
+
+drop table tq84_tab;
+code }
+
+sa:
+ `→ development/databases/Oracle/SQL/select/group-by`
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

@@ -1,0 +1,50 @@
+$ Oracle SQL Plan operation HASH GROUP BY
+
+code {
+drop table tq84_tab;
+
+create table tq84_tab (
+   val  number,
+   grp  number,
+   data varchar2(100)
+);
+
+insert into tq84_tab
+select
+   dbms_random.value(1,10),
+   trunc(dbms_random.value(1, 10)),
+   rpad('x', 100, 'x')
+from
+   dual connect by level <= 100000
+;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_tab');
+end;
+/
+
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select count(*) from tq84_tab → development/databases/Oracle/SQL/select/group-by grp
+-- select max(val) from tq84_tab → development/databases/Oracle/SQL/select/group-by grp
+-- select avg(val) from tq84_tab → development/databases/Oracle/SQL/select/group-by grp
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  HASH GROUP BY     |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operations]
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[`SORT AGGREGATE`]
+
+ `→ development/databases/Oracle/SQL/select/group-by`
+

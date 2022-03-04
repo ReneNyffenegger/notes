@@ -1,0 +1,69 @@
+$ Oracle SQL Plan operation BUFFER SORT
+
+
+The `BUFFER SORT` → development/databases/Oracle/SQL/statement/execution/plan/operations[execution plan operation] is used in different scenarios.
+-
+The → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[`MERGE JOIN (CARTESIAN)`] operation always uses `BUFFER SORT` as its second
+row source.
+
+? The `BUFFER SORT` operation indicates that data is stored in the → development/databases/Oracle/architecture/instance/PGA rather than the → development/databases/SQL-Server/architecture/memory-management/buffer-cache because
+the data is accessed multiple time and storing it in the buffer cache might cause contention issues with other processes that want to access the buffer cache as well.
+-
+The `SORT` is misleading as no SORT (necessarily) takes place. It simply points out that the same mechanism is used as is also used for other sorting mechanisms.
+
+
+code {
+drop table tq84_A;
+drop table tq84_B;
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+create table tq84_A as
+select
+   trunc(dbms_random.value(1, 50)) as nm,
+   dbms_random.string('a', 20)     as tx
+from
+   dual connect by level <= 12;
+
+create table tq84_B as
+select
+   trunc(dbms_random.value(1, 50)) as nm,
+   dbms_random.string('a', 20)     as tx
+from
+   dual connect by level <=  7;
+   
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+   dbms_stats.gather_table_stats(user, 'tq84_B');
+end;
+/
+
+explain plan for
+select
+   a.nm
+from
+   tq84_A a,
+   tq84_B b
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation            | Name   |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT     |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[MERGE JOIN CARTESIAN]|        |
+-- |   2 |   TABLE ACCESS FULL  | TQ84_B |
+-- |   3 |   BUFFER SORT        |        |
+-- |   4 |    TABLE ACCESS FULL | TQ84_A |
+-- ---------------------------------------
+code }
+
+sa:
+
+  The `SORT (JOIN)` and the `HASH JOIN (BUFFERS)` operation.
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

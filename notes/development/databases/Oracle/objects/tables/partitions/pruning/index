@@ -1,0 +1,27 @@
+$ Oracle: Partition pruning
+
+When executing SQL statements involving → development/databases/Oracle/objects/tables/partitions[partitioned tables], the optimizer tries to exclude partitions that need not be touched because, for example,
+the `where` clause makes it impossible to find some values in certain partitions.
+-
+This feature is referred to as *partitioning pruning*.
+
+
+{ Identifiying partition pruning in execution plans
+
+  When executing an SQL statement where partition pruning takes effect, the corresponding → development/databases/Oracle/SQL/statement/execution/plan[execution plan] fills
+  the columns `PARTITION_START` and `PARTITION_STOP` (for example in the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`]).
+  
+? For statements that are serially (not parallely) executed, pruning information is also found in the columns `OPERATION` and `OPTIONS`.
+
+}
+{ Partition pruning on DATE columns
+
+  Oracle's documentation points out that using a `where` clause on a `date` column of a
+  → development/databases/Oracle/objects/tables/partitions[partitioned table] only executes partition pruning if
+    • the table (or index) is created with the `to_date()` function and a 4-digit format mask *and*
+    • `to_date` with a 2 or 4 digit mask is also used in the `where` clause.
+
+}
+
+sa:
+  The → development/databases/Oracle/adminstration/init-parameters/event/list[event] 10128 dumps partition pruning information.

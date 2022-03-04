@@ -1,0 +1,53 @@
+$ DBMS_ROWID.ROWID_OBJECT
+
+code {
+--
+--     Create a table with composite partitioning
+--        interval - range
+--
+create table tq84_sub_part (
+   dt    date,
+   nm    number,
+   val   varchar2(20)
+)
+partition    by range ( dt ) interval (numtoyminterval(1, 'month'))
+subpartition by range ( nm )
+subpartition template (
+   subpartition sub_000 values less than (     250),
+   subpartition sub_250 values less than (     500),
+   subpartition sub_500 values less than (     750),
+   subpartition sub_750 values less than (maxvalue)
+)
+(
+   partition    p_start values less than (date '2020-01-01')
+)
+;
+
+insert into tq84_sub_part
+select
+   trunc(date '2020-01-01' + dbms_random.value(0, 100)),
+   trunc(dbms_random.value(0, 1000)),
+   dbms_random.string('a', 20)
+from
+   dual connect by level <= 30;
+
+select
+   tab.*,
+   obj.object_name,
+   sub.partition_name,
+   sub.subpartition_name
+-- dbms_rowid.rowid_object(t.rowid)
+from
+   tq84_sub_part           tab                                                             join
+   user_objects            obj on obj.object_id      = dbms_rowid.rowid_object(tab.rowid)  join
+   user_tab_subpartitions  sub on obj.subobject_name = sub.subpartition_name
+;
+
+drop table tq84_sub_part;
+code }
+
+sa:
+
+  → development/databases/Oracle/installed/packages/dbms/rowid#dbms_rowid-record-partition[Determine the name] of the partition in which a record is stored.
+
+  `→ development/databases/Oracle/installed/packages/dbms/rowid`

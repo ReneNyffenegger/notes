@@ -1,4 +1,5 @@
 $ Oracle: Partition extension clause
+@ partition extension clause
 
 In an → development/databases/Oracle/SQL/statement, the *partition  extension clause* allows to treat a single partition of a
 → development/databases/Oracle/objects/tables/partitions[partitioned] table as an entire table.
@@ -36,14 +37,29 @@ select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_
 select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_2)  union all
 select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_3)  union all
 select count(*), min(num), max(num), max(txt) from  tq84_tab_part partition(rng_4);
+--
+--   COUNT(*)   MIN(NUM)   MAX(NUM) MAX(TXT)  
+-- ---------- ---------- ---------- ----------
+--      25000          0      24999 zzzQJukyhS
+--      25000      25000      49999 zzuPZmEXOR
+--      25000      50000      74999 zzyPpfPIjf
+--      25000      75000      99999 zzyqbzXzpW
 code }
  
 
 It's also possible to select from the partition in which a given value of the partition key resides (here, the partition into which the record with `num` equal to 55555 is located):
 code {
 select count(*), min(num), max(num), max(txt) from tq84_tab_part partition for (55555);
+-- 
+--   COUNT(*)   MIN(NUM)   MAX(NUM) MAX(TXT)  
+-- ---------- ---------- ---------- ----------
+--      25000      50000      74999 zzyPpfPIjf
 code }
 
 sa:
+
   → development/databases/Oracle/installed/packages/dbms/rowid#dbms_rowid-record-partition[`dbms_rowid.rowid_object`] can be used to determine the name of a partition where a record is located
   based on the record's rowid.
+
+  When misstakingly formulating the partition extension clause with `for partition (…)` instead of the correct `partition for (…)`, Oracle throws an
+  → development/databases/Oracle/errors/ORA-01786_FOR-UPDATE-of-this-query-expression-is-not-allowed error.
