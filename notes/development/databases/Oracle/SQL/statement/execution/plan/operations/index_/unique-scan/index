@@ -1,0 +1,69 @@
+$ Oracle SQL Plan operation INDEX UNIQUE SCAN
+
+The `index unique scan` → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation]
+returns 0 or 1 → development/databases/Oracle/SQL/data-types/rowid[ROWIDs] from a unique-→ development/databases/Oracle/objects/indexes[index].
+
+This plan operation only in rare cases has child row-sources. I have encountered the following four so far:
+  • → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[`INDEX RANGE SCAN`]
+  • → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[`SORT AGGREGATE`]
+  • → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[`TABLE ACCESS BY INDEX ROWID`]
+  • `TABLE ACCESS CLUSTER`
+
+Among this operation's parent operator are 
+   • → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[`TABLE ACCESS BY INDEX ROWID`]
+   • `TABLE ACCESS CLUSTER`
+   • → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[`NESTED LOOPS`]
+   • → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[`SORT AGGREGATE`]
+   • → development/databases/Oracle/SQL/statement/execution/plan/operations/inlist-iterator[`INLIST ITERATOR`]
+   • → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[`FILTER`]
+   • `COUNT STOPKEY`
+   • `DELETE`
+   • `UPDATE`
+
+code {
+create table tq84_A (
+   nm   number,
+   tx   varchar2(200)
+);
+
+insert into tq84_A
+select
+   mod(level * 773, 1009),
+   lpad('x', 200, 'x')
+from 
+   dual connect by level <= 1009;
+
+create unique index tq84_A_uq on tq84_A(nm);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+end;
+/
+
+explain plan for
+select
+   tx
+from
+   tq84_A
+where
+   nm = 500;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------------------
+-- | Id  | Operation                   | Name      |
+-- -------------------------------------------------
+-- |   0 | SELECT STATEMENT            |           |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID| TQ84_A    |
+-- |   2 |   INDEX UNIQUE SCAN         | TQ84_A_UQ |
+-- -------------------------------------------------
+
+drop table tq84_A;
+code }
+
+sa:
+
+  Compare this operation with → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[`INDEX RANGE SCAN`] which returns 0, 1 or more
+  ROWIDs from a non-unique-→ development/databases/Oracle/objects/indexes[index].
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]

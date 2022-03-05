@@ -15,7 +15,7 @@ table { lll
    BI ☰ → Business/intelligence ☰
    HR ☰ Human Resources ☰ Among the sample schemas, the HR schema is the smallest and most sipmle one. See also `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/demo/schema/human_resources`
    IX ☰ Information Exchange ☰
-   OE ☰ Order Entry ☰
+   OE ☰ Order Entry ☰ Needs MDSYS to be installed.
    PM ☰ Product Media ☰
    SH ☰ Sales History ☰
 table }
@@ -31,7 +31,7 @@ $ → development/version-control-systems/git/commands/tag
 v12.1.0.2
 v12.2.0.1
 v18c
-v19.2`
+v19.2
 v19c
 v21.1
 $ → development/version-control-systems/git/commands/switch --detach v19c
@@ -42,11 +42,13 @@ code }
 
   Use Perl for → development/languages/Perl/in-place-editing[in place editing]: `__SUB__CWD__` must be replaced with the current directory.
   -
-  Note that a perl interpreter is installed under → `Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/perl`.
+  Note that a perl interpreter is installed under `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/perl`.
+
+  I use `-Mopen="IO,:raw" to → https://stackoverflow.com/a/71337274/180275[preserve Unix line endings] in the files.
 
   { PowerShell
 code {
-PS> perl.exe -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '\\')#g" (get-childItem *.sql,*/*.sql,*/*.dat)
+PS> perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '\\')#g" (get-childItem *.sql,*/*.sql,*/*.dat)
 code }
 
    Remove .bak files:
@@ -54,15 +56,17 @@ code {
 PS> get-childItem -re *.bak | % { rm $_}
 code }
 
-   Change line endigs back to Unix:
+rem {
+   Change line endings back to Unix:
 code {
 get-childItem *.sql,*/*.sql,*/*.dat | % {
    [IO.File]::WriteAllText( $_, [IO.File]::ReadAllText($_) -replace ("`r`n", "`n"))
 }
 code }
+rem }
 
   }
-  { Make sure the oracle environment is correct
+  { Make sure the Oracle environment is correct
 
     Linux/Unix shell:
 code {
@@ -72,9 +76,15 @@ code }
   }
   { Install
 
+    Run the `mksample.sql` script in → development/databases/Oracle/SQL-Plus. This script creates all 5 sample schemas. If any of those schemas already exists, they will be dropped first.
+
+    If enabled, consider disabling → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[`plsql_warnings`] in order to focus on error messages and not be distracted
+    by warnings.
+
 code {
-mkdir log
-sqlplus system/iAmSystem
+rem mkdir log
+→ development/databases/Oracle/SQL-Plus[sqlplus] system/iAmSystem
+SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plsql_warnings = 'disable:all';
 SQL> @mksample iAmSystem iAmSysdba hrPw oePw pmPw ixPw shPw biPw DATA TEMP log ora19
 code }
 

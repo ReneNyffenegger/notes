@@ -3,6 +3,9 @@ $ Oracle: DBMS_METADATA
 
 `dbms_metadata` exposes the *Metadata API* which allows to extract definitions of → development/databases/Oracle/objects[objects] as → development/databases/Oracle/SQL/DDL[DDL statements] or
 → development/XML/DOM/nodes/document[XML documents].
+-
+The extracted definitions can then be used to recreate these objects.
+
 
 { Simple example
 
@@ -42,102 +45,157 @@ code }
 
 { Procedures and functions
 
+
+  The API differentiates between functions intended to be used
+    • in → development/databases/Oracle/PL-SQL programs
+    • for casual browsing using → development/databases/Oracle/SQL/statement[SQL statements]
+  -
+  The former are marked with *prog*, the latter with *browse* in the following table.
+
+  table { lll
+    → development/databases/Oracle/installed/packages/dbms/metadata/api/add_transform[`ADD_TRANSFORM`] ☰ Specifies a transformation to be applied to the XML documents when using `FETCH_*`, `CONVERT` or `PUT` functions/procedures. ☰ prog
+    `CHECK_CONSTRAINT` ☰ ☰
+    `CHECK_MATCH_TEMPLATE` ☰ ☰
+    `CHECK_MATCH_TEMPLATE_LOB` ☰ ☰
+    `CHECK_MATCH_TEMPLATE_PAR` ☰ ☰
+    `CHECK_TYPE` ☰ ☰
+    `CLOSE` ☰ Cleans up the *fetch context* which was established by calling `OPEN` ☰ prog
+    `CONVERT` ☰ Converts an XML document to a DDL statement ☰
+    `CONVERT_TO_CANONICAL` ☰ ☰
+    `FETCH_CLOB` ☰ ☰ prog
+    `FETCH_DDL` ☰ Returns the DDL statements an object in a `sys.ku$_ddls` nested table. ☰ prog
+    `FETCH_DDL_TEXT` ☰ ☰ prog
+    `FETCH_OBJNUMS` ☰ A `table(…)` function that returns object numbers which is used to speed up heterogeneous fetching. ☰ prog
+    `FETCH_OBJNUMS_NAMES` ☰ ☰ prog
+    `FETCH_SORTED_OBJNUMS` ☰ ☰ prog
+    `FETCH_VAT_OBJNUMS` ☰ ☰ prog
+    `FETCH_XML` ☰ Return metadata for an objects as `→ development/databases/Oracle/installed/types/XMLType` ☰ prog
+    `FETCH_XML_CLOB` ☰ ☰ prog
+    `FREE_CONTEXT_ENTRY` ☰ ☰
+    `GET_ACTION_INSTANCE` ☰ ☰
+    `GET_ACTION_SCHEMA` ☰ ☰
+    `GET_ACTION_SYS` ☰ ☰
+    `GET_CANONICAL_VSN` ☰ ☰
+    `GET_CHECK_CONSTRAINT_NAME` ☰ ☰
+     → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`GET_DDL`] ☰ `GET_DDL` returns the definition of a *single → development/databases/Oracle/objects[object]* and is meant for *casual browsing*. ☰ browse
+     → development/databases/Oracle/installed/packages/dbms/metadata/api/get/dependent/ddl[`GET_DEPENDENT_DDL`] ☰ ☰ browse
+    `GET_DEPENDENT_SXML` ☰ ☰
+    `GET_DEPENDENT_XML` ☰ ☰ browse
+    `GET_DOMIDX_METADATA` ☰ Used in conjunction with *domain indexes*. ☰
+    `GET_DPSTRM_MD` ☰ ☰
+    `GET_EDITION` ☰ ☰
+    `GET_EDITION_ID` ☰ ☰
+    `GET_FK_CONSTRAINT_NAME` ☰ ☰
+    `GET_GRANTED_DDL` ☰ ☰ browse
+    `GET_GRANTED_XML` ☰ ☰ browse
+    `GET_HASHCODE` ☰ ☰
+    `GET_INDEX_INTCOL` ☰ ☰
+    `GET_INDPART_TS` ☰ ☰
+    `GET_JAVA_METADATA` ☰ ☰
+    `GET_PARTN` ☰ ☰
+    `GET_PLSQL_OPTIMIZE_LEVEL` ☰ ☰
+    `GET_PLUGTS_BLK` ☰ ☰
+    `GET_PREPOST_TABLE_ACT` ☰ ☰
+    `GET_PROCOBJ` ☰ ☰
+    `GET_PROCOBJ_GRANT` ☰ ☰
+    `GET_QUERY` ☰ Get the text of the → development/databases/Oracle/SQL/statement, used for debugging. (See `set_debug` procedure) ☰ prog
+    `GET_STAT_COLNAME` ☰ ☰
+    `GET_STAT_INDNAME` ☰ ☰
+    `GET_SXML` ☰ ☰ browse
+    `GET_SXML_DDL` ☰ ☰
+    `GET_SYSPRIVS` ☰ ☰
+    `GET_VERSION` ☰ ☰
+    → development/databases/Oracle/installed/packages/dbms/metadata/api/get/xml[`GET_XML`] ☰ ☰ browse
+    `IN_TSNUM` ☰ ☰
+    `IN_TSNUM_2` ☰ ☰
+    `IS_ACTIVE_REGISTRATION` ☰ ☰
+    `IS_ATTR_VALID_ON_10` ☰ ☰
+    `IS_XDB_TRANS` ☰ ☰
+    `NETWORK_CALLOUTS` ☰ ☰
+    `NETWORK_FETCH_CLOB` ☰ ☰
+    `NETWORK_FETCH_ERRORS` ☰ ☰
+    `NETWORK_FETCH_PARSE` ☰ ☰
+    `NETWORK_OPEN` ☰ ☰
+    `NET_SET_DEBUG` ☰ ☰
+    `OKTOEXP_2NDARY_TABLE` ☰ ☰
+    `OPEN` ☰ Establish a *fetch context* (object parameters) to be used with → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` procedures]. See also `CLOSE`. ☰ prog
+    `OPENW` ☰ ☰
+    `OPEN_GET_FK_CONSTRAINT_NAME` ☰ ☰
+    `PARSE_CONDITION` ☰ ☰
+    `PARSE_DEFAULT` ☰ ☰
+    `PARSE_QUERY` ☰ ☰
+    `PATCH_TYPEID` ☰ ☰
+    `PUT` ☰ ☰
+    `SET_COUNT` ☰ Sets the maximum number of objects to be retrieved with single calls to → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_…`] ☰ prog
+    `SET_DEBUG` ☰ Sets (internal) debug flag ☰
+    → development/databases/Oracle/installed/packages/dbms/metadata/api/set/filter[`SET_FILTER`] ☰ Set the criteria which specify which → development/databases/Oracle/objects[objects] should be returned ☰ prog
+    `SET_FK_CONSTRAINT_COL_PAIR` ☰ ☰
+    `SET_PARAMETER` ☰ Sets parameters for → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` operations]. ☰
+    `SET_PARSE_ITEM` ☰ Call `SET_PARSE_ITEM` to that `FETCH_DDL` and `FETCH_XML_CLOB` return attributes of the object's metadata or the DDL statement in a `sys.ku$_parsed_items` *nested table*. ☰ prog
+    `→ development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[SET_REMAP_PARAM]` ☰ ☰ prog
+     → development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[`SET_TRANSFORM_PARAM`] ☰ ☰ prog
+    `SET_XMLFORMAT` ☰ Formatting attributes when creating → development/XML output ☰
+    `TRANSFORM_STRM` ☰ ☰
+  table }
+
+  { FETCH* Functions/procedures
+
+    The `fetch` functions and procedures return metadata for objects that meet the criteria set forth with
+      • `open`
+      • `set_filter`
+      • `set_count`
+      • `add_transform`
+      • etc.
+
+    When fetching *heterogeneous* object types, a single `fetch*` call retrieves objects of *one* → development/databases/Oracle/objects[object type] only.
+
+  }
+
+  The names of the above list where created with
 code {
 select distinct
    procedure_name
 from
-   all_procedures
+   → development/databases/Oracle/installed/data-dictionary/procedures[all_procedures]
 where
    object_name = 'DBMS_METADATA'
 order by
    procedure_name
 code }
 
+}
+{ Views
+
+  Some views that somehow seem to be related to DBMS_METADATA can be queried from → development/databases/Oracle/installed/data-dictionary/views[`dba_views`]:
+code {
+select *
+from
+   dba_views
+where
+   owner     =    'SYS'             and
+   view_name like 'DBMS_METADATA%'
+-- order by
+--    view_name
+;
+code }
+
   table { ll
-    → development/databases/Oracle/installed/packages/dbms/metadata/api/add_transform[`ADD_TRANSFORM`] ☰ Specifies a transformation to be applied to the XML documents when using `FETCH_*`, `CONVERT` or `PUT` functions/procedures.
-    `CHECK_CONSTRAINT` ☰
-    `CHECK_MATCH_TEMPLATE` ☰
-    `CHECK_MATCH_TEMPLATE_LOB` ☰
-    `CHECK_MATCH_TEMPLATE_PAR` ☰
-    `CHECK_TYPE` ☰
-    `CLOSE` ☰ Cleans up the *fetch context* which was established by calling `OPEN`
-    `CONVERT` ☰
-    `CONVERT_TO_CANONICAL` ☰
-    `FETCH_CLOB` ☰
-    `FETCH_DDL` ☰
-    `FETCH_DDL_TEXT` ☰
-    `FETCH_OBJNUMS` ☰ A `table(…)` function that returns object numbers which is used to speed up heterogeneous fetching.
-    `FETCH_OBJNUMS_NAMES` ☰
-    `FETCH_SORTED_OBJNUMS` ☰
-    `FETCH_VAT_OBJNUMS` ☰
-    `FETCH_XML` ☰
-    `FETCH_XML_CLOB` ☰
-    `FREE_CONTEXT_ENTRY` ☰
-    `GET_ACTION_INSTANCE` ☰
-    `GET_ACTION_SCHEMA` ☰
-    `GET_ACTION_SYS` ☰
-    `GET_CANONICAL_VSN` ☰
-    `GET_CHECK_CONSTRAINT_NAME` ☰
-     → development/databases/Oracle/installed/packages/dbms/metadata/api/get/ddl[`GET_DDL`] ☰ `GET_DDL` returns the definition of a *single → development/databases/Oracle/objects[object]* and is meant for *casual browsing*.
-     → development/databases/Oracle/installed/packages/dbms/metadata/api/get/dependent/ddl[`GET_DEPENDENT_DDL`] ☰
-    `GET_DEPENDENT_SXML` ☰
-    `GET_DEPENDENT_XML` ☰
-    `GET_DOMIDX_METADATA` ☰ Used in conjunction with *domain indexes*.
-    `GET_DPSTRM_MD` ☰
-    `GET_EDITION` ☰
-    `GET_EDITION_ID` ☰
-    `GET_FK_CONSTRAINT_NAME` ☰
-    `GET_GRANTED_DDL` ☰
-    `GET_GRANTED_XML` ☰
-    `GET_HASHCODE` ☰
-    `GET_INDEX_INTCOL` ☰
-    `GET_INDPART_TS` ☰
-    `GET_JAVA_METADATA` ☰
-    `GET_PARTN` ☰
-    `GET_PLSQL_OPTIMIZE_LEVEL` ☰
-    `GET_PLUGTS_BLK` ☰
-    `GET_PREPOST_TABLE_ACT` ☰
-    `GET_PROCOBJ` ☰
-    `GET_PROCOBJ_GRANT` ☰
-    `GET_QUERY` ☰ Get the text of the → development/databases/Oracle/SQL/statement, used for debugging. (See `set_debug` procedure)
-    `GET_STAT_COLNAME` ☰
-    `GET_STAT_INDNAME` ☰
-    `GET_SXML` ☰
-    `GET_SXML_DDL` ☰
-    `GET_SYSPRIVS` ☰
-    `GET_VERSION` ☰
-    → development/databases/Oracle/installed/packages/dbms/metadata/api/get/xml[`GET_XML`] ☰
-    `IN_TSNUM` ☰
-    `IN_TSNUM_2` ☰
-    `IS_ACTIVE_REGISTRATION` ☰
-    `IS_ATTR_VALID_ON_10` ☰
-    `IS_XDB_TRANS` ☰
-    `NETWORK_CALLOUTS` ☰
-    `NETWORK_FETCH_CLOB` ☰
-    `NETWORK_FETCH_ERRORS` ☰
-    `NETWORK_FETCH_PARSE` ☰
-    `NETWORK_OPEN` ☰
-    `NET_SET_DEBUG` ☰
-    `OKTOEXP_2NDARY_TABLE` ☰
-    `OPEN` ☰ Establish a *fetch context* (object parameters) to be used with → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` procedures]. See also `CLOSE`.
-    `OPENW` ☰
-    `OPEN_GET_FK_CONSTRAINT_NAME` ☰
-    `PARSE_CONDITION` ☰
-    `PARSE_DEFAULT` ☰
-    `PARSE_QUERY` ☰
-    `PATCH_TYPEID` ☰
-    `PUT` ☰
-    `SET_COUNT` ☰ Sets the maximum number of objects to be retrieved with calls to → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_…`]
-    `SET_DEBUG` ☰ Sets (internal) debug flag
-    `SET_FILTER` ☰
-    `SET_FK_CONSTRAINT_COL_PAIR` ☰
-    `SET_PARAMETER` ☰ Sets parameters for → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` operations].
-    `SET_PARSE_ITEM` ☰ Call `SET_PARSE_ITEM` to that `FETCH_DDL` and `FETCH_XML_CLOB` return attributes of the object's metadata or the DDL statement in a `sys.ku$_parsed_items` *nested table*.
-    `→ development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param/[SET_REMAP_PARAM]` ☰
-     → development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[`SET_TRANSFORM_PARAM`] ☰
-    `SET_XMLFORMAT` ☰ Formatting attributes when creating → development/XML output
-    `TRANSFORM_STRM` ☰
+    `dbms_metadata_tparams_base` ☰ Base view for *transform parameters* and *parse items*. Joins `sys.metaview$`, `sys.metaxsl$`, `sys.metaxslparam$` and `sys.metaxlsparamdesc$`.
+    `dbms_metadata_all_tparams` ☰ Selects from `dbms_metadata_tparams_base` to return all *transform parameters*.
+    `dbms_metadata_all_parse_items` ☰ Selects from `dbms_metadata_all_parse_items` where `transform = 'PARSE'`.
+    `dbms_metadata_all_transforms` ☰ Joins `sys.metaview$` with `sys.metaxsl$` on `xmltag`
+    `dbms_metadata_transforms` ☰ Selects from `dbms_metadata_all_transforms` but excludes the transforms `'EDITIONING_VIEW`, `MODIFYSTREAMSXML` and `PARSE`.
+    `dbms_metadata_parse_items` ☰ Selects from `dbms_metadata_all_parse_items` but excludes internal params (`t.internal = 'N'`) and thus becomes the *public view for parse items*.
+    `dbms_metadata_transform_params` ☰ The *public view for tranform params*.
   table }
+
+}
+{ Misc
+
+  When used in an *Oracle Shared Server (OSS)* environment, `dbms_metadata` disables → development/databases/Oracle/architecture/session migration and connection pooling.
+
+  When using `get*` functions → development/databases/Oracle/SQL-Plus, → development/databases/Oracle/SQL-Plus/set/pagesize[`pagesize`] should be `0` and
+  → development/databases/Oracle/SQL-Plus/set/long[`long`] to a value that is large enough to print contiguous text.
 
 }
 
@@ -145,6 +203,8 @@ sa:
 
   In order to extract definitions from another schema, the → development/databases/Oracle/security/roles/oracle-maintained/select_catalog_role[`SELECT_CATALOG_ROLE`]
   → development/databases/Oracle/security/privileges[privilege] is required.
+
+  → development/databases/Oracle/installed/packages/dbms/metadata/filters[Filters]
 
   → development/databases/Oracle/installed/packages/dbms
 
