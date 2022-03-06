@@ -1,0 +1,39 @@
+$ Oracle: DBA_DIRECTORIES
+@ dba_directories
+
+`dba_directories` lists all → development/databases/Oracle/objects/directories[directories].
+-
+This view comes in the three variants `dba_directories`, `all_directories` and `cdb_directories`.
+
+code {
+declare
+   syml  pls_integer;
+begin
+
+   for dir in (
+       select
+          directory_name name,
+          directory_path path
+       from
+          dba_directories
+       order by
+          lower(directory_path)
+   )
+   loop
+
+       dbms_output.put_line(
+          rpad(dir.name,  31) ||
+          rpad(dir.path, 100) ||
+          case when dbms_utility.directory_has_symlink(dir.name) =
+                    dbms_utility.has_symlink then 'symlink'
+                                             else 'nosymlink'
+          end
+       );
+
+   end loop;
+end;
+/   
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary

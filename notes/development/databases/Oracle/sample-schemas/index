@@ -10,12 +10,14 @@ The sample schemas are also supposed to be found under
 `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[$ORACLE_HOME]/demo/schema`, but I only found
 `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/demo/schema/human_resources`.
 
+Starting with → development/databases/Oracle/Releases-and-versions/21c, Sample Schemas are not part of a default Oracle installation, they must be cloned from a GitHub repository.
+
 Oracle's sample schemas are:
 table { lll
    BI ☰ → Business/intelligence ☰
-   HR ☰ Human Resources ☰ Among the sample schemas, the HR schema is the smallest and most sipmle one. See also `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/demo/schema/human_resources`
+   HR ☰ Human Resources ☰ Among the sample schemas, the HR schema is the smallest and most sipmle one. The HR account is locked after the installation. See also `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/demo/schema/human_resources`
    IX ☰ Information Exchange ☰
-   OE ☰ Order Entry ☰ Needs MDSYS to be installed.
+   OE ☰ Order Entry ☰ Needs MDSYS (→ development/databases/Oracle/Options/spatial-and-graph[Oracle Spatial?) to be installed.
    PM ☰ Product Media ☰
    SH ☰ Sales History ☰
 table }
@@ -44,11 +46,12 @@ code }
   -
   Note that a perl interpreter is installed under `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/perl`.
 
-  I use `-Mopen="IO,:raw" to → https://stackoverflow.com/a/71337274/180275[preserve Unix line endings] in the files.
+  I use `-Mopen="IO,:raw"` to → https://stackoverflow.com/a/71337274/180275[preserve Unix line endings] in the files.
 
   { PowerShell
 code {
-PS> perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '\\')#g" (get-childItem *.sql,*/*.sql,*/*.dat)
+PS> # perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '\\')#g" (get-childItem *.sql,*/*.sql,*/*.dat)
+PS>   perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '/' )#g" (get-childItem *.sql,*/*.sql,*/*.dat)
 code }
 
    Remove .bak files:
@@ -76,17 +79,49 @@ code }
   }
   { Install
 
+?   Because OE needs MDSYS, make sure that Oracle Spatial is installed.
+
     Run the `mksample.sql` script in → development/databases/Oracle/SQL-Plus. This script creates all 5 sample schemas. If any of those schemas already exists, they will be dropped first.
 
-    If enabled, consider disabling → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[`plsql_warnings`] in order to focus on error messages and not be distracted
+    If set in the `login.sql` file, consider making sure that → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[`plsql_warnings`] is disabled in order to focus on error messages and not be distracted
     by warnings.
+
+rem {
+SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plsql_warnings = 'disable:all';
+rem }
+
+   Note: the final slash in the path of the log directory seems to be required.
 
 code {
 rem mkdir log
 → development/databases/Oracle/SQL-Plus[sqlplus] system/iAmSystem
-SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plsql_warnings = 'disable:all';
-SQL> @mksample iAmSystem iAmSysdba hrPw oePw pmPw ixPw shPw biPw DATA TEMP log ora19
+SQL> @mksample iAmSystem iAmSysdba hrPw oePw pmPw ixPw shPw biPw DATA TEMP log/ ora19
 code }
+
+  }
+  { TODO
+
+    { Unlocking HR
+
+      The HR account is supposed to be locked after the installation and must be unlocked befor logging on as HR. However, I found this information to be wrong.
+      Anyway, the account can be unlocked with
+code {
+SQ> alter user hr identified by your_password account unlock;
+code }
+
+    }
+    { ORA-22288: file or LOB operation FILEOPEN failed
+
+      ORA-22288 is thrown in script `order_entry/createResources.sql`
+
+    }
+    { ORA-31001
+
+code {
+ORA-31001: Invalid resource handle or path name "/home/OE/purchaseOrder.xsd"
+code }
+
+    }
 
   }
 
