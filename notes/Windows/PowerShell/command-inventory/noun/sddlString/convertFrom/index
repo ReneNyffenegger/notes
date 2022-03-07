@@ -1,0 +1,26 @@
+$ PowerShell cmdLet ConvertFrom-SddlString
+@ convertFrom-sddlString
+
+code {
+
+$mySid   = ([System.Security.Principal.WindowsIdentity]::GetCurrent()).User.Value
+$aGroup  = ([System.Security.Principal.WindowsIdentity]::GetCurrent()).Groups[0].Value
+
+$sddl = "O:" +  $mySid                                                     +
+        "G:" +  $aGroup                                                    +
+        "D:" + "AI(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;" + $mySid + ")"
+
+$psObj = convertFrom-sddlString $sddl
+
+$psObj.getType().FullName   # System.Management.Automation.PSCustomObject
+
+$psObj.Owner
+$psObj.Group
+$psObj.DiscretionaryAcl[0]
+$psObj.SystemAcl
+$psObj.RawDescriptor
+code }
+
+
+sa:
+  → Windows/PowerShell/command-inventory/noun/sddlString
