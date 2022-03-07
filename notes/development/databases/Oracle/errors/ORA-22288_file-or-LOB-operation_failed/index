@@ -1,0 +1,52 @@
+$ ORA-22288: file or LOB operation … failed
+
+{ Windows
+
+  Example for Windows with → Windows/PowerShell.
+
+code {
+'some text' > → Windows/PowerShell/language/variable/automatic/home[$home]/file.txt
+code }
+
+code {
+create directory tq84_dir as 'C:\Users\Rene';
+code }
+
+  The following PL/SQL block throws *ORA-22288 …*:
+code {
+declare
+   fil  bfile;
+   res boolean;
+begin
+   fil := bfilename('TQ84_DIR', 'file.txt');
+
+   dbms_output.put_line('file exists: ' || dbms_lob.fileexists(fil));
+
+   dbms_lob.fileopen(fil);
+-- Do some unspecfied stuff.
+   dbms_lob.fileclose(fil);
+
+end;
+/
+code }
+
+  We need to change the file's security descriptor and explicitely allow full control for the Oracle Service:
+code {
+$acl = → Windows/PowerShell/command-inventory/noun/acl/get "$home/file.txt"
+
+$accessRule = → Windows/PowerShell/command-inventory/noun/object/new → Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/FileSystemAccessRule[System.Security.AccessControl.FileSystemAccessRule] `
+   'NT SERVICE\OracleServiceORA19'                                , `
+  ([→ Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/FileSystemRights[System.Security.AccessControl.FileSystemRights]]::FullControl) , `
+  ([→ Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/AccessControlType[System.Security.AccessControl.AccessControlType]]::Allow)
+  
+$acl.AddAccessRule($accessRule)
+
+set-acl "$home/file.txt" $acl
+code }
+
+}
+
+
+sa:
+
+ `→ development/databases/Oracle/installed/packages/dbms/lob`

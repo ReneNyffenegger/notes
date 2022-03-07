@@ -1,14 +1,62 @@
-$ Windows: securable objects
+$ Windows: Securable objects
 @ securable object
 
-{ Permissions
+An object is said to be *securable* if it can have a → Windows/security/descriptor.
+-
+All named Windows objects are securable.
 
-  The owner of a securable object can assign *permissions* to the object. These permissions control which operations can be executed by whom. 
+{ Types of securable objects
 
-  These permissions are stored in *access control entries (ACEs)*.
+  Examples of securable objects include
+    • Files, Directories
+    • → Windows/services[Services]
+    • → Windows/registry/tree-structure/key[Registry keys]
+    • Processes, Threads (these are *unnamed* objects)
+    • Access tokens
+    • Named pipes
+    • File mapping objects
+    • DCOM applications
+    • Semaphores
+    • Events
+    • Mutexes
+    • Waitable timers
+    • → Windows/Management-Instrumentation[WMI] namespaces
+    • Active Directory Objects
+    • Window stations
+    • Desktop
+    • Mailslots
+    • Network shares
+    • Printers
+    • Private objects
+}
+{ Components of a securable object
 
-  Sometimes, these ACEs are also referred to as *discretionary ACEs* because the assignment of permissions is at the owner's discretion.
+  A securable object defines the following elements
+    • The owner of the object, identified by its → Windows/security/SID
+    • The group assocaited with the object, also identified by a SID. (This component is irrelevant for Windows components; it only exists for POSIX compatibility reasons).
+    • The *Discretionary* Access Control List* (DACL)
+    • The *System Access Control List* (SACL)
 
-  Permissions must not be confused with *user rights* (possibly also referred to as → Windows/security/privileges[privileges]) which are given to → Windows/user-account[users].
+  The DACL determines users' and groups' permissions on the securable object.
+  -
+  DACL are called *discretionary* because they are asssigned at the assigner's discretion.
+
+  Such permissions must not be confused with *user rights* (possibly also referred to as → Windows/security/privileges[privileges]) which are granted to → Windows/user-account[users] rather than objects.
+
+}
+{ Access Control List and Access Control Entries #win-acl-ace
+
+  An *Access Control List* (ACL) is a *ordered list* of *Access Control Entries* (ACE).
+
+  An Access Control Entry consists of
+    • The user's or group's SID to which the ACE pertains
+    • A particular access right
+    • A flag, if this access right is allowed or denied.
+
+  When an ACL is checked to determine if a user or group is allowed to perform a certain action on the securable object, the ACEs in the ACLs are evaluated in the order of their position.
+  -
+  As soon as such a check finds an explicit grant or denial of the requested access, the check stops. Therfore, the order of the ACEs in the ACL is important.
+  -
+  It is generally recommended to place deny-ACEs before allow-ACEs.
 
 }
