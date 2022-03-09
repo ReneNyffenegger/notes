@@ -87,10 +87,10 @@ $accessRule = new-object System.Security.AccessControl.FileSystemAccessRule `
   ([System.Security.AccessControl.FileSystemRights]::FullControl) , `
   ([System.Security.AccessControl.AccessControlType]::Allow)
 
-foreach ($file in 'purchaseOrder.xsd', 'purchaseOrder.xsl', 'empdept.xsl') {  
-   $acl = get-acl "order_entry/$file"
+foreach ($file in get-childItem -recurse -file -include *xsd,*xsl,*.xml order_entry) {  
+   $acl = get-acl $file.fullName
    $acl.AddAccessRule($accessRule)
-   set-acl "order_entry/$file" $acl
+   set-acl $file.fullName   $acl
 }
 code }
 
@@ -153,11 +153,7 @@ SQ> alter user hr identified by your_password account unlock;
 code }
 
     }
-
-
-
   }
-
 }
 
 sa:
