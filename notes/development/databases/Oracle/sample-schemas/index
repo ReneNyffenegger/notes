@@ -50,14 +50,9 @@ code }
 
   { PowerShell
 code {
-PS> # perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '\\')#g" (get-childItem *.sql,*/*.sql,*/*.dat)
-PS>   perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '/' )#g" (get-childItem *.sql,*/*.sql,*/*.dat)
+PS> perl.exe -Mopen="IO,:raw" -i -p -e "s#__SUB__CWD__#$($pwd -replace '\\', '/' )#g" (get-childItem *.sql,*/*.sql,*/*.dat)
 code }
 
-   Remove .bak files:
-code {
-PS> get-childItem -re *.bak | % { rm $_}
-code }
 
 rem {
    Change line endings back to Unix:
@@ -77,25 +72,73 @@ $ source → Linux/fhs/usr/local/bin/oraenv[/usr/local/bin/oraenv]
 code }
 
   }
+  { Windows: Grant access rights on some files
+
+    The Oracle Windows-Service that is running the instance needs to be able to read the files referenced
+    in → https://github.com/oracle/db-sample-schemas/blob/main/order_entry/createResources.sql[`order_entry/createResources.sql`],
+    otherwise, errors like → development/databases/Oracle/errors/ORA-22288_file-or-LOB-operation_failed[ORA-22288: file or LOB operation FILEOPEN failed]
+    and/or *ORA-31001: Invalid resource handle or path name "/home/OE/purchaseOrder.xsd"* will be thrown.
+
+code {
+$oracle_service_name = 'NT SERVICE\OracleServiceORA19' 
+
+$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule `
+   'NT SERVICE\OracleServiceORA19'                                , `
+  ([System.Security.AccessControl.FileSystemRights]::FullControl) , `
+  ([System.Security.AccessControl.AccessControlType]::Allow)
+
+foreach ($file in 'purchaseOrder.xsd', 'purchaseOrder.xsl', 'empdept.xsl') {  
+   $acl = get-acl "order_entry/$file"
+   $acl.AddAccessRule($accessRule)
+   set-acl "order_entry/$file" $acl
+}
+code }
+
+  }
+  { Show executed script
+
+    For each line in the `*.sql` scripts that start with `@`, add another line that writes the name of the executed SQL script so that errors during the installation
+    can be easier located.
+
+code {
+perl.exe -Mopen="IO,:raw" -i'.bak' -p -e "s#^(\s*)@(.*)$#prompt exec script `$2;\n`$1\@`$2#" (get-childItem *.sql,*/*.sql)
+code }
+
+   Remove .bak files:
+code {
+PS> get-childItem -re *.bak | % { rm $_}
+code }
+
+  }
   { Install
 
 ?   Because OE needs MDSYS, make sure that Oracle Spatial is installed.
 
     Run the `mksample.sql` script in → development/databases/Oracle/SQL-Plus. This script creates all 5 sample schemas. If any of those schemas already exists, they will be dropped first.
 
-    If set in the `login.sql` file, consider making sure that → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[`plsql_warnings`] is disabled in order to focus on error messages and not be distracted
-    by warnings.
+    If set in the `→ development/databases/Oracle/SQL-Plus/sqlpath/login` file,
+    consider making sure that → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[`plsql_warnings`]
+    is disabled in order to focus on error messages and not be distracted by warnings.
 
 rem {
 SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plsql_warnings = 'disable:all';
 rem }
 
-   Note: the final slash in the path of the log directory seems to be required.
-
+   Note: the final slash in the path of the log directory seems to be required:
 code {
 rem mkdir log
 → development/databases/Oracle/SQL-Plus[sqlplus] system/iAmSystem
 SQL> @mksample iAmSystem iAmSysdba hrPw oePw pmPw ixPw shPw biPw DATA TEMP log/ ora19
+code }
+
+  Start from a → Windows/PowerShell command line and → development/databases/Oracle/SQL-Plus/start/run-SQL-script-from-command-line#sqlplus-highlight-ps[highlight errors and warnings]:
+code {
+sqlplus system/iAmSystem@Ora19 `@mksample iAmSystem iAmSysdba hrPw oePw pmPw ixPw shPw biPw DATA TEMP log/ ora19 | foreach-object {
+   $line = $_
+   $line = $line -replace '^(error|warning).*|^SP2-', "$([char]27)[38;5;9m$line$([char]27)[0m"
+   $line = $line -replace '^(\s*exec script).*|^SP2-', "$([char]27)[32;5;9m$line$([char]27)[0m"
+   $line
+}
 code }
 
   }
@@ -110,18 +153,8 @@ SQ> alter user hr identified by your_password account unlock;
 code }
 
     }
-    { ORA-22288: file or LOB operation FILEOPEN failed
 
-      ORA-22288 is thrown in script `order_entry/createResources.sql`
 
-    }
-    { ORA-31001
-
-code {
-ORA-31001: Invalid resource handle or path name "/home/OE/purchaseOrder.xsd"
-code }
-
-    }
 
   }
 

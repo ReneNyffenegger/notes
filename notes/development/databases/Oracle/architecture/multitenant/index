@@ -2,3 +2,102 @@ $ Oracle multitenant architecture
 @ multitenant architecture
 
 The multitenant architecture allows for a separation of duties between a PDB administrator and a CDB administrator.
+
+Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle supports multitenant architecture only.
+
+{ Container Database CDB
+
+? A *container database (CDB)* consists of
+    • Zero, one or more *pluggable databases (PDB)* and
+    • Zero, one or more *application containers*
+
+  A CDB also has
+    • Exactly one *CDB root container* (also referred to as the «root»)
+    • Exactly one *system container*
+    • Exactly one *seed PDB*
+
+}
+{ System container
+
+  The system container is the CDB's *logical container* and contains
+    • The root container
+    • The CDB's PDBs.
+
+}
+{ Portable Database PDB
+
+  A *portable database* (PDB) is a collection of
+    • Schemas
+    • Schema objects
+    • Non-Schema objects
+
+  A PDB belongs to zero or one application container.
+  -
+  If it  belongs to an application container, it is a *application PDB*.
+
+  With regard to → development/databases/Oracle/Net, a PDB feels like an ordinary
+  → development/databases/Oracle/architecture/database.
+
+}
+{ Application container
+
+  An *application container* is an optional component of the CDB which stores stores
+  → development/Data and → development/Data/metadata for «application back-ends».
+
+  An application container consists of
+    • Exactly one *application root* and
+    • the PDBs plugged into this root.
+
+}
+{ Root container
+
+  The root container stores the → development/Data/metadata which is required to manage the PDBs.
+
+  The name of the root container is `CDB$ROOT`.
+
+  Oracle recommends to use *AL32UTF8* for the root → development/Unicode/character-set.
+
+}
+{ Seed PDB
+
+  The *seed PDB* is a system-supplied, read-only template from which new PDBs are created.
+
+  The name of the seed PDB is `PDB$SEED`.
+
+}
+{ TODO
+
+code {
+create pluggable database pdb_abc_2
+from pdb_abc_1
+file_name_convert=('/pdb_abc_1/', '/pdb_abc_2/');
+code }
+
+code {
+create pluggable database pdb_xyz
+    as application container
+    admin user pdb_xyz_admin identified by secretGarden;
+code }
+
+code {
+alter pluggable database pdb_xyz open;
+code }
+
+code {
+alter session set container = …;
+code }
+
+
+  The procedure `dbms_pdb_num` (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catfusrg_sql`) checks if Multitenant is used and counts user-created PDBs.
+
+code {
+select * from → development/databases/Oracle/installed/dynamic-performance-views/database where cdb = 'YES';
+code }
+
+}
+
+
+sa:
+
+  `→ development/databases/Oracle/installed/dynamic-performance-views/pdbs`,
+  `→ development/databases/Oracle/installed/dynamic-performance-views/containers`.
