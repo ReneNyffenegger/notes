@@ -1,0 +1,240 @@
+$ Oracle PLAN_TABLE: column PARTITION_START and PARTITION_STOP
+
+The → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`PLAN_TABLE`] columns `PARTITION_START` and `PARTITION_STOP` are used
+in combination with → development/databases/Oracle/objects/tables/partitions/pruning[partition pruning].
+
+When using `→ development/databases/Oracle/installed/packages/dbms/xplan`, the values of `partition_start` and `partition_stop` are displayed in the columns `PSTART` and `PSTOP`.
+
+{ List partitioned table
+
+  For demonstration purposes, a → development/databases/Oracle/objects/tables/partitions/distribution-techniques/list[list partitioned table] is created:
+code {
+create table tq84_part_tab (
+   val    number,
+   par    varchar(1)
+)
+partition by list (par) (
+   partition tq84_part_a values ('A'),
+   partition tq84_part_b values ('B'),
+   partition tq84_part_c values ('C'),
+   partition tq84_part_d values ('D'),
+   partition tq84_part_e values ('E'),
+   partition tq84_part_f values ('F')
+);
+code }
+
+  { Number
+
+    When a partition can be identified uniquely, the partition number is the value of `partition_start` and `partition_stop`.
+code {
+explain plan for
+select
+   val
+from
+   tq84_part_tab
+where
+   par = 'D';
+--
+-- ---------------------------------------------------------------
+-- | Id  | Operation             | Name          | Pstart| Pstop |
+-- ---------------------------------------------------------------
+-- |   0 | SELECT STATEMENT      |               |       |       |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list#ora-plan-partition-list-single[PARTITION LIST SINGLE]|               |     4 |     4 |
+-- |   2 |   TABLE ACCESS FULL   | TQ84_PART_TAB |     4 |     4 |
+-- ---------------------------------------------------------------
+code }
+
+    In the above case, the details of the partition can be found in the → development/databases/Oracle/installed/data-dictionary view
+    → development/databases/Oracle/installed/data-dictionary/tab/partitions[`user_tab_partitions`]:
+code {
+select *
+from
+   user_tab_partitions
+where
+   table_name         = 'TQ84_PART_TAB' and
+   → development/databases/Oracle/installed/data-dictionary/tab/partitions#dba_tab_partitions-partition_position[partition_position] =  4;
+code }
+
+  }
+  { From … to
+
+    Using `between` causes `partition_start` and `partition_stop` to be filled with the first and last partition number of the partitions that match the values in the `between` clause.
+
+code {
+explain plan for
+select
+   val
+from
+   tq84_part_tab
+where
+   par between 'B' and 'D';
+
+select * from table(dbms_xplan.display(format => 'basic +partition'));
+--
+-- -----------------------------------------------------------------
+-- | Id  | Operation               | Name          | Pstart| Pstop |
+-- -----------------------------------------------------------------
+-- |   0 | SELECT STATEMENT        |               |       |       |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list#ora-plan-partition-list-iterator[PARTITION LIST ITERATOR]|               |     2 |     4 |
+-- |   2 |   TABLE ACCESS FULL     | TQ84_PART_TAB |     2 |     4 |
+-- -----------------------------------------------------------------
+code }
+
+  }
+  { KEY(I)
+
+code {
+explain plan for
+select
+   val
+from
+   tq84_part_tab
+where
+   par in ('B', 'D');
+--
+-- ---------------------------------------------------------------
+-- | Id  | Operation             | Name          | Pstart| Pstop |
+-- ---------------------------------------------------------------
+-- |   0 | SELECT STATEMENT      |               |       |       |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list#ora-plan-partition-list-inlist[PARTITION LIST INLIST]|               |KEY(I) |KEY(I) |
+-- |   2 |   TABLE ACCESS FULL   | TQ84_PART_TAB |KEY(I) |KEY(I) |
+-- ---------------------------------------------------------------
+code }
+
+    Note, there is also `KEY(SQ)` where `SQ` stands for subquery.
+
+  }
+  { INVALID
+
+    There is no partition where `par = 'X'`, therefore, the following statement fills `INVALID` into `Pstart` and `Pstop`.
+
+code {
+explain plan for
+select
+   val
+from
+   tq84_part_tab
+where
+   par = 'X';
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic +partition'));
+--
+-- --------------------------------------------------------------
+-- | Id  | Operation            | Name          | Pstart| Pstop |
+-- --------------------------------------------------------------
+-- |   0 | SELECT STATEMENT     |               |       |       |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list#ora-plan-partition-list-empty[PARTITION LIST EMPTY]|               |INVALID|INVALID|
+-- |   2 |   TABLE ACCESS FULL  | TQ84_PART_TAB |INVALID|INVALID|
+-- --------------------------------------------------------------
+code }
+
+  }
+}
+{ Sub-partitioned table
+
+
+code {
+drop table tq84_part_intv_rng purge;
+
+create table tq84_part_intv_rng (
+    num    number,
+    grp    varchar2(1),
+    val    number
+)
+partition by range (num) interval (100)
+    subpartition by list (grp)
+        subpartition template (
+          subpartition sub_part_a values ('A'),
+          subpartition sub_part_b values ('B'),
+          subpartition sub_part_c values ('C')
+        )
+(
+  partition values less than ( 100 ) 
+);
+
+
+insert into tq84_part_intv_rng values (888, 'B', 42);
+insert into tq84_part_intv_rng values (888, 'A', 99);
+insert into tq84_part_intv_rng values (333, 'C', 78);
+insert into tq84_part_intv_rng values (555, 'A', -1);
+insert into tq84_part_intv_rng values (111, 'B', -1);
+insert into tq84_part_intv_rng values (  0, 'A',  0);
+
+select
+   prt.high_value             prt_hv,
+   sub.high_value             sub_hv,
+   prt.partition_position     prt_pos,
+   sub.subpartition_position  sub_pos,
+   sub.subpartition_name,
+   sub.partition_name,
+   prt.subpartition_count,
+   prt.composite
+from
+   user_tab_subpartitions sub                                               join
+   user_tab_partitions    prt on sub.partition_name = prt.partition_name
+where
+   sub.table_name = 'TQ84_PART_INTV_RNG';
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num =   0   and
+   grp =  'A';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num =   0   and
+   grp =  'B';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num =   0   and
+   grp =  'C';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num = 111   and
+   grp =  'A';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num = 111   and
+   grp =  'B';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+
+explain plan for
+select
+   val
+from
+   tq84_part_intv_rng
+where
+   num = 111   and
+   grp =  'C';
+select * from table(dbms_xplan.display(format=>'basic +partition'));
+code }
+
+}

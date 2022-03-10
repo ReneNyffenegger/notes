@@ -87,12 +87,57 @@ code {
 alter session set container = …;
 code }
 
+ `dbms_pdb`
 
   The procedure `dbms_pdb_num` (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catfusrg_sql`) checks if Multitenant is used and counts user-created PDBs.
 
 code {
 select * from → development/databases/Oracle/installed/dynamic-performance-views/database where cdb = 'YES';
 code }
+
+code {
+select
+   sys_context('USERENV', 'CDB_NAME'),
+   sys_context('USERENV', 'CON_NAME'), 
+   sys_context('USERENV', 'APPLICATION_NAME')
+from
+   dual;
+code }
+
+
+  `approot_to_pdb.sql`
+
+  { Objects related to application container
+
+    Tables related to the application container seem to include:
+     • `sys.fed$apps`
+     • `sys.fed$patches`
+     • `sys.fed$versions`
+     • `sys.fed$statement$errors`
+     • `sys.fed$app$status`
+     • `sys.fed$binds`
+     • `sys.fed$editions`
+     • `sys.fed$dependency`
+
+    Sequence
+      • `app$con$seq`
+
+  }
+
+  { Data links, metadata links, extended data links
+
+    DL = data link (formerly OBL); MDL = metadata link; EDL = extended data link
+
+    The plan operation `EXTENDED DATA LINK`
+
+    Columns
+      • `SHARING` in `DBA_OBJECTS`
+      • `EXTENDED_DATA_LINK` and `EXTENDED_DATA_LINK_MAP` in `DBA_TABLES` and `DBA_VIEWS`
+      • `PDB_LOCAL_ONLY` in `DBA_VIEWS`
+
+   `dbms_pdb_alter_sharing.set_metadata_linked`, `dbms_pdb_alter_sharing.set_data_linked`, `dbms_pdb_alter_sharing.set_ext_data_linked`
+
+  }
 
 }
 

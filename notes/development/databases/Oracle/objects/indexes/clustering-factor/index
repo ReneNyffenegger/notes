@@ -1,0 +1,92 @@
+$ Oracle: Index Clustering Factor
+
+{ Calculation
+
+code {
+create table tq84_calc_ind_clust_fact (
+   num number(3) not null,
+   val varchar2(50)
+);
+
+insert into tq84_calc_ind_clust_fact
+select
+   trunc(dbms_random.value(0, 1000)),
+   rpad('x', 50, 'x')
+from
+   dual connect by level <= 10000;
+
+create index tq84_calc_ind_clust_fact_ix on tq84_calc_ind_clust_fact(num);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_calc_ind_clust_fact');
+end;
+/
+
+select * from user_tables where table_name = 'TQ84_CALC_IND_CLUST_FACT';
+
+select
+   clustering_factor
+from
+   user_indexes
+where
+   index_name like 'TQ84_CALC_IND_CLUST_FACT_IX';
+--
+-- 9436
+
+
+
+
+select sum(s) as clustering_factor from (
+  select
+     case when lag(dbms_rowid.rowid_block_number(rowid)) over (order by num) =
+                   dbms_rowid.rowid_block_number(rowid)                          and
+               lag(dbms_rowid.rowid_relative_fno(rowid)) over (order by num) =
+                   dbms_rowid.rowid_relative_fno(rowid)
+          then 0 else 1
+     end s
+  from
+     tq84_calc_ind_clust_fact
+);
+   
+
+create table tq84_ordered as
+select
+   *
+from
+   tq84_calc_ind_clust_fact
+order by
+   num;
+
+create index tq84_ordered_ix on tq84_ordered(num);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_ordered');
+end;
+/
+
+select
+   clustering_factor
+from
+   user_indexes
+where
+   index_name like 'TQ84_ORDERED_IX';
+--
+-- 84
+
+select sum(s) as clustering_factor from (
+  select
+     case when lag(dbms_rowid.rowid_block_number(rowid)) over (order by num) =
+                   dbms_rowid.rowid_block_number(rowid)                          and
+               lag(dbms_rowid.rowid_relative_fno(rowid)) over (order by num) =
+                   dbms_rowid.rowid_relative_fno(rowid)
+          then 0 else 1
+     end s
+  from
+     tq84_ordered
+);
+
+drop   table tq84_calc_ind_clust_fact;
+drop   table tq84_ordered;
+code }
+
+}

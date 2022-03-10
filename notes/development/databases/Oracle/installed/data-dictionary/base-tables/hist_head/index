@@ -1,0 +1,46 @@
+$ Oracle: SYS.HIST_HEAD$
+@ hist_head$
+
+*Column-histogram header table*.
+
+
+code {
+select 
+   own.name                 owner,
+   obj.name                 tab_name,
+   col.name                 col_name,
+   hhd.bucket_cnt      , -- number of buckets
+   hhd.row_cnt         , -- number of rows in histgrm$
+   hhd.cache_cnt       , -- number of rows in row cache
+   hhd.null_cnt        , -- number of nulls
+   hhd.timestamp#      , -- date of histogram's last update
+   hhd.sample_size     , -- sample size (estimated stats only)
+   hhd.minimum         , -- minimum value (1-bucket histograms only)
+   hhd.maximum         , -- maximum value (1-bucket histograms only)
+   hhd.distcnt         , -- number of distinct values
+   hhd.lowval          , -- lowest value of column (second lowest if default)
+   hhd.hival           , -- highest value of column (second highest if default)
+   hhd.density         , -- density value
+   hhd.intcol#         , -- internal column number
+   hhd.spare1          , -- sample number of distinct values
+   case hhd.spare2
+        when 1 then 'user-specified stats'
+        when 2 then 'global stats'
+        when 4 then 'enpoint actual values in histgrm$ (?)'
+        else        '?'
+   end                       flags,
+   hhd.avgcln          , -- average column length
+-- hhd.spare3          , 
+-- hhd.spare4          ,
+   hhd.minimum_enc     , -- minimum value (encrypted)
+   hhd.maximum_enc       -- maximum value (encrypted)
+from
+   sys.hist_head$  hhd                             join
+   sys.obj$        obj on hhd.obj#   = obj.obj#    join
+   sys.user$       own on obj.owner# = own.user#   join
+   sys.col$        col on hhd.col#   = col.col#
+code }
+
+sa:
+
+  `→ development/databases/Oracle/installed/data-dictionary/base-tables/histgrm`

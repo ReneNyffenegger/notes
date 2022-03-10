@@ -1,0 +1,23 @@
+$ ORA-14400: inserted partition key does not map to any partition
+
+code {
+create table tq84_part_intv_rng (
+    num    number,
+    grp    varchar2(1),
+    val    number
+)
+partition by range (num) interval (100)
+    subpartition by list (grp)
+        subpartition template (
+          subpartition sub_part_a values ('A'),
+          subpartition sub_part_b values ('B'),
+          subpartition sub_part_c values ('C')
+        )
+(
+  partition values less than ( 100 ) 
+);
+code }
+
+code {
+insert into tq84_part_intv_rng values (444, 'X', 42);
+code }

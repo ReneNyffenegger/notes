@@ -1,6 +1,44 @@
 $ Oracle: DBA_TAB_SUBPARTITIONS
 @ dba_tab_subpartitions
 
+code {
+create table tq84_part_intv_rng (
+   num    number,
+   grp    varchar2(1),
+   val    number
+)
+partition by range (num) interval (100)
+   subpartition by list (grp)
+        subpartition template (
+          subpartition sub_part_a values ('A'),
+          subpartition sub_part_b values ('B'),
+          subpartition sub_part_c values ('C')
+        )
+(
+   partition values less than ( 100 ) 
+);
+
+
+insert into tq84_part_intv_rng values (888, 'B', 42);
+insert into tq84_part_intv_rng values (333, 'C', 99);
+
+select
+   prt.high_value             prt_hv,
+   sub.high_value             sub_hv,
+   prt.partition_position     prt_pos,
+   sub.subpartition_position  sub_pos,
+   sub.subpartition_name,
+   sub.partition_name,
+   prt.subpartition_count,
+   prt.composite
+from
+   user_tab_subpartitions sub                                               join
+   user_tab_partitions    prt on sub.partition_name = prt.partition_name and
+                                 sub.table_name     = prt.table_name
+where
+   sub.table_name = 'TQ84_PART_INTV_RNG';
+code }
+
 sa:
 
   → development/databases/Oracle/objects/tables/partitions[Partitioned tables]

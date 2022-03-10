@@ -1,6 +1,43 @@
 $ Oracle hint: OPT_ESTIMATE
-@ append
+@ opt_estimate
 
+`opt_estimate` influences costing and cardinality estimates. This hint supersedes `cardinality`.
+
+{ Influence assumed number of rows
+
+code {
+create table tq84_opt_est (
+    num    number,
+    txt    varchar2(10)
+);
+
+delete plan_table;
+explain plan for
+select
+/*+
+    opt_estimate(table tq84_opt_est rows=12345)
+*/
+    num,
+    txt
+from
+    tq84_opt_est;
+
+select * from table(dbms_xplan.display(format=>'basic +rows'));
+--
+-- --------------------------------------------------
+-- | Id  | Operation         | Name         | Rows  |
+-- --------------------------------------------------
+-- |   0 | SELECT STATEMENT  |              | 12345 |
+-- |   1 |  TABLE ACCESS FULL| TQ84_OPT_EST | 12345 |
+-- --------------------------------------------------
+
+drop   table tq84_opt_est;
+code }
+
+}
 
 sa:
+
  `→ development/databases/Oracle/installed/dynamic-performance-views/sql/reoptimization_hints`
+
+  → development/databases/Oracle/SQL/hints
