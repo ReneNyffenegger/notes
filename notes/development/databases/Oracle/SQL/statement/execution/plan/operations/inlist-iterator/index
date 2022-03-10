@@ -1,5 +1,63 @@
 $ Oracle SQL Plan operation INLIST ITERATOR
 
+The `INLIST ITERATOR` has exactly one child row source. I have seen the following child row sources:
+  • `INDEX RANGE SCAN`
+  • `INDEX UNIQUE SCAN`
+  • `TABLE ACCESS BY GLOBAL INDEX ROWID`
+  • `TABLE ACCESS BY INDEX ROWID`
+  • `TABLE ACCESS BY INDEX ROWID BATCHED`
+  • `TABLE ACCESS BY USER ROWID`
+  • `TABLE ACCESS CLUSTER`
 
+
+code {
+drop   table tq84_A;
+
+create table tq84_A (
+   nm   number,
+   tx   varchar2(200)
+);
+
+insert into tq84_A
+select
+   mod(level * 773, 1009),
+   lpad('x', 200, 'x')
+from 
+   dual connect by level < 1009;
+
+create unique index tq84_A_ix on tq84_A(nm);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+end;
+/
+
+explain plan for
+select
+   tx
+from
+   tq84_A
+where
+   nm in (111, 222, 333, 444);
+
+select * from table(dbms_xplan.display(format => 'basic +rows'));
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation                    | Name      | Rows  |
+-- ----------------------------------------------------------
+-- |   0 | SELECT STATEMENT             |           |     4 |
+-- |   1 |  INLIST ITERATOR             |           |       |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_A    |     4 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan[INDEX UNIQUE SCAN]         | TQ84_A_IX |     4 |
+-- ----------------------------------------------------------
+code }
+
+Note: the cardinality («Rows») of the `INDEX UNIQUE SCAN` is 4, not 1, because this operation is expected to be called 4 times.
+ 
 sa:
+
+  `PARTITION LIST ITERATOR`,
+   -
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/range#ora-plan-partition-range-inlist[`PARTITION RANGE INLIST`].
+
   → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]

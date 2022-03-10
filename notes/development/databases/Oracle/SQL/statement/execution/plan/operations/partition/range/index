@@ -1,0 +1,120 @@
+$ Oracle SQL Plan operation PARTITION RANGE
+
+The `PARTITION RANGE` plan operation has four(?) options:
+  • `ALL`
+  • `SINGLE`
+  • `INLIST`
+  • `OR`
+
+{ Options
+
+  { Test table for demonstration
+
+code {
+create table tq84_part (
+   txt  varchar2(10),
+   num  number(5,2)
+)
+partition by range (num) (
+   partition tq84_p_00 values less than ( 10     ),
+   partition tq84_p_10 values less than ( 20     ),
+   partition tq84_p_20 values less than ( 30     ),
+   partition tq84_p_30 values less than ( 40     ),
+   partition tq84_p_40 values less than ( 50     ),
+   partition tq84_p_50 values less than ( 60     ),
+   partition tq84_p_60 values less than ( 70     ),
+   partition tq84_p_70 values less than ( 80     ),
+   partition tq84_p_80 values less than ( 90     ),
+   partition tq84_p_90 values less than (maxvalue)
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_part
+select
+   dbms_random.string('a', 10),
+   round(dbms_random.value(0, 100), 2)
+from
+   dual connect by level <= 100 * 1000;
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_part');
+end;
+/
+code }
+
+  }
+  { Option: ALL
+
+code {
+explain plan for
+select *
+from
+   tq84_part
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation           | Name      |
+-- -----------------------------------------
+-- |   0 | SELECT STATEMENT    |           |
+-- |   1 |  PARTITION RANGE ALL|           |
+-- |   2 |   TABLE ACCESS FULL | TQ84_PART |
+-- -----------------------------------------
+code }
+
+  }
+  { Option: SINGLE
+
+code {
+explain plan for
+select *
+from
+   tq84_part
+where
+   num = 5.12;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------------
+-- | Id  | Operation              | Name      |
+-- --------------------------------------------
+-- |   0 | SELECT STATEMENT       |           |
+-- |   1 |  PARTITION RANGE SINGLE|           |
+-- |   2 |   TABLE ACCESS FULL    | TQ84_PART |
+-- --------------------------------------------
+code }
+
+  }
+  { Option: INLIST #ora-plan-partition-range-inlist
+
+code {
+explain plan for
+select *
+from
+   tq84_part
+where
+   num in (5.12, 7.91);
+--
+-- --------------------------------------------
+-- | Id  | Operation              | Name      |
+-- --------------------------------------------
+-- |   0 | SELECT STATEMENT       |           |
+-- |   1 |  PARTITION RANGE INLIST|           |
+-- |   2 |   TABLE ACCESS FULL    | TQ84_PART |
+-- --------------------------------------------
+code }
+
+    Compare with the → development/databases/Oracle/SQL/statement/execution/plan/operations/inlist-iterator[`INLIST ITERATOR` plan operation].
+
+  }
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list[`PARTITION LIST`]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]
