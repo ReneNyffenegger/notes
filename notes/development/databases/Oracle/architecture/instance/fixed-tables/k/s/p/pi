@@ -1,8 +1,11 @@
 $ Oracle: X$KSPPI
 @ x$ksppi
 
-→ development/databases/Oracle/adminstration/init-parameters[(Init-) parameter] names and description.
+`x$ksppi` lists → development/databases/Oracle/adminstration/init-parameters[(Init-) parameter] names and description.
 
+`x$ksppi` is interesting because, unlike `→ development/databases/Oracle/installed/dynamic-performance-views/parameter`, it also shows so called *hidden* parameters.
+
+`x$ksppi` can be joined to `x$ksppcv` and `x$ksppsv`:
 code {
 select
    par.ksppinm   name,
@@ -23,7 +26,7 @@ select
    w.ksppstdf    is_default_w,
    w.ksppstvf    vf_w,
    w.ksppstcmnt  update_comment_w,
-
+   --
    par.ksppilrmflg,
    par.ksppity,
    par.ksppihash
@@ -32,7 +35,9 @@ from
    x$ksppcv v on par.indx = v.indx   join
    x$ksppsv w on par.indx = w.indx
 where
-   par.ksppinm = '_db_block_hash_buckets';
+   par.ksppinm like '%db%block%'
+order by
+   lower(replace(par.ksppinm, '_', ''));
 code }
 
 sa:

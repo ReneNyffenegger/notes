@@ -20,3 +20,41 @@ select json_arrayagg(
 from
    user_objects;  
 code }
+
+{ ORDER BY
+
+  When ordering the elements that `json_arrayagg` produces, the `development/databases/Oracle/SQL/select/order-by` clause must be placed *within* the `json_arrayagg` function:
+code {
+select json_arrayagg(
+   json_array(
+      object_name,
+      object_type,
+      created
+   )
+   ORDER BY
+      object_name
+   returning clob
+)
+from
+   user_objects
+;
+code }
+
+  Note, the following statement does not throw an error (at least on 19c) - but the `order by` clause seems to have no influence on the result set:
+code {
+select json_arrayagg(
+   json_array(
+      object_name,
+      object_type,
+      created
+   )
+   returning clob
+)
+from
+   user_objects
+order by
+   object_name   
+;
+code }
+
+}

@@ -1,0 +1,48 @@
+$ Oracle: SYS_OP_COUNTCHG
+@ sys_op_countchg
+
+`sys_op_countchg` is an → development/databases/Oracle/SQL/select/aggregate.
+
+The first parameter is supposed to be a → development/databases/Oracle/SQL/data-types/rowid[`rowid`]… but let's try using a different datatype:
+code {
+drop   table tq84_countchg;
+create table tq84_countchg (
+   val_1   number,
+   val_2   varchar2(10)
+);
+
+begin
+insert into tq84_countchg values ( 4, 'A');
+insert into tq84_countchg values ( 4, 'B');
+insert into tq84_countchg values ( 2, 'C');
+insert into tq84_countchg values ( 2, 'D');
+insert into tq84_countchg values ( 2, 'E');
+insert into tq84_countchg values ( 5, 'F');
+insert into tq84_countchg values ( 4, 'G');
+insert into tq84_countchg values ( 5, 'H');
+end;
+/
+
+select
+   sys_op_countchg(val_1, 1)  cnt_1,
+   sys_op_countchg(val_1, 2)  cnt_2,
+   sys_op_countchg(val_1, 3)  cnt_3,
+   sys_op_countchg(val_1, 4)  cnt_4
+from
+   tq84_countchg
+--order by
+--   val_1
+;
+--
+--      CNT_1      CNT_2      CNT_3      CNT_4
+-- ---------- ---------- ---------- ----------
+--          5          4          3          3
+code }
+
+sa:
+
+  `sys_op_countchg` seems to be used to → development/databases/Oracle/objects/indexes/clustering-factor#ora-ix-clust-fact-calc[calculate]
+  → development/databases/Oracle/objects/indexes/clustering-factor of an
+  → development/databases/Oracle/objects/indexes.
+
+  → development/databases/Oracle/SQL/functions/sys/op[`sys_op_*` functions]

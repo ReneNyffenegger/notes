@@ -10,8 +10,9 @@ select
    ash.dbid,
    ash.con_dbid,
    ash.con_id,
-   min(ash.sample_time)      min_t,
-   max(ash.sample_time)      max_t
+   to_char(min(ash.sample_time), 'yyyy-mm-dd hh24:mi')      min_t,
+   to_char(max(ash.sample_time), 'yyyy-mm-dd hh24:mi')      max_t,
+   count(*)                                                 cnt
 from
    v$database                    vdb cross join
    dba_hist_active_sess_history  ash
@@ -155,6 +156,46 @@ from
    sys.dba_hist_active_sess_history ash
 order by
    ash.sample_time desc
+;
+code }
+
+Counts per sample
+code {
+select
+   ash.sample_id,
+   to_char(ash.sample_time, 'yyyy-mm-dd hh24:mi:ss'    )    tm,
+   count(*)                                                 cnt,
+   max(count(*)) over ()                                    max_cnt,
+   max(to_char(ash.sample_time, 'yyyy-mm-dd hh24:mi:ss')) 
+       keep (dense_rank first order by count(*) desc)    
+       over ()                                              max_cnt_ts
+from
+   v$database                   vdb                         join
+   dba_hist_active_sess_history ash on vdb.dbid = ash.dbid
+group by
+   ash.sample_id,
+   ash.sample_time
+order by
+   ash.sample_time desc;
+code }
+
+Start and end of sessions
+code {
+select
+   to_char(min(ash.sample_time), 'dd hh24:mi:ss')    start_,
+   to_char(max(ash.sample_time),    'hh24:mi:ss')    end_,
+   min(ash.sample_id)                                min_id,
+   max(ash.sample_id)                                max_id,
+   nvl(ash.qc_session_id     , ash.session_id     )  ses_id,
+   nvl(ash.qc_session_serial#, ash.session_serial#)  ses_ser
+from
+   v$database                   vdb                        join
+   dba_hist_active_sess_history ash on vdb.dbid = ash.dbid
+where
+   ash.sample_time >= sysdate - 1
+group by
+   nvl(ash.qc_session_id     , ash.session_id     ),
+   nvl(ash.qc_session_serial#, ash.session_serial#)
 ;
 code }
 

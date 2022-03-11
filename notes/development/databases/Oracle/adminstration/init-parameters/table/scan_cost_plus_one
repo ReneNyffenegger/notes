@@ -1,0 +1,106 @@
+$ Oracle: Init parameter _TABLE_SCAN_COST_PLUS_ONE
+@ _table_scan_cost_plus_one
+
+code {
+drop   table tq84_cost_test;
+
+create table tq84_cost_test (
+   dummy number(1)
+);
+
+insert into tq84_cost_test values (0);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_cost_test');
+end;
+/
+
+--
+
+explain plan for
+select
+   *
+from
+   tq84_cost_test;
+
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation         | Name           | Cost (%CPU)|
+-- ---------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |                |     3   (0)|
+-- |   1 |  TABLE ACCESS FULL| TQ84_COST_TEST |     3   (0)|
+-- ---------------------------------------------------------
+
+
+--
+-- The default value of _table_scan_cost_plus_one is true
+-- which causes the cost associated with
+-- TABLE ACCESS FULL to be increased by one
+-- Setting it to false gives the 'original' value.
+-- 
+alter session set "_table_scan_cost_plus_one" = false;
+
+explain plan for
+select
+   *
+from
+   tq84_cost_test;
+
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation         | Name           | Cost (%CPU)|
+-- ---------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |                |     2   (0)|
+-- |   1 |  TABLE ACCESS FULL| TQ84_COST_TEST |     2   (0)|
+-- ---------------------------------------------------------
+
+
+-- Revert to default
+alter session set "_table_scan_cost_plus_one" = true;
+code }
+
+In the following script, changing the value of `_table_scan_cost_plus_one` changes between
+`INDEX FULL SCAN` and `INDEX FAST FULL SCAN`:
+code {
+create index tq84_cost_test_ix on tq84_cost_test(dummy);
+
+explain plan for
+select
+   sum(dummy)
+from
+   tq84_cost_test;
+
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- -----------------------------------------------------------
+-- | Id  | Operation        | Name              | Cost (%CPU)|
+-- -----------------------------------------------------------
+-- |   0 | SELECT STATEMENT |                   |     1   (0)|
+-- |   1 |  SORT AGGREGATE  |                   |            |
+-- |   2 |   INDEX FULL SCAN| TQ84_COST_TEST_IX |     1   (0)|
+-- -----------------------------------------------------------
+
+alter session set "_table_scan_cost_plus_one" = false;
+explain plan for
+select
+   sum(dummy)
+from
+   tq84_cost_test;
+
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- ----------------------------------------------------------------
+-- | Id  | Operation             | Name              | Cost (%CPU)|
+-- ----------------------------------------------------------------
+-- |   0 | SELECT STATEMENT      |                   |     1   (0)|
+-- |   1 |  SORT AGGREGATE       |                   |            |
+-- |   2 |   INDEX FAST FULL SCAN| TQ84_COST_TEST_IX |     1   (0)|
+-- ----------------------------------------------------------------
+
+code }
+
+sa:
+
+  The → development/databases/Oracle/adminstration/init-parameters

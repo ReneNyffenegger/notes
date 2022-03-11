@@ -1,11 +1,20 @@
 $ DBMS_SPACE.SPACE_USAGE
 
+
+`dbms_space.space_usage` reports space usage of → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a → development/databases/Oracle/architecture/database/logical-structures/segment[segment's] → development/databases/Oracle/architecture/database/logical-structures/segment/high-water-mark *or* information about *securefile lob* space usage.
+
+{ Procedure to print space usage of segments
+
+  The following procedure prints the figures obtained from `dbms_space.space` usage for a given segment:
 code {
-declare
-   seg_name       varchar2(128) := '...';
-   seg_owner      varchar2(128) := '...';
-   seg_type       varchar2( 25) := '...';
-   part_name      varchar2(128) :=  null;
+create or replace procedure space_usage(
+   seg_name       varchar2           ,
+   seg_type       varchar2 := 'TABLE',
+   seg_owner      varchar2 :=  user  ,
+   part_name      varchar2 :=  null
+)
+   authid definer
+as
   
    unformatted_blocks      number; unformatted_bytes number;
    fs1_blocks              number; fs1_bytes         number;
@@ -53,7 +62,7 @@ begin
    dbms_output.put_line(' 0 -  25% full:' || to_char(fs4_blocks , '999,999,990'));
    dbms_output.put_line('unformatted   :' || to_char(unformatted_blocks , '999,999,990'));
 --
--- Bitmap blocks, segment header, and extent map blocks are not accounted for by dbms_space.space_usage,
+-- Bitmap blocks, segment header and extent map blocks are not accounted for by dbms_space.space_usage,
 -- we need to report those seperately:
 --
    dbms_output.put_line('Admin blocks  :' || to_char(cnt_blocks - non_admin_blocks, '999,999,990'));
@@ -62,5 +71,7 @@ end;
 /
 code }
 
+}
+
 sa:
-  → development/databases/Oracle/installed/packages/dbms/space[`dbms_space`]
+ `→ development/databases/Oracle/installed/packages/dbms/space`
