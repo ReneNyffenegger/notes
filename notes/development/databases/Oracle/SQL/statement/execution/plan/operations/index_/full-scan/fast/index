@@ -1,0 +1,62 @@
+$ Oracle SQL Plan operation INDEX FAST FULL SCAN
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation]
+`INDEX FAST FULL SCAN` is an alternative to → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS FULL`]
+and uses an
+→ development/databases/Oracle/objects/indexes not to locate rows in a table but to select data from the
+index without having to go to the table.
+
+This is possible if all referenced columns of a table in an
+→ development/databases/Oracle/SQL/statement[SQL statement] are found in the index.
+
+Because the size of the index is typically smaller than the size of table and an index fast full scan
+can be read with multiblock I/O, the optimizer (usually? always?) prefers an index fast full scan
+over a table access full if possible.
+
+code {
+create table tq84_tab (
+   val_1  varchar2(10),
+   val_2  number(6,2),
+   txt    varchar2(100)
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab
+select
+   dbms_random.string('a', 10),
+   round(dbms_random.value(0, 999), 2),
+   rpad('x', 100)
+from
+   dual connect by level <= 10000;
+
+create index tq84_tab_ix on tq84_tab(val_1, val_2);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+
+explain plan for
+select
+   val_1,
+   val_2
+from
+   tq84_tab
+where
+   val_2 between 207 and 208;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------------
+-- | Id  | Operation            | Name        |
+-- --------------------------------------------
+-- |   0 | SELECT STATEMENT     |             |
+-- |   1 |  INDEX FAST FULL SCAN| TQ84_TAB_IX |
+-- --------------------------------------------
+
+drop   table tq84_tab;
+code }

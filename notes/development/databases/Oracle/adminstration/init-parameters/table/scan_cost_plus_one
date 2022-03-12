@@ -1,6 +1,12 @@
 $ Oracle: Init parameter _TABLE_SCAN_COST_PLUS_ONE
 @ _table_scan_cost_plus_one
 
+If `_table_scan_cost_plus_one` is set to `true`, the → development/databases/Oracle/optimizer will increase the estimated → development/databases/Oracle/optimizer/cost by one
+when planning an → development/databases/Oracle/SQL/statement/execution/plan[execution plan] involving 
+*full table scan* or *index fast full scan*.
+
+{ Full table scan
+
 code {
 drop   table tq84_cost_test;
 
@@ -61,6 +67,68 @@ select * from table(dbms_xplan.display(format=>'basic +cost'));
 alter session set "_table_scan_cost_plus_one" = true;
 code }
 
+}
+{ Index full scan fast
+
+code {
+create table tq84_tab (
+   num  number(3),
+   txt  varchar2(100)
+);
+
+insert into tq84_tab
+select
+   trunc(dbms_random.value(0, 1000)),
+   rpad('x', 100)
+from
+   dual connect by level <= 10000;
+
+create index tq84_tab_ix on tq84_tab(num);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+
+
+alter session set "_table_scan_cost_plus_one" = false;
+explain plan for
+select
+   avg(num) 
+from
+   tq84_tab;
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation             | Name        | Cost (%CPU)|
+-- ----------------------------------------------------------
+-- |   0 | SELECT STATEMENT      |             |     6   (0)|
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[SORT AGGREGATE]       |             |            |
+-- |   2 |   INDEX FAST FULL SCAN| TQ84_TAB_IX |     6   (0)|
+-- ----------------------------------------------------------
+
+alter session set "_table_scan_cost_plus_one" = true;
+explain plan for
+select
+   avg(num) 
+from
+   tq84_tab;
+select * from table(dbms_xplan.display(format=>'basic +cost'));
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation             | Name        | Cost (%CPU)|
+-- ----------------------------------------------------------
+-- |   0 | SELECT STATEMENT      |             |     7   (0)|
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[SORT AGGREGATE]       |             |            |
+-- |   2 |   INDEX FAST FULL SCAN| TQ84_TAB_IX |     7   (0)|
+-- ----------------------------------------------------------
+
+drop   table tq84_tab;
+code }
+
+}
+{ Other observations
+
 In the following script, changing the value of `_table_scan_cost_plus_one` changes between
 `INDEX FULL SCAN` and `INDEX FAST FULL SCAN`:
 code {
@@ -98,8 +166,9 @@ select * from table(dbms_xplan.display(format=>'basic +cost'));
 -- |   1 |  SORT AGGREGATE       |                   |            |
 -- |   2 |   INDEX FAST FULL SCAN| TQ84_COST_TEST_IX |     1   (0)|
 -- ----------------------------------------------------------------
-
 code }
+
+}
 
 sa:
 
