@@ -4,14 +4,15 @@ $ Oracle: Trace file
 Each → development/databases/Oracle/architecture/processes writes some messages to a tracefile.
 -
 The processes's trace file paths can be queried
-from → development/databases/Oracle/installed/dynamic-performance-views/process[`v$prcess`]:
+from → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`]:
 code {
 select
-   tracefile
+   prc.tracefile
 from
-   v$process
+   v$process prc                         join
+   v$session ses on prc.addr = ses.paddr
 where
-   …
+   ses.sid = sys_context('userenv', 'sid')
 ;
 code }
 
@@ -102,18 +103,6 @@ code }
 }
 { TODO: Events that might be set
 
-  Events are used
-    • to get (additional) diagnostics
-    • for workarounds of known problems
-    • change default behavior
-    • enable (undocumented) features
-
-  There are four categories of events
-    • Events that dump immediately into a trace file (`systemstate`, `pga_detail_get`)
-    • Events that dump when a given error occurs (`ORA-…`)
-    • Change behavior (10235)
-    • Trace «evaluations» (10046, 10053)
-
 
   Set event 10235 to level 1.
 code {
@@ -143,10 +132,7 @@ See → development/databases/Oracle/tools/oradebug/doc/event/name/sql_trace[`or
 Compare with the → development/databases/Oracle/adminstration/init-parameters/sql_trace[init parameter `sql_trace`].
 
 code {
-alter session set events '[SQL_COMPILER.*] disk=highest';
-
---  For a specific sql_id:
-alter session set events '[SQL_COMPILER.012345689abc] disk=highest';
+alter session set events 'trace[SQL_COMPILER.*] disk=highest';
 code }
 
 Disable invoking the action after 1234 events:
@@ -174,14 +160,17 @@ code {
 alter session set events 'deadlock trace name hanganalyze_global';
 code }
 
+rem {
 code {
 alter system  set events 'logon debugger';
 alter system  set events 'parse_sql_statement debugger';
 alter session set events '10117 debugger';
 code }
+rem }
 
 code {
 alter system  set events   'immediate trace name GWM_TRACE level 7';
+alter system  set events   'immediate trace name krb_options level 1'; /* dumps current KRB flags set for session   Found in recover.bsq */
 alter system  set event  = '10798 trace name context forever, level 7' scope=spfile;
 alter system  set events   'trace[progint_appcont_rdbms]'
 alter system  set events   'trace[sess_signature] disk highest';
@@ -315,7 +304,7 @@ code }
 List events that were set in the current session or systemwide:
 code {
 alter session set events 'immediate eventdump(session)';
-alter session set events 'immediate eventdump(session)';
+alter session set events 'immediate eventdump(system )';
 code }
 
 Remove all events:

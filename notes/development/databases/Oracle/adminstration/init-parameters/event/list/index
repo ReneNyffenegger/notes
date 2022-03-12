@@ -1,9 +1,15 @@
 $ List of possible(?) values for the Oracle parameter EVENT
 
 Purposes of an events include
-  • Change the behavior of the Oracle server
-  • Enable collection of trace or debug information
+  • Get additional diagnostics
+  • Change the behavior of the Oracle server (10235)
+  • Eabling undocumented features or enabling workaround for known problems
+  • Enable collection of trace or debug information (10046, 10053)
   • Enable additional error checking
+  • Immediate dump events (→ development/databases/Oracle/tools/oradebug/dump/systemstate[`systemstate`], `→ development/databases/Oracle/tools/oradebug/dump/pga_detail_get[`pga_detail_get`])
+  • Dump «something» when a given error (`ORA-…`) occurs.
+
+
 
 When setting events in the init.ora file, they should be grouped together on subsequent lines, otherwise, only the last event will found will have an effect.
 code {
@@ -59,7 +65,9 @@ end;
 /
 code }
 
-table { lll
+table { rll
+     60 ☰ deadlock detected while waiting for resource ☰ Alias for 60 is `deadlock`
+   4063 ☰ ☰ Found in `execcr.sql`
   10000 ☰ control file debug event, name 'control_file' ☰
   10001 ☰ control file crash event1 ☰
   10002 ☰ control file crash event2 ☰
@@ -92,10 +100,10 @@ table { lll
   10029 ☰ session logon (KSU) ☰
   10030 ☰ session logoff (KSU) ☰
   10031 ☰ sort debug event (S*) ☰
-  10032 ☰ sort statistics (SOR*) ☰
-  10033 ☰ sort run information (SRD*/SRS*) ☰
+  10032 ☰ sort statistics (SOR*) ☰ Alias for 10032 is `sort_end`
+  10033 ☰ sort run information (SRD*/SRS*) ☰Alias for 10033 is `sort_run`
   10034 ☰ access path analysis (APA*) ☰
-  10035 ☰ Write parse failures to alert log file ☰
+  10035 ☰ Write parse failures to → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log[alert log file] ☰ Alias for 10035 is `parse_sql_statement`
   10036 ☰ create remote row source (QKANET) ☰
   10037 ☰ allocate remote row source (QKARWS) ☰
   10038 ☰ dump row source tree (QBADRV) ☰
@@ -209,7 +217,7 @@ table { lll
   10146 ☰ enable Oracle TRACE collection ☰
   10147 ☰ enable join push through UNION view ☰
   10148 ☰ Quarantine trace event ☰
-  10149 ☰ allow the creation of constraints with illegal date constants ☰
+  10149 ☰ allow the creation of constraints with illegal date constants ☰ Found in `utlconst.sql`.
   10150 ☰ import exceptions ☰
   10152 ☰ CBO don't consider function costs in plans ☰
   10153 ☰ Switch to use public synonym if private one does not translate ☰
@@ -258,7 +266,7 @@ table { lll
   10196 ☰ CBO disable index skip scan ☰
   10197 ☰ CBO force index skip scan ☰
   10199 ☰ set parameter in session ☰
-  10200 ☰ consistent read buffer status ☰ `lvl` always 1?
+  10200 ☰ consistent read buffer status ☰ `lvl` always 1? Compare with Event 10812
   10201 ☰ consistent read undo application ☰
   10202 ☰ consistent read block header ☰
   10203 ☰ block cleanout ☰
@@ -565,7 +573,7 @@ table { lll
   10513 ☰ turn on IPC (ksmsq) debugging ☰
   10515 ☰ turn on event to use physical cleanout ☰
   10519 ☰ enable ALTER TYPE RESET support ☰
-  10520 ☰ recreate view only if definition has changed ☰
+  10520 ☰ recreate view only if definition has changed ☰ Found in `catrelod.sql` or `owainst.sql`. This event avoids unnecessary re-compilations.
   10521 ☰ CMON connection pool test event ☰
   10522 ☰ turn off wrap source compression ☰
   10523 ☰ force recreate package even if definition is unchanged ☰
@@ -590,7 +598,7 @@ table { lll
   10551 ☰ Internal testing for ORA-1551 error handling ☰
   10552 ☰ allow unlimited corruption during recovery ☰
   10553 ☰ Incompatible UNTIL CONSISTENT clause ☰
-  10554 ☰ Media recovery failed to bring datafile  to a consistent point ☰
+  10554 ☰ Media recovery failed to bring datafile to a consistent point ☰
   10556 ☰ Enable tracing for multi instance Redo Apply ☰
   10557 ☰ NID clears database incarnation section in controlfile ☰
   10558 ☰ Disable unkeep marker handling for ADG ☰
@@ -637,6 +645,7 @@ table { lll
   10599 ☰ kga (argus debugger) test flags ☰
   10600 ☰ check cursor frame allocation ☰
   10601 ☰ turn on debugging for cursor_sharing (literal replacement) ☰ Can this one also be used to test *SQL translation* (→ development/databases/Oracle/installed/packages/dbms/sql_translator[`dbms_sql_translator`])?
+  10602 ☰ ? ☰ Found in Oracle's documentation on *autonomous health*.
   10603 ☰ cause an error to occur during truncate (for testing purposes) ☰
   10604 ☰ trace parallel create index ☰
   10605 ☰ enable parallel create index by default ☰
@@ -691,7 +700,7 @@ table { lll
   10654 ☰ Table is of type temporary or external ☰
   10655 ☰ Segment can be shrunk ☰
   10656 ☰ Table is in unusable state due to incomplete operation ☰
-  10657 ☰ Lob column to be shrunk does not exist ☰ `alter session set events '10731 trace name context forever, level lvl';`. `lvl` = 1: Print parent query and subquery, `lvl` = 2: Print subquery only.
+  10657 ☰ Lob column to be shrunk does not exist ☰
   10658 ☰ Lob column to be shrunk is marked unused ☰
   10659 ☰ Segment being shrunk is not a lob ☰
   10660 ☰ Segment is a shared lob segment ☰
@@ -735,7 +744,7 @@ table { lll
   10727 ☰ introduce failure events in IPC ☰
   10728 ☰ set parameters for CPU frequency calculation (debug) ☰
   10730 ☰ trace row level security policy predicates ☰
-  10731 ☰ dump SQL for CURSOR expressions ☰ 
+  10731 ☰ dump SQL for CURSOR expressions ☰ `alter session set events '10731 trace name context forever, level lvl';`. `lvl` = 1: Print parent query and subquery, `lvl` = 2: Print subquery only.
   10732 ☰ honor pctfree during insert into AQ IOTs ☰
   10733 ☰ test transient-IOT metadata during PMO cleanup ☰
   10734 ☰ reroute external procedures ☰
@@ -792,11 +801,11 @@ table { lll
   10809 ☰ Trace state object allocate / free history ☰
   10810 ☰ Trace snapshot too old ☰
   10811 ☰ Trace block cleanouts ☰
-  10812 ☰ Trace Consistent Reads ☰
+  10812 ☰ Trace Consistent Reads ☰ Compare with event 10200
   10826 ☰ enable upgrade/downgrade error message trace ☰
   10827 ☰ enable upgrade/downgrade diagnostics ☰
   10828 ☰ memory allocator error ☰
-  10829 ☰ enable error suppression in NORMAL mode ☰
+  10829 ☰ enable error suppression in NORMAL mode ☰ Found in `catpcatses.sql`. Suppresses expected errors in NORMAL mode.
   10830 ☰ Trace group by sort row source ☰
   10831 ☰ Trace group by rollup row source ☰
   10832 ☰ Trace approximate NDV row source ☰
@@ -815,7 +824,7 @@ table { lll
   10848 ☰ OCI Non Blocking not supported with ☰
   10849 ☰ Internal OCI event number ☰
   10850 ☰ Enable time manager tracing ☰
-  10851 ☰ Allow Drop command to drop queue tables ☰
+  10851 ☰ Allow Drop command to drop queue tables ☰ Comment in `c1102000.sql` is *Turn ON/OFF the event to enable/disable DDL on AQ tables*.
   10852 ☰ Enable tracing for Enqueue Dequeue Operations ☰
   10853 ☰ Enable tracing for Replicating AQ Operations ☰
   10854 ☰ Sets poll count used for AQ listen code under RAC ☰
@@ -888,7 +897,7 @@ table { lll
   10930 ☰ trace name context forever ☰
   10931 ☰ trace name context forever ☰
   10932 ☰ trace name context forever ☰
-  10933 ☰ trace name context forever ☰
+  10933 ☰ trace name context forever ☰ Found in `catcr.sql`. Turn off/on *PL/SQL event used by APPS*.
   10934 ☰ trace name context forever ☰
   10936 ☰ trace name context forever ☰
   10937 ☰ trace name context forever ☰
@@ -934,11 +943,22 @@ table { lll
   10997 ☰ another startup/shutdown operation of this instance inprogress ☰
   10998 ☰ event to enable short stack dumps in system state dumps ☰
   10999 ☰ do not get database enqueue name ☰
-  14524 ☰ `'14524 trace name context forever, level 1'`: Turn the event on that disables partition check. ☰ Found in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`]
+  12498 ☰ ☰ Found in `catxev.sql`. Used to add column `refcount` to `xdb$resconfig` table.
+  14524 ☰ `'14524 trace name context forever, level 1'`: Turn the event on that disables partition check. ☰ Found in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`]. Apparently used to circumvent partition check when creating a partition without having Partitioning Option.
+  14529 ☰ ☰ Found in `catawrtb.sql`. Turns on or off *create partition exchange tables with CTAS*.
+  14533 ☰ ☰ Comment in `c1202000.sql` is *Disable column validation…*
   19056 ☰ Turn on csx dml internal event to let internal columns be reloaded. ☰ Found in `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utl32k_sql`
+  19119 ☰ ☰ Found in `xdbeo112.sql` or `xdbxtbix.sql`
+  19027 ☰ ☰ Found in `xdbud111.sql`. Used to turn on rewrite for updxml/delxml/insertxml over collections?
+  22372 ☰ ☰ Found in `dbmsobj.sql`. Needed to create packed image typed tables.
   22829 ☰ ☰ Apparently, setting event 22829 in an Oracle 11 environment enables → development/databases/Oracle/SQL/select/subquery/lateral[`lateral`] joins (see for example → https://jonathanlewis.wordpress.com/2011/01/31/ansi-outer/[Jonathan Lewis' Blog]).
+  22830 ☰ ☰ Found in `catqm_int.sql`. Turns off the REF cascade semantics for `resource$`.
+  31061 ☰ ☰ Found in `xdbuend.sql`. Traces «further lxs-0002x errors»
+  31150 ☰ ☰ Found in `catqm_int.sql`, `xdbuend.sql` or `prvtxdz2.plb`. Sets xdk scheme cache event.
+  31156 ☰ ☰ Found in `catxdbc1.sql`. Register Config Schema?
   38003 ☰ ☰ Setting this event affects the bootstrap process of loading the fixed cache in `kqlblfc()`: Bootstrap objects that are not defined as such in `→ development/databases/Oracle/installed/data-dictionary/base-tables/bootstrap`bootstrap$) will be left as non-bootstrapped.
   39098 ☰ ☰ *Seems to be related to the data pump*
+  44715 ☰ ☰ Found in `catqm.sql`. This event denotes *XDB initialization (start/complete)*.
 table }
 
 }
