@@ -1,6 +1,8 @@
 $ DBMS_STATS.GATHER_xxx_STATS: Parameter METHOD_OPT
 
-The value of `method_opt` allows sets the method of gathering options for for all, all hidden or all indexed columns like so:
+The value of `METHOD_OPT` specifies which column related statistics will be gathered when calling one of the `get_…_stats` functions.
+
+The only allowed value for global, schema database or dictionary level objects is `FOR ALL …`, according to the following EBNF:
 code {
 FOR ALL [INDEXED | HIDDEN] COLUMNS [size_clause]
 code }
@@ -26,7 +28,9 @@ code }
 }
 { Size clause
 
-  `size_clause` is defined as
+  The size clause specifies the parameters for column-histogram collection.
+
+ `size_clause` is defined as
 code {
 SIZE { nof_hist_buckets | REPEAT | AUTO | SKEWONLY }
 code }
@@ -37,7 +41,147 @@ code }
 
   `AUTO` lets Oracle decide whether histograms should be collected.
 
-  `SKEWONLY` also lets Oracle decide whether histograms should be collected. It is not entirely clear to me what the difference between `AUTO` and `SKEWONLY` is.
+  `SKEWONLY` also lets Oracle decide whether histograms should be collected based on the distribution found in the column.
+
+}
+
+{ Default value
+
+? The default value of `method_opt` is `for all columns size auto`
+
+}
+
+{ Automated example
+
+  The following simple exaple creates a table with skewed and uniform data in its columns. Some columns are indexed.
+
+  The PL/SQL gathers statistics for this table using different values for `method_opt` and displays the values found in `user_tab_cols`.
+
+code {
+create table tq84_method_opt (
+   uniform         number,
+   uniform_indexed number,
+   skewed          number,
+   skewed_indexed  number
+);
+
+
+insert into tq84_method_opt
+select
+   level,
+   level,
+   case when level < 9900 then 42 else level end,
+   case when level < 9900 then 42 else level end
+from
+   dual connect by level <= 10000;
+
+create index tq84_method_opt_ix_1 on tq84_method_opt (uniform_indexed);
+create index tq84_method_opt_ix_2 on tq84_method_opt (skewed_indexed );
+
+
+declare
+
+   procedure gather(opt varchar2) is -- {
+   begin
+
+      dbms_stats.delete_table_stats(
+         ownname            => user,
+         tabname            =>'tq84_method_opt'
+      );
+
+      dbms_stats.gather_table_stats(
+         ownname            => user,
+         tabname            =>'tq84_method_opt',
+         method_opt         => opt
+      );
+
+
+      dbms_output.put_line('');
+      dbms_output.put_line(upper(opt));
+      dbms_output.put_line(rpad('-', length(opt), '-'));
+      for s in (
+         select
+            column_name,
+            num_distinct,
+            num_buckets,
+            histogram
+         from
+            user_tab_cols
+         where
+            table_name = 'TQ84_METHOD_OPT'
+         order by
+            column_id
+       ) loop
+
+         dbms_output.put_line('  ' ||
+            rpad   (            s.column_name        ,20) || '  ' ||
+            lpad   (nvl(to_char(s.num_distinct), ' '), 5) || '  ' ||
+            lpad   (nvl(to_char(s.num_buckets ), ' '), 3) || '  ' ||
+                                  s.histogram
+         );
+
+
+       end loop;
+
+   end gather; -- }
+
+begin
+   gather('for all         columns size auto    ');
+   gather('for all indexed columns size auto    ');
+   gather('for all         columns size skewonly');
+   gather('for all indexed columns size skewonly');
+   gather('for all         columns size 50      ');
+   gather('for all indexed columns size 50      ');
+end;
+/
+
+drop   table tq84_method_opt;
+code }
+
+  Output:
+code {
+FOR ALL         COLUMNS SIZE AUTO    
+-------------------------------------
+  UNIFORM               10000    1  NONE
+  UNIFORM_INDEXED       10000    1  NONE
+  SKEWED                  102    1  NONE
+  SKEWED_INDEXED          102    1  NONE
+
+FOR ALL INDEXED COLUMNS SIZE AUTO    
+-------------------------------------
+  UNIFORM                           NONE
+  UNIFORM_INDEXED       10000    1  NONE
+  SKEWED                            NONE
+  SKEWED_INDEXED          102    1  NONE
+
+FOR ALL         COLUMNS SIZE SKEWONLY
+-------------------------------------
+  UNIFORM               10000    1  NONE
+  UNIFORM_INDEXED       10000    1  NONE
+  SKEWED                  102  102  FREQUENCY
+  SKEWED_INDEXED          102  102  FREQUENCY
+
+FOR ALL INDEXED COLUMNS SIZE SKEWONLY
+-------------------------------------
+  UNIFORM                           NONE
+  UNIFORM_INDEXED       10000    1  NONE
+  SKEWED                            NONE
+  SKEWED_INDEXED          102  102  FREQUENCY
+
+FOR ALL         COLUMNS SIZE 50      
+-------------------------------------
+  UNIFORM               10000   50  HYBRID
+  UNIFORM_INDEXED       10000   50  HYBRID
+  SKEWED                  102   50  TOP-FREQUENCY
+  SKEWED_INDEXED          102   50  TOP-FREQUENCY
+
+FOR ALL INDEXED COLUMNS SIZE 50      
+-------------------------------------
+  UNIFORM                           NONE
+  UNIFORM_INDEXED       10000   50  HYBRID
+  SKEWED                            NONE
+  SKEWED_INDEXED          102   50  TOP-FREQUENCY
+code }
 
 }
 
@@ -45,8 +189,13 @@ code }
 sa:
 
 code {
-select → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/param/get[dbms_stats.get_param]('method_opt') from dual;
+select → development/databases/Oracle/installed/packages/dbms/stats/api/nouns/prefs/get[dbms_stats.get_prefs]('method_opt') from dual;
 select * from → development/databases/Oracle/installed/data-dictionary/base-tables/optstat/hist_constrol where sname = 'METHOD_OPT';
 code }
 
+  The parameters
+   • `AUTO_STAT_EXTENSIONS`
+   • `CASCADE`
+
   → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
+
