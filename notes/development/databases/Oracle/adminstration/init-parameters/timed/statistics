@@ -1,10 +1,36 @@
 $ Oracle: Init parameter TIMED_STATISTICS
 @ timed_statistics
 
-The *default value* of `timed_statistics` depends on the value of `→ development/databases/Oracle/adminstration/init-parameters/statistics_level`.
+The *value* of `timed_statistics` depends on the value of `→ development/databases/Oracle/adminstration/init-parameters/statistics_level`:
+code {
+column name  format a16
+column value format a7
+
+select p.name, p.value
+from → development/databases/Oracle/installed/dynamic-performance-views/parameter p
+where p.name in ( '→ development/databases/Oracle/adminstration/init-parameters/statistics_level[statistics_level]', '→ development/databases/Oracle/adminstration/init-parameters/timed/statistics[timed_statistics]' );
+--
+-- NAME             VALUE  
+-- ---------------- -------
+-- timed_statistics TRUE   
+-- statistics_level TYPICAL
+
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] statistics_level = basic;
+
+select p.name, p.value
+from → development/databases/Oracle/installed/dynamic-performance-views/parameter p
+where p.name in ( '→ development/databases/Oracle/adminstration/init-parameters/statistics_level[statistics_level]', '→ development/databases/Oracle/adminstration/init-parameters/timed/statistics[timed_statistics]' );
+--
+-- NAME             VALUE  
+-- ---------------- -------
+-- timed_statistics FALSE  
+-- statistics_level BASIC  
+code }
 
 sa:
 
   `timed_os_statistics`
+
+  → development/databases/Oracle/errors/ORA-00044_timed_statistics-must-be-TRUE-when-statistics_level-is-not-BASIC
 
   → development/databases/Oracle/adminstration/init-parameters
