@@ -1,0 +1,123 @@
+$ Oracle: JSON_QUERY
+
+{ Basic form: extract scalar value from a JSON document
+
+  In its most basic form, `json_query` extracts a scalar value from a → development/languages/JavaScript/JSON document.
+
+  The following select statement returns one row with the attribute `txt` whose value is `hello world`:
+code {
+select
+   json_value('
+{
+   num:  42,
+   txt: "hello world",
+   dat: "2021-09-03T18:47:22"
+}
+',
+   '$.txt'
+)                                 val
+from
+   dual;
+code }
+
+}
+{ Specifying the returned data type
+
+  By default, the → development/databases/Oracle/SQL/data-types[datatype] of the returned value is `varchar2`. The `returning` clause allows to specify a different data type.
+
+  The following statement forces the returned → development/databases/Oracle/SQL/data-types[datatype] to be a
+  → development/databases/Oracle/SQL/data-types/number[`number(5)`]:
+code {
+select
+   json_value('
+{
+   num:  42,
+   txt: "hello world",
+   dat: "2021-09-03T18:47:22"
+}
+',
+   '$.num' returning number(5)
+)                                 val
+from
+   dual;
+code }
+
+  Same idea, but returning a → development/databases/Oracle/SQL/data-types/date[`date`]:
+code {
+select
+   json_value('
+{
+   num:  42,
+   txt: "hello world",
+   dat: "2021-09-03T18:47:22"
+}
+',
+   '$.dat' returning date
+)                                 val
+from
+   dual;
+code }
+
+}
+{ Returning a complex object
+
+  First, we need to create the necessary objects so that the JSON document can be inserted into an object:
+code {
+create type tq84_num_array as table of number;
+/
+
+create or replace type tq84_obj
+   authid definer
+as object
+(
+--
+-- JSON_VALUE maps names case sensitively.
+-- Therefore, the attributes in this object are forced
+-- to be in lower caps:
+--
+  "num"   number(5),
+  "txt"   varchar2(20),
+  "dat"   date,
+  "ary"   tq84_num_array
+  
+);
+/
+code }
+
+  Create a new instance (`obj`) of the type `tq84_obj` with `json_value:
+code {
+declare
+   obj tq84_obj;
+begin
+
+   select
+      json_value('
+   {
+      num:  42,
+      txt: "hello world",
+      dat: "2021-09-03T18:47:22",
+      ary: [7, 12, 99]
+   }
+   ',
+      '$' returning tq84_obj
+   )                            into obj
+   from
+      dual;
+
+   dbms_output.put_line('obj.num = ' || obj."num");
+   dbms_output.put_line('obj.txt = ' || obj."txt");
+   dbms_output.put_line('obj.dat = ' || obj."dat");
+   dbms_output.put_line('obj.ary:');
+   for i in 1 .. obj."ary".count loop
+       dbms_output.put_line('  ' || obj."ary"(i));
+   end loop;
+
+end;
+/
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/SQL/JSON
