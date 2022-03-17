@@ -17,6 +17,43 @@ $ Oracle: V$SQL_WORKAREA
   gh|oracle-patterns|/Installed/dynamic-performance-views/sql/workarea/select.sql||
 
 }
+{ Show different workarea operation types
+
+code {
+select
+   count(*),
+   pln.operation,
+   pln.options,
+   wka.operation_type
+from
+   v$sql_plan pln  join v$sql_workarea wka on
+      pln.sql_id       = wka.sql_id and
+      pln.child_number = wka.child_number and
+      pln.id           = wka.operation_id
+group by
+   pln.operation,
+   pln.options,
+   wka.operation_type
+order by
+   wka.operation_type;
+code }
+
+  This query finds (on the system I am currently oh) the following Workarea operation types
+  table { ll
+     ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
+    CONNECT-BY (SORT) ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[`BUFFER SORT`]
+    GROUP BY (SORT) ☰ `CONNECT BY` (`WITH FILTERING`, `WITH FILTERING (UNIQUE)`)
+    HASH-JOIN ☰ `HASH JOIN`
+    IDX MAINTENANCE (SORT) ☰ `DELETE STATEMENT`, `INSERT STATEMENT`
+    LOAD WRITE BUFFERS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[`LOAD AS SELECT`]
+    RANGE TQ COMPUTATION ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[`PX COORDINATOR`]
+    RESULT CACHE ☰ `RESULT CACHE`
+    SORT (V1) ☰ (`ORDER BY`)
+    SORT (v2) ☰ `SORT` (`CREATE INDEX`, `JOIN`, `ORDER BY`, `ORDER BY STOPKEY`)
+    WINDOW (SORT) ☰ `WINDOW` (`SORT`, `NOSORT`)
+  table }
+
+}
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

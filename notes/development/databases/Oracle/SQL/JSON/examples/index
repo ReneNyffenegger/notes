@@ -1,0 +1,104 @@
+$ Oracle JSON example
+
+code {
+create table tq84_record_owner (
+   id    number(2) primary key,
+   name  varchar2(10) not null unique
+);
+
+
+create table tq84_tab_one (
+   col_1 number,
+   col_2 varchar2(10),
+   rec_owner not null references tq84_record_owner
+);
+
+create table tq84_tab_two (
+   val_1 number,
+   val_2 varchar2(10),
+   val_3 date,
+   rec_owner not null references tq84_record_owner
+);
+
+begin
+
+insert into tq84_record_owner values (1, 'Peter');
+insert into tq84_record_owner values (2, 'Mary' );
+
+insert into tq84_tab_one values ( 1, 'abc', 1);
+insert into tq84_tab_one values ( 2, 'd'  , 1);
+insert into tq84_tab_one values ( 3, 'ef' , 2);
+insert into tq84_tab_one values ( 4, 'g'  , 2);
+insert into tq84_tab_one values ( 5, 'hi' , 1);
+insert into tq84_tab_one values ( 6, 'jkl', 2);
+
+insert into tq84_tab_two values (10, 'A'  , date '2024-03-05',  2);
+insert into tq84_tab_two values (20, 'BC' , date '2012-12-08',  2);
+insert into tq84_tab_two values (30, 'DEF', date '2021-08-14',  1);
+insert into tq84_tab_two values (40, 'GH' , date '2001-09-28',  1);
+insert into tq84_tab_two values (50, 'I'  , date '2001-11-13',  1);
+
+end;
+/
+
+create view tq84_tab_own_v as
+select
+   own.name          rec_owner,
+   dat.table_name,
+   dat.data
+from
+   tq84_record_owner own   join
+  (
+     select
+        rec_owner,
+       'tab one'        table_name,
+        json_arrayagg(json_array(
+           col_1,
+           col_2
+        ) returning clob ) data
+     from
+        tq84_tab_one
+     group by
+        rec_owner
+                                      union all
+     select
+        rec_owner,
+       'tab two'         table_name,
+        json_arrayagg(json_array(
+           val_1,
+           val_2,
+           val_3
+        ) returning clob ) data
+     from
+        tq84_tab_two
+     group by
+        rec_owner
+
+  ) dat on own.id = dat.rec_owner;
+
+select * from tq84_tab_own_v;
+
+create view tq84_tab_v as
+select
+   dat.table_name,
+   json_object(
+      'records' value json_arrayagg(
+          json_object(
+             'owner'         value dat.rec_owner,
+             'data'          value dat.data       format json -- Use FORMAT JSON to indicate
+          )                                                   -- that dat.data is already JSON
+      )
+   ) x
+from
+   tq84_tab_own_v dat
+group by
+   dat.table_name; 
+
+select * from tq84_tab_v;
+
+drop view  tq84_tab_v;
+drop view  tq84_tab_own_v;
+drop table tq84_tab_one;
+drop table tq84_tab_two;
+drop table tq84_record_owner;
+code }

@@ -1,4 +1,5 @@
 $ Oracle: JSON_ARRAYAGG
+@ json_arrayagg
 
 `json_arrayagg` aggregates JSON values from multiple records into a JSON array. Thus, it lends itself to be used to turn SQL results into a an array of arrays:
 code {
@@ -21,9 +22,25 @@ from
    user_objects;  
 code }
 
+{ RETURNING CLOB clause
+
+  By default, `json_arrayagg` returns a → development/databases/Oracle/SQL/data-types/varchar2[`varchar2`] whose maximum length is limited.
+  -
+  If the length of the returned JSON fragment exceeds this length limitation, the error
+  → development/databases/Oracle/errors/ORA-40478_output-value-too-large_maximum will be thrown.
+
+  The `returning clob` clause returns the JSON fragment as a → development/databases/Oracle/SQL/data-types/lob[`clob`] which does not have such a length limit:
+code {
+json_arrayagg (
+   …
+   RETURNING CLOB
+)
+code }
+
+}
 { ORDER BY
 
-  When ordering the elements that `json_arrayagg` produces, the `development/databases/Oracle/SQL/select/order-by` clause must be placed *within* the `json_arrayagg` function:
+  When ordering the elements that `json_arrayagg` produces, the `→ development/databases/Oracle/SQL/select/order-by` clause must be placed *within* the `json_arrayagg` function:
 code {
 select json_arrayagg(
    json_array(
@@ -31,7 +48,7 @@ select json_arrayagg(
       object_type,
       created
    )
-   ORDER BY
+   ORDER BY               -- <== ORDER BY is here
       object_name
    returning clob
 )
@@ -55,6 +72,26 @@ from
 order by
    object_name   
 ;
+code }
+
+}
+{ GROUP BY
+
+code {
+select
+   owner,
+   json_arrayagg(json_array(
+      obj.object_name,
+      obj.object_type,
+      obj.created
+   )
+   returning clob)
+from
+   dba_objects obj
+where
+   obj.owner not in ('SYS', 'SYSTEM')
+group by
+   owner;
 code }
 
 }

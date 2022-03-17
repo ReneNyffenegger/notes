@@ -1,0 +1,38 @@
+$ ORA-40478: output value too large (maximum: N)
+
+The following statement is likely to throw an *ORA-40478* error:
+code {
+select
+   owner,
+   → development/databases/Oracle/SQL/functions/json/arrayagg(→ development/databases/Oracle/SQL/functions/json/array(
+      obj.object_name,
+      obj.object_type,
+      obj.created
+   ))
+from
+   → development/databases/Oracle/installed/data-dictionary/objects obj
+where
+   obj.owner not in ('SYS', 'SYSTEM')
+group by
+   owner;
+code }
+   
+   
+Use the `returning clob` clause for the `json_arrayagg` function to prevent the ORA-40478 error:
+code {
+select
+   owner,
+   json_arrayagg(json_array(
+      obj.object_name,
+      obj.object_type,
+      obj.created
+   )
+   RETURNING CLOB
+   )
+from
+   dba_objects obj
+where
+   obj.owner not in ('SYS', 'SYSTEM')
+group by
+   owner;
+code }
