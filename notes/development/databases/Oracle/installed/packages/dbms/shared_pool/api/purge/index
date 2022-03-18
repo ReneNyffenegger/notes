@@ -24,6 +24,10 @@ where
 --  Remove a given SQL statement from the shared pool.
 --  The statement is identified by an address and a hash
 --  value. So, determine these values:
+--  Because the combination of address and hash_value
+--  identifies all child versions of an SQL statement
+--  their value is select from v$sqlarea rather than
+--  v$sql.
 --
 column address     new_value  addr
 column hash_value  new_value  hash
@@ -32,13 +36,14 @@ select
    address,
    hash_value
 from
-   v$sql
+   v$sqlarea
 where
    sql_text = 'select 2 from dual';
 
 --
 --  Execute purge:  
 --
+set verify off
 begin
 --
 --  2nd argument c stands for cursor (but it seems that
