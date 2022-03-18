@@ -1,0 +1,66 @@
+$ DBMS_SHARED_POOL.PURGE
+
+{ Remove SQL statement
+
+code {
+--
+--  Add a few SQL statements to the shared pool:
+--
+select 1 from dual;
+select 2 from dual;
+select 3 from dual;
+
+--
+--  Verify their existence in the shared pool:
+--
+select
+   sql_text
+from
+   v$sql
+where
+   sql_text like 'select _ from dual';
+
+--
+--  Remove a given SQL statement from the shared pool.
+--  The statement is identified by an address and a hash
+--  value. So, determine these values:
+--
+column address     new_value  addr
+column hash_value  new_value  hash
+
+select
+   address,
+   hash_value
+from
+   v$sql
+where
+   sql_text = 'select 2 from dual';
+
+--
+--  Execute purge:  
+--
+begin
+--
+--  2nd argument c stands for cursor (but it seems that
+--  almost -- any character, except those with a special
+--  meaning, can be used...).
+--
+   sys.dbms_shared_pool.purge('&addr,&hash', 'c');
+end;
+/
+
+--
+--  Indeed, the purged statement is gone:
+--
+select
+   sql_text
+from
+   v$sql
+where
+   sql_text like 'select _ from dual';
+code }
+
+}
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/shared_pool`
