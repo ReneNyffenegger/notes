@@ -9,7 +9,7 @@ select
    case col.type#
         when   1 then 'varchar2'
         when  32 then 'raw or nvarchar2?'
-        else  to_char(type#)
+        else  to_char(col.type#)
    end                                      data_type,  -- ?
    col.length,
    col.precision#,
@@ -17,6 +17,15 @@ select
    col.null$,
    col.deflength,
    col.default$,
+--
+--     Convert LONG to CLOB.
+--
+-- sys.dbms_metadata_util.long2clob(32000, 'SYS.COL$', 'DEFAULT$', col.rowid) default_as_clob,
+--
+--    Commented because call might throw:
+--       - ORA-00904: "SYS"."DBMS_METADATA_UTIL"."LONG2CLOB": invalid identifier     or
+--       - ORA-01031: insufficient privileges
+-- --------------------------------
    col.intcol#,
    col.property,
    case when bitand(col.property,            16) >  0 then '16'        end "16",

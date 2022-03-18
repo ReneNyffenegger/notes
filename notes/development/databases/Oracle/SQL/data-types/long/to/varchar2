@@ -1,0 +1,29 @@
+$ Oracle: LONG to VARCHAR2
+
+Define a → development/databases/Oracle/SQL/clauses/with#ora-with-union-all[local function (`WITH` clause)], named `L2T` (long to text) which then
+can be used in a predicate with a `→ development/databases/Oracle/SQL/data-types/long` datatype.
+-
+Without the function (i.e. `where default$ like 'sys%'`), Oracle would throw → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes#ora-00932-exp-char-got-long.
+
+code {
+with
+
+   function L2T(r rowid) return varchar2 as
+      ret varchar2(4000);
+   begin
+      execute immediate
+           'select default$ from sys.col$ where rowid = :1'
+      into  ret
+      using r;
+
+      return ret;
+   end l2t;
+
+select
+   col.*
+from
+   sys.col$ col
+where
+   lower(L2T(col.rowid)) like 'sys%'
+;
+code }
