@@ -1,0 +1,80 @@
+$ PLS-00201: identifier … must be declared
+
+code {
+connect / as sysdba
+
+drop   user usr_1 cascade;
+drop   user usr_2 cascade;
+drop   role rol_x;
+
+create user usr_1 identified by pw;
+create user usr_2 identified by pw;
+
+grant
+   create session,
+   create role,
+   create procedure
+to
+   usr_1;
+
+grant
+   create session,
+   create procedure
+to
+   usr_2;
+
+connect usr_1/pw
+
+create function func return number
+   authid definer
+is begin
+   return 42;
+end func;
+/
+
+create role rol_x;
+
+grant execute on func to rol_x;
+grant  rol_x to usr_2;
+
+connect usr_2/pw
+
+begin
+   dbms_output.put_line('func = ' || usr_1.func); 
+end;
+/
+
+create procedure proc
+   authid definer
+is begin
+   dbms_output.put_line('func = ' || usr_1.func); 
+end proc;
+/
+
+show errors
+--
+-- Errors for PROCEDURE PROC:
+-- 
+-- LINE/COL ERROR
+-- -------- -----------------------------------------------------------------
+-- 4/4      PL/SQL: Statement ignored
+-- 4/38     PLS-00201: identifier 'USR_1.FUNC' must be declared
+
+
+connect usr_1/pw
+
+grant execute on func to usr_2;
+
+connect usr_2/pw
+
+begin
+   proc;
+end;
+/
+code }
+
+sa:
+
+  PLS-00904: insufficient privilege to access object …
+
+  → development/databases/Oracle/PL-SQL/errors-warnings

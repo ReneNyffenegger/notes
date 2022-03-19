@@ -1,5 +1,8 @@
 $ DBMS_SHARED_POOL.PURGE
 
+`dbms_shared_pool.purge` removes («purges») → development/databases/Oracle/PL-SQL objects or → development/databases/Oracle/SQL/statement[SQL statements] from the
+→ development/databases/Oracle/architecture/instance/SGA/Shared-Pool[shared pool].
+
 { Remove SQL statement
 
 code {
@@ -46,8 +49,8 @@ where
 set verify off
 begin
 --
---  2nd argument c stands for cursor (but it seems that
---  almost -- any character, except those with a special
+--  2nd argument 'c' stands for cursor (but it seems that
+--  almost any character, except those with a special
 --  meaning, can be used...).
 --
    sys.dbms_shared_pool.purge('&addr,&hash', 'c');
@@ -63,6 +66,43 @@ from
    v$sql
 where
    sql_text like 'select _ from dual';
+code }
+
+}
+{ Procedure
+
+code {
+connect / as sysdba
+grant execute on dbms_shared_pool to rene;
+
+connect rene/rene
+
+create or replace procedure rene.remove_sql_stmt_in_shared_pool(stmt varchar2)
+   authid current_user
+is
+   a  raw(8);
+   h  number;
+begin
+
+   select
+      address, hash_value
+   into
+      a      , h
+   from
+      v$sqlarea
+   where
+      sql_text = stmt;
+
+   sys.dbms_shared_pool.purge(a || ',' || h, 'c');
+
+   dbms_output.put_line('statement is purged');
+
+exception when others then
+
+   dbms_output.put_line(sqlerrm);
+
+end remove_sql_stmt_in_shared_pool;
+/
 code }
 
 }

@@ -1,0 +1,78 @@
+$ Prerequisites for filling V$SQL_PLAN_STATISTICS and V$SQL_PLAN_STATISTICS_ALL
+
+`→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics` and
+`→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics/all` are populated if
+  • the init parameter `→ development/databases/Oracle/adminstration/init-parameters/sql_trace` is `true`, or
+  • the init parameter `→ development/databases/Oracle/adminstration/init-parameters/statistics_level` is `all` or
+  • the `→ development/databases/Oracle/SQL/hints/list/gather/plan_statistics` hint is used.
+
+
+Remove SQL statements from prior test-run from shared pool:
+code {
+begin
+
+   for s in (
+      select
+         address, hash_value
+      from
+         v$sqlarea
+      where
+         sql_text like 'select %/* tq84 */% from dual'
+    )
+    loop
+        sys.dbms_shared_pool.purge(s.address || ',' || s.hash_value, 'c');
+    end loop;
+
+end;
+/
+code }
+
+Execute some SQL statements using different init-parameter values for `statistics_level` and `sql_trace` or using the `+ gather_plan_statistics` hint:
+code {
+alter session set statistics_level = basic;
+alter session set sql_trace        = false;
+alter session set timed_statistics = false;
+
+select /* tq84 */ 'first' from dual;
+
+alter session set sql_trace = true;
+select /* tq84 */ 'sql_trace = true' from dual;
+
+alter session set sql_trace = false;
+
+select /*+ gather_plan_statistics */ /* tq84 */ 'gather_plan_statistics' from dual;
+
+alter session set timed_statistics = true;
+select /* tq84 */ 'timed_statistics = true' from dual;
+
+alter session set statistics_level = typical;
+select /* tq84 */ 'statistics_level = typical' from dual;
+
+alter session set statistics_level = all;
+select /* tq84 */ 'statistics_level = all' from dual;
+code }
+
+Examine which SQL statement executions were recorded in `v$sql_plan_statistics`:
+code {
+select
+   substr(sql.sql_text, 1, 82) sql_text,
+   sts.executions,
+   sts.starts
+from
+   v$sql                 sql left join
+   v$sql_plan_statistics sts on sql.sql_id       = sts.sql_id and
+                                sql.child_number = sts.child_number
+where
+   sql.sql_text like 'select %/* tq84 */% from dual'
+order by
+   sts.executions desc nulls last;
+--
+-- SQL_TEXT                                                                           EXECUTIONS     STARTS
+-- ---------------------------------------------------------------------------------- ---------- ----------
+-- select /*+ gather_plan_statistics */ /* tq84 */ 'gather_plan_statistics' from dual          1          1
+-- select /* tq84 */ 'statistics_level = all' from dual                                        1          1
+-- select /* tq84 */ 'sql_trace = true' from dual                                              1          1
+-- select /* tq84 */ 'statistics_level = typical' from dual                                                
+-- select /* tq84 */ 'timed_statistics = true' from dual                                                   
+-- select /* tq84 */ 'one' from dual                                                                       
+code }
