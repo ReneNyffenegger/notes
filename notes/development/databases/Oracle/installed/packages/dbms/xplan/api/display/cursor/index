@@ -1,7 +1,8 @@
 $ Oracle: DBMS_XPLAN.DISPLAY_CURSOR
 @ dbms_xplan.display_cursor
 
-If `display_cursor` is executed without specifying any arguments, it formats the execution plan of the last → development/databases/Oracle/SQL/statement[SQL statement] that was executed in the
+If `display_cursor` is executed without specifying any arguments, it formats the
+→ development/databases/Oracle/SQL/statement/execution/plan[execution plan] of the last → development/databases/Oracle/SQL/statement[SQL statement] that was executed in the
 session.
 
 In order to display an arbitrary SQL statement that is found in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`], the
@@ -70,6 +71,54 @@ code }
   The data that is formatted by `dbms_xplan.display_cursor` is found in
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[`v$sql_plan_statistics_all`],
   → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`], `v$sql_plan` and `v$sql_shard`.
+
+}
+{ Warning: basic plan statistics not available
+
+
+code {
+→ development/databases/Oracle/SQL-Plus/set/serveroutput[set serveroutput] off
+
+select * from dual where dummy = 'FOO';
+
+select * from table(dbms_xplan.display_cursor(format => 'allstats last'));
+--
+-- -------------------------------------------
+-- | Id  | Operation         | Name | E-Rows |
+-- -------------------------------------------
+-- |   0 | SELECT STATEMENT  |      |        |
+-- |*  1 |  TABLE ACCESS FULL| DUAL |      1 |
+-- -------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("DUMMY"='FOO')
+--  
+-- Note
+-- -----
+--    - Warning: basic plan statistics not available. These are only collected when:
+--        * → development/databases/Oracle/SQL/hints '→ development/databases/Oracle/SQL/hints/list/gather/plan_statistics[gather_plan_statistics]' is used for the statement or
+--        * parameter '→ development/databases/Oracle/adminstration/init-parameters/statistics_level[statistics_level]' is set to 'ALL', at session or system level
+
+ 
+select /*+ → development/databases/Oracle/SQL/hints/list/gather/plan_statistics[gather_plan_statistics] */
+   *
+from dual where dummy = 'FOO';
+
+select * from table(dbms_xplan.display_cursor(format => 'allstats last'));
+--
+-- ------------------------------------------------------------------------------------
+-- | Id  | Operation         | Name | Starts | E-Rows | A-Rows |   A-Time   | Buffers |
+-- ------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |      |      1 |        |      0 |00:00:00.01 |       2 |
+-- |*  1 |  TABLE ACCESS FULL| DUAL |      1 |      1 |      0 |00:00:00.01 |       2 |
+-- ------------------------------------------------------------------------------------
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("DUMMY"='FOO')
+code }
 
 }
 

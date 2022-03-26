@@ -1,0 +1,32 @@
+$ Oracle SQL Plan operation BITMAP INDEX SINGLE VALUE
+
+code {
+create table tq84_bm (
+   flg number(1) not null,
+   val number,
+   txt varchar2(50)
+);
+
+create bitmap index tq84_bm_ix on tq84_bm(flg);
+
+explain plan for
+select
+   val,
+   txt
+from
+   tq84_bm
+where
+   flg = 1;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ----------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |            |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_BM    |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[BITMAP CONVERSION TO ROWIDS]       |            |
+-- |   3 |    BITMAP INDEX SINGLE VALUE        | TQ84_BM_IX |
+-- ----------------------------------------------------------
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

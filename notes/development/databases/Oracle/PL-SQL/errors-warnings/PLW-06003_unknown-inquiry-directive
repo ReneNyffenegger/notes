@@ -1,0 +1,27 @@
+$ PLW-06003: unknown inquiry directive '$$…'
+
+The warning `PLW-06003: unknown inquiry directive '$$…'` occurs if the source code references a preprocessor directive whose value was not explicitely set 
+in `→ development/databases/Oracle/adminstration/init-parameters/plsql/ccflags`.
+
+code {
+create or replace procedure tq84_proc
+   authid definer
+as begin
+
+  $if $$xyz $then
+      dbms_output.put_line('xyz is defined');
+  $else
+      dbms_output.put_line('xyz is not defined');
+  $end
+
+end tq84_proc;
+/
+code }
+
+In order to prevent this warning, `$$xyz` must be set to a value:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] plsql_ccflags = 'xyz:true';
+code }
+
+sa:
+  → development/databases/Oracle/PL-SQL/errors-warnings

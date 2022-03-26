@@ -1,16 +1,18 @@
-$ Oracle: DBA_OBJECTS - columns CREATED, LAST_DDL_TIME and TIMESTAMP
+$ Oracle: DBA_OBJECTS - Columns CREATED, LAST_DDL_TIME and TIMESTAMP
 
 → development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`] has three
 → development/databases/Oracle/objects/tables/columns[columns] that store date-related information:
-table { ll
-  `created` ☰ Corresponds to the point in time when the corresponding → development/databases/Oracle/objects was created.
-  `last_ddl_time` ☰ Last modification (→ development/databases/Oracle/SQL/DDL[DDL statement]) of the object or dependent objects. This includes grants and revokes
-  `timestamp` ☰ Last modification of the *structure* of the object
+table { lll
+ ~Name~ ☰ ~→ development/databases/Oracle/SQL/data-types[Data type]~☰ ~Comment~
+  `created` ☰ → development/databases/Oracle/SQL/data-types/date ☰ Corresponds to the point in time when the corresponding → development/databases/Oracle/objects was created.
+  `last_ddl_time` ☰ → development/databases/Oracle/SQL/data-types/date ☰ Last modification (→ development/databases/Oracle/SQL/DDL[DDL statement]) of the object or dependent objects. This includes grants and revokes
+  `timestamp` ☰ → development/databases/Oracle/SQL/data-types/varchar2 ☰ Last modification of the *structure* (specification) of the object. In the case of a → development/databases/Oracle/objects/views, the structure is considered changed if the number, data types, names (or order of columns?) of the returned columns change.
 table }
 
 
 The → development/databases/Oracle/SQL/data-types[datatype] of `created` and `last_ddl_time` is → development/databases/Oracle/SQL/data-types/date[`date`], the datatype of
 `timestamp` is → development/databases/Oracle/SQL/data-types/varchar2[`varchar2`] (!) in the format `YYYY-MM-DD:HH24:MI:SS`.
+
 
 code {
 select
@@ -32,6 +34,27 @@ order by
    obj.timestamp desc;
 code }
 
+{ CREATED <= TIMESTAMP <= LAST_DDL_TIME
+
+  In most cases, `created <= timstamp` and `timstamp <= last_ddl_time`, although there are some exceptions, especially in the `SYS`, `SYSTEM`, `XDB`, `WMSYS` and `GSMADMIN_INTERNAL` schemas:
+code {
+select
+   count(*),
+   owner,
+   object_type
+from
+    dba_objects
+where
+   to_date(timestamp, 'yyyy-mm-dd:hh24:mi:ss') not between created and last_ddl_time
+group by
+   owner,
+   object_type
+order by
+   owner,
+   object_type;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/data-dictionary/objects[`dba_objects`]
