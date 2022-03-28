@@ -1,0 +1,56 @@
+$ Oracle: Init parameter _GBY_HASH_AGGREGATION_ENABLED
+@ _gby_hash_aggregation_enabled
+
+code {
+create table tq84_objs as
+select
+   owner       own,
+   object_name nam,
+   object_type typ
+from
+   dba_objects;
+
+explain plan for
+select distinct
+   nam,
+   typ
+from
+   tq84_objs;
+--
+-- ----------------------------------------
+-- | Id  | Operation          | Name      |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT   |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/unique[HASH UNIQUE]       |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_OBJS |
+-- ----------------------------------------
+
+select * from table(dbms_xplan.display(format=>'basic'));
+
+alter session set "_gby_hash_aggregation_enabled" = false;
+
+
+explain plan for
+select distinct
+   nam,
+   typ
+from
+   tq84_objs;
+--
+-- ----------------------------------------
+-- | Id  | Operation          | Name      |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT   |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]       |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_OBJS |
+-- ----------------------------------------
+
+select * from table(dbms_xplan.display(format=>'basic'));
+
+alter session set "_gby_hash_aggregation_enabled" = true;
+
+drop table tq84_objs;
+code }
+
+sa:
+  → development/databases/Oracle/adminstration/init-parameters

@@ -1,0 +1,53 @@
+$ Oracle SQL Plan operation UNION-ALL
+
+code {
+create table tq84_A (nm number, tx varchar2(10));
+create table tq84_B (nm number, tx varchar2(10));
+create table tq84_C (nm number, tx varchar2(10));
+
+explain plan for
+   select nm, tx from tq84_A → development/databases/Oracle/SQL/select/set-operators/union/all[union all]
+   select nm, tx from tq84_B → development/databases/Oracle/SQL/select/set-operators/union/all[union all]
+   select nm, tx from tq84_c
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | SELECT STATEMENT   |        |
+-- |   1 |  UNION-ALL         |        |
+-- |   2 |   TABLE ACCESS FULL| TQ84_A |
+-- |   3 |   TABLE ACCESS FULL| TQ84_B |
+-- |   4 |   TABLE ACCESS FULL| TQ84_C |
+-- -------------------------------------
+
+
+explain plan for
+   select nm, tx from tq84_A union
+   select nm, tx from tq84_B union
+   select nm, tx from tq84_c
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]        |        |
+-- |   2 |   UNION-ALL         |        |
+-- |   3 |    TABLE ACCESS FULL| TQ84_A |
+-- |   4 |    TABLE ACCESS FULL| TQ84_B |
+-- |   5 |    TABLE ACCESS FULL| TQ84_C |
+-- --------------------------------------
+
+drop table tq84_C;
+drop table tq84_B;
+drop table tq84_A;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations
+
