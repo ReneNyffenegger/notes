@@ -1,0 +1,74 @@
+$ Oracle SQL Plan operation COLLECTION ITERATOR PICKLER FETCH
+
+The `collection iterator pickler fetch` → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operator (row source)] is used to fetch data («rows»)
+from a → development/databases/Oracle/PL-SQL/collection-types/return-table-from-function[table function].
+
+code {
+create type tq84_rec
+   authid definer
+as object
+(
+   col_one   number,
+   col_two   varchar2(20)
+);
+/
+
+create type tq84_tab as table of tq84_rec;
+/
+
+create function tq84_f return tq84_tab
+   authid definer
+as begin
+
+    return tq84_tab(
+       tq84_rec(42, 'forty-two'  ),
+       tq84_rec( 1, 'one'        ),
+       tq84_rec(99, 'ninety-nine')
+    );
+
+end tq84_f;
+/
+
+explain plan for
+   select * from table(tq84_f);
+
+select * from table(dbms_xplan.display(format=>'basic +rows,bytes'));
+--
+-- --------------------------------------------------------------------
+-- | Id  | Operation                         | Name   | Rows  | Bytes |
+-- --------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                  |        |  8168 | 16336 |
+-- |   1 |  COLLECTION ITERATOR PICKLER FETCH| TQ84_F |  8168 | 16336 |
+-- --------------------------------------------------------------------
+
+--
+--  ==> As can be seen, by default, the COLLECTION ITERATOR
+--      PICKLER FETCH operator expects 8168 rows / 16336 bytes.
+--
+--      The number of expected rows can be tweaked with the
+--      → development/databases/Oracle/SQL/hints/list/opt/estimate[OPT_ESTIMATE] hint (which superseeds the CARDINALITY hint):
+--
+explain plan for
+   select /*+ opt_estimate(table t rows=3) */
+      *
+   from
+      table(tq84_f) t;
+
+select * from table(dbms_xplan.display(format=>'basic +rows,bytes'));
+--
+-- --------------------------------------------------------------------
+-- | Id  | Operation                         | Name   | Rows  | Bytes |
+-- --------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                  |        |     3 |     6 |
+-- |   1 |  COLLECTION ITERATOR PICKLER FETCH| TQ84_F |     3 |     6 |
+-- --------------------------------------------------------------------
+
+
+drop function tq84_f;
+drop type     tq84_tab;
+drop type     tq84_rec;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

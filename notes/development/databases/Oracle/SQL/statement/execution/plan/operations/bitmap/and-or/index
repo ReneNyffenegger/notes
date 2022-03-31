@@ -1,0 +1,80 @@
+$ Oracle SQL Plan operation BITMAP AND/OR
+
+code {
+create table tq84_tab (
+   val     number,
+   flg_1   char(1) not null check (flg_1 in ('y', 'n')),
+   flg_2   char(1) not null check (flg_2 in ('y', 'n')),
+   dat     varchar2(20)
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab
+select
+   round(dbms_random.value(1,1000), 1),
+   case when dbms_random.value > 0.975 then 'y' else 'n' end,
+   case when dbms_random.value > 0.975 then 'y' else 'n' end,
+   rpad('x', 20, 'x')
+from
+   dual
+connect by level <= 10000;
+
+create bitmap index tq84_tab_ix_1 on tq84_tab (flg_1);
+create bitmap index tq84_tab_ix_2 on tq84_tab (flg_2);
+
+explain plan for
+select
+   val
+from
+   tq84_tab
+where
+   flg_1 = 'y'   and
+   flg_2 = 'y'
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------------------------------
+-- | Id  | Operation                           | Name          |
+-- -------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |               |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB      |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[BITMAP CONVERSION TO ROWIDS]       |               |
+-- |   3 |    BITMAP AND                       |               |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[BITMAP INDEX SINGLE VALUE]       | TQ84_TAB_IX_1 |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[BITMAP INDEX SINGLE VALUE]       | TQ84_TAB_IX_2 |
+-- -------------------------------------------------------------
+
+
+explain plan for
+select
+   val
+from
+   tq84_tab
+where
+   flg_1 = 'y'   or
+   flg_2 = 'y'
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------------------------------
+-- | Id  | Operation                           | Name          |
+-- -------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |               |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB      |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[BITMAP CONVERSION TO ROWIDS]       |               |
+-- |   3 |    BITMAP OR                        |               |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[BITMAP INDEX SINGLE VALUE]       | TQ84_TAB_IX_1 |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[BITMAP INDEX SINGLE VALUE]       | TQ84_TAB_IX_2 |
+-- -------------------------------------------------------------
+
+drop   table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

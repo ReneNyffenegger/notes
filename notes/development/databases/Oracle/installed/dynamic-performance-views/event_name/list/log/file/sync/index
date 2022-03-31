@@ -1,0 +1,80 @@
+$ Oracle: log file sync
+
+code {
+drop   procedure tq84_log_file_sync_test;
+drop   table   tq84_tab;
+
+create table tq84_tab (
+   num number,
+   txt varchar2(20)
+);
+
+
+create or replace procedure tq84_log_file_sync_test(do_commit boolean) -- {
+   authid definer
+as
+begin
+
+   tq84_ora_snap.gather('start');
+
+   for i in 1 .. 10000 loop
+       insert into tq84_tab values (i, '1234567890abcdefghij');
+
+       if do_commit then
+          commit;
+       end if;
+   end loop;
+
+   tq84_ora_snap.gather('end');
+
+end tq84_log_file_sync_test; -- }
+/
+
+
+alter session set commit_logging = immediate;
+alter session set commit_wait    = wait;
+
+exec tq84_log_file_sync_test(false);
+
+set pages 0
+select * from table(tq84_ora_snap.diff_evt('start', 'end')) where diff_waits > 0
+-- order by
+--    case when lower(nam) like '%commit%' then 0 else 1 end,
+--    lower(nam)
+;
+
+prompt 'immediate / wait'
+
+exec tq84_log_file_sync_test(true);
+select * from table(tq84_ora_snap.diff_evt('start', 'end')) where diff_waits > 0
+;
+
+
+prompt 'batch / wait'
+
+alter session set commit_logging = batch;
+alter session set commit_wait    = wait;
+
+exec tq84_log_file_sync_test(true);
+select * from table(tq84_ora_snap.diff_evt('start', 'end')) where diff_waits > 0
+;
+
+prompt 'immediate / nowait'
+
+alter session set commit_logging = immediate;
+alter session set commit_wait    = nowait;
+
+exec tq84_log_file_sync_test(true);
+select * from table(tq84_ora_snap.diff_evt('start', 'end')) where diff_waits > 0
+;
+
+prompt 'batch / nowait'
+
+alter session set commit_logging = batch;
+alter session set commit_wait    = nowait;
+
+exec tq84_log_file_sync_test(true);
+select * from table(tq84_ora_snap.diff_evt('start', 'end')) where diff_waits > 0
+;
+
+code }

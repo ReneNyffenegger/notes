@@ -1,0 +1,50 @@
+$ oradebug dump modified_parameters
+
+`oradebug dump modified_parameters` shows values of → development/databases/Oracle/adminstration/init-parameters[init parameters] of another
+→ development/databases/Oracle/architecture/session that were modified (i.e. whose value is different from their default value).
+
+{ Modify parameters in a session
+
+code {
+alter session set commit_logging = batch;
+alter session set commit_wait    = nowait;
+code }
+
+   In order to execute `→ development/databases/Oracle/tools/oradebug/setospid`, we need the session's `spid`:
+code {
+select
+   prc.spid
+from
+   v$session     ses                                                   join
+   v$process     prc on ses.paddr           = prc.addr
+where
+   ses.sid = sys_context('userenv', 'sid');
+--
+-- SPID
+-- -----
+-- 14028
+code }
+
+}
+{ Show modified parameters from another session
+
+code {
+sqlplus / as sysdba
+SQL> oradebug setospid  14028
+SQL> oradebug dump modified_parameters 1
+SQL> oradebug → development/databases/Oracle/tools/oradebug/tracefile_name[tracefile_name]
+code }
+
+  The → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file shows, among others, the following information:
+code {
+…
+Received ORADEBUG command (#2) 'dump modified_parameters 1' from process '16512'
+DYNAMICALLY MODIFIED PARAMETERS:
+  …
+  commit_wait              = "NOWAIT"
+  commit_logging           = "BATCH"
+…
+code }
+
+}
+

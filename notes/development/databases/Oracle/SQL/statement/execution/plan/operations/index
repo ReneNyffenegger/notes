@@ -11,7 +11,7 @@ table { llll
 
   ~Operation~ ☰ ~Option~ ☰ ~nof inputs~ ☰ ~Comment~
    ? AND-EQUAL ☰ ☰ ☰
-   BITMAP AND ☰  ☰ 2 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP AND] ☰  ☰ 2 ☰
    BITMAP CONSTRUCTION ☰ ☰ ☰
    BITMAP CONVERSION ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[TO ROWIDS] ☰ 1 ☰
    ? BITMAP CONVERSION ☰ FROM ROWIDS ☰ ? ☰
@@ -21,7 +21,7 @@ table { llll
    BITMAP INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[SINGLE VALUE] ☰ 1 ☰
    BUFFER ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[SORT] ☰ 1 - 2 ☰ In spite of the `SORT` in the name, this operation does not necessarily sort its input, rather it only uses the buffering functionality of a «traditional» sort to store data in the → development/databases/Oracle/architecture/instance/PGA or → development/databases/Oracle/architecture/instance/UGA to reduce full table scans. Compare with `SORT (…)`. See also → http://sadique-sadiqulislam.blogspot.com/2011/01/buffer-sort-reason-and-problems.html[Sadique's blog]
    BUFFER ☰ SORT (REUSE) ☰  ☰
-   COLLECTION ITERATOR ☰ PICKLER FETCH ☰ 1 ☰ Column → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type[`object_type`] in → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] often set to `PROCEDURE` and `object_owner` and `object_type` set to, for example, `dbms_xplan` and `display`.
+   COLLECTION ITERATOR ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/collection-iterator/pickler-fetch[PICKLER FETCH] ☰ 1 ☰ Column → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type[`object_type`] in → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] often set to `PROCEDURE` and `object_owner` and `object_type` set to, for example, `dbms_xplan` and `display`.
    CONCATENATION ☰  ☰ 2 - 3 (?) ☰
    CONNECT BY ☰ NO FILTERING WITH START-WITH ☰ 1 ☰
    CONNECT BY ☰ WITH FILTERING ☰ 2 ☰
@@ -56,8 +56,8 @@ table { llll
    HASH JOIN ☰ RIGHT SEMI BUFFERED ☰ 2 ☰
    HASH JOIN ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰ HASH JOIN SEMI seems to be the (left) counterpart to HASH JOIN RIGHT SEMI (so there is no HASH JOIN LEFT SEMI).
    HASH JOIN ☰  ☰ 2 - 3(?) ☰
-   INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast[FAST FULL SCAN] ☰ 1 ☰ Similar to → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS (FULL)`] but get requested values (attributes/columns) from an index rather than the table. Thus, the index is not used to locate rows. Compare with `INDEX FULL SCAN`.
-   INDEX ☰ FULL SCAN ☰ 1 ☰ Compare with `INDEX FAST FULL SCAN`
+   INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast[FAST FULL SCAN] ☰ 1 ☰ Similar to → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS (FULL)`] but get requested values (attributes/columns) from an index rather than the table. Thus, the index is not used to locate rows. Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan[`INDEX FULL SCAN`].
+   INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan[FULL SCAN] ☰ 1 ☰ Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast[`INDEX FAST FULL SCAN`]
    INDEX ☰ FULL SCAN (MIN/MAX) ☰ 1 ☰
    INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[RANGE SCAN] ☰ 1 - 2 ☰
    INDEX ☰ RANGE SCAN (MIN/MAX) ☰ 1 ☰
@@ -78,9 +78,9 @@ table { llll
    MERGE JOIN ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[CARTESIAN] ☰ 2 ☰
    MERGE JOIN ☰ OUTER ☰ 2 ☰
    MERGE JOIN ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰
-   MERGE JOIN ☰  ☰ 2 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join[MERGE JOIN] ☰  ☰ 2 ☰
    MERGE STATEMENT ☰  ☰ 1 ☰
-   MINUS ☰  ☰ 2 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/minus[MINUS] ☰  ☰ 2 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS] ☰ ANTI ☰ 2 ☰
    NESTED LOOPS ☰ ANTI SNA ☰ 2 ☰
    NESTED LOOPS ☰ OUTER ☰ 2 ☰
@@ -126,11 +126,11 @@ table { llll
    SORT ☰ CREATE INDEX ☰ ? ☰
    SORT ☰ GROUP BY ☰ 1 ☰
    SORT ☰ GROUP BY NOSORT ☰ 1 ☰
-   SORT ☰ JOIN ☰ 1 ☰ Sort this operation's input before passing it to a `MERGE JOIN` operation. 
+   SORT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[JOIN] ☰ 1 ☰ Sort this operation's input before passing it to a → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join[`MERGE JOIN`] operation. 
    SORT ☰ ORDER BY ☰ 1 ☰
    SORT ☰ ORDER BY STOPKEY ☰ 1 ☰
    SORT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[UNIQUE] ☰ 1 ☰
-   SORT ☰ UNIQUE NOSORT ☰ 1 ☰
+   SORT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique/nosort[UNIQUE NOSORT] ☰ 1 ☰ Removes duplicates from a sorted «stream of data».
    SQL MODEL ☰ ORDERED ☰  ☰
    STATISTICS COLLECTOR ☰  ☰ 1 ☰ Used in conjunction with → development/databases/Oracle/optimizer/adaptive[adaptive query optimzation] when the → development/databases/Oracle/optimizer creates an → development/databases/Oracle/SQL/statement/execution/plan/adaptive[adaptive plan]. Compare with `OPTIMIZER STATISTICS GATHERING`
    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] ☰ BY GLOBAL INDEX ROWID BATCHED ☰ 1 ☰ 

@@ -1,0 +1,64 @@
+$ Oracle SQL Plan operation SORT UNIQUE NOSORT
+
+`SORT UNIQUE NOSORT` removes duplicates from a sorted stream of data.
+
+{ Examples
+
+code {
+create table tq84_tab (id number, val varchar2(10) not null);
+
+create index tq84_ix on tq84_tab (val);
+
+explain plan for
+   select
+      distinct val
+  from
+     tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation          | Name    |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT   |         |
+-- |   1 |  SORT UNIQUE NOSORT|         |
+-- |   2 |   INDEX FULL SCAN  | TQ84_IX |
+-- --------------------------------------
+
+drop table tq84_tab;
+code }
+
+code {
+create table tq84_X (id number, val varchar2(10) not null);
+create table tq84_Y (id number, val varchar2(10) not null);
+
+create index tq84_ix_X on tq84_X (val);
+-- create unique index tq84_ix_Y on tq84_Y (val);
+
+explain plan for
+   select val from tq84_X minus
+   select val from tq84_Y;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation           | Name      |
+-- -----------------------------------------
+-- |   0 | SELECT STATEMENT    |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/minus[MINUS]              |           |
+-- |   2 |   SORT UNIQUE NOSORT|           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan[INDEX FULL SCAN]  | TQ84_IX_X |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]       |           |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_Y    |
+-- -----------------------------------------
+
+drop table tq84_X;
+drop table tq84_Y;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[`SORT UNIQUE`]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations

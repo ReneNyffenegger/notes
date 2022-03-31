@@ -1,0 +1,71 @@
+$ Oracle SQL Plan operation MERGE JOIN
+
+code {
+begin
+   dbms_random.seed(42);
+end;
+/
+
+create table tq84_A (id number(5) not null, dat varchar2(2) not null, val number(4,1) not null);
+create table tq84_B (id number(5) not null, dat varchar2(2) not null, val number(4,1) not null);
+
+insert into tq84_A
+select
+   level                               as id,
+   dbms_random.string('u', 2)          as dat,
+   round(dbms_random.value(1, 100), 1) as val
+from dual
+connect by level <= 10000;
+
+insert into tq84_B
+select
+   level                               as id,
+   dbms_random.string('u', 2)         as dat,
+   round(dbms_random.value(1, 100), 1) as val
+from dual
+connect by level <= 10000;
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+   dbms_stats.gather_table_stats(user, 'tq84_B');
+end;
+/
+
+
+delete plan_table;
+explain plan for
+select
+   a.id  id_a,
+   b.id  id_b,
+   a.val val_a,
+   b.val val_b
+from
+   tq84_A a                 join
+   tq84_B b on a.id < b.id
+where
+   a.dat = 'TQ' and
+   b.dat = 'XY';
+
+select * from plan_table;
+   
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT    |        |
+-- |   1 |  MERGE JOIN         |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[SORT JOIN]         |        |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[SORT JOIN]         |        |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- --------------------------------------
+
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[`MERGE JOIN (CARTESIAN)`].
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations

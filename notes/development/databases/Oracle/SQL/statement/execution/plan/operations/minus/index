@@ -1,0 +1,51 @@
+$ Oracle SQL Plan operation MINUS
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] `MINUS` has two child row-sources of which the first typically is
+a → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[`SORT UNIQUE`] and the second a
+`SORT UNIQUE` or a → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[`TABLE ACCESS BY INDEX ROWID BATCHED`]
+(but I've seen other operations also).
+
+code {
+create table tq84_X (txt varchar2(10));
+create table tq84_Y (txt varchar2(10));
+
+begin
+insert into tq84_X values ('three');
+insert into tq84_X values ('two'  );
+insert into tq84_X values ('three');
+insert into tq84_X values ('two'  );
+insert into tq84_X values ('one'  );
+
+insert into tq84_Y values ('two'  );
+insert into tq84_Y values ('xxx'  );
+insert into tq84_Y values ( null  );
+end;
+/
+
+explain plan for
+select txt from tq84_X minus
+select txt from tq84_Y;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT    |        |
+-- |   1 |  MINUS              |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]       |        |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_X |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]       |        |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_Y |
+-- --------------------------------------
+
+
+drop table tq84_X;
+drop table tq84_Y;
+code }
+
+sa:
+
+  The SQL set operator → development/databases/Oracle/SQL/select/set-operators/minus[`minus`].
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

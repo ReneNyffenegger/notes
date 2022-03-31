@@ -1,0 +1,71 @@
+$ Oracle SQL Plan operation INDEX FULL SCAN
+
+code {
+drop table tq84_tab;
+create table tq84_tab (
+  col_1 varchar2(10),
+  col_2 varchar2(10),
+  col_3 varchar2(10),
+  col_4 varchar2(10)
+);
+
+create index tq84_tab_ix on tq84_tab (col_3, col_4);
+
+explain plan for
+   select
+      col_3,
+      col_4
+   from
+      tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation         | Name     |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT  |          |
+-- |   1 |  TABLE ACCESS FULL| TQ84_TAB |
+-- --------------------------------------
+
+
+explain plan for
+   select
+      col_3,
+      col_4
+   from
+      tq84_tab
+   where
+      col_3 is not null;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+-- 
+-- ----------------------------------------
+-- | Id  | Operation        | Name        |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT |             |
+-- |   1 |  INDEX FULL SCAN | TQ84_TAB_IX |
+-- ----------------------------------------
+
+alter table tq84_tab modify col_3 not null;
+
+explain plan for
+   select
+      col_3,
+      col_4
+   from
+      tq84_tab;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ----------------------------------------
+-- | Id  | Operation        | Name        |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT |             |
+-- |   1 |  INDEX FULL SCAN | TQ84_TAB_IX |
+-- ----------------------------------------
+code }
+
+sa:
+  
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operation]
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast[`INDEX FAST FULL SCAN`].
