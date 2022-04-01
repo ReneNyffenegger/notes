@@ -11,6 +11,9 @@ code }
 
 code {
 declare
+   src_schema_name  varchar2(128) := 'SRC' ;
+-- dest_schema_name varchar2(128) := 'DEST';
+
    exp_h      number;
    ddl_tr     number;
    remap_tr   number;
@@ -21,7 +24,7 @@ begin
 --
 --     Specify the desired schema:
 --
-   dbms_metadata.set_filter(exp_h, 'SCHEMA', 'SRC');
+   dbms_metadata.set_filter(exp_h, 'SCHEMA', src_schema_name);
 
 --
 --    Default of INCLUDE_USER is FALSE.
@@ -47,18 +50,18 @@ begin
 --    The following remaps don't really work satisfactiory.
 --
 -- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'TABLE');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
 --
 -- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'INDEX');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
 --
 -- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'VIEW');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
 
 
 -- 
 -- dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'EMIT_SCHEMA', false); 
-
+--
 --
 -- We want DDLs.
 --
@@ -96,14 +99,19 @@ begin
 -- dbms_metadata.set_transform_param(ddl_tr, 'PRETTY'            , false);
 
 --
---    Do not export tables whose name start with TEMP:
+--    Do not export tables whose name start with TEMP or TMP.
+--    Calls to SET_FILTER adds the condition with an AND
 --
-   dbms_metadata.set_filter(exp_h, 'NAME_EXPR'        , q'[not like 'TEMP%']', 'TABLE');
+--
+   dbms_metadata.set_filter(exp_h, 'NAME_EXPR'        , q'[not like 'TEMP_%' ESCAPE '\']', 'TABLE');
+   dbms_metadata.set_filter(exp_h, 'NAME_EXPR'        , q'[not like 'TMP_%'  ESCAPE '\']', 'TABLE');
 
 --
--- Do not export synonyms
+-- Do not export synonyms, grants and comments
 --
    dbms_metadata.set_filter(exp_h, 'EXCLUDE_PATH_EXPR', q'[= 'SYNONYM'    ]');
+   dbms_metadata.set_filter(exp_h, 'EXCLUDE_PATH_EXPR', q'[= 'GRANT'      ]');
+   dbms_metadata.set_filter(exp_h, 'EXCLUDE_PATH_EXPR', q'[= 'COMMENT'    ]');
 
 --
 --    The following set_filter does not work, unfortunately, In fact, it
@@ -118,11 +126,15 @@ begin
       if not (
          --
          -- dbms_metadata generates statements just having a 'null' or two numbers.
-         -- Weed them out:
+         -- There is also a call to sys.dbms_logrep_imp.instantiate_schema
+         -- which I don't want.
+         -- So, weed them out:
          --
-            regexp_like(stmt, '^\s*$') or
-            regexp_like(stmt, '^\s*null\s*$') or
-            regexp_like(stmt, '^\s*\d+\s+*\d+\s*$')
+            regexp_like(stmt, '^\s*$'             ) or
+            regexp_like(stmt, '^\s*null\s*$'      ) or
+            regexp_like(stmt, '^\s*\d+\s+*\d+\s*$') or
+
+            regexp_like(stmt, '^\s*BEGIN\s+sys.dbms_logrep_imp.instantiate_schema\(')
          ) then
 
 

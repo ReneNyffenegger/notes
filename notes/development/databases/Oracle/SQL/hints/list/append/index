@@ -1,20 +1,27 @@
 $ Oracle hint: APPEND
 @ append
 
-Create two tables to test the influence of the `append` → development/databases/Oracle/SQL/hints[hint]:
+{ Influence on conventional load vs direct path insert
+
+  { Preparation
+
+   Create two tables to test the influence of the `append` → development/databases/Oracle/SQL/hints[hint]:
 code {
 create table tq84_src (id number, val varchar2(100));
 create table tq84_dest(id number, val varchar2(100));
 code }
 
-Explain the plan for an → development/databases/Oracle/SQL/DML/insert/select[`insert into … select from`] statement …
+   }
+  { Serial execution
+
+    Explain the plan for an → development/databases/Oracle/SQL/DML/insert/select[`insert into … select from`] statement …
 code {
 → development/databases/Oracle/SQL/statement/verbs/explain[explain plan] for
    insert into tq84_dest
    select * from tq84_src;
 code }
 
-… and display the plan:
+  … and display the plan:
 code {
 select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
 --
@@ -23,11 +30,11 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 -- ----------------------------------------------
 -- |   0 | INSERT STATEMENT         |           |
 -- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL] | TQ84_DEST |
--- |   2 |   TABLE ACCESS FULL      | TQ84_SRC  |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]      | TQ84_SRC  |
 -- ----------------------------------------------
 code }
 
-Same thing, but this time using the `append` hint:
+  Same thing, but this time using the `append` hint:
 code {
 explain plan for
    insert into tq84_dest
@@ -41,18 +48,76 @@ select * from table(dbms_xplan.display(format=>'basic'));
 -- |   0 | INSERT STATEMENT                 |           |
 -- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT]                  | TQ84_DEST |
 -- |   2 |   → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering[OPTIMIZER STATISTICS GATHERING] |           |
--- |   3 |    TABLE ACCESS FULL             | TQ84_SRC  |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]             | TQ84_SRC  |
 -- ------------------------------------------------------
 code }
 
-Cleaning up:
+  }
+  { Parallel execution
+
+code {
+explain plan for
+   insert into tq84_dest
+   select /*+ → development/databases/Oracle/SQL/hints/list/parallel(4) → development/databases/Oracle/SQL/hints/list/parallel/enable-disable_dml[enable_parallel_dml] */ * from tq84_src;
+select * from table(dbms_xplan.display(format => 'basic +note'));
+--
+-- --------------------------------------------------------
+-- | Id  | Operation                          | Name      |
+-- --------------------------------------------------------
+-- |   0 | INSERT STATEMENT                   |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[PX COORDINATOR]                    |           |
+-- |   2 |   PX SEND QC (RANDOM)              | :TQ10000  |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select/hybrid-tsm-hwmb[LOAD AS SELECT (HYBRID TSM/HWMB)]| TQ84_DEST |
+-- |   4 |     OPTIMIZER STATISTICS GATHERING |           |
+-- |   5 |      PX BLOCK ITERATOR             |           |
+-- |   6 |       TABLE ACCESS FULL            | TQ84_SRC  |
+-- --------------------------------------------------------
+--  
+-- Note
+-- -----
+--    - dynamic statistics used: dynamic sampling (level=2)
+--    - Degree of Parallelism is 4 because of hint
+code }
+
+    Same thing, but using the `noappend` hint. This hint *disables direct path* («direct load», see *Note* of `dbms_xplan.display` below):
+code {
+explain plan for
+   insert into tq84_dest
+   select /*+ → development/databases/Oracle/SQL/hints/list/parallel(4) noappend → development/databases/Oracle/SQL/hints/list/parallel/enable-disable_dml[enable_parallel_dml] */ * from tq84_src;
+select * from table(dbms_xplan.display(format => 'basic +note'));
+--
+-- ------------------------------------------------
+-- | Id  | Operation                  | Name      |
+-- ------------------------------------------------
+-- |   0 | INSERT STATEMENT           |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[PX COORDINATOR]            |           |
+-- |   2 |   PX SEND QC (RANDOM)      | :TQ10000  |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL] | TQ84_DEST |
+-- |   4 |     PX BLOCK ITERATOR      |           |
+-- |   5 |      TABLE ACCESS FULL     | TQ84_SRC  |
+-- ------------------------------------------------
+--  
+-- Note
+-- -----
+--    - dynamic statistics used: dynamic sampling (level=2)
+--    - Degree of Parallelism is 4 because of hint
+--    - Direct Load disabled because noappend hint used
+code }
+
+   }
+  { Cleaning up:
 code {
 drop   table tq84_dest;
 drop   table tq84_src ;
 code }
 
+  }
+
+}
 sa:
 
   → development/databases/Oracle/SQL/DML/insert/paths[Direct path loads].
+
+  → development/databases/Oracle/SQL/DML/insert/append-hint[`INSERT` statements with the `append` hint].
 
   Other → development/databases/Oracle/SQL/hints[hints]

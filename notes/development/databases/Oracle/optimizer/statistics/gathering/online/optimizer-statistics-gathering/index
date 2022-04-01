@@ -14,7 +14,7 @@ code {
 → development/databases/Oracle/SQL/statement/verbs/explain[explain plan for]
    insert into tq84_A
    select
-      → development/databases/Oracle/installed/packages/dbms/random.string('a', 1000)
+      → development/databases/Oracle/installed/packages/dbms/random[dbms_random].string('a', 1000)
    from
       dual → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] level <= 10000;
 code }
@@ -28,12 +28,11 @@ select * from table(dbms_xplan.display(format=> 'basic'));
 -- | Id  | Operation                     | Name   |
 -- ------------------------------------------------
 -- |   0 | INSERT STATEMENT              |        |
--- |   1 |  LOAD TABLE CONVENTIONAL      | TQ84_A |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional[LOAD TABLE CONVENTIONAL]      | TQ84_A |
 -- |   2 |   CONNECT BY WITHOUT FILTERING|        |
--- |   3 |    FAST DUAL                  |        |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual[FAST DUAL]                  |        |
 -- ------------------------------------------------
 code }
-
 
 However, when using the → development/databases/Oracle/SQL/hints/list/append[`append`] hint …
 code {
@@ -45,7 +44,6 @@ explain plan for
       dual connect by level <= 10000;
 code }
 
-
 … online statistics will be gathered, indicated by the
 → development/databases/Oracle/SQL/statement/execution/plan/operations[execution plan operation] `OPTIMIZER STATISTICS GATHERING`:
 code {
@@ -55,10 +53,10 @@ select * from table(dbms_xplan.display(format=> 'basic'));
 -- | Id  | Operation                        | Name   |
 -- ---------------------------------------------------
 -- |   0 | INSERT STATEMENT                 |        |
--- |   1 |  LOAD AS SELECT                  | TQ84_A |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT]                  | TQ84_A |
 -- |   2 |   OPTIMIZER STATISTICS GATHERING |        |
 -- |   3 |    CONNECT BY WITHOUT FILTERING  |        |
--- |   4 |     FAST DUAL                    |        |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual[FAST DUAL]                    |        |
 -- ---------------------------------------------------
 code }
 
@@ -91,7 +89,7 @@ select * from table(dbms_xplan.display(format=> 'basic'));
 -- | Id  | Operation                        | Name   |
 -- ---------------------------------------------------
 -- |   0 | CREATE TABLE STATEMENT           |        |
--- |   1 |  LOAD AS SELECT                  | TQ84_B |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT]                  | TQ84_B |
 -- |   2 |   OPTIMIZER STATISTICS GATHERING |        |
 -- |   3 |    TABLE ACCESS FULL             | TQ84_A |
 -- ---------------------------------------------------
