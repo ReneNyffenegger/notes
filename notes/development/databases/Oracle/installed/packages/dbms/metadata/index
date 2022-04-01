@@ -6,6 +6,8 @@ $ Oracle: DBMS_METADATA
 -
 The extracted definitions can then be used to recreate these objects.
 
+`dbms_metadata` is also used by → development/databases/Oracle/tools/Data-Pump.
+
 
 { Simple example
 
@@ -53,7 +55,7 @@ code }
   The former are marked with *prog*, the latter with *browse* in the following table.
 
   table { lll
-    → development/databases/Oracle/installed/packages/dbms/metadata/api/add_transform[`ADD_TRANSFORM`] ☰ Specifies a transformation to be applied to the XML documents when using `FETCH_*`, `CONVERT` or `PUT` functions/procedures. ☰ prog
+    → development/databases/Oracle/installed/packages/dbms/metadata/api/add_transform[`ADD_TRANSFORM`] ☰ Specifies a transformation to be applied to the XML documents when using `FETCH_*`, `CONVERT` or `PUT` functions/procedures. See also `SET_TRANSFORM_PARAM` ☰ prog
     `CHECK_CONSTRAINT` ☰ ☰
     `CHECK_MATCH_TEMPLATE` ☰ ☰
     `CHECK_MATCH_TEMPLATE_LOB` ☰ ☰
@@ -118,8 +120,8 @@ code }
     `NETWORK_OPEN` ☰ ☰
     `NET_SET_DEBUG` ☰ ☰
     `OKTOEXP_2NDARY_TABLE` ☰ ☰
-    `OPEN` ☰ Establish a *fetch context* (object parameters) to be used with → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` procedures]. See also `CLOSE`. ☰ prog
-    `OPENW` ☰ ☰
+    `OPEN` ☰ Establish a *fetch context* (object parameters) to be used with → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` procedures]. In essence, `OPEN` specifies the object types whose meta data is to be retrieved. See also `SET_FILTER` and `CLOSE`. ☰ prog
+    `OPENW` ☰ Specifies the object-type whose metadata is to be submitted. The `W` possibly stands for *write*. ☰
     `OPEN_GET_FK_CONSTRAINT_NAME` ☰ ☰
     `PARSE_CONDITION` ☰ ☰
     `PARSE_DEFAULT` ☰ ☰
@@ -128,13 +130,13 @@ code }
     `PUT` ☰ ☰
     `SET_COUNT` ☰ Sets the maximum number of objects to be retrieved with single calls to → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_…`] ☰ prog
     `SET_DEBUG` ☰ Sets (internal) debug flag ☰
-    → development/databases/Oracle/installed/packages/dbms/metadata/api/set/filter[`SET_FILTER`] ☰ Set the criteria which specify which → development/databases/Oracle/objects[objects] should be returned ☰ prog
+    → development/databases/Oracle/installed/packages/dbms/metadata/api/set/filter[`SET_FILTER`] ☰ Set the criteria («restrictions») which specify which → development/databases/Oracle/objects[objects] should be returned. See also `OPEN`. ☰ prog
     `SET_FK_CONSTRAINT_COL_PAIR` ☰ ☰
     `SET_PARAMETER` ☰ Sets parameters for → development/databases/Oracle/installed/packages/dbms/metadata/api/fetch[`FETCH_*` operations]. ☰
-    `SET_PARSE_ITEM` ☰ Call `SET_PARSE_ITEM` to that `FETCH_DDL` and `FETCH_XML_CLOB` return attributes of the object's metadata or the DDL statement in a `sys.ku$_parsed_items` *nested table*. ☰ prog
+    `SET_PARSE_ITEM` ☰ Enables output parsing and specifies object attributes. Call `SET_PARSE_ITEM` so that `FETCH_DDL` and `FETCH_XML_CLOB` return attributes of the object's metadata or the DDL statement in a `sys.ku$_parsed_items` *nested table*. ☰ prog
     `→ development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[SET_REMAP_PARAM]` ☰ ☰ prog
-     → development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[`SET_TRANSFORM_PARAM`] ☰ ☰ prog
-    `SET_XMLFORMAT` ☰ Formatting attributes when creating → development/XML output ☰
+     → development/databases/Oracle/installed/packages/dbms/metadata/api/set_transform_param[`SET_TRANSFORM_PARAM`] ☰ See also `ADD_TRANSFORM` ☰ prog
+    `SET_XMLFORMAT` ☰ Specifies the formatting attributes when creating → development/XML output ☰
     `TRANSFORM_STRM` ☰ ☰
   table }
 
@@ -190,6 +192,27 @@ code }
   table }
 
 }
+{ Heterogeneous object types #dbms_metadata-heterogeneous-obj-types
+
+  Oracle's documentation refers to → development/databases/Oracle/objects[objects] that logically belong together as *heterogeneous object types*.
+  
+  These heterogeneous object types are:
+    • Table (the table and its dependent objects)
+    • Schema
+    • Database
+
+  A heterogeneous object type can be specified in `dbms_metadata.open` like so:
+code {
+begin
+   dbms_metadata.open('TABLE_EXPORT'   );
+-- dbms_metadata.open('SCHEMA_EXPORT'  );
+-- dbms_metadata.open('DATABASE_EXPORT');
+code }
+
+  See also the column → development/databases/Oracle/installed/data-dictionary/export/objects#dba_export_objects-het_type[`het_type`] of
+ `→ development/databases/Oracle/installed/data-dictionary/export/objects`.
+
+}
 { Misc
 
   When used in an *Oracle Shared Server (OSS)* environment, `dbms_metadata` disables → development/databases/Oracle/architecture/session migration and connection pooling.
@@ -210,7 +233,10 @@ sa:
 
   → development/databases/Oracle/installed/data-dictionary/source[`dba_source`] shows the source code of PL/SQL objects.
 
+ `→ development/databases/Oracle/installed/data-dictionary/export/objects`
+
   Don't confuse `dbms_metadata` with → development/databases/Oracle/installed/packages/dbms/ddl[`dbms_ddl`].
+
 
 links:
   → https://github.com/alexeyvo/oracle_oci_examples/blob/master/mddemo.sql[`mddemo.sql`] (supposedly located under `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms[$ORACLE_HOME/rdbms]/demo`) demonstrates

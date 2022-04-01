@@ -1,0 +1,149 @@
+$ DBMS_METADATA example: Export a schema
+
+code {
+drop   table tq84_ddls;
+
+create table tq84_ddls (
+   txt clob,
+   seq integer generated always as identity
+);
+code }
+
+code {
+declare
+   exp_h      number;
+   ddl_tr     number;
+   remap_tr   number;
+   stmt       clob;
+begin
+   exp_h := dbms_metadata.open('SCHEMA_EXPORT');
+
+--
+--     Specify the desired schema:
+--
+   dbms_metadata.set_filter(exp_h, 'SCHEMA', 'SRC');
+
+--
+--    Default of INCLUDE_USER is FALSE.
+--    Setting it to true causes the exported statements
+--    to emit
+--       - CREATE USER …
+--       - GRANT … TO …
+--       - etc
+--    statments.
+--
+-- dbms_metadata.set_filter (exp_h, 'INCLUDE_USER', true);
+
+--
+--    The following call throws
+--        ORA-31604: invalid transform NAME parameter "MODIFY" for
+--        object type PROCACT_SCHEMA in function ADD_TRANSFORM
+--
+--    This seems to be contrary to what is documented.
+--
+-- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, null);
+
+--
+--    The following remaps don't really work satisfactiory.
+--
+-- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'TABLE');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+--
+-- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'INDEX');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+--
+-- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'VIEW');
+-- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', 'SRC', 'DEST');
+
+
+-- 
+-- dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'EMIT_SCHEMA', false); 
+
+--
+-- We want DDLs.
+--
+--   (Without the following call, the subsequent calls to fetch_clob
+--    would return XML (SXML?) documents).
+--
+   ddl_tr   := dbms_metadata.add_transform(exp_h, 'DDL');
+
+
+-- Do not create «segment attributes» such as
+--
+--    SEGMENT CREATION DEFERRED 
+--        PCTFREE   10
+--        PCTUSED   40
+--        INITRANS   1
+--        MAXTRANS 255 
+--    NOCOMPRESS LOGGING
+--        TABLESPACE "…"
+--
+-- The object type must be indicated in a schema-export, otherwise, a
+--        ORA-31600: invalid input value SEGMENT_ATTRIBUTES for parameter NAME in function SET_TRANSFORM_PARAM
+-- is thrown
+--
+   dbms_metadata.set_transform_param(ddl_tr, 'SEGMENT_ATTRIBUTES', false, 'TABLE');
+   dbms_metadata.set_transform_param(ddl_tr, 'SEGMENT_ATTRIBUTES', false, 'INDEX');
+
+-- ?
+-- dbms_metadata.set_transform_param(ddl_tr, 'STORAGE'           , true , 'TABLE');
+
+
+--    Default for SQLTERMINATOR is false:
+-- dbms_metadata.set_transform_param(ddl_tr, 'SQLTERMINATOR'     , true);
+
+--    Default for PRETTY is true:
+-- dbms_metadata.set_transform_param(ddl_tr, 'PRETTY'            , false);
+
+--
+--    Do not export tables whose name start with TEMP:
+--
+   dbms_metadata.set_filter(exp_h, 'NAME_EXPR'        , q'[not like 'TEMP%']', 'TABLE');
+
+--
+-- Do not export synonyms
+--
+   dbms_metadata.set_filter(exp_h, 'EXCLUDE_PATH_EXPR', q'[= 'SYNONYM'    ]');
+
+--
+--    The following set_filter does not work, unfortunately, In fact, it
+--    even causes to produce no output at all.
+--
+-- dbms_metadata.set_filter(exp_h, 'INCLUDE_PATH_EXPR', q'[= 'TABLE_DATA' ]');
+
+   loop
+      stmt := dbms_metadata.fetch_clob(exp_h);
+      exit when stmt is null;
+
+      if not (
+         --
+         -- dbms_metadata generates statements just having a 'null' or two numbers.
+         -- Weed them out:
+         --
+            regexp_like(stmt, '^\s*$') or
+            regexp_like(stmt, '^\s*null\s*$') or
+            regexp_like(stmt, '^\s*\d+\s+*\d+\s*$')
+         ) then
+
+
+           insert into tq84_ddls(txt) values (stmt);
+
+      end if;
+
+   end loop;
+
+   dbms_metadata.close(exp_h);
+end;
+/
+
+commit;
+code }
+
+code {
+select
+   txt
+from
+   tq84_ddls
+order by
+   seq;
+code }
