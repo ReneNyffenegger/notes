@@ -1,12 +1,13 @@
-$ Oracle: Interval partioned tables
+$ Oracle: Interval partitioned tables
 
 *Interval partitioning* is a variant of → development/databases/Oracle/objects/tables/partitions/distribution-techniques/range[range partitioning]: Oracle will create new partiations automatically when
 then inserted value requires it.
 
 Interval partitioned tables only support a subset of the capabilites of range partitioned tables.
-  • 
-  • *serializable transactions* to not work
+  • *serializable transactions* do not work
   • VARRAY and nested-columns cannot be created
+
+Only one column can be used for the partitioning criteria. The column's data type must be `number`, `date`, `float` or `timestamp`.
 
 When an interval partitioned table is created, at least one range partition must be specified.
 
@@ -20,6 +21,9 @@ Interval partitions cannot be created as sub-partitions.
 { Monthly partitions (based on date-value)
 
   gh|Oracle-Patterns|/DatabaseObjects/Tables/Partitions/interval_partitioning.sql||
+
+  The day that is used in the partitioning clause must not be greater than 28, otherwise, Oracle throws an
+  → development/databases/Oracle/errors/ORA-14767_cannot-specify-this-interval-with-existing-high-bounds error.
 
 }
 { Interval partition, based on a character datatype

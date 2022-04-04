@@ -1,0 +1,73 @@
+$ oradebug dump treedump
+
+code {
+oradebug → development/databases/Oracle/tools/oradebug/doc/event/action[doc event action] treedump
+
+TREEDUMP
+        - Dump an index tree rooted at dba BLOCKDBA (<level>)
+Usage
+-------
+TREEDUMP( level           <ub4> default '1')
+code }
+
+
+{ ORA-24323 #treedump-24323
+
+  Prepare a table with some → development/databases/Oracle/objects/indexes[indexes] and select their object ids:
+code {
+drop   table tq84_tab;
+
+create table tq84_tab (
+   id   number,
+   flg  char(1) not null check (flg in ('y', 'n')),
+   txt  varchar2(10)
+);
+
+begin
+insert into tq84_tab values (1, 'n', 'foo');
+insert into tq84_tab values (2, 'n', 'bar');
+insert into tq84_tab values (3, 'n', 'foo');
+insert into tq84_tab values (4, 'n', 'baz');
+insert into tq84_tab values (5, 'y', 'baz');
+insert into tq84_tab values (6, 'n', 'foo');
+insert into tq84_tab values (7, 'y', 'bar');
+insert into tq84_tab values (8, 'n', 'bar');
+insert into tq84_tab values (9, 'n', 'foo');
+
+commit;
+end;
+/
+
+create        index tq84_tab_ix     on tq84_tab(txt);
+create unique index tq84_tab_ix_uq  on tq84_tab(id );
+create bitmap index tq84_tab_ix_bmp on tq84_tab(flg);
+
+select
+   substr(object_name, 1, 15) obj,
+   object_id                  id
+from
+   user_objects
+where
+   object_name like 'TQ84_TAB_IX%'
+order by
+   object_name;
+--
+-- OBJ                     ID
+-- --------------- ----------
+-- TQ84_TAB_IX          97615
+-- TQ84_TAB_IX_BMP      97617
+-- TQ84_TAB_IX_UQ       97616
+code }
+
+   Then, in a privileged session, try to dump the index:
+code {
+SQL> → development/databases/Oracle/tools/oradebug/setmypid
+SQL> oradebug dump treedump 97615
+→ development/databases/Oracle/errors/ORA-03113_end-of-file-on-communication-channel
+→ development/databases/Oracle/errors/ORA-24323_value-not-allowed
+code }
+
+}
+
+sa:
+  `→ development/databases/Oracle/tools/oradebug/dump/treedump/set-events`

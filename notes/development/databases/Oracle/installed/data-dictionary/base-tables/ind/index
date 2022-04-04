@@ -1,0 +1,111 @@
+$ Oracle: SYS.IND$
+@ obj$
+
+code {
+select
+   obj.name         name,
+   usr.name         owner,
+   ind.blevel,
+   ind.leafcnt,
+   ind.file#,          -- Segment header file number and ...
+   ind.block#,         -- ... block number
+   ind.bo#,            -- object number of base table
+   ind.clufac,
+--
+-- The value of property does not change during an index's lifetime.
+--
+   case when bitand(ind.property, power(2,  0)) > 0 then 'unique'                           end unique_,
+   case when bitand(ind.property, power(2,  1)) > 0 then 'reverse'                          end reverse_,
+   case when bitand(ind.property, power(2,  2)) > 0 then 'partitioned'                      end partitioned_,
+   case when bitand(ind.property, power(2,  3)) > 0 then 'compressed'                       end compressed_,
+   case when bitand(ind.property, power(2,  4)) > 0 then 'functional'                       end functional_,
+   case when bitand(ind.property, power(2,  5)) > 0 then 'temp table'                       end temp_table_,
+   case when bitand(ind.property, power(2,  6)) > 0 then 'temp table (session)'             end temp_table_session_,
+   case when bitand(ind.property, power(2,  7)) > 0 then 'embedded adt'                     end adt_,
+   case when bitand(ind.property, power(2,  8)) > 0 then 'check max length'                 end max_length_, -- Used asked to check max length at runtime
+   case when bitand(ind.property, power(2,  9)) > 0 then 'IOT domain index'                 end iot_domain_index_,
+   case when bitand(ind.property, power(2, 10)) > 0 then 'join index'                       end join_index_,
+   case when bitand(ind.property, power(2, 11)) > 0 then 'system managed domain index'      end system_managed_domain_index_,
+   case when bitand(ind.property, power(2, 12)) > 0 then 'constraint'                       end constraint_,  -- Index was crated by a constraint
+   case when bitand(ind.property, power(2, 13)) > 0 then 'mat view'                         end mat_view_  ,  -- Index was created by a materialized view
+   --                                      14
+   case when bitand(ind.property, power(2, 15)) > 0 then 'composite domain index'           end composite_domain_index_,
+-- ------------------------------------------------------------------------------------------------------
+   ind.cols,
+   ind.dataobj#,       -- data layer object number
+   ind.dblkkey,
+   ind.degree,
+   ind.distkey,
+   ind.evaledition#,
+   ind.flags,
+--
+-- The value of flags might change during an index's lifetime.
+--
+   case when bitand(ind.flags, power(2,  0)) > 0 then 'unusable'                            end unusable,
+   case when bitand(ind.flags, power(2,  1)) > 0 then 'analyzed'                            end analyzed,
+   case when bitand(ind.flags, power(2,  2)) > 0 then 'no logging'                          end no_logging,
+   case when bitand(ind.flags, power(2,  3)) > 0 then 'being built'                         end being_built,
+   case when bitand(ind.flags, power(2,  8)) > 0 then 'being built online'                  end being_built_online,
+   case when bitand(ind.flags, power(2,  9)) > 0 then 'being rebuilt online'                end being_rebuilt_online,
+   case when bitand(ind.flags, power(2,  4)) > 0 then 'incomplete index creation'           end incomplete_index_creation,
+   case when bitand(ind.flags, power(2,  5)) > 0 then 'key compression enabled'             end key_compression_enabled,
+   case when bitand(ind.flags, power(2, 11)) > 0 then 'global stats'                        end global_stats,
+   case when bitand(ind.flags, power(2,  6)) > 0 then 'user-specified stats'                end user_specified_stats,
+   case when bitand(ind.flags, power(2,  7)) > 0 then 'secondary index on IOT'              end secondary_index_on_iot,
+   case when bitand(ind.flags, power(2, 10)) > 0 then 'disabled'                            end disabled,
+   case when bitand(ind.flags, power(2, 12)) > 0 then 'fake index'                          end fake_index, -- Internal
+   case when bitand(ind.flags, power(2, 13)) > 0 then 'UROWID column(s)'                    end urowid_columns,
+   case when bitand(ind.flags, power(2, 14)) > 0 then 'index with large key'                end large_keys,
+   case when bitand(ind.flags, power(2, 15)) > 0 then 'move partitioned rows in base table' end move_part_rows,
+   case when bitand(ind.flags, power(2, 16)) > 0 then 'index usage monitoring enabled'      end usage_monitoring,
+-- 4 bits reserved for bitmap index version
+   case when bitand(ind.flags, power(2, 17)) > 0 then 'invisible'                           end invisible,
+   case when bitand(ind.flags, power(2, 18)) > 0 then 'Delayed Segment Creation'            end delayed_segment_creation,
+   case when bitand(ind.flags, power(2, 19)) > 0 then 'partial index'                       end partial_index,
+-- 2 free bits: 0x3000000
+   case when bitand(ind.flags, power(2, 22)) > 0 then 'Delayed Segment Creation (?)'        end delayed_segment_creation_2,
+   case when bitand(ind.flags, power(2, 23)) > 0 then 'online index cleanup phase'          end online_index_cleanup_phase,
+   case when bitand(ind.flags, power(2, 24)) > 0 then 'has orphaned entries'                end has_orphaned_entries,
+   case when bitand(ind.flags, power(2, 25)) > 0 then 'going to be dropped'                 end gonna_be_dropped,
+   case when bitand(ind.flags, power(2, 26)) > 0 then 'oltp high index compression'         end olt_high,
+   case when bitand(ind.flags, power(2, 27)) > 0 then 'oltp low index compression'          end oltp_low,
+-- ------------------------------------------------------------------------------------------------------
+   ind.indmethod#,     -- object number for cooperative index method
+   ind.initrans,
+   ind.instances,
+   ind.intcols,
+   ind.lblkkey,
+   ind.maxtrans,
+-- ind.obj#,
+   ind.pctfree$,
+   ind.pctthres$,
+   ind.rowcnt,
+   ind.samplesize,
+   ind.spare1,
+   ind.trunccnt,
+   ind.ts#,
+   decode(ind.type#,
+       1, 'normal',
+       2, 'bitmap',
+       3, 'cluster',
+       4, 'IOT - top',
+       5, 'IOT - nested',
+       6, 'secondary',
+       7, 'ANSI',
+       8, 'LOB',
+       9, 'cooperative'
+   )                      type_,
+   ind.unusablebefore#,
+   ind.unusablebeginning#,
+   ind.analyzetime,
+   ind.spare2,
+   ind.spare3,
+   ind.spare4,
+   ind.spare5,
+   ind.spare6 
+from
+   sys.ind$  ind                           join
+   sys.obj$  obj on ind.obj#   = obj.obj#  join
+   sys.user$ usr on obj.owner# = usr.user#
+;
+code }

@@ -1,11 +1,25 @@
 $ ORA-00997: illegal use of LONG datatype
 
-The first of the following statements causes an *ORA-00997: illegal use of → development/databases/Oracle/SQL/data-types/long[LONG] datatype* error because the column `data_default` of
-→ development/databases/Oracle/installed/data-dictionary/tab/cols[`user_tab_cols`] is a `long`. This problem can somewhat be mitigated by using
-→ development/databases/Oracle/SQL/functions/lob/to[`to_lob`] which creates a
-→ development/databases/Oracle/SQL/data-types/lob[`clob`] from the → development/databases/Oracle/SQL/data-types/long[`long`].
--
-However, if `to_lob()` is used in a `case when` clause, we get the error → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes[ORA-00932: inconsistent datatypes: expected - got LONG].
+{ ORDER BY
+
+  A → development/databases/Oracle/SQL/data-types/long[`long`] data type cannot be used in an → development/databases/Oracle/SQL/select/order-by[`order by` clause].
+code {
+select *
+from
+   user_views
+order by
+   text;
+code }
+
+}
+{ CREATE TABLE … AS …
+
+  The first of the following statements causes an *ORA-00997: illegal use of → development/databases/Oracle/SQL/data-types/long[LONG] datatype* error because the column `data_default` of
+  → development/databases/Oracle/installed/data-dictionary/tab/cols[`user_tab_cols`] is a `long`. This problem can somewhat be mitigated by using
+  → development/databases/Oracle/SQL/functions/lob/to[`to_lob`] which creates a
+  → development/databases/Oracle/SQL/data-types/lob[`clob`] from the → development/databases/Oracle/SQL/data-types/long[`long`].
+
+  However, if `to_lob()` is used in a `case when` clause, we get the error → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes[ORA-00932: inconsistent datatypes: expected - got LONG].
 
 code {
 create table tq84_a as select                                  data_default       as data_default      from user_tab_cols;
@@ -14,3 +28,4 @@ create table tq84_c as select        case when 1=1 then to_lob(data_default) end
 create table tq84_d as select to_lob(case when 1=1 then        data_default  end) as data_default_clob from user_tab_cols;
 code }
 
+}

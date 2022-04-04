@@ -1,0 +1,43 @@
+$ ORA-14767: Cannot specify this interval with existing high bounds
+
+An → development/databases/Oracle/objects/tables/partitions/distribution-techniques/range/interval[interval partitioned table] whose intervals depend on a date value and are multiple of months
+(`numtoyminterval(x, 'month')` must not have a day greater than 28, otherwise, Oracle throws an
+*ORA-14767: Cannot specify this interval with existing high bounds* error, as shown with the following attempt to create a table:
+code {
+create table tq84_tab_part (
+   dt   date,
+   val  number,
+   txt  varchar2(20)
+)
+partition
+   by range (dt)
+      interval (numtoyminterval(1, 'month'))
+   (
+      partition p_start values less than (date '2019-12-31' )
+--    partition p_start values less than (date '2020-01-01' )
+   )
+;
+code }
+
+
+The following statement creates the table.
+code {
+create table tq84_tab_part (
+   dt   date,
+   val  number,
+   txt  varchar2(20)
+)
+partition
+   by range (dt)
+      interval (numtoyminterval(1, 'month'))
+   (
+--    partition p_start values less than (date '2019-12-31' )
+      partition p_start values less than (date '2020-01-01' )
+   )
+;
+code }
+
+Cleaning up
+code {
+drop   table tq84_tab_part;
+code }

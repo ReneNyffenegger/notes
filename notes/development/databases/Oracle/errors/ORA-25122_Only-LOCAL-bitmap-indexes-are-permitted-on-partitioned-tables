@@ -1,0 +1,36 @@
+$ ORA-25122: Only LOCAL bitmap indexes are permitted on partitioned tables
+
+Create a → development/databases/Oracle/objects/tables/partitions[partitioned table] (or more precisely: a
+→ development/databases/Oracle/objects/tables/partitions/distribution-techniques/list[list partitioned table]):
+code {
+create table tq84_tab_part (
+   id     number,
+   val    number,
+   txt    varchar2(10),
+   grp    varchar2( 3)  not null check (grp in ('A', 'B', 'C')),
+   --
+   constraint tq84_tab_part_pk primary key (id)
+)
+partition by list (grp) (
+   partition tq84_list_partition_A values ('A'),
+   partition tq84_list_partition_B values ('B'),
+   partition tq84_list_partition_C values ('C')
+);
+code }
+
+Try to create a → development/databases/Oracle/objects/indexes/bitmap on the partitioned table:
+code {
+create bitmap index tq84_tab_part_ix_bmp on tq84_tab_part(txt);
+code }
+
+This is not possible, Oracle throws a *ORA-25122: Only LOCAL bitmap indexes are permitted on partitioned tables* error.
+
+The `LOCAL` keyword is required to create a *local bitmap index*:
+code {
+create bitmap index tq84_tab_part_ix_bmp on tq84_tab_part(txt) local;
+code }
+
+cleaning up:
+code {
+drop   table tq84_tab_part;
+code }

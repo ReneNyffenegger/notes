@@ -1,0 +1,59 @@
+$ Oracle SQL Plan operation PARTITION LIST (INLIST)
+
+code {
+create table tq84_tab_part (
+   id     number(5),
+   val    number(5,1),
+   grp    char(1)  not null check (grp in ('A', 'B', 'C')),
+   --
+   constraint tq84_tab_part_pk primary key (id)
+)
+partition by list (grp) (
+   partition tq84_list_partition_A values ('A'),
+   partition tq84_list_partition_B values ('B'),
+   partition tq84_list_partition_C values ('C')
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab_part
+select
+   level,
+   round(dbms_random.value(0, 1000), 1),
+   chr(ascii('A') + dbms_random.value(0, 3))
+from
+   dual connect by level <= 10000;
+
+
+explain plan for
+   select
+      grp,
+      max(val) max_val
+   from
+      tq84_tab_part
+   where
+      grp in ('A', 'B')
+   group by
+      grp;
+;
+
+--
+-- -----------------------------------------------
+-- | Id  | Operation             | Name          |
+-- -----------------------------------------------
+-- |   0 | SELECT STATEMENT      |               |
+-- |   1 |  PARTITION LIST INLIST|               |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[HASH GROUP BY]       |               |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]  | TQ84_TAB_PART |
+-- -----------------------------------------------
+
+select * from table(dbms_xplan.display(format=>'basic'));
+
+drop   table tq84_tab_part;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

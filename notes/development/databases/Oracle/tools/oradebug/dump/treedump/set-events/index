@@ -1,0 +1,81 @@
+$ ALTER SESSION SET EVENTS TREEDUMP
+
+
+code {
+drop   table tq84_tab;
+
+create table tq84_tab (
+   id   number,
+   flg  char(1) not null check (flg in ('y', 'n')),
+   txt  varchar2(10)
+);
+
+begin
+insert into tq84_tab values (1, 'n', 'foo');
+insert into tq84_tab values (2, 'n', 'bar');
+insert into tq84_tab values (3, 'n', 'foo');
+insert into tq84_tab values (4, 'n', 'baz');
+insert into tq84_tab values (5, 'y', 'baz');
+insert into tq84_tab values (6, 'n', 'foo');
+insert into tq84_tab values (7, 'y', 'bar');
+insert into tq84_tab values (8, 'n', 'bar');
+insert into tq84_tab values (9, 'n', 'foo');
+
+commit;
+end;
+/
+
+
+create        index tq84_tab_ix     on tq84_tab(txt);
+create unique index tq84_tab_ix_uq  on tq84_tab(id );
+create bitmap index tq84_tab_ix_bmp on tq84_tab(flg);
+
+select
+   substr(object_name, 1, 15) obj,
+   object_id                  id
+from
+   user_objects
+where
+   object_name like 'TQ84_TAB_IX%'
+order by
+   object_name;
+--
+-- OBJ                     ID
+-- --------------- ----------
+-- TQ84_TAB_IX          97615
+-- TQ84_TAB_IX_BMP      97617
+-- TQ84_TAB_IX_UQ       97616
+
+--
+-- Dump non unique index:
+--
+alter session set events 'immediate trace name treedump level 97615';
+
+--
+-- Nothing meaningful dumpped for BITMAP INDEX (treedump...)
+--
+alter session set events 'immediate trace name treedump level 97617';
+
+--
+-- Dump unique index:
+--
+alter session set events 'immediate trace name treedump level 97616';
+
+--
+-- Inspect trace file
+--
+select
+   trc.payload,
+   trc.timestamp
+from
+   v$diag_info inf   join
+   v$diag_trace_file_contents  trc on regexp_replace(inf.value, '.*[\\/]', '') = trc.trace_filename
+where
+   inf.name = 'Default Trace File'
+order by
+   trc.line_number
+;
+code }
+
+sa:
+   `→ development/databases/Oracle/tools/oradebug/dump/treedump`

@@ -28,5 +28,91 @@ select * from table(dbms_xplan.display(format=>'basic'));
 -- ----------------------------------------------------------
 code }
 
+{ Partitioned table / local index
+
+code {
+create table tq84_tab_part (
+   id     number(5),
+   val    number(5,1),
+   txt    varchar2(10),
+   grp    char(1)  not null check (grp in ('A', 'B', 'C')),
+   --
+   constraint tq84_tab_part_pk primary key (id)
+)
+partition by list (grp) (
+   partition tq84_list_partition_A values ('A'),
+   partition tq84_list_partition_B values ('B'),
+   partition tq84_list_partition_C values ('C')
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab_part
+select
+   level,
+   round(dbms_random.value(0, 1000), 1),
+   case round(dbms_random.value, 4)
+        when 0.0111 then 'x'
+        when 0.0222 then 'y'
+        when 0.0333 then 'z'
+        else chr(ascii('a') + dbms_random.value(0, 23))
+   end,
+   chr(ascii('A') + dbms_random.value(0, 3))
+from
+   dual connect by level <= 30000;
+
+
+create bitmap index tq84_tab_part_ix_bmp on tq84_tab_part(txt) local;
+
+begin
+   dbms_stats.gather_table_stats(
+      user,
+     'tq84_tab_part',
+      method_opt => 'for columns txt size 26' -- size 26: Make sure histograms are created
+   );
+end;
+/
+
+-- select * from user_tab_cols       where table_name = 'TQ84_TAB_PART';
+-- select * from user_tab_histograms where table_name = 'TQ84_TAB_PART';
+
+explain plan for
+   select
+      val,
+      txt,
+      grp
+   from
+      tq84_tab_part
+   where
+      grp in ('A', 'B')      and
+      txt in ('x', 'y', 'z')
+;
+
+select * from table(dbms_xplan.display(format=>'typical -bytes -cost'));
+--
+-- ---------------------------------------------------------------------------------------------------------------
+-- | Id  | Operation                                   | Name                 | Rows  | Time     | Pstart| Pstop |
+-- ---------------------------------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                            |                      |     1 | 00:00:01 |       |       |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list/inlist[PARTITION LIST INLIST]                      |                      |     1 | 00:00:01 |KEY(I) |KEY(I) |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/inlist-iterator[INLIST ITERATOR]                           |                      |       |          |       |       |
+-- |   3 |    TABLE ACCESS BY LOCAL INDEX ROWID BATCHED| TQ84_TAB_PART        |     1 | 00:00:01 |KEY(I) |KEY(I) |
+-- |   4 |     BITMAP CONVERSION TO ROWIDS             |                      |       |          |       |       |
+-- |*  5 |      BITMAP INDEX SINGLE VALUE              | TQ84_TAB_PART_IX_BMP |       |          |KEY(I) |KEY(I) |
+-- ---------------------------------------------------------------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    5 - access("TXT"='x' OR "TXT"='y' OR "TXT"='z')
+
+drop   table tq84_tab_part;
+code }
+
+}
+
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
