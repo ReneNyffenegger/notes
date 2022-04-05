@@ -1,0 +1,55 @@
+$ Oracle: SQL Plan for Scalar Subqueries
+
+code {
+create table tq84_A (txt varchar2(10), num number);
+
+create table tq84_X (txt varchar2(10), val number);
+create table tq84_Y (txt varchar2(10), val number);
+create table tq84_Z (txt varchar2(10), val number);
+code }
+
+code {
+explain plan for
+select
+   a.num,
+   a.txt,
+  (select x.val from tq84_X x where x.txt = a.txt) val_x,
+  (select y.val from tq84_Y y where y.txt = a.txt) val_y,
+  (select z.val from tq84_Z z where z.txt = a.txt) val_z
+from
+   tq84_A a
+;
+code }
+
+The (scalar) subqueries can be identifed in a displayed execution plan by the → development/databases/Oracle/SQL/statement/query-block[query blocks]. In order to display query block names
+with `dbms_xplan.display`, the specified `alias` or `format=>'all'` is needed:
+code {
+select * from table(dbms_xplan.display(format=>'basic alias'));
+--
+-- ------------------------------------
+-- | Id  | Operation         | Name   |
+-- ------------------------------------
+-- |   0 | SELECT STATEMENT  |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_X |
+-- |   2 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_Y |
+-- |   3 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_Z |
+-- |   4 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- ------------------------------------
+--  
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--  
+--    1 - SEL$2 / X@SEL$2
+--    2 - SEL$3 / Y@SEL$3
+--    3 - SEL$4 / Z@SEL$4
+--    4 - SEL$1 / A@SEL$1
+code }
+
+
+Cleaning up
+code {
+drop table tq84_X;
+drop table tq84_Y;
+drop table tq84_Z;
+drop table tq84_A;
+code }

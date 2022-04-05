@@ -1,0 +1,125 @@
+$ Oracle: Using a PL/SQL function in a WHERE clause
+
+code {
+create or replace package tq84_pkg
+    authid definer
+as
+
+    procedure init;
+    function  val return number;
+    function  det return number deterministic;
+    procedure rep;
+
+end tq84_pkg;
+/
+
+
+create or replace package body tq84_pkg
+as
+
+    cnt number;
+
+    procedure init is begin
+       cnt := 0;
+    end init;
+
+    function val return number is begin
+       cnt := cnt + 1;
+       return 42;
+    end val;
+
+    function det return number deterministic is
+    begin
+       cnt := cnt + 1;
+       return 42;
+    end det;
+
+    procedure rep is begin
+       dbms_output.put_line('cnt = ' || cnt);
+       init;
+    end rep;
+
+begin
+    init;
+
+end tq84_pkg;
+/
+
+
+create table tq84_tab (
+   txt  varchar2(10),
+   num  number
+);
+
+insert into tq84_tab values('a',   7);
+insert into tq84_tab values('b',  42);
+insert into tq84_tab values('c',  42);
+insert into tq84_tab values('d',  99);
+insert into tq84_tab values('e',  42);
+insert into tq84_tab values('f',null);
+code }
+
+The → development/databases/Oracle/PL-SQL/function-procedure[function] in the `where` condition is called 5 times:
+code {
+select txt from tq84_tab where num = tq84_pkg.val;
+exec tq84_pkg.rep
+code }
+
+The function is called only once:
+code {
+select txt from tq84_tab where num = (select tq84_pkg.val from dual);
+exec tq84_pkg.rep
+code }
+
+The → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic function] is called once as well:
+code {
+select txt from tq84_tab where num = tq84_pkg.det;
+exec tq84_pkg.rep
+code }
+
+code {
+explain plan for
+   select txt from tq84_tab where num = tq84_pkg.val;
+select * from table(dbms_xplan.display(format=>'basic predicate'));
+--
+-- --------------------------------------
+-- | Id  | Operation         | Name     |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT  |          |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- --------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("NUM"="TQ84_PKG"."VAL"())
+code }
+
+code {
+explain plan for
+select txt from tq84_tab where num = (select tq84_pkg.val from dual);
+select * from table(dbms_xplan.display(format=>'basic predicate'));
+--
+-- --------------------------------------
+-- | Id  | Operation         | Name     |
+-- --------------------------------------
+-- |   0 | SELECT STATEMENT  |          |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual[FAST DUAL]       |          |
+-- --------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("NUM"= (SELECT "TQ84_PKG"."VAL"() FROM "SYS"."DUAL" 
+--               "DUAL"))
+code }
+
+Cleaning up:
+code {
+drop package tq84_pkg;
+drop table   tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/clauses/where

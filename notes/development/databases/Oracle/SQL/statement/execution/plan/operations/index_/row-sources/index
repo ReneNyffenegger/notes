@@ -1,0 +1,59 @@
+$ Oracle: Row sources for INDEX SCAN operations
+
+code {
+create table tq84_lu (txt varchar2(10), num number);
+
+
+create table tq84_data (
+   id    number,
+   val   number,
+   --
+   lu_x  number,
+   lu_y  number,
+   lu_z  number
+);
+
+create index tq84_lu_ix on tq84_data (
+       lu_x,
+       lu_y,
+       lu_z
+);
+
+
+explain plan for
+select
+   val
+from
+   tq84_data
+where
+   lu_x = (select num from tq84_lu where txt = 'x') and
+   lu_y = (select num from tq84_lu where txt = 'y') and
+   lu_z = (select num from tq84_lu where txt = 'z');
+
+select * from table(dbms_xplan.display(format=>'basic Predicate'));
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation                           | Name       |
+-- ----------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |            |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_DATA  |
+-- |*  2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                  | TQ84_LU_IX |
+-- |*  3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                | TQ84_LU    |
+-- |*  4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                | TQ84_LU    |
+-- |*  5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                | TQ84_LU    |
+-- ----------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    2 - access("LU_X"= (SELECT "NUM" FROM "TQ84_LU" "TQ84_LU" WHERE 
+--               "TXT"='x') AND "LU_Y"= (SELECT "NUM" FROM "TQ84_LU" "TQ84_LU" WHERE 
+--               "TXT"='y') AND "LU_Z"= (SELECT "NUM" FROM "TQ84_LU" "TQ84_LU" WHERE 
+--               "TXT"='z'))
+--    3 - filter("TXT"='x')
+--    4 - filter("TXT"='y')
+--    5 - filter("TXT"='z')
+
+drop table tq84_lu;
+drop table tq84_data;
+code }
