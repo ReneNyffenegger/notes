@@ -53,3 +53,71 @@ drop table tq84_Y;
 drop table tq84_Z;
 drop table tq84_A;
 code }
+
+{ CASE WHEN … END expressions
+
+code {
+create table tq84_A (id number, txt varchar2(10));
+create table tq84_B (id number, txt varchar2(10));
+create table tq84_C (id number, txt varchar2(10));
+create table tq84_X (id number, txt varchar2(10));
+create table tq84_Y (id number, txt varchar2(10));
+create table tq84_Z (id number, txt varchar2(10));
+
+
+create table tq84_main (
+   num   number,
+   dat   date
+);
+
+explain plan for
+select
+   m.num,
+   m.dat,
+   case 
+      when m.num = 1 then 
+          (select txt from tq84_A i where i.id = m.num)
+
+      when m.num = 2 then 
+          (select txt from tq84_B i where i.id = m.num)
+
+      when m.num = 3 then 
+          (select txt from tq84_C i where i.id = m.num)
+
+      else
+           greatest (
+               (select txt from tq84_X i where i.id = m.num),
+               (select txt from tq84_Y i where i.id = m.num),
+               (select txt from tq84_Z i where i.id = m.num)
+            )
+     end c
+
+from
+   tq84_main m;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------------
+-- | Id  | Operation              | Name      |
+-- --------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]       |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]     | TQ84_A    |
+-- |   2 |   TABLE ACCESS FULL    | TQ84_B    |
+-- |   3 |    TABLE ACCESS FULL   | TQ84_C    |
+-- |   4 |     TABLE ACCESS FULL  | TQ84_X    |
+-- |   5 |      TABLE ACCESS FULL | TQ84_Y    |
+-- |   6 |       TABLE ACCESS FULL| TQ84_Z    |
+-- |   7 |  TABLE ACCESS FULL     | TQ84_MAIN |
+-- --------------------------------------------
+
+
+drop table tq84_main;
+drop table tq84_Z;
+drop table tq84_Y;
+drop table tq84_X;
+drop table tq84_C;
+drop table tq84_B;
+drop table tq84_A;
+code }
+
+}

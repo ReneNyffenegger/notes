@@ -1,0 +1,83 @@
+$ Oracle SQL Plan operation: WINDOW (BUFFER)
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operation] `WINDOW (BUFFER)` is used in SQL statements with
+→ development/databases/Oracle/SQL/select/analytic[analytic functions] whose `OVER()` clause does not have a `partition by clause` or an `order by` clause.
+-
+If the `OVER()` clause had either or both clauses, Oracle would use the → development/databases/Oracle/SQL/statement/execution/plan/operations/window/sort[`WINDOW (SORT)` plan operation].
+
+code {
+create table tq84_A (
+   pt   varchar2(1),
+   nm   number
+);
+
+explain plan for
+select
+   pt,
+   nm,
+   MAX(NM) OVER() -- NOTE: NO PARTITION BY CLAUSE
+from
+   tq84_A;
+
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |        |
+-- |   1 |  WINDOW BUFFER     |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- -------------------------------------
+
+drop table tq84_A;
+code }
+
+{ Update 2022-04-06
+
+  I just found out that in the following case where an analytic function is combined with a group by and/or(?) aggregate function, the `WINDOW BUFFER` operations is also used:
+
+code {
+create table tq84_tab (
+   val   number,
+   grp_1 char(1),
+   grp_2 char(1)
+);
+
+insert into tq84_tab
+select
+   mod(level * 37, 11),
+   chr(ascii('A') + mod(level  , 13)),
+   chr(ascii('A') + mod(level*7, 17))
+from
+   dual connect by level <= 10000;
+
+explain plan for
+select
+   sum(sum(val)) over (partition by grp_1 order by grp_2) val,
+   grp_1,
+   grp_2
+from
+   tq84_tab
+group by
+   grp_1,
+   grp_2
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ----------------------------------------
+-- | Id  | Operation           | Name     |
+-- ----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]    |          |
+-- |   1 |  WINDOW BUFFER      |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/group-by[SORT GROUP BY]     |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ----------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Execution plan operations]

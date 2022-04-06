@@ -1,0 +1,69 @@
+$ Oracle SQL Plan operation: VIEW
+
+code {
+create table tq84_O (val_i number(2), sel varchar2(6));
+create table tq84_I (id number, pad varchar2(250));
+
+insert into tq84_O
+select
+   mod(level, 100),
+   to_char(level * 1234, 'fmxxxxxx')
+from
+   dual connect by level <= 1000;
+
+
+insert into tq84_I
+select
+   mod(level * 5, 100),
+   rpad('*', 250, '*')
+from
+   dual connect by level <= 1000;
+   
+
+create index tq84_I_ix on tq84_I(id);
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_O');
+   dbms_stats.gather_table_stats(user, 'tq84_I');
+end;
+/
+
+explain plan for
+select
+   o.val_i,
+   i.cnt
+from
+  tq84_O o   join
+ (select
+     id,
+     count(*) cnt
+  from
+     tq84_I
+  group by
+     id
+ ) i on
+  o.val_i = i.id
+where
+  o.sel = '1c9ee';
+     
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- ---------------------------------------------
+-- | Id  | Operation               | Name      |
+-- ---------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]        |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS]           |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]     | TQ84_O    |
+-- |   3 |   VIEW PUSHED PREDICATE |           |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[FILTER]               |           |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[SORT AGGREGATE]      |           |
+-- |   6 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]   | TQ84_I_IX |
+-- ---------------------------------------------
+
+drop table tq84_I;
+drop table tq84_O;
+code }
+
+sa:
+  Other → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operations] such as
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/view[`VIEW`] or `UNION ALL PUSHED PREDICATE`.

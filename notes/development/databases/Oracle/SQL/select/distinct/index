@@ -1,0 +1,44 @@
+$ Oracle: SELECT DISTINCT
+@ distinct
+
+gh|Oracle-Patterns|/SQL/select/distinct/distinct_01.sql||
+
+{ Distinct with parantheses
+
+  gh|Oracle-Patterns|/SQL/select/distinct/distinct_with_parantheses.sql||
+
+}
+{ SQL Execution plan
+
+code {
+
+create table tq84_tab (
+   id  number,
+   txt varchar2(20),
+   val number
+);
+
+explain plan for
+   select distinct
+      txt, val
+   from
+      tq84_tab
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/unique[HASH UNIQUE]       |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/select[`SELECT` statement]

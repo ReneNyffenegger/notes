@@ -9,7 +9,7 @@ create table tq84_bm (
 
 create bitmap index tq84_bm_ix on tq84_bm(flg);
 
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
 select
    val,
    txt
@@ -18,10 +18,10 @@ from
 where
    flg = 1;
 
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
 --
 -- ----------------------------------------------------------
--- |   0 | SELECT STATEMENT                    |            |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]                    |            |
 -- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_BM    |
 -- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[BITMAP CONVERSION TO ROWIDS]       |            |
 -- |   3 |    BITMAP INDEX SINGLE VALUE        | TQ84_BM_IX |
@@ -71,15 +71,12 @@ begin
    dbms_stats.gather_table_stats(
       user,
      'tq84_tab_part',
-      method_opt => 'for columns txt size 26' -- size 26: Make sure histograms are created
+      → development/databases/Oracle/installed/packages/dbms/stats/api/parameters/method_opt => 'for columns txt size 26' -- size 26: Make sure histograms are created
    );
 end;
 /
 
--- select * from user_tab_cols       where table_name = 'TQ84_TAB_PART';
--- select * from user_tab_histograms where table_name = 'TQ84_TAB_PART';
-
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select
       val,
       txt,
@@ -91,12 +88,12 @@ explain plan for
       txt in ('x', 'y', 'z')
 ;
 
-select * from table(dbms_xplan.display(format=>'typical -bytes -cost'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'typical -bytes -cost'));
 --
 -- ---------------------------------------------------------------------------------------------------------------
 -- | Id  | Operation                                   | Name                 | Rows  | Time     | Pstart| Pstop |
 -- ---------------------------------------------------------------------------------------------------------------
--- |   0 | SELECT STATEMENT                            |                      |     1 | 00:00:01 |       |       |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]                            |                      |     1 | 00:00:01 |       |       |
 -- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/list/inlist[PARTITION LIST INLIST]                      |                      |     1 | 00:00:01 |KEY(I) |KEY(I) |
 -- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/inlist-iterator[INLIST ITERATOR]                           |                      |       |          |       |       |
 -- |   3 |    TABLE ACCESS BY LOCAL INDEX ROWID BATCHED| TQ84_TAB_PART        |     1 | 00:00:01 |KEY(I) |KEY(I) |

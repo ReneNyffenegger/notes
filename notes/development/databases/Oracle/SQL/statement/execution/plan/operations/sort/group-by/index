@@ -1,0 +1,121 @@
+$ Oracle SQL Plan operation SORT (GROUP BY)
+
+Create a demonstration table, populate it with some random values and gather statistics:
+code {
+create table tq84_tab (nm number, tx varchar2(20));
+
+insert into tq84_tab
+select
+   round(dbms_random.value(1, 1000),1),
+   dbms_random.string('a', 20)
+from
+   dual connect by level <= 10000;
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+code }
+
+Show the execution plan of a select statement with a `group by` and an `order by` clause:
+code {
+explain plan for
+   select
+      avg(nm) avg_nm,
+      tx
+   from
+      tq84_tab
+   group by
+      tx
+   order by
+      tx
+   ;
+
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |          |
+-- |   1 |  SORT GROUP BY     |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+
+Removing the `order by` results in a → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[`HASH (GROUP BY)`] operation:
+code {
+explain plan for
+   select
+      avg(nm) avg_nm,
+      tx
+   from
+      tq84_tab
+   group by
+      tx
+   ;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | SELECT STATEMENT   |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[HASH GROUP BY]     |          |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+Cleaning up
+code {
+drop table tq84_tab;
+code }
+
+{ Combination of analytic function and GROUP BY
+
+code {
+create table tq84_tab (
+   val   number,
+   grp_1 char(1),
+   grp_2 char(1)
+);
+
+insert into tq84_tab
+select
+   mod(level * 37, 11),
+   chr(ascii('A') + mod(level  , 13)),
+   chr(ascii('A') + mod(level*7, 17))
+from
+   dual connect by level <= 10000;
+
+explain plan for
+select
+   sum(sum(val)) over (partition by grp_1 order by grp_2) val,
+   grp_1,
+   grp_2
+from
+   tq84_tab
+group by
+   grp_1,
+   grp_2
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ----------------------------------------
+-- | Id  | Operation           | Name     |
+-- ----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]    |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/window/buffer[WINDOW BUFFER]      |          |
+-- |   2 |   SORT GROUP BY     |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ----------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

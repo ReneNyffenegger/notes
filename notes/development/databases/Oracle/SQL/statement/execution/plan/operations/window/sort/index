@@ -1,0 +1,55 @@
+$ Oracle SQL Plan operation: WINDOW (SORT)
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operation] `WINDOW (SORT)` is used in SQL statements with
+→ development/databases/Oracle/SQL/select/analytic[analytic functions] whose `OVER()` clause has either a `partition by clause` or an `order by` clause.
+-
+If the `OVER()` clause had neither clause, Oracle would use the → development/databases/Oracle/SQL/statement/execution/plan/operations/window/buffer[`WINDOW (BUFFER)` plan operation].
+
+code {
+create table tq84_A (
+   pt   varchar2(1),
+   nm   number
+);
+
+explain plan for
+select
+   pt,
+   nm,
+   MAX(NM) OVER (PARTITION BY PT)
+from
+   tq84_A;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | SELECT STATEMENT   |        |
+-- |   1 |  WINDOW SORT       |        |
+-- |   2 |   TABLE ACCESS FULL| TQ84_A |
+-- -------------------------------------
+
+
+explain plan for
+select
+   pt,
+   nm,
+   RANK() OVER(ORDER BY NM)
+from
+   tq84_A;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | SELECT STATEMENT   |        |
+-- |   1 |  WINDOW SORT       |        |
+-- |   2 |   TABLE ACCESS FULL| TQ84_A |
+-- -------------------------------------
+
+drop table tq84_A;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Execution plan operations]

@@ -1,0 +1,171 @@
+$ Oracle hint: MERGE
+@ merge
+
+Prepare two demonstration tables, create a → development/databases/Oracle/objects/tables/constraints/primary-key[primary]-→ development/databases/Oracle/objects/tables/constraints/foreign-key[foreign] key relationship
+between then, insert a bit of sample data and gather
+→ development/databases/Oracle/optimizer/statistics[optimizer statistics]
+code {
+create table tq84_Q(id, txt)
+as
+   select
+      level,
+      to_char(level, 'fmxxxx')
+   from
+      dual connect by level <= 1000;
+
+
+create table tq84_V(q, txt, xyz)
+as
+   select
+      1+mod(level, 1000),
+      to_char(level, 'fmxxxx'),
+      rpad('*', 250, '*')
+   from
+      dual connect by level <= 10000;
+
+alter table tq84_Q add constraint tq84_Q_pk primary key (id);
+alter table tq84_V add constraint tq84_V_fk foreign key (q ) references tq84_Q;
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_Q');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_V');
+end;
+/
+code }
+
+
+Show the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] for a statement that involves both tables.
+We use the `alias` modifier in the `format` parameter of the `→ development/databases/Oracle/installed/packages/dbms/xplan/api/display` call to show *→ development/databases/Oracle/SQL/statement/query-block[query block] names*.
+There is only one query block: `SEL$F5BB74E1`:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   q.id,
+   v.txt
+from
+   tq84_Q  q,
+  (select
+      q,
+      txt
+   from
+      tq84_V
+  ) v
+where
+  q.id = v.q and
+  q.txt = '1af'
+;  
+
+select * from table(dbms_xplan.display(format => 'basic alias'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join[HASH JOIN]         |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_Q |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_V |
+-- -------------------------------------
+--  
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--  
+--    1 - SEL$F5BB74E1
+--    2 - SEL$F5BB74E1 / Q@SEL$1
+--    3 - SEL$F5BB74E1 / TQ84_V@SEL$2
+code }
+
+   
+Same query, but using the `no_merge` hint. Note that we now have two query blocks: `SEL$1` and `SEL$2`. This is because the subquery is not merged into the outer query anymore:
+code {
+explain plan for
+select /*+ no_merge(v) */
+   q.id,
+   v.txt
+from
+   tq84_Q  q,
+  (select
+      q,
+      txt
+   from
+      tq84_V
+  ) v
+where
+  q.id = v.q and
+  q.txt = '1af'
+;  
+
+select * from table(dbms_xplan.display(format => 'basic alias'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join[HASH JOIN]          |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] | TQ84_Q |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view[VIEW]              |        |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_V |
+-- --------------------------------------
+--  
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--  
+--    1 - SEL$1
+--    2 - SEL$1 / Q@SEL$1
+--    3 - SEL$2 / V@SEL$1
+--    4 - SEL$2 / TQ84_V@SEL$2
+code }
+
+
+
+It's also possible to specify the `no_merge` hint (without arguments) in the inner query, having the same effect:
+code {
+explain plan for
+select
+   q.id,
+   v.txt
+from
+   tq84_Q  q,
+  (select /*+ no_merge */
+      q,
+      txt
+   from
+      tq84_V
+  ) v
+where
+  q.id = v.q and
+  q.txt = '1af'
+;  
+
+select * from table(dbms_xplan.display(format => 'basic alias'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join[HASH JOIN]          |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] | TQ84_Q |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view[VIEW]              |        |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_V |
+-- --------------------------------------
+--  
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--  
+--    1 - SEL$1
+--    2 - SEL$1 / Q@SEL$1
+--    3 - SEL$2 / V@SEL$1
+--    4 - SEL$2 / TQ84_V@SEL$2
+code }
+
+
+Cleaning up:
+code {
+drop table tq84_V;
+drop table tq84_Q;
+code }
+
+sa:
+  The `merge` hint is quite different from the `use_merge` hint.
+
+  Other → development/databases/Oracle/SQL/hints[hints]

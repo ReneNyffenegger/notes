@@ -1,0 +1,34 @@
+$ Oracle: Table aliases in FROM clauses
+
+{ Using the same alias multiple times
+
+  It is possible to use the *same* alias multiple times in a select statement:
+code {
+create table tq84_A (id_a number, src char(1), val_a varchar2(5));
+create table tq84_B (id_b number, src char(1), val_b varchar2(5));
+create table tq84_C (id_c number, src char(1), val_c varchar2(5));
+
+insert into tq84_A values (1, 'A', 'aaa');
+insert into tq84_B values (1, 'B', 'bbb');
+insert into tq84_C values (1, 'C', 'ccc');
+
+select
+   x.val_a,
+   x.val_b,
+   x.val_c
+from
+   tq84_A  x                      join
+   tq84_B  x  on x.id_a = x.id_b  join
+   tq84_C  x  on x.id_a = x.id_c
+   ;
+--
+-- VAL_A VAL_B VAL_C
+-- ----- ----- -----
+-- aaa   bbb   ccc  
+
+drop table tq84_A;
+drop table tq84_B;
+drop table tq84_C;
+code }
+
+}

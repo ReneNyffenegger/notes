@@ -1,4 +1,5 @@
 $ DBMS_STATS.GATHER_xxx_STATS: Parameter METHOD_OPT
+@ method_opt
 
 The value of `METHOD_OPT` specifies which column related statistics will be gathered when calling one of the `get_…_stats` functions.
 
@@ -181,6 +182,131 @@ FOR ALL INDEXED COLUMNS SIZE 50
   UNIFORM_INDEXED       10000   50  HYBRID
   SKEWED                            NONE
   SKEWED_INDEXED          102   50  TOP-FREQUENCY
+code }
+
+}
+{ FOR ALL COLUMNS SIZE SKEWONLY
+
+code {
+create table tq84_data (
+    flg  varchar2(3)    not null,
+    val  number(4,1)    not null,
+    txt  varchar2(100)  not null
+);
+
+
+insert into tq84_data
+select
+   case when mod(level, 1000) = 0 then 'abc'
+        when mod(level, 23) = 0 then 'def'
+        else                         'xyz'
+   end,
+   round(dbms_random.value(1, 100), 1),
+   rpad('*', 100, '*')
+from
+   dual connect by level <= 10000;
+
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_data');
+end;
+/
+
+
+column col    format a3
+column endval format a6
+column densty format 9.9999
+
+select
+   column_name  col,
+   num_distinct distct,
+   density      densty,
+   num_buckets  bucks,
+   histogram    histogram,
+   sample_size  siz
+from
+   user_tab_col_statistics
+where
+   table_name = 'TQ84_DATA';
+--
+-- COL     DISTCT DENSTY      BUCKS HISTOGRAM              SIZ
+-- --- ---------- ------ ---------- --------------- ----------
+-- FLG          3  .3333          1 NONE                 10000
+-- VAL        991  .0010          1 NONE                 10000
+-- TXT          1 1.0000          1 NONE                 10000
+
+select
+   column_name           col,
+   endpoint_actual_value endval,
+   endpoint_number       endum
+from
+   user_tab_histograms
+where
+   table_name = 'TQ84_DATA'
+order by
+   col,
+   endval;
+--
+-- COL ENDVAL      ENDUM
+-- --- ------ ----------
+-- FLG                 0
+-- FLG                 1
+-- TXT                 1
+-- TXT                 0
+-- VAL                 1
+-- VAL                 0
+
+
+begin
+   dbms_stats.gather_table_stats(
+      user,
+     'tq84_data',
+      method_opt=>'for all columns size skewonly'
+   );
+end;
+/
+
+
+select
+   column_name  col,
+   num_distinct distct,
+   density      densty,
+   num_buckets  bucks,
+   histogram    histogram,
+   sample_size  siz
+from
+   user_tab_col_statistics
+where
+   table_name = 'TQ84_DATA';
+--
+-- COL     DISTCT DENSTY      BUCKS HISTOGRAM              SIZ
+-- --- ---------- ------ ---------- --------------- ----------
+-- FLG          3  .0001          3 FREQUENCY            10000
+-- VAL        991  .0010          1 NONE                 10000
+-- TXT          1  .0001          1 FREQUENCY            10000
+
+select
+   column_name           col,
+   endpoint_actual_value endval,
+   endpoint_number       endum
+from
+   user_tab_histograms
+where
+   table_name = 'TQ84_DATA'
+order by
+   col,
+   endval;
+--
+-- COL ENDVAL      ENDUM
+-- --- ------ ----------
+-- FLG abc            10
+-- FLG def           444
+-- FLG xyz         10000
+-- TXT             10000
+-- VAL                 0
+-- VAL                 1
+
+drop table tq84_data;
 code }
 
 }

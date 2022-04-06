@@ -1,0 +1,78 @@
+$ Oracle SQL Plan operation: RESULT CACHE
+
+Create a demonstration table
+code {
+create table tq84_tab (
+   id   number,
+   num  number,
+   txt  varchar2(50)
+);
+code }
+
+Use the `→ development/databases/Oracle/SQL/hints/list/result_cache` hint to select rows where `id = 1`:
+code {
+explain plan for
+select /*+ result_cache */
+   num,
+   txt
+from
+   tq84_tab where id = 1;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+-- ---------------------------------------------------------
+-- | Id  | Operation          | Name                       |
+-- ---------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |                            |
+-- |   1 |  RESULT CACHE      | 6w77fwvfsyy46770kdfmyz6mj9 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB                   |
+-- ---------------------------------------------------------
+code }
+
+
+Same query again. Note that *name* is the same as in the prior query (`6w77fwvfsyy46770kdfmyz6mj9`):
+code {
+explain plan for
+select /*+ result_cache */
+   num,
+   txt
+from
+   tq84_tab where id = 1;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation          | Name                       |
+-- ---------------------------------------------------------
+-- |   0 | SELECT STATEMENT   |                            |
+-- |   1 |  RESULT CACHE      | 6w77fwvfsyy46770kdfmyz6mj9 |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB                   |
+-- ---------------------------------------------------------
+code }
+
+   Select `where id = 99`. Note how the name changes to `89du3u6zdwmd775nvp5z7x7gtk`:
+code {
+explain plan for
+select /*+ result_cache */
+   num,
+   txt
+from
+   tq84_tab where id = 99;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+-- ---------------------------------------------------------
+-- | Id  | Operation          | Name                       |
+-- ---------------------------------------------------------
+-- |   0 | SELECT STATEMENT   |                            |
+-- |   1 |  RESULT CACHE      | 89du3u6zdwmd775nvp5z7x7gtk |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB                   |
+-- ---------------------------------------------------------
+code }
+
+Cleaning up
+code {
+drop table tq84_tab;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
