@@ -28,5 +28,70 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 -- ----------------------------------------------------------
 code }
 
+{ Not necessarily related to bitmap indexes
+
+  The `BITMAP` in the name of this operator is not necessarily related
+  to → development/databases/Oracle/objects/indexes/bitmap[bitmap indexes]:
+code {
+create table tq84_tab (
+    id   number  (5),
+    val  number  (3),
+    txt  varchar2(5)
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab
+select
+   level,
+   trunc(dbms_random.value (0, 1000)),
+   dbms_random.string('a',5)
+from
+   dual connect by level <= 10000;   
+    
+create index tq84_tab_ix_val on tq84_tab(val);
+create index tq84_tab_ix_txt on tq84_tab(txt);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select
+      *
+   from
+      tq84_tab
+   where
+      val =  974   or
+      txt = 'knInl'
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ---------------------------------------------------------------
+-- | Id  | Operation                           | Name            |
+-- ---------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]                    |                 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB        |
+-- |   2 |   BITMAP CONVERSION TO ROWIDS       |                 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP OR]                        |                 |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from[BITMAP CONVERSION FROM ROWIDS]   |                 |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]               | TQ84_TAB_IX_VAL |
+-- |   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from[BITMAP CONVERSION FROM ROWIDS]   |                 |
+-- |   7 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]               | TQ84_TAB_IX_TXT |
+-- ---------------------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
 sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from[`BITMAP CONVERSION FROM ROWIDS`]
+
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

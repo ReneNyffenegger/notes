@@ -20,5 +20,56 @@ code }
 
 The sample clause logically belongs to the table (or more accuratly to the *query table expression*) so that `where` clauses are applied after determining the sample.
 
+{ Execution plan #ora-select-sample-exec-plan
+
+  In an → development/databases/Oracle/SQL/statement/execution/plan[execution plan], a `sample` access to table is identified
+  by a `TABLE ACCESS (SAMPLE)` → development/databases/Oracle/SQL/statement/execution/plan/operations[row source]:
+
+code {
+create table tq84_smp (
+    id  number,
+    val number,
+    txt varchar2(10)
+);
+
+insert into tq84_smp
+select
+   level,
+   mod(level*37, 11),
+   to_char(1234+mod(level*197, 193), 'fmxxxxx')
+from
+   dual connect by level <= 1000;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_smp');
+end;
+/
+   
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select
+      *
+   from
+      tq84_smp sample(9)
+   where
+      id < 100
+   ;
+
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic rows'));
+--
+-- ------------------------------------------------
+-- | Id  | Operation           | Name     | Rows  |
+-- ------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]    |          |     9 |
+-- |   1 |  TABLE ACCESS SAMPLE| TQ84_SMP |     9 |
+-- ------------------------------------------------
+
+
+drop table tq84_smp;
+code }
+
+}
+
 sa:
   The sample clause implements → misc/ISO/9075/features[SQL feature] T613 (but uses `sample` rather than `tablesample`).
