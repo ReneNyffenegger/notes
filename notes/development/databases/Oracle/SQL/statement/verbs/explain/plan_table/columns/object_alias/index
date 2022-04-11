@@ -1,0 +1,38 @@
+$ Oracle PLAN_TABLE: column OBJECT_ALIAS
+@ object_alias
+
+The value of `object_alias` is either → development/databases/Oracle/SQL/null[`null`] or matches the
+→ development/regular-expressions[regular expression] `"[^"]+"@"[^"]+"$`, the following → development/databases/Oracle/SQL/statement does not return a record (at least I never encountered one):
+code {
+select count(*) from → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[v$sql_plan] where not regexp_like(object_alias, '"[^"]+"@"[^"]+"$');
+code }
+
+?  The second part (after the `@`, which is enclosed in `"…"`) seems to correspond to a qblock name.
+
+code {
+select
+   object_alias,
+--
+-- If not using an alias in the SQL statement, the first part of the object alias
+-- is equal to the object_name. Note, that object_name can also refer to an index
+-- in which case othe first part of the object alias is null:
+   regexp_replace(object_alias, '^"([^"]+)"@"[^"]+"$', '\1') object_alias_part_1,
+   object_name,
+ 
+--
+-- Often, the second part of the object alias is equal to the qblock_name (
+-- especially if qblock_name is not using the hash-semantics (SEL$12EC7C91):
+   regexp_replace(object_alias, '^"[^"]+"@"([^"]+)"$', '\1') object_alias_part_2,
+   qblock_name,
+-- -----
+   object_type,
+   operation
+-- v$sql_plan.*
+from
+   v$sql_plan;
+code }
+
+
+sa:
+  The → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] and its column
+  `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/qblock_name`.

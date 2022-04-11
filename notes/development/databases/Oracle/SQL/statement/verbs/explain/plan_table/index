@@ -23,7 +23,7 @@ create table PLAN_TABLE /* sharing=none */  (
         object_node        varchar2(128) ,  -- Name of database link or for parallel queries order in which output from operation is consumed
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_name-owner[object_owner]       varchar2(128) ,
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_name-owner[object_name]        varchar2(128) ,  -- Identifies the name of the → development/databases/Oracle/objects[object] that is being accessed in the respective operation
-        object_alias       varchar2(261) ,
+        → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_alias       varchar2(261) ,
         object_instance    numeric       ,  -- Ordinal position of object as found in SQL statement (left to right, outer to inner).
                                             -- View expansion number is unpredictable.
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type        varchar2(30)  ,
@@ -48,7 +48,7 @@ create table PLAN_TABLE /* sharing=none */  (
         cpu_cost           numeric       ,
         io_cost            numeric       ,
         temp_space         numeric       ,  -- Estimated required temporary space for the operation, for example sort or → development/databases/Oracle/SQL/join/hash[hash join].
-        access_predicates  varchar2(4000),  -- Predicates that are used to locate rows, for example as start/stop predicates in an index range scan.
+        → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/access_predicates  varchar2(4000),  -- Predicates that are used to locate rows, for example as start/stop predicates in an index range scan.
                                             -- Only operations where access_predicates is filled seem to be INDEX, CONNECT BY, → development/databases/Oracle/SQL/join/hash[HASH JOIN] and SORT
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter_predicates]  varchar2(4000),  -- Predicates that are used to filter rows. compare with the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation FILTER]
         → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/projection[projection]         varchar2(4000),
@@ -58,66 +58,7 @@ create table PLAN_TABLE /* sharing=none */  (
 );
 code }
 
-{ object_alias
 
-  The value of `object_alias` is either → development/databases/Oracle/SQL/null[`null`] or matches the
-  → development/regular-expressions[regular expression] `"[^"]+"@"[^"]+"$`, the following SQL does not return a record (at least I never encountered one):
-code {
-select count(*) from → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[v$sql_plan] where not regexp_like(object_alias, '"[^"]+"@"[^"]+"$');
-code }
-
-?  The second part (after the `@`, which is enclosed in `"…"`) seems to correspond to a qblock name.
-
-code {
-select
-   object_alias,
---
--- If not using an alias in the SQL statement, the first part of the object alias
--- is equal to the object_name. Note, that object_name can also refer to an index
--- in which case othe first part of the object alias is null:
-   regexp_replace(object_alias, '^"([^"]+)"@"[^"]+"$', '\1') object_alias_part_1,
-   object_name,
- 
---
--- Often, the second part of the object alias is equal to the qblock_name (
--- especially if qblock_name is not using the hash-semantics (SEL$12EC7C91):
-   regexp_replace(object_alias, '^"[^"]+"@"([^"]+)"$', '\1') object_alias_part_2,
-   qblock_name,
--- -----
-   object_type,
-   operation
--- v$sql_plan.*
-from
-   v$sql_plan;
-code }
-
-}
-{ access_predicates
-
-code {
-select
-   count(*),
-   operation
--- options
-from
-   v$sql_plan
-where
-   access_predicates is not null
-group by
-    operation
---  options
-order by
-   count(*) desc;
---
--- INDEX
--- → development/databases/Oracle/SQL/join/hash[HASH JOIN]
--- CONNECT BY
--- SORT
--- BITMAP INDEX
--- TABLE ACCESS
-code }
-
-}
 
 sa:
 
