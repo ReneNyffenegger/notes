@@ -1,0 +1,61 @@
+$ Oracle SQL Plan operation HASH (GROUP BY PIVOT)
+
+code {
+create table tq84_tab (
+   val   number,
+   grp   char(1),
+   dim   number
+);
+
+insert into tq84_tab values (  7, 'A', 1);
+insert into tq84_tab values (  5, 'B', 1);
+insert into tq84_tab values (  2, 'C', 1);
+insert into tq84_tab values (  4, 'C', 1);
+
+insert into tq84_tab values (  1, 'A', 2);
+insert into tq84_tab values (  1, 'B', 2);
+insert into tq84_tab values (100, 'B', 2);
+insert into tq84_tab values (  1, 'C', 2);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select
+      *
+   from (
+      select
+         sum(val) sum_val,
+         grp,
+         dim
+      from
+         tq84_tab
+      group by
+         grp,
+         dim
+   
+   )
+   → development/databases/Oracle/SQL/select/pivot[pivot] (
+       sum(sum_val) for grp in ('A', 'B', 'C')
+   );
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation            | Name     |
+-- -----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]     |          |
+-- |   1 |  HASH GROUP BY PIVOT |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view[VIEW]               |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[HASH GROUP BY]     |          |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- -----------------------------------------
+
+drop table tq84_tab;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation]
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[`HASH (GROUP BY)`].

@@ -1,0 +1,106 @@
+$ Oracle PLAN_TABLE: column CARDINALITY
+@ cardinality
+
+? The value of the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` column `cardinality` specifies how many numbers the optimizer expects for the
+corresponding → development/databases/Oracle/SQL/statement/execution/plan/operations[row source (plan operator)] to be passed to the consumer of the row source.
+
+Whe using `→ development/databases/Oracle/installed/packages/dbms/xplan/api/display`, the value of `cardinality` is displayed in the column `Rows`.
+
+{ Example with nested loops
+
+code {
+create table tq84_L (
+    val   number  (  5,1)  not null,
+    txt   varchar2( 10  )  not null,
+    jin   number  (  5  )  not null
+);
+
+create table tq84_R (
+    val   number  ( 5,1) not null,
+    txt   varchar2(10  ) not null,
+    jin   number  ( 5  ) not null,
+    flg   char    ( 1  ) not null check (flg in ('Y', 'N')),
+    pad   varchar2(1000)                    -- waste space to make it more costly to join this table
+);
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_L
+select
+    dbms_random.value(0, 1000),
+    to_char(1+mod(level,1000), 'fmxxxxxx'), -- Each text is present 4 times (=3000/1000)
+    trunc(dbms_random.value(1, 1001))
+from
+    dual connect by level <= 4000;
+
+insert into tq84_R
+select
+    dbms_random.value(0, 1000),
+    dbms_random.string('a', 10),
+    1+ mod(level, 1000),                    -- each number between 1 and 1000 is present 7 times (=7000/1000)
+    decode(mod(level,2), 1, 'N', 'Y'),
+    rpad('x', 1000, 'x')
+from
+    dual connect by level <= 7000;
+
+
+create index tq84_L_ix_txt on tq84_L(txt);
+create index tq84_R_ix_jin on tq84_R(jin);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_L');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_R');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+-- rownum,
+   l.val val_l,
+   r.val val_r,
+   r.txt txt_r,
+   l.jin jin_l,
+   r.jin jin_r
+from
+   tq84_L l                   join
+   tq84_R r on l.jin = r.jin
+where
+   l.txt ='1f4'   and
+   flg   ='Y'                           -- Filter every second row
+; 
+
+-- -----------------------------------------------------------------------
+-- | Id  | Operation                             | Name          | Rows  |
+-- -----------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]                      |               |    14 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS]                         |               |    14 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS]                        |               |    28 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_L        |     4 |
+-- |*  4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                  | TQ84_L_IX_TXT |     4 |
+-- |*  5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                   | TQ84_R_IX_JIN |     7 |
+-- |*  6 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]         | TQ84_R        |     4 |
+-- -----------------------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    4 - access("L"."TXT"='1f4')
+--    5 - access("L"."JIN"="R"."JIN")
+--    6 - filter("R"."FLG"='Y')
+
+drop table tq84_R;
+drop table tq84_L;
+code }
+
+}
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] column `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/cost` and the
+  Optimizer's → development/databases/Oracle/optimizer/cost[cost] estimation 
+
+  The → development/databases/Oracle/SQL/hints/list/opt/estimate[`opt_estimate(… rows=…)`] hint.
+  

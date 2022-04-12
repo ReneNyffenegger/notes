@@ -1,0 +1,34 @@
+$ ORA-01830: date format picture ends before converting entire input string
+
+code {
+create table    tq84_tab (
+   dat    date,
+   xyz    varchar2(10)
+);
+
+insert into tq84_tab
+select
+   date '2020-01-01' + level,
+   to_char(level, 'fmxxxxxx')
+from
+   dual connect by level <= 10000;
+code }
+
+code{
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session] → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_date_format[set nls_date_format] = 'dd.mm.yyyy';
+
+select xyz from tq84_tab where dat = '17.08.2021';
+--
+-- XYZ       
+-- ----------
+-- 252
+code }
+
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session] set → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_date_format[nls_date_format] = 'yyyy-mm-dd';
+
+select xyz from tq84_tab where dat = '17.08.2021';
+--
+-- ORA-01830: date format picture ends before converting entire input string
+--
+code }

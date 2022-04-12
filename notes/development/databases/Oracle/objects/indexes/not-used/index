@@ -1,0 +1,106 @@
+$ Oracle: Indexes not being used
+
+
+Create a demonstration → development/databases/Oracle/objects/tables …
+code {
+create table    tq84_tab (
+   num    varchar2(10), --  <<< will be filled with numbers and should be number
+   xyz    varchar2(10)
+);
+code }
+
+… and fill some values into it:
+code {
+insert into tq84_tab
+select
+   level,
+   rpad('x', 10, 'x')
+from
+   dual connect by level <= 10000;
+code }
+
+Create a (unique) → development/databases/Oracle/objects/indexes on `num`:
+code {
+create unique index tq84_tab_ix on tq84_tab(num);
+code }
+
+Make sure → development/databases/Oracle/optimizer/statistics are up to date:
+code {
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+code }
+
+Show the execution plan for a string comparison (`num = '42'`). The index *is* used:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for select xyz from tq84_tab where num = '42';
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic predicate'));
+--
+-- ---------------------------------------------------
+-- | Id  | Operation                   | Name        |
+-- ---------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]            |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_TAB    |
+-- |*  2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan[INDEX UNIQUE SCAN]         | TQ84_TAB_IX |
+-- ---------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    2 - access("NUM"='42')
+code }
+
+Almost the same thing, but the comparison uses a number (`num = 42`). The index *is not* used. The reason for not using the index is that behind the scenes, the query planner reformulates the
+predicate to `→ development/databases/Oracle/SQL/functions/type-conversion/to/number(num)=42`. (Note also how the predicate information changed from `access(…)` to `filter(…)`):
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for select xyz from tq84_tab where num = 42;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic predicate'));
+--
+-- --------------------------------------
+-- | Id  | Operation         | Name     |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]  |          |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- --------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter(→ development/databases/Oracle/SQL/functions/type-conversion/to/number[TO_NUMBER]("NUM")=42)
+code }
+
+The same problem can also occur in → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL procedures or functions]:
+code {
+create function tq84_fnc(val number) return varchar2
+is
+   res varchar2(10);
+begin
+
+   select xyz into res from tq84_tab where num = val;
+   return res;
+
+end;
+/
+code }
+
+The → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[init parameter `plsql_warnings`] allows one to be warned about such problems:
+code {
+alter function tq84_fnc compile → development/databases/Oracle/adminstration/init-parameters/plsql_warnings[plsql_warnings]='enable:7204';
+
+select
+   line,
+   position            col,
+   substr(text, 1, 80) text,
+   attribute
+from
+   → development/databases/Oracle/installed/data-dictionary/errors[user_errors]
+where
+   name = 'TQ84_FNC';
+--
+--       LINE COL TEXT                                                                             ATTRIBUTE
+-- ---------- --- -------------------------------------------------------------------------------- ---------
+--          6  44 → development/databases/Oracle/PL-SQL/errors-warnings/PLW-07204_conversion-away-from-column-type-may-result-in-sub-optimal-query-plan WARNING
+code }

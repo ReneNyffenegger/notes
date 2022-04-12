@@ -1,0 +1,38 @@
+$ Oracle SQL Plan operation COUNT
+
+The row source `COUNT` is used in conjunction with the pseudo column `→ development/databases/Oracle/objects/tables/columns/pseudo/rownum`.
+
+
+code {
+create table tq84_tab (
+   val  number,
+   flg  varchar2(1)
+);
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   rownum r,
+   val
+from
+   tq84_tab
+where
+   flg = 'y';
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]   |          |
+-- |   1 |  COUNT             |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+
+drop  table tq84_tab;
+code }
+
+sa:
+
+  A `select … count(*) … group by …` results in a → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[`SORT (AGGREGATE)`] row source.
+  
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
