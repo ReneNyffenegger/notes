@@ -3,47 +3,48 @@ $ Python standard library: re
 
 Python's → development/languages/Python/standard-library[standard library] `re` manages → development/regular-expressions.
 
-gh|about-python|/standard-library/re/script.py||
 
-{ search
+table { ll
+  `Match` ☰
+  `Pattern` ☰
+  `RegexFlag` ☰
+  `Scanner` ☰
+  `T` ☰
+  `TEMPLATE` ☰
+  `U` ☰
+  `UNICODE` ☰
 
-  gh|about-python|/standard-library/re/search-1.py||
+  `compile()` ☰
+  `copyreg` ☰
+  `enum` ☰
+  `error` ☰
+  `escape()` ☰
+  → #py-re-findall[`findall()`] ☰ Matches *all* occurences of a pattern (unlike → #py-re-search[`search()`] which only matches the first one) and returns them as a → development/languages/Python/types/list of strings or → development/languages/Python/types/tuple[tuples].
+  `finditer()` ☰
+  `fullmatch()` ☰
+  `functools` ☰
+  `match()` ☰ Checks for a match *at the beginning* of a string. → #py-re-search-vs-match[Compare with `search()`]
+  `purge()` ☰
+  → #py-re-search[`search()`] ☰ Matches *one* regular expression anywhere in a string. → #py-re-search-vs-match[Compare with `match()`] and → #py-re-findall[`findall()`].
+  `split()` ☰ Creates a → development/languages/Python/types/list from a string. The regular expression is used to determine where the string is divided.
+  `sre_compile` ☰
+  `sre_parse` ☰
+  → #py-re-sub[`sub()`] ☰ Replace matched text with a constant value or the value a function returns.
+  `subn()` ☰
+  `template()` ☰
 
-  gh|about-python|/standard-library/re/search-2.py||
+  `_MAXCACHE` ☰
+  `_cache` ☰
+  `_compile()` ☰
+  `_compile_repl` ☰
+  `_expand()` ☰
+  `_locale()` ☰
+  `_pickle()` ☰
+  `_special_chars_map` ☰
+  `_subx()` ☰
 
-  gh|about-python|/standard-library/re/search-3.py||
+table }
 
-}
-{ findall
-
-  gh|about-python|/standard-library/re/findall.py||
-
-}
-{ search() vs match()
-
-  `search()` searches within the entire text while `match()` apparently only searches from the text's start.
-
-}
-{ Replace a range
-
-  Replace every character between `g` and `p` with an asterik.
-
-  Note the *unintuitive* order of parameters: First the pattern, then the replacement and *only then* the text on which the replacement is to take place.
-
-  gh|about-python|/standard-library/re/replace-range.py||
-
-}
-{ Iterate over words in a text
-
-  The following example iterates over the words in a piece of text and skips punctuation:
-  gh|about-python|/standard-library/re/split-text-into-words.py||
-
-}
-{ Extract first line from a text
-
-  gh|about-python|/standard-library/re/extract-first-line-from-text.py||
-
-}
 { flags
 
   Some functions in the `re` module (such as `re.compile()`) have a `flags` parameter which specifies further characteristics of the regular expression. The value of this parameter
@@ -59,6 +60,79 @@ gh|about-python|/standard-library/re/script.py||
   table }
 
 }
+
+{ Simple script
+
+  gh|about-python|/standard-library/re/script.py||
+
+}
+{ search #py-re-search
+
+  gh|about-python|/standard-library/re/search-1.py||
+
+  gh|about-python|/standard-library/re/search-2.py||
+
+  gh|about-python|/standard-library/re/search-3.py||
+
+}
+{ findall #py-re-findall
+
+  gh|about-python|/standard-library/re/findall.py||
+
+  { Return a list of tuples
+
+    In the following example, the pattern contains parantheses. Each match is returned as a → development/languages/Python/types/tuple where the values of the text matched in the parantheses is captured in the
+    elements of the tuple.
+code {
+import re
+for pair in re.findall('(\w+): (\d+)', 'foo: 42; bar: 99; baz: 0'):
+    print(pair[0] + ' = ' + pair[1]) 
+code }
+
+  }
+
+}
+{ search() vs match() #py-re-search-vs-match
+
+  `search()` searches within the entire text while `match()` apparently only searches from the text's start.
+
+}
+{ sub #py-re-sub
+
+  { Replace a range
+
+    Replace every character between `g` and `p` with an asterik.
+
+    Note the *unintuitive* order of parameters: First the pattern, then the replacement and *only then* the text on which the replacement is to take place.
+
+    gh|about-python|/standard-library/re/replace-range.py||
+
+  }
+  { Replace with the result of a function
+
+code {
+import re
+def double(m):
+    print(type(m.group(0)))
+    return str(2 * int(m.group(0)))
+
+print(re.sub(r'\d+', double, 'foo 42 bar 99 baz'))
+code }
+
+  }
+
+}
+{ Iterate over words in a text
+
+  The following example iterates over the words in a piece of text and skips punctuation:
+  gh|about-python|/standard-library/re/split-text-into-words.py||
+
+}
+{ Extract first line from a text
+
+  gh|about-python|/standard-library/re/extract-first-line-from-text.py||
+
+}
 { Using the returned search() object in an if statement 
 
   With the walrus operator (`:=`, see → https://www.python.org/dev/peps/pep-0572[PEP 572]), it is possible to assign the the object that is returned by `search()` in an
@@ -66,11 +140,13 @@ gh|about-python|/standard-library/re/script.py||
 
   gh|about-python|/standard-library/re/search-if.py||
 
-
 }
 
 sa:
 
-  There is also a non-standard library named → https://pypi.org/project/regex[regex] that is compatible with `re` but offers additional functionality.
+  There is also a non-standard library named → https://pypi.org/project/regex[`regex`] that is compatible with `re` but offers additional functionality and a more
+  thorough → development/Unicode support.
 
   → development/languages/Python/standard-library
+
+  → development/languages/Python/literals#py-string-literals[R-strings] (like `r'foo\bar\baz'`) are helpful to deal with the many backslashes used for regular expressions.
