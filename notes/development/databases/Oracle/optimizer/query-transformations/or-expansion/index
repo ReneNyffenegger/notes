@@ -1,0 +1,44 @@
+$ Oracle Query Transformation: OR Expansion
+
+With *OR expansion*, the → development/databases/Oracle/optimizer transforms a query with an `OR` condition in the predicate into two select statements that
+are combined with a `→ development/databases/Oracle/SQL/select/set-operators/union/all`.
+
+code {
+create table tq84_tab (
+   id  number      ,
+   txt varchar2(20),
+   num number,
+   val varchar2(20)
+--
+-- constraint tq84_tab_pk primary key(id)
+) ;
+
+create index tq84_tab_ix_txt on tq84_tab(txt);
+create index tq84_tab_ix_num on tq84_tab(num);
+
+explain plan for
+select
+   val
+from
+   tq84_tab
+where
+   num =  42     or
+   txt = 'xyz'
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -----------------------------------------------------------------
+-- | Id  | Operation                             | Name            |
+-- -----------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                      |                 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                 | VW_ORE_8E03FE63 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/union-all                           |                 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB        |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN]                  | TQ84_TAB_IX_NUM |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB        |
+-- |   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan[INDEX RANGE SCAN SCAN]             | TQ84_TAB_IX_TXT |
+-- -----------------------------------------------------------------
+
+drop table tq84_tab;
+code }

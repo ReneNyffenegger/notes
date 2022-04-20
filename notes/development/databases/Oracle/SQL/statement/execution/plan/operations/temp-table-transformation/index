@@ -1,0 +1,91 @@
+$ Oracle SQL Plan operation: TEMP TABLE TRANSFORMATION
+@ TEMP TABLE TRANSFORMATION
+
+code {
+create table tq84_A (
+   id    integer primary key,
+   txt   varchar2(20),
+   xyz   varchar2(20)
+);
+
+
+create table tq84_B (
+   val   integer,
+   xyz   varchar2(20)
+);
+
+insert into tq84_A values (1, 'NOP', 'r1');
+insert into tq84_A values (2, 'GHI', 'r4');
+insert into tq84_A values (3, 'IJK', 'r2');
+insert into tq84_A values (4, 'ABC', 'r3');
+insert into tq84_A values (5, 'KLM', 'r5');
+insert into tq84_A values (6, 'DEF', 'r6');
+insert into tq84_A values (7, 'NNN', 'r6');
+insert into tq84_A values (8, 'N__', 'r4');
+
+insert into tq84_B values (701, 'r1');
+insert into tq84_B values ( 41, 'r2');
+insert into tq84_B values ( 99, 'r3');
+insert into tq84_B values (123, 'r4');
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_a');
+   dbms_stats.gather_table_stats(user, 'tq84_b');
+end;
+/
+
+
+explain plan for
+with W as (
+   select
+      a.id,
+      a.txt,
+      b.val
+   from
+      tq84_A  a                    left join
+      tq84_B  b on a.xyz = b.xyz
+)
+select
+   W.id,
+   w.txt
+from
+   W
+where
+   txt like 'N%'
+                     union all
+select
+   max(w.id),
+  'max id'
+from
+   W
+where
+   txt like 'A%';
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------------------------------------------------
+-- | Id  | Operation                                | Name                       |
+-- -------------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                         |                            |
+-- |   1 |  TEMP TABLE TRANSFORMATION               |                            |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select (→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select/cursor-duration-memory[CURSOR DURATION MEMORY])| SYS_TEMP_0FD9D6613_1F69D06 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join[HASH JOIN] OUTER                       |                            |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                    | TQ84_A                     |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                    | TQ84_B                     |
+-- |   6 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/union-all                              |                            |
+-- |   7 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                  |                            |
+-- |   8 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                    | SYS_TEMP_0FD9D6613_1F69D06 |
+-- |   9 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[SORT AGGREGATE]                        |                            |
+-- |  10 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                 |                            |
+-- |  11 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]                   | SYS_TEMP_0FD9D6613_1F69D06 |
+-- -------------------------------------------------------------------------------
+
+drop   table tq84_B;
+drop   table tq84_A;
+code }
+
+sa:
+
+  The 10180 and 10721 → development/databases/Oracle/adminstration/init-parameters/event/list[events]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
