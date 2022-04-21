@@ -1,6 +1,6 @@
 $ Oracle SQL Plan operation FILTER
 
-{ Examples
+{ Example
 
 code {
 create table tq84_tab(
@@ -21,8 +21,7 @@ group by
 having
    max(nm) in (2,3,4)
 ;
-select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'all'));
-select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic predicate'));
 --
 -- ----------------------------------------
 -- | Id  | Operation           | Name     |
@@ -32,6 +31,11 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 -- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[HASH GROUP BY]     |          |
 -- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
 -- ----------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter(MAX("NM")=2 OR MAX("NM")=3 OR MAX("NM")=4)
 code }
 
   The following query is semantically equal to the previous one and produces the same plan 
@@ -48,6 +52,55 @@ select * from (
 )
 where
    max_nm in (2,3,4)
+;
+code }
+
+  Cleaning up:
+code {
+drop table tq84_tab;
+code }
+
+}
+{ Pecularities in the PLAN_TABLE
+
+  For the → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] `FILTER`, most columns in the
+ `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` (and/or `→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan`) are `→ development/databases/Oracle/SQL/null` so
+  that the following query doesn't return a record:
+code {
+select *
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan
+where
+   operation = 'FILTER' and (
+      --
+      object_name        is not null or
+      object_owner       is not null or
+      object_alias       is not null or
+      object_type        is not null or
+      --
+      cost               is not null or
+      cpu_cost           is not null or
+      io_cost            is not null or
+      --
+      optimizer          is not null or
+      cardinality        is not null or
+      bytes              is not null or
+      --
+      partition_start    is not null or
+      partition_stop     is not null or
+      partition_id       is not null or
+      --
+      other              is not null or
+      distribution       is not null or
+      --
+      temp_space         is not null or
+      access_predicates  is not null or
+      time               is not null or
+      remarks            is not null
+  --  filter_predicates  is not null or
+  --  object_node        is not null
+
+   )
 ;
 code }
 

@@ -1,0 +1,62 @@
+$ ORA-03297: file contains used data beyond requested RESIZE value
+
+Assume the following statement throws *ORA-03297: file contains used data beyond requested RESIZE value*:
+code {
+alter database datafile '…' resize  14000 M;
+code }
+
+Find the mininum size the data file can be shrinked to (8192 = block size):
+code {
+select
+   max(ceil( (ext.block_id + ext.blocks) * 8192 / 1024 /1024 )) mb
+from
+   dba_extents    ext    join
+   dba_data_files fil on ext.file_id = fil.file_id
+where
+    ext.tablespace_name = 'DATA' and
+    fil.file_name = 'C:\ORACLE\DB\ORA19\DATAFILE\O1_MF_DATA_HQGT6VSR_.DBF'
+;
+code }
+
+Use value of previous query:
+code {
+alter database datafile '…' resize  18000 M;
+code }
+
+
+Find objects that occupy space or need to be moved to make room for shrinking the data file:
+code {
+select
+   ext.owner,
+   ext.segment_name,
+   ceil( ( ext.block_id + ext.blocks) * 8192 / 1024 /1024 ) mb
+from
+   dba_extents    ext                                    join
+   dba_data_files fil on ext.file_id = fil.file_id
+where
+    ext.tablespace_name = 'DATA' and
+    fil.file_name       = '…'
+order by
+   mb desc
+;
+code }
+
+Drop or move objects:
+code {
+drop table…;
+alter table … move;
+code }
+
+
+Empty the recycle bin when tables were dropped:
+code {
+purge recyclebin;
+code }
+
+Resize:
+code {
+alter database datafile '…' resize  1000 M;
+code }
+
+sa:
+  → development/databases/Oracle/errors/ORA-01653_unable-to-extend-table_by_in-tablespace

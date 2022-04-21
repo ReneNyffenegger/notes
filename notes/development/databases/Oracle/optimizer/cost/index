@@ -13,6 +13,69 @@ $ Oracle Optimizer: COST
   table }
 
 }
+{ TODO
+
+  { cost = f(cpu_cost, io_cost)
+
+code {
+select
+   count(*) cnt,
+   ratio
+from (
+
+   select
+      pln.operation,
+      pln.options,
+      pln.object_name,
+      pln.object_owner,
+      pln.cost,
+      pln.cpu_cost,
+      pln.io_cost,
+      round( (pln.cost -pln.io_cost) / nullif(pln.cpu_cost, 0), 15) ratio,
+      pln.time,
+      pln.cardinality,
+      pln.partition_start,
+      pln.partition_stop,
+      pln.*
+   from
+      v$sql_plan_statistics_all pln
+   where
+      pln.operation in ('TABLE ACCESS', 'INDEX ACCESS')
+   --    pln.cost     is not null or
+   --    pln.cpu_cost is not null or
+   --    pln.io_cost  is not null
+   order by
+      pln.cost desc nulls last
+
+)
+group by
+   ratio
+order by
+   count(*) desc
+;
+code }
+
+  }
+  { Ratio cost : time
+
+code {
+select
+   pln.cost,
+   pln.time,
+   to_char(pln.cost / pln.time, '999990.0') ratio,
+   pln.operation,
+   pln.options,
+   pln.object_owner,
+   pln.object_name
+from
+   v$sql_plan pln
+order by
+   pln.time desc nulls last;
+code }
+
+  }
+
+}
 
 
 sa:

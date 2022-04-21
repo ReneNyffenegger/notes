@@ -1,0 +1,68 @@
+$ EXP_…$
+
+
+Expression tracking.
+
+code {
+select
+   exh.exp_id      , -- expression id
+   obj.object_name ,
+   obj.owner       ,
+   obj.object_type ,
+   exh.objn        , -- table object number of the expression
+   exh.sub_id      , -- entry-leve number of a package function  
+   exh.fixed_cost  , -- fixed cost of an expression
+   exh.text        , -- expression text
+   exh.col_list    , -- List of columns seen in the expression
+   exh.flags       ,
+   exh.ctime         -- Creation time
+from
+   exp_head$   exh                               left join
+   dba_objects obj on exh.objn = obj.object_id
+order by
+   ctime desc;
+code }
+
+`exp_obj$` stores one row per expression object:
+code {
+select
+   exo.objn        , -- table/partition obj# of the expression
+   obj.object_name ,
+   obj.owner       ,
+   obj.object_type ,
+   exo.snapshot_id ,
+   exo.exp_cnt       -- number of expressions for the object */
+from
+  exp_obj$    exo                               left join
+  dba_objects obj on exo.objn = obj.object_id;
+code }
+
+code {
+select
+  exp_id                , -- expression id
+  objn	                , -- lowest level object number (i.e. partition level)
+  dynamic_cost          , -- dynamic cost of an expresion
+  eval_count            , -- expression evaluation frequency */
+  snapshot_id           ,
+  ctime                 , -- creation timestamp
+  last_modified         ,
+  update_count            -- update frequency
+from
+  exp_stat$
+code }
+
+Export table for CRS services for PDB plug/unplug:
+code {
+select * from exp_service$;
+code }
+
+
+sa:
+
+ `v$exp_stats`
+
+  The view `dba_expression_statistics`
+
+  The init parameter `→ development/databases/Oracle/adminstration/init-parameters/column/tracking_level`.
+
+  → https://support.oracle.com/knowledge/Oracle%20Database%20Products/2354960_1.htmlMOS Note 2354960.1]: Optimizer Expression Statistics Tracking/Monitoring Generates Growth in Tablespace SYSAUX 
