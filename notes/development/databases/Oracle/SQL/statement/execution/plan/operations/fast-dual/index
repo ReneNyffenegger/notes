@@ -1,18 +1,24 @@
 $ Oracle SQL Plan operation FAST DUAL
 
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[row source] `FAST DUAL` when selecting an expression which does not involve `DUMMY` from `dual`.
+
+The plan for `select * from dual` (which involves `DUMMY` through `*`) selects from `DUAL` with *full table access*:
 code {
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select * from dual;
    
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
 --
 -- ----------------------------------
 -- | Id  | Operation         | Name |
 -- ----------------------------------
--- |   0 | SELECT STATEMENT  |      |
--- |   1 |  TABLE ACCESS FULL| DUAL |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select  |      |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| DUAL |
 -- ----------------------------------
+code }
 
+However, when selecting an «ordinary» expression from `dual`, the `FAST DUAL` row source is used:
+code {
 explain plan for
    select sysdate from dual;
    
@@ -21,7 +27,7 @@ select * from table(dbms_xplan.display(format=>'basic'));
 -- ---------------------------------
 -- | Id  | Operation        | Name |
 -- ---------------------------------
--- |   0 | SELECT STATEMENT |      |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select |      |
 -- |   1 |  FAST DUAL       |      |
 -- ---------------------------------
 code }

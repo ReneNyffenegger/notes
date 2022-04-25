@@ -1,6 +1,20 @@
 $ Oracle SQL Plan operation: TEMP TABLE TRANSFORMATION
 @ TEMP TABLE TRANSFORMATION
 
+The `TEMP TABLE TRANSFORMATION` → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] indicates that a «cursor-duration temporary table» was used to
+execute a query.
+
+The first child row source of `TEMP TABLE TRANSFORMATION` is either
+  • → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[`LOAD AS SELECT`] (Always with option `(CURSOR DURATION MEMORY)`?), or
+  • → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[`PX COORDINATOR`]
+
+Parent (consumer) operators of `LOAD AS SELECT` are typically one of
+  • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select`
+  • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert`
+  • `CREATE TABLE STATEMENT`
+  • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/view`
+  • and potentially others?
+
 code {
 create table tq84_A (
    id    integer primary key,
@@ -29,13 +43,13 @@ insert into tq84_B values ( 99, 'r3');
 insert into tq84_B values (123, 'r4');
 
 begin
-   dbms_stats.gather_table_stats(user, 'tq84_a');
-   dbms_stats.gather_table_stats(user, 'tq84_b');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_a');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_b');
 end;
 /
 
 
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
 with W as (
    select
       a.id,
@@ -61,7 +75,7 @@ from
 where
    txt like 'A%';
 
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
 --
 -- -------------------------------------------------------------------------------
 -- | Id  | Operation                                | Name                       |

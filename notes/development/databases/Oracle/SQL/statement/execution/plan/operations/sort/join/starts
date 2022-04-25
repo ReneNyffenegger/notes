@@ -1,0 +1,80 @@
+$ Using V$SQL_PLAN_MONITOR to count the STARTS in a SORT JOIN operation
+
+code {
+create table tq84_A (id number(5) not null, dat varchar2(6) not null, val number(4,1) not null);
+create table tq84_B (id number(5) not null, dat varchar2(6) not null, val number(4,1) not null);
+
+insert into tq84_A
+select
+   level,
+   case when level not in (250, 500, 750) then
+      (100-mod(level, 100)) || 'hay'
+   else
+      'needle'
+   end,
+   level / 10
+from
+   dual connect by level <= 1000;
+   
+insert into tq84_B
+select
+   level,
+   case when level not in (200, 400, 600, 800) then
+      (100-mod(level, 100)) || 'hay'
+   else
+      'needle'
+   end,
+   level / 10
+from
+   dual connect by level <= 1000;
+
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+   dbms_stats.gather_table_stats(user, 'tq84_B');
+end;
+/
+
+select /*+ monitor */ /* find-me */
+   a.id  id_a,
+   b.id  id_b,
+   a.val val_a,
+   b.val val_b
+from
+   tq84_A a                 join
+   tq84_B b on a.id < b.id
+where
+   a.dat = 'needle' and
+   b.dat = 'needle';
+
+select
+   plm.starts,
+   substr(rpad(' ', plm.plan_depth * 2 ) || plm.plan_operation || ' ' || plm.plan_options, 1, 30) op,
+   substr(plm.plan_object_name, 1, 6)                                                             obj,
+   plm.output_rows
+from
+   v$sql_plan_monitor plm
+where
+   plm.sql_id = (select sql_id from v$sqlarea where sql_text like 'select /*+ monitor */ /* find-me */%')
+order by
+   plm.plan_line_id -- Probably not needed
+;
+--
+--     STARTS OP                             OBJ    OUTPUT_ROWS
+-- ---------- ------------------------------ ------ -----------
+--          1 → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                                6
+--          1   → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join[MERGE JOIN]                                    6
+--          1     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[SORT JOIN]                                   3
+--          1       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]        TQ84_A           3
+--          3     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[SORT JOIN]                                   6
+--          1       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]        TQ84_B           4
+
+drop table TQ84_A;
+drop table TQ84_B;
+code }
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join[`SORT JOIN`] plan operation.
+
+  `→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor` 
