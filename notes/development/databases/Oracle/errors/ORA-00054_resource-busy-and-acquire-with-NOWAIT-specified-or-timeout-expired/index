@@ -1,0 +1,45 @@
+$ ORA-00054: resource busy and acquire with NOWAIT specified or timeout expired
+
+→ development/databases/Oracle/architecture/session[Session] 1:
+code {
+create table tq84_ora_54 (
+   txt varchar2(10)
+);
+--
+-- Table created.
+code }
+
+Session 2:
+code {
+insert into tq84_ora_54 values ('xyz');
+--
+-- 1 row created.
+code }
+
+As long as session 2 did not commit the DML on `tq84_ora_54`, another session cannot drop the table.
+-
+Session 1:
+code {
+drop table tq84_ora_54;
+--         *
+-- ERROR at line 1:
+-- ORA-00054: resource busy and acquire with NOWAIT specified or timeout expired
+code }
+
+Session 2:
+code {
+commit;
+--
+-- Commit complete.
+code }
+
+Session 1:
+code {
+drop table tq84_ora_54;
+--
+-- Table dropped.
+code }
+
+sa:
+
+  `→ development/databases/Oracle/adminstration/init-parameters/ddl/lock_timeout`
