@@ -3,6 +3,59 @@ $ Oracle optimizer feature: subquery unnesting
 The → development/databases/Oracle/optimizer uses *subquery unnesting* to transform an → development/databases/Oracle/SQL/statement that contains a
 → development/databases/Oracle/SQL/select/subquery into an SQL statement with an additional → development/databases/Oracle/SQL/join to eliminate the subquery. 
 
+The optimizer can be prevented from performing subquery unnesting by using the `→ development/databases/Oracle/SQL/hints/list/unnest/no` hint.
+
+{ Simple demonstration
+
+  The following two tables are used for a simple demostration for subquery unnesting:
+code {
+create table tq84_A (id   number, tx varchar2(3));
+create table tq84_B (id_a number);
+
+insert into tq84_A select level*37, 'X' from dual connect by level < 1000;
+insert into tq84_B select level+91      from dual connect by level <  600;
+code }
+
+  Gathering the tables' statistics:
+code {
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
+end;
+/
+code }
+
+  Let Oracle explain the development/databases/Oracle/SQL/statement/execution/plan[execution plan] for a query that involves subquery unnesting:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   id,
+   tx
+from
+   tq84_A
+where
+   id in (select id_a from tq84_B);
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation            | Name   |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join/semi/right[HASH JOIN RIGHT SEMI]|        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_B |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_A |
+-- ---------------------------------------
+code }
+
+  Cleaning up:
+code {
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+}
 { Possibility of subquery unnesting
 
   Subquery unnesting is possible if
@@ -18,12 +71,12 @@ The → development/databases/Oracle/optimizer uses *subquery unnesting* to tran
 
   In contrast, → development/databases/Oracle/optimizer/features/view-merging[view merging] deals with *inline views* (that appear in a `from` clause) and *factored subqueries*.
 
-  → development/databases/Oracle/SQL/hints[Hints] related to *subquery unnestings* are `/*+ unnest */` and `/*+ no_unnest */`, hints that apply to
-  view merging are `/*+ merge */` and `/*+ no_merge */`.
+  → development/databases/Oracle/SQL/hints[Hints] related to *subquery unnesting* are `/*+ unnest */` and → development/databases/Oracle/SQL/hints/list/unnest/no[`/*+ no_unnest */`],
+  hints that apply to view merging are `/*+ merge */` and `/*+ no_merge */`.
 
 }
 sa:
 
   → development/databases/Oracle/optimizer#ora-optimizer-qry-tran[Query transformation]
 
-  The → development/databases/Oracle/SQL/hints[`unnest` and `no_unnest` hints]
+  The `unnest` and → development/databases/Oracle/SQL/hints/list/unnest/no[`no_unnest`] hints.

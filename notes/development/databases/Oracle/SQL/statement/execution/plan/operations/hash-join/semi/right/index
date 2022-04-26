@@ -1,0 +1,47 @@
+$ Oracle SQL Plan operation: HASH JOIN RIGHT SEMI
+@ HASH JOIN RIGHT SEMI
+
+code {
+create table tq84_A (id   number, tx varchar2(3));
+create table tq84_B (id_a number);
+
+insert into tq84_A select level*37, 'X' from dual connect by level < 1000;
+insert into tq84_B select level+91      from dual connect by level <  600;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   id,
+   tx
+from
+   tq84_A
+where
+   id in (select id_a from tq84_B);
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation            | Name   |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |        |
+-- |   1 |  HASH JOIN RIGHT SEMI|        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_B |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_A |
+-- ---------------------------------------
+
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+
+
+sa:
+
+  → development/databases/Oracle/SQL/join/semi[Semi joins]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

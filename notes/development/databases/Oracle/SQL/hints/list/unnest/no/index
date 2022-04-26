@@ -1,0 +1,49 @@
+$ Oracle hint: NO_UNNEST
+@ no_unnest
+
+code {
+create table tq84_A (id   number, tx varchar2(3));
+create table tq84_B (id_a number);
+
+insert into tq84_A select level*37, 'X' from dual connect by level < 1000;
+insert into tq84_B select level+91      from dual connect by level <  600;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_unnest(@subquery) */
+   id,
+   tx
+from
+   tq84_A
+where
+   id in (select /*+ → development/databases/Oracle/SQL/hints/list/qb_name[qb_name](subquery) */ id_a from tq84_B);
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |        |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/filter            |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- |*  3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- -------------------------------------
+--
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter( EXISTS (SELECT /*+ NO_UNNEST QB_NAME ("SUBQUERY") */ 0 
+--               FROM "TQ84_B" "TQ84_B" WHERE "ID_A"=:B1))
+--    3 - filter("ID_A"=:B1)
+
+
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+sa:
+  Other → development/databases/Oracle/SQL/hints[hints]

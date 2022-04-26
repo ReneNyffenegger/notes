@@ -1,0 +1,59 @@
+$ Oracle SQL Plan operation FIRST ROW
+@ FIRST ROW
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation] `FIRST ROW` has exactly one child row source which is either
+  • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan/min-max` or
+  • `FULL SCAN (MIN/MAX)`
+
+The parent operation is always a `→ development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate`.
+
+code {
+create table tq84_tab (
+   id     integer      not null,
+   txt    varchar2(10) not null,
+   val    number(4,1)  not null,
+   --
+   constraint tq84_tab_pk primary key (id, txt)
+);
+
+
+insert into tq84_tab
+select
+   mod(level, 100),
+   dbms_random.string('U', 2) || '.' || trunc((level-1)/100),
+   dbms_random.value(1, 999)
+from
+   dual connect by level <= 10000;
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   max(txt)
+from
+   tq84_tab
+where
+   id = 10
+;
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ----------------------------------------------------
+-- | Id  | Operation                    | Name        |
+-- ----------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate              |             |
+-- |   2 |   FIRST ROW                  |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan/min-max[INDEX RANGE SCAN (MIN/MAX)]| TQ84_TAB_PK |
+-- ----------------------------------------------------
+
+
+drop table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
