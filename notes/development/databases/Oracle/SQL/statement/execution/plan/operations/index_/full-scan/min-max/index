@@ -1,0 +1,50 @@
+$ Oracle SQL Plan operation INDEX FULL SCAN (MIN/MAX)
+@ INDEX FULL SCAN (MIN/MAX)
+
+code {
+create table tq84_tab (
+   id     varchar2(10) not null,
+   val    number(4,1)  not null,
+   --
+   constraint tq84_tab_pk primary key (id)
+);
+
+
+insert into tq84_tab
+select
+   → development/databases/Oracle/installed/packages/dbms/random/api/string[dbms_random.string]('U', 2) || '.' || to_char(level, 'fm99999'),
+   dbms_random.value(1, 999)
+from
+   dual connect by level <= 10000;
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   max(id)
+from
+   tq84_tab
+;
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- --------------------------------------------------
+-- | Id  | Operation                  | Name        |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select           |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate            |             |
+-- |   2 |   INDEX FULL SCAN (MIN/MAX)| TQ84_TAB_PK |
+-- --------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operation]
+ `→ development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan`

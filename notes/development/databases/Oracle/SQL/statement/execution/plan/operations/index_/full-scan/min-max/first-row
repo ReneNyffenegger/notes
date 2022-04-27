@@ -1,0 +1,53 @@
+$ Oracle SQL Plan operation INDEX FULL SCAN feeding into FIRST ROW
+
+code {
+create table tq84_tab (
+   num    integer      not null,
+   txt    varchar2(3)  not null,
+   val    number(4,1)  not null
+);
+
+
+create index tq84_tab_ix on tq84_tab(num, txt);
+
+
+insert into tq84_tab
+select
+   mod(level, 100),
+   dbms_random.string('U', 3),
+   dbms_random.value(1, 999)
+from
+   dual connect by level <= 10000;
+
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   max(num)
+from
+   tq84_tab
+where
+   txt = 'QUG'
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- ---------------------------------------------------
+-- | Id  | Operation                   | Name        |
+-- ---------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select            |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate             |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/first-row                 |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/min-max[INDEX FULL SCAN (MIN/MAX)]| TQ84_TAB_IX |
+-- ---------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operations]
