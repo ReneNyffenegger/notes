@@ -1,0 +1,43 @@
+$ ORA-01748: only simple column names allowed here
+
+code {
+create table tq84_tab(
+  col_1    integer,
+  col_2    varchar2(5),
+  val_foo  number(4,1),
+  val_bar  number(4,1),
+  val_baz  number(4,1)
+);
+
+
+select
+   *
+from
+   tq84_tab → development/databases/Oracle/SQL/select/pivot/un (
+     val for txt in (
+         tab.val_foo as 'Foo',  <-- tab.… causes ORA-01748: only simple column names allowed here
+         tab.val_bar as 'Bar',
+         tab.val_baz as 'Baz'
+     )
+   ) tab 
+;
+
+
+--
+-- Better:
+--
+select
+   *
+from
+  tq84_tab → development/databases/Oracle/SQL/select/pivot/un (
+     val for txt in (
+         val_foo as 'Foo',
+         val_bar as 'Bar',
+         val_baz as 'Baz'
+     )
+  ) tab 
+;
+
+
+drop table tq84_tab;
+code }

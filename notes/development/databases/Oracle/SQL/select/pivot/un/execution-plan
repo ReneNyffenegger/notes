@@ -1,0 +1,50 @@
+$ Oracle: Execution plan for an UNPIVOT query
+
+code {
+create table tq84_tab(
+  col_1    integer,
+  col_2    varchar2(5),
+  val_foo  number(4,1),
+  val_bar  number(4,1),
+  val_baz  number(4,1)
+);
+
+insert into tq84_tab values ( 1 , 'abc' , 5.1 , 72.6 , 530.6 );
+insert into tq84_tab values ( 2 , 'def' , 9.2 , 34.9 , 178.5 );
+insert into tq84_tab values ( 3 , 'ghi' , 4.8 , 98.4 , 562.1 );
+insert into tq84_tab values ( 4 , 'jkl' , 7.6 , 40.2 , 409.4 );
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   *
+from
+  tq84_tab → development/databases/Oracle/SQL/select/pivot/un[unpivot] (
+     val for txt in (
+         val_foo as 'Foo',
+         val_bar as 'Bar',
+         val_baz as 'Baz'
+     )
+  )
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic predicate'));
+--
+-- ----------------------------------------
+-- | Id  | Operation           | Name     |
+-- ----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |          |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view               |          |
+-- |   2 |   UNPIVOT           |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ----------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("unpivot_view_005"."VAL" IS NOT NULL)
+
+drop table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
