@@ -103,13 +103,13 @@ code {
 code }
 
 }
-{ Redirect http to https
+{ Redirect HTTP to HTTPS
 
 Redirect a request to `http://abc.yz/foo/bar.html` to `https://abc.yz/foo/bar.html`.
 
 In order to take effect for any url, the following .htaccess must pe put in the root directory.
 -
-The `R=301` indicates a permanent redirect. Just an `R` would default to `302` (=Found). The `L` indicates the last rule.
+The `R=301` indicates a permanent redirect. Just an `R` would default to `302` (=Found). The `L` indicates the last rule (see also the → #htaccess-flags[`.htaccess` flags])
 -
 Since `%{REQUEST_URI}` apparently always starts with a slash, there is no need for a slash between the servername and the URI.
 code {
@@ -126,6 +126,34 @@ RewriteRule (.*) https://%{HTTP_HOST}/$1 [L]
 code }
 
 }
+{ Flags #htaccess-flags
+
+  → https://stackoverflow.com/a/39225280/180275[This Stackoverflow answer] provides a list of `.htaccess` flags:
+  table { ll 
+
+     C ☰ chained with next rule
+     CO=cookie ☰ set specified cookie
+     E=var:value ☰ set environment variable var to value
+     F ☰ forbidden - sends a 403 header to the user
+     G ☰ gone - no longer exists
+     H=handler ☰ set handler
+     L ☰ last - stop processing rules Last rule: instructs the server to stop rewriting after the preceding directive is processed.
+     N ☰ next - continue processing rules
+     NC ☰ case insensitive
+     NE ☰ do not escape special URL characters in output
+     NS ☰ ignore this rule if the request is a subrequest
+     P ☰ proxy - i.e., apache should grab the remote content specified in the substitution section and return it
+     PT ☰ pass through - use when processing URLs with additional handlers, e.g., mod_alias
+     R ☰ temporary redirect to new URL
+     R=301 ☰ permanent redirect to new URL
+     QSA ☰ append query string from request to substituted URL
+     S=x ☰ skip next x rules
+     T=mime-type ☰ force specified mime type
+
+  table }
+
+}
+
 sa:
 
   A corrupt `.htaccess` file might lead to a → development/web/HTTP/status-code[500 - Internal Server Error HTTP status code].

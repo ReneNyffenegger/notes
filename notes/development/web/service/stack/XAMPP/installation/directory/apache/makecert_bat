@@ -1,0 +1,29 @@
+$ XAMPP installation directory: apache/makecert.bat
+
+As of → development/web/service/stack/XAMPP version 8.1.5, the content of `apache/makecert.bat` is:
+code {
+@echo off
+set OPENSSL_CONF=./conf/openssl.cnf
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/if[if] not exist .\conf\ssl.crt mkdir .\conf\ssl.crt
+→ Windows/dirs/Windows/System32/cmd_exe/commands/if[if] not exist .\conf\ssl.key mkdir .\conf\ssl.key
+
+bin\→ development/security/cryptography/SSL-TSL/OpenSSL/executable req -new -out server.csr
+bin\→ development/security/cryptography/SSL-TSL/OpenSSL/executable rsa -in privkey.pem -out server.key
+bin\→ development/security/cryptography/SSL-TSL/OpenSSL/executable x509 -in server.csr -out server.crt -req -signkey server.key -days 365
+
+set OPENSSL_CONF=
+del .rnd
+del privkey.pem
+del server.csr
+
+move /y server.crt .\conf\ssl.crt
+move /y server.key .\conf\ssl.key
+
+echo.
+echo -----
+echo Das Zertifikat wurde erstellt.
+echo The certificate was provided.
+echo.
+pause
+code }
