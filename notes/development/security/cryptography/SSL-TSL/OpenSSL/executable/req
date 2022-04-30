@@ -1,0 +1,61 @@
+$ openssl req
+@ req
+
+code {
+$ openssl req -new -out xyz.csr
+Generating a RSA private key
+...........................................................................+++++
+.+++++
+writing new private key to 'privkey.pem'
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:XX
+State or Province Name (full name) [Some-State]:zurich
+Locality Name (eg, city) []:VVVVVV
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:ACME Ltd
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:somewhere.xy
+Email Address []:webmaster@somewhere.xy
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+$ cat xyz.csr
+-----BEGIN CERTIFICATE REQUEST-----
+MIICoTCCAYkCAQAwXDELMAkGA1UEBhMCY2gxDzANBgNVBAgMBnp1cmljaDEQMA4G
+…
+XcQTXKnAcP86M1tKMwlzokZlgA1K1qrVZuuHF1zVN2S8zQXCnXn5kc2BOBx03e0r
+aiCCNcc=
+-----END CERTIFICATE REQUEST-----
+code }
+
+{ Hmmm… what now?
+
+code {
+C:\> openssl req -new -out xyz.csr
+#
+# Can't open Z:/extlib/_2020Q3__/ssl/openssl.cnf for reading, No such file or directory
+# 35872:error:02001003:system library:fopen:No such process:crypto/bio/bss_file.c:69:fopen('Z:/extlib/_2020Q3__/ssl/openssl.cnf','r')
+# 35872:error:2006D080:BIO routines:BIO_new_file:no such file:crypto/bio/bss_file.c:76:
+
+C:\> openssl req -config ..\..\conf\openssl.cnf -new -out xyz.csr
+#
+# Error configuring OpenSSL modules
+# 33592:error:25078067:DSO support routines:win32_load:could not load the shared library:crypto/dso/dso_win32.c:108:filename(providers.dll)
+# 33592:error:25070067:DSO support routines:DSO_load:could not load the shared library:crypto/dso/dso_lib.c:162:
+# 33592:error:0E07506E:configuration file routines:module_load_dso:error loading dso:crypto/conf/conf_mod.c:224:module=providers, path=providers
+# 33592:error:0E076071:configuration file routines:module_run:unknown module name:crypto/conf/conf_mod.c:165:module=providers
+code }
+
+}
+
