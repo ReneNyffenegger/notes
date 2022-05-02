@@ -58,4 +58,87 @@ C:\> openssl req -config ..\..\conf\openssl.cnf -new -out xyz.csr
 code }
 
 }
+{ Using a given configuration file
+
+  { csr.conf
+
+code {
+FQDN               = somehwere.xy
+ORGNAME            = ACME Inc.
+ALTNAMES           = DNS:$FQDN , DNS:www.$FQDN
+
+[ req ]
+default_bits       = 2048
+default_md         = sha256
+prompt             = no
+encrypt_key        = no
+distinguished_name = dn
+req_extensions     = req_ext
+
+[ dn ]
+C                  = XY            # At most two characters
+O                  = $ORGNAME
+CN                 = $FQDN
+ 
+[ req_ext ]
+subjectAltName     = $ALTNAMES
+code }
+
+  }
+  { Create the CSR
+
+code {
+$ → Linux/shell/commands/touch myserver.key
+$ → Linux/shell/commands/chmod 600 myserver.key
+$ openssl req -new -config csr.conf -keyout server.key -out server.csr
+>>
+Generating a RSA private key
+.....................+++++
+....+++++
+writing new private key to 'server.key'
+-----
+code }
+
+  }
+
+}
+{ Examine csr file
+
+  In the following command, `empty.conf` references an empty (zero-byte) file:
+code {
+$ openssl req -config empty.conf -in server.csr -noout -text -nameopt sep_multiline
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject:
+            C=XY
+            O=ACME Inc.
+            CN=somehwere.xy
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:cb:bf:3f:dc:15:50:92:93:ce:da:af:a6:a0:5a:
+                    …
+                    e1:8f
+                Exponent: 65537 (0x10001)
+        Attributes:
+        Requested Extensions:
+            X509v3 Subject Alternative Name:
+                DNS:somehwere.xy, DNS:www.somehwere.xy
+    Signature Algorithm: sha256WithRSAEncryption
+         8d:ea:7a:0b:19:92:d0:36:d5:97:13:c1:8c:7e:90:b3:d0:b5:
+         …
+         38:1f:bc:fe
+code }
+
+
+}
+{ TODO
+
+code {
+$ openssl → development/security/cryptography/SSL-TSL/OpenSSL/executable/asn1parse -in ./server.csr -inform PEM -i
+code }
+
+}
 
