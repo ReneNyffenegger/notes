@@ -1,0 +1,41 @@
+$ ORA-00937: not a single-group group function
+
+Using an → development/databases/Oracle/SQL/select/aggregate and at least one non aggregated column without
+a `→ development/databases/Oracle/SQL/select/group-by` clause causes the error *ORA-00937: not a single-group group function* to be thrown.
+(but compare with → development/databases/Oracle/errors/ORA-00979_not-a-GROUP-BY-expression).
+
+
+Test table:
+code {
+create table tq84_tab (
+   num   number,
+   txt   varchar2(10)
+);
+code }
+
+The following statement throws ORA-00937:
+code {
+select
+   sum(num)   sum_num,
+   txt
+from
+   tq84_tab;
+code }
+
+The following query is OK, though:
+code {
+select
+   sum(num)   sum_num,
+   txt
+from
+   tq84_tab
+group by
+   txt;
+code }
+
+
+Cleaning up:
+code {
+drop table tq84_tab;
+code }
+
