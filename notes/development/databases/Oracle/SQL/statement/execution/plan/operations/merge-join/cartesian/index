@@ -4,6 +4,60 @@ The `MERGE JOIN (CARTESIAN)` → development/databases/Oracle/SQL/statement/exec
 -
 The second child row source is a → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[`BUFFER SORT`] operation.
 
+code {
+drop table tq84_A;
+drop table tq84_B;
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+create table tq84_A as
+select
+   trunc(dbms_random.value(1, 50)) as nm,
+   dbms_random.string('a', 20)     as tx
+from
+   dual connect by level <= 12;
+
+create table tq84_B as
+select
+   trunc(dbms_random.value(1, 50)) as nm,
+   dbms_random.string('a', 20)     as tx
+from
+   dual connect by level <=  7;
+   
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   a.nm  nm_a,
+   b.nm  nm_b,
+   a.tx  tx_a,
+   b.tx  tx_b
+from
+   tq84_A a,
+   tq84_B b
+;
+--
+-- ---------------------------------------
+-- | Id  | Operation            | Name   |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |        |
+-- |   1 |  MERGE JOIN CARTESIAN|        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_B |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort        |        |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_A |
+-- ---------------------------------------
+
+
+select * from table(dbms_xplan.display(format=>'basic'));
+code }
+
 sa:
 
   → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join[`MERGE JOIN`]

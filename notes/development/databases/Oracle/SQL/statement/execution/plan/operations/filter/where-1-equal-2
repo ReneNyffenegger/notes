@@ -1,0 +1,103 @@
+$ Oracle Plan Operation FILTER for Predicate 1 = 2
+
+Create the demonstration table …
+code {
+create table tq84_tab (
+   nm number,
+   tx varchar2(10)
+);
+code }
+
+… and fill it with some dummy data:
+code {
+insert into tq84_tab
+select
+   level,
+   to_char(level, 'fmXXXX')
+from
+   dual connect by level < 1000;
+code }
+
+It cannot hurt to gather some statistics:
+code {
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+code }
+
+Explain the plan for a query that does not return a record because of the `where 1 = 2` predicate`:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   max(tx)
+from
+   tq84_tab
+where
+   1 = 2;
+
+select * from table(dbms_xplan.display(format=>'basic rows predicate'));
+-- 
+-- ------------------------------------------------
+-- | Id  | Operation           | Name     | Rows  |
+-- ------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |          |     1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate     |          |     1 |
+-- |*  2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/filter            |          |       |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] FULL| TQ84_TAB |   999 |
+-- ------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    2 - filter(NULL IS NOT NULL)
+code }
+
+Change the predicate so that all records are returned. Note how this removes the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/filter` operation from the
+→ development/databases/Oracle/SQL/statement/execution/plan[execution plan]:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   max(tx)
+from
+   tq84_tab
+where
+   1 = 1;
+
+select * from table(dbms_xplan.display(format=>'basic rows predicate'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation          | Name     | Rows  |
+-- -----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |          |     1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |          |     1 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] FULL| TQ84_TAB |   999 |
+-- -----------------------------------------------
+code }
+
+When the statement is executed (rather than explained), it shows that the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/filter` operation does not run its child row source (`Starts` is `0`):
+code {
+set serveroutput off
+select /*+ gather_plan_statistics */
+   max(tx)
+from
+   tq84_tab
+where
+   1 = 2;
+
+select * from table(dbms_xplan.display_cursor(format=>'adaptive rowstats -predicate'));
+--
+-- -------------------------------------------------------------------
+-- | Id  | Operation           | Name     | Starts | E-Rows | A-Rows |
+-- -------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |          |      1 |        |      1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate     |          |      1 |      1 |      1 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/filter            |          |      1 |        |      0 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] FULL| TQ84_TAB |      0 |    999 |      0 |
+-- -------------------------------------------------------------------
+code }
+
+Cleaning up:
+code {
+drop table tq84_tab;
+code }

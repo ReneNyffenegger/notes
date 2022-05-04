@@ -1,0 +1,81 @@
+$ Oracle SQL Plan operation BITMAP MERGE
+@ BITMAP MERGE
+
+{ Rowsource relationships
+
+  { Child row sources
+
+    `BITMAP MERGE` has one child row source which is either
+      • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index[BITMAP INDEX] FULL SCAN` or
+      • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index[BITMAP INDEX] RANGE SCAN`
+
+  }
+
+  { Parent row consumer
+
+    The parent operator of `BITMAP MERGE` is one of
+      • `BITMAP AND`
+      • `BITMAP OR`
+      • `BITMAP MINUS`
+      •  …?
+
+    This parent operator typically (always?) has two (or more?) row sources whose type is `BITMAP MERGE`
+
+  }
+}
+{ Example
+
+code {
+create table tq84_tab (
+   num   number,
+   pad   varchar2(1000)
+);
+
+insert into tq84_tab
+select
+   mod(level, 100),
+   rpad('x', 2000, 'x')
+from
+   dual connect by level <= 10000;
+
+create bitmap index tq84_tab_ix on tq84_tab(num);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for 
+select
+   *
+from
+   tq84_tab
+where
+   num between  30 and 35 or
+   num between  50 and 55;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- -----------------------------------------------------------
+-- | Id  | Operation                           | Name        |
+-- -----------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                    |             |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_TAB    |
+-- |   2 |   BITMAP CONVERSION TO ROWIDS       |             |
+-- |   3 |    BITMAP OR                        |             |
+-- |   4 |     BITMAP MERGE                    |             |
+-- |   5 |      BITMAP INDEX RANGE SCAN        | TQ84_TAB_IX |
+-- |   6 |     BITMAP MERGE                    |             |
+-- |   7 |      BITMAP INDEX RANGE SCAN        | TQ84_TAB_IX |
+-- -----------------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+}
+
+sa:
+
+  The *bitmap merge area* in the → development/databases/Oracle/architecture/instance/PGA.
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

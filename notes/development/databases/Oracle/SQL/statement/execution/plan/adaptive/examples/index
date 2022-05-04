@@ -1,0 +1,137 @@
+$ Oracle: Example for Adaptive Plan
+
+This is an example to demonstrate → development/databases/Oracle/SQL/statement/execution/plan/adaptive[Oracle's adaptive execution plan].
+
+{ Preparation of tables and indexes
+
+  We're going to join two → development/databases/Oracle/objects/tables[tables].
+
+  Both tables have an → development/databases/Oracle/objects/indexes, a → development/databases/Oracle/objects/tables/constraints/primary-key and an «ordinary index»:
+code {
+create table tq84_A(id integer primary key, num integer, pad varchar2(100));
+create table tq84_B(id integer            , num integer, pad varchar2(100));
+
+create index tq84_B_ix on tq84_B(id);
+code }
+
+}
+{ Inserting data
+
+  We populate the tables each with 1000 records.
+
+  The value of of `num` for every 2nd row is 999999, for the other rows, `num` is unique
+code {
+insert into tq84_A
+select
+   level,
+   case when mod(level, 2) = 0 then 999999 else level/2 end,
+   rpad('x', 100, 'x')
+from
+   dual connect by level <= 1000;
+   
+insert into tq84_B
+select
+   level,
+   case when mod(level, 2) = 1 then 999999 else level/2 end,
+   rpad('x', 100, 'x')
+from
+   dual connect by level <= 1000;
+code }
+
+}
+{ Gather statistics:
+
+  It never hurts to gather table statistics.
+
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
+end;
+/
+code }
+
+}
+{ Running first query
+
+  We execute the first query.
+
+  Because we select with `a.num = 4`, we will join both tables on a unique value and the query will return `count(*)` of 1.
+
+  The `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector` will determine that a
+  → development/databases/Oracle/SQL/join/methods/nested-loop is more optimal for the query than a
+  → development/databases/Oracle/SQL/join/methods/hash (note the minus sign (`-`) signs in the `Id` column of the output):
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/gather/plan_statistics */
+   count(*) cnt
+from
+   TQ84_A a                   join
+   TQ84_B b on a.id = b.id
+where
+   a.num = 4
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor[dbms_xplan.display_cursor](format=>'adaptive rowstats -predicate'));
+--
+-- -------------------------------------------------------------------------
+-- | Id  | Operation                | Name      | Starts | E-Rows | A-Rows |
+-- -------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select         |           |      1 |        |      1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate          |           |      1 |      1 |      1 |
+-- |-  2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join              |           |      1 |      2 |      1 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops          |           |      1 |      2 |      1 |
+-- |-  4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector |           |      1 |        |      1 |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_A    |      1 |      2 |      1 |
+-- |   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan     | TQ84_B_IX |      1 |      1 |      1 |
+-- |-  7 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast  | TQ84_B_IX |      0 |      1 |      0 |
+-- -------------------------------------------------------------------------
+--  
+-- Note
+-- -----
+--    - this is an adaptive plan (rows marked '-' are inactive)
+code }
+
+}
+{ Execute another query
+
+  This time, we select on `a.num = 999999` which blows up the query because every second row of `TQ84_A` must be joined to
+ `TQ84_B`, hence `count(*)` will be 500.
+
+  The statement executor will determine that a hash join is more beneficial for the query (note again the minus sign in the output):
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/gather/plan_statistics */
+  count(*) cnt
+from
+   TQ84_A a                   join
+   TQ84_B b on a.id = b.id
+where
+   a.num = 999999
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor[dbms_xplan.display_cursor](format=>'adaptive rowstats -predicate'));
+--
+-- -------------------------------------------------------------------------
+-- | Id  | Operation                | Name      | Starts | E-Rows | A-Rows |
+-- -------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select         |           |      1 |        |      1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate          |           |      1 |      1 |      1 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join              |           |      1 |      2 |    500 |
+-- |-  3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops          |           |      1 |      2 |    500 |
+-- |-  4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector[STATISTICS COLLECTOR] |           |      1 |        |    500 |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_A    |      1 |      2 |    500 |
+-- |-  6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan     | TQ84_B_IX |      0 |      1 |      0 |
+-- |   7 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast  | TQ84_B_IX |      1 |      1 |   1000 |
+-- -------------------------------------------------------------------------
+--  
+-- Note
+-- -----
+--    - this is an adaptive plan (rows marked '-' are inactive)
+code }
+
+Cleaning up:
+code {
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+}

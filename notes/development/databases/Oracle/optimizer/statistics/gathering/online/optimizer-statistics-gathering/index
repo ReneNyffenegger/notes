@@ -1,4 +1,5 @@
 $ Oracle execution plan operation OPTIMIZER STATISTICS GATHERING
+@ OPTIMIZER STATISTICS GATHERING
 
 The following → development/databases/Oracle/SQL/statement[SQL statements] are suppposed to demonstrate
 → development/databases/Oracle/optimizer/statistics/gathering/online[online statistics gathering] with regards to the
@@ -83,15 +84,15 @@ code }
 
 A CTAS also gathers online statistics:
 code {
-select * from table(dbms_xplan.display(format=> 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=> 'basic'));
 --
 -- ---------------------------------------------------
 -- | Id  | Operation                        | Name   |
 -- ---------------------------------------------------
--- |   0 | CREATE TABLE STATEMENT           |        |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/create-table           |        |
 -- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select[LOAD AS SELECT]                  | TQ84_B |
 -- |   2 |   OPTIMIZER STATISTICS GATHERING |        |
--- |   3 |    TABLE ACCESS FULL             | TQ84_A |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full             | TQ84_A |
 -- ---------------------------------------------------
 code }
 
@@ -102,5 +103,18 @@ drop table tq84_A;
 drop table tq84_B;
 code }
 
+{ Parent row sources
+
+  I've encountered `OPTIMIZER STATISTICS GATHERING` as only row source for the following plan operations:
+    • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select`
+    • → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select/hybrid-tsm-hwmb[`LOAD AS SELECT (HYBRID TSM/HWMB)`]
+    • `→ development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate`
+    • `PX SEND (QC RANDOM)`
+
+}
+
 sa:
+
+  The `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector` plan operation.
+
   The → development/databases/Oracle/SQL/hints/list/append[`append` hint].
