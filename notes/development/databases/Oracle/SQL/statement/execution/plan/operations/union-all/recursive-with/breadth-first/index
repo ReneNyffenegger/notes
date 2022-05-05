@@ -1,0 +1,31 @@
+$ Oracle SQL Plan operation UNION ALL (RECURSIVE WITH) BREADTH FIRST
+@ UNION ALL (RECURSIVE WITH)  BREADTH FIRST
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+with rec(n) as (
+   select 1 from dual
+      union all
+   select n+1 from rec where n<=1000
+)
+select * from rec;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic +predicate'));
+-- ----------------------------------------------------------
+-- | Id  | Operation                                 | Name |
+-- ----------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                          |      |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                     |      |
+-- |   2 |   UNION ALL (RECURSIVE WITH) BREADTH FIRST|      |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual                              |      |
+-- |*  4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/recursive-with-pump                    |      |
+-- ----------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    4 - filter("N"<=1000)
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

@@ -1,6 +1,14 @@
 $ SQL*Plus: SET AUTOTRACE
 @ set autotrace
 
+When the corresponding setting of *autotrace* are enabled, → development/databases/Oracle/SQL-Plus displays an
+→ development/databases/Oracle/SQL/statement[SQL Statement's] → development/databases/Oracle/SQL/statement/execution/plan[execution plan] and some execution statistitics after
+executing the statement in SQL*Plus.
+
+{ Settings
+
+  The following settings can be enabled with autotrace.
+
 table { ll
   `set autotrace off` ☰ The default: it nothing is reported
   `set autotrace on explain` ☰ Only display the → development/databases/Oracle/optimizer[optimizer] execution path.
@@ -9,12 +17,57 @@ table { ll
   `set autotrace traceonly` ☰ Like `set autotrace on` but do not print SQL statement results.
 table }
 
+  Compare with the `AUTOTRACE` system variable.
+
+}
+{ Reported statistics
+
+  If autotrace is enabled with statistics, it reports the following ones
+    • recursive calls
+    • db block gets
+    • consistent gets
+    • physical reads
+    • redo size
+    • bytes sent via SQL*Net to client
+    • bytes received via SQL*Net from client
+    • SQL*Net roundtrips to/from client
+    • sorts (memory)
+    • sorts (disk)
+    • rows processed (which is not found in `v$statname`).
+
+}
+{ Prerequisites
+
+  In order to use the autotrace feature, a user must have
+    • A → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`PLAN_TABLE`] in his schema and
+    • The `PLUSTRACE` → development/databases/Oracle/security/roles enabled.
+
+
+  A plan table can be created with the `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql` script.
+
+  The `PLUSTRACE` role is created with the `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/sqlplus/admin/plustrce_sql` script. This role grants the
+  necessary privilages to access the → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views]
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/sesstat`
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/statname`
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/mystat`
+
+code {
+$ sqlplus / as sysdba
+SQL> @?/sqlplus/admin/plustrce.sql
+SQL> grant plustrace to rene;
+code }
+
+}
+{ No autotrace with enabled FIPS flagging
+
+  With FIPS flagging (i.e. setting → development/databases/Oracle/SQL-Plus/set/flagger[`flagger`] to a value different from `off`), autotrace is not available and causes
+    • SP2-0575: Use of Oracle SQL feature not in SQL92 Entry Level
+    • SP2-0612: Error generating AUTOTRACE … report
+
+}
+
 sa:
 
   → development/databases/Oracle/SQL-Plus/set/timing[`set timing …`]
-
-
-  → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/sqlplus/admin/plustrce_sql[`$ORACLE_HOME/sqlplus/admin/plustrce.sql`] creates a role which is used by
-  by `set autotrace … statistics` to access the → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views].
 
   → development/databases/Oracle/SQL-Plus

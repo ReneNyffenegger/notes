@@ -1,8 +1,8 @@
-$ Oracle: query last executed SQL statement by joining V$SESSION and V$SQL
+$ Oracle: Query last executed SQL statement by joining V$SESSION and V$SQL
 
 → development/databases/Oracle/installed/dynamic-performance-views/session[`V$SESSION`] stores the *hash* and the *child number* of the most recently
-→ development/databases/Oracle/SQL/statement/execution[executed SQL statement] in `prev_hash_value` and `prev_child` which allos the query the text,
-→ development/databases/Oracle/SQL/statement#ora-sql-stmt-ident-sqlid[SQLID] etc from
+→ development/databases/Oracle/SQL/statement/execution[executed SQL statement] in `prev_hash_value` and `prev_child` which allows the query the text,
+→ development/databases/Oracle/SQL/statement#ora-sql-stmt-ident-sqlid[SQLID] etc. from
 → development/databases/Oracle/installed/dynamic-performance-views/sql[`V$SQL`]:
 
 code {
@@ -14,6 +14,22 @@ from
    v$sql     sql on ses.prev_hash_value   = sql.hash_value    and
                     ses.prev_child_number = sql.child_number        
 where
-   ses.sid = sys_context('userenv', 'sid')
+   ses.sid = → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'sid')
 ;
 code }
+
+{ Using concept in SQL*Plus
+
+code {
+SQL> set  → development/databases/Oracle/SQL-Plus/set/serveroutput[serveroutput] off
+SQL> → development/databases/Oracle/SQL-Plus/variable[var]  sqlid varchar2(13)
+SQL> select 'an sql statement' from dual;
+SQL> -- TODO child number should also be captured.
+SQL> → development/databases/Oracle/SQL-Plus/execute[exec]    select sql.sql_id into :sqlid from v$session ses join v$sql sql on ses.prev_hash_value = sql.hash_value and ses.prev_child_number = sql.child_number where ses.sid = sys_context('userenv', 'sid')
+SQL> select  sql_text from v$sqlarea where sql_id = :sqlid;
+SQL> select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor[dbms_xplan.display_cursor](:sqlid));
+code }
+
+  … but see also the `_sql_id` predefined variable …
+
+}
