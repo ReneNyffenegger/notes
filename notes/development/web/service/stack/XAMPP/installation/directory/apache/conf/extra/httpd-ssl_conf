@@ -1,0 +1,45 @@
+$ XAMPP installation directory: apache/conf/extra/httpd-ssl.conf
+
+`apache/conf/extra/httpd-ssl.conf` is the *configuration file which provides → development/security/cryptography/SSL-TSL[SSL] support*.
+
+This file is included from → development/web/service/stack/XAMPP/installation/directory/apache/conf/httpd_conf[`apache/conf/httpd.conf`].
+
+Some excerpts of this file include:
+code {
+Listen 443   # Standard → development/web/HTTPS port
+
+…
+
+<VirtualHost _default_:443>
+
+DocumentRoot          "C:/xampp/htdocs"
+
+ServerName             www.example.com:443
+ServerAdmin            admin@example.com
+
+ErrorLog              "C:/xampp/apache/logs/error.log"
+TransferLog           "C:/xampp/apache/logs/access.log"
+
+SSLEngine on                                            #  Enable SSL for this virtual host
+
+SSLCertificateFile    "→ development/web/service/stack/XAMPP/installation/directory/apache/conf/ssl_crt/server_crt[conf/ssl.crt/server.crt]"         #  The server → development/security/cryptography/public-key/certificate
+SSLCertificateKeyFile "→ development/web/service/stack/XAMPP/installation/directory/apache/conf/ssl_key/server_key[conf/ssl.key/server.key]"         #  The server private key
+
+#
+#  +StdEnvVars exports the standard SSL/TLS related SSL_* → development/environment-variable[environment variables].
+#
+<FilesMatch "\.(cgi|shtml|phtml|php)$">
+    SSLOptions +StdEnvVars
+</FilesMatch>
+<Directory "C:/xampp/apache/cgi-bin">
+    SSLOptions +StdEnvVars
+</Directory>
+
+CustomLog "C:/xampp/apache/logs/ssl_request.log" \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+</VirtualHost>                                  
+code }
+
+sa:
+  → development/web/service/stack/XAMPP/installation/directory/apache/conf/openssl_cnf[`conf/openssl.cnf`]
