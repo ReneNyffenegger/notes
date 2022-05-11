@@ -1,0 +1,91 @@
+$ XAMPP: Create and use certificates
+
+This page hopefully demonstrates how a → development/security/cryptography/public-key/certificate can be added to
+→ development/web/service/stack/XAMPP (on → Windows).
+
+First, we need to open a → Windows/PowerShell session and define a couple of variables:
+code {
+$domain              = 'the-domain.tq84'
+$xampp_root          = "$home/xampp"
+code }
+
+
+When I tried to create the certificates, I was struggling with *Invalid self signed SSL cert - "Subject Alternative Name Missing"* errors thrown by Chrome.
+-
+This → https://stackoverflow.com/a/58210221/180275[Stackoverflow answer] explained how I could create a «correct» certificate.
+-
+First, we need an OpenSSL config file which is created by the following → Windows/PowerShell/language/command:
+code {
+@"
+[ req ]
+  default_bits       = 4096
+  distinguished_name = req_distinguished_name
+  req_extensions     = req_ext
+  prompt             = no
+
+[ req_distinguished_name ]
+  commonName         = $domain
+
+[ req_ext ]
+  subjectAltName     = DNS:$domain
+# subjectAltName     = IP:192.168.0.1
+
+"@ | → Windows/PowerShell/command-inventory/noun/file/out -encoding ascii ssl.conf
+code }
+
+A private key is needed:
+code {
+& $xampp_root\apache\bin\openssl → development/security/cryptography/SSL-TSL/OpenSSL/executable/genrsa     -out private-key.pem
+code }
+
+
+We also need a *Client Server Request* (CSR) …
+code {
+& $xampp_root\apache\bin\openssl → development/security/cryptography/SSL-TSL/OpenSSL/executable/req   -new -key private-key.pem -out server.csr -config ssl.conf
+code }
+
+… with which the certificate can be created:
+code {
+& $xampp_root\apache\bin\openssl → development/security/cryptography/SSL-TSL/OpenSSL/executable/x509  -req -days 365 -in server.csr -signkey private-key.pem -out server.crt -extensions req_ext -extfile ssl.conf
+code }
+
+The CSR itself is not actually needed:
+code {
+rm server.csr
+code }
+
+We copy the private key and the certificate to the `apache/conf` directory:
+code {
+cp private-key.pem $xampp_root\apache\conf
+cp server.crt      $xampp_root\apache\conf
+code }
+
+The certificate needs also to be installed into *Trusted Root Certification Authorities* (here for the current user):
+code {
+import-certificate -filePath server.crt -certStoreLocation cert:\currentUser\Root
+code }
+
+It would also be possible to install it for all users on the local machine:
+code {
+# import-certificate -filePath server.crt -certStoreLocation cert:\localMachine\Root
+code }
+
+The «domain» is added `→ Windows/dirs/Windows/System32/drivers/etc/hosts` so that the web browser can resolve it to an IP address:
+code {
+127.0.0.1            the-domain.tq84
+code }
+
+Finally, the «virtual host» is added to the Apache configuration (typically in → development/web/service/stack/XAMPP/installation/directory/apache/conf/extra/httpd-vhosts_conf[`$xampp_root/apache/conf/extra/httpd-vhosts.conf`]):
+code {
+<VirtualHost the-domain.tq84:443>
+     ServerAdmin           bla@the-domain.tq84
+     DocumentRoot          "C:/users/rene/XAMPP/htdocs"
+     ServerName             the-domain.tq84
+     ServerAlias          *.the-domain.tq84
+     ErrorLog              "logs/the-domain.tq84.log" 
+     CustomLog             "logs/the-domain.tq84.log" common
+     SSLEngine on
+     SSLCertificateFile    "conf/server.crt"
+     SSLCertificateKeyFile "conf/private-key.pem"
+</VirtualHost>
+code }
