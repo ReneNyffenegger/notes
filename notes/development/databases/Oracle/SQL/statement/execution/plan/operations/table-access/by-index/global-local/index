@@ -1,0 +1,73 @@
+$ Oracle SQL Plan operation TABLE ACCESS BY [LOCAL|GLOBAL] INDEX ROWID [BATCHED]
+
+{ TABLE ACCESS BY LOCAL INDEX ROWID BATCHED #local-batched
+
+code {
+create table tq84_tab (
+   dt  date         not null,
+   id  integer      not null,
+   nm  number(2)    not null,
+   tx  varchar2(10) not null
+)
+partition by range
+  (dt) interval (numtoyminterval(1, 'YEAR'))
+  (partition p_1 values less than (date '2000-01-01'))
+;
+
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab
+select
+   trunc(sysdate - dbms_random.value(1, 10000)),
+   level,
+   dbms_random.value(0,99),
+   dbms_random.string('a', 10)
+from
+   dual connect by level <= 10000;
+
+create index tq84_tab_ix on tq84_tab(dt, nm) local;
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select *
+from
+   tq84_tab
+where
+   dt  between sysdate -30 and sysdate and
+   nm = 77;
+
+select * from table(dbms_xplan.display(format=>'basic predicate'));
+--
+-- -------------------------------------------------------------------
+-- | Id  | Operation                                   | Name        |
+-- -------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                            |             |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/filter                                     |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/range/iterator                  |             |
+-- |   3 |    TABLE ACCESS BY LOCAL INDEX ROWID BATCHED| TQ84_TAB    |
+-- |*  4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                        | TQ84_TAB_IX |
+-- -------------------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter(SYSDATE@!>=SYSDATE@!-30)
+--    4 - access("DT">=SYSDATE@!-30 AND "NM"=77 AND "DT"<=SYSDATE@!)
+--        filter("NM"=77)
+
+
+drop table tq84_tab;
+code }
+
+}
+
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]

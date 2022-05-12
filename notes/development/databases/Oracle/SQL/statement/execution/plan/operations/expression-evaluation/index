@@ -1,0 +1,48 @@
+$ Oracle SQL Plan operation EXPRESSION EVALUATION
+@ EXPRESSION EVALUATION
+
+code {
+create table tq84_A as
+select
+   level                  num,
+   rpad('x', 1000, 'x')   pad
+from
+   dual connect by level <= 10000;
+
+create table tq84_B as
+select
+   trunc(mod(level, 100) * dbms_random.value(1, 100)) num,
+   rpad('x', 1000, 'x') pad
+from
+   dual connect by level <= 10000;
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ parallel(4) */
+   a.num,
+  (select count(*) from tq84_B b where b.num < a.num) cnt
+from
+   tq84_A a
+where
+   to_char(a.num) like '%157';
+   
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+-- ---------------------------------------------
+-- | Id  | Operation                | Name     |
+-- ---------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select         |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator          |          |
+-- |   2 |   PX SEND QC (RANDOM)    | :TQ10000 |
+-- |   3 |    EXPRESSION EVALUATION |          |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator    |          |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_A   |
+-- |   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate       |          |
+-- |   7 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_B   |
+-- ---------------------------------------------
+
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

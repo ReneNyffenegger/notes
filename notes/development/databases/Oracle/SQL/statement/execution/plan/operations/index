@@ -37,6 +37,7 @@ table { llll
    DATA LINK ☰ FULL ☰ 1 ☰
    DELETE ☰  ☰ 1 ☰
    DELETE STATEMENT ☰  ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/expression-evaluation ☰ ☰ ☰
    EXTENDED DATA LINK ☰ FULL ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual[FAST DUAL] ☰  ☰ 1 ☰ Used when selecting an expression that does not involve `DUMMY` from `DUAL`.
    → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[FILTER] ☰  ☰ 1 - n ☰ Only pass on rows that match criteria. Compare with the plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/view` and the  → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[plan table column `filter_predicates`] of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
@@ -98,12 +99,14 @@ table { llll
    → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/range[PARTITION RANGE] ☰ ALL ☰ 1 ☰
    PARTITION RANGE ☰ EMPTY ☰ 1 (?) ☰
    PARTITION RANGE ☰ INLIST ☰ 1 ☰
+   PARTITION RANGE ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/partition/range/iterator[ITERATOR] ☰ 1 ☰
+   PARTITION RANGE ☰ JOIN-FILTER ☰ 1 ☰
    PARTITION RANGE ☰ OR ☰ 1 ☰
    PARTITION RANGE ☰ SINGLE ☰ 1 ☰
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block[PX BLOCK] ☰ ITERATOR ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block[PX BLOCK] ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator[ITERATOR] ☰ 1 ☰
    PX BLOCK ☰ ITERATOR ADAPTIVE ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator[PX COORDINATOR] ☰  ☰ 1 ☰
-   PX COORDINATOR ☰ FORCED SERIAL ☰ ? ☰ Oracle started with a parallel execution, but then detected during optimization phase that the statement cannot be executed in parallel (for example because of involving a PL/SQL function that is not parallel enabled).
+   PX COORDINATOR ☰ FORCED SERIAL ☰ ? ☰ Statement execution was started parallel, but Oracle then detected during optimization phase that the statement cannot be executed in parallel (for example because of involving a PL/SQL function that is not parallel enabled).
    PX PARTITION LIST ☰ ALL ☰ 1 ☰
    PX PARTITION RANGE ☰ ☰ ☰ 
    PX PARTITION RANGE ☰ ALL  ☰ 1 ☰
@@ -142,7 +145,7 @@ table { llll
    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] ☰ BY GLOBAL INDEX ROWID BATCHED ☰ 1 ☰ 
    TABLE ACCESS ☰ BY INDEX ROWID ☰ 1 - 2 ☰
    TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[BY INDEX ROWID BATCHED] ☰ 1 - 2 ☰ *BATCHED* indicates that the step retrieves a few → development/databases/Oracle/SQL/data-types/rowid[rowids] from an → development/databases/Oracle/objects/indexes[index] and then tries to access the corresponding rows in order of the → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] so that the number of times that a block is read is minimized.
-   TABLE ACCESS ☰ BY LOCAL INDEX ROWID BATCHED ☰ 1 ☰
+   TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index/global-local#local-batched[BY LOCAL INDEX ROWID BATCHED] ☰ 1 ☰
    TABLE ACCESS ☰ BY USER ROWID ☰ 1 ☰
    TABLE ACCESS ☰ CLUSTER ☰ 1 ☰
    TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[FULL] ☰ 1 ☰
@@ -153,12 +156,13 @@ table { llll
    → development/databases/Oracle/SQL/statement/execution/plan/operations/union-all ☰  ☰ 1 - n ☰
    UNION ALL (RECURSIVE WITH) ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/union-all/recursive-with/breadth-first[BREADTH FIRST] ☰ ? ☰
    UNION ALL PUSHED PREDICATE ☰  ☰ 2(?) - n ☰
-   → development/databases/Oracle/SQL/select/pivot/un/execution-plan[UNPIVOT] ☰  ☰ ☰
+   → development/databases/Oracle/SQL/select/pivot/un/execution-plan[UNPIVOT] ☰ ☰ ☰
    UPDATE ☰  ☰ 1 - n ☰
    UPDATE STATEMENT ☰  ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/view ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a seperately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators. Compare with the plan operation → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[`FILTER`].
    → development/databases/Oracle/SQL/statement/execution/plan/operations/view-pushed-predicate[VIEW PUSHED PREDICATE] ☰  ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/window[WINDOW] ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/window/buffer[BUFFER] ☰ 1 ☰ Used in `over()` clauses in an → development/databases/Oracle/SQL/select/analytic[analytic function] when the clause *does not* contain a `partition by` or `order by`.
+   WINDOW ☰ CHILD PUSHED RANK ☰ ☰
    WINDOW ☰ NOSORT ☰ ? ☰
    WINDOW ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/window/sort[SORT] ☰ 1 ☰ Used in `over()` in an → development/databases/Oracle/SQL/select/analytic[analytic function] clauses when the clause contains a `partition by` or `order by`.
    WINDOW ☰ SORT PUSHED RANK ☰ 1 ☰

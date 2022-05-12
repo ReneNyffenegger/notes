@@ -1,6 +1,12 @@
 $ Oracle hint: NO_UNNEST
 @ no_unnest
 
+The `no_unnest` → development/databases/Oracle/SQL/hints instructs the → development/databases/Oracle/optimizer not to → development/databases/Oracle/optimizer/features/subquery/unnesting[unnest] → development/databases/Oracle/SQL/select/subquery[subqueries].
+
+{ Subquery in WHERE clause
+
+  { Test data
+
 code {
 create table tq84_A (id   number, tx varchar2(3));
 create table tq84_B (id_a number);
@@ -13,7 +19,39 @@ begin
    → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_B');
 end;
 /
+code }
 
+  }
+  { Unnesting the subquery
+
+    With the given test data, Oracle's optimizer will *unnest* the subquery into the parent query which results in a semi-hash-join:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   id,
+   tx
+from
+   tq84_A
+where
+   id in (select id_a from tq84_B);
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation            | Name   |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join/semi/right[HASH JOIN RIGHT SEMI]|        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_B |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_A |
+-- ---------------------------------------
+code }
+
+  }
+  { Using the NO_UNNEST hint
+
+    However, when using the `no_unnest` hinst, both, the subquery and the query, are executed separately. The subquery is executed for each returned row:
+code {
 → development/databases/Oracle/SQL/statement/verbs/explain for
 select /*+ no_unnest(@subquery) */
    id,
@@ -22,6 +60,7 @@ from
    tq84_A
 where
    id in (select /*+ → development/databases/Oracle/SQL/hints/list/qb_name[qb_name](subquery) */ id_a from tq84_B);
+
 select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
 --
 -- -------------------------------------
@@ -39,11 +78,118 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 --    1 - filter( EXISTS (SELECT /*+ NO_UNNEST QB_NAME ("SUBQUERY") */ 0 
 --               FROM "TQ84_B" "TQ84_B" WHERE "ID_A"=:B1))
 --    3 - filter("ID_A"=:B1)
+code }
+
+  }
+  { Cleaning up
 
 
+code {
 drop table tq84_A;
 drop table tq84_B;
 code }
+
+  }
+
+}
+{ Scalar subquery in SELECT list
+
+  Subquery unnesting is also possible for → development/databases/Oracle/SQL/select/subquery/scalar[scalar subqueries].
+
+  { Test data
+
+code {
+create table tq84_A (id number, txt varchar2(10));
+create table tq84_b (id number, val number      );
+
+insert into tq84_A
+select
+   level,
+   to_char(level, 'fmXX')
+from
+   dual connect by level <= 255;
+
+insert into tq84_B
+select
+   mod(level, 255),
+   level + mod(level+7, 7) + mod(level+43, 43)
+from
+   dual connect by level <= 1000;
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+   dbms_stats.gather_table_stats(user, 'tq84_B');
+end;
+/
+code }
+
+  }
+  { Using scalar subquery
+
+    Again, without hinting, Oracle choses to join the table of the subquery to the table of the driving query:
+code {
+explain plan for
+select
+   a.id,
+   a.txt,
+  (select max(b.val) from tq84_B b where b.id = a.id) mx
+from
+   tq84_A a
+where
+   a.txt like '%C';
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by      |        |
+-- |   2 |   HASH JOIN OUTER   |        |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- --------------------------------------
+code }
+
+  }
+  { Using NO_UNNEST hint
+
+    Using the `no_unnest` hint results in accessing both table separately: 
+code {
+explain plan for
+select
+   a.id,
+   a.txt,
+  (select /*+ no_unnest */ max(b.val) from tq84_B b where b.id = a.id) mx
+from
+   tq84_A a
+where
+   a.txt like '%C';
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- |   3 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_A |
+-- -------------------------------------
+code }
+
+  }
+  { Cleaning up
+
+code {
+drop table tq84_A;
+drop table tq84_B;
+code }
+
+  }
+
+}
+
 
 sa:
   Other → development/databases/Oracle/SQL/hints[hints]
