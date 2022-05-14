@@ -1,4 +1,10 @@
 
+OpenStreetMap is a database of geographic → development/Data.
+
+Generaly, anything that is *visible* can be added to this database. A universally accepted exception of unobservable «things» in the database are *boundaries of political territories*.
+-
+The database does not contain any *private data*.
+
 { Coordinates
 
   Viewing specific coordinates on the Open Street Map:
@@ -31,6 +37,89 @@
   → http://www.openstreetmap.org/node/10665159
 
   → http://www.openstreetmap.org/relation/172224
+
+}
+{ Overpass API
+
+  The Overpass API is a query API for Openstreet Data. It is designed for queries of objects that are spatially close from one to another.
+
+  The Overpass API was referred to as *OSM Server Side Scripting* (OSM3S) before 2011.
+
+  { Overpass turbo
+
+    Overpass turbo allows to runs an Overpass API query and have it show the results on an interactive map.
+
+    Find everything with the → https://overpass-turbo.eu/s/1is1[name Freienstein]. `nwr` is an abbreviation for *nodes, ways and relations*.
+code {
+nwr[name="Freienstein"];
+out center;
+code }
+
+
+   Searching with → development/regular-expressions: find objects whose name have an → https://overpass-turbo.eu/s/1is7[`x` followed directly or indirectly by an `y`]:
+code {
+nwr[name~"x.*y"]({{bbox}});
+out;
+code }
+
+   Searching for → https://osm.li/0dN[parking lots in the selected region]. `({{bbox}})` is a *spatial filter* that searches in the supplied bounding box.
+code {
+node[amenity=parking]({{bbox}});
+out geom;
+code }
+
+  `(around:n)` is another spatial filter: it searches within `n` meters of the currently found/selected objects. The following query searches for
+  → https://overpass-turbo.eu/s/1is6[supermarktes that are within 100 meters of public transport stations]:
+code {
+nwr[public_transport = station    ]({{bbox}}  );
+nwr[shop             = supermarket](around:100);
+out center;
+code }
+
+    → https://t.co/vn0CRxrgl6[This query] searches for → development/Data/open/Switzerland/City-of-Zuerich/dataset/stadtkreise/plot-fountains[fountains in Zurich]
+code {
+[out:json][timeout:25];
+{{geocodeArea:Zürich}}->.searchArea;
+// gather results
+(
+  nwr["amenity"="fountain"](area.searchArea);
+);
+out center;
+code }
+
+
+    { UNION
+
+      Parenthesis combine the results of two «queries». The following query selects anything that has
+      → https://overpass-turbo.eu/s/1is4[either Freienstein or Ofenloch in its name]:
+code {
+(
+ nwr[name="Freienstein"];
+ nwr[name="Ofenloch"   ];
+);
+out center;
+code }
+
+      I believe this parantheses are technically called a *block statement*.
+
+    }
+
+  }
+  { out statements
+
+    table { ll
+      `out` ☰ The complete geodata.
+      `out ids;` ☰  The ids of the objects.
+      `out skel;` ☰ Add the information necessary to reconstruct the objects.
+      `out meta;` ☰  Add objects' version and timestamp
+      `out … bb;` ☰ Add a bounding box for each way and relation.
+      `out … center;` ☰ Amends ways and relations with geometries, requires at least `out meta`.
+      `out tags;` ☰
+
+    table }
+
+
+  }
 
 }
 
