@@ -21,41 +21,41 @@ create table tq84_t (grp number, val varchar2(20)) parallel;
 code }
 
 code {
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select * from tq84_t
   ;
 
-select * from table(dbms_xplan.display(format => 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
 --
 -- -----------------------------------------
 -- | Id  | Operation            | Name     |
 -- -----------------------------------------
--- |   0 | SELECT STATEMENT     |          |
--- |   1 |  PX COORDINATOR      |          |
--- |   2 |   PX SEND QC (RANDOM)| :TQ10000 |
--- |   3 |    PX BLOCK ITERATOR |          |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator      |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random[PX SEND QC (RANDOM)]| :TQ10000 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator |          |
 -- |   4 |     TABLE ACCESS FULL| TQ84_T   |
 -- -----------------------------------------
 code }
 
 code {
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select * from tq84_t
    order by grp
   ;
-select * from table(dbms_xplan.display(format => 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
 --
 -- --------------------------------------------
 -- | Id  | Operation               | Name     |
 -- --------------------------------------------
--- |   0 | SELECT STATEMENT        |          |
--- |   1 |  PX COORDINATOR         |          |
--- |   2 |   PX SEND QC (ORDER)    | :TQ10001 |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select        |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator         |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/order    | :TQ10001 |
 -- |   3 |    SORT ORDER BY        |          |
--- |   4 |     PX RECEIVE          |          |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/receive          |          |
 -- |   5 |      PX SEND RANGE      | :TQ10000 |
--- |   6 |       PX BLOCK ITERATOR |          |
--- |   7 |        TABLE ACCESS FULL| TQ84_T   |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator |          |
+-- |   7 |        → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_T   |
 -- --------------------------------------------
 code }
 
@@ -65,27 +65,27 @@ create table tq84_R ( id  number, val varchar2(10) ) parallel;
 code }
 
 code {
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select * from tq84_L l join tq84_R r on l.id = r.id;
 
-select * from table(dbms_xplan.display(format => 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
 --
 -- -----------------------------------------------
 -- | Id  | Operation                  | Name     |
 -- -----------------------------------------------
--- |   0 | SELECT STATEMENT           |          |
--- |   1 |  PX COORDINATOR            |          |
--- |   2 |   PX SEND QC (RANDOM)      | :TQ10002 |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select           |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator            |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random      | :TQ10002 |
 -- |   3 |    HASH JOIN BUFFERED      |          |
--- |   4 |     PX RECEIVE             |          |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/receive             |          |
 -- |   5 |      PX SEND HYBRID HASH   | :TQ10000 |
--- |   6 |       STATISTICS COLLECTOR |          |
--- |   7 |        PX BLOCK ITERATOR   |          |
--- |   8 |         TABLE ACCESS FULL  | TQ84_L   |
--- |   9 |     PX RECEIVE             |          |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector |          |
+-- |   7 |        → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator   |          |
+-- |   8 |         → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_L   |
+-- |   9 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/receive             |          |
 -- |  10 |      PX SEND HYBRID HASH   | :TQ10001 |
--- |  11 |       PX BLOCK ITERATOR    |          |
--- |  12 |        TABLE ACCESS FULL   | TQ84_R   |
+-- |  11 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator    |          |
+-- |  12 |        → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_R   |
 -- -----------------------------------------------
 code }
 
@@ -96,21 +96,21 @@ begin
 end;
 /
 
-explain plan for
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select * from tq84_L l join tq84_R r on l.id = r.id;
 
-select * from table(dbms_xplan.display(format => 'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
 --
 -- ------------------------------------------
 -- | Id  | Operation             | Name     |
 -- ------------------------------------------
--- |   0 | SELECT STATEMENT      |          |
--- |   1 |  PX COORDINATOR       |          |
--- |   2 |   PX SEND QC (RANDOM) | :TQ10000 |
--- |   3 |    HASH JOIN          |          |
--- |   4 |     TABLE ACCESS FULL | TQ84_L   |
--- |   5 |     PX BLOCK ITERATOR |          |
--- |   6 |      TABLE ACCESS FULL| TQ84_R   |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select      |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator       |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random | :TQ10000 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join          |          |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] | TQ84_L   |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator |          |
+-- |   6 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_R   |
 -- ------------------------------------------
 code }
 
