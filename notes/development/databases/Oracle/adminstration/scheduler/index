@@ -3,9 +3,10 @@ $ Oracle Scheduler
 
 The scheduler is used schedule jobs and tasks.
 
-Scheduler objects are standard → development/databases/Oracle/objects[Oracle objects]. Thus, their usage can be granted and revoked.
 
 { Scheduler objects
+
+  Scheduler objects are standard → development/databases/Oracle/objects[Oracle objects]. Thus, their usage can be granted and revoked.
 
   { Job #ora-job
 
@@ -87,9 +88,84 @@ Scheduler objects are standard → development/databases/Oracle/objects[Oracle o
 
   }
 }
+{ TODO
+
+  Event-based jobs.
+
+
+
+  Difference between a → development/databases/Oracle/objects/jobs and a → development/databases/Oracle/objects/programs.
+
+
+ «batch of jobs»
+
+ `SCHEDULER$_EVENT_QUEUE` and `SCHEDULER_FILEWATCHER_Q` (`→ development/databases/Oracle/installed/data-dictionary/int_dequeue_queues`, `→ development/databases/Oracle/installed/data-dictionary/dequeue_queues`).
+
+  An *event schedule* starts a job when a certain event is detected.
+  -
+  The condition that determines if an event is raised is formulated in the syntax of an advanced queuing rule. (See also `dbms_aqadm.add_subscriber`)j
+
+  A → development/databases/Oracle/objects/file/watchers is a scheduler object that defines file properties. If a file arrives that meets the specified properties, the scheduler starts a job.
+  -
+  Definable file properties include
+    • location (i.e. a → development/databases/Oracle/objects/directories[directory object])
+    • file name (wildcards: `?` and `*`)
+    • minimum file size
+
+  
+  Definition of incompabilities (`create_incompatibility`). See also *Using Incompatibilites* in Oracle's Database Adminstration Guide.
+
+  Also in the Db Admin Guide:
+     • Creating and dropping a resource
+     • Scheduler Chain Condition Syntax
+     • Detached jobs
+
+  Possible step states are
+    • not_started
+    • scheduled
+    • running
+    • paused
+    • stalled
+    • succeeded
+    • failed
+    • stopped
+  For succeeded, failed and stopped states, the *completed* attribute is `true` - otherwise, its `false`.
+
+  A job class allows to group jobs for resource allocation and prioritazation.
+
+  Groups allow to apply apply the effect of a `dbms_scheduler` procedure to all members of the group.
+  -
+  There are three types of groups:
+    • window groups
+    • database destination groups
+    • external destination groups
+
+  A *window* allows to automatically activate different resource plans at different times.
+
+  → development/databases/Oracle/objects/chains[Chains]
+
+ `create_job` vs `create_program`
+
+  External destinations `create_database_destination`, `drop_agent_destination` etc.
+  
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/directories
+where
+   directory_name = 'SCHEDULER$_LOG_DIR';
+code }
+
+  Agents (which must be registered with the database before the database can submit jobs to the agent).
+
+  The `MANAGE SCHEDULER` privilege.
+  
+}
 
 sa:
 
   The → development/databases/Oracle/architecture/processes/background/CJQ0[`CJQ0`] and → development/databases/Oracle/architecture/processes/background/Jnnn[`Jnnn`] background processes.
 
   → development/databases/Oracle/installed/packages/dbms/scheduler[`dbms_scheduler`]
+
+ `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/schagent_conf` is the *configuration file* for the Oracle Scheduler agent (see also the `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/schagent` executable).
