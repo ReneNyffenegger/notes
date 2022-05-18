@@ -1,5 +1,17 @@
 $ Patching Oracle
 
+{ Patch types
+
+  Oracle distinguishes → https://youtu.be/lRiX-mSgKUo?t=1944[four patch types]:
+  table { ll
+    One-Off ☰ Single bug fix on top of the base release or a patch bundle. Sometimes called *interim-patch*.
+    Backport ☰ Fix made for a newer code line, now created on top of the base release or a patch bundle.
+    Merge ☰ Multiple one-off fixes combined into a single fix. Required to resolve conflicts.
+    Bundle ☰ Many fixes together on top of the base release or another bundle. Usually available on a quarterly schedule. Cumulative. *Always* RAC Rolling and Standby-First PSU, BP, RU, RUR
+  table }
+
+}
+
 { OPatch #ora-opatch
 
   OPatch is a set of (→ development/languages/Java based) utilities to apply and rollback patches to or from the Oracle software.
@@ -93,13 +105,21 @@ code }
     }
 
   }
-  { Patch file content
+  { Patch file content #oracle-patch-file-content
+
+  A patch → https://youtu.be/lRiX-mSgKUo?t=2080[contains]
+  table { lll
+    ~File type~ ☰ ~Description~ ☰ ~Installation~
+    SQL or → development/databases/Oracle/PL-SQL[PL/SQL] scripts ☰ These scripts are simply executed. They do stuff like adding indexes to → development/databases/Oracle/installed/data-dictionary/base-tables[base tables] etc. ☰ `opatch` (See `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch`)
+   «Other» files ☰ These files are copied somewhere under the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n[Oracle home directory]. They're typically binary in nature, such as executables or timezone files).  ☰ `datapatch` (See `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/OPatch`)
+
+  table }
 
 code {
 _ Readme.txt (or) Readme.html
   bundle.xml
   automation
-          |_____ apply_automation.xml
+  |_____ apply_automation.xml
   |_____ rollback_automation.xml
   Sub-patch1
            |_____ etc/config/inventory.xml

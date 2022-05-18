@@ -1,0 +1,52 @@
+$ Oracle SQL Plan operation TABLE ACCESS BY USER ROWID
+@ TABLE ACCESS BY USER ROWID
+
+code {
+create table tq84_tab (
+   id     integer,
+   grp    varchar2(3),
+   val    number
+);
+
+
+begin
+insert into tq84_tab values (1, 'AAA',  7);
+insert into tq84_tab values (2, 'AAA', 12);
+insert into tq84_tab values (3, 'AAA',  5);
+insert into tq84_tab values (4, 'BBB',  2);
+insert into tq84_tab values (5, 'CCC', 21);
+insert into tq84_tab values (6, 'CCC', 18);
+insert into tq84_tab values (7, 'CCC',  3);
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select *
+from
+   tq84_tab
+where
+   rowid = (
+      select max(rowid) keep (dense_rank first order by val desc) from tq84_tab
+   )
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation                  | Name     |
+-- -----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select           |          |
+-- |   1 |  TABLE ACCESS BY USER ROWID| TQ84_TAB |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate           |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full       | TQ84_TAB |
+-- -----------------------------------------------
+
+drop   table tq84_tab;
+code }
+
+sa:
+ `→ development/databases/Oracle/SQL/data-types/rowid`
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index[`TABLE ACCESS BY INDEX ROWID`]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL statement execution plan operations]

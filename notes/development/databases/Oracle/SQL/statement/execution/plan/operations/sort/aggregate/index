@@ -2,11 +2,10 @@ $ Oracle SQL Plan operation SORT AGGREGATE
 @ SORT AGGREGATE
 
 The *sort aggregate* operation is used when → development/databases/Oracle/SQL/select/aggregate[aggregate functions] are applied to an entire table/subquery
-without → development/databases/Oracle/SQL/select/group-by[`group by`].
+(i.e. without → development/databases/Oracle/SQL/select/group-by[`group by`]).
 -
 Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[`BUFFER (SORT)`] and
 → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by[`HASH GROUP BY`].
-
 
 code {
 create table tq84_tab (
@@ -33,6 +32,48 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 
 drop table tq84_tab;
 code }
+
+{ KEEP … DENSE_RANK
+
+ `SORT AGGREGATE` is also used for SQL statements that are using → development/databases/SQL/select/group-by/keep-dense_rank[`KEEP … DENSE_RANK`]:
+code {
+drop   table tq84_tab;
+create table tq84_tab (
+   id     integer,
+   grp    varchar2(3),
+   val    number
+);
+
+
+begin
+insert into tq84_tab values (1, 'AAA',  7);
+insert into tq84_tab values (2, 'AAA', 12);
+insert into tq84_tab values (3, 'AAA',  5);
+insert into tq84_tab values (4, 'BBB',  2);
+insert into tq84_tab values (5, 'CCC', 21);
+insert into tq84_tab values (6, 'CCC', 18);
+insert into tq84_tab values (7, 'CCC',  3);
+end;
+/
+
+
+explain plan for
+   select max(id) keep (dense_rank first order by val desc)
+from
+   tq84_tab;
+
+
+select * from table(dbms_xplan.display(format => 'basic'));
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |          |
+-- |   1 |  SORT AGGREGATE    |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+code }
+
+}
 
 sa:
  `→ development/databases/Oracle/SQL/select/group-by`

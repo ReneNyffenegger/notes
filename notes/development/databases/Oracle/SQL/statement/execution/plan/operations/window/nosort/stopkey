@@ -1,0 +1,45 @@
+$ Oracle SQL Plan operation: WINDOW (NOSORT STOPKEY)
+@ WINDOW NOSORT STOPKEY
+
+code {
+create table tq84_tab (
+   num number,
+   dat date,
+   val varchar2(100)
+);
+
+--
+-- Without the following index, the plan
+-- operation → development/databases/Oracle/SQL/statement/execution/plan/operations/window/sort/pushed-rank would be used.
+--
+create index tab_ix on tq84_tab(num, dat);
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   dat,
+   val
+from
+   tq84_tab
+where
+   num = 42
+order by
+   dat
+fetch first 2 row only;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- --------------------------------------------------
+-- | Id  | Operation                     | Name     |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select              |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view                         |          |
+-- |   2 |   WINDOW NOSORT STOPKEY       |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_TAB |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan          | TAB_IX   |
+-- --------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Execution plan operations]
