@@ -1,0 +1,106 @@
+$ Oracle: DBA_SCHEDULER_JOBS
+@ dba_scheduler_jobs
+
+code {
+select
+   job.owner        , job.job_name,
+   job.program_owner, job.program_name,
+
+   nvl (job.job_type, prg.program_type)      type_       , -- PLSQL_BLOCK, STORED_PROCEDURE, EXECUTABLE, CHAIN, SQL_SCRIPT, BACKUP_SCRIPT, EXTERNAL_SCRIPT
+
+   job.enabled        job_enabled,
+   prg.enabled        prg_enabled,
+
+   job.schedule_owner, job.schedule_name, job.schedule_type,
+   nvl (job.repeat_interval, sch.repeat_interval) repeat_interval,
+   job.schedule_limit,
+
+   job.job_style,                                          -- REGULAR, LIGHTWEIGHT, IN_MEMORY_RUNTIME, IN_MEMORY_FULL
+   job.job_class,
+
+   job.comments,
+   nvl (job.job_action, prg.program_action)  action_,
+
+   job.event_condition,
+   job.event_queue_owner, job.event_queue_name,
+
+   job.connect_credential_owner, job.connect_credential_name,
+   job.credential_owner        , job.credential_name,
+
+   job.allow_runs_in_restricted_mode,
+   job.auto_drop,
+   job.client_id,
+
+   job.deferred_drop,
+
+   job.destination_owner, job.destination,
+
+   job.end_date,
+   job.event_queue_agent,
+
+   job.event_rule,
+   job.fail_on_script_error,
+   job.failure_count,
+
+   job.file_watcher_owner, job.file_watcher_name,
+
+   job.flags,
+   job.global_uid,
+   job.has_constraints,
+   job.instance_id,
+   job.instance_stickiness,
+   job.job_creator,
+   job.job_priority,
+   job.job_subname,
+   job.job_weight,
+   job.last_run_duration,
+   job.last_start_date,
+   job.logging_level,
+   job.max_failures,
+   job.max_run_duration,
+   job.max_runs,
+   job.next_run_date,
+   job.nls_env,
+   job.number_of_arguments,
+   job.number_of_destinations,
+   job.raise_events,
+   job.restart_on_failure,
+   job.restart_on_recovery,
+   job.restartable,
+   job.retry_count,
+   job.run_count,
+   job.source,
+   job.start_date,
+   job.state,
+   job.stop_on_window_close,
+   job.store_output,                             -- TRUE or FALSE, determines if output messages are stored in → development/databases/Oracle/installed/data-dictionary/scheduler/job/run_details
+   job.system,
+   job.uptime_failure_count,
+   job.uptime_run_count,
+   --
+-- prg.owner,
+-- prg.program_name,
+   prg.comments,
+   prg.detached,
+   prg.has_constraints,
+   prg.max_failures,
+   prg.max_run_duration,
+   prg.max_runs,
+   prg.nls_env,
+   prg.number_of_arguments,
+   prg.priority,
+   prg.schedule_limit,
+   prg.weight
+from
+   sys.dba_scheduler_jobs      job                                               left join
+   sys.dba_scheduler_programs  prg on job.program_owner  = prg.owner         and
+                                      job.program_name   = prg.program_name      left join
+   sys.dba_scheduler_schedules sch on job.schedule_owner = sch.owner         and
+                                      job.schedule_name  = sch.schedule_name
+order by
+   job.job_name
+;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary
