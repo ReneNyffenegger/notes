@@ -1,5 +1,7 @@
 $ ORA-01704: string literal too long
 
+The following SQL statement selects a string whose length is exactly 4000 characters. If *only* one character were added, Oracle would throw a *ORA-01704: string literal too long* error because the maximum length
+of string literals in SQL statements is 4000.
 code {
 select
 length('xxxx      A line with exactly one hundred characters     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -46,13 +48,23 @@ from
   dual;
 code }
 
-Such errors by concatenating → development/databases/Oracle/SQL/data-types/lob[CLOBs]:
+A workaround for such errors is to create a → development/databases/Oracle/SQL/data-types/lob[CLOBs] by concatenating CLOBs whose length is less then 4000 characters:
 code {
 select
    to_clob('string with less than 4000') ||
    to_clob('string with less than 4000') …
 from
   dual;
+code }
+
+If long strings are needed for → development/databases/Oracle/SQL/DML[DML statements], a workaround is to use an anonymous → development/databases/Oracle/PL-SQL/block:
+code {
+declare
+   txt clob := q'[ imagine long text here ]';
+begin
+   update tab set xyz = txt where id = 42;
+end;
+/
 code }
 
 sa:
