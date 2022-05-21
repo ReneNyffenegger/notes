@@ -1,0 +1,72 @@
+$ Oracle: Reading CSV files with external tables
+
+This example tries to demonstrate how → development/Data/exchange/formats/CSV files can be read with → development/databases/Oracle/objects/tables/external[external tables]
+
+First, we need a CSV-file whose data we want to import into the database. I put this file into the directory
+`→ Linux/fhs/home/username[home/rene]/ext` (or when on Windows into `→ Windows/dirs/Users/username[C:\Users\Rene]/ext/`) and named it `file.csv`:
+code {
+1,one,first
+2,two,second
+3,three,third
+4,four,fourth
+code }
+
+Create a → development/databases/Oracle/objects/directories[directory object] and grant read (at least) and write to the user that wants the external table:
+code {
+connect / as sysdba
+
+create    directory ext_dir as '/home/rene/ext';
+-- create directory ext_dir as 'C:\Users\Rene\ext';
+
+grant read write to rene
+code }
+
+Create the external table:
+code {
+connect rene/rene
+
+create table ext_table_csv (
+   i   number,
+   n   varchar2(20),
+   m   varchar2(20)
+)
+organization external (
+   type              oracle_loader
+   default directory ext_dir
+   access parameters (
+      records delimited  by newline
+      fields  terminated by ','
+      missing field values are null
+   )
+   location ('file.csv')
+)
+reject limit unlimited;
+code }
+
+code {
+select * from ext_table_csv;
+code }
+
+Cleaning up:
+code {
+drop directory ext_dir;
+code }
+
+{ Error messages in Windows
+
+  In Windows, I have received the following error:
+code {
+ORA-29913: error in executing ODCIEXTTABLEOPEN callout
+ORA-29400: data cartridge error
+KUP-04040: file file.csv in EXT_DIR not found
+code }
+
+  I fixed this by giving the Oracle Service (process) the required privileges on the file (See → development/databases/Oracle/errors/KUP/04040_file_in_-not-found/Windows[KUP-04040]).
+  -
+  After fixing this error, I had a *KUP-04027: file name check failed* error which I was able to fix by granting the necessary privileges on `$home/ext` (See
+  → development/databases/Oracle/errors/KUP/04027_file-name-check-failed/Windows[KUP-04027])
+
+}
+
+sa:
+  Reding → development/databases/Oracle/objects/tables/external/fixed-field-length[fixed field length] files

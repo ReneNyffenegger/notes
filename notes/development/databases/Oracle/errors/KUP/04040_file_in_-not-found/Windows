@@ -1,0 +1,21 @@
+$ KUP-04040: file … in … not found (Windows)
+
+In Windows, when accessing an → development/databases/Oracle/objects/tables/external[external table], Oracle might throw the *KUP-04040: file … in … not found* error message.
+-
+This error might be caused if the Oracle Service (process) doesn't have the necessary privileges to access the file.
+-
+The following → Windows/PowerShell script grants the necessary rights on a given file to the Services named *OracleServiceORA19*:
+
+code {
+$file                = "→ Windows/PowerShell/language/variable/automatic/home[$home]/ext/file.csv"
+$oracle_service_name = 'NT SERVICE\OracleServiceORA19' 
+
+$accessRule = → Windows/PowerShell/command-inventory/noun/object/new → Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/FileSystemAccessRule[System.Security.AccessControl.FileSystemAccessRule] `
+   'NT SERVICE\OracleServiceORA19'                                , `
+  ([→ Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/FileSystemRights[System.Security.AccessControl.FileSystemRights]]::FullControl) , `
+  ([→ Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/AccessControlType[System.Security.AccessControl.AccessControlType]]::Allow)
+
+$acl = → Windows/PowerShell/command-inventory/noun/acl/get $file
+$acl.AddAccessRule($accessRule)
+→ Windows/PowerShell/command-inventory/noun/acl/set $file $acl
+code }

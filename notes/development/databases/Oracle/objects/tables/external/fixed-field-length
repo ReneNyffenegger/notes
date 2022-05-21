@@ -1,0 +1,35 @@
+$ Oracle: Reading fixed-field-length files with external tables
+
+code {
+create table ext_table_fixed (
+   field_1 char( 4),
+   field_2 char(30)
+)
+organization external (
+   type    oracle_loader
+   default directory ext_dir
+   access  parameters (
+     records delimited by newline
+     fields (
+       field_1 position(1: 4) char( 4),
+       field_2 position(5:30) char(30)
+    )
+  )
+  location ('data.fld')
+)
+reject limit unlimited;
+code }
+
+The file content is
+code {
+B000Albert
+B001Basil
+B002Caesar
+B003Darius
+code }
+
+Apparently, the file must be stored with DOS → development/line-break[line endings] for this example to work.
+
+
+sa:
+  → development/databases/Oracle/objects/tables/external/CSV[Reading CSV files]

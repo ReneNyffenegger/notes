@@ -1,0 +1,23 @@
+$ KUP-04027: file name check failed: … (Windows)
+
+In Windows, when accessing an → development/databases/Oracle/objects/tables/external[external table], Oracle might throw the *KUP-04027: file name check failed* error.
+-
+This error might be caused if the Oracle Service (process) doesn't have the necessary privileges to access the directory in which the file resides.
+-
+The following → Windows/PowerShell script grants the necessary rights on a given directory to the Services named *OracleServiceORA19*:
+
+code {
+$dir                 = "$home/ext"
+$oracle_service_name = 'NT SERVICE\OracleServiceORA19' 
+
+$accessRule = new-object System.Security.AccessControl.FileSystemAccessRule `
+   'NT SERVICE\OracleServiceORA19'                                , `
+  ([System.Security.AccessControl.FileSystemRights]::FullControl) , `
+  ([System.Security.AccessControl.InheritanceFlags]::ContainerInherit + [System.Security.AccessControl.InheritanceFlags]::ObjectInherit) , `
+  ([System.Security.AccessControl.PropagationFlags]::None) , `
+  ([System.Security.AccessControl.AccessControlType]::Allow)
+
+$acl = get-acl $dir
+$acl.AddAccessRule($accessRule)
+set-acl $dir $acl
+code }
