@@ -1,0 +1,114 @@
+$ Oracle Job: Executable
+
+{ Execute a PowerShell script #ora-job-ps
+
+  The following example tries to demonstrate how a → development/databases/Oracle/objects/jobs can be created that executes a
+  → Windows/PowerShell/script[PowerShell script].
+
+  { PowerShell Script
+
+    First, we need to create a → Windows/PowerShell/script[PowerShell script] to be executed. For simplicity, it is just one liner which writes the execution date-time into the file `executions.txt`:
+code {
+"Script was executed at $(get-date)" >> "$(split-path $myInvocation.myCommand.path)/executions.txt"
+code }
+
+  }
+  { Create the credential
+
+    We also need to specify the → Windows/user-account[user account] (the username and password) with which the powershell script file will executed.
+    
+    Such a username/password pair is stored in a → development/databases/Oracle/objects/credentials object:
+code {
+begin
+  → development/databases/Oracle/installed/packages/dbms/credential/api/create_credential[dbms_credential.create_credential](
+      credential_name => 'RENES_CREDENTIALS',
+      username        => 'rene',
+      password        => '…'
+  );
+end;
+/
+code }
+
+  }
+  { Create and execute the job
+
+    We're now ready to create a (run-once) job to execute the batch file:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/scheduler/api/job/create[dbms_scheduler.create_job] (
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      job_type            => 'executable',
+      job_action          => 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+      credential_name     => 'RENES_CREDENTIALS',
+      enabled             =>  false,
+      auto_drop           =>  true,
+      number_of_arguments =>  3
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  1,
+      argument_value      => '-noProfile'
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  2,
+      argument_value      => '-f'
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  3,
+      argument_value      => 'C:\Users\Rene\scheduler-job\script.ps1'
+   );
+
+   dbms_scheduler.enable('RUN_POWERSHELL_SCRIPT');
+
+end;
+/
+code }
+
+  }
+  { Show execution in log and on command line
+
+    After the execution of the job, we find its execution in the → development/databases/Oracle/installed/data-dictionary:
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/job/run_details[user_scheduler_job_run_details]
+where
+   job_name = 'RUN_POWERSHELL_SCRIPT';
+code }
+
+    The execution is also recorded in `executions.txt`:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/content/get[cat] C:\Users\Rene\scheduler-job\executions.txt
+code }
+
+  }
+  { Cleaning up
+
+    The job was created with `auto_drop => true`, so it needs not be deleted. However, the logs and the credentials are still lingering around, so we drop them:
+code {
+begin
+   dbms_credential.drop_credential('RENES_CREDENTIALS');
+
+   dbms_scheduler.purge_log (
+      job_name    => 'RUN_POWERSHELL_SCRIPT'
+   );
+
+end;
+/
+code }
+
+  }
+  { Executing a cmd.exe batch file
+
+    See also → development/databases/Oracle/objects/jobs/types/external-script#ora-job-cmd-batch[executing a `cmd.exe` batch file] which does more or less the same thing, but using
+    the → development/databases/Oracle/objects/jobs/types/external-script[external script job type].
+
+  }
+
+
+}

@@ -1,0 +1,91 @@
+$ Oracle Job: External script
+
+{ Execute a cmd.exe batch file #ora-job-cmd-batch
+
+  The following example tries to demonstrate how a → development/databases/Oracle/objects/jobs can be created that executes a
+  → Windows/dirs/Windows/System32/cmd_exe/batch-files[`cmd.exe` batch file].
+  
+
+  { Batch file
+
+    First, we need to create a batch file to be executed. For simplicity, it is just one liner which writes the execution date-time into the file `executions.txt`:
+code {
+→ Windows/dirs/Windows/System32/cmd_exe/commands/echo Batch file was executed at %date%:%time% >> %~dp0\executions.txt
+code }
+
+  }
+  { Create the credential
+
+    We also need to specify the → Windows/user-account[user account] (the username and password) with which the batch file will executed.
+    
+    Such a username/password pair is stored in a → development/databases/Oracle/objects/credentials object:
+code {
+begin
+  → development/databases/Oracle/installed/packages/dbms/credential/api/create_credential[dbms_credential.create_credential](
+      credential_name => 'RENES_CREDENTIALS',
+      username        => 'rene',
+      password        => '…'
+  );
+end;
+/
+code }
+
+  }
+  { Create and execute the job
+
+    We're now ready to create a (run-once) job to execute the batch file:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/scheduler/api/job/create[dbms_scheduler.create_job] (
+      job_name        => 'RUN_BATCH_FILE',
+      job_type        => 'EXTERNAL_SCRIPT',
+      job_action      => 'C:\Users\Rene\scheduler-job\batch-file.bat > nul',
+      credential_name => 'RENES_CREDENTIALS',
+      enabled         =>  true,
+      auto_drop       =>  true
+   );
+end;
+/
+code }
+
+  }
+  { Show execution in log and on command line
+
+    After the execution of the job, we find its execution in the → development/databases/Oracle/installed/data-dictionary:
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/job/run_details[user_scheduler_job_run_details]
+where
+   job_name = 'RUN_BATCH_FILE';
+code }
+
+    The execution is also recorded in `executions.txt`:
+code {
+C:\> → Windows/dirs/Windows/System32/cmd_exe/commands/type C:\Users\Rene\scheduler-job\executions.txt
+code }
+
+  }
+  { Cleaning up
+
+    The job was created with `auto_drop => true`, so it needs not be deleted. However, the logs and the credentials are still lingering around, so we drop them:
+code {
+begin
+   dbms_credential.drop_credential('RENES_CREDENTIALS');
+
+   dbms_scheduler.purge_log (
+      job_name    => 'RUN_BATCH_FILE'
+   );
+
+end;
+/
+code }
+
+  }
+  { Executing a PowerShell script
+
+    See also → development/databases/Oracle/objects/jobs/types/executable#ora-job-ps[executing a PowerShell script] which does more or less the same thing, but using
+    the → development/databases/Oracle/objects/jobs/types/executable[executable job type].
+
+  }
+}
