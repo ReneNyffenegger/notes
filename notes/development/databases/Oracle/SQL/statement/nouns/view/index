@@ -10,7 +10,7 @@ create table tq84_tab (
 );
 code }
 
-  A star `*` is expanded to the column names when a view is created:
+  A star `*` is expanded to the → development/databases/Oracle/objects/tables/columns names when a view is created:
 code {
 drop   view  tq84_vw;
 create view  tq84_vw as select * from tq84_tab;
@@ -57,6 +57,31 @@ from
    tq84_tab
 code }
   
+
+  }
+  { Forcing the cretian of a view
+
+    Oracle can be forced to create a view even if the view's select statement is invalid:
+code {
+create FORCE view xyz_v as select * from inexisting_table;
+--
+-- View XYZ_V created.
+code }
+
+    Of course, the view's status in invalid:
+code {
+select status from → development/databases/Oracle/installed/data-dictionary/objects/[user_objects] where object_name = 'XYZ_V';
+--
+-- INVALID
+code }
+
+   More information can be queried from → development/databases/Oracle/installed/data-dictionary/errors[`user_errors`]:
+code {
+select text from user_errors where name = 'XYZ_V';
+--
+-- ORA-54039: table must have at least one column that is not invisible
+-- ORA-00942: table or view does not exist
+code }
 
   }
 

@@ -1,0 +1,79 @@
+$ Oracle: Capture a job's produced output
+
+Create the → development/databases/Oracle/objects/credentials …
+code {
+begin
+  dbms_credential.create_credential(
+      credential_name => 'RENES_CREDENTIALS',
+      username        => 'rene',
+      password        => '…'
+  );
+end;
+/
+code }
+
+… to run the → Windows/PowerShell command `→ Windows/PowerShell/command-inventory/noun/date/get`:
+code {
+begin
+   dbms_scheduler.create_job (
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      job_type            => 'executable',
+      job_action          => '→ Windows/dirs/Windows/System32/WindowsPowerShell/vn_m/powershell_exe[C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe]',
+      credential_name     => 'RENES_CREDENTIALS',
+      enabled             =>  false,
+      auto_drop           =>  true,
+      number_of_arguments =>  3
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  1,
+      argument_value      => '-noProfile'
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  2,
+      argument_value      => '-c'
+   );
+
+   dbms_scheduler.set_job_argument_value(
+      job_name            => 'RUN_POWERSHELL_SCRIPT',
+      argument_position   =>  3,
+      argument_value      => 'get-date'
+   );
+
+   dbms_scheduler.enable('RUN_POWERSHELL_SCRIPT');
+
+end;
+/
+code }
+
+The output of the script/executable is stored in `output` (varchar2) and `binary_output` (blob) in `→ development/databases/Oracle/installed/data-dictionary/scheduler/job/run_details`:
+code {
+select
+   status,
+   log_date,
+   output,
+   binary_output
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/job/run_details[user_scheduler_job_run_details]
+where
+   job_name = 'RUN_POWERSHELL_SCRIPT';
+code }
+
+Cleaning up:
+code {
+begin
+   dbms_credential.drop_credential('RENES_CREDENTIALS');
+
+   dbms_scheduler.purge_log (
+      job_name    => 'RUN_POWERSHELL_SCRIPT'
+   );
+
+end;
+/
+code }
+
+sa:
+  This example is a variation of → development/databases/Oracle/objects/jobs/types/executable#ora-job-ps[executing a PowerShell script with Oracle's scheduler].
