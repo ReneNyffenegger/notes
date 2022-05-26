@@ -39,6 +39,102 @@ code }
 
 
 }
+{ TODO
+
+  { Java Virtual Machine
+
+    { Manual installation 
+
+      MOS Note 1461562.1
+
+      SQL Plus:
+code {
+shutdown -- ???
+
+connect / as sysdba
+startup mount
+
+alter system set "_system_trig_enabled" = false scope=memory;
+alter database open;
+
+
+--------- javavm/install/initjvm ----------
+
+select obj#, name from obj$ where type#=28 or type#=29 or type#=30 or namespace=32;
+-- No rows selected
+
+select count(*), object_type from all_objects where object_type like '%JAVA%' group by object_type;
+-- no rows selected
+
+@?/javavm/install/initjvm.sql
+
+select count(*), object_type from all_objects where object_type like '%JAVA%' group by object_type;
+--
+--   COUNT(*) OBJECT_TYPE
+-- ---------- -----------------------
+--       1209 JAVA DATA
+--      32853 JAVA CLASS
+--       1566 JAVA RESOURCE
+
+--------- xdk/admin/initxml      ----------
+
+@?/xdk/admin/initxml.sql
+
+select count(*), object_type from all_objects where object_type like '%JAVA%' group by object_type;
+--
+--   COUNT(*) OBJECT_TYPE
+-- ---------- -----------------------
+--       1209 JAVA DATA
+--      33901 JAVA CLASS
+--       1639 JAVA RESOURCE
+
+--------- xdk/admin/xmlja        ----------
+
+@?/xdk/admin/xmlja.sql
+
+---------
+
+@?/rdbms/admin/catjava.sql
+
+select count(*), object_type from all_objects where object_type like '%JAVA%' group by object_type;
+--
+-- COUNT(*) OBJECT_TYPE
+-- ---------- -----------------------
+--       1209 JAVA DATA
+--      34271 JAVA CLASS
+--          2 JAVA SOURCE
+--       1642 JAVA RESOURCE
+
+---------
+
+@?/rdbms/admin/catexf.sql
+-- SP2-0310: unable to open file "…/rdbms/admin/catexf.sql"
+
+-------
+
+shutdown immediate
+
+startup
+
+-------
+
+-- Recompile objects
+
+@?/rdbms/admin/utlrp.sql
+
+-------
+
+select comp_id from dba_registry;
+--
+-- Newly added: XML, JAVAVM, CATJAVA
+code }
+
+    }
+  
+
+  }
+
+}
 
 sa:
   → development/databases/Oracle/scriptlets[Scriptlets] and

@@ -1,0 +1,42 @@
+$ DBMS_AQADM: GRANT_SYSTEM_PRIVILEGE
+
+`dbms_aqadm.grant_system_privilege` grants → development/databases/Oracle/security/privileges/system/queue[system privileges related to advanced queuing].
+
+code {
+create user aq_priv_tst_usr identified by pw;
+code }
+
+code {
+begin
+--                                    privilege      grantee           admin option
+--                                    ----------- ,  --------------- , ------------
+   dbms_aqadm.grant_system_privilege('ENQUEUE_ANY', 'AQ_PRIV_TST_USR', FALSE       );
+   dbms_aqadm.grant_system_privilege('DEQUEUE_ANY', 'AQ_PRIV_TST_USR', FALSE       );
+   dbms_aqadm.grant_system_privilege('MANAGE_ANY' , 'AQ_PRIV_TST_USR', TRUE        );
+end;
+/
+code }
+
+code {
+select privilege, admin_option from dba_sys_privs  where grantee = 'AQ_PRIV_TST_USR';
+--
+-- PRIVILEGE                                ADM
+-- ---------------------------------------- ---
+-- DEQUEUE ANY QUEUE                        NO 
+-- ENQUEUE ANY QUEUE                        NO 
+-- MANAGE ANY QUEUE                         YES
+code }
+
+
+The following → development/databases/Oracle/PL-SQL/block[block] throws *ORA-24066: invalid privilege specified*:
+code {
+begin
+--                                    privilege      grantee           admin option
+--                                    ----------- ,  --------------- , ------------
+   dbms_aqadm.grant_system_privilege('XYZ'        , 'AQ_PRIV_TST_USR', FALSE       );
+end;
+/
+code }
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/aqadm`
