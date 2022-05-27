@@ -1,0 +1,245 @@
+$ Oracle File-Watcher Example
+
+A → development/databases/Oracle/objects/file/watchers is a mechanism with which Oracle monitors directories and takes action when a new file arrives in one of these
+directories.
+
+The following example tries to demonstrate how a file watcher can be created that invokes a
+→ development/databases/Oracle/PL-SQL/function-procedure[PL/SQL procedure] when a new file arrives.
+
+{ Create Credential Object
+
+  In order to be able to access the file system, the file watcher needs to have the files' user's username and password.
+  -
+  These are stored and named in a → development/databases/Oracle/objects/credentials object:
+
+code {
+begin
+   dbms_scheduler.create_credential (
+      'RENES_CREDENTIALS',
+      'rene',
+      'theSecretPassword'
+   );
+end;
+/
+code }
+
+}
+
+{ Staging table
+
+  We want to store the arrived file in a table:
+code {
+create table tq84_staging_file (
+    destination               varchar2(4000 byte),
+    directory_path            varchar2(4000 byte),
+    actual_file_name          varchar2(4000 byte),
+    file_size                 number,
+    file_timestamp            timestamp(6) with time zone,
+    ts_ms_from_epoch          number,
+    content                   clob
+);
+code }
+
+}
+
+{ File watcher object
+
+  The following → development/databases/Oracle/PL-SQL/block[block] creates the → development/databases/Oracle/objects/file/watchers object. It specifies the directory to watch, the name (wildcard) of files to be watched and the
+  name of the credentials to be used when watching:
+code {
+begin
+
+   dbms_scheduler.create_file_watcher(
+      file_watcher_name => 'TQ84_FILE_WATCHER',
+      directory_path    => 'C:\Users\Rene\staging',
+      file_name         => '*.csv',
+      credential_name   => 'RENES_CREDENTIALS',
+      destination       =>  null,                 -- NULL destination = local host
+      enabled           =>  false
+   );
+
+end;
+/
+code }
+
+}
+{ Procedure to handle new files
+
+  The following procedure will be invoked when the file watcher detects a new file:
+code {
+create or replace procedure tq84_csv_reader(
+   fil sys.scheduler_filewatcher_result
+)
+   authid definer
+as
+   content clob;
+begin
+
+   → development/databases/Oracle/installed/packages/dbms/lob/api/temporary[dbms_lob.createTemporary](content, false);
+
+   begin
+
+      → development/databases/Oracle/installed/packages/dbms/scheduler/api/file/get[dbms_scheduler.get_file] (
+         source_file     => fil.directory_path || '/' || fil.actual_file_name,
+         source_host     => null,
+         credential_name =>'RENES_CREDENTIALS',
+         file_contents   => content
+      );
+
+   exception when others then
+      content := sqlerrm;
+   end;
+
+   insert into tq84_staging_file values (
+      fil.destination     ,
+      fil.directory_path  ,
+      fil.actual_file_name,
+      fil.file_size       ,
+      fil.file_timestamp  ,
+      fil.ts_ms_from_epoch,
+      content
+   );
+
+   dbms_lob.freeTemporary(content);
+
+   commit;
+
+end;
+/
+code }
+
+  Note that the owner of this procedure needs the `create external job` privilege.
+
+  … Of course, it is left as an exercise for the reader to implement something that transfers the content of the CSV files into Oracle tables.
+
+}
+{ Create a program object
+
+  The procedure must be associated with a → development/databases/Oracle/objects/programs object.
+
+  The call of `dbms_scheduler.define_metadata_argument` specifies that `tq84_csv_reader` has a parameter (at position 1)
+  whose type is `sys.scheduler_filewatcher_result`. This parameter is used to pass information about the newly
+  arrived file to the procedure.
+
+code {
+begin
+
+   dbms_scheduler.create_program(
+      program_name        => 'TQ84_PRG',
+      program_type        => 'stored_procedure',
+      program_action      => 'TQ84_CSV_READER',
+      number_of_arguments =>  1,
+      enabled             =>  false
+   );
+
+   dbms_scheduler.define_metadata_argument(
+      program_name        => 'TQ84_PRG',
+      metadata_attribute  => 'event_message',
+      argument_position   =>  1
+   );
+
+end;
+/
+code }
+
+}
+{ Create a job object
+
+  The program object is then associated with a → development/databases/Oracle/objects/jobs object which makes
+  the program (and hence also the PL/SQL procedure) schedulable.
+
+  Calling `dbms_scheduler.set_attribute(…)` specifies that the procedure is invoked for each file (as opposed
+  to being invoked only once).
+
+code {
+begin
+
+   dbms_scheduler.create_job(
+      job_name        => 'TQ84_JOB',
+      program_name    => 'TQ84_PRG',
+      event_condition =>  null,
+      queue_spec      => 'TQ84_FILE_WATCHER',
+      auto_drop       =>  false,
+      enabled         =>  false
+   );
+
+ 
+--
+-- Run a job for each file arrival:
+--
+   dbms_scheduler.set_attribute(
+     'TQ84_JOB',
+     'parallel_instances',
+      true
+  );
+
+end;
+/
+code }
+
+}
+{ Enable objects
+
+  We're now ready to enable the file watcher, program and file watcher objects that were created:
+code {
+begin
+   dbms_scheduler.enable('
+      TQ84_PRG,
+      TQ84_JOB,
+      TQ84_FILE_WATCHER'
+   );
+end;
+/
+code }
+
+}
+{ Put files into the directory and wait
+
+  Check log to see if file watcher has done some work. By default, the file watcher starts every ten minutes:
+code {
+select *
+from
+   user_scheduler_job_run_details
+where
+   job_name = 'TQ84_JOB'
+order by
+   log_date desc;
+code }
+
+  As soon as the file watcher detected new files, the procedure `tq84_csv_reader` will be invoked which transfers
+  the content of the new → development/Data/exchange/formats/CSV files into `tq84_staging_file`:
+code {
+select *
+from
+   tq84_staging_file;
+code }
+
+}
+
+{ Cleaning up
+
+  Drop created → development/databases/Oracle/adminstration/scheduler/objects[scheduler objects] …
+code {
+begin
+   dbms_scheduler.drop_job         ('TQ84_JOB'         );
+   dbms_scheduler.drop_program     ('TQ84_PRG'         );
+   dbms_scheduler.drop_file_watcher('TQ84_FILE_WATCHER');
+   dbms_scheduler.drop_credential  ('RENES_CREDENTIALS');
+
+   dbms_scheduler.purge_log(
+      job_name => 'TQ84_JOB'
+   );
+end;
+/
+code }
+
+  … and other objects:
+code {
+drop procedure tq84_csv_reader;
+drop table     tq84_staging_file;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/objects/file/watchers/troubleshooting[Troubleshooting file-watcher problems]

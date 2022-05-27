@@ -1,0 +1,74 @@
+$ DBMS_SCHEDULER.GET_FILE
+
+code {
+begin
+   dbms_scheduler.create_credential (
+      'RENES_CREDENTIALS',
+      'rene',
+      'theSecretPassword'
+   );
+end;
+/
+code }
+
+code {
+declare
+
+   content clob;
+
+begin
+
+   dbms_lob.createTemporary(content, false);
+
+   dbms_scheduler.get_file (
+      source_file     =>'C:/Users/rene/staging/abc.csv',
+      source_host     => null,
+      credential_name =>'RENES_CREDENTIALS',
+      file_contents   => content
+   );
+
+   dbms_output.put_line(content);
+
+   dbms_lob.freeTemporary(content);
+
+end;
+/
+code }
+
+{ ORA-01031: insufficient privileges
+
+  In order to use `dmbs_scheduler.get_file` in a procedure/function, the caller needs to have the system privilege `create external job`,
+  otherwise, the following produces → development/databases/Oracle/errors/ORA-01031_insufficient-privileges.
+
+code {
+create or replace function tq84_get_file(filename varchar2, cred varchar2) return clob
+   authid definer
+as
+   content clob;
+
+begin
+   dbms_lob.createTemporary(content, false);
+
+   dbms_scheduler.get_file (
+      source_file     => filename,
+      source_host     => null,
+      credential_name =>'RENES_CREDENTIALS',
+      file_contents   => content
+   );
+
+   return content;
+
+end tq84_get_file;
+/
+
+
+begin
+   dbms_output.put_line(tq84_get_file('C:/Users/rene/staging/abc.csv', 'RENES_CREDENTIALS'));
+end;
+/
+code }
+
+}
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/scheduler`

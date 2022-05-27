@@ -239,6 +239,30 @@ code }
   → development/databases/Oracle/errors/ORA-32463_cannot-create-an-object-with-a-name-matching-private-temporary-table-prefix.
 
 }
+{ SYS.EXPPKGOBJ$
+
+  The `sys.exppkgobj$` table registers PL/SQL packages which allows to export (and/or import?) specific types:
+code {
+select
+   type#,
+   schema,
+   package,
+   decode(class,
+     1, 'system',
+     2, 'schema',
+     3, 'object instance'
+   )                       class,
+   prepost,
+   level#    -- Ordering in dump file of objects exported at same time
+from
+   sys.exppkgobj$
+order by
+   level#;
+code }
+
+   TODO: Compare with `sys.exppkgact$` and `sys.impcalloutreg$`.
+
+}
 
 sa:
 

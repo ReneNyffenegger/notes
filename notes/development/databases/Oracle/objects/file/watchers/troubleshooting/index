@@ -1,0 +1,23 @@
+$ Troubleshooting Oracle file watcher problem
+
+The entry point for the work of a → development/databases/Oracle/objects/file/watchers is
+→ development/databases/Oracle/installed/packages/dbms/dbms_ischedfw/api/file_watch_job[`dbms_ischedfw.file_watch_job`].
+-
+So, in order to troubleshoot problems with a file watcher setup, one might to simply call this procedure.
+
+In order to enable debugging messages into the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file,
+the event 27401 can be set:
+
+code {
+$ → development/databases/Oracle/SQL-Plus[sqlplus] / as sysdba
+SQL> → development/databases/Oracle/tools/oradebug/setmypid
+SQL> → development/databases/Oracle/tools/oradebug/tracefile_name
+/path/to/tracfile.trc
+SQL> alter system set events '27401 trace name context forever, level 262144';
+SQL> → development/databases/Oracle/SQL-Plus/execute[exec] → development/databases/Oracle/installed/packages/dbms/dbms_ischedfw/api/file_watch_job[dbms_ischedfw.file_watch_job]
+SQL> alter system set events '27401 trace name context off';
+code }
+
+After executing this procedure, `/path/to/tracfile.trc` can be examined for the logging messages which
+hopefully assist in finding the cause of the problem.
+

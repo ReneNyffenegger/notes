@@ -1,0 +1,26 @@
+$ Oracle: Chain Step
+
+A → development/databases/Oracle/objects/chains consists of multiple *chain steps* which is one of
+  • → development/databases/Oracle/objects/programs
+  • → development/databases/Oracle/objects/chains (which creates nested *chain hierarchies*)
+  • event schedule, inline event or → development/databases/Oracle/objects/file/watchers
+
+{ State
+
+  A step is in one of the following states:
+  table { ll
+    `not_started` ☰ The → development/databases/Oracle/objects/chains where the step is located is running, but the step has not yet started
+    `scheduled` ☰ A rule started the step with an `AFTER` clause and the designated wait time has not yet expired.
+    `running` ☰ The step is running. In case of an event step: the step is started and waits for an event.
+    `paused` ☰ The `pause` attribute is set to `true`
+    `succeeded` ☰ The step completed succesfully
+    `failed` ☰ The step completed unsuccessfully
+    `stopped` ☰ The step was stopped with `dbms_scheduler.stop_job`
+    `stalled` ☰ The step is a *nested chain* that has stalled
+  table }
+
+? The value of the state is used to formulate rules.
+
+  For succeeded, failed and stopped states, the *completed* attribute is `true` - otherwise, its `false`.
+
+}

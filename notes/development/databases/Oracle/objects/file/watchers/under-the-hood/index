@@ -1,0 +1,57 @@
+$ Under the hood of Oracle's file watchers
+
+A → development/databases/Oracle/objects/file/watchers is triggered by an (ordinary) → development/databases/Oracle/objects/schedules, named `FILE_WATCHER_SCHEDULE`.
+-
+By default, the schedule runs every ten minutes:
+code {
+select
+   sch.schedule_type,
+   sch.repeat_interval
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/schedules sch
+where
+   sch.owner         = 'SYS'                   and
+   sch.schedule_name = 'FILE_WATCHER_SCHEDULE';
+--
+-- SCHEDULE_TYPE        REPEAT_INTERVAL
+-- -------------------- ------------------------------
+-- CALENDAR             → development/databases/Oracle/adminstration/scheduler/calendaring-syntax[FREQ=MINUTELY;INTERVAL=10]
+code }
+
+The schedule starts a job named `FILE_WATCHER` which is associated with a program named `FILE_WATCHER_PROGRAM`:
+code {
+select
+   job.job_name,
+   job.program_name,
+   job.job_class,
+   job.comments
+-- job.last_start_date
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/jobs job
+where
+   job.schedule_name = 'FILE_WATCHER_SCHEDULE';
+--
+-- JOB_NAME      PROGRAM_NAME          JOB_CLASS                   COMMENTS         
+-- ------------- --------------------- --------------------------- -----------------
+-- FILE_WATCHER  FILE_WATCHER_PROGRAM  SCHED$_LOG_ON_ERRORS_CLASS  File watcher job 
+code }
+
+
+This program (`FILE_WATCHER_PROGRAM`) corresponds to the PL/SQL procedure → development/databases/Oracle/installed/packages/dbms/dbms_ischedfw/api/file_watch_job[`dbms_ischedfw.file_watch_job`]:
+code {
+select
+   prg.program_type,
+   prg.program_action,
+   prg.number_of_arguments args,
+   prg.comments
+from
+   → development/databases/Oracle/installed/data-dictionary/scheduler/programs prg
+where
+   prg.owner = 'SYS' and
+   prg.program_name = 'FILE_WATCHER_PROGRAM';
+--
+-- PROGRAM_TYPE       PROGRAM_ACTION                     ARGS COMMENTS             
+-- ------------------ ---------------------------- ---------- ---------------------
+-- STORED_PROCEDURE   dbms_ischedfw.file_watch_job          0 File Watcher program 
+code }
+

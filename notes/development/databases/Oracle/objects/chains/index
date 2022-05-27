@@ -20,7 +20,61 @@ Attributes of a chain include
   • destination_name (See `all_scheduler_external_dests` and `all_scheduler_db_dests`)
   • credential_name
 
+
+{ Chain steps
+
+  A chain consists of → development/databases/Oracle/objects/chains/step[chain steps].
+
+}
+{ Chain rules
+
+  Chain rules specify when steps run and define the dependencies between steps.
+
+  A rule consists of
+    • a condition (formulated in *scheduler chain condition syntax* or SQL syntax that is valid in a → development/databases/Oracle/SQL/clauses/where[`where` clauses]
+    • an action
+
+  The action is executed when the condition evaluates to `true`.
+
+? Chain rules are evaluated
+   • when the chain job starts
+   • at the end of each step
+   • at the end of the (optional) interval `evaluation_interval` (which is an attribute of a chain)
+
+}
+{ Chain condition syntax
+
+  The *chain condition syntax* takes two forms:
+code {
+stepname [NOT] {SUCCEEDED|FAILED|STOPPED|COMPLETED}
+stepname ERROR_CODE {comparision_operator|[NOT] IN} {integer|list_of_integers}
+code }
+
+  The result of these expressions can be combined with `and`, `or` and `not(…)`.
+
+  There are also the two literals `true` and `false`.
+
+  Note that the `error_code` is positive.
+
+}
+{ Starting and stopping a chain
+
+? In order for a chain to be able to be started when the *chain job* starts, the chain must have a rule that evaluates to `true`.
+
+? The chain stops when a rule with an `end` action evaluates to `true`.
+
+}
+{ Pausing and/or skipping
+
+  It's possible to temporarily pause an entire chain or some chain branches by setting the `pause` attribute to `true` (`dbms_scheduler.alter_chain`, `dbms_scheduler.alter_running_chain`).
+
+  Similarly, setting the `skip` attribute to `true` allows to skip the given steps of a chain.
+
+}
+
 sa:
  `→ development/databases/Oracle/installed/packages/dbms/scheduler`
+
+  A chain can be run with `dbms_scheduler.run_chain`.
 
   → development/databases/Oracle/objects
