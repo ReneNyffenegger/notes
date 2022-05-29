@@ -1,0 +1,175 @@
+$ DBMS_SCHEDULER.DEFINE_PROGRAM_ARGUMENT
+@ define_program_argument
+
+This example will create a → development/databases/Oracle/objects/programs which encapsulates a stored procedure and will be executed via a
+→ development/databases/Oracle/objects/jobs.
+-
+Because the stored procedure has arguments, we define a *program argument* for each of these arguments using `→ development/databases/Oracle/installed/packages/dbms/scheduler[dbms_scheduler].define_program_argument`.
+
+The stored procedure will insert the values of the received arguments into a log table:
+code {
+create table tq84_proc_log (
+   dt     timestamp,
+   arg_1  number,
+   arg_2  varchar2(20)
+);
+code }
+
+The stored procedure is simply:
+code {
+create or replace procedure tq84_proc (
+   arg_1   number,
+   arg_2   varchar2
+)
+authid definer
+as begin
+   insert into tq84_proc_log values(systimestamp, arg_1, arg_2);
+end;
+/
+code }
+
+Creation of the program …
+code {
+begin
+   dbms_scheduler.create_program (
+      program_name        => 'tq84_prog',
+      program_type        => 'stored_procedure',
+      program_action      => 'tq84_proc',
+      number_of_arguments =>  2
+   );
+end;
+/
+code }
+… and its arguments:
+code {
+begin
+   dbms_scheduler.define_program_argument(
+      program_name      => 'tq84_prog',
+      argument_position =>  1,
+--    argument_name     --  in varchar2 default null
+      argument_type     => 'number',
+      default_value     =>  42
+  --  out_argument      --  in boolean                   -- reserved for future use
+  );
+
+   dbms_scheduler.define_program_argument(
+      program_name      => 'tq84_prog',
+      argument_position =>  2,
+--    argument_name     --  in varchar2 default null
+      argument_type     => 'varchar2',
+      default_value     => 'Hello world'
+  --  out_argument      --  in boolean                   -- reserved for future use
+  );
+
+end;
+/
+code }
+
+The arguments can be queried from the → development/databases/Oracle/installed/data-dictionary:
+code {
+select
+   argument_position pos,
+   argument_type     type,
+   default_value     def_val,
+   enabled
+from
+   user_scheduler_program_args
+where
+   program_name = 'TQ84_PROG'
+order by
+   argument_position;
+code }
+
+Now that we have prepared the program, we can craete a job to execute the program:
+code {
+begin
+   dbms_scheduler.create_job (
+      job_name     => 'tq84_job_for_prog',
+      program_name => 'tq84_prog',
+      auto_drop    =>  false
+   );
+end;
+/
+code }
+
+Querying some details of the job from the data dictionary:
+code {
+select
+   schedule_type,
+   program_name,
+   enabled,
+   state,
+   auto_drop
+from
+   user_scheduler_jobs
+where
+   job_name = 'TQ84_JOB_FOR_PROG';
+code }
+
+Both the job and the program are not yet enabled, so we enable them:
+code {
+begin
+   dbms_scheduler.enable('
+      tq84_job_for_prog,
+      tq84_prog
+   ');
+end;
+/
+code }
+
+Enabling the job caused the associated program and stored procedure to run. We find the values of the (default) arguments in the log table:
+code {
+select * from tq84_proc_log;
+code }
+
+We want to run the program again, but this time, we want to set the values for the stored procedure's arguments:
+code {
+begin
+   dbms_scheduler.set_job_argument_value (
+      job_name          => 'tq84_job_for_prog',
+      argument_position =>  1,
+      argument_value    => 99
+   );
+
+   dbms_scheduler.set_job_argument_value (
+      job_name          => 'tq84_job_for_prog',
+      argument_position =>  2,
+      argument_value    => 'ninety-nine'
+   );
+end;
+/
+code }
+
+Again, the job is enabled to make the program run:
+code {
+begin
+   dbms_scheduler.enable('
+      tq84_job_for_prog
+   ');
+end;
+/
+code }
+
+We find the values of the arguments in the log table:
+code {
+select * from tq84_proc_log order by dt desc;
+code }
+
+Querying other tables from the data dictionary:
+code {
+select * from user_scheduler_job_run_details where job_name = 'TQ84_JOB_FOR_PROG';
+select * from user_scheduler_job_log         where job_name = 'TQ84_JOB_FOR_PROG';
+code }
+
+Cleaning up:
+code {
+begin
+   dbms_scheduler.drop_job('tq84_job_for_prog');
+   dbms_scheduler.drop_program('tq84_prog');
+   dbms_scheduler.purge_log(job_name => 'TQ84_JOB_FOR_PROG');
+end;
+/
+
+drop procedure tq84_proc;
+drop table tq84_proc_log;
+code }
