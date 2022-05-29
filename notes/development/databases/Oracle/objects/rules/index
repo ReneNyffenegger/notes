@@ -1,6 +1,12 @@
 $ Oracle: Rules
--
 @ rule
+
+A rule allows to define *actions* to be taken when an event occurs and a condition is satisfied.
+
+A noteable Oracle feature taht uses rules is *Streams*.
+
+A rule can reference *external data* via a → development/databases/Oracle/objects/evaluation-context.
+
 
 { TODO
 
@@ -48,7 +54,50 @@ code }
   The value of `ERROR_CODE` is set with `→ development/databases/Oracle/PL-SQL/exception/raise_application_error` within PL/SQL object.
 
   }
+  { Rule types
+
+code {
+select distinct
+-- owner,                      -- SYS
+   lower(object_name) name,
+   object_type                 -- With one exception: TYPE
+from
+   dba_objects
+where
+   object_name like 'RE$%'
+order by
+   lower(object_name);
+code }
+
+  table { ll
+
+    `re$attribute_value` ☰
+    `re$attribute_value_list` ☰ `varray(1024) of sys.re$attribute_value`
+    `re$column_value` ☰ The value of a → development/databases/Oracle/objects/tables/columns[table column]
+    `re$column_value_list` ☰ `varray(1024) of sys.re$column_value`
+    `re$name_array` ☰ `varray(1024) of varchar2(128 byte);`
+    `re$nv_array` ☰ list of name-value pairs
+    `re$nv_list` ☰ `object(actx_list sys.re$nv_array)`. The exception that has also a `TYPE BODY` with the members `add_pair`/`remove_pair`, `get_all_names` and `get_value`
+    `re$nv_node` ☰ `varray(1024) of sys.re$nv_node`
+    `re$rule_hit` ☰ A rule found as a result of an evaluation. (`→ development/databases/Oracle/installed/packages/dbms/rule[dbms_rule].get_next_hit`)
+    `re$rule_hit_list` ☰ `varray(1024) of sys.re$rule_hit`
+    `re$rule_list` ☰
+    `re$table_alias` ☰
+    `re$table_alias_list` ☰ `varray(1024) of sys.re$table_alias`
+    `re$table_value` ☰ Identification of a row in a table using a `→ development/databases/Oracle/SQL/data-types/rowid`
+    `re$table_value_list` ☰ `varray(1024) of sys.re$table_value`
+    `re$variable_type` ☰  type of a variable used in a rule evaluation context
+    `re$variable_type_list` ☰
+    `re$variable_value` ☰ The value of a variable
+    `re$variable_value_list` ☰
+
+  table }
+
+  }
 
 }
 
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/rule`
 
+  `→ development/databases/Oracle/installed/data-dictionary/rules`
