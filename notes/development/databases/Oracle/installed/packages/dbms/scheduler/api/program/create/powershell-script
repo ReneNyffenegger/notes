@@ -1,0 +1,114 @@
+$ Oracle: Creating a scheduler-program to call a PowerShell script
+
+This examples demonstrates how a → development/databases/Oracle/objects/programs[scheduler program] and → development/databases/Oracle/objects/jobs can be created to
+execute a → Windows/PowerShell/script[PowerShell script] with Oracle.
+
+The PowerShell script to invoke:
+code {
+write-host "pwd = → Windows/PowerShell/language/variable/automatic/pwd[$pwd]"
+
+$dir = split-path → Windows/PowerShell/language/variable/automatic/myInvocation[$myInvocation].myCommand.path
+(→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).toString() | → Windows/PowerShell/command-inventory/noun/file/out[out-file] $dir/ps.log -append
+code }
+
+Create the → development/databases/Oracle/objects/programs …
+code {
+begin
+
+   → development/databases/Oracle/installed/packages/dbms/scheduler/api/program/create[dbms_scheduler.create_program] (
+      program_name        => 'tq84_prg_run_powershell_script',
+      program_type        => 'executable',
+      program_action      => '→ Windows/dirs/Windows/System32/WindowsPowerShell/vn_m/powershell_exe[C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe]',
+      number_of_arguments => 3
+   );
+
+   dbms_scheduler.define_program_argument (
+      program_name        => 'tq84_prg_run_powershell_script',
+      argument_position   =>  1,
+      argument_type       => 'varchar2',
+      default_value       => '-noProfile'
+   );
+
+   dbms_scheduler.define_program_argument (
+      program_name        => 'tq84_prg_run_powershell_script',
+      argument_position   =>  2,
+      argument_type       => 'varchar2',
+      default_value       => '-f'
+   );
+
+   dbms_scheduler.define_program_argument (
+      program_name        => 'tq84_prg_run_powershell_script',
+      argument_position   =>  3,
+      argument_type       => 'varchar2',
+      default_value       => 'C:/Users/Rene/scheduler/script.ps1'
+   );
+
+end;
+/
+code }
+
+… the necessary → development/databases/Oracle/objects/credentials[credentials] …
+code {
+begin
+--
+-- TODO: dbms_scheduler.create_credential is deprecated
+--       in favor of → development/databases/Oracle/installed/packages/dbms/credential/api/create_credential[dbms_credential.create_credential]
+--
+   dbms_scheduler.create_credential(
+      credential_name       => 'RENES_CREDENTIALS',
+      username              => 'rene',
+      password              => '…'
+   );
+end;
+/
+code }
+
+… and the → development/databases/Oracle/objects/jobs:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/scheduler/api/job/create[dbms_scheduler.create_job] (
+      job_name            => 'tq84_job_run_powershell_script',
+      program_name        => 'tq84_prg_run_powershell_script',
+      repeat_interval     => '→ development/databases/Oracle/adminstration/scheduler/calendaring-syntax[freq=secondly;interval=10]',
+      start_date          =>  → development/databases/Oracle/SQL/functions/date/systimestamp + interval  '5' second,
+      end_date            =>  → development/databases/Oracle/SQL/functions/date/systimestamp + interval '10' minute,
+      credential_name     => 'RENES_CREDENTIALS',
+      auto_drop           =>  true
+   );
+end;
+/
+code }
+
+code {
+begin
+   dbms_scheduler.enable('
+      tq84_prg_run_powershell_script,
+      tq84_job_run_powershell_script
+   ');
+end;
+/
+code }
+
+Let some time pass, then query the log:
+code {
+select * from user_scheduler_job_log          where job_name = 'TQ84_JOB_RUN_POWERSHELL_SCRIPT' order by log_date;
+select * from user_scheduler_job_run_details  where job_name = 'TQ84_JOB_RUN_POWERSHELL_SCRIPT';
+code }
+
+Cleaning up:
+code {
+begin
+   dbms_scheduler.drop_job('tq84_job_run_powershell_script');
+end;
+/
+
+begin
+   dbms_scheduler.drop_program('tq84_prg_run_powershell_script');
+end;
+/
+
+begin
+   dbms_scheduler.drop_credential('RENES_CREDENTIALS');
+end;
+/
+code }

@@ -1,0 +1,23 @@
+$ Oracle: DBA_EVALUATION_CONTEXT_TABLES
+@ dba_evaluation_context_tables
+
+code {
+select
+   ctx.evaluation_context_owner,
+   ctx.evaluation_context_name,
+   ctt.table_name,
+   ctt.table_alias,
+   case when tab.table_name is not null then 'exists' end     tab_exists,
+   regexp_replace(ctt.table_name, '^.*?"(.*)".*$', '\1')      table_owner,
+   regexp_replace(ctt.table_name,  '^.*"(.*)".*$', '\1')      table_name
+   
+from
+   dba_evaluation_contexts       ctx                                                                                 join
+   dba_evaluation_context_tables ctt on ctx.evaluation_context_owner  = ctt.evaluation_context_owner      and
+                                        ctx.evaluation_context_name   = ctt.evaluation_context_name             left join
+   dba_tables                    tab on '"' || tab.owner || '"."' || tab.table_name || '"' = ctt.table_name;
+code }
+
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary

@@ -1,6 +1,45 @@
 $ Oracle: Primary key constraint
 @ primary key
 
+{ Naming the index of the primary key
+
+
+code {
+create table tq84_tab (
+   id   number /*not null*/,
+   val  varchar2(10)
+);
+
+create unique index tq84_tab_ix on tq84_tab(id);
+
+alter table tq84_tab add primary key (id);
+code }
+
+  Or, alternatively…
+code {
+drop  table tq84_tab;
+
+create table tq84_tab (
+   id   number
+           constraint tq84_tab_pk primary key
+           using index (
+             create unique index tq84_tab_ix on tq84_tab(id)
+           ),
+   val  varchar2(10)
+);
+code }
+
+
+}
+{ Dropping the primary key, but keeping the index
+
+code {
+alter table tq84_tab drop constraint tq84_tab_pk keep index;
+select * from user_indexes where table_name = 'TQ84_TAB';
+code }
+
+}
+
 { RELY
 
   By specifiying `rely` with the primary key, Oracle will trust that the applications modifying the data in the table will only make changes that maintain the unique identifyability of
