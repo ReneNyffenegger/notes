@@ -1,0 +1,210 @@
+$ Git: --format | --pretty
+
+`--pretty` is a synonym for the `--format` option
+
+code {
+git log  --format=…
+git show --pretty=…
+code }
+
+{ Built-in formats
+
+  table { ll
+    oneline ☰
+    short ☰
+    medium ☰
+    full ☰
+    fuller ☰
+    reference ☰
+    email ☰
+    mboxrd ☰ Like email, but `From:` lines are quoted with one `>`, regardless of the amounts of `>`
+    raw ☰  Compare with `git log --raw`
+  table }
+
+code {
+git log --pretty=oneline
+code }
+
+}
+{ Placeholders
+
+  Placeholders start with a percent sign `%` (in the same sprit as also used in the → development/languages/printf[`printf`] family). The following simple format prints the log's *subjects* (`%s`).
+code {
+git log --pretty=%s
+code }
+
+  If placeholders are separated by spaces, the format must be put into (single or double) quotes:
+code {
+git log --pretty='%s %H'
+code }
+
+In the following tables, the percent sign is not shown for readability.
+
+  { Hash related placeholders
+
+    table { ll
+
+     `H` ☰ Commit hash
+     `h` ☰ Abbreviated commit hash
+     `T` ☰ Tree hash
+     `t` ☰ Abbreviated tree hash
+     `P` ☰ Parent hash
+     `p` ☰ Abbreviated parent hash
+
+    table }
+
+  }
+  { Related to author
+
+    Placeholders that are related to a commit's author start with `%a`, those related to a commiter with `%c`.
+    -
+    So, `%an` is the name of the author, `%cn` the name of the commiter.
+
+    table { ll
+      `n` ☰ Name
+      `N` ☰ Name, respecting `.mailmap`
+      `e` ☰ eMail
+      `E` ☰ eMail, respecting `.mailmap`
+      `l` ☰ The email's portion left of the at (`@`) sign (local part)
+      `L` ☰ As `%al` or `%cl, but respecting `.mailmap`
+    table }
+
+    The following formats relate to the commit dates. Again, they're prefixed with `%a` or `%c`.
+    table { lll
+
+      ☰ ☰ ~Example~
+      `d` ☰ respects `--date=` option ☰
+      `D` ☰ In RFC → development/misc/Datumsformate#datumsformat-rfc-2822[2822 format] ☰ `Mon, 25 Apr 2022 23:53:09 +0200`
+      `r` ☰ Relative format ☰ `15 hours ago`, `9 days ago` or `3 weeks ago` etc.
+      `t` ☰ In → development/date-time/Unix-time  ☰ `1653998153` (seconds since 1970-01-01)
+      `i` ☰ In → misc/ISO/8601 format   ☰ `2022-05-02 15:49:11 +0200`
+      `I` ☰ In *strict* ISO 8601 format ☰ `2022-05-02T15:49:11+02:00`
+      `s` ☰ Short format ☰ `2022-05-12`
+      `h` ☰ Human format ☰
+    table }
+
+code {
+git log --date=format:'%Y-%m-%d %H:%M:%S' --pretty='%ad   %<(20)%ar %s'
+code }
+
+  }
+  { Ref names
+
+    Compare with the `--decorate` option of `git log`
+ 
+    table { ll
+      `d` ☰
+      `D` ☰ without the `",` wrapping 
+    table }
+
+
+  }
+  { ... 
+
+    table { ll
+      `s` ☰ subject
+      `b` ☰ body
+      `B` ☰ raw body  (unwrapped subject and body)
+      `N` ☰ commit notes
+      `f` ☰ sanitized subject line
+      `e` ☰ encoding
+    table }
+
+  }
+  { Related to reflog
+
+    table { ll
+      `gD` ☰ reflog selector
+      `gd` ☰ shortened reflog selector (`refs/heads/master` becomes `master`)
+      `gs` ☰ reflog subject
+      `gn` ☰ reflog identity name
+      `gN` ☰ reflog identity name (respecting `.mailmap`)
+      `ge` ☰ reflog identity email
+      `gE` ☰ reflog identity email (respecting `.mailmap`)
+
+
+    table }
+
+  }
+  { Related to signed commits
+
+    table { ll
+      `GG` ☰ raw verification message from GPG for a signed commit
+      `G?` ☰ Reports «quality» of signed message: `G` = good; `B` = bad; `U` = good with unknown validity; `X` = good, but expired; `Y` = good signature made by expired key; `R` = good signature made be revoked key; `E` = signature cannot be checked (because of missing key?); `N` = no signature
+      `GS` ☰ Name of signer
+      `GK` ☰ Key used for signing
+      `GF` ☰ Fingerprint of key 
+      `GP` ☰ Fingreprint of primary key whose subkey was used sign a signed commit
+      `GT` ☰ Trust level of key
+    table }
+
+  }
+  { Insert a character
+
+    table { ll
+      `n` ☰ → development/line-break[New line]
+      `%` ☰ A percent sign
+      `xnn` ☰ The byte represented by the hexadecimal value `nn`
+    table }
+
+  }
+  { Aligning/padding output
+
+    table { ll
+       `<(w)` ☰ Pad next token to at least `w` characters
+       `<(w,trunc)` ☰ Pad next token to `w` characters, trunctate exceeding characters (There is also `ltrunc` and `mtrunc`).
+       `<|(w)` ☰
+       `>(w)` etc. ☰ Similar to `<(w)` etc, but padding on left side
+       `><(w)` ☰ centering text
+       `>>(w)` ☰
+    table }
+
+code {
+git log --pretty='%<(50,trunc) %s %H'
+code }
+
+  }
+  { Colors
+
+    `%C…` affects the colors of the placeholders following the instruction.
+
+    Three color names are recognized: `red`, `green` and `blue`.
+
+    An RGB value can be specified with `%C(#rrggbb)`. The following command prints the subject (`%s) in orange and the commit hash (`%H`) in a blue-ish color:
+code {
+git log --pretty='%C(#ff7f00) %s %C(#6090e0) %h %Creset'
+code }
+
+
+  }
+  { Others
+
+    table { ll
+      `m` ☰ A left (`<`), right (`>`) or boundary (`-`) mark.
+    table }
+
+  }
+
+}
+{ TODO
+
+   Line wrapping mode (compare `git shortlog -w…`)
+code {
+git log --pretty='%w(40,6,7) %s %H bla'
+code }
+
+  Human readable format (like `git describe`)
+code {
+git log --pretty='%(describe)'
+code }
+
+  ref name given on the command line by which the commit was reached (like `git log --source`)
+code {
+git log --pretty='%S'
+code }
+
+code {
+git log --pretty='%(trailers[:options])'
+code }
+
+}
