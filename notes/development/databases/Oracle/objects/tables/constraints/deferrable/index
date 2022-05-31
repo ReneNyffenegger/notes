@@ -1,0 +1,53 @@
+$ Oracle: Deferrable constraints
+
+code {
+create table tq84_P (
+   id    number,
+   txt   varchar2(10),
+   --
+   constraint tq84_pk primary key (id)
+);
+
+create table tq84_C (
+   id_p   number,
+   val    number,
+   --
+   constraint tq84_fk foreign key (id_p) references tq84_P deferrable
+);
+
+
+
+begin
+insert into tq84_P values (1, 'one');
+insert into tq84_P values (2, 'two');
+
+insert into tq84_C values (1,  11.1);
+insert into tq84_C values (1,  10  );
+commit;
+end;
+/
+--
+-- PL/SQL procedure successfully completed.
+
+set constraint tq84_fk deferred;
+--
+-- Constraint TQ84_FK succeeded.
+--
+
+
+update tq84_P set id   = 3, txt = 'three' where id  =  2;
+
+commit;
+
+insert into tq84_C values (999, 999);
+--
+-- ORA-02291: integrity constraint (RENE.TQ84_FK) violated - parent key not found
+--
+
+
+drop   table tq84_C;
+drop   table tq84_P;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/constraints

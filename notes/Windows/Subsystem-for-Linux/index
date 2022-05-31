@@ -108,11 +108,83 @@ root@DESKTOP-1SDJMCL:~# passwd rene
 …
 root@DESKTOP-1SDJMCL:~# exit
 C:\users\rene> debian config --default-user rene
-
-
 code }
 
   Replace `debian` with the name of the distro for which the password needs to be reset.
+
+}
+{ Starting a distribution
+
+  The parameter `-d` of `wsl` specifies the distribution to be started. (The distribution must have been installed beforehand)
+code {
+C:> wsl -d Debian
+code }
+
+  Alternatively, a distribution can be started like so:
+code {
+C:\> kali
+code }
+
+}
+{ Accessing WSL Filesystem from Windows
+
+  It's possible to map a network drive to a started WSL distribution:
+code {
+C:\> → Windows/dirs/Windows/System32/net_exe/use L: \\wsl$\Debian
+The command completed successfully.
+
+C:\> L:
+L:\> → Windows/dirs/Windows/System32/cmd_exe/commands/dir
+…
+2020-09-03  01:56 AM    <DIR>          → Linux/fhs/bin[bin]
+2020-07-10  11:04 PM    <DIR>          → Linux/fhs/boot[boot]
+2022-06-01  12:41 AM    <DIR>          → Linux/fhs/dev[dev]
+2022-06-01  12:30 AM    <DIR>          → Linux/fhs/etc[etc]
+…
+L:\> → Windows/dirs/Windows/System32/cmd_exe/commands/cd etc
+L:\> → Windows/dirs/Windows/System32/notepad_exe[notepad] → Linux/fhs/etc/wsl_conf[wsl.conf]
+code }
+
+}
+{ Accessing the Windows Filesystem from WSL
+
+  A Windows drive is mounted to `/mnt/<drive>`:
+code {
+$ ls → Linux/fhs/mnt[/mnt]/c
+$ ls → Linux/fhs/mnt[/mnt]/d
+…
+code }
+
+}
+{ Environment variables
+
+  { $WSL_DISTRO_NAME
+
+    A shell started with `wsl` defines the environment variable `$WSL_DISTRO_NAME`.
+
+    For example, when stared in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`]:
+code {
+C:\> wsl -d kali-linux -- echo $WSL_DISTRO_NAME
+kali-linux
+code }
+
+  Or in → Windows/PowerShell:
+code {
+PS C:\> wsl -d Debian -- echo `$WSL_DISTRO_NAME
+Debian
+code }
+
+  }
+  { $WSL_INTEROP #WSL_INTEROP
+
+    See `→ Linux/fhs/run/WSL`
+
+  }
+  { $WSLENV
+
+    …
+
+  }
 
 }
 { TODO
@@ -124,12 +196,19 @@ code }
   }
   { wsl.exe
 
-    `wsl.exe` apparently allows to *run → Linux[Linux] binaries* from the Windows Command Prompt (→ Windows/dirs/Windows/System32/cmd_exe[cmd.exe], → Windows/PowerShell):
+    → Windows/dirs/Windows/System32/wsl_exe[`wsl.exe`] apparently allows to *run → Linux[Linux] binaries* from the Windows Command Prompt (→ Windows/dirs/Windows/System32/cmd_exe[cmd.exe], → Windows/PowerShell):
 code {
 C:\> wsl → Linux/shell/commands/ls[ls -l]
 code }
 
- }
+  }
+  { Change display language of WSL
+
+code {
+$ sudo update-locale LANG=en_US.UTF8
+code }
+
+  }
 
 }
 
@@ -138,6 +217,8 @@ sa:
   → Windows/dirs/Windows/System32/lxss[`%SYSTEMROOT%\System32\lxss`]
 
   → Windows/dirs/Windows/System32/wslapi_dll[`wslapi.dll`]
+
+ `→ Linux/fhs/run/WSL`
 
 links:
   → https://dev.to/smashse/wsl-chocolatey-powershell-winget-1d6p[Anderson Gama's blog] was quite helpful to demonstrate how the kernel can be installed from the command line.
