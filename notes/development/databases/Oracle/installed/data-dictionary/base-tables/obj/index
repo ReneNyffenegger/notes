@@ -5,11 +5,16 @@ code {
 select
    usr.name   obj_owner,
    obj.name   obj_name,
-   case when bitand(obj.flags, 128) <> 0 then 'y' end in_recycle_bin,
-   case when status = 6 then 'invalid'            end invalid                -- ? TODO is this so ?
+   case when bitand(obj.flags, power(2,  1)) <> 0 then 'tmp' end temporary,            -- KQDOBTMP
+   case when bitand(obj.flags, power(2,  7)) <> 0 then 'rb'  end in_recycle_bin,          
+   case when bitand(obj.flags, power(2, 16)) <> 0 then 'mdl' end meta_data_link,       -- KQDOBF_MD_LINK   -- Compare with the SHARING=EXTENDED DATA clause in the CREATE VIEW statement
+   case when bitand(obj.flags, power(2, 17)) <> 0 then 'dl'  end data_link,            -- KQDOBF_OBJ_LINK  -- Formerly OBL
+   case when bitand(obj.flags, power(2, 27)) <> 0 then 'fed' end fedaration_obj,       -- KQDOBFED         -- Fedartion (application) object
+   case when bitand(obj.flags, power(2, 32)) <> 0 then 'edl' end extended_data_link,   -- KQDOBF_ED_LINK
+   case when status = 6 then 'invalid'                       end invalid               -- ? TODO is this so ?
 from
-   obj$  obj                             join
-   → development/databases/Oracle/installed/data-dictionary/base-tables/user usr on obj.owner# = usr.user#
+   sys.obj$  obj                             join
+   sys.→ development/databases/Oracle/installed/data-dictionary/base-tables/user usr on obj.owner# = usr.user#
 ;
 code }
 

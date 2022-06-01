@@ -1,17 +1,75 @@
 $ Shell command: find
 @ find
 
-`find` searches for files underneath a file/directory hierarchy.
+code {
+find [→ #find-H-L-P[-H]] [→ #find-H-L-P[-L]] [→ #find-H-L-P[-P]] [→ #find-D[-D debugopts]] [-Olevel] [dir…] [→ #find-expression[expression]]
+code }
 
-{ Business of find
+`find` descends into a filesystem hierarchy below `dir` (when ommited the current directory) and evaluates `expression` (if non given then `-print`) for each file or directory it encounters.
+
+{ Expressions #find-expression
+
+  The *expression* defines the *criteria* (tests) with which *matched* files are identified and the *actions* to perform.
+
+  The behavior of the evaluation of the tests and actions can be influenced with *options*. `find` distinguishes between
+    • global and
+    • positional options.
+
+  Criteria, actions and options evaluate to a boolean value (`true` or `false`). The value of any option is `true`.
+
+ *Operators* logically combine the (boolean) values of the criteria, actions and options and evalute to a boolean value.
+
+  The default operator is `-a` (and)
+
+
+  { Operators
+
+    Operators in decreasing order of precedence are:
+    table { ll
+      `( expr )` ☰ Force precedence. Because paranthesis usually have a meaning in a → Linux/shell, they need to be escaped: `\( expr \)`
+      `! expr`, `-not expr` ☰ Negation of `expr` (`-not` is not POSIX compliant)
+      `expr1 expr2` ☰ Shorthand for `expr1 -a expr2`
+      `expr1 -a expr2`, `expr1 -and expr2` ☰ AND-evaluation. Lazyly evaluated. `-and` is not POSIx compliant
+      `expr1 -o expr2`, `expr1 -or expr2` ☰ OR-evaluation. Lazyly evaluated. `-or` is not POSIx compliant
+      `expr1, expr2[, …]` ☰ List: all expressions are evaluated. The list evaluates to the value of the last expression.
+    table }
+
+  }
+
+}
+
+
+{ Understading the working of find
 
 → https://docstore.mik.ua/orelly/unix/upt/index.htm[Unix Power Tools] has the following quote about `find`:
 "
-   `find`'s business is evaluating expressions - not locating files. Yes, find
+   find's business is evaluating expressions - not locating files. Yes, find
    certainly locates files; but that's really just a side effect. For me,
    understanding this point was the conceptual breakthrough that made find much
    more useful.
 " [→ https://docstore.mik.ua/orelly/unix/upt/ch17_12.htm[Chapter 17.12]: Finding Many Things with One Command ]
+
+  My *aha experience* was to discover that tests and actions are by default combined with `-a` (logical and) if the operator is missing.
+  -
+  Thus the following two commands are equivalent:
+code {
+# Implicit and:
+find . -path '*xyz*'    -print
+
+# Explicit and:
+find . -path '*xyz*' -a -print
+code }
+
+}
+
+{ Search in path names
+
+  The `-path` option concatenates the path and filename to match files.
+
+  The following command finds files like `./abc/def/ghi/jkl`:
+code {
+find . -path '*bc*f*g*l' 
+code }
 
 }
 { -inum
@@ -150,6 +208,45 @@ code }
 code {
 $ find → Linux/fhs/dev -b
 code }
+
+}
+{ -H, -L, -P #find-H-L-P
+
+  `-H`, `-L` and `-P` controls the treatment of *symbolic links*:
+  table { ll
+    `-P` ☰ Never follow symbolic links (the default behavior)
+    `-L` ☰ Follow symbolic links. Affects the `-type` predicate. Compare with the  `-follow` option which takes effect where it appears.
+    `-H` ☰ Do not follow symboic links except when processing the command line arguments.
+  table }
+
+}
+{ -D debug-options #find-D
+
+  `-D` allows to define debug options. These are specified separated by commas:
+  table { ll
+     `exec`   ☰ Show diagnostic information relating to `-exec`, `-execdir`, `-ok` and `-okdir`
+     `opt`    ☰ Prints diagnostic information relating to the optimisation of the expression tree; see the `-O` option.
+     `rates`  ☰ Prints a summary indicating how often each predicate succeeded or failed.
+     `search` ☰ Navigate the directory tree verbosely.
+     `stat`   ☰ Print messages as files are examined with the stat and lstat system calls.  The find program tries to minimise such calls.
+     `tree`   ☰ Show the expression tree in its original and optimised form.
+     `all`    ☰ Enable all of the other debug options (but help).
+     `help`   ☰ Explain the debugging options.
+  table }
+
+}
+{ -Olevel #find-O
+
+  `-Olevel` specifies the level of query optimizationl
+
+  `level` can be set to one of the following values:
+  table { ll
+    0 ☰ Equivalent to 1
+    1 ☰ Default value: Expressions based only on the name of files are evaluated first.
+    2 ☰ Evaluate `-type` and `-xtype` after file-name tests
+    3 ☰ Full cost based query optimizer
+  table }
+
 
 }
 
