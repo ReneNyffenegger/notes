@@ -2,5 +2,67 @@ $ git instaweb
 
 Instantly browse your working → development/version-control-systems/git/repository[repository] in gitweb.
 
+{ Install lighttpd
+
+  The default → web/webserver used by `git instaweb` is → web/webserver/lighttpd:
+code {
+$ git instaweb
+lighttpd not found. Install lighttpd or use --httpd to specify another httpd daemon.
+code }
+
+  lighttpd can be → web/webserver/lighttpd#lighttpd-install[installed] with
+code {
+$ → Linux/shell/commands/sudo → Linux/APT/commands/apt-get apt-get lighttpd
+code }
+
+  Try again:
+code {
+$ git instaweb
+No known browser available.
+http://127.0.0.1:1234
+code }
+
+}
+{ 500 Internal Server Error
+
+  2022-06-02: Installing one or both of the packages `libcgi-pm-perl` and `gamin` was needed:
+code {
+$ Linux/shell/commands/sudo → Linux/APT/commands/apt-get install libcgi-pm-perl
+$ Linux/shell/commands/sudo → Linux/APT/commands/apt-get install gamin
+code }
+
+}
+{ Starting and stopping the webserver
+
+code {
+$ git instaweb --start
+code }
+
+code {
+$ ps -ef | grep lighttpd | grep -v 'grep lighttpd'
+rene      3826  3240  0 13:20 ?        00:00:00 lighttpd -f /home/rene/…/→ development/version-control-systems/git/_git/gitweb/lighttpd_conf[.git/gitweb/lighttpd.conf]
+code }
+
+  The webserver's process id is found in `.git/pid`:
+code {
+$ cat .git/pid
+code }
+
+code {
+$ git instaweb --stop
+code }
+
+}
+{ Using a different web server
+
+code {
+$ git instaweb --httpd=webrick
+code }
+
+}
+
 sa:
+
+ `→ development/version-control-systems/git/commands/web--browse`
+
   → development/version-control-systems/git/commands

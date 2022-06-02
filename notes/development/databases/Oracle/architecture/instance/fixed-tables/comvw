@@ -1,4 +1,32 @@
 $ x$comvw$
 
+{ Relation to INT$DBA views
+
+ `x$comvw$` seems to be somehow related to `INT$DBA…` views (which are created with the `sharing=extended data` option:
+
+code {
+alter session set events='10053 trace name context forever, level 1';
+select count(*) from sys.int$dba_procedures;
+alter session set events='10053 trace name context off';
+code }
+
+  Find entries in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file:
+code {
+select
+   trc.payload,
+   trc.timestamp
+from
+   v$diag_info inf   join
+   v$diag_trace_file_contents  trc on regexp_replace(inf.value, '.*[\\/]', '') = trc.trace_filename
+where
+   inf.name = 'Default Trace File' and
+   lower (trc.payload) like '%x$comvw$%'
+order by
+   trc.line_number
+;
+code }
+
+}
+
 sa:
   → development/databases/Oracle/errors/ORA-65318_query-to-cross-container-fixed-table-not-allowed

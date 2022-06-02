@@ -1,0 +1,73 @@
+$ Registry: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss
+
+code {
+$wsl_user = → Windows/PowerShell/command-inventory/noun/item/get 'hkcu:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
+
+$def_distro_guid = $wsl_user.GetValue('DefaultDistribution')
+$def_vers        = $wsl_user.GetValue('DefaultVersion')
+
+"Default version: $def_vers"
+
+foreach ($distro_guid in $wsl_user.GetSubKeyNames()) {
+
+   ''
+
+   $distro = $wsl_user.OpenSubKey($distro_guid)
+
+   $distro.GetValue('DistributionName')   
+
+   if ($distro_guid -eq $def_distro_guid) {
+     "  This is the default distribution"
+   }
+
+   "  Version:        $($distro.GetValue('Version'          ))"
+   "  Base Path:      $($distro.GetValue('BasePath'         ))"
+   "  Package Family: $($distro.GetValue('PackageFamilyName'))"
+   "  State:          $($distro.GetValue('State'            ))"
+   "  Default UID:    $($distro.GetValue('DefaultUid'       ))"
+   "  Flags:          $($distro.GetValue('Flags'            ))"
+
+   $def_env = $distro.GetValue('DefaultEnvironment')
+   "  Default Environment:"
+   foreach ($env in $def_env.Split()) {
+   '    {0,-10} = {1}' -f ($env.Split('='))
+   }
+
+   $distro.Close()
+}
+code }
+
+The output might look like
+code {
+kali-linux
+  This is the default distribution
+  Version:        2
+  Base Path:      → Windows/dirs/Users/username/AppData/Local/Packages/WSL-distro[C:\Users\Rene\AppData\Local\Packages\KaliLinux.54290C8133FEE_ey8k8hqnwqnmg]\LocalState
+  Package Family: KaliLinux.54290C8133FEE_ey8k8hqnwqnmg
+  State:          1
+  Default UID:    1000
+  Flags:          15
+  Default Environment:
+    HOSTTYPE   = x86_64
+    LANG       = en_US.UTF-8
+    PATH       = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+    TERM       = xterm-256color
+
+Debian
+  Version:        2
+  Base Path:      → Windows/dirs/Users/username/AppData/Local/Packages/WSL-distro[C:\Users\Rene\AppData\Local\Packages\TheDebianProject.DebianGNULinux_76v4gfsz19hv4]\LocalState
+  Package Family: TheDebianProject.DebianGNULinux_76v4gfsz19hv4
+  State:          1
+  Default UID:    1000
+  Flags:          15
+  Default Environment:
+    HOSTTYPE   = x86_64
+    LANG       = en_US.UTF-8
+    PATH       = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+    TERM       = xterm-256color
+code }
+
+sa: 
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Lxss[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss`]
+
+  → Windows/Subsystem-for-Linux

@@ -1,0 +1,99 @@
+$ DBMS_COMPARISON.CONVERGE
+
+code {
+create table tq84_tab_1 (id integer primary key, num number, txt varchar2(20));
+create table tq84_tab_2 (id integer primary key, num number, txt varchar2(20));
+
+
+begin
+   dbms_comparison.create_comparison(
+      comparison_name    => 'tq84_tab_1_vs_tq84_tab_2',
+      schema_name        =>  user             ,
+      object_name        => 'tq84_tab_1'      ,
+      dblink_name        =>  null             ,
+      remote_schema_name =>  user             ,
+      remote_object_name => 'tq84_tab_2'
+--    column_list        => 'num,txt'
+   );
+end;
+/
+
+
+begin
+insert into tq84_tab_1 values(1,    8, 'eight');
+insert into tq84_tab_1 values(2,    4, 'four' );
+insert into tq84_tab_1 values(3,    7, 'seven');
+insert into tq84_tab_1 values(4, null, 'null' );
+insert into tq84_tab_1 values(5,    0,  null  );
+insert into tq84_tab_1 values(6,    9, 'nine' );
+insert into tq84_tab_1 values(7,    3, 'three');
+
+--
+-- Most records are unchaged in tq84_tab_2 ...
+--
+insert into tq84_tab_2 select * from tq84_tab_1;
+
+--
+-- ... but there ARE some changes:
+--
+delete from tq84_tab_1 where id = 2;
+insert into tq84_tab_1 values (9,    2, 'two');
+
+update tq84_tab_1 set txt = 'NINE' where num = 9;
+
+insert into tq84_tab_2 values (8,    3, 'three');
+
+commit;
+end;
+/
+
+-- select * from tq84_tab_2;
+
+
+declare
+   comp_info dbms_comparison.comparison_type;
+   equal     boolean;
+begin
+   equal := dbms_comparison.compare(
+      comparison_name    => 'tq84_tab_1_vs_tq84_tab_2',
+      scan_info          =>  comp_info        ,   /* out parameter */
+      perform_row_dif    =>  true
+   );
+
+   if equal then
+      dbms_output.put_line('data is equal');
+   else
+      dbms_output.put_line('data is different');
+      dbms_output.put_line('  scan id:             ' || comp_info.scan_id);
+
+      dbms_comparison.converge(
+         comparison_name    => 'tq84_tab_1_vs_tq84_tab_2',
+         scan_id            => comp_info.scan_id,
+         scan_info          => comp_info,
+         converge_options   => dbms_comparison.cmp_converge_local_wins
+      );
+   
+      dbms_output.put_line('  local rows merged:   ' || comp_info.loc_rows_merged );
+      dbms_output.put_line('  remote rows merged:  ' || comp_info.rmt_rows_merged );
+      dbms_output.put_line('  local rows deleted:  ' || comp_info.loc_rows_deleted);
+      dbms_output.put_line('  remote rows deleted: ' || comp_info.rmt_rows_deleted);
+
+   end if;
+end;
+/
+
+select * from tq84_tab_1;
+select * from tq84_tab_2;
+
+
+begin
+   dbms_comparison.drop_comparison('tq84_tab_1_vs_tq84_tab_2');
+end;
+/
+
+drop table tq84_tab_1;
+drop table tq84_tab_2;
+code }
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/comparison`
