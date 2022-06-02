@@ -1,34 +1,123 @@
 $ Git Options
 @ option
 
-Some interesting, imho, Git options include:
-table { ll
-  `branch.*` ☰
-  `→ development/version-control-systems/git/options/core/abbrev` ☰
-  `→ development/version-control-systems/git/options/core-autocrlf` ☰ → https://stackoverflow.com/a/68265163/180275[Should be set to `false`] because it applies to all files, even binary ones and is local, not versionized in a repository. The `eol` directive in → development/version-control-systems/git/_gitattributes[`.gitattributes`] is therefore the preferred alternative.
-  `→ development/version-control-systems/git/options/core/safecrlf` ☰
-  `core.editor` ☰ Names the → development/editors[editor] with which commit and tag messages are composed. If not set, git will use value of → development/environment-variable → development/environment-variable#editor[`EDITOR`] or → development/environment-variable#visual[`VISUAL`], if these variable are not set to `vi`.
-  `core.filemode` ☰ If `true`, git will honor the → development/version-control-systems/git#git-executable-bit[executable bit] of files (some filesystem don't have such a bit). 
-  `core.hooksPath` ☰ Set the (relative or absolute) location (directory) for Git hooks. Without this setting, git looks for hooks below → development/version-control-systems/git/_git/hooks[`.git/hooks`].
-  `core.ignorecase` ☰
-  `core.logallrefupdates` ☰ Enables the → development/version-control-systems/git/reflog. Value can be set to `true` and `always`
-  `core.repositoryformatversion` ☰ Every repository specifies a (local) value for `core.repositoryformatversion` which specifies what operations are allowed in a repository.
-  `core.whitespace` ☰ Specificies how and if whitespace problems should be notified
-  `credential.helper` ☰ ? Contains a path such as `credential.helper=!"C:/Users/rene/bin/git/mingw64/libexec/git-core/git-credential-manager-core.exe"`
-  `credential.helperselector.selected` ☰ The value of `credential.helperselector.selected` might be `manager-core`
-  `diff.tool` ☰ Specify the default tool with which differences between → development/version-control-systems/git/objects/commit[commits] are shown when using → development/version-control-systems/git/commands/difftool[`git difftool`]
-  `difftool.prompt` ☰ `true` or (possibly better?) `false`. If `--false`, the command line option `--no-prompt` will be used when invoking `→ development/version-control-systems/git/commands/difftool`.
-  `format.pretty` ☰  The default pretty format for the `git log`, `git show` and `git whatchanged` commands.
-  `gc.reflogExpire` ☰ Controls when reachable → development/version-control-systems/git/reflog[reflogs] expire and get purged. Default is 90 days.
-  `gc.reflogExpireUnreachable` ☰ Controls when unreachable → development/version-control-systems/git/reflog[reflogs] expire and get purged. Default is 30 days.
-  `http.sslCAInfo` ☰ Name of the file (for example `→ Windows/dirs/Program-Files/Git[C:\Program Files\Git]\mingw64\ssl\certs\ca-bundle.crt`) that contains the → development/security/cryptography/public-key/certificate[certificate] with which a peer is verified in → development/version-control-systems/git/commands/pull[`git pull`] or → development/version-control-systems/git/commands/push[`git push`] over → development/web/HTTPS.
-  `init.templateDir` ☰ Location of the → development/version-control-systems/git/_git/_template-directory used by the `→ development/version-control-systems/git/commands/init` command. `init.templateDir` has lower precedence than the → development/environment-variable[environment variable] `$GIT_TEMPLATE_DIR`.
-  `push.default` ☰ Defines the action → development/version-control-systems/git/commands/push[`git push`] should take if no refspec is explicitly given. The value can be set to one of `nothing`, `current`, `upstream`, `simple` and `matching`. The default in Git 2 is `simple`.
-  `remote.origin.url` ☰ Compare with → development/version-control-systems/git/commands/remote#git-remote-get-url-origin[`git remote get-url origin`]
-  `user.email` ☰ Used for *commiter information* (→ development/version-control-systems/git/commands/commit[`git commit`]).
-  `user.name` ☰ Used for *commiter information* (→ development/version-control-systems/git/commands/commit[`git commit`]). Compare with `credential.username`.
-  `web.browser` ☰ Used, for example(?) by `→ development/version-control-systems/git/commands/web--browse`. One of the options that are very like set with the `--global` option of `→ development/version-control-systems/git/commands/config`. Compare with option `help.browser`
-table }
+The behavior of → development/version-control-systems/git/commands can be influenced and controlled using so-called options.
+-
+Each option has a name which can be given a name
+
+When running a command, the option can be specified with the `-c` parameter between `git` and the command name. In the following
+command, the option with the name `user.name` is given the value `Hausi Peter` while the command `git commit` is executed:
+code {
+git -c user.name='Hausi Peter' → development/version-control-systems/git/commands/commit . -m "…"
+code }
+
+{ Storing options
+
+  The value of options can be stored so that commands can be entered without having to use the `-c` command line argument.
+
+  { Scope of stored options
+
+    There are three scopes where options can be stored:
+      • system wide,
+      • per user (referred to as globally stored) and/or
+      • per → development/version-control-systems/git/repository (referred to as locally stored).
+
+    If a value for an option is stored in multiple locations, the local value takes precedence. If no local option is available, the global one takes precedence. Options that are assigned a value with `-c`
+    take precedence over all other locations.
+  }
+}
+{ Setting options
+
+  Options are set with `→ development/version-control-systems/git/commands/config`.
+
+ `git config` does not check if the option name or value is valid. It is just a dumb frontend for storing or retrieving values.
+
+  The following command assigns the value `false` to the option named `→ development/version-control-systems/git/options/core-autocrlf` in the current repository (locally stored).
+  -
+  Note that there is no equal sign to assign the value:
+code {
+git config → development/version-control-systems/git/options/core-autocrlf false
+code }
+
+  This command assigns a value for the current user (globally stored):
+code {
+git config --global user.name "René Nyffenegger"
+code }
+
+  Store an option for the entire system:
+code {
+git config --system core.longpaths true
+code }
+
+}
+{ Option names
+
+  An option name contains at least one dot. The part before the first dot is the name of section to which the option belongs.
+
+  Trying to store a value without a dot results in an error:
+code {
+$ git config  abc  val-one
+error: key does not contain a section: abc
+code }
+
+  The following command stores the value `val-two` for the name `nam` in the section `sec`:
+code {
+$ git config  sec.nam  val-two
+$ → Linux/shell/commands/cat → development/version-control-systems/git/_git/config
+[core]
+  …
+[sec]
+        nam = val-two
+code }
+
+  Using a name with two dots:
+code {
+$ git config  sss.ttt.uuu  val-two
+$ → Linux/shell/commands/cat → development/version-control-systems/git/_git/config
+[sec]
+        nam = val-two
+[sss "ttt"]
+        uuu = val-two
+code }
+
+  A list of options that are processed by one or more → development/version-control-systems/git/commands can be optained with
+code {
+→ development/version-control-systems/git/commands/help#git-help-c[git help -c]
+code }
+
+}
+
+{ Interesting options
+
+  Some interesting, *IMHO*, Git options include:
+  table { ll
+    `branch.*` ☰
+    `→ development/version-control-systems/git/options/core/abbrev` ☰
+    `→ development/version-control-systems/git/options/core-autocrlf` ☰ → https://stackoverflow.com/a/68265163/180275[Should be set to `false`] because it applies to all files, even binary ones and is local, not versionized in a repository. The `eol` directive in → development/version-control-systems/git/_gitattributes[`.gitattributes`] is therefore the preferred alternative.
+    `→ development/version-control-systems/git/options/core/safecrlf` ☰
+    `core.editor` ☰ Names the → development/editors[editor] with which commit and tag messages are composed. If not set, git will use value of → development/environment-variable → development/environment-variable#editor[`EDITOR`] or → development/environment-variable#visual[`VISUAL`], if these variable are not set to `vi`.
+    `core.filemode` ☰ If `true`, git will honor the → development/version-control-systems/git#git-executable-bit[executable bit] of files (some filesystem don't have such a bit). 
+    `core.hooksPath` ☰ Set the (relative or absolute) location (directory) for Git hooks. Without this setting, git looks for hooks below → development/version-control-systems/git/_git/hooks[`.git/hooks`].
+    `core.ignorecase` ☰
+    `core.logallrefupdates` ☰ Enables the → development/version-control-systems/git/reflog. Value can be set to `true` and `always`
+    `core.repositoryformatversion` ☰ Every repository specifies a (local) value for `core.repositoryformatversion` which specifies what operations are allowed in a repository.
+    `core.whitespace` ☰ Specificies how and if whitespace problems should be notified
+    `credential.helper` ☰ ? Contains a path such as `credential.helper=!"C:/Users/rene/bin/git/mingw64/libexec/git-core/git-credential-manager-core.exe"`
+    `credential.helperselector.selected` ☰ The value of `credential.helperselector.selected` might be `manager-core`
+    `diff.tool` ☰ Specify the default tool with which differences between → development/version-control-systems/git/objects/commit[commits] are shown when using → development/version-control-systems/git/commands/difftool[`git difftool`]
+    `difftool.prompt` ☰ `true` or (possibly better?) `false`. If `--false`, the command line option `--no-prompt` will be used when invoking `→ development/version-control-systems/git/commands/difftool`.
+    `format.pretty` ☰  The default pretty format for the `git log`, `git show` and `git whatchanged` commands.
+    `gc.reflogExpire` ☰ Controls when reachable → development/version-control-systems/git/reflog[reflogs] expire and get purged. Default is 90 days.
+    `gc.reflogExpireUnreachable` ☰ Controls when unreachable → development/version-control-systems/git/reflog[reflogs] expire and get purged. Default is 30 days.
+    `http.sslCAInfo` ☰ Name of the file (for example `→ Windows/dirs/Program-Files/Git[C:\Program Files\Git]\mingw64\ssl\certs\ca-bundle.crt`) that contains the → development/security/cryptography/public-key/certificate[certificate] with which a peer is verified in → development/version-control-systems/git/commands/pull[`git pull`] or → development/version-control-systems/git/commands/push[`git push`] over → development/web/HTTPS.
+    `init.templateDir` ☰ Location of the → development/version-control-systems/git/_git/_template-directory used by the `→ development/version-control-systems/git/commands/init` command. `init.templateDir` has lower precedence than the → development/environment-variable[environment variable] `$GIT_TEMPLATE_DIR`.
+    `push.default` ☰ Defines the action → development/version-control-systems/git/commands/push[`git push`] should take if no refspec is explicitly given. The value can be set to one of `nothing`, `current`, `upstream`, `simple` and `matching`. The default in Git 2 is `simple`.
+    `remote.origin.url` ☰ Compare with → development/version-control-systems/git/commands/remote#git-remote-get-url-origin[`git remote get-url origin`]
+    `user.email` ☰ Used for *commiter information* (→ development/version-control-systems/git/commands/commit[`git commit`]).
+    `user.name` ☰ Used for *commiter information* (→ development/version-control-systems/git/commands/commit[`git commit`]). Compare with `credential.username`.
+    `web.browser` ☰ Used, for example(?) by `→ development/version-control-systems/git/commands/web--browse`. One of the options that are very like set with the `--global` option of `→ development/version-control-systems/git/commands/config`. Compare with option `help.browser`
+  table }
+}
 
 sa:
   → development/version-control-systems/git/commands/config[`git config`] changes option values in config files.
