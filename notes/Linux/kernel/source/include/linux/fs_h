@@ -1,3 +1,164 @@
 $ /include/linux/fs.h
 
-Among others, this file defines the `file_operations` struct
+Among others, this file defines the structs
+   • → #file_operations[`file_operations`]
+   • → #inode_operations[`inode_operations`]
+   • → #file_system_type[`file_system_type`]
+
+{ file_system_type #file_system_type
+
+   As of Linux 5.18, `file_system_type` looks like:
+code {
+struct file_system_type {
+  const char *name;
+  int fs_flags;
+
+  int (*init_fs_context)(struct fs_context *);
+  const struct fs_parameter_spec *parameters;
+
+  struct dentry *(*mount) (
+     struct file_system_type *,
+     int,
+     const char *,
+     void *);
+
+  void (*kill_sb) (struct super_block *);
+
+  struct module *owner;
+  struct file_system_type * next;
+  struct hlist_head fs_supers;
+
+  struct lock_class_key s_lock_key;
+  struct lock_class_key s_umount_key;
+  struct lock_class_key s_vfs_rename_key;
+  struct lock_class_key s_writers_key[SB_FREEZE_LEVELS];
+
+  struct lock_class_key i_lock_key;
+  struct lock_class_key i_mutex_key;
+  struct lock_class_key invalidate_lock_key;
+  struct lock_class_key i_mutex_dir_key;
+};
+code }
+
+  Note espacially the `mount` → development/languages/C-C-plus-plus/C/language/datatypes/pointer/function which is called when the respective file system is mounted
+ (for example when using the Shell command `→ Linux/shell/commands/mount`).
+  -
+ `mount()` returns returns the root `dentry` of the tree requested by caller.
+  
+
+}
+{ file_operations #file_operations
+
+code {
+struct file_operations {
+  struct module *owner;
+
+  loff_t             (*llseek           ) (struct file *, loff_t, int);
+  ssize_t            (*read             ) (struct file *, char __user *, size_t, loff_t *);
+  ssize_t            (*write            ) (struct file *, const char __user *, size_t, loff_t *);
+  ssize_t            (*read_iter        ) (struct kiocb *, struct iov_iter *);
+  ssize_t            (*write_iter       ) (struct kiocb *, struct iov_iter *);
+  int                (*iopoll           ) (struct kiocb *kiocb, struct io_comp_batch *, unsigned int flags);
+  int                (*iterate          ) (struct file *, struct dir_context *);
+  int                (*iterate_shared   ) (struct file *, struct dir_context *);
+  __poll_t           (*poll             ) (struct file *, struct poll_table_struct *);
+  long               (*unlocked_ioctl   ) (struct file *, unsigned int, unsigned long);
+  long               (*compat_ioctl     ) (struct file *, unsigned int, unsigned long);
+  int                (*mmap             ) (struct file *, struct vm_area_struct *);
+
+  unsigned long mmap_supported_flags;
+
+  int                (*open             ) (struct inode *, struct file *);
+  int                (*flush            ) (struct file *, fl_owner_t id);
+  int                (*release          ) (struct inode *, struct file *);
+  int                (*fsync            ) (struct file *, loff_t, loff_t, int datasync);
+  int                (*fasync           ) (int, struct file *, int);
+  int                (*lock             ) (struct file *, int, struct file_lock *);
+  ssize_t            (*sendpage         ) (struct file *, struct page *, int, size_t, loff_t *, int);
+  unsigned long      (*get_unmapped_area) (struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+  int                (*check_flags      ) (int);
+  int                (*flock            ) (struct file *, int, struct file_lock *);
+  ssize_t            (*splice_write     ) (struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int);
+  ssize_t            (*splice_read      ) (struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int);
+  int                (*setlease         ) (struct file *, long, struct file_lock **, void **);
+  long               (*fallocate        ) (struct file *file, int mode, loff_t offset, loff_t len);
+  void               (*show_fdinfo      ) (struct seq_file *m, struct file *f);
+#ifndef CONFIG_MMU
+  unsigned           (*mmap_capabilities)(struct file *);
+#endif
+  ssize_t            (*copy_file_range  )( struct file *, loff_t, struct file *, loff_t, size_t, unsigned int);
+  loff_t             (*remap_file_range )( struct file *file_in, loff_t pos_in, struct file *file_out, loff_t pos_out, loff_t len, unsigned int remap_flags);
+  int                (*fadvise          )( struct file *, loff_t, loff_t, int);
+  int                (*uring_cmd        )( struct io_uring_cmd *ioucmd, unsigned int issue_flags);
+} __randomize_layout;
+code }
+
+}
+{ inode_operations #inode_operations
+
+  The `inode_operations` struct defines the operations that an → Linux/filesystem/virtual#linux-vfs-inode[inode] provides.
+
+
+code {
+struct inode_operations {
+  struct dentry *    (*lookup           ) (struct inode *,struct dentry *, unsigned int);
+  const char *       (*get_link         ) (struct dentry *, struct inode *, struct delayed_call *);
+  int                (*permission       ) (struct user_namespace *, struct inode *, int);
+  struct posix_acl * (*get_acl          ) (struct inode *, int, bool);
+
+  int                (*readlink         ) (struct dentry *, char __user *,int);
+
+  int                (*create           ) (struct user_namespace *, struct inode *,struct dentry *, umode_t, bool);
+  int                (*link             ) (struct dentry *,struct inode *,struct dentry *);
+  int                (*unlink           ) (struct inode *,struct dentry *);
+  int                (*symlink          ) (struct user_namespace *, struct inode *,struct dentry *, const char *);
+  int                (*mkdir            ) (struct user_namespace *, struct inode *,struct dentry *, umode_t);
+  int                (*rmdir            ) (struct inode *,struct dentry *);
+  int                (*mknod            ) (struct user_namespace *, struct inode *,struct dentry *, umode_t,dev_t);
+  int                (*rename           ) (struct user_namespace *, struct inode *, struct dentry *, struct inode *, struct dentry *, unsigned int);
+  int                (*setattr          ) (struct user_namespace *, struct dentry *, struct iattr *);
+  int                (*getattr          ) (struct user_namespace *, const struct path *, struct kstat *, u32, unsigned int);
+  ssize_t            (*listxattr        ) (struct dentry *, char *, size_t);
+  int                (*fiemap           ) (struct inode *, struct fiemap_extent_info *, u64 start, u64 len);
+  int                (*update_time      ) (struct inode *, struct timespec64 *, int);
+  int                (*atomic_open      ) (struct inode *, struct dentry *, struct file *, unsigned open_flag, umode_t create_mode);
+  int                (*tmpfile          ) (struct user_namespace *, struct inode *, struct dentry *, umode_t);
+  int                (*set_acl          ) (struct user_namespace *, struct inode *, struct posix_acl *, int);
+  int                (*fileattr_set     ) (struct user_namespace *mnt_userns, struct dentry *dentry, struct fileattr *fa);
+  int                (*fileattr_get     ) (struct dentry *dentry, struct fileattr *fa);
+} ____cacheline_aligned;
+code }
+
+}
+{ iattr #iattr
+
+  The *→ Linux/filesystem/virtual#linux-vfs-inode[Inode] Attributes* structure, used for `notify_change()`
+
+code {
+struct iattr {
+  unsigned int         ia_valid;
+  umode_t              ia_mode;
+  kuid_t               ia_uid;
+  kgid_t               ia_gid;
+  loff_t               ia_size;
+
+  struct    timespec64 ia_atime;
+  struct    timespec64 ia_mtime;
+  struct    timespec64 ia_ctime;
+
+  /*
+   * Not an attribute, but an auxiliary info for filesystems wanting to
+   * implement an ftruncate() like method.  NOTE: filesystem should
+   * check for (ia_valid & ATTR_FILE), and not for (ia_file != NULL).
+   */
+  struct file          *ia_file;
+};
+code }
+
+}
+
+sa:
+  → Linux/filesystem[Filesystems in Linux]
+
+links:
+  → https://github.com/torvalds/linux/blob/master/include/linux/fs.h

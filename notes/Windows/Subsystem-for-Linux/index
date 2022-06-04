@@ -11,7 +11,7 @@ from a WSL distribution).
   WSL 2 has the following three features that are not present in WSL 1:
     • Managed VM (Virtual Machine)
     • Full → Linux/kernel[Linux kernel]
-    • Full → Linux/kernel/sys-calls[system calls]
+    • Full → #wsl-syscall[system calls]
   On the other hand, WSL 2 lacks *Performance across OS file systems*.
 
   Generally, Microsoft recommends to use WSL 2 if possible. However, accessing the Windows file system from WSL 2 is slower than if accessed from WSL 1.
@@ -219,6 +219,8 @@ echo 0 > → Linux/fhs/proc/sys/fs/binfmt_misc/WSLInterop
 echo 1 > → Linux/fhs/proc/sys/fs/binfmt_misc/WSLInterop
 code }
 
+  DriveFS is a → #wsl-file-system[file system] that makes interoperability possible.
+
 }
 { Environment variables
 
@@ -298,15 +300,51 @@ code }
     → https://docs.microsoft.com/en-us/archive/blogs/wsl/pico-process-overview[Pico Processes] are the foundation of WSL. (See also → Windows#win-DrawBridge[DrawBridge])
 
   }
-  { System Calls
+  { System Calls (syscalls) #wsl-syscall
 
-    all System Calls are → https://needleinathreadstack.wordpress.com/2017/01/20/windows-subystem-for-linux-file-reads/[fullfilled by a pico provider] (which is
-    a special kernel driver).
+    All → Linux/kernel/sys-calls[(Linux) System Calls] are → https://needleinathreadstack.wordpress.com/2017/01/20/windows-subystem-for-linux-file-reads/[fullfilled by a pico provider].
+
+    { lxcore.sys / lxss.sys
+
+    ? This provider is implemented by `→ Windows/dirs/Windows/System32/drivers/lxss_sys` and `→ Windows/dirs/Windows/System32/drivers/lxcore_sys`: they coordinate such syscall requests with the Windows NT Kernel.
+
+      When the NT Kernel is called with a syscall, the kernel checks if the call came from a *pico process* by checking the state in the process structure (I assume that to be a special flag).
+      -
+      If this is the case, the kernel saves the register state and «forwards» the call to the *pico driver*. The pico driver then finds the Linux syscall number in the `RAX` register and acts accordingly.
+      -
+      After having serviced the request, the calling flow is returned to the NT kernel which restores the register state and puts the return value into the `RAX` register.
+      -
+      Finally, the execution is returned to the WSL process.
+    
+      A syscall is forwarded to `lxcore.sys` (or `lxss.sys`?) which either (preferrably) dispatches it to an NT syscall or handles it itself.
+      -
+      An example of a nice mapping between a Linux and NT syscall is `sched_yield()` and `ZwYieldExecution()`.
+      -
+      On the other hand, `fork()` has no direct equivlent on NT. Therfore, when `lxcore.sys` (or `lxss.sys`?) handles a `fork()` call,
+      it prepares the copying of the process, then calls the NT syscall to create a process and finally finishes the copying.
+
+      See also the WSL Blog: → https://docs.microsoft.com/en-us/archive/blogs/wsl/wsl-system-calls[WSL System Calls].
+
+    }
+
+  }
+  { File Systems #wsl-file-system
+
+    WSL comes with two file systems:
+    table { ll
+      VolFS ☰ Cannot be used for → #wsl-interoperability[interoperability]. Provides most features of → Linux/filesystem/virtual[Linux VFS]: permissions, sym-links, FIFOs, sockets and device files. VolFS is used to mount the root file system to `/`.
+      DriveFS ☰ Used for → #wsl-interoperability[interoperability]. File names are required to be valid Windows file names and are case insensitive. Windows drives (`C:\` etc.) are mounted to `→ Linux/fhs/mnt[/mnt]/c` etc.).
+    table }
 
   }
   { \Device\lxss
 
     WSL creates the *device object* (→ Windows/kernel/objects[kernel object]?) `\Device\lxss`, verify with `→ Windows/tools/Sysinternals/Winobj`
+
+  }
+  { WSLg
+
+    WSLg is short for *Windows Subsystem for Linux GUI*.
 
   }
 

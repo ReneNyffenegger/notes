@@ -5,6 +5,51 @@ $ Oracle: DBMS_DB_VERSION
 
 gh|Oracle-Patterns|/Installed/dbms/db_version/show.plsql||
 
+{ Constants
+
+  `dbms_db_version` defines a few boolean constants that can be used to determine if a given Oracle version or higher is present:
+  table { ll
+   `ver_le_9_1`    ☰ Deprecated as of 19c
+   `ver_le_9_2`    ☰ Deprecated as of 19c
+   `ver_le_9`      ☰ Deprecated as of 19c
+   `ver_le_10_1`   ☰ Deprecated as of 19c
+   `ver_le_10_2`   ☰ Deprecated as of 19c
+   `ver_le_10`     ☰ Deprecated as of 19c
+   `ver_le_11_1`   ☰ Deprecated as of 19c
+   `ver_le_11_2`   ☰
+   `ver_le_11`     ☰
+   `ver_le_12_1`   ☰
+   `ver_le_12_2`   ☰
+   `ver_le_12`     ☰
+   `ver_le_18`     ☰
+   `ver_le_19`     ☰
+    etc…           ☰
+  table }
+
+  For example, `dbms_db_version.ver_le_10` is true when running on Version 10 or earlier.
+
+}
+{ Conditional compilation #dbms_db_version-cond-comp
+
+ The constants in `dbms_db_version` are *static*, so they can be used in → development/databases/Oracle/PL-SQL/compilation/conditional[Conditional Compilation].
+
+code {
+create or replace procedure tq84_version_test
+   authid definer
+as begin
+
+   $if dbms_db_version.ver_le_18 $then
+       raise_application_error(-20800, 'Upgrade to a newer Oracle version');
+   $end
+
+   dbms_output.put_line('do stuff that is only possible with Oracle 18 or so');
+
+end tq84_version_test;
+/
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/installed/packages/dbms/utility#dbms_utility-db_version[`dbms_utility.db_version`]
