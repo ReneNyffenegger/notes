@@ -1,0 +1,68 @@
+$ /proc/sys/fs/binfmt_misc/register
+
+`→ Linux/fhs/proc/sys/fs/binfmt_misc[/proc/sys/fs/binfmt_misc]/register` can be used to register a *handler application* to be invoked when a file with a given magic number or a given extension
+is executed.
+
+{ Registering a handler for an extension
+
+  The following example demonstrates how a handler can be registered for files with the extension `.tq84`.
+
+  The (shell) script (i.e. the handler) which will be invoked. 
+code {
+echo '#!/bin/bash
+echo "tq84 handler was called"
+echo "argument/script is $1"' > tq84-handler
+code }
+
+  The handler must be executable:
+code {
+chmod 755 tq84-handler
+code }
+
+  Root privileges are required for the registration:
+code {
+sudo sh
+code }
+
+  Definition of some variables, mostly for better legibility:
+code {
+regName=tq84reg
+regType=E         # E = extension
+extension=tq84
+interpreter=/home/rene/tq84-handler
+code }
+ 
+  Finally: the registration:
+code {
+echo ":$regName:$regType::$extension::$interpreter:" > /proc/sys/fs/binfmt_misc/register
+code }
+
+  Root privileges are not required anymore.
+code {
+exit
+code }
+
+  Creating an (empty) file to test the registration:
+code {
+touch     test.tq84
+chmod 755 test.tq84
+code }
+
+  Executing the script:
+code {
+./test.tq84
+code }
+
+  Unregistering the handler …
+code {
+sudo sh
+echo -1 > /proc/sys/fs/binfmt_misc/tq84reg
+exit
+code }
+
+ … and cleaning up:
+code {
+rm test.tq84 tq84-handler
+code }
+
+}
