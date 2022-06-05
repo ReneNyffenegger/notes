@@ -4,9 +4,9 @@ $ include/linux/dcache.h
 
 { dentry
 
-   As of Linux version 5.18
+  Definition of a → Linux/filesystem/virtual#linux-vfs-dentry[dentry], as of Linux version 5.18
 code {
-struct dentry {
+struct dentry { #linx-dentry
   /* RCU lookup touched fields */
   unsigned int                    d_flags;                    /* protected by d_lock */
   seqcount_spinlock_t             d_seq;                      /* per dentry seqlock */
@@ -18,7 +18,7 @@ struct dentry {
 
   /* Ref lookup also touches following */
   struct lockref                  d_lockref;                  /* per-dentry lock and refcount */
-  const struct dentry_operations *d_op;
+  const struct → #linux-dentry_operations[dentry_operations] *d_op;
   struct super_block             *d_sb;                       /* The root of the dentry tree */
   unsigned long                   d_time;                     /* used by d_revalidate */
   void                           *d_fsdata;                   /* fs-specific data */
@@ -40,5 +40,32 @@ struct dentry {
 } __randomize_layout;
 code }
 
+  Compare with the `dirent` struct of the → development/languages/C-C-plus-plus/C/libc[standard C library] (found in `<dirent.h>`).
+
 }
+{ dentry_operations #linux-dentry_operations
+
+  As of Linux version 5.18
+code {
+struct dentry_operations {
+  int               (*d_revalidate     )(      struct dentry *, unsigned int);
+  int               (*d_weak_revalidate)(      struct dentry *, unsigned int);
+  int               (*d_hash           )(const struct dentry *, struct qstr *);
+  int               (*d_compare        )(const struct dentry *, unsigned int, const char *, const struct qstr *);
+  int               (*d_delete         )(const struct dentry *);
+  int               (*d_init           )(      struct dentry *);
+  void              (*d_release        )(      struct dentry *);
+  void              (*d_prune          )(      struct dentry *);
+  void              (*d_iput           )(      struct dentry *, struct inode *);
+  char             *(*d_dname          )(      struct dentry *, char *, int);
+  struct vfsmount  *(*d_automount      )(      struct path   *);
+  int               (*d_manage         )(const struct path   *, bool);
+  struct dentry    *(*d_real           )(      struct dentry *, const struct inode *);
+} ____cacheline_aligned;
+code }
+
+}
+
+links:
+  → https://github.com/torvalds/linux/blob/master/include/linux/dcache.h
 
