@@ -2,19 +2,40 @@ $ Registry: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninsta
 
 This key stores the information needed to uninstall a (properly) installed program (software) or application.
 
-{ Uninstall software with wmic
+Each uninstallable application is stored in a subkey whose name sometimes is a → development/UUID-GUID[GUID] (in curly braces).
 
-  Apparently, it's possible to uninstall software with → Windows/dirs/Windows/System32/wbem/WMIC_exe[wmic.exe].
+{ Uninstall software from the command line
 
-  The first query is used to display all installed (and uninstallable) software. With its result, the second
-  command allows to specifically uninstall a package.
+  { WMIC
 
-  For a reason I don't really understant, the first query takes quite some time to complete.
+    Apparently, it's possible to uninstall software with → Windows/dirs/Windows/System32/wbem/WMIC_exe[wmic.exe].
+
+    The first query is used to display all installed (and uninstallable) software. With its result, the second
+    command allows to specifically uninstall a package.
+
+    For a reason I don't really understand, the first query takes quite some time to complete.
 
 code {
 c:\> wmic product get caption, installDate, vendor
 c:\> wmic path win32_product where "name = '<< caption found with previous command >>'" call uninstal
 code }
+
+  }
+  { MsiExec
+
+  ? It also seems possible to uninstall a software by its GUID with → Windows/dirs/Windows/System32/msiexec_exe[`MsiExec`]:
+code {
+C:\> MsiExec /X{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
+code }
+
+  }
+
+}
+{ Listing uninstallable software
+
+  The following → Windows/PowerShell/script[PowerShell script] iterates over the kyes in `HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall` and its cousin under the
+  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Wow6432Node[`HKLM:\Software\Wow6432Node`] to list all uninstallable software along with some additional information:
+  gh|about-Windows-Registry|/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall/list-applications.ps1||
 
 }
 
