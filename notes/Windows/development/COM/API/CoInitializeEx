@@ -1,0 +1,51 @@
+
+Each → Windows/development/process/thread that wants to use the «COM library» must call `CoInitializeEx` (or `CoInitialize`) to initialize it.
+-
+The only function of the COM library that can be used without initializing it is `CoGetMalloc` (which returns a pointer to the default OLE task memory allocator).
+
+
+{ Parameters
+
+code {
+CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+code }
+
+code {
+CoInitializeEx(NULL, COINIT_MULTITHREADED);
+code }
+ 
+  { lpReserved
+
+    Always `NULL`
+
+  }
+  { dwCoInit
+
+    The value of `dwCoInit` (the 2nd parameter) specifes the thread's concurrency model (See also → Windows/development/COM/Apartments).
+
+  }
+
+}
+{ Return value
+
+  The function returns one of
+  table { ll
+    `S_OK` ☰
+    `S_FALSE` ☰ The «COM library» is already initialized on this thread
+    `RPC_E_CHANGED_MODE` ☰ The thread already called `CoInitializeEx` with a different concurrency model.
+
+  table }
+
+}
+{ CoInitialize
+
+ `CoInitialize` provides the same functionality as `CoInitializeEx`, yet without the `dwCoInit` parameter.
+
+  With `CoInitialize`, the concurrency model is set to single-threaded apartment (STA).
+
+}
+{ Windows Runtime
+
+  When using the *Windows Runtime*, `Windows::Foundation::Initialize` must be used instead of `CoInitializeEx`.
+
+}
