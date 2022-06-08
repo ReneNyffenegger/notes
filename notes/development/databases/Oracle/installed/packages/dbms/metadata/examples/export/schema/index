@@ -12,7 +12,7 @@ code }
 code {
 declare
    src_schema_name  varchar2(128) := 'SRC' ;
--- dest_schema_name varchar2(128) := 'DEST';
+   dest_schema_name varchar2(128) := 'DEST';
 
    exp_h      number;
    ddl_tr     number;
@@ -46,17 +46,23 @@ begin
 --
 -- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, null);
 
+   remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'TABLE');
+   dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+  
 --
---    The following remaps don't really work satisfactiory.
+-- The following remap (INDEX) does not really seem to work
 --
--- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'TABLE');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+   remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'INDEX');
+   dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+  
+   remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'VIEW');
+   dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+
 --
--- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'INDEX');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+-- The following remap (PROCEDURE) does not really seem to work
 --
--- remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'VIEW');
--- dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
+   remap_tr := dbms_metadata.add_transform(exp_h, 'MODIFY', null, 'PROCEDURE');
+   dbms_metadata.set_remap_param(remap_tr, 'REMAP_SCHEMA', src_schema_name, dest_schema_name);
 
 
 -- 
