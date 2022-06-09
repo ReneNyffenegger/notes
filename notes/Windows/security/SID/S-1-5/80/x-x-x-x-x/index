@@ -1,3 +1,27 @@
 $ Windows: Service SID (S-1-5-80-…)
 
 → Windows/security/SID[SIDs] that start with `S-1-5-80-` identify a → Windows/services[service].
+
+{ Calculation of the five numbers following S-1-5-80
+
+  The 5 numbers following the `S-1-5-80-` can be calculated in → Windows/PowerShell as follows, for example for the *Trusted Installer* service.
+code {
+$serviceName = "TrustedInstaller"
+$bytes       = [→ Microsoft/dot-net/namespaces-classes/System/Text/Encoding[Text.Encoding]]::Unicode.GetBytes($serviceName.ToUpper())
+$sha1        = [→ Microsoft/dot-net/namespaces-classes/System/Security/Cryptography/SHA1[Security.Cryptography.SHA1]]::Create()
+$hash        = $sha1.ComputeHash($bytes)
+$rids        = → Windows/PowerShell/command-inventory/noun/object/new UInt32[] 5
+[→ Microsoft/dot-net/namespaces-classes/System/Buffer[Buffer]]::BlockCopy($hash, 0, $rids, 0, $hash.Length)
+'S-1-5-80-{0}-{1}-{2}-{3}-{4}' -f $rids[0], $rids[1], $rids[2], $rids[3], $rids[4]
+code }
+
+  When executed, these → Windows/PowerShell/language/command[commands] print:
+code {
+→ Windows/security/SID/S-1-5/80/956008885-3418522649-1831038044-1853292631-2271478464[S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464]
+code }
+
+  I found this calculation in the Blog → https://www.tiraniddo.dev/[Tyranid's Lair]: → https://www.tiraniddo.dev/2017/08/the-art-of-becoming-trustedinstaller.html[The Art of Becoming TrustedInstaller].
+
+  Apparently, this calculation can also be performed by the → Windows/development/WinAPI function `RtlCreateServiceSid`.
+
+}
