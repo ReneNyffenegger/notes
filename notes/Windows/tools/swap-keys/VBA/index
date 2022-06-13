@@ -1,10 +1,58 @@
-$ Swap ESC an CAPS LOCK with VBA
+$ Swap ESC and CAPS LOCK with VBA
 
-gh|VBA-SetWindowsHookEx|/IKeyboardEvent.cls||
-gh|VBA-SetWindowsHookEx|/VirtualKeys.vb||
-gh|VBA-SetWindowsHookEx|/WindowsHooks.vb||
-gh|VBA-SetWindowsHookEx|/WindowsHooksWinAPI.vb||
+{ SetWindowsHookEx/IKeyboardEvent.cls
 
-gh|VBA-SwapKeys|/IKeyboardEvent_SwapKeys.cls||
-gh|VBA-SwapKeys|/SwapKeys.vb||
-gh|VBA-SwapKeys|/createWordDocument.wsf||
+ `IKeyboardEvent.cls` defines an → development/languages/VBA/language/interfaces with one method: `ev`.
+  -
+  This method is called when a key is pressed or released.
+
+  gh|VBA-SetWindowsHookEx|/IKeyboardEvent.cls||
+
+}
+{ IKeyboardEvent_SwapKeys.cls
+
+ `IKeyboardEvent_SwapKeys.cls` defines the implementation of `IKeyboardEvent_SwapKeys.cs`.
+
+  This implementation reacts to pressing and releasing of the *ESC* (`VK_ESCAPE`), *CAPS LOCK* (`VK_CAPITAL`) and *Right Alt Gr* (`VK_RMENU`) key and swaps
+  ESC with CAPS LOCK by using the `SendInput()` → Windows/development/WinAPI function.
+  -
+  The *right Alt Gr* key is replaced with the right control key.
+
+  gh|VBA-SwapKeys|/IKeyboardEvent_SwapKeys.cls||
+
+}
+{ SwapKeys.vb
+
+ `SwapKeys.vb` initializes the `IKeyboardEvent_SwapKeys` implementation and starts the keyboard hook:
+  gh|VBA-SwapKeys|/SwapKeys.vb||
+
+}
+{ SetWindowsHookEx\WindowsHooks.vb
+
+  gh|VBA-SetWindowsHookEx|/WindowsHooks.vb||
+
+}
+{ SetWindowsHookEx\WindowsHooksWinAPI.vb
+
+ `WindowsHooksWinAPI.vb` contains the WinAPI definitions required for hooking keyboard events:
+  gh|VBA-SetWindowsHookEx|/WindowsHooksWinAPI.vb||
+
+}
+{ SetWindowsHookEx\VirtualKeys.vb 
+
+ `VirtualKeys.vb` contains constants for *virtual keys*:
+  gh|VBA-SetWindowsHookEx|/VirtualKeys.vb||
+
+}
+{ createWordDocument.wsf
+
+ `createWordDocument.wsf` uses → Microsoft/Office/VBScript-App-Creator to create a Word document, which contains the swap key funtionality, from the command line.
+
+  gh|VBA-SwapKeys|/createWordDocument.wsf||
+
+  This source code is invoked like so:
+code {
+→ Windows/dirs/Windows/System32/cscript_exe[cscript] createWordDocument.wsf
+code }
+
+}
