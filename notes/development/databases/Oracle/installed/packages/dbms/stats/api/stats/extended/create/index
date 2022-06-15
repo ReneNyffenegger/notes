@@ -1,0 +1,204 @@
+$ DBMS_STATS.CREATE_EXTENDED_STATS
+
+
+code {
+drop   table tq84_tab;
+code }
+
+For the demonstration, we need a table:
+code {
+create table tq84_tab (
+   id  integer       not null,
+   val number(5,1)   not null,
+   txt varchar2(10)  not null
+);
+code }
+
+The table is filled with some random data. In every third row, the value of `txt` ends in `XXX`:
+code {
+begin
+   dbms_random.seed(42);
+end;
+/
+
+insert into tq84_tab
+select
+   level,
+   dbms_random.value(1, 9999),
+   dbms_random.string('u', 7) ||
+      case mod(level, 3)
+         when 0 then 'XXX'
+         else         dbms_random.string('u', 3)
+      end
+from
+   dual connect by level <= 10000;
+code }
+
+Gathering the statistics for the table
+code {
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_tab');
+end;
+/
+code }
+
+The statistics are not sufficient to estimate the number of rows with `substr(txt, -3) = 'XXX'` correctly:
+code {
+explain plan for
+select count(*)
+from
+   tq84_tab
+where
+   substr(txt, -3) = 'XXX'
+;
+code }
+
+The optimizer thinks it's 100:
+code {
+select * from table(dbms_xplan.display(format=>'basic +rows'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation          | Name     | Rows  |
+-- -----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |          |     1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |          |     1 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |   100 |
+-- -----------------------------------------------
+code }
+
+
+In order to assist the optimizer with better statistics, we create *extended statistics*:
+code {
+select
+   dbms_stats.create_extended_stats(
+      user,
+     'tq84_tab',
+     '(substr(txt, -3))'  -- Extensions must be put between parantheses!
+   )  extended_stat_name
+from
+   dual;
+code }
+
+The extended statistics show up in → development/databases/Oracle/installed/data-dictionary/stat_extensions[`user_stat_extensions`]:
+code {
+select
+   extension,
+   extension_name,
+   creator,
+   droppable
+from
+   user_stat_extensions
+where
+   table_name = 'TQ84_TAB';
+code }
+
+The values with which the extended statistics are calculated are stored in a virtual and hidden column:
+code {
+select
+   col.column_name,
+-- col.qualified_col_name,
+   col.data_default,
+   col.num_distinct,
+   col.hidden_column,
+   col.virtual_column,
+   col.sample_size
+from
+   user_tab_cols col
+where
+   col.table_name = 'TQ84_TAB';
+code }
+
+`dbms_stats.create_extended_stats` did not gather statistics for the new virtual column:
+code {
+select
+   col.column_name,
+   col.last_analyzed
+from
+   user_tab_col_statistics col
+where
+   col.table_name = 'TQ84_TAB';
+code }
+
+Therefore, the estimation for the select statement is still wrong:
+code {
+explain plan for
+select count(*)
+from
+   tq84_tab
+where
+   substr(txt, -3) = 'XXX'
+;
+
+select * from table(dbms_xplan.display(format=>'basic +rows'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation          | Name     | Rows  |
+-- -----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |          |     1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |          |     1 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |   100 |
+-- -----------------------------------------------
+code }
+
+
+So, we gather the statistics again for the table:
+code {
+begin
+   dbms_stats.gather_table_stats(
+      user,
+     'tq84_tab'
+   );
+end;
+/
+code }
+
+We try again to show the plan for the statement:
+code {
+explain plan for
+select count(*)
+from
+   tq84_tab
+where
+   substr(txt, -3) = 'XXX'
+;
+code }
+
+This time, the estimatino is correct: 3333 rows:
+code {
+select * from table(dbms_xplan.display(format=>'basic +rows'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation          | Name     | Rows  |
+-- -----------------------------------------------
+-- |   0 | SELECT STATEMENT   |          |     1 |
+-- |   1 |  SORT AGGREGATE    |          |     1 |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |  3333 |
+-- -----------------------------------------------
+code }
+
+
+Let's also try `txt like %XXX`:
+code {
+explain plan for
+select count(*)
+from
+   tq84_tab
+where
+   txt like '%XXX';
+code }
+
+It turns out, the optimizer (at least in 19c) still cannot correctly determine the number of rows:
+code {
+select * from table(dbms_xplan.display(format=>'basic +rows'));
+--
+-- -----------------------------------------------
+-- | Id  | Operation          | Name     | Rows  |
+-- -----------------------------------------------
+-- |   0 | SELECT STATEMENT   |          |     1 |
+-- |   1 |  SORT AGGREGATE    |          |     1 |
+-- |   2 |   TABLE ACCESS FULL| TQ84_TAB |   500 |
+-- -----------------------------------------------
+code }
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/stats`
