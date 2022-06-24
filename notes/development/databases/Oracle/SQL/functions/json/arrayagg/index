@@ -95,3 +95,26 @@ group by
 code }
 
 }
+{ NULL ON NULL clause
+
+code {
+with t as (
+   select 'foo' x from dual union all
+   select 'bar' x from dual union all
+   select  null x from dual union all
+   select 'baz' x from dual
+)
+select
+   json_arrayagg(x               ) x,
+   json_arrayagg(x null   on null) xnn,
+   json_arrayagg(x absent on null) xan -- absent on null is default
+from
+   t;
+
+X                    XNN                       XAN
+-------------------  ------------------------  -------------------
+["foo","bar","baz"]  ["foo","bar",null,"baz"]  ["foo","bar","baz"]  
+
+code }
+
+}
