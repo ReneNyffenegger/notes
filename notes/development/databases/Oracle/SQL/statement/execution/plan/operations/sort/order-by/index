@@ -1,0 +1,34 @@
+$ Oracle SQL Plan operation SORT ORDER BY
+@ SORT ORDER BY
+
+code {
+create table tq84_tab (
+   id    number,
+   val   varchar2(10)
+);
+
+insert into tq84_tab
+select
+   mod(rownum * 7, 11),
+   rpad('*', rownum, '*')
+from
+   dual connect by level <=10;
+
+explain plan for
+select * from tq84_tab order by id;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ---------------------------------------
+-- | Id  | Operation          | Name     |
+-- ---------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |          |
+-- |   1 |  SORT ORDER BY     |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- ---------------------------------------
+
+drop table tq84_tab;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

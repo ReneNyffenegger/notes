@@ -1,0 +1,48 @@
+$ Oracle SQL Plan operation BITMAP INDEX RANGE SCAN
+@ BITMAP INDEX RANGE SCAN
+
+
+code {
+create table tq84_tab (
+   val      number,
+   pad      varchar2(100)
+);
+
+
+insert into tq84_tab
+select
+   mod(rownum, 1000),
+   rpad('*', 100, '*')
+from
+   dual connect by level <= 1000;
+
+create bitmap index tq84_tab_ix_bmp on tq84_tab(val);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select * from tq84_tab where val between  499 and 501;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
+--
+-- ---------------------------------------------------------------
+-- | Id  | Operation                           | Name            |
+-- ---------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                    |                 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_TAB        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to       |                 |
+-- |   3 |    BITMAP INDEX RANGE SCAN          | TQ84_TAB_IX_BMP |
+-- ---------------------------------------------------------------
+
+drop table tq84_tab;
+code }
+
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
