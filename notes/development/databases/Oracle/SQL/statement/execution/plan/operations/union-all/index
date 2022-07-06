@@ -1,49 +1,64 @@
 $ Oracle SQL Plan operation UNION-ALL
 @ UNION-ALL
 
+
+The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operator] `UNION-ALL` is used for both, queries using the
+set operators → development/databases/Oracle/SQL/select/set-operators/union/all[`union all`] and
+`→ development/databases/Oracle/SQL/select/set-operators/union`.
+
+
+Create a few demonstration tables:
 code {
 create table tq84_A (nm number, tx varchar2(10));
 create table tq84_B (nm number, tx varchar2(10));
 create table tq84_C (nm number, tx varchar2(10));
+code }
 
-explain plan for
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
    select nm, tx from tq84_A → development/databases/Oracle/SQL/select/set-operators/union/all[union all]
    select nm, tx from tq84_B → development/databases/Oracle/SQL/select/set-operators/union/all[union all]
    select nm, tx from tq84_c
 ;
 
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
 --
 -- -------------------------------------
 -- | Id  | Operation          | Name   |
 -- -------------------------------------
 -- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |        |
 -- |   1 |  UNION-ALL         |        |
--- |   2 |   TABLE ACCESS FULL| TQ84_A |
--- |   3 |   TABLE ACCESS FULL| TQ84_B |
--- |   4 |   TABLE ACCESS FULL| TQ84_C |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_C |
 -- -------------------------------------
+code }
 
 
-explain plan for
-   select nm, tx from tq84_A union
-   select nm, tx from tq84_B union
+Almost the same thing, but using `union`. Note the additional `→ development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique`
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select nm, tx from tq84_A → development/databases/Oracle/SQL/select/set-operators/union
+   select nm, tx from tq84_B → development/databases/Oracle/SQL/select/set-operators/union
    select nm, tx from tq84_c
 ;
 
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic'));
 --
 -- --------------------------------------
 -- | Id  | Operation           | Name   |
 -- --------------------------------------
--- |   0 | SELECT STATEMENT    |        |
--- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique[SORT UNIQUE]        |        |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/unique        |        |
 -- |   2 |   UNION-ALL         |        |
--- |   3 |    TABLE ACCESS FULL| TQ84_A |
--- |   4 |    TABLE ACCESS FULL| TQ84_B |
--- |   5 |    TABLE ACCESS FULL| TQ84_C |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_C |
 -- --------------------------------------
+code }
 
+Claning up:
+code {
 drop table tq84_C;
 drop table tq84_B;
 drop table tq84_A;
