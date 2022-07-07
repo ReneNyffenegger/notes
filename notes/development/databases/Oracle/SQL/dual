@@ -1,0 +1,39 @@
+$ Oracle: The DUAL table
+@ dual
+
+`DUAL` is the name of a → development/databases/Oracle/objects/tables with exactly *one* record and *one* → development/databases/Oracle/objects/tables/columns.
+The name of the column is `DUMMY` and its value is `X` and its value is `X`.
+
+The owner of `DUAL` is `SYS`, but it is accessibly by every → development/databases/Oracle/users-roles/users.
+
+
+The → development/databases/Oracle/optimizer «knows» that `dual` has one record only. In fact, when querying an SQL expression from `dual`, Oracle does not physically select
+the record (see the plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual`):
+code {
+select → development/databases/Oracle/SQL/functions/date/sysdate from dual;
+code }
+
+Althogh it is possible to delete or update the record, or insert new records, one *really should not do that*.
+
+
+{ Creation of DUAL
+
+  Oracle creates `DUAL` when it installs the → development/databases/Oracle/installed/data-dictionary.
+ (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dcore_bsq`)
+
+code {
+create table dual                   /* pl/sql's standard pckg requires dual. */
+  (dummy varchar2(1))    /* note, the optimizer knows sys.dual is single row */
+  storage (initial 1)
+/
+
+insert into dual values('X')
+/
+
+create public synonym dual for dual
+/
+code }
+}
+
+sa:
+  The `av_dual` table.
