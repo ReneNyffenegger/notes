@@ -59,6 +59,8 @@ In contrast, → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System
 
   table }
 
+  Why is there no `WriteAllBytes()` method?
+
 }
 
 { Exists #io-file-exists
@@ -71,5 +73,23 @@ In contrast, → Microsoft/dot-net/namespaces-classes/System/IO/FileInfo[`System
 { ReadAllText
 
   → Microsoft/dot-net/namespaces-classes/System/IO/File/ReadAllText[`ReadAllText`] slurps the content of an entire file.
+
+}
+{ Concatenating multiple files
+
+  The following example concatentas multiple files in → Windows/PowerShell:
+code {
+PS: C:\> $a = [IO.File]::ReadAllText("$pwd\a.txt")
+PS: C:\> $b = [IO.File]::ReadAllText("$pwd\b.txt")
+PS: C:\> $c = [IO.File]::ReadAllText("$pwd\c.txt")
+PS: C:\> [IO.File]::WriteAllText("$pwd\concatenated" , $a)
+PS: C:\> [IO.File]::AppendAllText("$pwd\concatenated", $b)
+PS: C:\> [IO.File]::AppendAllText("$pwd\concatenated", $c)
+code }
+ 
+  Of course, the canonical way would be something like the following, but is tends to mess things because it sometimes writes BOMs:
+code {
+→ Windows/PowerShell/command-inventory/noun/content/get a.txt,b.txt,c.txt | → Windows/PowerShell/command-inventory/noun/content/set concatenated.txt
+code }
 
 }
