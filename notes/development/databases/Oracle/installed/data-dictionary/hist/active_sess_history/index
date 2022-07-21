@@ -180,24 +180,6 @@ order by
 code }
 
 Start and end of sessions
-code {
-select
-   to_char(min(ash.sample_time), 'dd hh24:mi:ss')    start_,
-   to_char(max(ash.sample_time),    'hh24:mi:ss')    end_,
-   min(ash.sample_id)                                min_id,
-   max(ash.sample_id)                                max_id,
-   nvl(ash.qc_session_id     , ash.session_id     )  ses_id,
-   nvl(ash.qc_session_serial#, ash.session_serial#)  ses_ser
-from
-   v$database                   vdb                        join
-   dba_hist_active_sess_history ash on vdb.dbid = ash.dbid
-where
-   ash.sample_time >= sysdate - 1
-group by
-   nvl(ash.qc_session_id     , ash.session_id     ),
-   nvl(ash.qc_session_serial#, ash.session_serial#)
-;
-code }
 
 sa:
 
@@ -208,6 +190,8 @@ sa:
 
  `→ development/databases/Oracle/installed/dynamic-performance-views/active/session_history`
 
- → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history/sql-statement-duration[Query duration of SQL statements]
+  → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history/sql-statement-duration[Query duration of SQL statements]
+
+  → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history/begin-and-end-of-session[Query start and end] of → development/databases/Oracle/architecture/session[sessions].
 
   → development/databases/Oracle/installed/data-dictionary/hist[`dba_hist*` views]
