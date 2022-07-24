@@ -197,6 +197,7 @@ sub process_page { #_{
 
     
     if ($pass == 2) {
+      dbg("%% input_filename_os = $input_filename_os");
       RN::copy_os_path_2_url_path_abs ($input_filename_os, "/notes/$input_filename_os");
     }
 
@@ -831,7 +832,7 @@ sub process_page { #_{
           $dirname_os =~ s/ü/ue/g;
           $dirname_os =~ s/ä/ae/g;
           $dirname_os =~ s/ö/oe/g;
-          print "xyz: copying img to /notes/$dirname_os/$image_name\n";
+          print "gh - copying img to /notes/$dirname_os/$image_name (dirname_os = $dirname_os, image_name = $image_name)\n";
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
