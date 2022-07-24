@@ -8,7 +8,7 @@ use utf8;
 use Encode;
 use Storable;
 
-our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>☰'; 
+our $non_file_chars ='\ ,.()?:;`*→\[\]«»%~{}<>☰';
 
 our %index;
 our $html_suffix;
@@ -46,14 +46,14 @@ sub replace_notes_link { # {{{
     (                       # capture linked page.
        [^$non_file_chars]+  #   linked page must not have spaces nor opening bracket
     )
-    (                       # 
+    (                       #
         \[                  # followed by an (optional) square bracket
            (
              [^\]]+
            )
         \]
     )?                      # square bracked is optional
-  
+
   }{
 
     my $page_linked_to = $1;
@@ -72,8 +72,10 @@ sub replace_notes_link { # {{{
 #   ------------------------------------------------------------------------
 #   2017-01-03 using the absolute path (with $ENV{'github_root'}) breaks the
 #              test cases, so test directory according to target_env
-    if              ( ($RN::target_env eq 'test' and  -d $ENV{'github_root'} . 'notes/test/notes/' . perl_to_os($page_linked_to)) or
-                      (                               -d $ENV{'github_root'} . 'notes/notes/'      . perl_to_os($page_linked_to)) 
+#   if              ( ($RN::target_env eq 'test' and  -d $ENV{'github_root'} . 'notes/test/notes/' . perl_to_os($page_linked_to)) or
+#                     (                               -d $ENV{'github_root'} . 'notes/notes/'      . perl_to_os($page_linked_to))
+    if              ( ($RN::target_env eq 'test' and  -d $ENV{'notes_dir'  } .      '/test/notes/' . perl_to_os($page_linked_to)) or
+                      (                               -d $ENV{'notes_dir'  } .      '/notes/'      . perl_to_os($page_linked_to))
                     )
 #   ------------------------------------------------------------------------
     {
@@ -104,7 +106,7 @@ sub replace_notes_link { # {{{
          print "no text/title found in page_linked_to: $page_linked_to, anchor_id: $anchor_id\n";
 
          for my $a (keys %{$index{$page_linked_to}{anchors}}) {
-          
+
             print "  #$a -> $index{$page_linked_to}{anchors}{$a}{title}\n";
 
          }
@@ -139,8 +141,8 @@ sub replace_notes_link { # {{{
 
     $text = $optional_text if defined $optional_text;
 
-    "<a href='" . RN::url_path_abs_2_url_full('/notes/') . umlaute($page_linked_to) . "$html_suffix$anchor_txt'>$text</a>"; 
-      
+    "<a href='" . RN::url_path_abs_2_url_full('/notes/') . umlaute($page_linked_to) . "$html_suffix$anchor_txt'>$text</a>";
+
   }gex;
 
 

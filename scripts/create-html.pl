@@ -9,7 +9,7 @@ binmode(STDERR, ":utf8");
 
 my $remove_me_counter = 0;
 
-use lib "$ENV{github_root}/notes/scripts/";
+use lib "$ENV{notes_dir}/scripts/";
 use lib "$ENV{github_root}/RN/";
 
 use File::Touch;
