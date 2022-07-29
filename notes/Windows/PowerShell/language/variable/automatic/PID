@@ -1,12 +1,29 @@
 $ PowerShell: the automatic variable $PID
+@ $PID
 
 `$PID` is an → Windows/PowerShell/language/variable/automatic[automatic variable] and contains the *process identifier* of the
 → Windows/development/process[process] hosting the current PowerShell → Windows/PowerShell/session[session].
 
 With the → Windows/PowerShell/command-inventory/noun/process/get#get-process-id[`-id`] option of → Windows/PowerShell/command-inventory/noun/process/get[`get-process`], it is possible to query some data about the current powershell process:
 code {
-get-process -id $PID | → Windows/PowerShell/command-inventory/noun/table/format[format-table] startTime, path, workingSet
+→ Windows/PowerShell/command-inventory/noun/process/get -id $PID | → Windows/PowerShell/command-inventory/noun/table/format[format-table] startTime, path, workingSet
 code }
+
+`$PID` is (apparently?) not available in a → Windows/PowerShell/language/module (`*.psm1` file). If the current process's id needs to determined in a module, this can be done like so:
+code {
+$proc_id = [→ Microsoft/dot-net/namespaces-classes/System/Diagnostics/Process/[System.Diagnostics.Process]]::GetCurrentProcess().Id
+code }
+
+{ Parent process id
+
+  In → Windows/PowerShell, there is no automatic variable that stores the current process's parent process ID (such as `$PPID` which is seen in (some?) Unix Shells).
+  -
+  However, it is possible to determine the parent process id like so:
+code {
+$PPID=(→ Windows/PowerShell/command-inventory/noun/cimInstance/get -className win32_process  -filter "processId = $PID").parentProcessId
+code }
+
+}
 
 sa:
   Other → Windows/PowerShell/language/variable/automatic[automatic variables]
