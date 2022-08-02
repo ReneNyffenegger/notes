@@ -1,0 +1,160 @@
+$ Chrome profile directory: Login Data
+
+`Login Data` is an → development/databases/SQLite database file. 
+
+{ Tables
+
+  { field_info
+
+code {
+CREATE TABLE field_info (
+   form_signature INTEGER NOT NULL,
+   field_signature INTEGER NOT NULL,
+   field_type INTEGER NOT NULL,
+   create_time INTEGER NOT NULL,
+   UNIQUE (form_signature, field_signature)
+)
+code }
+
+code {
+CREATE INDEX field_info_index ON field_info (form_signature, field_signature)
+code }
+  }
+  { insecure_credentials
+
+code {
+CREATE TABLE insecure_credentials (
+   parent_id INTEGER REFERENCES logins ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+   insecurity_type INTEGER NOT NULL,
+   create_time INTEGER NOT NULL,
+   is_muted INTEGER NOT NULL DEFAULT 0,
+   UNIQUE (parent_id, insecurity_type)
+)
+code }
+
+code {
+CREATE INDEX foreign_key_index ON insecure_credentials (parent_id)
+code }
+
+  }
+  { logins
+
+code {
+CREATE TABLE logins (
+   origin_url VARCHAR NOT NULL,
+   action_url VARCHAR,
+   username_element VARCHAR,
+   username_value VARCHAR,
+   password_element VARCHAR,
+   password_value BLOB,
+   submit_element VARCHAR,
+   signon_realm VARCHAR NOT NULL,
+   date_created INTEGER NOT NULL,
+   blacklisted_by_user INTEGER NOT NULL,
+   scheme INTEGER NOT NULL,
+   password_type INTEGER,
+   times_used INTEGER,
+   form_data BLOB, display_name VARCHAR,
+   icon_url VARCHAR,
+   federation_url VARCHAR,
+   skip_zero_click INTEGER,
+   generation_upload_status INTEGER,
+   possible_username_pairs BLOB,
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   date_last_used INTEGER NOT NULL DEFAULT 0,
+   moving_blocked_for BLOB,
+   date_password_modified INTEGER NOT NULL DEFAULT 0,
+   UNIQUE (origin_url, username_element, username_value, password_element, signon_realm)
+)
+code }
+
+  }
+  { logins_signon
+
+code {
+CREATE INDEX logins_signon ON logins (signon_realm)
+code }
+
+  }
+  { meta
+
+code {
+CREATE TABLE logins (
+   origin_url VARCHAR NOT NULL,
+   action_url VARCHAR,
+   username_element VARCHAR,
+   username_value VARCHAR,
+   password_element VARCHAR,
+   password_value BLOB,
+   submit_element VARCHAR,
+   signon_realm VARCHAR NOT NULL,
+   date_created INTEGER NOT NULL,
+   blacklisted_by_user INTEGER NOT NULL,
+   scheme INTEGER NOT NULL,
+   password_type INTEGER,
+   times_used INTEGER,
+   form_data BLOB,
+   display_name VARCHAR,
+   icon_url VARCHAR,
+   federation_url VARCHAR,
+   skip_zero_click INTEGER,
+   generation_upload_status INTEGER,
+   possible_username_pairs BLOB,
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   date_last_used INTEGER NOT NULL DEFAULT 0,
+   moving_blocked_for BLOB,
+   date_password_modified INTEGER NOT NULL DEFAULT 0,
+   UNIQUE (origin_url, username_element, username_value, password_element, signon_realm)
+)
+code }
+
+  }
+  { password_notes
+
+code {
+CREATE TABLE password_notes (
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   parent_id INTEGER NOT NULL REFERENCES logins ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+   key VARCHAR NOT NULL,
+   value BLOB,
+   date_created INTEGER NOT NULL,
+   confidential INTEGER, UNIQUE (parent_id, key)
+)
+code }
+
+code {
+CREATE INDEX foreign_key_index_notes ON password_notes (parent_id)
+code }
+
+  }
+  { stats
+
+code {
+CREATE TABLE stats (
+   origin_domain VARCHAR NOT NULL,
+   username_value VARCHAR,
+   dismissal_count INTEGER,
+   update_time INTEGER NOT NULL, UNIQUE(origin_domain, username_value)
+)
+code }
+
+code {
+CREATE INDEX stats_origin ON stats(origin_domain)
+code }
+
+  }
+  { sync_entities_metadata
+
+code {
+CREATE TABLE sync_entities_metadata (
+   storage_key INTEGER PRIMARY KEY AUTOINCREMENT,
+   metadata VARCHAR NOT NULL
+)
+code }
+
+  }
+
+}
+
+
+
