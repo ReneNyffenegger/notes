@@ -1,0 +1,101 @@
+$ Powershell module: WinGUI
+
+`WinGUI` is a → Windows/PowerShell/language/module[PowerShell module] that allows to manipulate the MS Windows GUI by wrapping the relevant → Windows/development/WinAPI[Win32 API] functions (P/Invoke).
+
+{ Functions
+
+  table { ll
+    `get-childWindows` ☰ An → Windows/PowerShell/language/alias of this function is `enum-childWindows`
+    `get-childWindowsFiltered` ☰ An → Windows/PowerShell/language/alias of this function is `enum-childWindowsFiltered`
+    `get-windowText` ☰
+    `get-windowClassName` ☰
+    `set-windowPos` ☰ Compare with `move-window`
+    `set-windowTopMost` ☰
+    `move-window` ☰ Compare with `set-windowPos`
+    `get-windowRect` ☰
+    `find-window`, `find-windowEx` ☰
+    `send-windowMessage` ☰
+
+  table }
+
+}
+{ Examples
+
+  { Move and resize notepad
+
+    The following example makes sure that exactly *one* → Windows/development/process of `→ Windows/dirs/Windows/System32/notepad_exe` is running and the calls `find-window` to get this process' main window
+    window handle (`$hWnd`).
+
+    It then calls `get-windowRect` to determine the size and position of the window and finally calls `set-windowPos` to move and resize the window:
+    gh|ps-modules-WinGUI|/_examples/move-notepad.ps1||
+
+  }
+  { get-windowText
+
+   `get-windowText` returns a window's title:
+    gh|ps-modules-WinGUI|/_examples/get-windowText.ps1||
+
+  }
+  { Move window to the top left corner
+
+    This examples tries to find a windows whose title maches `xyz` with `enum-childWindowsFiltered`. If it finds *exactly one* window, it uses `move-window` to move the window into
+    the top left corner.
+
+    gh|ps-modules-WinGUI|/_examples/move-top-left.ps1||
+
+  }
+  { enum-childWindows
+
+    This example demonstrates the function `get-childWindows` for hich `enum-childWindows` is an alias.
+
+   `$callback` is a → Windows/PowerShell/language/scriptblock which is called for each (top level) window.
+
+    The script block adds all windows to a (script) variable (`$foundWindows`) whose title is neither `IME` nor `MSCTFIME UI`:
+    gh|ps-modules-WinGUI|/_examples/enum-childWindow.ps1||
+
+  }
+  { enum-childWindowsFiltered
+
+    This example demonstrates the function `get-childWindowsFiltered` for which `enum-childWindowsFiltered` is an alias.
+
+    The function takes a → Windows/PowerShell/language/scriptblock which is invoked for each top level Window. If the script block returns `$true`, the window is added to the list of windows returned by
+   `enum-childWindowsFiltered`.
+
+    This simple script uses the → development/regular-expressions `\d` to find all windows that have a number in their title:
+    gh|ps-modules-WinGUI|/_examples/enum-childWindowFiltered.ps1||
+
+
+  }
+  { set-windowTopMost
+
+    The following example finds a *Snipping Tool* (`→ Windows/dirs/Windows/System32/SnippingTool_exe`) window (whose class name is `Windows/dirs/Windows/System32/SnippingTool_exe`) and makes sure that
+    it is always on visible:
+    gh|ps-modules-WinGUI|/_examples/set-windowTopMost.ps1||
+
+  }
+  { send-windowMessage
+
+    This example sends a `WM_SETTEXT` message to a notepad's `Edit` window:
+    gh|ps-modules-WinGUI|/_examples/send-windowMessage.ps1||
+
+  }
+
+}
+{ Source code
+
+  { WinGUI.psm1
+  
+    gh|ps-modules-WinGUI|/WinGUI.psm1||
+  
+  }
+  { WinGUI.psd1
+  
+    gh|ps-modules-WinGUI|/WinGUI.psd1||
+  
+  }
+
+}
+
+sa:
+
+  → Windows/PowerShell/modules/personal
