@@ -1,81 +1,169 @@
 $ System.Runtime.InteropServices.Marshal (class)
+@ System.Runtime.InteropServices.Marshal
 
 The `System.Runtime.InteropServices.Marshal` class allows to interact with → Microsoft/dot-net/managed-code[managed] memory and
 → Microsoft/dot-net/managed-code#dot-net-interaction-managed-unmanaged[convert between unmanaged and managed] memory etc.
 
-{ Memory allocation and releasing
+{ Methods
 
-  The `Marshal` class provides two (direct) memory allocation methods:
-    • `AllocCoTaskMem` (The «COM task memory allocator»)
-    • `AllocHGlobal` (which allocates → Microsoft/dot-net/managed-code[unmanaged] memory and exposes the WinAPI function `LocalAlloc` from → Windows/dirs/Windows/System32/kernel32_dll[`kernel32.dll`])
-    • `FreeHGlobal` (which frees memory that was allocated with `AllocHGlobal`)
+  { Memory allocation and releasing
 
-  { PtrToXXX
+    The `Marshal` class provides two (direct) memory allocation methods:
+      • `AllocCoTaskMem` (The «COM task memory allocator»)
+      • `AllocHGlobal` (which allocates → Microsoft/dot-net/managed-code[unmanaged] memory and exposes the WinAPI function `LocalAlloc` from → Windows/dirs/Windows/System32/kernel32_dll[`kernel32.dll`])
+      • `FreeHGlobal` (which frees memory that was allocated with `AllocHGlobal`)
 
-    The `PtrToXXX` methods allocate managed memory and fills it with the data that a (unamanged) pointer points at:
-      • `PtrToStringAnsi`
-      • `PtrToStringAuto`
-      • `PtrToStringBSTR`
-      • `PtrToStringUni`
-      • `PtrToStringUTF8`
-      • `PtrToStructure`  (Compare with `StructureToPtr`)
+    { PtrToXXX
+
+      The `PtrToXXX` methods allocate managed memory and fills it with the data that a (unmaanged) pointer points at:
+        • `PtrToStringAnsi`
+        • `PtrToStringAuto`
+        • `PtrToStringBSTR`
+        • `PtrToStringUni`
+        • `PtrToStringUTF8`
+        • `PtrToStructure`  (Compare with `StructureToPtr`)
+    }
+    { StringToXXX
+
+      The `StringToXXX` allocate different «kinds» of unmanaged memory and copies the managed string data to that newly allocated memory:
+        • `StringToBSTR`
+        • `StringToCoTaskMemAnsi`
+        • `StringToCoTaskMemAuto`
+        • `StringToCoTaskMemUni`
+        • `StringToCoTaskMemUTF8`
+        • `StringToHGlobalAnsi`
+        • `StringToHGlobalAuto`
+        • `StringToHGlobalUni`
+
+    }
+    { ReadXXX / WriteXXX
+
+      The `ReadXXX` and `WriteXXXX` methods read 1, 2, 4 or 8 bytes and return a corresponding
+      → Microsoft/dot-net/namespaces-classes/System/Byte[`System.Byte`]
+     `short` (= `System.Int16`?), `System.Int32` etc:
+        • `ReadByte` / `WriteByte`
+        • `ReadInt16` / `WriteInt16`
+        • `ReadInt32` / `WriteByte32`
+        • `ReadInt64` / `WriteByte64`
+        • `ReadIntPtr` / `WriteIntPtr64`
+
+    }
+
   }
-  { StringToXXX
+  { SizeOf #dot-net-Marshal-SizeOf
 
-    The `StringToXXX` allocate different «kinds» of unmanaged memory and copies the managed string data to that newly allocated memory:
-      • `StringToBSTR`
-      • `StringToCoTaskMemAnsi`
-      • `StringToCoTaskMemAuto`
-      • `StringToCoTaskMemUni`
-      • `StringToCoTaskMemUTF8`
-      • `StringToHGlobalAnsi`
-      • `StringToHGlobalAuto`
-      • `StringToHGlobalUni`
+    `SizeOf` comes in four overloads. This method returns the size of the (unmanaged) bytes that a managed byte in fact requires to store its data:
+      • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Object[Object])`
+      • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Type[Type])`
+      • `SizeOf<T>()`
+      • `SizeOf<T>(T)`
 
   }
-  { ReadXXX / WriteXXX
-  
-    The `ReadXXX` and `WriteXXXX` methods read 1, 2, 4 or 8 bytes and return a corresponding
-    → Microsoft/dot-net/namespaces-classes/System/Byte[`System.Byte`]
-   `short` (= `System.Int16`?), `System.Int32` etc:
-      • `ReadByte` / `WriteByte`
-      • `ReadInt16` / `WriteInt16`
-      • `ReadInt32` / `WriteByte32`
-      • `ReadInt64` / `WriteByte64`
-      • `ReadIntPtr` / `WriteIntPtr64`
+  { GetActiveObject #interop-GetActiveObject
+
+    The `GetActiveObject(progid)` method tries to locate an object with the given progid in the → Windows/development/COM#com-rot and returns the corresponding
+    → Windows/development/COM/object if it was found. If such an object is not found, a `System.Runtime.InteropServices.COMException` is thrown.
+
+    The following → Windows/PowerShell example makes sure that the script does not start an additional → Microsoft/Office/Excel instance.
+
+    gh|.NET-API|/System/Runtime/InteropServices/Marshal/GetActiveObject/check-if-object-exists.ps1||
+
+    The VBA equivalent of `GetActiveObject()` seems to be → development/languages/VBA/functions/getObject[`getObject()`]
+
+    In → Microsoft/dot-net/implementations/Core, there is no `GetActiveObject()` method anymore, so this functionality must be accessed with
+    → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/GetActiveObject[P/Invoke].
 
   }
+  { COM related methods
 
+     → Windows/development/COM related → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_COM[COM methods] include:
+       • `AddRef` and its counterpart `Release`
+       • `GetComInterfaceForObject` (returns `IntPtr`)
+       • `GetIUnknownForObject` (returns `IntPtr`)
+       • `GetIDispatchForObject` (returns `IntPtr`)
+       • `QueryInterface`
+       • `GetEndComSlot`
+       • `IsComObject`
+       • `GetObjectForIUnknown`
+
+  }
+  { Other methods
+
+   table { ll
+
+     `AreComObjectsAvailableForCleanup()` ☰
+     `BindToMoniker()` ☰
+     `ChangeWrapperHandleStrength()` ☰
+     `CleanupUnusedObjectsInCurrentContext()` ☰
+     `Copy()` ☰
+     `CreateAggregatedObject()` ☰
+     `CreateWrapperOfType()` ☰
+     `DestroyStructure()` ☰
+     `FinalReleaseComObject()` ☰
+     `FreeBSTR()` ☰
+     `FreeCoTaskMem()` ☰
+     `GenerateGuidForType()` ☰
+     `GenerateProgIdForType()` ☰
+     `GetComObjectData()` ☰
+     → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_functionPointer-Delegate[`GetDelegateForFunctionPointer()`] and → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_functionPointer-Delegate[`GetFunctionPointerForDelegate()`] ☰ converts an → Microsoft/dot-net/managed-code[unmanaged] → development/languages/C-C-plus-plus/C/language/datatypes/pointer/function[function pointer] to a → Microsoft/dot-net/namespaces-classes/System/Delegate[`System.Delegate`] and vice versa
+     `GetExceptionCode()` ☰
+     `GetExceptionForHR()` ☰
+     `GetExceptionPointers()` ☰
+     `GetHINSTANCE()` ☰
+     `GetHRForException()` ☰
+     `GetHRForLastWin32Error()` ☰
+     `GetLastPInvokeError()` ☰
+     `GetLastSystemError()` ☰
+     `GetLastWin32Error()` ☰
+     `GetNativeVariantForObject()` ☰
+     `GetObjectForNativeVariant()` ☰
+     `GetObjectsForNativeVariants()` ☰
+     `GetStartComSlot()` ☰
+     `GetTypedObjectForIUnknown()` ☰
+     `GetTypeFromCLSID()` ☰
+     `GetTypeInfoName()` ☰
+     `GetUniqueObjectForIUnknown()` ☰
+     `InitHandle()` ☰
+     `IsTypeVisibleFromCom()` ☰
+     `OffsetOf()` ☰
+     `Prelink()` ☰
+     `PrelinkAll()` ☰
+     `ReAllocCoTaskMem()` ☰
+     `ReAllocHGlobal()` ☰
+     `ReleaseComObject()` ☰
+     `SecureStringToBSTR()` ☰
+     `SecureStringToCoTaskMemAnsi()` ☰
+     `SecureStringToCoTaskMemUnicode()` ☰
+     `SecureStringToGlobalAllocAnsi()` ☰
+     `SecureStringToGlobalAllocUnicode()` ☰
+     `SetComObjectData()` ☰
+     `SetLastPInvokeError()` ☰
+     `SetLastSystemError()` ☰
+     `StructureToPtr()` ☰
+     `ThrowExceptionForHR()` ☰
+     `UnsafeAddrOfPinnedArrayElement()` ☰
+     `ZeroFreeBSTR()` ☰
+     `ZeroFreeCoTaskMemAnsi()` ☰
+     `ZeroFreeCoTaskMemUnicode()` ☰
+     `ZeroFreeCoTaskMemUTF8()` ☰
+     `ZeroFreeGlobalAllocAnsi()` ☰
+     `ZeroFreeGlobalAllocUnicode()` ☰
+
+    table }
+
+  }
 }
-{ SizeOf #dot-net-Marshal-SizeOf
+{ Properties
 
-  `SizeOf` comes in four overloads. This method returns the size of the (unamaged) bytes that a managed byte in fact requires to store its data:
-    • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Object[Object])`
-    • `SizeOf(→ Microsoft/dot-net/namespaces-classes/System/Type[Type])`
-    • `SizeOf<T>()`
-    • `SizeOf<T>(T)`
 
-}
-{ GetActiveObject #interop-GetActiveObject
-
-  The `GetActiveObject(progid)` method tries to locate an object with the given progid in the → Windows/development/COM#com-rot and returns the corresponding
-  → Windows/development/COM/object if it was found. If such an object is not found, a `System.Runtime.InteropServices.COMException` is thrown.
-
-  The following → Windows/PowerShell example makes sure that the script does not start an additional → Microsoft/Office/Excel instance.
-
-  gh|.NET-API|/System/Runtime/InteropServices/Marshal/GetActiveObject/check-if-object-exists.ps1||
-
-  The VBA equivalent of `GetActiveObject()` seems to be → development/languages/VBA/functions/getObject[`getObject()`]
-
-  In → Microsoft/dot-net/implementations/Core, there is no `GetActiveObject()` method anymore, so this functionality must be accessed with
-  → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/GetActiveObject[P/Invoke].
+  → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_CharSize[`SystemDefaultCharSize` and `SystemMaxDBCSCharSize`] correspond to the size of a
+  `→ Microsoft/dot-net/namespaces-classes/System/Char` and the maximum size of the double byte character set (DBCS) in the current system
 
 }
 
 
 sa:
 
-  → Windows/development/COM related → Microsoft/dot-net/namespaces-classes/System/Runtime/InteropServices/Marshal/_COM[methods in `Marshal`]
 
   → Microsoft/dot-net/namespaces-classes/System/Security/SecureString#SecureString-get-value[This example] shows how the static method `SecureStringToBSTR` can be used to
   get the value of a secure string.
