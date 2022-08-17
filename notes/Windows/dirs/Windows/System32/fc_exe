@@ -22,7 +22,32 @@ $ fc.exe
 
 }
 
-sa:
-  → Windows/dirs/Windows/System32/comp_exe[`comp.exe`]
+{ Suppress FC: no differences encountered
 
-  Some → Microsoft/Office versions come with → Windows/dirs/Program-Files/Microsoft-Office/root/OfficeN/DCF/filecompare_exe[`filecompare.exe`] which also allows to compare two text files.
+ `fc.exe` does not operate silently, that is, unlike the Unix shell command `→ Linux/shell/commands/diff`, it explicitely prints *FC: no differences encountered* even if the two compared files
+  are equal.
+
+  However, `fc.exe` sets the exit value to 0 if the files are equal ant to 1 if they differ. Because the exit value can be queried through the variable
+  → Windows/dirs/Windows/System32/cmd_exe/variables/errorlevel[`%errorlevel%`], this allows to write a → Windows/dirs/Windows/System32/cmd_exe/batch-files which compares two files and
+  remains silent if they're equal (by redirecting the output of `fc` to `nul`)
+code {
+→ Windows/dirs/Windows/System32/cmd_exe/commands/echo off
+→ Windows/dirs/Windows/System32/cmd_exe/commands/set file1=%1
+→ Windows/dirs/Windows/System32/cmd_exe/commands/set file2=%2
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/if "%file2%" == "" (echo diff.bat file-1 file-2 && exit /b)
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/if#cmd-if-exist[if not exist] "%file1%" (echo %file1% does not exist && exit /b)
+→ Windows/dirs/Windows/System32/cmd_exe/commands/if#cmd-if-exist[if not exist] "%file2%" (echo %file2% does not exist && exit /b)
+
+fc.exe "%file1% "%file2%" > nul
+if %errorlevel% neq 0 ( echo %file1% differs from %file2% )
+code }
+
+}
+
+sa:
+
+ `→ Windows/dirs/Windows/System32/comp_exe`
+
+  Some → Microsoft/Office versions come with `→ Windows/dirs/Program-Files/Microsoft-Office/root/OfficeN/DCF/filecompare_exe` which also allows to compare two text files.
