@@ -1,7 +1,48 @@
 $ System.Management.Automation.SwitchParameter (struct)
+@ System.Management.Automation.SwitchParameter
 
 `System.Management.Automation.SwitchParameter` is used for → Windows/PowerShell/language/statement/function/parameters/switch[`switch` parameters] in → Windows/PowerShell.
 
 This type inherits from → Microsoft/dot-net/namespaces-classes/System/ValueType[`System.ValueType`].
 
 This type can be «abbreviated» with the `[switch]` → Windows/PowerShell/language/object/type/accelerators[type accelerator].
+
+
+{ No difference between IsPresent and explicit cast operator in a function
+
+  When using a switch parameter, there is no difference between using `IsPresent` or reliying on the explicit cast operator of a `[switch]` parameter, both evaluate to either `True` or `False`:
+code {
+$p1 = new-object System.Management.Automation.SwitchParameter
+$p2 = new-object System.Management.Automation.SwitchParameter $false
+$p3 = new-object System.Management.Automation.SwitchParameter $true
+
+$p1.IsPresent  # False
+$p2.IsPresent  # False
+$p3.IsPresent  # True
+
+[bool] $p1     # False
+[bool] $p2     # False
+[bool] $p3     # True
+code }
+
+  More or less the same thing as above, but using a «real» `[switch]` parameter:
+code {
+function f {
+   param (
+     [switch] $p
+   )
+
+ # $p.GetType().FullName # -> System.Management.Automation.SwitchParameter
+   "{0,-5} {1}" -f $p.IsPresent, [bool] $p
+
+}
+
+f             # False False
+f -p          # True  True
+f -p:$true    # True  True
+f -p:$false   # False False
+code }
+
+  In order to check if a `[switch`] parameter was explicitely set when the function was invoked, `→ Windows/PowerShell/language/variable/automatic/psBoundParameters[$psBoundParameters].ContainsKey('p')` needs to be used.
+
+}
