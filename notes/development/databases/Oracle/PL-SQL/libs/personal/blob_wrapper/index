@@ -1,12 +1,90 @@
 $ Oracle: PL/SQL package BLOB_WRAPPER
 
-gh|PL-SQL-pkg-blob_wrapper|/spec.plsql||
+The PL/SQL package `blob_wrapper` is basically a wrapper around `→ development/databases/Oracle/installed/packages/dbms/lob`.
+-
+I *believe* I wrote this package around 2005 when I found it too tedious to write blobs to a file or read blobs from a file.
 
-gh|PL-SQL-pkg-blob_wrapper|/body.plsql||
+{ Functions and procedures
 
-gh|PL-SQL-pkg-blob_wrapper|/_test/01_create_circle.txt.sql||
-gh|PL-SQL-pkg-blob_wrapper|/_test/02_read_write_circle.txt.sql||
-gh|PL-SQL-pkg-blob_wrapper|/_test/03_read_circle.txt_into_table.sql||
-gh|PL-SQL-pkg-blob_wrapper|/_test/04_table_to_file.sql||
-gh|PL-SQL-pkg-blob_wrapper|/_test/05_to_file_2_params.sql||
-gh|PL-SQL-pkg-blob_wrapper|/_test/10_substr.sql||
+  table { ll
+    `to_file` ☰ Write a blob to a file
+    `from_file` ☰ Read a blob from a file (function and procedure)
+    `substr` ☰
+  table }
+
+}
+
+{ Source code
+
+  { Specification
+
+    gh|PL-SQL-pkg-blob_wrapper|/spec.plsql||
+
+  }
+  { Body
+
+    gh|PL-SQL-pkg-blob_wrapper|/body.plsql||
+
+  }
+
+}
+{ Write a BLOB into a file
+
+  This is an example on how `blob_wrapper` can be used to write a → development/databases/Oracle/SQL/data-types/lob[`blob`] into a file.
+
+  This example creates an (ASCII) blob that contains a circle (made of 'X'es) whose radius is specified through the parameter radius. The circle is printed into a rectangle (made of spaceses)
+  whose width and heigth are controlled through the parameter `out_width`. The blob is then written into a file whose name is specifed through the parameter file:
+
+ *Note*: the resulting width and height can differ by 1 from the size passed. In the following case, I specify 400 for the width, but the resulting file will have 401 lines with 402 characters each (401 'X'es or ' 'es plus chr(10) as line terminator).
+
+rem {
+  First, a `blob` is created that consists of 400 lines with 400 characters each (`out_width`). The characters in the blob are either x'es or spaces, so that the x'es create a circle.
+rem }
+
+  Finally, the blob is written into a file (`blob_wrapper.to_file(…)`)
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/01_create_circle.txt.sql||
+
+}
+{ Read content from a file into a blob
+
+  This is an example on how `blob_wrapper` can be used to read the content of a file into a blob. (`blob_wrapper.from_file`).
+
+  The file that was created with the first example (`circle.txt`) is read into a blob. If the size (i.e. length) of the blob is different from the epxected size, a warning is printed.
+
+  Finally, the blob is written to a new file: `circle_new.txt`.
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/02_read_write_circle.txt.sql||
+
+}
+{ Read content from a file into a table
+
+  This is an example to demonstrate how `blob_wrapper` can be used to read the content of a file into a → development/databases/Oracle/objects/tables.
+
+rem {
+  The file that is read into the table was created with this script
+rem }
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/03_read_circle.txt_into_table.sql||
+
+}
+{ Write content of a table to a file
+
+  This is an example on how `blob_wrapper` can be used to write the content of a blob in a table into a file.
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/04_table_to_file.sql||
+
+}
+{ Writing a blob to a file with a single line of code
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/05_to_file_2_params.sql||
+
+}
+{ substring
+
+  gh|PL-SQL-pkg-blob_wrapper|/_test/10_substr.sql||
+
+}
+
+sa:
+  `blob_wrapper` is used in the example that demonstrates the → http://www.adp-gmbh.ch/blog/2005/november/22.html[creation of bitmaps (BMPs) with PL/SQL].
