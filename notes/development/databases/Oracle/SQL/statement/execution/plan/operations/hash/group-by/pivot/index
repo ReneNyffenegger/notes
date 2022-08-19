@@ -1,5 +1,102 @@
 $ Oracle SQL Plan operation HASH (GROUP BY PIVOT)
 
+{ HASH (GROUP BY PIVOT) vs SORT AGGREGATE
+
+  A → development/databases/Oracle/SQL/select/pivot[select statement with a `pivot` clause] might employ a
+ `→ development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate` or a
+ `HASH GROUP BY PIVOT`, apparently depending on the number of non-pivotized → development/databases/Oracle/objects/tables/columns[columns].
+
+  In order to demonstrate the difference, two tables are created, one with two columns, one with three columns:
+code {
+create table tq84_A (
+   grp  char  (1  ),
+   val  number(3,1)
+);
+
+create table tq84_B (
+   grp  char  (1  ),
+   cat  char  (1  ),
+   val  number(3,1)
+);
+code }
+
+  Data is inserted into the ables and the → development/databases/Oracle/optimizer/statistics[table statistics] are gathered:
+code {
+begin
+   insert into tq84_A values ('A',      66.1);
+   insert into tq84_A values ('B',      20.2);
+   insert into tq84_A values ('C',      74.8);
+   insert into tq84_A values ('C',      52.3);
+   insert into tq84_A values ('A',      26.8);
+   insert into tq84_A values ('C',      43.3);
+   insert into tq84_A values ('B',       7.1);
+   insert into tq84_A values ('B',      25.2);
+
+   insert into tq84_B values ('A', 'X', 66.1);
+   insert into tq84_B values ('B', 'Y', 20.2);
+   insert into tq84_B values ('C', 'Y', 74.8);
+   insert into tq84_B values ('C', 'X', 52.3);
+   insert into tq84_B values ('A', 'Y', 26.8);
+   insert into tq84_B values ('C', 'X', 43.3);
+   insert into tq84_B values ('B', 'X',  7.1);
+   insert into tq84_B values ('B', 'X', 25.2);
+  
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_B');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_A');
+end;
+/
+code }
+
+  A query with a `pivot` clause is explained for each of the two tables and the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] displayed:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   *
+from
+   tq84_A pivot (
+      sum(val) for grp in ('A' sum_a, 'B' sum_b, 'C' sum_c)
+   );
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view               |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |        |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- --------------------------------------
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+  *
+from
+   tq84_B pivot (
+      sum(val) for grp in ('A' sum_a, 'B' sum_b, 'C' sum_c)
+   );
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |        |
+-- |   1 |  HASH GROUP BY PIVOT|        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_B |
+-- --------------------------------------
+code }
+
+  Cleaning up:
+code {
+drop   table tq84_A;
+drop   table tq84_B;
+code }
+
+}
+
+{ Another example
+
 code {
 create table tq84_tab (
    val   number,
@@ -55,6 +152,8 @@ select * from table(dbms_xplan.display(format=>'basic'));
 
 drop table tq84_tab;
 code }
+
+}
 
 sa:
   The → development/databases/Oracle/SQL/statement/execution/plan/operations[plan operation]

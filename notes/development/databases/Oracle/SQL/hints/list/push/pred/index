@@ -3,5 +3,152 @@ $ Oracle hint: PUSH_PRED
 
 The `push_pred` → development/databases/Oracle/SQL/hints is on → development/databases/Oracle/SQL/hints#ora-hint-jl-big-5[Jonathan Lewis' list of the Big Five Hints].
 
+{ NO_PUSH_PRED
+
+  The `no_push_pred` → development/databases/Oracle/SQL/hints prevents the pushing of a predicate from an outer → development/databases/Oracle/SQL/statement/query-block into the contained inner query block.
+  
+  The following example tries to demonstrate this hint.
+
+  We need some test tables with test data:
+code {
+create table tq84_O (val_i number(2), sel varchar2(6));
+create table tq84_I (id number, pad varchar2(250));
+
+insert into tq84_O
+select
+   mod(level, 100),
+   to_char(level * 1234, 'fmxxxxxx')
+from
+   dual connect by level <= 1000;
+
+
+insert into tq84_I
+select
+   mod(level * 5, 100),
+   rpad('*', 250, '*')
+from
+   dual connect by level <= 1000;
+   
+create index tq84_I_ix on tq84_I(id);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_O');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_I');
+end;
+/
+code }
+
+  Without using a hint in the following SQL statement, the → development/databases/Oracle/optimizer pushes the predicate `o.sel = '1c9ee'` into the inner query block which uses the index (`INDEX RANGE SCAN`) to access
+  the relevant rows only:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   o.val_i,
+   i.cnt
+from
+  tq84_O o   join
+ (select
+     id,
+     count(*) cnt
+  from
+     tq84_I
+  → development/databases/Oracle/SQL/select/group-by
+     id
+ ) i on
+  o.val_i = i.id
+where
+  o.sel = '1c9ee';
+     
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic'));
+--
+-- ---------------------------------------------
+-- | Id  | Operation               | Name      |
+-- ---------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select        |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops           |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]     | TQ84_O    |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view-pushed-predicate |           |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/filter               |           |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate      |           |
+-- |   6 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan   | TQ84_I_IX |
+-- ---------------------------------------------
+code }
+
+  The following statement uses the `no_push_pred` hint in the outer query block and has to specify the name of the alias of the inner query block into which the predicate is *not* to be pushed.
+  -
+  The inner query block still uses the index, but mulitple times (NESTED LOOPS):
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_push_pred(i) */
+   o.val_i,
+   i.cnt
+from
+  tq84_O o   join
+ (select
+     id,
+     count(*) cnt
+  from
+     tq84_I
+  → development/databases/Oracle/SQL/select/group-by
+     id
+ ) i on
+  o.val_i = i.id
+where
+  o.sel = '1c9ee';
+     
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation           | Name      |
+-- -----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by      |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops      |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_O    |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan | TQ84_I_IX |
+-- -----------------------------------------
+code }
+
+  It's also possible to specify the hint in the *inner* query block, in this case without alias:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   o.val_i,
+   i.cnt
+from
+  tq84_O o   join
+ (select /*+ no_push_pred */
+     id,
+     count(*) cnt
+  from
+     tq84_I
+  → development/databases/Oracle/SQL/select/group-by
+     id
+ ) i on
+  o.val_i = i.id
+where
+  o.sel = '1c9ee';
+     
+select * from table(dbms_xplan.display(format => 'basic'));
+--
+-- -----------------------------------------
+-- | Id  | Operation           | Name      |
+-- -----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by      |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops      |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_O    |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan | TQ84_I_IX |
+-- -----------------------------------------
+code }
+
+  Cleaning up
+code {
+drop table tq84_O;
+drop table tq84_I;
+code }
+
+}
+
 sa:
   → development/databases/Oracle/SQL/clauses/where
