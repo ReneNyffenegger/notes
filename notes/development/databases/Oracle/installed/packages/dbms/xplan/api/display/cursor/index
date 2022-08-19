@@ -80,8 +80,28 @@ code }
   → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`], `v$sql_plan` and `v$sql_shard`.
 
 }
-{ Warning: basic plan statistics not available
+{ Slim report: showing starts and actual rows only
 
+  Adding `rowstats` to the `format` parameter shows *actual rows* (`A-Rows`) and *expected rows* (`E-Rows`). The `-rows` instructs the to remove the `E-Rows` column from the report.
+
+code {
+select /*+ monitor */
+   dummy
+from
+   dual;
+
+select * from table(dbms_xplan.display_cursor(format => 'rowstats -rows last'));
+--
+-- ----------------------------------------------------
+-- | Id  | Operation         | Name | Starts | A-Rows |
+-- ----------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select  |      |      1 |      1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| DUAL |      1 |      1 |
+-- ----------------------------------------------------
+code }
+
+}
+{ Warning: basic plan statistics not available
 
 code {
 → development/databases/Oracle/SQL-Plus/set/serveroutput[set serveroutput] off

@@ -1,0 +1,63 @@
+$ Oracle: Execution plan for subquery in WHERE clause
+
+code {
+set serveroutput off
+
+drop table tq84_A;
+create table tq84_A (
+   id        integer,
+   grp       char(1),
+   val       number(3,1)
+);
+
+begin
+   insert into tq84_A values (1, 'A', 21.4);
+   insert into tq84_A values (2, 'A',  7.1);
+   insert into tq84_A values (3, 'B', 55.9);
+   insert into tq84_A values (4, 'B', 36.8);
+   insert into tq84_A values (5, 'B', 15.8);
+   insert into tq84_A values (6, 'C', 62.4);
+
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+end;
+/
+
+select /*+ monitor qb_name(main) */
+   *
+from
+  tq84_A a
+where
+  id = (select /*+ qb_name(sub) */ min(i.id) from tq84_A i where i.grp = a.grp);
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor(format => 'rowstats -rows alias last'));
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation            | Name    | Starts | A-Rows |
+-- ----------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |         |      1 |      3 |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join           |         |      1 |      3 |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view               | VW_SQ_1 |      1 |      3 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash/group-by     |         |      1 |      3 |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A  |      1 |      6 |
+-- |   5 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_A  |      1 |      6 |
+-- ----------------------------------------------------------
+--
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--
+--    1 - SEL$43BFB197
+--    2 - SEL$75CB63B7 / VW_SQ_1@SEL$EDD5E67B
+--    3 - SEL$75CB63B7
+--    4 - SEL$75CB63B7 / I@SUB
+--    5 - SEL$43BFB197 / A@MAIN
+--
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--
+--    1 - access("ID"="MIN(I.ID)" AND "ITEM_1"="A"."GRP")
+code }
+
+sa:
+  → development/databases/Oracle/SQL/clauses/where/subquery[Subqueries in `where` clauses]
+
+  → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plans]
