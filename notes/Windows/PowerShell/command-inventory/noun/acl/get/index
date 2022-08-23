@@ -13,6 +13,42 @@ $ PowerShell cmdLet Get-Acl
   All of these types inherit either directly or indirectly from → Microsoft/dot-net/namespaces-classes/System/Security/AccessControl/NativeObjectSecurity[`System.Security.AccessControl.NativeObjectSecurity`].
 
 }
+{ Example for GetAccessRules()
+
+code {
+$acl = get-acl 'hklm:\SOFTWARE\Microsoft\Windows Defender\Features'
+
+$includeExplicit   = $true
+$includeInheritied = $true
+$targetType        = [System.Security.Principal.NTAccount] # or [System.Security.Principal.SecurityIdentifier]
+
+foreach ($rule in $acl.GetAccessRules($includeExplicit, $includeInheritied, $targetType)) {
+
+   $rule.IdentityReference
+
+   if        ( $rule.RegistryRights -band [System.Security.AccessControl.RegistryRights]::FullControl ) {
+      '  FullControl'
+   } else {
+
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::ChangePermissions) { '  Change permissions'}
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::CreateLink       ) { '  Create link'       }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::CreateSubKey     ) { '  Create subkey'     }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::Delete           ) { '  Delete'            }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::EnumerateSubKeys ) { '  Enumerate subkeys' }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::Notify           ) { '  Notify'            }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::QueryValues      ) { '  Query values'      }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::ReadPermissions  ) { '  Read permissions'  }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::SetValue         ) { '  Set value'         }
+     if ($rule.RegistryRights -and [System.Security.AccessControl.RegistryRights]::TakeOwnership    ) { '  Take ownership'    }
+
+   }
+
+   ''
+
+}
+code }
+
+}
 
 sa:
 
