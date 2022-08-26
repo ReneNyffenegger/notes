@@ -14,11 +14,41 @@ The SYSTEM account has full control over all files in an → Windows/file-system
   Some objects, such as the registry keys → Windows/registry/tree/HKEY_LOCAL_MACHINE/SAM[`HKEY_LOCAL_MACHINE\SAM`] and → Windows/registry/tree/HKEY_LOCAL_MACHINE/SECURITY[`HKEY_LOCAL_MACHINE\SECURITY`]
   can only be accessed by SYSTEM.
 
-  A possibility to become SYSTEM is to use the → Windows/tools/Sysinternals tool → Windows/tools/Sysinternals/PsExec64[`PsExec` or `PsExec64`]:
+  { Sysinternals/PsExec64
+
+    A possibility to become SYSTEM is to use the → Windows/tools/Sysinternals tool → Windows/tools/Sysinternals/PsExec64[`PsExec` or `PsExec64`]:
 code {
 → Windows/tools/Sysinternals/PsExec64#psexec-become-SYSTEM[PsExec64 -s -i] cmd.exe
 code }
 
-  Another *hack* is to → Windows/dirs/Windows/System32/Utilman_exe#Utilman-replace-cmd[replace `Utilman.exe` with `cmd.exe`].
+  }
+  { Starting cmd.exe instead of osk.exe
+
+    The registry key `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Image-File-Execution-Options/progName_exe` allows to set a
+    → development/debugging[debugger] to be started when `progName.exe` is invoked.
+
+    The following change in the registry defines `→ Windows/dirs/Windows/System32/cmd_exe` as debugger for `→ Windows/dirs/Windows/System32/osk_exe`:
+    gh|about-Windows-Registry|/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/Image File Execution Options/osk.exe-debugger-cmd.exe.ps1||
+
+    Now, we need to have Windows (i. e. `SYSTEM`) to start `osk.exe`. This can be achieved by having the → Windows/security/User-account-control[UAC prompt] displayed, for example by starting
+   `→ Windows/dirs/Windows/regedit_exe`.
+
+    When the UAC prompt is shown, the → Windows/keyboard-shortcuts[Windows shortcut key] `Windows + O` allows to select *On-screen keyboard*. This selection starts `osk.exe`, but since a debugger, `cmd.exe` is defined for this executable, the debugger,
+    i. e. `cmd.exe` is started as `SYSTEM`:
+code {
+C:\Windows\System32> → Windows/dirs/Windows/System32/whoami_exe[whoami]
+nt authority\system
+code }
+
+    It must be noted that the registry keys below `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Image-File-Execution-Options` are protected by → Windows/security/defender[Defender]. So, in order to
+    be able to change the value, the respectice Defender Setting must be disabled under
+    → Windows/settings/Update-Security/Windows-Security/Virus-and-Thread-protection/Tamper-protection[Settings -> Update & Security -> Windows Security -> Virus & Threat protection -> Tamper protection] by turning off *Real-time protection*.
+
+  }
+  { Utilman.exe
+
+    Another *hack* is to → Windows/dirs/Windows/System32/Utilman_exe#Utilman-replace-cmd[replace `Utilman.exe` with `cmd.exe`].
+
+  }
 
 }
