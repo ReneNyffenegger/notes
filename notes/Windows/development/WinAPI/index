@@ -40,6 +40,20 @@ The default calling convention for the Win32 API is → development/languages/C-
 
 
 }
+{ Strings
+
+  The Win32 API expects strings to be NULL-terminated while the Native API expects the length of a string.
+
+  For example, → http://undocumented.ntinternals.net/index.html?page=UserMode%2FUndocumented%20Functions%2FNT%20Objects%2FKey%2FNtCreateKey.html[`NtCreateKey`] gets a pointer to a
+  → https://docs.microsoft.com/en-us/windows/win32/api/subauth/ns-subauth-unicode_string[`UNICODE_STRING` struct] which has the member `Length`, while
+  → https://docs.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regcreatekeyexw[`RegCreateKeyExW`] gets an «ordinary» `LPCWSTR`.
+
+  This has the interesting consquence that → https://stackoverflow.com/a/1721639/180275[`RegCreateKeyExW` cannot be used to create a registry key with a zero character] although
+  such keys are possible if created with `NtCreateKey`.
+
+  This behavior also gives rise to the → Windows/tools/Sysinternals tool → https://docs.microsoft.com/en-us/sysinternals/downloads/reghide[`RegHide`].
+
+}
 { No hooking functionality
 
   Windows does not natively provide a system call → development/Reverse-engineering/Hooking[hooking] facility like → Linux/kernel/syscalls/ptrace[`ptrace`] on → Linux.
@@ -54,7 +68,6 @@ The default calling convention for the Win32 API is → development/languages/C-
   { WinRT
 
    *Windows Runtime* (=WinRT) is an alternative API, implemented in → development/languages/C-C-plus-plus/CPP, within the Win32 subsystem.
-
 
     WinAPI is the underlying technology of WinRT
 
