@@ -1,4 +1,4 @@
-$ PowerShell cmdLet get-counter
+$ PowerShell cmdLet Get-Counter
 
 code {
 (get-counter '\Process(*)\% Processor Time').CounterSamples
@@ -6,6 +6,29 @@ code {
 (get-counter '\Process(powershell*)\% Processor Time').CounterSamples
 code }
 
+{ Returned object
+
+  When not using `-listSet` (or other parameters?), `get-counter` returns a `→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/GetCounter/PerformanceCounterSampleSet` object:
+code {
+PS C:\> (get-counter '\Process(powershell#2)\Working Set').getType().FullName
+Microsoft.PowerShell.Commands.GetCounter.PerformanceCounterSampleSet
+code }
+
+}
+{ -listSet
+
+  Invoking `get-counter` with the option `-listSet` returns an array of `→ Microsoft/dot-net/namespaces-classes/Microsoft/PowerShell/Commands/GetCounter/CounterSet` objects.
+
+code {
+(get-counter -listSet *) | → Windows/PowerShell/command-inventory/noun/object/select counterSetName | → Windows/PowerShell/command-inventory/noun/object/sort counterSetName
+
+$procCnt = get-counter -listSet processor
+
+$procCnt.Paths
+$procCnt.PathsWithInstances
+code }
+
+}
 { Find processor intensive processes #get-counter-process-intensive-processes
 
   Apparently, it's not possible(?) to find → Windows/development/process[processes] that use much CPU with the cmdlet → Windows/PowerShell/command-inventory/noun/process/get[`get-process`].
@@ -15,6 +38,21 @@ code {
 (get-counter '\Process(*)\% Processor Time').counterSamples |
   → Windows/PowerShell/command-inventory/noun/object/sort[sort-object] cookedValue -desc |
   → Windows/PowerShell/command-inventory/noun/object/select[select-object] -first 10
+code }
+
+}
+{ Multiple processes
+
+  The `\Process(…)` related counted are indexed by process image name, not by the → Windows/development/process/identifer[process id]. Thus, the following command reports only one Powershell process's working set
+  even if multiple Powershell process are running:
+code {
+(get-counter '\Process(powershell)\Working Set').counterSamples.cookedVAlue / 1mb
+code }
+
+  In order to get the individual processes's numbers, the process name can be indexed with `#0`, `#1` etc:
+code {
+(get-counter '\Process(powershell#0)\Working Set').counterSamples.cookedVAlue / 1mb
+(get-counter '\Process(powershell#1)\Working Set').counterSamples.cookedVAlue / 1mb
 code }
 
 }
