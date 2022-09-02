@@ -115,7 +115,19 @@ code }
 }
 { -useBasicParsing #ps-invoke-webRequest-useBasicParsing
 
-  → https://stackoverflow.com/a/38054505/180275[Apparently], using `-useBasicParsing` is necessary on systems where IE is not installed or configured.
+  → https://stackoverflow.com/a/38054505/180275[Using `-useBasicParsing` is necessary] on systems where IE is not installed or configured (for example after a fresh installation of Windows where Internet Explorer
+  was not launched for a first time, or on a Server Core installation of Windows Server).
+  -
+  On such systems, `invoke-webRequest` throws the error message
+ "
+   The response content cannot be parsed because the Internet Explorer engine is not available, or Internet Explorer's first-launch configuration is not complete.
+   Specify the UseBasicParsing parameter and try again.
+ "
+
+  On a non-Windows Server machine, the following modification in the → Windows/registry allows to use `invoke-webRequest` without starting Internet Explorer:
+code {
+→ Windows/PowerShell/command-inventory/noun/itemProperty/set[set-itemProperty] -path "→ Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/Main[HKCU:\SOFTWARE\Microsoft\Internet Explorer\Main]" -Name "DisableFirstRunCustomize" -Value 2
+code }
 
 }
 { The underlying connection was closed …
