@@ -1,0 +1,86 @@
+$ Overpass API: functions
+
+table { ll
+   `angle()` ☰ Calculates angle between two segments in a way
+   `center(…)` ☰ Calculates centre of the bounding box of its input
+   `changeset()` ☰ Returns the id of the changeset for last update to an object
+   `count(…)` ☰ Count objects of the type specified in its parameter, which will be one of nodes, ways, relations, deriveds, nwr, nw, wr, nr
+   `count_by_role()` ☰ Count number of members with a specific role
+   `count_distinct_members()` ☰ Count number of distinct members
+   `count_distinct_by_role()` ☰ Count number of distinct members with a specific role
+   `count_members()` ☰ Count number of members for an object
+   `count_tags()` ☰ Count tags for an object
+   `date(…)` ☰ Turns its argument into a number representing a date, for comparison purposes only
+   `gcat(…)` ☰ Calculate combined geometry from its input set
+   `geom()` ☰ Returns geometry of an object
+   `hull(…)` ☰ Returns the convex hull of its argument
+   `id()` ☰ Returns OSM id of an object
+   `is_closed()` ☰ Returns 1 if a way is closed, 0 others. Closed means the first and last node are the same.
+   `is_date(…)` ☰ Tests whether its argument represents a date
+   `is_number(…)` ☰ Returns 1/0 depending on which its argument is a number
+   `is_tag("name")` ☰ Returns 1 if an object has a tag called name. Otherwise 0. Compare with `t`.
+   `keys()` ☰ Returns keys for a given object
+   `lat()` ☰ Latitude of an object (or its bounding box centroid)
+   `length()` ☰ Returns length of an object. Will be length of a way or all ways in a relation
+   `lon()` ☰ Longitude of an object (or its bounding box centroid)
+   `lrs_in(…,...)` ☰ Returns 1 if its first argument is contained in the set provided as a second argument
+   `lrs_isect(…,...)` ☰ Returns the intersection of its two arguments, treated as sets
+   `lrs_min(…)` ☰ Returns the minimum of the elements in its argument
+   `lrs_max(…)` ☰ Returns the maximum of the elements in its argument
+   `lrs_union(…,...)` ☰ Returns the union of its two arguments, treated as sets
+   `lstr(..,..)` ☰ Returns linestring constructed from its arguments
+   `min(…)` ☰ Returns minimum value in the set provided as a parameter
+   `max(…)` ☰ Returns maximum value in the set provided as a parameter
+   `number(…)` ☰ Convers argument to a number, or "NaN"
+   `per_member(…)` ☰ Executes its argument once per member of the element
+   `per_vertex(…)` ☰ Executes its argument once per vertex of the element
+   `poly(…, …)` ☰ Returns a polygon constructed from its arguments
+   `pos()` ☰ Position for a member within an element
+   `pt(lat,lng)` ☰ Returns a valid OSM node geometry for given location
+   `set(…)` ☰ Returns semi-colon list of all distinct values in its input
+   `suffix(…)` ☰ Returns any value following a number in its input
+   `sum(…)` ☰ Sums values in set provided as parameter
+   `timestamp()` ☰ Returns timestamp of an object
+   `trace(…)` ☰ Returns the trace of its argument?
+   `type()` ☰ Returns type of an object. E.g. `node` or `way`.
+   `t["name"]` ☰ Returns value of the name tag. Compare with `is_tag`.
+   `u(…)` ☰ ???
+   `uid()` ☰ Returns user id of the user who last edited an object
+   `user()` ☰ Returns user name of last editor of an object
+   `version()` ☰ Returns version number of an object
+table }
+
+{ if
+
+code {
+if (0) {
+   nwr[name=Pfungen];
+}
+else {
+   nwr[name=Freienstein];
+}
+
+out;
+code }
+
+}
+{ is_tag
+
+  Find objects that have a complete 5-tupel of the `addr:` tags `country`, `postcode`, `city`, `street` and `housenumber` (Inspired by
+  → https://github.com/drolbr/Overpass-API/issues/469).
+code {
+{{geocodeArea:Stadtmitte, Düsseldorf}}->.searchArea;
+  
+nwr(area.searchArea)
+  (
+      if:(is_tag("addr:country"     ) +
+          is_tag("addr:postcode"    ) +
+          is_tag("addr:city"        ) +
+          is_tag("addr:street"      ) +
+          is_tag("addr:housenumber")) == 5
+   );
+
+out;
+code }
+
+}

@@ -1,4 +1,13 @@
 $ Overpass API: query statement
+@ query statement
+
+The *query statement* is so important that, unlike other → development/OpenStreetMap/API/Overpass/statements[statements], it does not have an associated keyword, rather, a query statement is formulated with one of the following
+specifiers:
+  • `way`
+  • `node`
+  •` relation` (or `rel` for short)
+  • `area`
+  • `derived`
 
 { Filters
 
@@ -18,5 +27,49 @@ $ Overpass API: query statement
   table }
      
 
+  { if
+
+   `node[name='Freienstein']` would find the node ids 240076086, 768109726, 3396807384, 3959626511, 4907345714, 7945522503.
+
+    With the conditional `if` filter, nodes can be filter with respect to their ids.
+
+code {
+[out:csv(
+   ::id,
+// ::type,
+//  "name";
+
+     true ;         // header (true is default)
+     ";"            // separator
+)];
+
+node[name='Freienstein']
+    (if: id() > 4000000000)
+ // (if: id() % 2)          // Apparently, the modulo operator is not supported with Overpass API.
+;
+
+out;
+code }
+
+  }
 
 }
+{ TODO
+
+  { Select nth node in a way
+
+    Select first, ninth, second last and last node in a given way:
+code {
+way(1083461233);
+
+node(w:1, 9, -2, -1);
+
+out geom;
+code }
+
+  }
+
+}
+
+sa:
+  → development/OpenStreetMap/API/Overpass/statements

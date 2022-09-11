@@ -1,0 +1,40 @@
+$ Overpass API: for statement
+@ for
+
+code {
+[out:csv("name";false)];
+
+area[name="Pfungen"];
+
+way(area)[highway][name];
+
+for (t["name"]) (
+   make x name=_.val;
+   out; 
+);
+code }
+
+code {
+[out:csv(
+   'id', 'key', 'val';
+    false;
+   '|'
+)];
+
+node[name='Freienstein'] -> .nd;
+
+for.nd -> .id (id())  {
+  for.id -> .ky (keys()) {    
+    for.ky -> .vl(t[ky.val]) {
+      make x
+          id  = id.val, 
+          key = ky.val,
+          val = vl.val;
+      out;
+    }
+  }
+};
+code }
+
+sa:
+  → development/OpenStreetMap/API/Overpass/statements
