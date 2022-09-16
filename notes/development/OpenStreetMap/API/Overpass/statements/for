@@ -36,5 +36,41 @@ for.nd -> .id (id())  {
 };
 code }
 
+{ for is GROUP BY in disguise
+
+  The `for` statement seems to behave like the → evelopment/databases/SQL/select/group-by[SQL `GROUP BY`] clause:
+code {
+[ out : csv(
+   name,
+   total_length,
+   cnt_ways,
+   min_length,
+   max_length,
+   avg_length,
+   all_lengths
+)];
+
+{{geocodeArea: Pfungen }};
+
+way[highway](area);
+
+for (t['name']) {
+
+   make Beispiel
+     name         = _.val,
+     total_length = sum(length()),                // Aggregate all lenghts
+     cnt_ways     = count(ways)  ,
+     min_length   = min(length()),
+     max_length   = max(length()),
+     avg_length   = sum(length()) / count(ways),  // There is no function avg()
+     all_lengths  = set(length())                 // Concatenate the individual lengths with semicolons.
+   ;
+
+   out;
+}
+code }
+
+}
+
 sa:
   → development/OpenStreetMap/API/Overpass/statements
