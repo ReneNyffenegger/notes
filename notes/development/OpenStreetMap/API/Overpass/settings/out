@@ -17,6 +17,33 @@ out;
 code }
 
 }
+{ Get tramway colors of VBZ (Verkehrsbetriebe Zürich)
+
+code {
+[out:csv(ref, colour)];
+
+relation
+   [operator = 'Verkehrsbetriebe Zürich']
+   [route    = 'tram'                   ];
+
+out;
+code }
+
+   Unfortunately, the same line (and colour value) are returned multple times, but we want a unique (distinct) list. The following query will achieve this:
+code {
+[out:csv(ref, colour)];
+
+relation[operator='Verkehrsbetriebe Zürich'][route='tram'];
+
+for (t['ref']) {
+   make x
+      ref = _.val,
+      colour = u(t['colour']);
+   out;
+}
+code }
+
+}
 
 sa:
 
