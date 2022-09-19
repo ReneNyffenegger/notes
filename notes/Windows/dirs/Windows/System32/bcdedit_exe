@@ -1,14 +1,105 @@
 $ bcdedit.exe
 
-`bcdedit.exe` is the *Boot Configuration Data Editor*. This utility is used to configure (add, delete, edit) configuration parameters in the *boot database* in order toto control the → Windows/booting[boot loading process]..
+`bcdedit.exe` is the *Boot Configuration Data Editor*. This utility is used to configure (add, delete, edit) configuration parameters in the *boot database* (aka «boot configuration data store»).
+in order to control the → Windows/booting[boot loading process].
 -
 Previously, these parameters where stored in the `Boot.ini` file (→ hardware/BIOS[BIOS]-based Windows systems) or in non-volatile
 RAM intries (→ hardware/UEFI[EFI (UEFI?)] based).
 
+{ Command line options
+
+  { Commands that operate on a store
+
+    table { ll
+    `/store` ☰ Used to specify a BCD store other than the current system default.
+    `/createstore` ☰ Creates a new and empty boot configuration data store.
+    `/export` ☰ Exports the contents of the system store to a file. This file can be used later to restore the state of the system store.
+    `/import` ☰ Restores the state of the system store using a backup file created with the /export command.
+    `/sysstore` ☰ Sets the system store device (only affects EFI systems, does not persist across reboots, and is only used in cases where the system store device is ambiguous).
+    table }
+
+  }
+  { Commands that operate on entries in a store
+
+    table { ll
+    `/copy` ☰ Makes copies of entries in the store.
+    `/create` ☰ Creates new entries in the store.
+    `/delete` ☰ Deletes entries from the store.
+    `/mirror` ☰ Creates mirror of entries in the store.
+    table }
+
+    Run `bcdedit /? ID` for information about identifiers used by these commands.
+
+  }
+  { Commands that operate on entry options
+
+    table { ll
+    `/deletevalue` ☰ Deletes entry options from the store.
+    `/set` ☰ Sets entry option values in the store.
+    table }
+
+    Run `bcdedit /? TYPES` for a list of datatypes used by these commands.
+
+    Run `bcdedit /? FORMATS` for a list of valid data formats.
+
+  }
+  { Commands that control output:
+
+    table { ll
+     `/enum` ☰ Lists entries in the store.
+     `/v` ☰ Command-line option that displays entry identifiers in full, rather than using names for well-known identifiers. Use `/v` by itself as a command to display entry identifiers in full for the ACTIVE type.
+    table }
+
+    Running `bcdedit` by itself is equivalent to running `bcdedit /enum ACTIVE`.
+
+  }
+  { Commands that control the boot manager
+
+    table { ll
+    `/bootsequence` ☰ Sets the one-time boot sequence for the boot manager.
+    `/default` ☰ Sets the default entry that the boot manager will use.
+    `/displayorder` ☰ Sets the order in which the boot manager displays the multiboot menu.
+    `/timeout` ☰ Sets the boot manager time-out value.
+    `/toolsdisplayorder` ☰ Sets the order in which the boot manager displays the tools menu.  table }
+    table }
+
+  }
+  { Commands that control Emergency Management Services for a boot application
+
+    table { ll
+    `/bootems` ☰ Enables or disables Emergency Management Services for a boot application.
+    `/ems` ☰ Enables or disables Emergency Management Services for an operating system entry.
+    `/emssettings` ☰ Sets the global Emergency Management Services parameters.
+    table }
+
+  }
+  { Command that control debugging
+
+    table { ll
+    `/bootdebug` ☰ Enables or disables boot debugging for a boot application.
+    `/dbgsettings` ☰ Sets the global debugger parameters.
+    `/debug` ☰ Enables or disables kernel debugging for an operating system entry.
+    `/hypervisorsettings` ☰ Sets the hypervisor parameters.
+    table }
+
+  }
+  { Command that control remote event logging
+
+    table { ll
+    `/eventsettings` ☰ Sets the global remote event logging parameters.
+    `/event` ☰ Enables or disables remote event logging for an operating system entry.
+    table }
+
+  }
+
+  For an alphabetical list of topics in this help file, run `bcdedit /? TOPICS`.
+
+}
+
 
 { Enable kernel debugging
 
-  `bcdedit.exe` (or →  Windows/dirs/Windows/System32/msconfig_exe[`msconfig.exe`]) is needed, for example, to
+  `bcdedit.exe` (or `→ Windows/dirs/Windows/System32/msconfig_exe`) is needed, for example, to
   → Windows/booting[boot Windows] in debugging mode which is needed for → Windows/development/WinAPI/Debugging#win-kernel-mode-debugging[kernel mode debugging].
 
 code {
@@ -17,5 +108,58 @@ bcdedit /dbgsettings NET HOSTIP:<...> PORT:55555
 code }
 
   Local kernel debugging requires Administrative privileges and is not supported by → Windows/WOW64.
+
+}
+
+{ Sample output
+
+code {
+C:\> bcdedit
+Windows Boot Manager
+--------------------
+identifier              {bootmgr}
+device                  partition=C:
+description             Windows Boot Manager
+locale                  en-US
+inherit                 {globalsettings}
+default                 {current}
+resumeobject            {663fb705-16d0-11ed-bf37-ebaecf452e86}
+displayorder            {current}
+toolsdisplayorder       {memdiag}
+timeout                 30
+
+Windows Boot Loader
+-------------------
+identifier              {current}
+device                  partition=C:
+path                    → Windows/dirs/Windows/System32/winload_exe[\Windows\system32\winload.exe]
+description             Windows 10
+locale                  en-US
+inherit                 {bootloadersettings}
+recoverysequence        {663fb707-16d0-11ed-bf37-ebaecf452e86}
+displaymessageoverride  Recovery
+recoveryenabled         Yes
+testsigning             No
+allowedinmemorysettings 0x15000075
+osdevice                partition=C:
+systemroot              \Windows
+resumeobject            {663fb705-16d0-11ed-bf37-ebaecf452e86}
+nx                      OptIn
+bootmenupolicy          Standard
+code }
+
+}
+
+{ TODO
+
+  Turn off and disable Hyper-V completely:
+code {
+bcdedit /set hypervisorlaunchtype off
+code }
+
+  ???
+code {
+bcdedit -set TESTSIGNING OFF
+code }
 
 }
