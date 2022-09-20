@@ -26,6 +26,38 @@ specifiers:
     Conditional ☰ `(if: <evaluator>)`
   table }
      
+  { Tag filter
+
+    A tag filter selects objects where certain conditions about their tags are met:
+
+code {
+node [   'key-name'                          ] // Object has a tag named key-name
+node [ ! 'key-name'                          ] //        does not have a gat named key-name
+
+node [   'key-name'         = 'val'          ] // The value of object's tag key-name is val
+node [   'key-name'        != 'val'          ] // The object has the tag key-name and its value is not val OR the object does not have the tag key-name
+
+node [   'key-name'         ~ 're-pattern'   ] // The value of tag key-name matches the regular expression re-pattern
+node [   'key-name'        !~ 're-pattern'   ] //                  key-name does not match re-pattern
+
+node [ ~ 'key-name-pattern' ~ 're-pattern'   ] // Both, the key name and its values are matched with regular expression.
+node [ ~ 'key-name-pattern' ~ 're-pattern', i] // Match case insenstively
+code }
+
+
+    The following example searches for «highways» in Pfungen whose name contains at least one space:
+code {
+{{geocodeArea: Pfungen }};
+
+way
+  [highway]
+  [name ~ '\\s']
+  (area);
+
+out geom;
+code }
+
+  }
 
   { if
 
@@ -62,6 +94,48 @@ node                             // Search nodes
   (if: t['ele'] > 4000 );        // Keep only those nodes whose ele value is greater than 4000
 
 out geom;
+code }
+
+  }
+  { Select within a bounding box
+
+code {
+node (
+   49.8727, -6.4458, // minimum latitude and longitude (South and West border)
+   49.8730, -6.4452  // maximum latitude and longitude (North and East border)
+);
+
+out count;
+code }
+
+  }
+  { Select within a polygon
+
+   The following query selects all nodes in a triangle whose corners are listed in the coordinate pairs listed in the parameter-string:
+code {
+node(poly:"
+  50.7  7.14
+  50.7  7.16
+  50.71 7.15"  // Note: string can apparently not end in new line!
+);
+
+out;
+code }
+
+   Unlike `around`, the poly filter doesn't allow to specify «dynamic» values from a previous step in the query.
+
+  }
+  { way(r), node(w) etc.
+
+code {
+relation              // Select a relation
+  [waterway = river]
+  [name     ='Töss'];
+
+way (r);              // Select ways of selected relation
+node(w);              // Select nodes of selected ways
+
+out;                  //'Print' nodes
 code }
 
   }

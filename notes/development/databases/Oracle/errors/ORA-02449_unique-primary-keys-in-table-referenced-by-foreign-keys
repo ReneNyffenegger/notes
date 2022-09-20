@@ -5,7 +5,35 @@ The error message *ORA-02449: unique/primary keys in table referenced by foreign
 with → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys] that reference the to-be-dropped table's
 → development/databases/Oracle/objects/tables/constraints/primary-key.
 
-{ Remove foreign keys
+{ DROP TABLE … CASCADE CONSTRAINTS
+
+code {
+create table tq84_A (
+   id number primary key
+);
+
+create table tq84_B (
+   id   number primary key,
+   id_a        references TQ84_A
+);
+
+alter table tq84_A add id_b references tq84_B;
+
+--
+--   The following statements both cause ORA-02449: unique/primary keys in table referenced by foreign keys
+--
+drop table tq84_A;
+drop table tq84_B;
+
+--
+--   Tables can be dropped with → development/databases/Oracle/SQL/statement/nouns/table/drop/cascade-constraints[DROP TABLE … CASCADE CONSTRAINTS]:
+--
+drop table tq84_A cascade constraints;
+drop table tq84_B cascade constraints;
+code }
+
+}
+{ Remove foreign keys (Brute force)
 
   The following script is quite a brute force attempt to remove all foreign keys which reference
   a table so that the table can be dropped.
