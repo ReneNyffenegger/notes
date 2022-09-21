@@ -44,6 +44,14 @@ node [ ~ 'key-name-pattern' ~ 're-pattern'   ] // Both, the key name and its val
 node [ ~ 'key-name-pattern' ~ 're-pattern', i] // Match case insenstively
 code }
 
+    Combining multiple filters:
+code {
+node
+  [name    = 'Freienstein'] // There are multiple nodes whose name is 'Freienstein'
+  [natural = 'peak'       ] // So add another filter to find the peak with that name.
+;
+out;
+code }
 
     The following example searches for «highways» in Pfungen whose name contains at least one space:
 code {
@@ -58,7 +66,23 @@ out geom;
 code }
 
   }
+  { around
 
+    Find (hopefully public) toils within 1 km around the Coop supermarket *Zürich Gutstrasse*:
+code {
+node
+   [shop     = supermarket         ]
+   [operator ='Coop Genossenschaft']
+   [branch   ='Zürich Gutstrasse'  ];
+
+node
+   [amenity = toilets]
+   (around: 1000);
+
+out;
+code }
+
+  }
   { if
 
    `node[name='Freienstein']` would find the node ids 240076086, 768109726, 3396807384, 3959626511, 4907345714, 7945522503.
@@ -139,6 +163,51 @@ out;                  //'Print' nodes
 code }
 
   }
+
+}
+{ is_in
+
+  The railway station Pfungen is in a building which
+  -
+  is in the municapality of Pfungen which
+  -
+  is in the Bezirk of Wintherthur which
+  -
+  is in the Canton of Zurich which
+  -
+  is in Switzerland.
+code {
+node
+   [railway  = station ]
+   [name     = Pfungen ] -> .pfungen;
+
+.pfungen is_in -> .containers;
+
+.containers out geom;
+
+rel(pivot.containers);
+
+out geom;
+code }
+
+  Note `is_in` returns areas, hence the `pivot` statement (operator?).
+
+}
+{ Substraction of sets
+
+  Find «natural» objects in Pfungen. Most of the are trees and some are scrubs. These are uninteresting and will be removed:
+code {
+{{geocodeArea: Pfungen}} -> .where;
+
+nwr [natural        ](area.where) -> .natural;
+nwr [natural = tree ](area.where) -> .trees  ;
+nwr [natural = scrub](area.where) -> .scrub  ;
+
+(.natural; - .trees;) -> .x;
+(.x      ; - .scrub;);
+
+out geom;
+code }
 
 }
 { TODO

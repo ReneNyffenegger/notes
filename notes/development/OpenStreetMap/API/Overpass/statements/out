@@ -81,6 +81,101 @@ code {
 </count>
 code }
 
+  { Count the number of `amenity=drinking_water` nodes, ways and relations in each canton of Switzerland #overpass-out-cnt-drinking_water
+
+code {
+[out:csv(
+   ::count,
+   ::"count:nodes",
+   ::"count:ways",
+   ::"count:relations"
+)];
+
+area['ISO3166-2' ~ '^CH-'];
+
+foreach -> .kanton(
+
+   nwr
+     (area.kanton)
+     [amenity = drinking_water];
+
+   out count;
+);
+code }
+
+    Almost the same thing, but with `→ development/OpenStreetMap/API/Overpass/statements/foreach`.
+
+  }
+
+}
+{ Special field names
+
+  Special field names (starting with two colons (`::…`)) make it easy to export OSM data as CSV:
+code {
+[out:csv (
+
+ //
+ //   Tag names:
+ //
+      amenity          ,
+      name             ,
+     'addr:street'     ,
+     'addr:housenumber', 
+ //
+ //   Special field names:
+ //
+    ::id         , //  OSM object ID
+    ::type       , //  Object type (node, way or relation)
+    ::otype      , //  Object type as numeric value
+    ::lat        , //  Latitude + Longitude (available for nodes
+    ::lon        , //      or ways with 'out center')
+ //
+ //   Field names available with 'out meta'
+ //
+    ::version    , //  OSM object's version number
+    ::timestamp  , //  Timestamp of last modificatio
+    ::changeset  , //  Changeset in which the object was changed
+    ::uid        , //  User id of mapper
+    ::user       ; //  User name of mapper
+ //
+ //  Header and separator
+ //
+     true   ;
+     " | "
+)];
+
+{{geocodeArea: Pfungen }} -> .pfungen;
+
+nwr[amenity](area.pfungen);
+
+out meta;
+code }
+
+  Some field names are available for the `out count` statement
+code {
+[out:csv (
+ //
+ //   Special field names (for 'out count')
+ //
+    ::count            , //    Returns total number of objects (nodes, ways, relations and areas) in inputset
+    ::"count:nodes"    , //    Returns number of nodes in inputset
+    ::"count:ways"     , //    Returns number of ways in inputset
+    ::"count:relations", //    Returns number of relations in inputset
+    ::"count:areas"    ; //    Returns number of areas in inputset
+ //
+ //  Header and separator
+ //
+     true   ;
+     " | "
+)];
+
+{{geocodeArea: Pfungen }} -> .pfungen;
+
+nwr(area.pfungen);
+
+out count;
+code }
+
 }
 
 sa:

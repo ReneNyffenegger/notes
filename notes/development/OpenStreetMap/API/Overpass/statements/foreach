@@ -27,6 +27,44 @@ foreach {
 code }
 
 }
+{ Count number of amenity=drinking_water in each canton of Switzerland #overpass-foreach-cnt-drinking_water
+
+code {
+[out:csv(
+   iso_3166_2,
+   name,
+   total,
+   nodes,
+   ways,
+   relations
+)];
+
+area['ISO3166-2' ~ '^CH-'];
+
+foreach -> .kanton(
+
+  nwr
+     (area.kanton)
+     [amenity = drinking_water];
+  
+  make count
+     iso_3166_2             = kanton.set(t['ISO3166-2']),
+     name                   = kanton.set(t['name'     ]),
+
+     total                  = count(nodes) + count(ways) + count(relations),
+
+     nodes                  = count(nodes    ),
+     ways                   = count(ways     ),
+     relations              = count(relations);
+
+  out;
+);
+code }
+
+  Almost the same thing, but with → development/OpenStreetMap/API/Overpass/statements/out#overpass-out-cnt-drinking_water[`out count`].
+
+
+}
 
 sa:
   The `→ development/OpenStreetMap/API/Overpass/statements/for` → development/OpenStreetMap/API/Overpass/statements[statement].

@@ -15,7 +15,7 @@ table { ll
    `geom()` ☰ Returns geometry of an object
    `hull(…)` ☰ Expects a function that returns a geometry and returns the convex hull of its argument.
    `id()` ☰ Returns OSM id of an object
-   `is_closed()` ☰ Returns 1 if a way is closed, 0 others. Closed means the first and last node are the same.
+   `is_closed()` ☰ Returns 1 if a way is closed (first and last node are the same), and 0 otherwise.
    `is_date(…)` ☰ Tests whether its argument represents a date
    `is_number(…)` ☰ Returns 1/0 depending on which its argument is a number
    `is_tag("name")` ☰ Returns 1 if an object has a tag called name. Otherwise 0. Compare with `t`.
@@ -35,7 +35,7 @@ table { ll
    `per_vertex(…)` ☰ Executes its argument once per vertex of the element
    `poly(…, …)` ☰ Returns a polygon constructed from its arguments
    `pos()` ☰ Position for a member within an element
-   `pt(lat,lng)` ☰ Returns a valid OSM node geometry for given location
+   `pt(lat, lng)` ☰ Returns a valid OSM node geometry for given location
    → development/OpenStreetMap/API/Overpass/functions/set[`set(…)`] ☰ Returns semicolon list of all distinct values in its input. Compare with → development/OpenStreetMap/API/Overpass/functions/u[`u(…)`]
    → development/OpenStreetMap/API/Overpass/functions/suffix[`suffix(…)`] ☰ Returns any value following a number in its input
    `sum(…)` ☰ Sums values in set provided as parameter
@@ -88,6 +88,207 @@ for (per_member(ref())) {
 }
 code }
 
+}
+{ lon/lat
+
+code {
+[out:json];
+
+area[name='Pfungen'];
+
+node[amenity=restaurant](area);
+
+foreach {
+   make x
+      ::id = u(id()),
+      lat  = u(lat()),
+      lon  = u(lon()),
+      name = u(t['name']);
+
+   out geom;
+}
+
+code }
+
+code {
+[out:json];
+
+area[name='Pfungen'];
+
+node[amenity=restaurant](area);
+
+foreach {
+   make x
+      ::id   =     u(id ()),
+      ::geom = pt( u(lon()), u(lat())),
+      name   =     u(t['name']);
+
+   out geom;
+}
+code }
+
+code {
+[out:json];
+
+area[name='Pfungen'];
+
+node[amenity=restaurant][name=Linde     ](area) -> .linde;
+node[amenity=restaurant][name=Schlosshof](area) -> .schlosshof;
+
+make x
+     dLon = linde.u(lon()) - schlosshof.u(lon()),
+     dLat = linde.u(lat()) - schlosshof.u(lat());
+
+out;
+code }
+
+}
+{ keys
+
+  Select a given object's keys (tags) and associated value:
+code {
+[out:csv('key', 'val'; false)];
+
+{{geocodeArea: Pfungen }};
+
+node[amenity=library](area);
+
+for (keys()) (
+   make x key=_.val,
+          val=u(t[_.val]);
+   out;
+);
+code }
+
+}
+{ length
+
+  Determine the number of ways in Pfungen with tag `highway` and sum up their lengths:
+code {
+[out:csv(cnt, len)];
+
+{{geocodeArea: Pfungen }};
+
+way [ highway ]( area );
+
+make x
+  cnt    = count(ways    ),
+  len    = sum  (length());
+
+out;
+code }
+
+  Determine the length of each way in Pfungen whose `highway` tag is either `residential` or `primary`.
+  -
+  Use `set(id))` to print (semicolon separated) all segment (way) id's with the same `name` value.
+code {
+[out: csv(name, length, tag, ways) ];
+
+{{geocodeArea: Pfungen }} -> .pfungen;
+
+way
+   (area.pfungen)
+   [highway ~ '^(residential|primary)$' ]
+   [name                                ] -> .highways;
+
+
+for.highways (t['name']) {
+    
+  make x
+    name      = _.val,
+    length    = sum(length()),
+    tag       = min(t['highway']), // Assume all segments have same highway value…
+    ways      = set(id());
+  out;
+}
+code }
+
+  According to OpenStreetmap, the length of the Swiss border is 1938 km (while per Wikipedia, it is 1899 km):
+code {
+[out:csv(lenBorder; false)];
+
+area ['name:en' = 'Switzerland'];
+rel(pivot);
+
+make x lenBorder = sum(length()/1000);
+
+out;
+code }
+
+}
+{ pt
+
+code {
+make node
+   ::geom=pt(42, 17);
+
+out geom;
+code }
+
+  Creates
+code {
+<node id="1">
+  <point lat="42.0000000" lon="17.0000000"/>
+</xyz>
+code }
+
+  It would, IMHO, be desirable if it created `<node id="1" lat="41.0000000" lon="17.0000000"/>`.
+
+}
+{ count_tags
+
+  Find nodes with more than 20 tags.
+code {
+{{geocodeArea: Winterthur}};
+
+// nwr
+   node
+     (area)
+     (if: count_tags() > 20);
+
+out geom;
+code }
+
+}
+{ is_closed
+
+  Find closed ways in Winterthur.
+
+  Since most (all?) buildings are closed anyway, filter them out:
+code {
+{{geocodeArea: Winterthur}};
+
+way
+   [!building]
+   (area)
+   (if: is_closed() == 1);
+
+out geom;
+code }
+
+}
+{ poly
+
+code {
+{{N= 47.79 }}
+{{S= 45.74 }}
+{{E=  5.89 }}
+{{W= 10.65 }}
+
+[out:json];
+make bb_ch
+   ::geom=poly(lstr(
+     pt( {{S}}, {{E}}),
+     pt( {{N}}, {{E}}),
+     pt( {{N}}, {{W}}),
+     pt( {{S}}, {{W}}),
+     pt( {{S}}, {{E}})
+   ));
+
+out geom;
+code }
+
+  Run on → https://olbricht.nrw/ovt/ to visualize created geometry.
 }
 
 sa:

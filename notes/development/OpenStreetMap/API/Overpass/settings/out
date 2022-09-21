@@ -16,6 +16,48 @@ make foo   // <--- the type / if output is xml, it becomes the XML's tag name
 out;
 code }
 
+  { (Mis-)using CSV output to generate text result
+
+code {
+[out:csv(txt; false)];
+
+{{geocodeArea: Pfungen }};
+
+//
+// Search for amenities with a name in the
+// selected area:
+//
+nw[amenity][name](area) -> .amenities;
+
+//
+// Iterate over each amenity type (restaurant, doctor etc.)
+//
+for.amenities -> .amenity  (t['amenity']) {
+
+//
+// Print name of amenity type
+//
+   make x txt = amenity.val; out;
+
+//
+// Iterate over each amenity within the type:
+//
+   foreach.amenity {
+//
+//    Print the amenity's id, type and name:
+//
+      make x txt = '  ' + u(id()) + ' (' + u(type()) + '): ' + u(t['name']); out;
+   }
+
+//
+// Finish amenity type with an empty line:
+//
+   make x txt = ''; out; 
+}
+code }
+
+  }
+
 }
 { Get tramway colors of VBZ (Verkehrsbetriebe Zürich)
 
