@@ -1,6 +1,22 @@
 $ Overpass API: querying an area
 @ area
 
+The `area` query *seems* to find closed ways:
+code {
+area[name = → https://www.openstreetmap.org/search?query=engstlensee#map=16/46.7730/8.3557[Engstlensee]];
+out geom;
+code }
+
+Assign the area to a named set and then search within this set:
+code {
+area[ name ='→ https://www.openstreetmap.org/search?query=calusa%20island#map=16/9.6112/121.0106[Calusa Island]' ] -> .calusa;
+
+nw[amenity = school] (area.calusa);
+
+out geom;
+code }
+
+
 { Use ISO 3166 to find Mc Donald's restaurants in Croatia #overpass-iso-3166
 
   Using → misc/ISO/3166 to find Mc Donald's restaurants in Croatia:
@@ -21,6 +37,31 @@ code {
 area['ISO3166-2' = 'CH-ZH']           -> .x; .x out;
 {{geocodeArea: CH-ZH               }} -> .x; .x out;
 {{geocodeArea: Zurich, Switzerland }} -> .x; .x out;
+code }
+
+}
+{ Find all areas in which an object is located
+
+  The `is_in` operator(?)/function(?) can be used to find all areas in which an object is located:
+code {
+way[name ='Calusa Elementary School'] -> .calusa_school;
+
+node(w.calusa_school)      -> .nodes_calusa_school;
+.nodes_calusa_school is_in -> .areas;
+
+.areas out tags;
+code }
+
+  With the pivot operator(?)/function(?), these areas can also be shown visually:
+code {
+way[name ='Calusa Elementary School'] -> .calusa_school;
+
+node(w.calusa_school)      -> .nodes_calusa_school;
+.nodes_calusa_school is_in -> .areas;
+
+wr(pivot.areas) -> .x;
+
+.x out geom;
 code }
 
 }
