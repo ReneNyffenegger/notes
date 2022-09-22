@@ -1,0 +1,141 @@
+$ Oracle SQL hints: use / prevent using indexes in views
+
+{ Create some tables and a view
+
+code {
+create table tq84_A (
+   j    number,
+   va   number,
+   ca1  number,
+   ca2  number
+);
+
+
+create table tq84_B (
+   j    number,
+   vb   number,
+   cb1  number,
+   cb2  number
+);
+
+create index tq84_A_ix_1 on tq84_A(ca1);
+create index tq84_A_ix_2 on tq84_A(ca2);
+create index tq84_B_ix_1 on tq84_B(cb1);
+create index tq84_B_ix_2 on tq84_B(cb2);
+
+create view  tq84_V as
+select
+   a.j,
+   a.va, a.ca1, a.ca2,
+   b.vb, b.cb1, b.cb2
+from
+   tq84_A a                 join
+   tq84_B b on a.j = b.j;
+
+
+create table tq84_C (
+   c1   number,
+   c2   number
+);
+code }
+
+}
+{ No hint
+
+  The optimizer chooses to use both indexes when no hint is specified:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   v.*
+from
+   tq84_C c                      join
+   tq84_V v on c.c1 = v.ca1 and
+               c.c2 = v.cb2;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
+--
+-- --------------------------------------------------------------
+-- | Id  | Operation                              | Name        |
+-- --------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                       |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                          |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                         |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                        |             |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                  | TQ84_C      |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_A      |
+-- |   6 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                  | TQ84_A_IX_1 |
+-- |   7 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                    | TQ84_B_IX_2 |
+-- |   8 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]          | TQ84_B      |
+-- --------------------------------------------------------------
+code }
+
+}
+{ Prevent using ONE index
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_index(A@SEL$2) */
+   v.*
+from
+   tq84_C c                      join
+   tq84_V v on c.c1 = v.ca1 and
+               c.c2 = v.cb2;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
+--
+-- ----------------------------------------------------
+-- | Id  | Operation                    | Name        |
+-- ----------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops               |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join                 |             |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full        | TQ84_C      |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full        | TQ84_A      |
+-- |   6 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan          | TQ84_B_IX_2 |
+-- |   7 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_B      |
+-- ----------------------------------------------------
+code }
+
+}
+{ Prevent using BOTH indexes
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_index(A@SEL$2)
+           no_index(B@SEL$2) */
+   v.*
+from
+   tq84_C c                      join
+   tq84_V v on c.c1 = v.ca1 and
+               c.c2 = v.cb2;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic'));
+--
+-- ----------------------------------------------------
+-- | Id  | Operation                    | Name        |
+-- ----------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops               |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join                 |             |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full        | TQ84_C      |
+-- |   5 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full        | TQ84_A      |
+-- |   6 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan          | TQ84_B_IX_2 |
+-- |   7 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_B      |
+-- ----------------------------------------------------
+code }
+
+}
+
+{ Cleaning up
+
+code {
+drop   view  tq84_V;
+
+drop   table tq84_A cascade constraints;
+drop   table tq84_B cascade constraints;
+drop   table tq84_C cascade constraints;
+code }
+
+}
