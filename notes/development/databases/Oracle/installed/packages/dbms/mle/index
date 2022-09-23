@@ -1,0 +1,87 @@
+$ Oracle: DBMS_MLE
+@ dbms_mle
+
+`dbms_mle` is available with → development/databases/Oracle/Releases-and-versions/21c.
+
+*mle* stands for *Multilingual Engine*.
+
+code {
+declare
+   ctx      dbms_mle.context_handle_t;
+   src      clob;
+   ret      varchar2(4000);
+
+begin
+
+   ctx := dbms_mle.create_context();
+
+   dbms_mle.export_to_mle(ctx, 'num', 42); -- Export value from PL/SQL
+
+   src := q'!
+     var bindings = require("mle-js-bindings");
+
+  //
+  // Copy value from enclosing PL/SQL block
+  //
+     var num =  bindings.importValue("num");
+     var ret = "Hello world, the number is " + num;
+
+  //
+  // Write a value to the enclosing PL/SQL block
+  //
+     bindings.exportValue("ret", ret);
+   !';
+
+
+--
+-- Evaluate the source code in an MLE 'context':
+--
+   dbms_mle.eval(ctx, 'JAVASCRIPT', src);
+
+--
+-- Get and print returned value
+--
+   dbms_mle.import_from_mle(ctx, 'ret', ret); -- Import value previously exported from MLE
+   dbms_output.put_line('Value from MLE is: ' || ret);
+
+--
+-- Clean up
+--
+   dbms_mle.drop_context(ctx);
+end;
+/
+code }
+
+{ Procedures and functions
+
+  table { ll
+
+   `create_context ` ☰
+   `disable_ctx_stderr ` ☰
+   `disable_ctx_stdout ` ☰
+   `disable_stderr ` ☰
+   `disable_stdout ` ☰
+   `drop_context ` ☰
+   `eval ` ☰
+   `export_to_mle ` ☰
+   `get_available_languages ` ☰
+   `get_ctx_error_stack ` ☰
+   `import_from_mle ` ☰
+   `set_ctx_stderr ` ☰
+   `set_ctx_stderr_to_dbms_output ` ☰
+   `set_ctx_stdout ` ☰
+   `set_ctx_stdout_to_dbms_output ` ☰
+   `set_stderr ` ☰
+   `set_stderr_to_dbms_output ` ☰
+   `set_stdout ` ☰
+   `set_stdout_to_dbms_output ` ☰
+
+  table }
+
+}
+
+sa:
+
+ `→ development/databases/Oracle/installed/packages/dbms/javascript`
+
+  → development/databases/Oracle/installed/packages/dbms
