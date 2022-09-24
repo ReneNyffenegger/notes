@@ -67,29 +67,14 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
 }
 { TODO
 
-code {
-create pluggable database pdb_abc_2
-from pdb_abc_1
-file_name_convert=('/pdb_abc_1/', '/pdb_abc_2/');
-code }
-
-code {
-create pluggable database pdb_xyz
-    as application container
-    admin user pdb_xyz_admin identified by secretGarden;
-code }
-
-code {
-alter pluggable database pdb_xyz open;
-code }
-
-code {
-alter session set container = …;
-code }
-
  `dbms_pdb`
 
   The procedure `dbms_pdb_num` (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catfusrg_sql`) checks if Multitenant is used and counts user-created PDBs.
+
+  Is the current database a CDB:
+code {
+select cdb from → development/databases/Oracle/installed/dynamic-performance-views/database;
+code }
 
 code {
 select * from → development/databases/Oracle/installed/dynamic-performance-views/database where cdb = 'YES';
@@ -111,6 +96,65 @@ code }
 
   `approot_to_pdb.sql`
 
+code {
+select * from → development/databases/Oracle/installed/data-dictionary/properties[cdb_properties];
+code }
+
+  { Creating a pluggable database
+
+code {
+SQL> show pdbs
+--
+--     CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+-- ---------- ------------------------------ ---------- ----------
+--          2 PDB$SEED                       READ ONLY  NO
+
+SQL> create pluggable database tq84_pdb
+--   as application container
+     admin user rene_pdb identified by theSecret
+--   file_name_convert = ('/pdbseed/', '/mydatabase/')
+;
+
+SQL> show pdbs
+--
+--     CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+-- ---------- ------------------------------ ---------- ----------
+--          2 PDB$SEED                       READ ONLY  NO
+--          3 TQ84_PDB                       MOUNTED
+
+SQL> alter pluggable database tq84_pdb open;
+SQL> show pdbs
+--
+--     CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+-- ---------- ------------------------------ ---------- ----------
+--          2 PDB$SEED                       READ ONLY  NO
+--          3 TQ84_PDB                       READ WRITE NO
+
+SQL> select name from v$services;
+SQL> select name from cdb_services;
+--
+-- …
+-- tq84_pdb
+-- …
+
+SQL> select * from cdb_pdbs;
+SQL> select * from dba_pdbs;
+
+SQL> alter session set container = tq84_pdb;
+SQL> alter session set container = pdb$seed;
+code }
+
+code {
+lsrnctl service
+code }
+
+EZCONNECT?
+code {
+sqlplus sys@//localhost:1521/tq84_pdb as sysdba
+SQL> show con_name
+code }
+
+  }
 
   { Objects related to application container
 
