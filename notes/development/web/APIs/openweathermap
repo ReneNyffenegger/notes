@@ -1,0 +1,41 @@
+$ WebAPI: openweathermap
+
+{ Query openweathermap data with PowerShell
+
+  The following → Windows/PowerShell/script[PowerShell script] allows to query the openweathermap → development/web/APIs[Web API].
+
+  In order to run, the → Windows/PowerShell/language/variable `$openweathermapAPIkey` must be set to a valid API key.
+
+  The script is invoked with latitude, longitude, for example like so:
+code {
+PS C:\> openweathermap.ps1 47.509 8.6431
+code }
+
+
+code {
+param (
+   [float] $lat,
+   [float] $lon
+);
+
+→ Windows/PowerShell/command-inventory/noun/strictMode/set -version 3
+
+$url = "https://api.openweathermap.org/data/2.5/weather?appid=$openweathermapAPIkey&lat=$lat&lon=$lon"
+
+$res = → Windows/PowerShell/command-inventory/noun/json/convertFrom ((→ Windows/PowerShell/command-inventory/noun/webRequest/invoke $url).content)
+
+"Name:        $($res.name)"
+"Weather:     $($res.weather.main) / $($res.weather.description)"
+"Temperature: $($res.main.temp - 271.15), feels like $($res.main.feels_like - 271.15) (min/max: $($res.main.temp_min - 271.15)/$($res.main.temp_max - 271.15)"
+"Pressure:    $($res.main.pressure)"
+"Humidity:    $($res.main.Humidity)"
+"Visibility:  $($res.Visibility)"
+"Wind:        $($res.wind.speed) @ $($res.wind.deg)"
+"Rain:        $($res.rain.'1h')"
+"Clouds:      $($res.clouds.'all')"
+code }
+
+}
+
+sa:
+  → development/web/APIs
