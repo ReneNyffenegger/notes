@@ -97,7 +97,47 @@ code }
   `approot_to_pdb.sql`
 
 code {
+
+set lines 290
+column name  format a12
+column name_ format a12
+select
+   con.con_id,
+   con_dbid_to_id    (con.dbid   ) con_id_,
+   con_guid_to_id    (con.guid   ) con_id__,
+   con_uid_to_id     (con.con_uid) con_id___,
+   --
+   con.con_uid,
+   con.dbid,
+   con_id_to_dbid    (con.con_id)  dbid_,
+   --
+   con.name,
+   con_id_to_con_name(con.con_id) name_,
+   --
+   con.guid
+from
+   v$containers con;
+
+code }
+
+code {
 select * from → development/databases/Oracle/installed/data-dictionary/properties[cdb_properties];
+code }
+
+code {
+alter user … account unlock container=current';
+code }
+
+code {
+select * from → development/databases/Oracle/installed/data-dictionary/base-tables/container[sys.container$];
+code }
+
+code {
+select
+                                        sys.dbms_registry.get_con_id(),
+   sys.dbms_registry.get_container_name(sys.dbms_registry.get_con_id())
+from
+   dual;
 code }
 
   { Creating a pluggable database
