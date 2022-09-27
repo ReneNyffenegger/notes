@@ -1,4 +1,4 @@
-$ Oracle multitenant architecture
+$ Oracle Multitenant Architecture
 @ multitenant architecture
 
 The multitenant architecture enables a database to be a CDB.
@@ -9,7 +9,7 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
 
 { Container Database CDB
 
-? A *container database (CDB)* consists of
+? A *container database (CDB)* consists of *containers*:
     • Zero, one or more *pluggable databases (PDB)* and
     • Zero, one or more *application containers*
 
@@ -17,6 +17,24 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
     • Exactly one *CDB root container* (also referred to as the «root»)
     • Exactly one *system container*
     • Exactly one *seed PDB*
+
+  { Container
+
+    Each Container has a separate data dictionary (and can therefore have different database objects). The data dictionary internally links to objects in the CDB root.
+
+    { Current container
+
+      A session operates on exactly one container, referred to as *current container*, at a given point in time.
+
+      The current container can be determined with `select sys_context('userenv', 'con_name') from dual`.
+
+      The container can be switched with `alter session set container …`.
+
+     `cdb$root` can be the current container only for *common users*.
+
+    }
+
+  }
 
 }
 { System container
@@ -33,12 +51,15 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
     • Schema objects
     • Non-Schema objects
 
-  A PDB belongs to zero or one application container.
+
+? A PDB belongs to zero or one application container.
   -
   If it  belongs to an application container, it is a *application PDB*.
 
   With regard to → development/databases/Oracle/Net, a PDB feels like an ordinary
   → development/databases/Oracle/architecture/database.
+
+  A PDB is associated with a GUID whose main purpose is to make sure that directory names for files with PDB related data are unique.
 
 }
 { Application container
@@ -51,9 +72,9 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
     • the PDBs plugged into this root.
 
 }
-{ Root container
+{ CDB root (Root container)
 
-  The root container stores the → development/Data/metadata which is required to manage the PDBs.
+  The CDB root (root container) stores the → development/Data/metadata which is required to manage the PDBs.
 
   The name of the root container is `CDB$ROOT`.
 
@@ -72,6 +93,7 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
  `dbms_pdb`
 
   The procedure `dbms_pdb_num` (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catfusrg_sql`) checks if Multitenant is used and counts user-created PDBs.
+
 
   Is the current database a CDB:
 code {
@@ -161,6 +183,49 @@ alter pluggable database uat  priority 2;
 alter pluggable database dev  priority 3;
 code }
 
+code {
+alter session set container = …;
+alter session set container = … service = …;
+code }
+
+  { Creating PDBs
+
+    There are multiple ways to create a PDB:
+      • From scratch, by copying the files of the PDB seed or application seed to a different directory.
+      • Cloning an existing PDB, which copies the files from the existing PDB to a different directory
+      • Relocating an existing PDB, which moves the files from the existing PDB to a different directory
+      • Plugging in an unplugged PDB, which requires an XML that describes the PDB (`create pluggable database pluggedInPDB using '/path/to/config.xml'`
+      • Creating a proxy PDB
+      • Adopting a non-CDB as a PDB, which uses Replay Upgrade
+
+  }
+
+  { CREATE PLUGGABLE DATABASE
+
+    The `create pluggable database` statement is used to
+      • create PDBs
+      • application containers
+      • application seeds
+      • application PDBs
+
+    If executed in a CDB root, the statement creates a PDB, if exectued in an application root, it creates an application PDB.
+
+    An application root is created in a CDB root container with `create pluggable database … as application container`.
+    -
+    An application seed is created in an application container with` create pluggable database … as seed`.
+
+  }
+
+  { CONTAINER clause in SQL statements
+
+    Some SQL statements can be executed in the CDB root with the `container = all` clause in which case the affect all containers in the CDB:
+      • `create` and `alter user`
+      • `craete role`
+      • `grant`, `revoke`
+      • `alter system`
+
+  }
+
   { Creating a pluggable database
 
 code {
@@ -233,10 +298,39 @@ code }
       • `app$con$seq`
 
   }
+  { CDB Fleet
+
+    A *CDB fleet* is a collection of CDBs that can be managed as *one* logical CDB (the *lead CDB*?)
+
+
+    { Lead CDB
+
+      Determine current CDB Lead Database:
+code {
+select
+   property_value
+from
+   database_properties
+where
+   property_name='LEAD_CDB';
+code }
+
+code {
+alter session  set container = cdb$root;
+alter database set lead_cdb  = true;
+code }
+
+    }
+
+  }
 
   { Data links, metadata links, extended data links
 
     DL = data link (formerly OBL); MDL = metadata link; EDL = extended data link
+
+    A *data link* allows to reference data stored in the root from a PDB.
+    -
+    For example, AWR data is stored in the root, but is accessible from `dba_hist_…` views in each container.
 
     The plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/extended-data-link/full`
 
