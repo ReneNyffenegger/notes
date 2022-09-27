@@ -1,0 +1,58 @@
+$ Powershell: Param(Parameter(ParameterSetName=…))
+
+The following → Windows/PowerShell/script[script] converts either from cartesian coordinates to polar coordinates, or vice versa.
+
+Because the script can be invoked in different «modes», it operates with two parameter sets, named `cartesianCoordinates` and `polarCoordinates`.
+-
+The `cmdletBinding(defaultParameterSetName…` defines the default mode (in this case it is conversion from cartesian coordinates to polar coordinates).
+
+Using the script in default mode:
+code {
+PS> .\convert-coordinates.ps1 8.2 3.1
+Cartesian to polar: r = 8.76641317757725, phi = 1.20935543590134
+code }
+
+In order to convert from poloar coordinates to cartesian coordinates, the non-default parameter set `polarCoordinates` is needed. This can be achieved by explicitely specifying (at least) one
+parameter name of a non-default parameter set:
+code {
+PS> .\convert-coordinates.ps1 -r 7.8 -phi 3.4
+Polar to cartesian: x = -7.5410259021198, y = -1.99322059580928
+code }
+
+Conflicting parameter names:
+code {
+PS> .\convert-coordinates.ps1 -r 6.6 -x 8.8
+… Parameter set cannot be resolved using the specified named parameters. …
+code }
+
+code {
+[→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/CmdletBindingAttribute[cmdletBinding]( defaultParameterSetName = 'cartesianCoordinates' )]
+
+→ Windows/PowerShell/language/statement/function/parameters#ps-parameters-param-stmt[param](
+
+    [ parameter(parameterSetName = 'cartesianCoordinates', → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/mandatory[mandatory] = $true, → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/position[position]=0 )] [double] $x,
+    [ parameter(parameterSetName = 'cartesianCoordinates', → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/mandatory[mandatory] = $true, → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/position[position]=1 )] [double] $y,
+      
+    [ parameter(parameterSetName = 'polarCoordinates'    , → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/mandatory[mandatory] = $true, → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/position[position]=0 )] [double] $r,
+    [ parameter(parameterSetName = 'polarCoordinates'    , → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/mandatory[mandatory] = $true, → Windows/PowerShell/language/statement/function/parameters/attributes/parameter/position[position]=1 )] [double] $phi
+)
+
+→ Windows/PowerShell/command-inventory/noun/strictMode/set -version 3
+
+if (→ Windows/PowerShell/language/variable/automatic/PsCmdLet[$psCmdlet].parameterSetName -eq 'cartesianCoordinates') {
+
+   $r   = [math]::sqrt($x*$x + $y*$y)
+   $phi = [math]::atan($x / $y)
+
+  "Cartesian to polar: r = $r, phi = $phi"
+}
+else {
+   $x = $r * [math]::cos($phi)
+   $y = $r * [math]::sin($phi)
+
+  "Polar to cartesian: x = $x, y = $y"
+}
+code }
+
+sa:
+  → Windows/PowerShell/language/cmdlet/parameter/set[Parameter sets]
