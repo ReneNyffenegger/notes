@@ -39,6 +39,25 @@ $headers = @{ Authorization = "token $githubToken" }
 invoke-webRequest -headers @headers https://raw.githubusercontent.com/…
 code }
 
+  { Slow downloads for large files #invoke-webRequest-slow
+
+    Using `invoke-webRequest` turns out to be *very* slow, especially noticeable when downloading large files, because `invoke-webRequest` reports *every single byte* in the progress bar.
+
+    This behavior can be turned of by setting the → Windows/PowerShell/language/variable/preference/progressPreference[`$progressPreference` variable] to `silentlyContinue`:
+code {
+$progressPreference = 'SilentlyContinue'
+invoke-webRequest $url -out $outFile
+code }
+
+    Unfortunatly, `invoke-webRequest` does not have a command option to set the preference for the duration of the command only.
+
+    Alternatively, a file can also be downloaded like so:
+code {
+(→ Windows/PowerShell/command-inventory/noun/object/new → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[Net.WebClient]).DownloadFile($url, $outFile)
+code }
+
+  }
+
 }
 { -useDefaultCredential
 
