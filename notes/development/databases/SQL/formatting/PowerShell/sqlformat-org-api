@@ -1,0 +1,105 @@
+$ Formatting SQL statements with PowerShell and the sqlformat.org online API
+
+The following → Windows/PowerShell function uses the online SQL formatting API → https://sqlformat.org/api/[`https://sqlformat.org/api/`] to format the text of SQL statements
+
+It can be invoked with either the name of a file that contains the SQL text or a string with the SQL text:
+
+code {
+PS C:\> format-sqlText "select 42 as num, 'hello World' as txt, sysdate as now from dual"
+select 42 as num,
+       'hello World' as txt,
+       sysdate as now
+from dual
+
+PS C:\> format-sqlText P:\ath\to\sql\file.sql
+…
+code }
+
+Some optional parameters (which correspond to that of the online service) allow to modify the behavior of the function:
+table { ll
+  `-indentWidth` ☰ An integer that specifies the number of characters with which the indentations are made
+  `-identCase` ☰ Controls if identifers are transformed to uppercase, lowercase or if the are capitalized (`upper`, `lower` or `capitalize`)
+  `-noReindent` ☰ A flag that can be set to prevent the SQL text from re-indented
+  `-stripComment` ☰ A flag that can be set to remove comments.
+table }
+
+A few examples:
+code {
+PS C:\> format-sql -indentWidth 1                       $sqlFile 
+PS C:\> format-sql -indentWidth 8 -stripComments        $sqlFile 
+PS C:\> format-sql -noReindent                          $sqlFile 
+PS C:\> format-sql -indentWidth 3 -identCase capitalize $sqlFile 
+PS C:\> format-sql -noReindent    -stripComments        $sqlFile 
+code }
+
+{ Source code
+code {
+function format-sqlText {
+
+  [cmdletBinding()]
+   param (
+      [parameter(mandatory=$true)]
+      [string ] $sqlTextOrFilename,
+   
+      [parameter(mandatory=$false)]
+      [int    ] $indentWidth=$null,
+   
+      [parameter(mandatory=$false)]
+      [validateSet('upper', 'lower', 'capitalize')]
+      [string] $identCase,
+   
+      [parameter(mandatory=$false)]
+      [switch ] $noReindent       ,
+
+      [parameter(mandatory=$false)]
+      [switch ] $stripComments
+   )
+   
+   set-strictMode -version 3
+   
+   if (test-path $sqlTextOrFilename) {
+      $sqlText = get-content -raw $sqlTextOrFilename
+   }
+   else {
+      $sqlText = $sqlTextOrFilename
+   }
+   
+   $body = @{ sql = $sqlText }
+   
+   if ($psBoundParameters.containsKey('indentWidth')) {
+      write-verbose "parameter indentWidth was used"
+      $body.indent_width = $indentWidth
+   }
+   else {
+      write-verbose "parameter indentWidth was not used"
+      if (-not $noReindent) {
+         write-verbose "switch noReindent was not used"
+         $body.indent_width = 4
+     }
+   }
+   
+   if ($stripComments) {
+      write-verbose "switch stripComments is on"
+      $body.strip_comments = 1
+   }
+
+   if ($identCase) {
+      write-verbose "identCase was specified"
+      $body.identifier_case = $identCase
+   }
+   
+   $response = invoke-restMethod  `
+      -uri         'https://sqlformat.org/api/v1/format' `
+      -method      'POST'                                `
+      -body         $body                                `
+      -contentType 'application/x-www-form-urlencoded' 
+     
+   
+   $response.result
+}
+code }
+
+}
+
+sa:
+  `→ Windows/PowerShell/command-inventory/noun/restMethod/invoke`

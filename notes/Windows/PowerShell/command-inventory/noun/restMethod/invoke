@@ -1,9 +1,71 @@
-$ PowerShell cmdLet invoke-restMethod
--
+$ PowerShell cmdLet Invoke-RestMethod
+@ invoke-restMethod
+
+{ Querying Wikidata endpoint #invoke-restMethod-wikidata 
+
+  The following example demonstrates how the `invoke-restMethod` can be used to query the → development/Data/open/Wikidata endpoint with a → development/databases/query-languages/SPARQL query.
+
+code {
+$sparqlQuery =  @'
+
+select distinct
+   ?ownerLabel
+   ?portalLabel
+   ?url
+{
+
+   { ?owner   → https://www.wikidata.org/wiki/Property:P8402[wdt:P8402]  ?portal        } .      # → https://www.wikidata.org/wiki/Property:P8402[wdt:P8402 = Open data portal]
+
+   { ?owner   → https://www.wikidata.org/wiki/Property:P131[wdt:P131]    → https://www.wikidata.org/wiki/Q39[wd:Q39]        }  union # located in Switzerland
+   { ?owner   → https://www.wikidata.org/wiki/Property:P131[wdt:P131]    → https://www.wikidata.org/wiki/Q11943[wd:Q11943]     }  union # located in Canton of Zurich
+   { ?owner   → https://www.wikidata.org/wiki/Property:P131[wdt:P131]    → https://www.wikidata.org/wiki/Q72[wd:Q72]        }  union # located in Zurich
+   { ?owner   → https://www.wikidata.org/wiki/Property:P17[wdt:P17]     → https://www.wikidata.org/wiki/Q39[wd:Q39]        }  union # country Switzerland
+   { ?owner   → https://www.wikidata.org/wiki/Property:P17[wdt:P31]     → https://www.wikidata.org/wiki/Q70208[wd:Q70208]     }  union # instance of municipality in switzerland
+   { ?owner   → https://www.wikidata.org/wiki/Property:P17[wdt:P31]     → https://www.wikidata.org/wiki/Q1005418[wd:Q1005418]   }        # instance of federal office of Switzerland
+
+   optional { ?portal  → https://www.wikidata.org/wiki/Property:P856[wdt:P856]  ?url   }        # → https://www.wikidata.org/wiki/Property:P856[wdt:P856] = official website
+
+   service wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+limit 100
+'@
+
+
+$body = @{ query = $sparqlQuery }
+
+$result = invoke-restMethod                              `
+  -uri     'https://query.wikidata.org/sparql'           `
+  -body    $body                                         `
+  -headers @{ accept = 'application/sparql-results+json' }
+
+foreach ($r in $result.results.bindings){
+    '{0,-30} {1,-40} {2}' → Windows/PowerShell/language/operator/f  $r.ownerLabel.value,  $r.portalLabel.value,  $r.url.value
+}
+code }
+
+  When executed, the query result is:
+code {
+Canton of St. Gallen           Open data portal St.Gallen               https://daten.sg.ch
+Zürich                         Open data portal of the City of Zurich   https://data.stadt-zuerich.ch/
+Federal Office of Transport    Open data platform mobility Switzerland  https://opentransportdata.swiss
+Basel-Stadt                    Data portal Basel-Stadt                  https://data.bs.ch
+Swiss Federal Archives         opendata.swiss                           https://opendata.swiss
+Swiss Federal Archives         opendata.swiss                           https://opendata.swiss/en/
+Canton of Zürich               Geoinformation kanton Zuerich            https://opendata.swiss/de/dataset?organization=geoinformation-kanton-zuerich
+Switzerland                    opendata.swiss                           https://opendata.swiss
+Switzerland                    opendata.swiss                           https://opendata.swiss/en/
+Thurgau                        Open Government Data Thurgau             https://ogd.tg.ch/
+Swiss Federal Railways         SBB open data platform                   https://data.sbb.ch
+code }
+
+}
 
 sa:
+
+  Using `invoke-restMethod` to access → https://sqlformat.org/api/[sqlformat.org] to → development/databases/SQL/formatting/PowerShell/sqlformat-org-api[format SQL statements].
+
   → development/web/service/REST
 
-  → Windows/PowerShell/command-inventory/noun/webRequest/invoke[`invoke-webRequest`]
+ `→ Windows/PowerShell/command-inventory/noun/webRequest/invoke`
 
   → Windows/PowerShell/command-inventory/noun/restMethod
