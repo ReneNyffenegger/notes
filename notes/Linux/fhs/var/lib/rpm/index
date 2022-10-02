@@ -6,3 +6,39 @@ $ /var/lib/rpm
 code {
 rpm --rebuilddb
 code }
+
+{ (SQLite) Schema
+
+  The rpm database schema has a «master» table:
+code {
+CREATE TABLE IF NOT EXISTS 'Packages' (hnum INTEGER PRIMARY KEY AUTOINCREMENT, blob BLOB NOT NULL);
+code }
+
+  Then, there are quite a number of child tables with a foreign key referencing `Packages`:
+    • `Name`
+    • `Basenames`
+    • `Group`
+    • `Requirename`
+    • `Providename`
+    • `Conflictname`
+    • `Obsoletename`
+    • `Triggername`
+    • `Dirnames`
+    • `Installtid`
+    • `Sigmd5`
+    • `Sha1header`
+    • `Filetriggername`
+    • `Transfiletriggername`
+    • `Recommendname`
+    • `Suggestname`
+    • `Supplementname`
+    • `Enhancename`
+
+  All tables have the same definition:
+code {
+CREATE TABLE IF NOT EXISTS <tabname> (key 'TEXT' NOT NULL, hnum INTEGER NOT NULL, idx INTEGER NOT NULL, FOREIGN KEY (hnum) REFERENCES 'Packages'(hnum));
+code }
+
+   The two table `Installtid` and `Sigmd5` differ in that the datatype of `key` is not `TEXT` but `BLOB`.
+
+}
