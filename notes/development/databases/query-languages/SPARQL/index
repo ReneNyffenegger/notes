@@ -13,8 +13,6 @@ Apparently, SPARQL is used in → https://query.wikidata.org/[wikidata] (where q
 
 A database is a set of *subject-predicate-object* triples.
 
-*Variables* start with a question mark (`?`) or dollar symbol (`$`).
-
 Comments are introduced with the *hash symbol* (`#`).
 
 { Select everything
@@ -87,6 +85,66 @@ code }
   }
 
 }
+{ Variables
+
+ *Variables* start with a question mark (`?`) or dollar symbol (`$`). `?var` refers to the same data as `$var` (→ https://w.wiki/5nb6[test on wikidata query service]):
+code {
+select
+   $population
+{
+   wd:Q72  wdt:P1082  ?population
+}
+code }
+
+}
+{ FILTER
+
+  { Location of FILTER in a group
+
+    The location of a `filter` constraint in a *group graph pattern* does not change the output, the following three queries are equivalent and all return Swiss municipalities (wd:Q70208) whose
+    population (P1082) is smaller than 50.
+
+    
+    → https://w.wiki/5nbY[Wikidata Query Service]:
+code {
+select
+   ?municipality
+   ?population
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   ?municipality wdt:P1082 ?population .
+   filter(?population < 50)
+}
+code }
+
+   → https://w.wiki/5nbZ[Wikidata Query Service]:
+code {
+select
+   ?municipality
+   ?population
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   filter(?population < 50)
+   ?municipality wdt:P1082 ?population .
+}
+code }
+
+  → https://w.wiki/5nba[Wikidata Query Service]:
+code {
+select
+   ?municipality
+   ?population
+{
+   filter(?population < 50)
+   ?municipality wdt:P31    wd:Q70208  .
+   ?municipality wdt:P1082 ?population .
+}
+code }
+
+  }
+
+
+}
 { Misc
 
   { Datatypes
@@ -133,8 +191,6 @@ code }
   }
 
 }
-
-
 { JSON Result Format
 
 code {

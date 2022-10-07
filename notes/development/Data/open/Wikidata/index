@@ -3,6 +3,76 @@
 
 { Data model
 
+  The «Q Nr» of the *wikidata data model is → https://www.wikidata.org/wiki/Q16354757[Q16354757].
+
+  With SPARQL, its possible to query some features of that data model.
+
+  { Wikidata data model parts
+  
+    The following query selects the (three) wikidata data model parts (using the P527 relation):
+      • Wikidata claim (→ http://www.wikidata.org/entity/Q16354754[Q16354754])
+      • Wikidata property (→ http://www.wikidata.org/entity/Q18616576[Q18616576])
+      • Wikidata statement rank (→ http://www.wikidata.org/entity/Q21044622[Q21044622])
+
+code {
+select
+
+     ?wikidataPart_
+#  ( substr(str(?part_), 32) as ?qNr )
+     ?wikidataPart
+{  #
+   # Q16354757: Wikidata Data Model
+   # P527:      has parts
+   #
+
+     wd:Q16354757      wdt:P527      ?wikidataPart_ .
+    ?wikidataPart_    rdfs:label     ?wikidataPart  . filter(lang(?wikidataPart) = 'en')
+
+}
+order by
+   lcase(?wikidataPart)
+code }
+
+  }
+  { Parts of the wikidata data model:
+
+    Similarly, the P361 relation shows the parts of the wikidata data model:
+      • concept of unknown value in Wikibase (→ http://www.wikidata.org/entity/Q19798648[Q19798648])
+      • Wikidata value (→ http://www.wikidata.org/entity/Q107658963[Q107658963])
+      • Wikidata label (→ http://www.wikidata.org/entity/Q107659597[Q107659597])
+      • Wikidata alias (→ http://www.wikidata.org/entity/Q107659723[Q107659723])
+      • Wikidata description (→ http://www.wikidata.org/entity/Q107659784[Q107659784])
+      • Wikidata term (→ http://www.wikidata.org/entity/Q108060110[Q108060110])
+      • interwiki link (→ http://www.wikidata.org/entity/Q677652[Q677652])
+      • Wikidata item (→ http://www.wikidata.org/entity/Q16222597[Q16222597])
+      • Wikidata claim (→ http://www.wikidata.org/entity/Q16354754[Q16354754])
+      • Wikidata property (→ http://www.wikidata.org/entity/Q18616576[Q18616576])
+      • Wikibase data model element (→ http://www.wikidata.org/entity/Q19798644[Q19798644])
+      • concept of no-value in Wikibase (→ http://www.wikidata.org/entity/Q19798647[Q19798647])
+
+code {
+select
+
+     ?part_
+#  ( substr(str(?part_), 32) as ?qNr )
+     ?part
+{  #
+   # Q16354757: Wikidata Data Model
+   # P361:      part of
+   #
+
+    ?part_     wdt:P361   wd:Q16354757 .
+#   wd:Q16354757     wdt:P361   ?part  .
+    ?part_    rdfs:label ?part         . filter(lang(?part) = 'en')
+
+}
+order by
+   lcase(?wikidataPart)
+code }
+
+    I am not sure why some parts are modelled with the P527 and others with the P361 relation.
+
+  }
   { Entities
 
     Wikidata has *subjects* on which → development/Data/structured is stored. These subjects are called ~entities~.
@@ -49,9 +119,10 @@
     table { ll
       → https://www.wikidata.org/wiki/Property:P17[P17] ☰ The sovereign state in which subject is located, not to be used for human beings. Compare with P131.
       → https://www.wikidata.org/wiki/Property:P18[P18] ☰ image
-      → https://www.wikidata.org/wiki/Property:P31[P31] ☰ is a (compare with → https://www.wikidata.org/wiki/Property:P279[P279 (subclass of)] and → https://www.wikidata.org/wiki/Property:P463[P463] (member of)])
+      → https://www.wikidata.org/wiki/Property:P31[P31] ☰ *instance of*, corresponds to `rdf:type`. Compare with → https://www.wikidata.org/wiki/Property:P279[P279 (subclass of)] and → https://www.wikidata.org/wiki/Property:P463[P463] (member of).
       → https://www.wikidata.org/wiki/Property:P131[P131] ☰ located in the administrative territorial entity (Compare with P17, → https://www.wikidata.org/wiki/Property:P276[P276], P1382)
       → https://www.wikidata.org/wiki/Property:P276[P276] ☰ Location. (Compare with → https://www.wikidata.org/wiki/Property:P131[P131], P625, P8138, P706, P7153)
+      → https://www.wikidata.org/wiki/Property:P279[P279] ☰ *instance of*. Corresponds to `rdfs:subClassOf`. Compare with P31.
       → https://www.wikidata.org/wiki/Property:P402[P402] ☰ → development/OpenStreetMap[OpenStreetMap] relation ID. Compare P3896
       → https://www.wikidata.org/wiki/Property:P571[P571] ☰ start date, copmare 576
       → https://www.wikidata.org/wiki/Property:P576[P576] ☰ dissolved, abolished or demolished date, Compare P582, P571
@@ -157,6 +228,78 @@
   { Wikidata Query Service (WDQS)
 
     WDQS is the server that executes wikidata queries formulated in → development/databases/query-languages/SPARQL.
+
+  }
+
+  { schema:about
+
+   `schema:about` links a Wikepedia URL to a «wd:…» number.
+
+    The following query (→ https://w.wiki/5nbd[Wikidata Query Service]) translates the Hebrew Wikipedia page of Zurich to → https://www.wikidata.org/wiki/Q72[Q72]:
+code {
+select
+   ?wdNr
+{
+   <→ https://he.wikipedia.org/wiki/%D7%A6%D7%99%D7%A8%D7%99%D7%9A[https://he.wikipedia.org/wiki/%D7%A6%D7%99%D7%A8%D7%99%D7%9A]> schema:about ?wdNr .
+}
+code }
+
+   `schema:about` can be combined with `schema:isPartOf` to query the Wikipedia URL of a given topic (Q-Nr) in a given Wikipedia language (→ https://w.wiki/5nbq[Wikidata Query Service]):
+code {
+select
+   ?wikipediaURL
+{
+   ?wikipediaURL schema:about     wd:Q72                        .
+   ?wikipediaURL schema:isPartOf <https://he.wikipedia.org/>    .
+}
+code }
+
+  }
+  { Lexemes
+
+    Query the grammatical gender (P5185) of the german word *Aprikose* (→ https://w.wiki/5nc3[Wikidata Query Service]):
+code {
+select
+   ?lexem
+   ?gender
+{
+   ?lexem      rdf:type       ontolex:LexicalEntry .
+   ?lexem      dct:language   wd:Q188              . # Q188:  German
+   ?lexem      wikibase:lemma ?text                . filter(str(?text) = "Aprikose")
+   ?lexem      wdt:P5185      ?gender_             . # P5185: grammatical gender
+   ?gender_    rdfs:label     ?gender              . filter(lang(?gender) = 'de')
+}
+code }
+
+  }
+}
+{ TODO
+
+  { wikibase:Dump
+
+code {
+select
+   ?a ?b
+{
+  wikibase:Dump ?a ?b .
+}
+code }
+
+code {
+select
+   ?rel ?x
+{
+   values (?rel) {
+     (<http://creativecommons.org/ns#license>)
+     (schema:softwareVersion                 )
+     (rdf:type                               )
+     (rdf:type                               )
+     (owl:imports                            )
+   }
+  
+   wikibase:Dump ?rel ?x .
+}
+code }
 
   }
 
