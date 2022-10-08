@@ -272,6 +272,167 @@ select
 code }
 
   }
+  { p: connect wd:Q… to wds:…
+
+   A «p:…» relation connects a «wd:Q» number to a «wds:…» node (→ https://w.wiki/5nf3[Wikidata Query Service]):
+code {
+select
+   ?wds
+   ?rel
+   ?obj
+{
+   wd:Q544  p:P2670  ?wds .  # Q544 = Solar System
+   ?wds     ?rel     ?obj .
+}
+code }
+
+  }
+  { ps: connect wds: to simple value
+
+    A «ps:…» relation connects a «wds:…» node to a *simple value*. Apparently, simple values are «Q numbers»
+    -
+    The following query sort of reverses the above query (→ https://w.wiki/5nf9[Wikidata Query Service]):
+code {
+select
+   ?wd
+{
+   wds:Q544-1edcc7b8-4eb3-28d9-35b5-b6ff5bbc8e38 ps:P2670 ?wd .
+}
+code }
+
+    Note that a «wdt:» relation connects a «wd:» node to a *simple value*.
+
+  }
+  { p: , ps: and pq:
+
+    The following query prints a line chart of the population growth in Swizerland since 1970 and tries to demonstrate the combined usage of `p:`, `ps:` and `pq:` relations.
+
+    First, `wd:Q39 p:P1082 ?populationStmt` extracts all statements that are relate Swizterland (Q39) to its populsion (`p:1082`).
+    -
+    Then, the `pq:P585` relation extracts each statement's year, and `ps:P1082` the statement's population value.
+    -
+    Finally, the `filter` condition only selects values where the year is greater or equal to 1970 (→ https://w.wiki/5nfq[Run it]):
+code {
+#defaultView:LineChart
+select
+   ?year
+   ?population
+{
+  wd:Q39          p:P1082  ?populationStmt .
+  ?populationStmt pq:P585  ?year           ;
+                  ps:P1082 ?population     .
+  filter(year(?year) >= 1970)
+}
+order by
+   ?year
+code }
+
+    Note: this example also demonstrates a weakness of wikidata: no population values are shown for the years 2015, 2016 and after 2017,
+    probably, because these values were imported before 2018 and are not maintained anymore.
+
+  }
+   { wikibase:quantityAmount and wikibase:quantityUnit
+
+     → https://w.wiki/5ngi[Run it]
+code {
+select
+   ?itemLabel
+   ?elevation
+   ?unitLabel
+{
+
+   values (?item)
+   {
+      ( wd:Q46588    )  # Cordillera Kimsa Cruz : a mountain range in Bolivia
+      ( wd:Q499164   )  # Ascraeus Mons         : a martian shield volcano
+      ( wd:Q55615607 )  # Kalindi Pass          : highest and most adventurous trekking trail in India (almost 6000 M)
+   }
+
+   ?item        p:P2044                 ?eleStmts    .
+   ?eleStmts    psv:P2044               ?eleValues   .  
+
+   ?eleValues   wikibase:quantityAmount ?elevation   .
+   ?eleValues   wikibase:quantityUnit   ?unit        .
+
+   ?item        rdfs:label              ?itemLabel   .
+   ?unit        rdfs:label              ?unitLabel   .
+
+   filter(lang(?itemLabel) = 'en')
+   filter(lang(?unitLabel) = 'en')
+}
+code }
+
+   }
+}
+{ Wikidata Query Service
+
+  { Default View
+
+    The → https://query.wikidata.org/[Wikidata Query Serivce] allows to emit the selected data in various formats. The format needs to be specified as comment:
+    table { ll
+      `#defaultView:AreaChart` ☰
+      `#defaultView:BarChart` ☰
+      `#defaultView:BubbleChart` ☰
+      `#defaultView:Dimensions` ☰
+      `#defaultView:Graph` ☰
+      `#defaultView:ImageGrid` ☰
+      `#defaultView:LineChart` ☰
+      `#defaultView:Map` ☰
+      `#defaultView:ScatterChart` ☰
+      `#defaultView:Timeline` ☰
+      `#defaultView:Tree` ☰
+      `#defaultView:TreeMap` ☰
+    table }
+    
+    { LineChart
+
+      The following example creates a line chart. For simplicity, the rendered values are hardcoded. (→ https://w.wiki/5nfM[Run it]).
+code {
+#defaultView:LineChart
+select ?x ?y {
+   values (?x ?y) {
+      ( 1  20)
+      ( 6  23)
+      ( 9  21)
+      (11  19)
+      (14  20)
+      (15  22)
+      (17  24)
+   }
+}
+code }
+
+    }
+
+  }
+
+}
+{ Some queries
+
+  { Mountains higher than 4000 meters in Switzerland
+
+   → https://w.wiki/5ngJ[Run it]
+code {
+select
+   ?elevation
+   ?name
+   ?mountain
+{
+
+  ?mountain wdt:P31      wd:Q8502   ; # ?mountain is an "instance of" (P31) a "mountain" (Q8502)
+            wdt:P17      wd:Q39     ; # ?mountain has "country" (P17) "Switzerland" (Q39)
+            wdt:P2044    ?elevation ; # P2044: "elevation above sea level"
+            rdfs:label   ?name      . # Use rdfs:label to find the mountain's name
+
+            filter(?elevation >= 4000)
+            filter(lang(?name) = 'de')
+}
+order by
+  ?elevation
+code }
+
+  }
+
 }
 { TODO
 
