@@ -26,6 +26,52 @@ WHERE {
 code }
 
 }
+{ Use predicates to search for specific nodes
+
+  { Largest swiss city
+
+code {
+select
+   ?largestSwissCity
+{
+   ?largestSwissCity   wdt:P31   wd:Q51929311 .
+   ?largestSwissCity   wdt:P17   wd:Q39       .
+}
+code }
+
+code {
+select
+   ?name
+   ?largestSwissCity
+{
+   ?largestSwissCity   wdt:P31      wd:Q51929311 .
+   ?largestSwissCity   wdt:P17      wd:Q39       .
+   ?largestSwissCity   rdfs:label   ?name        . filter(lang(?name) = 'en')
+}
+code }
+
+  }
+  { Largest city of all countries
+
+code {
+select
+   ?countryName
+   ?cityName
+   ?country
+   ?largestCity
+{
+   ?largestCity   wdt:P31      wd:Q51929311 .
+   ?largestCity   wdt:P17      ?country     .
+   ?largestCity   rdfs:label   ?cityName    . filter(lang(?cityName   ) = 'en')
+   ?country       rdfs:label   ?countryName . filter(lang(?countryName) = 'en')
+}
+order by
+  ?countryName
+code }
+
+  }
+
+}
 { LIMIT clause
 
   Select the first 10 «records» only:
@@ -81,6 +127,71 @@ code {
 code }
   
   etc…
+
+  }
+
+}
+{ Shortcuts
+
+  { Semicolon
+
+code {
+select
+   ?xLabel
+   ?x
+{
+   ?x   wdt:P361    wd:Q664063 . # "part of"            (P361) "Italy-Switzerland border" (Q664063)
+   ?x   wdt:P31     wd:Q8502   . # "instance of"        (P31 ) "mountain"                 (Q8502  )
+   ?x   wdt:P186    wd:Q47069  . # "made from material" (P186) "metamorphic rock"         (Q47069 )
+
+   ?x   rdfs:label  ?xLabel    .    filter(lang(?xLabel) = 'en')
+}
+code  }
+  → https://w.wiki/5nie[Run it]
+
+   The semicolon uses the same subject for the next tripple-pattern as for the previous one, thus the variable `?x` needs not be repeated. The following
+   query returns the same result as the previous one:
+code {
+select
+   ?xLabel
+   ?x
+{
+   ?x   wdt:P361    wd:Q664063 ; # "part of"            (P361) "Italy-Switzerland border" (Q664063)
+        wdt:P31     wd:Q8502   ; # "instance of"        (P31 ) "mountain"                 (Q8502  )
+        wdt:P186    wd:Q47069  . # "made from material" (P186) "metamorphic rock"         (Q47069 )
+
+   ?x   rdfs:label  ?xLabel    .    filter(lang(?xLabel) = 'en')
+}
+code }
+   → https://w.wiki/5nid[Run it]
+
+  }
+  { Comma
+
+code {
+select *
+{
+   ?x   wdt:P101   wd:Q189201  .
+   ?x   wdt:P101   wd:Q1065742 .
+   ?x   wdt:P101   wd:Q3328774 .
+
+   ?x   rdfs:label ?xl . filter (lang(?xl) = 'de')
+}
+code }
+  → https://w.wiki/5nib[Run it]
+
+  The comma repeats the previous subject *and* predicate, the following query returns the same result as the previous one.
+code {
+select *
+{
+   ?x   wdt:P101   wd:Q189201  ,
+                   wd:Q1065742 ,
+                   wd:Q3328774 .
+
+   ?x   rdfs:label ?xl . filter (lang(?xl) = 'de')
+}
+code }
+    → https://w.wiki/5niZ[Run it]
 
   }
 
