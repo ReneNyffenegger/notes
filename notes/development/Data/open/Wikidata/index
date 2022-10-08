@@ -3,7 +3,7 @@
 
 { Data model
 
-  The «Q Nr» of the *wikidata data model is → https://www.wikidata.org/wiki/Q16354757[Q16354757].
+  The «Q Nr» of the *wikidata data model* is → https://www.wikidata.org/wiki/Q16354757[Q16354757].
 
   With SPARQL, its possible to query some features of that data model.
 
@@ -309,7 +309,7 @@ code }
 
     First, `wd:Q39 p:P1082 ?populationStmt` extracts all statements that are relate Swizterland (Q39) to its populsion (`p:1082`).
     -
-    Then, the `pq:P585` relation extracts each statement's year, and `ps:P1082` the statement's population value.
+    Then, the `pq:P585` relation extracts each statement's year, and `ps:P1082` the statement's population value. It is unclear to me why I have to use `pq:` for one relation an `ps:` for the other one.
     -
     Finally, the `filter` condition only selects values where the year is greater or equal to 1970 (→ https://w.wiki/5nfq[Run it]):
 code {
@@ -327,11 +327,23 @@ order by
    ?year
 code }
 
+    I belive that `pq:` stands for «property qualifier» and `ps:` for «property statement».
+
     Note: this example also demonstrates a weakness of wikidata: no population values are shown for the years 2015, 2016 and after 2017,
     probably, because these values were imported before 2018 and are not maintained anymore.
 
   }
-   { wikibase:quantityAmount and wikibase:quantityUnit
+  { psn:
+
+    TODO: does `psn:` stand for «normalized property statement»?
+
+  }
+  { pqv:
+
+    TODO: does `pqv:` stand for «property qualifier value»?
+
+  }
+  { wikibase:quantityAmount and wikibase:quantityUnit
 
      → https://w.wiki/5ngi[Run it]
 code {
@@ -432,6 +444,63 @@ order by
 code }
 
   }
+  { Most common relations
+
+    The following query tries to determine the most common relations.
+
+    In order to prevent a query timeout error, we have to use a *nested query* to select a sample of 10 Million relations before we group and count them:
+code {
+select
+   ?rel
+   (count(?rel) as ?cnt)
+{
+   select ?rel
+   {
+      ?x  ?rel ?y .
+   }
+   limit 10000000
+}
+group by
+   ?rel
+order by
+   desc(count(?rel))
+limit
+   100
+code }
+→ https://w.wiki/5nhR[Run it]
+
+    On 2022-10-08, the query returned
+    table { lr
+      `rdf:type` ☰ 2150595
+      `wikibase:rank` ☰ 1307831
+      `schema:inLanguage` ☰ 900424
+      `schema:name` ☰ 900424
+      `schema:isPartOf` ☰ 900424
+      `schema:about` ☰ 888219
+      `prov:wasDerivedFrom` ☰ 793082
+      `pq:P585` ☰ 76617
+      `pqv:P585` ☰ 76615
+      `ps:P31` ☰ 42471
+      `pq:P580` ☰ 34544
+      `pqv:P580` ☰ 34498
+      `ps:P1082` ☰ 33245
+      `psv:P1082` ☰ 33244
+      `pq:P459` ☰ 32322
+      `ps:P106` ☰ 30558
+      `ps:P646` ☰ 29962
+      `psn:P646` ☰ 29962
+      `ps:P18` ☰ 22791
+      `ps:P373` ☰ 21941
+      `pq:P582` ☰ 21832
+      `pqv:P582` ☰ 21598
+      `ps:P47` ☰ 18965
+      `pq:P1810` ☰ 18165
+      `psn:P214` ☰ 15899
+    table }
+
+
+  }
+
 
 }
 { TODO
