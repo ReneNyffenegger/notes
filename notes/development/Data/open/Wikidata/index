@@ -1,4 +1,8 @@
 
+Wikidata does not primarily aim to store facts about the world, rather it tries to collect links to refences to knowledge.
+-
+Therefore, it's possible to have conflicting information in Wikidata which gives raise to the *statement ranks* (preferred, normal and deprecated).
+
 → https://www.wikidata.org/wiki/Special:Search[Search] for Q numbers. Use the `p:` prefix to search for identifiers for an item.
 
 { Data model
@@ -77,7 +81,7 @@ code }
 
     Wikidata has *subjects* on which → development/Data/structured is stored. These subjects are called ~entities~.
 
-    There are two types of entitites:
+    There are two types of entities:
       • item (whose identifier starts with `Q`)
       • property (whose identifiers start with `P`)
   
@@ -124,7 +128,7 @@ code }
       → https://www.wikidata.org/wiki/Property:P276[P276] ☰ Location. (Compare with → https://www.wikidata.org/wiki/Property:P131[P131], P625, P8138, P706, P7153)
       → https://www.wikidata.org/wiki/Property:P279[P279] ☰ *instance of*. Corresponds to `rdfs:subClassOf`. Compare with P31.
       → https://www.wikidata.org/wiki/Property:P402[P402] ☰ → development/OpenStreetMap[OpenStreetMap] relation ID. Compare P3896
-      → https://www.wikidata.org/wiki/Property:P571[P571] ☰ start date, copmare 576
+      → https://www.wikidata.org/wiki/Property:P571[P571] ☰ start date, compare 576
       → https://www.wikidata.org/wiki/Property:P576[P576] ☰ dissolved, abolished or demolished date, Compare P582, P571
       → https://www.wikidata.org/wiki/Property:P585[P585] ☰ Point in time
       → https://www.wikidata.org/wiki/Property:P625[P625] ☰ WGS84-Coordinates of subject. Distances between two such coordinates can be calculated with `geof:distance(?c1, ?c2)`. Compare with `P2044` (elevation).
@@ -185,7 +189,7 @@ code }
 
     A statement can be enriched with a *qualifier* which provides additional context information for the claim.
     -
-    Qualifiers are expressed as properies.
+    Qualifiers are expressed as properties.
     -
     Examples for qualifiers are *start date* (P580) or *end date* (P582).
 
@@ -193,6 +197,36 @@ code }
     -
     A reference is property-value pair (or a list of property-value pairs?)
 
+    { Rank
+
+      A statement has an associated → https://www.wikidata.org/wiki/Help:Ranking[rank] which is one of
+      table { lll
+        preferred ☰ `wikibase:PreferredRank` ☰ Typically used for the most up-to-date value or the value with the broadest consensus, and is ideally applied to a → https://www.wikidata.org/wiki/Help:Sources[sourced statement] (See P248 «stated in» and P854 «reference URL»)
+        normal ☰ `wikibase:NormalRank` ☰
+        deprecated ☰ `wikibase:DeprecatedRank` ☰ Typically used for wrong or out-of-date values. Wrong values may be connected with a «reason for deprecated rank» (P2241) relation, out-of-date values with a «start time» (P580) and «end time» (P582) relation.
+      table }
+
+      A statement is connected to a rank with the `http://wikiba.se/ontology#rank` (or `wikibase:rank`) relation.
+      -
+      The following query selects the the three ranks:
+code {
+select
+  distinct ?rank
+{
+#  []    <http://wikiba.se/ontology#rank>   ?rank .
+   []     wikibase:rank                     ?rank .
+}
+code }
+     → https://w.wiki/5obi[Run it]
+
+    }
+    { Claim
+
+      The claim is the objective of a statement.
+
+      Ranks and references do not belong the statement's claim.
+
+    }
   }
   { Namespaces
 
@@ -245,7 +279,7 @@ select
 code }
     → https://w.wiki/5nbd[Run it]
 
-   `schema:about` can be combined with `schema:isPartOf` to query the Wikipedia URL of a given topic (Q-Nr) in a given Wikipedia language (→ https://w.wiki/5nbq[Wikidata Query Service]):
+   `schema:about` can be combined with `schema:isPartOf` to query the Wikipedia URL of a given topic (Q-Nr) in a given Wikipedia language:
 code {
 select
    ?wikipediaURL
@@ -254,6 +288,7 @@ select
    ?wikipediaURL schema:isPartOf <https://he.wikipedia.org/>    .
 }
 code }
+    → https://w.wiki/5nbq[Run it]
 
   }
   { schema:name
@@ -431,6 +466,35 @@ code }
      → https://w.wiki/5nmB[Run it]
 
    }
+  { Wikidata categories
+
+    A Wikidata category is an instance of `Q4167836`.
+
+    As of October 2022, there are over 5 Million categories:
+code {
+select
+   (count(*) as ?cntWikidataCategories)
+{
+   ?category  wdt:P31  wd:Q4167836 .
+}
+code }
+    → https://w.wiki/5ocA[Run it]
+
+  }
+  { Disambiguation pages
+
+    A so-called disambiguation page should be an instance of `wd:Q4167410`.
+
+    The following query verifies if `wd:Q399841` (→ https://www.wikidata.org/wiki/Q399841[Oracle]) is a disambiguation page:
+code {
+ask {
+   wd:Q399841  wdt:P31  wd:Q4167410 .
+}
+code }
+
+    See also «Wikipedia article covering multiple topics» (Q21484471), «main subject» (P921) and «has parts» (P527) 
+
+  }
 }
 { Wikidata Query Service
 
