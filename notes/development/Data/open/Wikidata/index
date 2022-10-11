@@ -471,6 +471,57 @@ select ?x ?y {
 code }
 
     }
+    { Map
+
+      If a query result returns coordinates, `#defaultView:Map` will create a map:
+
+      The following query produces a map with *castles* (Q23413) or *castle ruins (Q17715832) located in the Kanton Zurich (Q11943):
+code {
+#defaultView:Map
+select
+ #
+ # Use distinct to make all points on the map equally sized.
+ # Some nodes are linked with both, Q23413 and Q17715832, and thus
+ # would be drawn with a bigger point.
+ #
+   distinct
+  ?name
+  ?coord
+{
+   values (?castleType) {
+      ( wd:Q23413    )
+      ( wd:Q17715832 )  
+   }  
+  
+   ?castle  wdt:P31    ?castleType ;
+            p:P131     ?locStmt    ;
+            wdt:P625   ?coord      ;
+           rdfs:label  ?name       .
+
+   ?locStmt ps:P131     wd:Q11943  .
+  
+   filter(lang(?name) = 'de')
+}
+code }
+     → https://w.wiki/5oVs[Run it]
+
+     `"Point(lon lat)"^^geo:wktLiteral"` is a coordinate literal (note: the order longitude before latitude is different from → misc/ISO/6709).
+     -
+     Such literals allow to draw a «hardcoded» point on a map:
+code {
+#defaultView:Map
+select
+  *
+{
+   values (?coord ?text) {
+       ( "Point(-6.4456011 49.872861 )"^^geo:wktLiteral  "Bishop Rock"   @en )
+       ( "Point(-6.4172637 49.878124 )"^^geo:wktLiteral  "Isles of Scily"@en )
+   }     
+}
+code }
+     → https://w.wiki/5oUb[Run it]
+
+    }
 
   }
 
