@@ -72,6 +72,33 @@ code }
   }
 
 }
+{ Aggregate functions
+
+  { COUNT
+
+    The following query results the number of nodes that are an instance of (P31) «municipality of Switzerland» (Q70208):
+code {
+select
+  (count(?muni) as ?cntOfMunicipalitiesCH)
+{
+   ?muni   wdt:P31   wd:Q70208 .
+}
+code }
+    → https://w.wiki/5p3$[Run it]
+
+    Of course, the same result can be obtained using a blank node (`[]`) because the value of `?muni` does not interest:
+code {
+select
+  (count(*) as ?cntOfMunicipalitiesCH)
+{
+  []       wdt:P31   wd:Q70208 .
+}
+code }
+   → https://w.wiki/5p42[Run it]
+
+  }
+
+}
 { LIMIT clause
 
   Select the first 10 «records» only:
@@ -125,7 +152,7 @@ or
 code {
 ?subj x:P1/xP2/xP2/xP2 ?obj
 code }
-  
+
   etc…
 
   }
@@ -215,8 +242,6 @@ code }
     The location of a `filter` constraint in a *group graph pattern* does not change the output, the following three queries are equivalent and all return Swiss municipalities (wd:Q70208) whose
     population (P1082) is smaller than 50.
 
-    
-    → https://w.wiki/5nbY[Wikidata Query Service]:
 code {
 select
    ?municipality
@@ -227,20 +252,20 @@ select
    filter(?population < 50)
 }
 code }
+   → https://w.wiki/5nbY[Run it]
+  
+code {
+select
+   ?municipality
+   ?population
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   filter(?population < 50)
+   ?municipality wdt:P1082 ?population .
+}
+code }
+  → https://w.wiki/5nbZ[Run it]
 
-   → https://w.wiki/5nbZ[Wikidata Query Service]:
-code {
-select
-   ?municipality
-   ?population
-{
-   ?municipality wdt:P31    wd:Q70208  .
-   filter(?population < 50)
-   ?municipality wdt:P1082 ?population .
-}
-code }
-
-  → https://w.wiki/5nba[Wikidata Query Service]:
 code {
 select
    ?municipality
@@ -251,9 +276,9 @@ select
    ?municipality wdt:P1082 ?population .
 }
 code }
+  → https://w.wiki/5nba[Run it]
 
   }
-
 
 }
 { Misc
@@ -301,6 +326,36 @@ code }
 
   }
 
+  { DESCRIBE
+
+   
+code {
+describe wd:Q1111111
+}
+code }
+   → https://w.wiki/5p8Z[Run it]
+
+  `describe <node>` finds all subject-relation-object tuples where `<node>` is either the subject or the object.
+   -
+   Thus, the previous query is (as far as I believe) semantically equivalent to the following one:
+code {
+select
+   ?subject  ?predicate  ?object
+{
+   {
+      ?subject  ?predicate   ?object     .
+       bind ( wd:Q1111111 as ?subject )  .
+   }
+ UNION
+   {
+      ?subject  ?predicate   ?object   .
+       bind ( wd:Q1111111 as ?object ) .
+   }
+}
+code }
+    → https://w.wiki/5p8d[Run it]
+
+  }
 }
 { JSON Result Format
 
@@ -319,10 +374,10 @@ code }
 
   Other keys that I've seen in the objects of the `bindings` array:
     • `datatype` (for example with the value `http://www.w3.org/2001/XMLSchema#integer`)
-  
+
 
 code {
-{ 
+{
   "head"   : {},
   "boolean": true
 }
