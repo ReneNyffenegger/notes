@@ -12,7 +12,7 @@ Therefore, it's possible to have conflicting information in Wikidata which gives
   With SPARQL, its possible to query some features of that data model.
 
   { Wikidata data model parts
-  
+
     The following query selects the (three) wikidata data model parts (using the P527 relation):
       • Wikidata claim (→ http://www.wikidata.org/entity/Q16354754[Q16354754])
       • Wikidata property (→ http://www.wikidata.org/entity/Q18616576[Q18616576])
@@ -84,7 +84,7 @@ code }
     There are two types of entities:
       • item (whose identifier starts with `Q`)
       • property (whose identifiers start with `P`)
-  
+
     The entities and properties form a *directed graph* in which the entities are the nodes and the properties are the edges.
 
     The model is different from → development/web/RDF[RDF] in that the graphs's edges (i.e. the properties) can be annotated. Such annotations
@@ -142,7 +142,7 @@ code }
     table }
 
     { TODO
-    
+
       `http://www.wikidata.org/entity/P1234` vs `http://www.wikidata.org/prop/direct/P1234`. Apparently, they're connected by
       `wikibase:directClaim`.
 
@@ -337,6 +337,60 @@ code }
    → https://w.wiki/5o4C[Run it.]
 
   }
+  { rdfs:label
+
+    The `rdfs:label` predicates assigns a text and a language to a node. The language ID of the added text can be quried with the `lang(…)` function.
+
+    The following query selects translations of «Swizterland» and ther language ID and order them by the language ID:
+code {
+select
+  (lang(?label) as ?langId)
+   ?label
+{
+   wd:Q39   rdfs:label  ?label .
+}
+order by
+   ?langId
+code }
+    → https://w.wiki/5pFa[Run it]
+
+
+    `lang(…)` can be used in a `filter` clause to limit the result to a given language (in the following example to *Bengali*, whose ID is *bn*):
+code {
+select
+   ?label
+{
+   wd:Q39   rdfs:label  ?label .
+   filter( lang(?label) = 'bn' )
+}
+code }
+    → https://w.wiki/5pFe[Run it]
+
+
+    See also the `skos:altLabel` predicate.
+
+  }
+  { skos:altLabel
+
+
+   `skos:altLabel` assigns a *list of aliases* to a node.
+
+    In a wikidata entry page, these aliases appear under the column *Also known as*.
+
+code {
+select
+   ?alias
+{
+   wd:Q39   skos:altLabel  ?alias .
+   filter( lang(?alias) = 'en' )
+}
+code }
+    → https://w.wiki/5pH9[Run it]
+
+    See also the `rdfs:label` predicate.
+
+
+  }
   { Lexemes
 
     Query the grammatical gender (P5185) of the german word *Aprikose* (→ https://w.wiki/5nc3[Wikidata Query Service]):
@@ -443,7 +497,7 @@ select
    }
 
    ?item        p:P2044                 ?eleStmts    .
-   ?eleStmts    psv:P2044               ?eleValues   .  
+   ?eleStmts    psv:P2044               ?eleValues   .
 
    ?eleValues   wikibase:quantityAmount ?elevation   .
    ?eleValues   wikibase:quantityUnit   ?unit        .
@@ -492,7 +546,7 @@ ask {
 }
 code }
 
-    See also «Wikipedia article covering multiple topics» (Q21484471), «main subject» (P921) and «has parts» (P527) 
+    See also «Wikipedia article covering multiple topics» (Q21484471), «main subject» (P921) and «has parts» (P527)
 
   }
 }
@@ -515,7 +569,7 @@ code }
       `#defaultView:Tree` ☰
       `#defaultView:TreeMap` ☰
     table }
-    
+
     { LineChart
 
       The following example creates a line chart. For simplicity, the rendered values are hardcoded. (→ https://w.wiki/5nfM[Run it]).
@@ -554,16 +608,16 @@ select
 {
    values (?castleType) {
       ( wd:Q23413    )
-      ( wd:Q17715832 )  
-   }  
-  
+      ( wd:Q17715832 )
+   }
+
    ?castle  wdt:P31    ?castleType ;
             p:P131     ?locStmt    ;
             wdt:P625   ?coord      ;
            rdfs:label  ?name       .
 
    ?locStmt ps:P131     wd:Q11943  .
-  
+
    filter(lang(?name) = 'de')
 }
 code }
@@ -580,7 +634,7 @@ select
    values (?coord ?text) {
        ( "Point(-6.4456011 49.872861 )"^^geo:wktLiteral  "Bishop Rock"   @en )
        ( "Point(-6.4172637 49.878124 )"^^geo:wktLiteral  "Isles of Scily"@en )
-   }     
+   }
 }
 code }
      → https://w.wiki/5oUb[Run it]
@@ -696,7 +750,7 @@ select
      (rdf:type                               )
      (owl:imports                            )
    }
-  
+
    wikibase:Dump ?rel ?x .
 }
 code }
