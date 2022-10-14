@@ -99,6 +99,34 @@ code }
   }
 
 }
+{ VALUES clause
+
+code {
+select
+   ?fromLabel
+   ?toLabel
+   ?distance
+{
+
+   values
+      (?from  ?to)            # FROM             TO
+   {                          # -------------    ------------------
+      (wd:Q72     wd:Q66964 ) # Zürich        -> Freienstein-Teufen
+      (wd:Q65119  wd:Q870169) # Pfungen       -> Schwägalp Pass
+      (wd:Q60     wd:Q61    ) # New York City -> Washington DC
+   }
+
+   ?from  wdt:P625  ?fromCoordinates .
+   ?to    wdt:P625    ?toCoordinates .
+
+   bind(geof:distance(?fromCoordinates, ?toCoordinates) as ?distance) .
+
+   service wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+code }
+   → https://w.wiki/5pSW[Run it]
+
+}
 { LIMIT clause
 
   Select the first 10 «records» only:

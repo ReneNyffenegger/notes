@@ -4,18 +4,37 @@ $ Oracle: The DUAL table
 `DUAL` is the name of a → development/databases/Oracle/objects/tables with exactly *one* record and *one* → development/databases/Oracle/objects/tables/columns.
 The name of the column is `DUMMY` and its value is `X` and its value is `X`.
 
+Althogh it is possible to delete or update the record, or insert new records, one *really should not do that*.
+
 The owner of `DUAL` is `SYS`, but it is accessibly by every → development/databases/Oracle/users-roles/users.
 
+{ Purpose of the DUAL table
 
-The → development/databases/Oracle/optimizer «knows» that `dual` has one record only. In fact, when querying an SQL expression from `dual`, Oracle does not physically select
-the record (see the plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual`):
+  The purpose of the `DUAL` table is to let a user evaluate an SQL-expression in an SQL statement.
+
+  { Oracle 23c
+
+    Up to → development/databases/Oracle/Releases-and-versions/21c, the value of an SQL-expression could only be calculated in PL/SQL or an SQL statement, however, in
+    → development/databases/Oracle/Releases-and-versions/23c, it's possible to select an expression simply like so:
+code {
+select
+  sysdate as this_moment
+  7*6     as result
+;
+code }
+
+  }
+
+}
+{ Optimizer
+
+  The → development/databases/Oracle/optimizer «knows» that `dual` has one record only. In fact, when querying an SQL expression from `dual`, Oracle does not physically select
+  the record (see the plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual`):
 code {
 select → development/databases/Oracle/SQL/functions/date/sysdate from dual;
 code }
 
-Althogh it is possible to delete or update the record, or insert new records, one *really should not do that*.
-
-
+}
 { Creation of DUAL
 
   Oracle creates `DUAL` when it installs the → development/databases/Oracle/installed/data-dictionary.

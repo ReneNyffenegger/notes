@@ -1,124 +1,10 @@
 $ Oracle 23c: New features
 @ 23c
 
-Stored procedures can be written in JavaScript:
-code {
-create mle module tq84_js language javascript as
+{ BOOLEAN data type in SQL:
 
-    export function f(p1, p2) { return p1+p2; }
-   
-    …
+  Oracle 23c introduces the `boolean` → development/databases/Oracle/SQL/data-types[datatype].
 
-create function f (p1 number, p2 number) return number as mle module tq84_js signature f(number, number);
-
-select f(20, 22) /* Ha: no more dual :-) */;
-code }
-
-Useful to prevent the → development/databases/Oracle/errors/ORA-00942_table-or-view-does-not-exist and *ORA-00955: name is already used by an existing object* errors:
-code {
-drop   table IF     EXIST tq84_t1;
-create table IF NOT EXIST tq84_t2 (num number, txt varchar2(10));
-code }
-
-`group by` can use aliases for expressions:
-code {
-select
-   count(*),
-   f(a, b) xyz
-from
-   t
-group by
-   xyz; 
-having
-   xyz > 100;
-code }
-
-Tables can be updated with a condition specified in a («direct») join:
-code {
-udpate    dest d
-   set    d.xxx = …
-  from    src  s
- where    d.abc = s.def;
-code }
-
-
-*JSON schema* allows to validate JSON documents:
-code {
-create table tq84_json_schema_test (
-   obj json validate '
-     {
-         "num": number,
-         … 
-     }
-   '
-);
-code }
-
-Insert multiple records at once (going by the name of «table value constructor»?):
-code {
-insert into t1 values
-  (1, 'first record' ),
-  (2, 'second record'),
-  (3, 'third record' ),
-  (4, 'fourth record');
-code }
-
-Similarly:
-code {
-select * from (
-  values
-    (1, 'first record' ),
-    (2, 'second record'),
-    (3, 'third record' ),
-    (4, 'fourth record')
-)
-tmp (num, txt);
-code }
-
-Granting privileges to entire schemas:
-code {
-grant
-   select any table
-on
-   schema sales  
-to
-   rene;
-code }
-
-SQL domains:
-code {
-create domain month_year
-   constraint month_fmt check (regexp_like(year_month, '^\d\d-\d\d\d\d$')
-   display 'Year: ' || substr(year_month, 4, 4) || ', Month: ' || substr(year_month, 1, 2)
-   order substr(year_month, 4, 4) || substr(year_month, 1, 2);
-code }
-
-New functions `domain_display` and `domain_order` to get a domain's definition of display and order functions.
-
-A special developer role to facilitate developers's jobs.
-code {
-begin
-   dbms_developer_admin.grant_privs('rene');
-end;
-/
-code }
-
-Up to 4096 columns per table (requires `max_columns` to be set to `extended` and `compatibility` to be set to `23.0.0`).
-
-Key value pair annotations for tables provide metadata for data and schema.
-code {
-create table t_foo ( … )
-annotations (
-   expected_release 'R4.2',
-   test_coverage    'no'
-);
-code }
-
-Annotations are supported for tables, views, materialized views, columns, indexes and domains.
-
-? Improved error messages: *ORA-00979: not a GROUP BY expression* -> *ORA-00979: "RENE.C1": does not match a GROUP BY expression*.
-
-? BOOLEAN data type in SQL:
 code {
 create table tq84_bool_test (val varchar2(10), flg boolean);
 insert into tq84_bool_test values ('true'  , true );
@@ -134,7 +20,13 @@ select val from tq84_bool_test where     flg;
 select val from tq84_bool_test where not flg;
 code }
 
-? `DUAL` table not needed anymore (if `_past_dual_enabled` is set to `true`?):
+}
+{ Selecting an expression without FROM DUAL
+
+  The → development/databases/Oracle/SQL/dual[`DUAL` table] is not needed anymore to select one or more expressions:
+rem {
+ (if `_past_dual_enabled` is set to `true`?):
+rem }
 code {
 select
   'Hello world'     as txt,
@@ -142,10 +34,167 @@ select
    sysdate          as now;
 code }
 
-? Improved `returning` clause for `merge` and `update` statements.
+}
+{ JavaScript Stored procedures
 
-Further improvements might  include:
-  • Aggregation over `interval` data types
+  Stored procedures can be written in → development/languages/JavaScript:
+code {
+create mle module tq84_js language javascript as
+
+    export function f(p1, p2) { return p1+p2; }
+   
+    …
+
+  create function f (p1 number, p2 number) return number as mle module tq84_js signature f(number, number);
+
+  select f(20, 22) /* Ha: no more dual :-) */;
+code }
+
+}
+{ DROP/CREATE TABLE IF [NOT] EXIST
+
+  The `if [not] exist` clause auf the `create table` and `drop table` statements are useful to prevent the → development/databases/Oracle/errors/ORA-00942_table-or-view-does-not-exist and *ORA-00955: name is already used by an existing object* errors:
+
+code {
+drop   table IF     EXIST tq84_t1;
+create table IF NOT EXIST tq84_t2 (num number, txt varchar2(10));
+code }
+
+}
+{ GROUP BY on expression aliases
+
+ `→ development/databases/Oracle/SQL/select/group-by` can use aliases for expressions:
+code {
+select
+   count(*),
+   f(a, b) xyz
+from
+   t
+group by
+   xyz; 
+having
+   xyz > 100;
+code }
+
+}
+{ Updating tables
+
+  Tables can be updated with a condition specified in a («direct») → development/databases/Oracle/SQL/join:
+
+code {
+udpate    dest d
+   set    d.xxx = …
+  from    src  s
+ where    d.abc = s.def;
+code }
+
+}
+{ JSON Schemas
+
+
+  A *JSON schema* allows to validate → development/languages/JavaScript/JSON documents:
+
+code {
+create table tq84_json_schema_test (
+   obj json validate '
+     {
+         "num": number,
+         … 
+     }
+   '
+);
+code }
+
+}
+{ Table value constructors
+
+  Insert multiple records at once (going by the name of «table value constructor»):
+code {
+insert into t1 values
+  (1, 'first record' ),
+  (2, 'second record'),
+  (3, 'third record' ),
+  (4, 'fourth record');
+code }
+
+  Similarly in a `select` statement:
+code {
+select * from (
+  values
+    (1, 'first record' ),
+    (2, 'second record'),
+    (3, 'third record' ),
+    (4, 'fourth record')
+)
+tmp (num, txt);
+code }
+
+}
+{ Granting privileges to entire schemas:
+
+  Privileges can be granted on entire schemas:
+code {
+→ development/databases/Oracle/SQL/DCL/grant
+   select any table
+on
+   schema sales  
+to
+   rene;
+code }
+
+}
+{ SQL domains
+
+code {
+create domain month_year
+   constraint month_fmt check (regexp_like(year_month, '^\d\d-\d\d\d\d$')
+   display 'Year: ' || substr(year_month, 4, 4) || ', Month: ' || substr(year_month, 1, 2)
+   order substr(year_month, 4, 4) || substr(year_month, 1, 2);
+code }
+
+
+  Particularities about domains can be quried with the new functions `domain_display` and `domain_order`. These get a domain's definition of display and order functions.
+
+}
+{ Developer role
+
+  A special developer role to facilitate developers's jobs.
+code {
+begin
+   dbms_developer_admin.grant_privs('rene');
+end;
+/
+code }
+
+}
+{ Up to 4096 columns per table
+
+  Up to 4096 → development/databases/Oracle/objects/tables/columns[columns] per → development/databases/Oracle/objects/tables (requires `max_columns` to be set to `extended` and `compatibility` to be set to `23.0.0`).
+
+}
+{ Object and schema annotations 
+
+  Key value pair annotations for (some) → development/databases/Oracle/objects[objects] provide metadata for data and schema.
+
+code {
+create table t_foo ( … )
+annotations (
+   expected_release 'R4.2',
+   test_coverage    'no'
+);
+code }
+
+  Annotations are supported for tables, views, materialized views, columns, indexes and domains.
+
+}
+{ Misc
+
+  ? Improved error messages: *ORA-00979: not a GROUP BY expression* -> *ORA-00979: "RENE.C1": does not match a GROUP BY expression*.
+
+  ? Improved `returning` clause for `merge` and `update` statements.
+
+  Further improvements might include:
+  • → development/databases/Oracle/SQL/select/aggregate[Aggregation] over `interval` data types
   • Enhancements for blockchain tables
   • OJM allows HTTP and TCP access while other OS calls are disabled
   • Sagas for microservices
@@ -153,11 +202,13 @@ Further improvements might  include:
   • Ubiquitous search with `dbms_search`
   • Asynchronous programming
   • `default on null` for `update` statements
-  • Oracle texgt indexes with automatic maintenance
-  • Transportable binary XML
+  • Oracle text indexes with automatic maintenance
+  • Transportable binary → development/XML
   • Support for Unicode Ideographic Variation Sequences (IVS)
 
-Beta program (estimated from October 2022 through February 2023): → https://bit.ly/OracleBetaTesting
+  Beta program (estimated from October 2022 through February 2023): → https://bit.ly/OracleBetaTesting
+
+}
 
 links:
   Philipp Salvisberg's → https://twitter.com/phsalvisberg/status/1572885995070300160[Twitterthread] summarizes some impressions from new 23c features presented at the DOAG 2022 Conference.
