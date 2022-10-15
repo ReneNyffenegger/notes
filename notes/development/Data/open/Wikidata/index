@@ -822,13 +822,52 @@ code }
 
 
   }
+  { All objects of a given node
+
+    The following query returns all relations of a given node (here: Switzerland = Q39).
+    -
+    In order to be more readable, the query returns a relation's label.
+    -
+   `?relType` corresponds to the property type expected by the relation. 
+    -
+    Because some relations point to another node, other relations just to a value,
+   `coalesce(…)` returns either the label of the referenced node or the value.
+
+code {
+select
+   ?relText
+   (coalesce(?xText, ?x) as ?obj)
+   ?rel_
+   ?relType
+#  ?x
+#  ?xText
+{
+
+#  wd:Q35120  ?rel                   ?x       .
+   wd:Q39     ?rel                   ?x       .
+
+   ?rel_      wikibase:directClaim   ?rel     .
+   ?rel_      rdfs:label             ?relText . filter(lang(?relText) = 'en')
+   ?rel_      wikibase:propertyType  ?relType .
+  
+  
+   optional {
+   ?x         rdfs:label             ?xText   . filter(lang(?xText  ) = 'en')
+   }
+}
+order by
+   lcase(?relText)
+code }
+     → https://w.wiki/5pay[Run it]
+
+  }
 
 }
 { TODO
 
   { wd:Q23958852
 
-    wd:Q23958852 («Variable-order class») is interesting because it is an instance (wdt:P31) of itself. The following query returns true:
+    wd:Q23958852 («Variable-order class») is interesting because it is an instance (wdt:P31) of itself. The following query returns `true`:
 code {
 ask {
    wd:Q23958852  wdt:P31  wd:Q23958852 .
