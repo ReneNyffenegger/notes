@@ -1,9 +1,21 @@
 $ Overpass API settings - out
 
-{ csv
+The `[out:…]` → development/OpenStreetMap/API/Overpass/settings[setting] specifies the data format in which the result of an → development/OpenStreetMap/API/Overpass query is returned.
+-
+There are five supported formats:
+table { ll
+  xml ☰
+  → #overpass-out-csv[csv] ☰
+  → #overpass-out-json[json] ☰ This is *not* → development/languages/JavaScript/JSON/GeoJSON
+  custom ☰
+  popup ☰
+
+table }
+
+{ csv #overpass-out-csv
 
 code {
-[out:csv(
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](
    num, txt ;    // Column names
    true     ;    // header (true is default)
   "|"            // separator
@@ -19,9 +31,9 @@ code }
   { (Mis-)using CSV output to generate text result
 
 code {
-[out:csv(txt; false)];
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](txt; false)];
 
-{{geocodeArea: Pfungen }};
+{{→ development/OpenStreetMap/API/Overpass/extensions/geocode#overpass-geocodeArea[geocodeArea]: Pfungen }};
 
 //
 // Search for amenities with a name in the
@@ -58,11 +70,10 @@ code }
 
   }
 
-}
-{ Get tramway colors of VBZ (Verkehrsbetriebe Zürich)
+  { Get tramway colors of VBZ (Verkehrsbetriebe Zürich)
 
 code {
-[out:csv(ref, colour)];
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](ref, colour)];
 
 relation
    [operator = 'Verkehrsbetriebe Zürich']
@@ -73,7 +84,7 @@ code }
 
    Unfortunately, the same line (and colour value) are returned multple times, but we want a unique (distinct) list. The following query will achieve this:
 code {
-[out:csv(ref, colour)];
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](ref, colour)];
 
 relation[operator='Verkehrsbetriebe Zürich'][route='tram'];
 
@@ -82,6 +93,67 @@ for (t['ref']) {
       ref = _.val,
       colour = u(t['colour']);
    out;
+}
+code }
+
+  }
+}
+{ json #overpass-out-json
+
+ `[out:json]` returns the result of a query in → development/languages/JavaScript/JSON format.
+
+code {
+[out:json];
+{{→ development/OpenStreetMap/API/Overpass/extensions/geocode#overpass-geocodeArea[geocodeArea]:Pfungen}};
+nwr(area);
+out;
+code }
+
+  The generated result looks something like
+code {
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.59 e21c39fe",
+  "osm3s": {
+    "timestamp_osm_base": "2022-10-16T14:17:49Z",
+    "timestamp_areas_base": "2022-10-16T13:56:25Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 17288816,
+  "lat": 47.5168632,
+  "lon": 8.6259800
+},
+  …
+{
+  "type": "node",
+  "id": 17288830,
+  "lat": 47.5164709,
+  "lon": 8.6323133,
+  "tags": {
+    "maxspeed": "60",
+    "traffic_sign": "city_limit"
+  }
+},
+  …
+{
+  "type": "way",
+  "id": 46978812,
+  "nodes": [
+    1307209867,
+    276423681
+  ],
+  "tags": {
+    "highway": "track",
+    "name": "Klosterruinenstrasse",
+    "tracktype": "grade2"
+  }
+},
+  …
+  ]
 }
 code }
 

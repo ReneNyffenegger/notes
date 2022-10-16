@@ -307,6 +307,70 @@ code }
   → https://w.wiki/5nba[Run it]
 
   }
+  { FILTER NOT EXISTS
+
+    The following query finds Swiss municipalities whose population is not assigned with a P1082 property.
+code {
+select
+   ?municipality
+   ?name
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
+ 
+   filter not exists {
+      ?municipality wdt:P1082 [] .
+   }
+}
+order by ?name
+code }
+    → https://w.wiki/5pnV[Run it]
+
+    Most selected municipalites belong to the category of «former municipality of Switzerland» (Q685309). The following query excludes such municipalities as well:
+code {
+select
+   ?municipality
+   ?name
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
+ 
+   filter not exists { ?municipality wdt:P1082 []         . }
+   filter not exists { ?municipality wdt:P31   wd:Q685309 . }
+}
+order by ?name
+code }
+   → https://w.wiki/5pnX[Run it]
+
+  }
+
+}
+{ BIND
+
+  { Check for existence of a property
+
+    The following query select Swiss municipalities. For each municipality, a boolean flag is added that reports if the
+    municipality is assigned a population and another flag that reports if the municipality is a «former» one.
+
+    Ideally, the value of `?isFormer` is `true` in records where `?hasPopulation` is `false` (it turns out, however, that this is not the case):
+code {
+select
+   ?municipality
+   ?name
+   ?hasPopulation
+   ?isFormer
+{
+   ?municipality wdt:P31    wd:Q70208  .
+   ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
+  
+   bind(exists { ?municipality wdt:P1082 []         } as ?hasPopulation )
+   bind(exists { ?municipality wdt:P31   wd:Q685309 } as ?isFormer      )
+}
+order by ?name
+code }
+   → https://w.wiki/5pne[Run it]
+
+  }
 
 }
 { Misc

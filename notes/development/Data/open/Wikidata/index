@@ -329,7 +329,6 @@ order by
 code }
     → https://w.wiki/5pXs[Run it]
 
-
   }
   { schema:about
 
@@ -362,7 +361,6 @@ code }
    `schema:name` relates a *Wikimedia URL* to a label.
 
     The following query finds the URLs that are associated with *August Piccard in French* and *Oracle Database in English*.
-
 code {
 select
    ?name
@@ -377,6 +375,19 @@ select
    ?wikimediaURL schema:name ?name
 }
 code }
+    → https://w.wiki/5pif[Run it]
+
+   The following query finds the label that is associated with a given Wikimedia URL
+code {
+select
+  ?label
+ (lang(?label) as ?lang)
+{
+   <→ https://de.wikipedia.org/wiki/London[https://de.wikipedia.org/wiki/London]>  schema:name ?label .
+}
+code }
+   → https://w.wiki/5pmV[Run it]
+
 
   }
   { schema:isPartOf
@@ -401,6 +412,44 @@ order by
    ?partOf
 code }
    → https://w.wiki/5o4C[Run it.]
+
+  }
+  { schema:description
+
+code {
+select
+   ?descr
+  (lang(?descr) as ?lang)
+{
+   wd:Q39 schema:description ?descr .
+}
+code }
+
+  }
+  { Combining some schema:* relations
+
+code {
+select
+   ?term
+  (lang(?term) as ?termLang)
+   ?lang
+   ?wikimediaURL
+   ?wikidataID
+   ?project
+{
+
+   values (?term) {
+     ("Gift"@en)
+     ("Gift"@de)
+   }
+
+   ?wikimediaURL schema:name       ?term       .
+   ?wikimediaURL schema:about      ?wikidataID .
+   ?wikimediaURL schema:isPartOf   ?project    .
+   ?wikimediaURL schema:inLanguage ?lang       .
+  
+}
+code }
 
   }
   { rdfs:label
