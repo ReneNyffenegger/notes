@@ -855,7 +855,7 @@ sub process_page { #_{
 
            $gh_ret = ($in_text ? "</div>" : "") .
            "<pre class='code'>$code</pre>" .
-           "<div class='ghf2'>Github respository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
+           "<div class='ghf2'>Github repository <a href='https://github.com/ReneNyffenegger/$repo'>$repo</a>, path: <a href='https://github.com/ReneNyffenegger/$repo/blob/master$path'>$path</a></div>" .
            ($in_text ? "\n<div class='t'>" : "");
        }
 
