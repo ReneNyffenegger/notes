@@ -256,6 +256,59 @@ code }
 
     This can be changed by adding `?prop wikibase:directClaim ?p` to the query.
 
+    { Lexemes (Lemmas)
+
+      Lexemes are not automatically looked up with this service. Thus, a
+     `optional { ?x wikibase:lemma ?xLabel }` is required for lexemes:
+code {
+select
+   ?x
+   ?xLabel
+{
+   values (?x) {
+      (wd:L296666)
+      (wd:Q39    )
+   }
+ 
+   optional { ?x wikibase:lemma ?xLabel }
+   service wikibase:label { bd:serviceParam  wikibase:language  'en,de,fr,rm' }
+}
+code }
+      → https://w.wiki/5qS9[Run it]
+
+    Search for lexemes in a few given languages:
+code {
+select
+   ?lem
+   (lang(?L) as ?lng)
+{
+  ?lem wikibase:lemma ?L .
+  {
+    select
+      ?lem
+    { 
+      { ?lem wikibase:lemma "ding"@da } union
+      { ?lem wikibase:lemma "ding"@en } union
+      { ?lem wikibase:lemma "ding"@pt }
+    }
+  }
+}
+code }
+    → https://w.wiki/5qUE[Run it]
+
+    Search for a lexeme in any language:
+code {
+select
+   ?lem
+   (lang(?str)     as ?lng)
+{
+   ?lem wikibase:lemma ?str . filter(str(?str) = "ding")
+}
+code }
+     → https://w.wiki/5qTr[Run it]
+
+    }
+
   }
   { Wikidata Query Service (WDQS)
 
@@ -412,6 +465,24 @@ order by
    ?partOf
 code }
    → https://w.wiki/5o4C[Run it.]
+
+  }
+  { wikibase:lemma
+
+    The `wikibase:lemma` relations connects entities whose type is `ontolex:LexicalEntry` to strings:
+code {
+select
+   ?sub
+   ?typ
+   ?lem
+   (datatype(?lem) as ?dtp)
+{
+   ?sub wikibase:lemma ?lem .
+   ?sub rdf:type       ?typ .
+}
+limit 100
+code }
+    → https://w.wiki/5qQs[Run it]
 
   }
   { schema:description

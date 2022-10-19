@@ -1,6 +1,10 @@
 $ Oracle 23c: New features
 @ 23c
 
+rem {
+https://twitter.com/ChrisRSaxon/status/1582811221958328320
+rem }
+
 Oracle claims, that 23c has 300+ new features and enhancements compared to → development/databases/Oracle/Releases-and-versions/21c.
 
 { BOOLEAN data type in SQL
@@ -91,9 +95,11 @@ udpate    dest d
 code }
 
 }
-{ JSON Schemas
+{ JSON
 
-  A *JSON schema* allows to validate → development/languages/JavaScript/JSON documents:
+  { JSON Schema
+
+    A *JSON schema* allows to validate → development/languages/JavaScript/JSON documents:
 
 code {
 create table tq84_json_schema_test (
@@ -105,6 +111,31 @@ create table tq84_json_schema_test (
    '
 );
 code }
+  }
+  { JSON relational duality views
+
+?   A *JSON relational duality view* declares a mapping between relational tables and
+    a JSON representation of the data to be stored in these tables.
+
+?   The converion is between these two worlds is triggered in/with *GraphQL*.
+
+code {
+create or replace JSON DUALITY VIEW
+from tq84_root_tab                   -- The name table sitting at the top of the hierarchy
+as   tq84_rel_dual_test
+{
+   num      :   col_num,             -- Mapping between JSON property names and table column names
+   txt      :   col_txt
+   children : tq84_child_tab {       -- Nesting objects
+     …
+
+   }
+}
+code }
+
+    See also → https://twitter.com/ChrisRSaxon/status/1582808508973473793[Chris Saxon's tweet].
+
+  }
 
 }
 { Table value constructors
@@ -197,7 +228,6 @@ code }
   • → development/databases/Oracle/SQL/select/aggregate[Aggregation] over `interval` data types
   • Enhancements for blockchain tables
   • SQL <-> PL/SQL transpiler
-  • JSON relational duality views
   • 1024 byte passwords
   • OJM allows HTTP and TCP access while other OS calls are disabled
   • Sagas for microservices / Lock-free reservations
