@@ -89,7 +89,27 @@ code }
     • `driving_site`
 
 }
+{ Verifying if hints are correctly specified
 
+  Incorrectly specified hints (for example because of a typo) are silently ignored by the optimizer.
+
+  In order to verify if all hints are correct and understood by the optimizer, the «flag» `+hint_report` of `→ development/databases/Oracle/installed/packages/dbms/xplan/api/display` can be used:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain[explain plan] for
+select /*+ no_such_hint */
+   42 as num
+from
+   dual;
+code }
+ 
+   The following statement reports the erroneous hint at the bottom of the result set with the `E` flag:
+code {
+select * from table(dbms_xplan.display(format => '+hint_report'))
+  …
+         E -  no_such_hint
+code }
+
+}
 { List of some hints
 
   table { ll
@@ -116,7 +136,7 @@ code }
    → development/databases/Oracle/SQL/hints/list/parallel/enable-disable_dml[`enable_parallel_dml`], → development/databases/Oracle/SQL/hints/list/parallel/enable-disable_dml[`disable_parallel_dml`] ☰
    `expand_table`, `no_expand_table` ☰ See also the *expand table* → development/databases/Oracle/optimizer#ora-optimizer-qry-tran[query transformation]
    `fact`, `no_fact` ☰ Used in the context of *star tranformations* to indicate that the hinted table should (not) be considered a *fact table*.
-   `first_rows` ☰ Compare with SQL Server's → development/databases/SQL-Server/sql/hints#mssql-query-hint[`FAST n` query hint]
+   → development/databases/Oracle/SQL/hints/list/first_rows[`first_rows(n)`] ☰ Optimize for returning the first `n` rows. rows Compare with SQL Server's → development/databases/SQL-Server/sql/hints#mssql-query-hint[`FAST n` query hint]
    `fresh_mv` ☰
    `full` ☰ Access the data in a table with a *full table scan*, rather than using indexes (compare with the `rowid` and the various `index*` hints).
    `→ development/databases/Oracle/SQL/hints/list/gather/plan_statistics` ☰ Collect extra metrics during → development/databases/Oracle/SQL/statement/execution[SQL statement execution] and make them available in → development/databases/Oracle/installed/dynamic-performance-views/sql/plan[`v$sql_plan`] (?) and → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/statistics[`v$sql_plan_statistics`]
