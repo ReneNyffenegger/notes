@@ -345,6 +345,45 @@ code }
    → https://w.wiki/5pgE[Run it]
 
   }
+  { wikibase:Dump
+
+    The types (`rdf:type`) of `wikibase:Dump` are `schema:Dataset` and `owl:Ontology`:
+code {
+select
+   ?type
+{
+   wikibase:Dump  rdf:type   ?type
+}
+code }
+    → https://w.wiki/5qyf[Run it]
+
+    { TODO
+code {
+select
+   ?a ?b
+{
+  wikibase:Dump ?a ?b .
+}
+code }
+
+code {
+select
+   ?rel ?x
+{
+   values (?rel) {
+     (<http://creativecommons.org/ns#license>)
+     (schema:softwareVersion                 )
+     (owl:imports                            )
+   }
+
+   wikibase:Dump ?rel ?x .
+}
+code }
+
+    }
+
+
+  }
   { wikibase:propertyType
 
     The data type of a property item (`wd:P…`) can be queried with `wikibase:propertyType`.
@@ -383,6 +422,24 @@ code }
     → https://w.wiki/5pXs[Run it]
 
   }
+  { wikibase:lemma
+
+    The `wikibase:lemma` relations connects entities whose type is `ontolex:LexicalEntry` to strings:
+code {
+select
+   ?sub
+   ?typ
+   ?lem
+   (datatype(?lem) as ?dtp)
+{
+   ?sub wikibase:lemma ?lem .
+   ?sub rdf:type       ?typ .
+}
+limit 100
+code }
+    → https://w.wiki/5qQs[Run it]
+
+  }
   { schema:about
 
    `schema:about` links a Wikipedia URL to a «wd:…» number.
@@ -407,6 +464,18 @@ select
 }
 code }
     → https://w.wiki/5nbq[Run it]
+
+  }
+  { schema:dataset
+
+    There is only one record returned by the following query. The value of `?subj` in that record is `wikibase:Dump`.
+code {
+select *
+{
+  ?subj rdf:type schema:Dataset .
+}
+code }
+    → https://w.wiki/5qyY[Run it]
 
   }
   { schema:name
@@ -465,24 +534,6 @@ order by
    ?partOf
 code }
    → https://w.wiki/5o4C[Run it.]
-
-  }
-  { wikibase:lemma
-
-    The `wikibase:lemma` relations connects entities whose type is `ontolex:LexicalEntry` to strings:
-code {
-select
-   ?sub
-   ?typ
-   ?lem
-   (datatype(?lem) as ?dtp)
-{
-   ?sub wikibase:lemma ?lem .
-   ?sub rdf:type       ?typ .
-}
-limit 100
-code }
-    → https://w.wiki/5qQs[Run it]
 
   }
   { schema:description
@@ -554,6 +605,42 @@ code }
 
 
     See also the `skos:altLabel` predicate.
+
+  }
+  { rdf:type
+
+    The value for `?type` of any `?x rdf:type ?type` triplet is one of:
+    table { ll
+      `wdno:P…` ☰ 
+       `schema:Article` ☰ The URL of a Wikipedia article
+       `schema:Dataset` ☰  Only one triplet!
+       `wikibase:BestRank` ☰ Something like `wds:Q103-08172073-0D68-4629-BE18-9CF0DD561EB1`
+       `wikibase:GeoAutoPrecision` ☰ Something like `wdv:8000239f9ef48fc7fb846097dc6a3e12`
+       `wikibase:GlobecoordinateValue` ☰ Something like `wdv:8000047f8684a2c2aebdc7ba7c394403`
+       `wikibase:Property` ☰ The type of some(?) `wd:P…`
+       `wikibase:QuantityValue` ☰ Something like `wdv:800000dc9c08f381edb20359f260af3f`
+       `wikibase:TimeValue` ☰ Something like `wdv:8000170412b9aeb739d076fed903a0ff`
+       `owl:Class` ☰ The type of `wdno:P…`
+       `owl:DatatypeProperty` ☰ The type of *some* `wdt:P…`
+       `owl:ObjectProperty` ☰ The type of *some* `wdt:P…`
+       `owl:Ontology` ☰  Only one triplet
+       `owl:Restriction` ☰ The type of something similar to `http://www.wikidata.org/.well-known/genid/83cf7cf86e26b18479fbe7609e990e0e`
+       `ontolex:Form` ☰ Forms of lexemes? (for example `wd:L10033-F2`)
+       `ontolex:LexicalEntry` ☰ Lexemes (for example `wd:L484`)
+       `ontolex:LexicalSense` ☰ For example `wd:L17815-S1`
+    table }
+
+  }
+  { owl:Ontology
+
+    There is only one record returned by the following query. The value of `?subj` in that record is `wikibase:Dump`.
+code {
+select *
+{
+  ?subj rdf:type owl:Ontology .
+}
+code }
+    → https://w.wiki/5qyb[Run it]
 
   }
   { skos:altLabel
@@ -1008,33 +1095,6 @@ ask {
 }
 code }
     → https://w.wiki/5pVK[Run it]
-
-  }
-  { wikibase:Dump
-
-code {
-select
-   ?a ?b
-{
-  wikibase:Dump ?a ?b .
-}
-code }
-
-code {
-select
-   ?rel ?x
-{
-   values (?rel) {
-     (<http://creativecommons.org/ns#license>)
-     (schema:softwareVersion                 )
-     (rdf:type                               )
-     (rdf:type                               )
-     (owl:imports                            )
-   }
-
-   wikibase:Dump ?rel ?x .
-}
-code }
 
   }
 
