@@ -790,6 +790,38 @@ select
 code }
 
    }
+   { P31 / instanceOf
+
+     P31 connects an object to the class of which it is an instance.
+
+     The following query finds the 100 classes with the most objects that belong to that class:
+code {
+select
+   ?cnt
+   ?xLabel
+   ?x
+with {
+   select
+  (count(*) as ?cnt)
+   ?x 
+  {
+     [] wdt:P31 ?x .
+  }
+  group by ?x
+  order by desc(?cnt)
+  limit 100
+}
+   as %I
+{
+   include %I 
+   service wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+order by
+   desc(?cnt)
+code }
+    → https://w.wiki/5r7r[Run it]
+
+   }
    { DESCRIBE
 
      `descibe <entity>` returns all triplets where `<entity>` is subject or object:
@@ -798,7 +830,7 @@ describe <http://www.wikidata.org/entity/Q72>
 code }
      → https://w.wiki/5nmB[Run it]
 
-   }
+  }
   { Wikidata categories
 
     A Wikidata category is an instance of `Q4167836`.
