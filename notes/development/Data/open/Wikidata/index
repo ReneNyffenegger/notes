@@ -345,6 +345,35 @@ code }
    → https://w.wiki/5pgE[Run it]
 
   }
+  { wikibase:badge
+
+   `wikibase:badge` assigns a badge (such as «good article badge») to a Wikipedia article.
+
+    The following query lists the number of assigned badges for each badge:
+code {
+select
+   ?cnt
+   ?badgeLabel
+   ?badge
+{
+   service wikibase:label { bd:serviceParam wikibase:language "[auto_language],en". }
+   {
+      select
+         (count(*) as ?cnt)
+         ?badge
+      {
+        []  wikibase:badge  ?badge 
+      }
+      group by
+         ?badge
+   }
+}
+order by
+   ?badgeLabel
+code }
+    → https://w.wiki/5rGp[Run it]
+
+  }
   { wikibase:Dump
 
     The types (`rdf:type`) of `wikibase:Dump` are `schema:Dataset` and `owl:Ontology`:
@@ -466,6 +495,19 @@ code }
     → https://w.wiki/5nbq[Run it]
 
   }
+  { schema:Article
+
+   `schema:Article` is the type (`rdf:type`) of a Wikipedia article URL.
+    -
+    Thus, the following query returns `true`:
+code {
+ask {
+  <→ https://en.wikipedia.org/wiki/Wikidata[https://en.wikipedia.org/wiki/Wikidata]>  rdf:type  schema:Article .
+}
+code }
+    → https://w.wiki/5rGG[Run it]
+
+  }
   { schema:dataset
 
     There is only one record returned by the following query. The value of `?subj` in that record is `wikibase:Dump`.
@@ -476,6 +518,11 @@ select *
 }
 code }
     → https://w.wiki/5qyY[Run it]
+
+  }
+  { schema:inLanguage
+
+   `schema:inLanguage` relates a Wikimedia(?) article to a language.
 
   }
   { schema:name
@@ -514,7 +561,7 @@ code }
   }
   { schema:isPartOf
 
-?   The `schema:isPartOf` relation connects a Wikimedia URL to a wikimedia projectl
+?   The `schema:isPartOf` relation connects a Wikimedia URL to a wikimedia project.
 
     The following query returns `<https://de.wikisource.org/>`
 code {
@@ -534,6 +581,8 @@ order by
    ?partOf
 code }
    → https://w.wiki/5o4C[Run it.]
+
+     Compare `schema:isPartOf` with the P361 («part of») relation.
 
   }
   { schema:description
