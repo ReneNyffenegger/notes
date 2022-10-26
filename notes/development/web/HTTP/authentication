@@ -9,7 +9,16 @@ $ HTTP authentication
     • `WWW-Authenticate`
 
 }
-{ Authentication schemes
+{ Typical request/repsonse flow
+
+  The typical request/response flow between client and server is:
+    • The Client requests resource: `GET /path/to/resource HTTP/1.1`
+    • The server requests that the client authenticates itself with status code 401: `HTTP/1.1 401 Unauthorized` and the following header `WWW-Authenticate: Basic realm="…"`
+    • The client sends the credentials (this step possibly requires the user to provide these): `GET /path/to/resource` and header `Authorization: Basic …`
+    • The server answers either with `HTTP/1.1. OK` or `HTTP/1.1 401 Unauthorized 
+
+}
+{ Authentication schemes #HTTP-authentication-scheme
 
   There are two general types of authentication schemes:
      • Basic authentication
@@ -21,6 +30,20 @@ $ HTTP authentication
   and then sends the transformed data back to the server.
   -
   A well known *challenge-response* scheme is → development/security/kerberos[kerberos].
+
+  Authentcation schemes are → https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml[maintained at IANA]. The list of the schemes is:
+  table { lll
+    Basic ☰ RFC 7617 ☰
+    Bearer ☰ RFC 6750 ☰
+    Digest ☰ RFC 7617 ☰
+    HOBA ☰ RFC 7486 (Section 3) ☰ Used for authentication on a server or a proxy. See also HTTP status 407 («Proxy Authentication Required»)
+    Mutual ☰ RFC 8120 ☰
+    Negotiate ☰ RFC 4559 ☰ This scheme violates HTTP semantics because 1) it is cconnection-oriented and 2) because of the syntax incompability with `WWW-Authenticate` and `Authorization` headers
+    OAuth ☰ RFC 5849, Section 3.5.1 ☰
+    SCRAM-SHA-1 ☰ RFC 7804 ☰
+    SCRAM-SHA-256 ☰ RFC 7804 ☰
+    vapid ☰ RFC 8292, Section 3 ☰
+  table }
 
 }
 { The 'Basic' Authentication Scheme #http-basic-authentication
@@ -120,7 +143,10 @@ code }
 }
 
 sa:
+
   → development/web/HTTP
+
+  The HTTP authentication framework is defined in → development/web/RFC#rfc-7235[RFC 7235]
 
   → development/web/RFC → development/web/RFC#rfc-7615
   -
