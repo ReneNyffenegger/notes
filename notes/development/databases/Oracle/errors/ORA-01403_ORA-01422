@@ -1,0 +1,133 @@
+$ Oracle: Errors ORA-01403 and ORA-01422
+
+{ Test table
+
+  Create a test → development/databases/Oracle/objects/tables and fill it with some values.
+
+  Note: no record with `id = 4`, two records with `id = 3`:
+code {
+create table tq84_test (
+   id    number,
+   val   varchar2(10)
+);
+
+begin
+   insert into tq84_test values (1, 'one'  );
+   insert into tq84_test values (2, 'two'  );
+   insert into tq84_test values (3, 'three');
+   insert into tq84_test values (3, 'THREE');
+   insert into tq84_test values (5, 'five' );
+   commit;
+end;
+/
+code }
+
+}
+{ A procedure and function selecting from the table
+
+   The following *function* takes a number and returns the corresponding value from the test table:
+code {
+create or replace function tq84_fnc(id number)
+   return varchar2
+   authid definer
+as
+   ret varchar2(10);   
+begin
+   select val into ret
+   from   tq84_test t
+   where  t.id =  tq84_fnc.id;
+   
+   return ret;
+end tq84_fnc;
+/
+code }
+
+  This *procedure* does essentially the same, but does print the value rather then returning it:
+code {
+create or replace procedure tq84_prc(id number)
+   authid definer
+as
+   ret varchar2(10);   
+begin
+   select val into ret
+   from   tq84_test t
+   where  t.id =  tq84_prc.id;
+   
+   dbms_output.put_line(ret);
+end tq84_prc;
+/
+code }
+
+}
+{ «Normal» operation
+
+   Prints `two`
+code {
+begin
+   dbms_output.put_line(tq84_fnc(2));
+end;
+/
+code }
+
+  Also prints `two`:
+code {
+begin
+   tq84_prc(2);
+end;
+/
+code }
+
+  Selects `two`:
+code {
+select tq84_fnc(2) from dual;
+code }
+
+}
+{ Multiple values
+
+  Following → development/databases/Oracle/PL-SQL/block throws → development/databases/Oracle/errors/ORA-01422_exact-fetch-returns-more-than-requested-number-of-rows:
+code {
+begin
+   dbms_output.put_line(tq84_fnc(3));
+end;
+/
+code }
+
+  So does this one:
+code {
+begin
+   tq84_prc(3);
+end;
+/
+code }
+
+  And also this `select` statement:
+code {
+select tq84_fnc(3) from dual;
+code }
+
+}
+{ Non existing value
+
+  The following PL/SQL block throws → development/databases/Oracle/errors/ORA-01403_no-data-found:
+code {
+begin
+   dbms_output.put_line(tq84_fnc(4));
+end;
+/
+code }
+
+  So does the next:
+code {
+begin
+   tq84_prc(4);
+end;
+/
+code }
+
+  Possibly surprisingly, the following select statement returns `null` rather then throwing an ORA-01403:
+code {
+select tq84_fnc(4) from dual;
+code }
+
+}
