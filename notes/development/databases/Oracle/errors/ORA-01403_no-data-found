@@ -1,12 +1,77 @@
 $ ORA-01403: no data found
 
-{ TODO
+{ Error not thrown in PL/SQL functions executed from SELECT statement #ora-1403-plsql-func
 
-  This error is not thrown if the SQL statement is executed in a PL/SQL function which is called from a `select` statement.
+  This error is not thrown if the SQL statement is executed in a → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL function] which is called from a `select` statement
+
+  In order to demonstrate this behavior, a test table is created and filled with one record:
+code {
+create table tq84_test (
+   id    number,
+   val   varchar2(20)
+);
+
+insert into tq84_test values (42, 'forty-two' );
+commit;
+code }
+
+  A function is created that selects the `val` value of the record in that table whose `id` matches the passed parameter. After selecting this value,
+  an exception is thrown (`→ development/databases/Oracle/PL-SQL/exception/raise_application_error`):
+code {
+create or replace function tq84_fnc(id number)
+   return varchar2
+   authid definer
+as
+   ret varchar2(20);
+begin
+
+   select val into ret
+   from   tq84_test t
+   where  t.id =  tq84_fnc.id;
+
+   raise_application_error(-20800, 'sql%rowcount = ' || sql%rowcount);
+  
+   return ret;
+end tq84_fnc;
+/
+code }
+
+  When exececuted with an id that does not exist in the table, the function expectedly throws → development/databases/Oracle/errors/ORA-01403_no-data-found:
+code {
+begin
+   dbms_output.put_line(tq84_fnc(1));
+end;
+/
+code }
+
+  The `id` 42 exists, so the user defined exception (*ORA-20800: sql%rowcount = 1*) is thrown, which is also expected:
+code {
+begin
+   dbms_output.put_line(tq84_fnc(42));
+end;
+/
+code }
+
+  This exception is also thrown in the following `select` statement:
+code {
+select tq84_fnc(42) from dual;
+code }
+
+  However, the following `select` statement returns, possibly unexpectedly, `null` (rather than raising ORA-01403):
+code {
+select tq84_fnc(1) from dual;
+code }
+
+  Cleaning up
+code {
+drop function tq84_fnc; 
+drop table    tq84_test;
+code }
 
 }
 
 sa:
+
   → development/databases/Oracle/errors/ORA-01422_exact-fetch-returns-more-than-requested-number-of-rows and a
   → development/databases/Oracle/errors/ORA-01403_ORA-01422[comparison with ORA-01422].
 
