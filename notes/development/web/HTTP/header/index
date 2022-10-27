@@ -23,13 +23,12 @@ table { ll
   `Connection` ☰ The value of `Connection` can be set to `keep-alive` to specify that the connection between the client and the server should not be terminated when the transaction finishes (Compare with `Keep-Alive` header. Setting it to `close` terminates the connection. This header is not allowed in HTTP/2 and HTTP/3 (although Chrome and Firefox treats it gracefully in such a case). See also the `Upgrade` header for `Connection: upgrade`. `Connection` belongs to the set of «hop-by-hop headers».
   `Cookie` ☰
   `Date` ☰
-  `ETag` ☰ The value of the `ETag` response header line identifies the returned resource's version and is used by the → development/web/HTTP/User-Agent for → development/web/HTTP/User-Agent#ua-cache[caching the resources]. Related are the `If-Match`, `If-None-Match` and the 304 and 412 → development/web/HTTP/status-code[status codes].
   `Expect` ☰
   `Expires` ☰ 
   `Forwarded` ☰
   `Host` ☰
   `Keep-Alive` ☰ `Keep-Alive` is used in conjunction with `Connection: keep-alive` to set the `timeout` and `max` values (for example `Keep-Alive: timeout=5, max=1000`). This header is not allowed in HTTP/2 and HTTP/3. `Keep-Aliave` belongs to the set of «hop-by-hop headers».
-  `If-Match` ☰ 
+  `If-Match` ☰ Used together with `ETag` to detect *mid-air edit collisions*: When updating a resource, the client sends the ETag value it received from the server in the If-Match header. If the resource has changed in the mean time, the server responds with a 412 status («precodindition failed»).
   `If-Modified-Since` ☰
   `If-None-Match` ☰ 
   `If-Range` ☰
@@ -64,7 +63,7 @@ table { ll
   `Access-Control-Request-Header` ☰ This header can be used to respond to a *preflight request* to add more allowed headers (comma separated, or simply `*`) to the four CORS-safelisted request headers. A server must answer with this header if the request had an `Access-Control-Request-Headers` header.
   `Connection` ☰ For example: `Keep-Alive`
   `Date` ☰ `Sat, 22 Oct 2022 07:59:01 GMT`
-  `Etag` ☰
+  `ETag` ☰ `ETag: "33B282594…"`, `Etag: W/"1234"`. The value of the `ETag` response header line identifies the returned resource's version. This value is used by the → development/web/HTTP/User-Agent for → development/web/HTTP/User-Agent#ua-cache[caching the resources]. Related are the `If-Match`, `If-None-Match` and the 304 and 412 → development/web/HTTP/status-code[status codes].
   `Keep-Alive` ☰
   `Last-Modified` ☰ For example `Sat, 19 May 2018 08:51:05 GMT`
   `Server` ☰ For example `Apache` or `ngingx`
@@ -111,7 +110,7 @@ code }
 }
 { Forbidden headers
 
-  A *forbidden header* is a header over which a *user agent* has full control over them. Thus, they cannot be modified programmatically (for example with the JavaScript `fetch` API).
+  A *forbidden header* is a header over which a *user agent* has full control. Thus, they cannot be modified programmatically (for example with the JavaScript `fetch` API).
 
   The list of forbidden headers is
     • `Accept-Charset`
@@ -145,7 +144,7 @@ code }
 
   The content should be rendered inline or downloaded.
 
-  Within a »regular« header:
+  Within a *regular* header:
 code {
 Content-Disposition: inline
 Content-Disposition: attachment

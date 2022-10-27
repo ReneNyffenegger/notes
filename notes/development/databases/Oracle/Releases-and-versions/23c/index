@@ -26,6 +26,15 @@ select val from tq84_bool_test where     flg;
 select val from tq84_bool_test where not flg;
 code }
 
+code {
+SQL> select true, false;
+--
+-- TRUE FALSE
+-- ---- -----
+-- 1    2    
+code }
+
+
 }
 { Selecting an expression without FROM DUAL
 
@@ -67,20 +76,26 @@ create table IF NOT EXIST tq84_t2 (num number, txt varchar2(10));
 code }
 
 }
-{ GROUP BY on expression aliases
+{ GROUP BY on expression aliases/position number
 
- `→ development/databases/Oracle/SQL/select/group-by` can use aliases for expressions:
+ `→ development/databases/Oracle/SQL/select/group-by` can use aliases for expressions (such as the result of a PL/SQL function):
 code {
 select
    count(*),
-   f(a, b) xyz
+   fnc(a, b) xyz
 from
    t
 group by
-   xyz; 
+   xyz
 having
-   xyz > 100;
+   xyz > 100
+;
 code }
+
+  Prior to Oracle 23, the previous statement would have thrown a → development/databases/Oracle/errors/ORA-00904_invalid-identifier error message.
+
+  In order to group on a position *number* (rather than an expression alias), the → development/databases/Oracle/adminstration/init-parameters[init parameter]
+ `group_by_position_enabled` must be set to `true`.
 
 }
 { Updating tables
@@ -112,17 +127,22 @@ create table tq84_json_schema_test (
 );
 code }
   }
-  { JSON relational duality views
+  { JSON Relational Duality
 
-?   A *JSON relational duality view* declares a mapping between relational tables and
-    a JSON representation of the data to be stored in these tables.
+   *JSON Relational Duality* provides a mapping between
+      • the way an application consumes and represents data and
+      • the paradigm in which a *relational* database stores the data
+
+    This mapping is defined in *JSON relational duality views*.
 
 ?   The conversion is between these two worlds is triggered in/with *GraphQL*.
 
 code {
 create or replace JSON DUALITY VIEW
 from tq84_root_tab                   -- The name table sitting at the top of the hierarchy
-as   tq84_rel_dual_test
+as
+   tq84_rel_dual_test
+   @update @insert @delete
 {
    num      :   col_num,             -- Mapping between JSON property names and table column names
    txt      :   col_txt
@@ -133,7 +153,28 @@ as   tq84_rel_dual_test
 }
 code }
 
-    See also → https://twitter.com/ChrisRSaxon/status/1582808508973473793[Chris Saxon's tweet].
+    { Accessing duality views
+
+      A duality view can be accessed with
+        • SQL
+        • traditional → development/web/HTTP[HTTP]/→ development/web/service/REST[REST] operations: GET, PUT, POST (see *concurrent reading/writing access* below)
+        • Simple Oracle Document API (SODA)
+        • Oracle Database API for MongoDB
+        • ORDS
+
+    }
+    { Concurrent reading/writing access
+
+      → development/web/service/REST[REST] GET and REST PUT are stateless operations. Thus, a writing operation might overwrite the modification of another writing request («mid-air collision» problem).
+
+      In order to avoid this problem, Oracle has adapted the concept of the *ETag* response and *If-Match* request → development/web/HTTP/header[HTTP header].
+
+    }
+    { Links
+
+      See also → https://twitter.com/ChrisRSaxon/status/1582808508973473793[Chris Saxon's tweet].
+
+    }
 
   }
 
@@ -242,6 +283,8 @@ code }
   • Oracle text indexes with automatic maintenance
   • Transportable binary → development/XML
   • OAuth 2.0 integration
+  • On OCI: Oracle Database Zero Data Loss Autonomous Recovery Service (with which Oracle hopes to address the challenges of ransomware, outages and human errors)
+  • On OCI: Oracle Full Stack Disaster Recovery Service (Configuration, monitoring and management of the disaster recovery process for the *full stack* of technologies, including middleware, databases, networks, storage)
   • Support for Unicode Ideographic Variation Sequences (IVS)
 
 }
