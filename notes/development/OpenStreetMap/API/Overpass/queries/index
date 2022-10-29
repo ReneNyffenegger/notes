@@ -26,8 +26,7 @@ code }
 
   Find interesting → https://wiki.openstreetmap.org/wiki/Key:natural[natural] objects.
 
-  Trees, scrub etc. is of little interest for me, such objects are excluded.
-
+  Trees, scrub etc. are of little interest for me. Therefore, the following query excludes these objects from all nodes or ways that have the `natural` tag:
 code {
 [→ development/OpenStreetMap/API/Overpass/settings/bbox[bbox]: → development/OpenStreetMap/API/Overpass/extensions/bbox ];
 
@@ -51,6 +50,59 @@ nw[natural     ] -> .res;
 
 
 .res → development/OpenStreetMap/API/Overpass/statements/out geom;
+code }
+
+}
+{ Searching for a specific historic period (civilization)
+
+  The following query searches for all nodes/ways with a → https://wiki.openstreetmap.org/wiki/Key:historic:civilization[`historic:civilization`] tag and excludes some that I currently find
+  uninteressing (such as `WW1` or `modern`):
+code {
+[→ development/OpenStreetMap/API/Overpass/settings/bbox[bbox]: → development/OpenStreetMap/API/Overpass/extensions/bbox ];
+
+nw['historic:civilization'     ] -> .res;
+
+// ( .res; - nw['historic:civilization'='prehistoric'        ];) -> .res;
+// ( .res; - nw['historic:civilization'='paleolithic'        ];) -> .res;
+// ( .res; - nw['historic:civilization'='mesolithic'         ];) -> .res;
+// ( .res; - nw['historic:civilization'='neolithic'          ];) -> .res;
+// ( .res; - nw['historic:civilization'='megalith'           ];) -> .res;
+   ( .res; - nw['historic:civilization'='bronze-age'         ];) -> .res;
+   ( .res; - nw['historic:civilization'='iron-age'           ];) -> .res;
+// ( .res; - nw['historic:civilization'='celtic'             ];) -> .res;
+   ( .res; - nw['historic:civilization'='german'             ];) -> .res;
+   ( .res; - nw['historic:civilization'='ancient_roman'      ];) -> .res;
+   ( .res; - nw['historic:civilization'='roman'              ];) -> .res;
+   ( .res; - nw['historic:civilization'='gallo-romain'       ];) -> .res;
+   ( .res; - nw['historic:civilization'='medieval'           ];) -> .res;
+   ( .res; - nw['historic:civilization'='middle-ages'        ];) -> .res;
+   ( .res; - nw['historic:civilization'='Renaissance'        ];) -> .res;
+   ( .res; - nw['historic:civilization'='early-modern'       ];) -> .res;
+   ( .res; - nw['historic:civilization'='early_modern'       ];) -> .res; // early_modern vs early-modern
+   ( .res; - nw['historic:civilization'='modern'             ];) -> .res;
+   ( .res; - nw['historic:civilization'='WW1'                ];) -> .res;
+   ( .res; - nw['historic:civilization'='1._weltkrieg'       ];) -> .res; // Should this not be WW1 ?
+   ( .res; - nw['historic:civilization'='1°_guerra_mondiale' ];) -> .res; // Should this not be WW1 ?
+   ( .res; - nw['historic:civilization'='wk1'                ];) -> .res; // Should this not be WW1 ?
+   ( .res; - nw['historic:civilization'='world_war_2'        ];) -> .res;
+
+   ( .res; - nw['historic:civilization'='westwall'           ];) -> .res; // What is westwall?
+   ( .res; - nw['historic:civilization'='unknown'            ];) -> .res;
+
+.res out geom;
+code }
+
+}
+{ Megaliths
+
+code {
+[→ development/OpenStreetMap/API/Overpass/settings/bbox[bbox]: → development/OpenStreetMap/API/Overpass/extensions/bbox ];
+
+( nw[site_type = megalith] ;
+  nw[megalith_type       ] ;
+);
+
+out geom;
 code }
 
 }
