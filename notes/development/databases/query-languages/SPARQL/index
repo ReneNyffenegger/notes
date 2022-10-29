@@ -281,7 +281,7 @@ select
 }
 code }
    → https://w.wiki/5nbY[Run it]
-  
+
 code {
 select
    ?municipality
@@ -317,7 +317,7 @@ select
 {
    ?municipality wdt:P31    wd:Q70208  .
    ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
- 
+
    filter not exists {
       ?municipality wdt:P1082 [] .
    }
@@ -334,7 +334,7 @@ select
 {
    ?municipality wdt:P31    wd:Q70208  .
    ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
- 
+
    filter not exists { ?municipality wdt:P1082 []         . }
    filter not exists { ?municipality wdt:P31   wd:Q685309 . }
 }
@@ -362,7 +362,7 @@ select
 {
    ?municipality wdt:P31    wd:Q70208  .
    ?municipality rdfs:label ?name      . filter(lang(?name) = 'de')
-  
+
    bind(exists { ?municipality wdt:P1082 []         } as ?hasPopulation )
    bind(exists { ?municipality wdt:P31   wd:Q685309 } as ?isFormer      )
 }
@@ -373,6 +373,71 @@ code }
   }
 
 }
+{ Subqueries
+
+  { Simple example
+
+    This is a (simple) query:
+code {
+select ?inst { wd:Q65119  wdt:P31  ?inst }
+code }
+  → https://w.wiki/5tJZ[Run it]
+
+  Queries can be embedded into another query and is then referred to as a *subquery*.
+  -
+  The variables returned by the subquery are available in the outer query:
+code {
+select
+   *
+{
+   hint:Query hint:optimizer "None".
+
+   #  The subquery, embedded in a pair of curly braces:
+   {
+      select ?inst { wd:Q65119  wdt:P31  ?inst }
+   }
+
+   #  The variable(s) returned from the subquery (i.e. ?img)
+   #  are used in the outer query:
+   ?inst  wdt:P18  ?img
+}
+code }
+
+    Note, in this example, I had to use `hint:Query hint:optimizer "None".` to instruct the optimizer not to unnest the subquery.
+    -
+    This hint has no semantic influence (but without it, the query would have ended in a timeout on the server).
+
+  }
+  { Combining subqueries with LIMIT
+
+    When a query returns lots of records, some operations (such as `service wikibase:label { bd:serviceParam wikibase:language "[auto_language],en". }`
+    might slow down the query. If we're interested in the first records only, we can use the `LIMIT` clause for the subquery and apply the slow operation in the
+    outer query:
+code {
+select
+   ?a
+   ?aLabel
+   ?bLabel
+   ?b
+{
+  service wikibase:label { bd:serviceParam wikibase:language "[auto_language],en". }
+  {
+     select
+        ?a
+        ?b
+     {
+        ?a wdt:P2860 ?b
+     }
+     limit 1000
+  }
+}
+code }
+  → https://w.wiki/5tJk[Run it]
+
+  }
+
+
+}
 { Misc
 
   { Datatypes
@@ -381,6 +446,7 @@ code {
 "2016-01-01"^^xsd:date
 "18"^^xsd:integer
 code }
+    → https://w.wiki/5tJf[Run it]
 
   }
 
@@ -466,7 +532,7 @@ code }
 
   }
   { DESCRIBE
-   
+
 code {
 describe wd:Q1111111
 code }
