@@ -1,8 +1,40 @@
 $ Overpass API
 
+{ Querying an Overpass API endpoint
+
+  { PowerShell
+
+    The following snippet gives an idea how an Overpass API endpoint can be queried with → Windows/PowerShell:
+code {
+$query = @'
+
+  [→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-json[out:json]];
+  nwr [name=Freienstein];
+  → development/OpenStreetMap/API/Overpass/statements/out[out];
+
+'@
+
+$res     = → Windows/PowerShell/command-inventory/noun/webRequest/invoke -method post -body (@{'data' = $query}) https://overpass-api.de/api/interpreter
+$resTxt  = $res.Content
+$resJson = → Windows/PowerShell/command-inventory/noun/json/convertFrom $resTxt
+
+→ Windows/PowerShell/language/statement/foreach($elem in $resJson.elements) {
+   "id: $($elem.id) ($($elem.type))"
+
+   if ($elem.type -eq 'node') {
+      "  $($elem.lat) $($elem.lon)"
+   }
+
+   …
+}
+code }
+
+  }
+
+}
 { File extension
 
-  The proposed file extension for Overpass API queries is → https://wiki.openstreetmap.org/wiki/Talk:Overpass_API/Overpass_QL#Recommended_file_extension[*.overpassql].
+  The proposed file extension for files that store Overpass API queries is → https://wiki.openstreetmap.org/wiki/Talk:Overpass_API/Overpass_QL#Recommended_file_extension[*.overpassql].
 
 }
 { TODO
