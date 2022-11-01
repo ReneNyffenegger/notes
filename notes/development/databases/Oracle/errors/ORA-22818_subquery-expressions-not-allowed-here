@@ -1,0 +1,41 @@
+$ ORA-22818: subquery expressions not allowed here
+
+
+code {
+create table tq84_ora_22818_test (a number);
+
+begin
+   insert into  tq84_ora_22818_test values (1   );
+   insert into  tq84_ora_22818_test values (2   );
+   insert into  tq84_ora_22818_test values (null);
+end;
+/
+code }
+
+The following statement throws → development/databases/Oracle/errors/ORA-00937_not-a-single-group-group-function:
+code {
+select
+   count(a)                                               cnt_a,
+  (select count(*) from tq84_ora_22818_test where a = 1)  cnt_a_1
+from
+   tq84_ora_22818_test;
+code }
+
+The following statement throws *ORA-22818: subquery expressions not allowed here*
+code {
+select
+   count(a)                                               cnt_a,
+  (select count(*) from tq84_ora_22818_test where a = 1)  cnt_a_1
+from
+   tq84_ora_22818_test
+→ development/databases/Oracle/SQL/select/group-by
+  (select count(*) from tq84_ora_22818_test where a = 1);
+
+drop table tq84_ora_22818_test;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/select/subquery[Subqueries]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

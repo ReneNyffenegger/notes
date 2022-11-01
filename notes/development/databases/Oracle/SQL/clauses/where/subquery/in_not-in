@@ -1,0 +1,74 @@
+$ Oracle Subquery: IN, NOT IN
+
+{ Test table and data
+
+code {
+create table tq84_a (id number,  txt varchar2(10));
+create table tq84_b (id number,  txt varchar2(10));
+
+begin
+   insert into tq84_a values (   1, 'one'  );
+   insert into tq84_a values (   2, 'two'  );
+   insert into tq84_a values (   3, 'three');
+   insert into tq84_a values (null, 'null' );
+
+   insert into tq84_b values (   2, 'two'  );
+   insert into tq84_b values (   3, 'three');
+   insert into tq84_b values (   4, 'four' );
+   insert into tq84_b values (null, 'null' );
+end;
+/
+code }
+
+}
+
+{ IN
+
+  The record whose `id` is `→ development/databases/Oracle/SQL/null` is not returned:
+code {
+select * from tq84_a
+where
+   id in (select id from tq84_b);
+--
+--         ID TXT       
+-- ---------- ----------
+--          2 two       
+--          3 three     
+code }
+
+}
+
+{ NOT IN
+
+  When the subquery returns nulls to the `NOT IN` operator, no record is returned:
+code {
+select * from tq84_a
+where
+   id not in (select id from tq84_b);
+--
+-- no rows selected
+code }
+
+  The following query's subquery does not return null values:
+code {
+select * from tq84_a
+where
+   id not in (select id from tq84_b where id is not null);
+--
+        ID TXT       
+---------- ----------
+         1 one       
+code }
+
+}
+{ Cleaning up
+
+code {
+drop   table tq84_a;
+drop   table tq84_b;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/select/subquery[Subqueries] in the → development/databases/Oracle/SQL/clauses/where/subquery[`where` clause]
