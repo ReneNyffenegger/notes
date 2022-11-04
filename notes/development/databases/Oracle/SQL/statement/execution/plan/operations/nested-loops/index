@@ -1,6 +1,59 @@
 $ Oracle SQL Plan operation: NESTED LOOPS
 @ NESTED LOOPS
 
+{ Scalar subquery
+
+code {
+create table tq84_lookup (
+    txt  varchar2(10),
+    id   number  (8 )  not null,
+    --
+    constraint lookup_pk primary key (txt)
+);
+
+create table tq84_val (
+    id  number(8  ) ,
+    val number(5,1)    not null,
+    --
+    constraint val_pk primary key (id)
+);
+
+
+begin
+   insert into tq84_lookup values ('one'  , 1);
+   insert into tq84_lookup values ('two'  , 2);
+   insert into tq84_lookup values ('three', 3);
+
+   insert into tq84_val values(1,   1.1);
+   insert into tq84_val values(2,  22.2);
+   insert into tq84_val values(3, 333.3);
+end;
+/
+
+explain plan for
+select
+   val
+from
+   tq84_val
+where
+   id = (select id from tq84_lookup where txt = 'two')
+;
+
+select * from table(dbms_xplan.display(format=>'basic'));   
+--
+-- ----------------------------------------------------
+-- | Id  | Operation                    | Name        |
+-- ----------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |             |
+-- |   1 |  NESTED LOOPS                |             |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_LOOKUP |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan         | LOOKUP_PK   |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_VAL    |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan         | VAL_PK      |
+-- ----------------------------------------------------
+code }
+
+}
 
 sa:
 

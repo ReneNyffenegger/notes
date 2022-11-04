@@ -1,6 +1,58 @@
 $ ORA-06553: PLS-:
 
-*ORA-06553* is followed by a PL/SQL error, such as for example *PLS-801: internal error [pfrxca: Entry vector too short - 5 < 5]*.
+*ORA-06553* is followed by a PL/SQL error, such as for example
+  • PLS-221: '…' is not a procedure or is undefined
+  • PLS-801: internal error [pfrxca: Entry vector too short - 5 < 5]
+
+{ Example
+
+  By default, there is no → development/databases/Oracle/objects[object] named `text`, the following
+  select statement throws:→ development/databases/Oracle/errors/ORA-00904_invalid-identifier[ORA-00904: "TEXT": invalid identifier]
+
+code {
+select
+   text
+from
+   dual;
+code }
+
+  Create a → development/databases/Oracle/PL-SQL package named `text`:
+code {
+create package text as
+   function greeting return varchar2;
+end;
+/
+
+create package body text as
+   function greeting return varchar2 as begin
+       return 'Hello World!';
+   end greeting;
+end;
+/
+code }
+
+  `text` is a package, not a procedure. Oracle throws *ORA-06553: PLS-221: 'TEXT' is not a procedure or is undefined*:
+code {
+select
+   text
+from
+   dual;
+code }
+
+   The following statement runs:
+code {
+select
+   text.greeting
+from
+   → development/databases/Oracle/SQL/dual;
+code }
+
+  Cleaning up:
+code {
+drop package text;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/errors/ORA-06544_PL-SQL_internal-error_arguments
