@@ -130,8 +130,8 @@ code }
   { JSON Relational Duality
 
    *JSON Relational Duality* provides a mapping between
-      • the way an application consumes and represents data and
-      • the paradigm in which a *relational* database stores the data
+      • the way an application consumes and represents data (i. e. JSON documents) and
+      • the paradigm in which a *relational* database stores the data (i. e. rows).
 
     This mapping is defined in *JSON relational duality views*.
 
@@ -152,7 +152,6 @@ as
    }
 }
 code }
-
     { Accessing duality views
 
       A duality view can be accessed with
@@ -170,14 +169,30 @@ code }
       In order to avoid this problem, Oracle has adapted the concept of the *ETag* response and *If-Match* request → development/web/HTTP/header[HTTP header].
 
     }
+    { Advantages over ORM
+
+      Some advantages of duality views over Object Relational Mappings (ORMs) are
+        • They're language independent
+        • They're optimized by the database
+
+    }
+    { Describing a duality view's schema
+
+      `dbms_json_schema.describe('tq84_rel_dual_test')`
+
+code {
+$dbHost=…
+$schemaName=rene
+curl -X GET http://$dbHost/ords/$schemaName/metadata-catalog/tq84_rel_dual_test
+code }
+
+    }
     { Links
 
       See also → https://twitter.com/ChrisRSaxon/status/1582808508973473793[Chris Saxon's tweet].
 
     }
-
   }
-
 }
 { Table value constructors
 
@@ -218,13 +233,31 @@ code }
 }
 { SQL domains
 
+  SQL domains can optionally specify a
+    • data constraint
+    • display format
+    • a collation
+
 code {
+create domain email_addr as varchar2(99) …
+;
+
 create domain month_year
    constraint month_fmt check (regexp_like(year_month, '^\d\d-\d\d\d\d$')
    display 'Year: ' || substr(year_month, 4, 4) || ', Month: ' || substr(year_month, 1, 2)
-   order substr(year_month, 4, 4) || substr(year_month, 1, 2);
-code }
+   order substr(year_month, 4, 4) || substr(year_month, 1, 2)
+;
 
+create table financial_report
+   …
+   corrections_to email_addr
+   rep_period     month_year,
+   …
+)
+;
+}
+
+code }
 
   Particularities about domains can be quried with the new functions `domain_display` and `domain_order`. These get a domain's definition of display and order functions.
 
@@ -305,3 +338,7 @@ code }
 
 links:
   Philipp Salvisberg's → https://twitter.com/phsalvisberg/status/1572885995070300160[Twitterthread] summarizes some impressions from new 23c features presented at the DOAG 2022 Conference.
+
+  Connor's → https://twitter.com/connor_mc_d/status/1588432563638796288[tweet] 
+
+  That Jeff Smith's → https://threadreaderapp.com/scrolly/1582788029269168128[notes]
