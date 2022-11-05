@@ -31,7 +31,7 @@ SQL> select true, false;
 --
 -- TRUE FALSE
 -- ---- -----
--- 1    2    
+--    1     0
 code }
 
 
@@ -156,7 +156,7 @@ code }
 
       A duality view can be accessed with
         • SQL
-        • traditional → development/web/HTTP[HTTP]/→ development/web/service/REST[REST] operations: GET, PUT, POST (see *concurrent reading/writing access* below)
+        • traditional → development/web/HTTP[HTTP]/→ development/web/service/REST[REST] operations, i. e. GET, PUT and POST → development/web/HTTP/request-methods[HTTP requests]. (see *concurrent reading/writing access* below)
         • Simple Oracle Document API (SODA)
         • Oracle Database API for MongoDB
         • ORDS
@@ -183,7 +183,7 @@ code }
 code {
 $dbHost=…
 $schemaName=rene
-curl -X GET http://$dbHost/ords/$schemaName/metadata-catalog/tq84_rel_dual_test
+→ tools/cURL[curl] -X GET http://$dbHost/ords/$schemaName/metadata-catalog/tq84_rel_dual_test
 code }
 
     }
@@ -255,8 +255,6 @@ create table financial_report
    …
 )
 ;
-}
-
 code }
 
   Particularities about domains can be quried with the new functions `domain_display` and `domain_order`. These get a domain's definition of display and order functions.
@@ -292,6 +290,45 @@ code }
 
   Annotations are supported for tables, views, materialized views, columns, indexes and domains.
 
+}
+{ «Asynchronous» transactions
+
+  A session updates a record in a table:
+code {
+SES 1> select * from tq84_tab;
+       ID        VAL
+---------  ---------
+       42        100
+        
+SES 1> update tq84_tab set val = val + 10 where id = 42;
+
+1 row updated.
+code }
+
+  Approximately at the same time in another session:
+code {
+SES 2> update tq84_tab set val = val +  1 where id = 42;
+
+1 row updated.
+
+SES 2> commit;
+
+Commit complete.
+code }
+
+  After the commit in the second session, the first session commits also and then selects the updated record:
+code {
+SES 1> commit;
+
+Commit complete.
+
+SES 1> select * from tq84_tab;
+       ID        VAL
+---------  ---------
+       42        111
+code }
+
+  See also *Connor McDonald's* → https://twitter.com/connor_mc_d/status/1588432563638796288[tweet].
 }
 { Misc
 
@@ -339,6 +376,5 @@ code }
 links:
   Philipp Salvisberg's → https://twitter.com/phsalvisberg/status/1572885995070300160[Twitterthread] summarizes some impressions from new 23c features presented at the DOAG 2022 Conference.
 
-  Connor's → https://twitter.com/connor_mc_d/status/1588432563638796288[tweet] 
 
   That Jeff Smith's → https://threadreaderapp.com/scrolly/1582788029269168128[notes]
