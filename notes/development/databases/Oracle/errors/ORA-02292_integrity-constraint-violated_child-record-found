@@ -1,0 +1,60 @@
+$ ORA-02292: integrity constraint (…) violated - child record found
+
+Trying to delete a record in a → development/databases/Oracle/objects/tables with a → development/databases/Oracle/objects/tables/constraints/primary-key whose value is still referenced
+in a tablee with a → development/databases/Oracle/objects/tables/constraints/foreign-key causes Oracle to throw the *ORA-02292* error.
+
+{ Demonstration
+
+code {
+create table tq84_P (
+   id  number(6),
+   val varchar2(10),
+   --
+   constraint pk primary key (id)
+);
+
+create table tq84_F (
+    id_p,
+    txt    varchar2(20),
+    --
+    constraint fk foreign key (id_p) references tq84_P
+);
+
+insert into tq84_P values (1, 'one');
+insert into tq84_F values (1, 'xyz');
+code }
+
+  Following statement throws *ORA-02292: integrity constraint (RENE.FK) violated - child record found* because `TQ84_F` has a record where `id_p = 1`:
+code {
+delete from tq84_P where id = 1;
+code }
+
+  The following statement can be used to find the name and owner of the table with the primary key:
+code {
+select
+   pk.owner          pk_owner,
+   pk.table_name     pk_table_name
+from
+   dba_constraints fk join
+   dba_constraints pk on pk.owner            = fk.r_owner and
+                         pk.constraint_name  = fk.r_constraint_name
+where
+   fk.owner           = 'RENE' and
+   fk.constraint_name = 'FK'
+;   
+code }
+
+  Cleaning up:
+code {
+drop table tq84_F;
+drop table tq84_P;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/errors/ORA-02291_integrity-constraint-violated_parent-key-not-found
+
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

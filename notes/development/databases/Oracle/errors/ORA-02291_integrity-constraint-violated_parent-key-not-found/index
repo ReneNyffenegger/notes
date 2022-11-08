@@ -1,7 +1,41 @@
 $ ORA-02291: integrity constraint … violated - parent key not found
 
-The value of a foreign key that was attempted to be inserted into a table was not found in the
-→ development/databases/Oracle/objects/tables/constraints/primary-key[primary key.
+The value of a → development/databases/Oracle/objects/tables/constraints/foreign-key that was attempted to be inserted into a
+→ development/databases/Oracle/objects/tables was not found in the
+→ development/databases/Oracle/objects/tables/constraints/primary-key[primary key].
+
+code {
+create table tq84_P (
+   id  number(6),
+   val varchar2(10),
+   --
+   constraint pk primary key (id)
+);
+
+create table tq84_F (
+    id_p,
+    txt    varchar2(20),
+    --
+    constraint fk foreign key (id_p) references tq84_P
+);
+code }
+
+
+The following statement throws *ORA-02291: integrity constraint (RENE.FK) violated - parent key not found*:
+code {
+insert into tq84_F values (1, 'xyz');
+code }
+
+Cleaning up:
+code {
+drop table tq84_F;
+drop table tq84_P;
+code }
 
 sa:
+
+  → development/databases/Oracle/errors/ORA-02292_integrity-constraint-violated_child-record-found
+
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity
+
   → development/databases/Oracle/errors[Other Oracle error messages]
