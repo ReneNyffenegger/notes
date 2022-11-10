@@ -74,6 +74,16 @@ code }
 }
 { Aggregate functions
 
+  SPARQL defines the following *aggregate functions*: 
+    • `count`
+    • `sum`
+    • `min` and `max`
+    • `avg`
+    • `sample`
+    • `group_concat`
+
+  Each of these functions can be invoked with the `distinct` modifier (`count(distinct ?x))`).
+
   { COUNT
 
     The following query results the number of nodes that are an instance of (P31) «municipality of Switzerland» (Q70208):
@@ -95,6 +105,35 @@ select
 }
 code }
    → https://w.wiki/5p42[Run it]
+
+  }
+  { SAMPLE
+
+   `sample(?a)` returns an arbitrary value of all `?a` in the aggregated group.
+
+    The following example (mis?)-uses `sample` in combination with `group by` so that at most one label, in an english
+    language, is returned for each group. (See also → https://stackoverflow.com/q/74366142/180275[my question on StackOverflow]).
+
+code {
+select
+   ?airport
+   (sample(?airportLabel) as ?airportName)
+   (lang  (?airportName ) as ?lang       )
+   ?iataAirportCode
+ {
+   ?airport wdt:→ https://opendata.renenyffenegger.ch/Wikimedia/Wikidata/entity/P238[P238] ?iataAirportCode
+   optional {
+      ?airport rdfs:label ?airportLabel
+      filter(langMatches(lang(?airportLabel), 'en'))
+   }
+ }
+ group by
+    ?airport
+    ?iataAirportCode
+ order by
+    ?iataAirportCode
+code }
+  → https://w.wiki/5wBP[Run it]
 
   }
 
