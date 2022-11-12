@@ -1,5 +1,65 @@
 $ Oracle: Virtual columns
 
+{ Virtual columns vs default values
+
+  Default values are used to provide a value in → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
+code {
+create table tq84_virt_col_t (
+   id           number(5),
+   default_val  date  default sysdate
+);
+
+insert into tq84_virt_col_t (id) values (1);
+code }
+
+  On the other hand, a virtual column provides a value at query time:
+code {
+create or replace view tq84_virt_col_v as
+select
+   t.id,
+   t.default_val,
+   sysdate as virtual_val
+from
+   tq84_virt_col_t t
+;
+
+select
+   *
+from
+   tq84_virt_col_v;
+code }
+
+  Cleaning up:
+code {
+drop view  tq84_virt_col_v;
+drop table tq84_virt_col_t;
+code }
+
+}
+{ Querying virtual columns from the data dictionary
+
+  The expression that provides the value for a virtual column can be queried from the column `data_default` in the → development/databases/Oracle/installed/data-dictionary[data dictionary's] view
+ `→ development/databases/Oracle/installed/data-dictionary/tab/cols`:
+code {
+select
+   obj.object_type,
+   obj.owner,
+   col.table_name,
+   col.column_name,
+   col.data_default,
+   col.*
+from
+   → development/databases/Oracle/installed/data-dictionary/objects   obj                                          join
+   → development/databases/Oracle/installed/data-dictionary/tab/cols  col  on obj.owner       = col.owner      and
+                         obj.object_name = col.table_name
+where
+-- obj.oracle_maintained = 'N'                              and
+   col.table_name in ('TQ84_VIRT_COL_V', 'TQ84_VIRT_COL_T') and
+   col.owner      = user
+;
+code }
+
+}
 { Test 1 - 4
 
   gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_01.sql||
@@ -30,6 +90,8 @@ sa:
   → development/databases/Oracle/objects/tables/columns
 
   → development/databases/SQL-Server/sql/create/table/columns/computed/division-by-zero[Computed columns in SQL Server]
+
+  → development/databases/Oracle/errors/ORA-01733_virtual-column-not-allowed-here
 
   Error *ORA-54013: INSERT operation disallowed on virtual columns* in
   → development/databases/Oracle/SQL/DML/insert/select#ora-insert-select-errors[`insert into … select * from …`] statements.
