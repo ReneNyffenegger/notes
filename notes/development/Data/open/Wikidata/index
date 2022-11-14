@@ -1206,6 +1206,63 @@ code }
       `psn:P214` ☰ 15899
     table }
 
+    2022-11-12: it seems that the subquery with the `limit` clause skewed the data. The following query
+    counts (assumedly) better:
+code {
+select
+   ?cnt
+   ?rel_
+   ?relLabel
+with {
+#
+#  Use named subquery (which is guaranteed to be run only once) to improve performance
+#
+   select
+       ?rel_
+      (count(*) as ?cnt)
+   {
+      [] ?rel_ [] 
+   }
+   group by ?rel_
+   order by desc(?cnt)
+   limit 400             # not every relation will be matched below...
+} as %rels
+where {
+   include %rels .
+   optional { ?rel wikibase:directClaim ?rel_ . 
+              ?rel rdfs:label ?relLabel . filter(lang(?relLabel) = 'en') . }
+}
+order by desc(?cnt)
+code }
+    → https://w.wiki/5x9m[Run it]
+
+    The following query builds on the previous one, but only returns relations for which an english label is
+    defined:
+code {
+select
+   ?cnt
+   ?rel_
+   ?relLabel
+with { # Use named subquery (which is guaranteed to be run only once) to improve performance
+   select
+       ?rel_
+      (count(*) as ?cnt)
+   {
+      [] ?rel_ [] 
+   }
+   group by ?rel_
+   order by desc(?cnt)
+   limit 400             # not every relation will be matched below...
+} as %rels
+where {
+   include %rels .
+   ?rel wikibase:directClaim ?rel_ . 
+   ?rel rdfs:label ?relLabel . filter(lang(?relLabel) = 'en') .
+}
+order by desc(?cnt)
+code }
+   → https://w.wiki/5x9o[Run it]
+
 
   }
   { All objects of a given node
@@ -1263,6 +1320,41 @@ code }
 
   }
 
+  { Queries on the Wikimedia Commons endpoint
+
+    The *Wikimedia Commons* endpoint is → https://commons-query.wikimedia.org/.
+
+code {
+select *
+{
+   ?x ?y ?z 
+   filter (?y != schema:dateModified)
+}
+limit 100
+code }
+    → https://w.wiki/5xYu[Run it]
+
+code {
+select *
+{
+   ?x
+   ps:P921        # Main subject
+   wd:Q28048087 . # Benjamin Franklin
+}
+code }
+   → https://w.wiki/5xZ2[Run it]
+
+
+code {
+select * {
+  ?x schema:contentUrl <→ https://upload.wikimedia.org/wikipedia/commons/f/fd/Matterhorn_from_Switzerland.jpg[https://upload.wikimedia.org/wikipedia/commons/f/fd/Matterhorn_from_Switzerland.jpg]> ;
+     ?rel               ?obj
+}
+code }
+   → https://w.wiki/5xZ9[Run it]
+
+  }
+
 }
 
 sa:
@@ -1273,3 +1365,5 @@ sa:
 
   → https://opendata.renenyffenegger.ch/Wikimedia/Wikidata/cytoscape.php[An experiment] that draws some Wikidata triplets with
   → development/web/libraries/Cytoscape_js.
+
+  → development/Data/open/Wikimedia
