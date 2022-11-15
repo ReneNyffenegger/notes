@@ -1,0 +1,41 @@
+$ ORA-02436: date or system variable wrongly specified in CHECK constraint
+
+In the following `create table` statement, the `→ development/databases/Oracle/SQL/functions/type-conversion/to_date` of the → development/databases/Oracle/objects/tables/constraints/check[`check`] constraint does
+not have conversion format and it is not clear which format should be chosen.
+-
+Oracle won't create the table with such a constraint and throws *ORA-02436: date or system variable wrongly specified in CHECK constraint*.
+
+code {
+create table tq84_ORA_02436 (
+   dat   varchar2(10) not null → development/databases/Oracle/objects/tables/constraints/check[check](→ development/databases/Oracle/SQL/functions/type-conversion/to_date(dat) >= date '2020-01-01'),
+   val   number(5,1)
+);
+code }
+
+{ Setting event 10149
+
+  If someone insists on creating the table, the → development/databases/Oracle/adminstration/init-parameters/event/list[event] 10149 can be set:
+code {
+alter session set events '10149 trace name context forever, level 1';
+
+create table tq84_ORA_02436 (
+   dat   varchar2(10) not null → development/databases/Oracle/objects/tables/constraints/check[check](→ development/databases/Oracle/SQL/functions/type-conversion/to_date(dat) >= date '2020-01-01'),
+   val   number(5,1)
+);
+code }
+
+  However, the following sequence throws → development/databases/Oracle/errors/ORA-01843_not-a-valid-month
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_date_format[nls_date_format] = 'dd/mm/yyyy';
+insert into tq84_ORA_02436 values ('28/08/2021', 42);
+code }
+
+}
+
+sa:
+
+  The → development/databases/Oracle/SQL/data-types/date[`date` datatype]
+
+  → development/databases/Oracle/objects/tables/constraints/check[Check constraints]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

@@ -1,0 +1,66 @@
+$ ORA-38101: Invalid column in the INSERT VALUES Clause
+
+Create two test → development/databases/Oracle/objects/tables[tables] to demonstrate the error:
+code {
+create table tq84_src (
+   id   number(7  ) primary key,
+   val  number(5,2)
+);
+
+create table tq84_dst (
+   id  number(7  ) primary key,
+   val number(5,2)
+);
+code }
+
+The following statement throws *ORA-38101: Invalid column in the INSERT VALUES Clause: "DST"."ID"*:
+code {
+→ development/databases/Oracle/SQL/DML/merge into tq84_dst dst
+      using (
+         select
+            id,
+            val
+         from
+            tq84_src src
+      ) src
+      on (
+         src.id = dst.id
+      )
+      when     matched then
+               update set  dst.val = src.val
+      when not matched then
+               insert (id, val)
+               values (id, val)   -- <<< correct here to "values(src.id, src.val)"
+;
+code }
+
+The corrected statement is
+code {
+→ development/databases/Oracle/SQL/DML/merge into tq84_dst dst
+      using (
+         select
+            id,
+            val
+         from
+            tq84_src src
+      ) src
+      on (
+         src.id = dst.id
+      )
+      when     matched then
+               update set  dst.val = src.val
+      when not matched then
+               insert (    id,     val)
+               values (src.id, src.val)
+;
+code }
+
+Cleaning up:
+code {
+drop table tq84_src;
+drop table tq84_dest;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
