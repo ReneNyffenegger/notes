@@ -1,0 +1,71 @@
+$ Oracle hint: LEADING
+@ leading
+
+The `leading` hints is used to specify the order in which tables are accessed when → development/databases/Oracle/SQL/join[joining] them.
+
+In order to demonstrate this hint, we create five tables …
+code {
+create table tq84_tab_a (id number, val varchar2(10));
+create table tq84_tab_b (id number, val varchar2(10));
+create table tq84_tab_c (id number, val varchar2(10));
+create table tq84_tab_d (id number, val varchar2(10));
+create table tq84_tab_e (id number, val varchar2(10));
+code }
+
+… and use the `leading` hint in a → development/databases/Oracle/SQL/select[select statement] joining these tables:
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+→ development/databases/Oracle/SQL/select
+/*+
+   leading(c e d a b)
+*/
+   a.val   val_a,
+   b.val   val_b,
+   c.val   val_c,
+   d.val   val_d,
+   e.val   val_e
+from
+   tq84_tab_a a                      join
+   tq84_tab_b b on a.id = b.id       join
+   tq84_tab_c c on a.id = c.id       join
+   tq84_tab_d d on a.id = d.id       join
+   tq84_tab_e e on a.id = e.id
+;
+code }
+   
+The statement plan shows that the tables are accessed in the order as specfified with the hint:
+code {
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+-- ----------------------------------------------
+-- | Id  | Operation               | Name       |
+-- ----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select        |            |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join              |            |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join             |            |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian |            |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/cartesian[MERGE JOIN CARTESIAN]|            |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_TAB_C |
+-- |   6 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort        |            |
+-- |   7 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_TAB_E |
+-- |   8 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort         |            |
+-- |   9 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_TAB_D |
+-- |  10 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full    | TQ84_TAB_A |
+-- |  11 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full     | TQ84_TAB_B |
+-- ----------------------------------------------
+code }
+
+Cleaning up;
+code {
+drop table tq84_tab_e;
+drop table tq84_tab_d;
+drop table tq84_tab_c;
+drop table tq84_tab_b;
+drop table tq84_tab_a;
+code }
+
+sa:
+
+  The `ordered` hint.
+
+  Other → development/databases/Oracle/SQL/hints[hints]
