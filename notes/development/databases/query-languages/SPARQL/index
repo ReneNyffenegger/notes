@@ -138,6 +138,31 @@ code }
   }
 
 }
+{ SELECT DISTINCT
+
+ `select distinct ?x ?y …` reduces the result set to distinct sets of records.
+
+code {
+select
+   ?category
+   ?categoryLabel
+{
+   hint:Query hint:optimizer "None".
+   {
+      select distinct
+        ?category
+     {
+         [] wikibase:lexicalCategory ?category
+     }
+   }
+   service wikibase:label { bd:serviceParam wikibase:language 'en,de,fr,de,ru,tg' . }
+}
+order by
+   lcase(?categoryLabel)
+code }
+  → https://w.wiki/5ypu[Run it]
+
+}
 { VALUES clause
 
 code {
@@ -441,6 +466,7 @@ select
    ?inst  wdt:P18  ?img
 }
 code }
+    → https://w.wiki/5tJf[Run it]
 
     Note, in this example, I had to use `hint:Query hint:optimizer "None".` to instruct the optimizer not to unnest the subquery.
     -
@@ -479,13 +505,29 @@ code }
 }
 { Misc
 
+  { Comments
+
+    As in *shell scripts*, a comment is introduced with the number sign (`#`) and extends to the end of the line.
+code {
+#
+#   This is a comment that does
+#
+select
+   ?x
+   ?y
+…
+code }
+
+  }
   { Datatypes
 
 code {
 "2016-01-01"^^xsd:date
 "18"^^xsd:integer
+"9.9"^^xsd:decimal
 code }
-    → https://w.wiki/5tJf[Run it]
+
+    `42` is a shortcut for `"42"^^xsd:integer`, `9.9` for `"9.0"^^xsd:decimal`, `true` for `"true"^^xsd:boolean`.
 
   }
 

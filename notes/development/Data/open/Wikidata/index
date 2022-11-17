@@ -184,7 +184,7 @@ code }
     A Schema is used to define a set of rules to which the subset of wikidata that belongs to this schema should conform.
 
   }
-  { Statements
+  { Statements #wikidata-statements
 
     A statement can be enriched with a *qualifier* which provides additional context information for the claim.
     -
@@ -431,6 +431,42 @@ code }
 
     }
 
+  }
+  { wikibase:identifiers
+
+
+   `wikibase:identifiers` indicates the number of identifiers for a topic.
+
+    The following query finds the maximum number of identifiers for a topic (which, as of 2022-11-17, is 833):
+code {
+select
+   (max(?nofIdentifiers) as ?maxNofIdentifers)
+{
+#
+#  Use a subquery to prevent a timeout:
+#
+   {
+      select distinct
+         ?nofIdentifiers
+      {
+         [] wikibase:identifiers ?nofIdentifiers .
+      }
+   }
+}
+code }
+   → https://w.wiki/5yqm[Run it]
+
+    The following query finds all topics that have 833 identifiers:
+code {
+select
+   ?x
+{
+   ?x wikibase:identifiers 833 .
+}
+code }
+   → https://w.wiki/5yqo[Run it]
+
+    As of 2022-11-17, this query returns one record: → https://opendata.renenyffenegger.ch/Wikimedia/Wikidata/entity/Q88174316[Q88174316].
 
   }
   { wikibase:propertyType
@@ -502,6 +538,29 @@ code }
     → https://w.wiki/5qQs[Run it]
 
   }
+  { wikibase:lexicalCategory
+
+code {
+select
+   ?category
+   ?categoryLabel
+{
+   hint:Query hint:optimizer "None".
+   {
+      select distinct
+        ?category
+     {
+         [] wikibase:lexicalCategory ?category
+     }
+   }
+   service wikibase:label { bd:serviceParam wikibase:language 'en,de,fr,de,ru,tg' . }
+}
+order by
+   lcase(?categoryLabel)
+code }
+  → https://w.wiki/5ypu[Run it]
+
+  }
   { wikibase:quantityAmount and wikibase:quantityUnit
 
      → https://w.wiki/5ngi[Run it]
@@ -534,10 +593,47 @@ select
 code }
 
   }
+  { wikibase:rank
+
+    See → wikidata-statements[statements].
+
+  }
+  { wikibase:sitelinks
+
+code{
+select
+   (max(?nofSitelinks) as ?maxNofSitelinks)
+{
+#
+#  Use a subquery to prevent a timeout:
+#
+   {
+      select distinct
+         ?nofSitelinks
+      {
+         [] wikibase:sitelinks ?nofSitelinks .
+      }
+   }
+}
+code }
+   → https://w.wiki/5yr3[Run it]
+
+code {
+select
+   ?x
+{
+   ?x wikibase:sitelinks 873 .
+}
+code }
+    → https://w.wiki/5yr5[Run it]
+
+    As of 2022-11-17, the topic with the most site links is → http://opendata.renenyffenegger.ch/Wikimedia/Wikidata/entity/Q105429923[Q105429923]
+
+  }
   { wikibase:* TODO
 
-   `wikibase:statements`, `wikibase:identifiers`, `wikibase:sitelinks`, `wikibase:rank`, `wikibase:quantityNormalized`, `wikibase:grammaticalFeature`,
-   `wikibase:quantityLowerBound`, `wikibase:quantityUpperBound`, `wikibase:geoGlobe`, `wikibase:geoPrecision`, `wikibase:geoLongitude`, `wikibase:geoLatitude`. `wikibase:lexicalCategory`,
+   `wikibase:statements`, `wikibase:quantityNormalized`, `wikibase:grammaticalFeature`,
+   `wikibase:quantityLowerBound`, `wikibase:quantityUpperBound`, `wikibase:geoGlobe`, `wikibase:geoPrecision`, `wikibase:geoLongitude`, `wikibase:geoLatitude`.
    `wikibase:timeCalendarModel`, `wikibase:timeTimezone`, `wikibase:timePrecision`, `wikibase:timeValue`
 
   }
