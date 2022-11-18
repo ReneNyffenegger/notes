@@ -253,10 +253,32 @@ code }
 
   { SERVICE wikibase:label
 
-    By default, `SERVICE wikibase:label` only supplies labels for entities in the `wd:` namepace.
+   `service wikibase:label` looks up labels, descriptions and/or alternative labels (AltLabel) for unbound variables whose names end in `Label`, `Description` and/or `AltLabel`:
+code {
+select
+   ?country
+   ?countryLabel
+#  ?countryPrefLabel
+   ?countryDescription
+   ?countryAltLabel
+#  ?altLabelDirect
+{
+    wd:Q188 wdt:P17 ?country .
+ # ?country <http://www.w3.org/2004/02/skos/core#altLabel> ?altLabelDirect . filter(lang(?altLabelDirect) = 'en')
+    service wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+code }
+  → https://w.wiki/5z8u[Run it]
 
-    This can be changed by adding `?prop wikibase:directClaim ?p` to the query.
+?  With this «service», it's not necessary to explicitely use `rdfs:label`, `skos:altLabel` and `schema:description`.
 
+    { Default namespace: wd
+
+      By default, `SERVICE wikibase:label` only supplies labels for entities in the `wd:` namepace.
+
+      This can be changed by adding `?prop wikibase:directClaim ?p` to the query.
+
+    }
     { Lexemes (Lemmas)
 
       Lexemes are not automatically looked up with this service. Thus, a
