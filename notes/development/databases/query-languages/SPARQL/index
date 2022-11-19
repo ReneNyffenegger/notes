@@ -510,7 +510,9 @@ code }
     As in *shell scripts*, a comment is introduced with the number sign (`#`) and extends to the end of the line.
 code {
 #
-#   This is a comment that does
+#   This is a comment that does comment
+#   absolutely nothing, but does demonstrate
+#   a comment.
 #
 select
    ?x
@@ -610,6 +612,38 @@ code }
       • `optional { … ?p … } filter (! bound(?p)) }`
       • `filter not exists { … }`
       • `minus { … }`
+
+  }
+  { Combining UNION and FILTER
+
+code {
+select
+   ?yLabel
+   ?relLabel
+   ?xLabel
+{
+
+  { ?x  ?rel_  ?p .  } union
+  { ?p  ?rel_  ?y .  }
+
+
+    filter(?p = wd:Q9682)            # Queen Elizabeth II
+
+    filter( ?rel = wd:P22    ||      # father
+            ?rel = wd:P25    ||      # mother
+            ?rel = wd:P26    ||      # spouse
+            ?rel = wd:P40    ||      # child
+            ?rel = wd:P1038  ||      # relative
+            ?rel = wd:P3448  ||      # step parent
+            ?rel = wd:P8810          # parent
+          )
+
+    ?rel  wikibase:directClaim ?rel_ .
+
+    service wikibase:label { bd:serviceParam wikibase:language "en" . }
+}
+code }
+   → https://w.wiki/5zR$[Run it]
 
   }
   { DESCRIBE
