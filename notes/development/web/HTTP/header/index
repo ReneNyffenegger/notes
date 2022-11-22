@@ -10,18 +10,18 @@ A particular feature of HTTP headers is that they are (mostly) human readable.
 
   Some request(?) headers include:
 table { ll
-  `Accept` ☰ `Accept` belongs to the set of *CORS-safelisted request headers*.
-  `Accept-Charset` ☰ Compare with → development/web/HTTP/header/Content/Type[`Content-Type`]
-  `Accept-Encoding` ☰ See also `Content-Encoding`.
-  `Accept-Language` ☰ For example `de-CH` or `en-US` or `en-US, en` or `de, en-gb;q=0.8, en;q=0.7` etc….  `Accept-Language` belongs to the set of *CORS-safelisted request headers*. Can be changed in → development/web/browser/Firefox under `about:config` -> `intl.accept_languages`. See also the → Windows/PowerShell cmdLet → Windows/PowerShell/command-inventory/noun[noun] → Windows/PowerShell/command-inventory/noun/winAcceptLanguageFromLanguageListOptOut[`winAcceptLanguageFromLanguageListOptOut`] and the value → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International#ie-accept-language[`AcceptLanguage`] under the → Windows/registry[registry] key → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International[`HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International`].
+  `Accept` ☰ Indicates which content types (expressed as → development/web/Multipurpose-Internet-Mail-Extensions types) the client understands. `Accept` belongs to the set of *CORS-safelisted request headers*.
+  `Accept-Charset` ☰ Specifies the client's → development/Unicode/character-encoding. This header *should not be and is not widely used anymore*. Compare with → development/web/HTTP/header/Content/Type[`Content-Type`]
+  `Accept-Encoding` ☰ Specifies the encoding the client understands. Typically, the encoding is a compression algorithm. A → https://www.iana.org/assignments/http-parameters/http-parameters.xml[list of offical content encodings] is maintained by IANA (other encodings also seen include bzip and bzip2). The encoding that is chosen by the server is sent with the `Content-Encoding` header. The server might send the → development/web/HTTP/status-code 406 (*not acceptable*) if it cannot server the document in the requested encoding.
+  `Accept-Language` ☰ Specifies a list of (natural) languages and locales, for example `de-CH`, `en-US` or `en-US, en`, `de, en-gb;q=0.8, en;q=0.7` etc…. The chosen language/locale is reported back to the client using the `Content-Language` header. `Accept-Language` belongs to the set of *CORS-safelisted request headers*. Can be changed in → development/web/browser/Firefox under `about:config` -> `intl.accept_languages`. See also the → Windows/PowerShell cmdLet → Windows/PowerShell/command-inventory/noun[noun] → Windows/PowerShell/command-inventory/noun/winAcceptLanguageFromLanguageListOptOut[`winAcceptLanguageFromLanguageListOptOut`] and the value → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International#ie-accept-language[`AcceptLanguage`] under the → Windows/registry[registry] key → Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Internet-Explorer/International[`HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\International`]. If unable to serve the requested resource in one of the listed language, the server might send the → development/web/HTTP/status-code 406 (*not acceptable*).
   `Accept-Ranges` ☰
   `Age` ☰ 
   `Allow` ☰
-  `Authorization` ☰ 
+  `Authorization` ☰ Used in response to response with status *401* (which includes the `WWW-Authenticate` header).
   `Cache-Control` ☰ For example: `max-age=0`.
   `Clear-Site-Data` ☰ 
   `Connection` ☰ The value of `Connection` can be set to `keep-alive` to specify that the connection between the client and the server should not be terminated when the transaction finishes (Compare with `Keep-Alive` header. Setting it to `close` terminates the connection. This header is not allowed in HTTP/2 and HTTP/3 (although Chrome and Firefox treats it gracefully in such a case). See also the `Upgrade` header for `Connection: upgrade`. `Connection` belongs to the set of «hop-by-hop headers».
-  `Cookie` ☰
+  `Cookie` ☰ `Cookie` sends the stored HTTP cookies associated with the server (which were sent by the server using a previous `Set-Cookie` response header or specified in → development/languages/JavaScript with `→ development/web/browser/object-model/document[document].cookie`).
   `Date` ☰
   `Expect` ☰
   `Expires` ☰ 
@@ -43,14 +43,12 @@ table { ll
   `Referer` ☰ Note typo! Compare with the `Origin` header.
   `Referrer-Policy` ☰
   `Server` ☰
-  `Set-Cookie` ☰
   `TE` ☰ Specifies the transfer encodings a user agent is willing to accept (it would probably be more intuitive to call this header `Accept-Transfer-Encoding`). See also the `Transfer-Encoding` response header. `TE` belongs to the set of «hop-by-hop headers».
   `Trailers` ☰ `Trailers` belongs to the set of «hop-by-hop headers».
   `Upgrade` ☰ Used to change the protocol used in an already established connection (for example HTTP/1.1 -> HTTP/2 or HTTP -> → development/web/HTTPS). Using `Upgrade` requires aslo `Connection: upgrade` to be sent with a request. This header can only be used in HTTP/1.1. `Upgrade` belongs to the set of «hop-by-hop headers».
   `Upgrade-Insecure-Requests` ☰
   `User-Agent` ☰
   `Warning` ☰ 
-  `WWW-Authenticate` ☰ Used for → development/web/HTTP/authentication[authentication], comes with a *401* → development/web/HTTP/status-code[status]
 table }
 
 }
@@ -58,6 +56,7 @@ table }
 
   Some response headers include
 table { ll
+  `Accept-CH` ☰ Announces which *client hints* the → web/webserver understands. Alternatively, this list can also be sent with `<→ development/web/HTML/tags/meta[meta] http-equiv="Accept-CH" content="…" />`.
   `Accept-Ranges` ☰ For example `bytes`
   `Access-Control-Allow-Origin` ☰ For example `*`
   `Access-Control-Request-Header` ☰ This header can be used to respond to a *preflight request* to add more allowed headers (comma separated, or simply `*`) to the four CORS-safelisted request headers. A server must answer with this header if the request had an `Access-Control-Request-Headers` header.
@@ -67,9 +66,10 @@ table { ll
   `Keep-Alive` ☰
   `Last-Modified` ☰ For example `Sat, 19 May 2018 08:51:05 GMT`
   `Server` ☰ For example `Apache` or `ngingx`
-  `Set-Cookie` ☰
+  `Set-Cookie` ☰ See also the `Cookie` request header.
   `Transfer-Encoding` ☰ See also the `TE` request header.
   `Vary` ☰ For example `Accept-Encoding`
+  `WWW-Authenticate` ☰ `WWW-Authenticate: → development/web/HTTP/authentication#HTTP-authentication-scheme[<auth-scheme>] …`: Used for → development/web/HTTP/authentication[authentication]. Must be included with in a response with → development/web/HTTP/status-code[status] *401*. After receiving a `WWW-Authenticate` header, a client will typically prompt the user for credentials and then re-request the resource with an additional `Authorization` header.
 table }
 
    With → Windows/PowerShell, a request's response headers can be inspected with
@@ -83,10 +83,10 @@ code }
   Some headers, such as for example the so called *representation headers*, can be used in HTTP requests and responses.
 
   table { ll
-   `Content-Encoding` ☰ specfies if and how content body was compressed. . See also `Accept-Encoding`.
+   `Content-Encoding` ☰ Specfies if and how content body was compressed. . See also the `Accept-Encoding` request header.
    `Content-Encoding` ☰ For example: `text/html; charset=utf-8` or simply `text/html`
    `Content-Length` ☰ The size of the (potentially compressed) body, in bytes.
-   `Content-Language` ☰ `Content-Language` belongs to the set of *CORS-safelisted request headers*.
+   `Content-Language` ☰ See also the `Accept-Language` request header. `Content-Language` belongs to the set of *CORS-safelisted request headers*.
    `Content-Location` ☰
    `Content-Range` ☰ 
    `→ development/web/HTTP/header/Content/Type` ☰ Content-Type transmits (among others?) a → development/web/Multipurpose-Internet-Mail-Extensions type.  Often, `Content-Type` has a value like `text/html; charset=utf-8` or `multipart/form-data; boundary=MYCAREFULLYCHOSENBOUNDARY` or `text/plain`. `Content-Type`  belongs to the set of *CORS-safelisted request headers*. Compare with `Accept-Charset`
