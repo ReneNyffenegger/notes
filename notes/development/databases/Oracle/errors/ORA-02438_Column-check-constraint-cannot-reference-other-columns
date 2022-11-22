@@ -1,0 +1,37 @@
+$ ORA-02438: Column check constraint cannot reference other columns
+
+code {
+create table tq84_ora_02438 (
+   a  number,
+   b  number  check ( a+b > 42 )
+);
+code }
+
+Better:
+code {
+create table tq84_ora_02438 (
+   a  number,
+   b  number,
+   --
+   check ( a+b > 42 )
+);
+code }
+
+{ Typos
+
+  This error is also thrown when a non-existing column is specified in the check constraint, for example because of a typO:
+code {
+create table tq84_ora_02438 (
+  col_one    number(1) not null → development/databases/Oracle/objects/tables/constraints/check[check] (col_one   between 1 and 5),
+  col_two    number(1) not null → development/databases/Oracle/objects/tables/constraints/check[check] (col_tow   between 3 and 7), -- Note the typ0 (col_tow)
+  col_three  number(1) not null → development/databases/Oracle/objects/tables/constraints/check[check] (col_three between 2 and 8)
+);
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/objects/tables/constraints/check[Check constraints]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

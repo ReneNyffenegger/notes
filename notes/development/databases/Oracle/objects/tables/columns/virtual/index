@@ -2,26 +2,28 @@ $ Oracle: Virtual columns
 
 { Virtual columns vs default values
 
-  Default values are used to provide a value in → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
+  A virtual column provides a value at query time:
 code {
 create table tq84_virt_col_t (
+   dt_start  date,
+   dt_end    date,
+   days      as ( dt_end - dt_start )
+);
+
+
+insert into tq84_virt_col_t(dt_start, dt_end) values (date '2022-03-05', date '2022-05-16');
+
+select * from tq84_virt_col_t;
+code }
+
+  On the other hand, default values are used to provide a value in → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
+code {
+create table tq84_def_col_t (
    id           number(5),
    default_val  date  default sysdate
 );
 
-insert into tq84_virt_col_t (id) values (1);
-code }
-
-  On the other hand, a virtual column provides a value at query time:
-code {
-create or replace view tq84_virt_col_v as
-select
-   t.id,
-   t.default_val,
-   sysdate as virtual_val
-from
-   tq84_virt_col_t t
-;
+insert into tq84_def_col_t (id) values (1);
 
 select
    *
@@ -31,9 +33,15 @@ code }
 
   Cleaning up:
 code {
-drop view  tq84_virt_col_v;
+drop tabl  tq84_def_col_t;
 drop table tq84_virt_col_t;
 code }
+
+}
+{ Non deterministic functions/expressions are not allowed
+
+  The expression used for the virtual column must be deterministic («pure»), otherwise, Oracle throws
+  → development/databases/Oracle/errors/ORA-54002_only-pure-functions-can-be-specified-in-a-virtual-column-expression
 
 }
 { Querying virtual columns from the data dictionary
