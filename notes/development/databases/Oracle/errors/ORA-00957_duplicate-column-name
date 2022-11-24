@@ -1,0 +1,82 @@
+$ ORA-00957: duplicate column name
+
+{ CREATE TABLE statement
+
+  A → development/databases/Oracle/objects/tables/columns[table column] name must uniquely identify a column and must therefore not be used multiple times.
+
+  The following `create table` statement failes because `col_two` is specified twice:
+code {
+create table tq84_ora_00957 (
+   col_one   number  (1),
+   col_two   varchar2(2),
+   col_two   varchar2(2),  -- col_two appears twice
+   col_three date
+);
+code }
+
+}
+{ INSERT statement
+
+  Similarly, in an `→ development/databases/Oracle/SQL/DML/insert` statement, a column name must also be unique.
+code {
+create table tq84_ora_00957 (
+   col_one   number  (1),
+   col_two   varchar2(2),  -- col_two appears twice
+   col_three date
+);
+
+insert into tq84_ora_00957 (
+   col_one,
+   col_two,
+   col_two,
+   col_three
+)
+values (
+   1,
+  'X',
+  'X',
+   → development/databases/Oracle/SQL/functions/date/sysdate
+);
+code }
+
+}
+{ SELECT statement
+
+  It is permissible to select the same column (name) twice in a `development/databases/Oracle/SQL/select`:
+code {
+select
+   col_one,
+   col_two,
+   col_two,
+   col_three
+from
+   tq84_ora_00957;
+code }
+
+  In this case, Oracle quietly aliases the second `col_two` to `col_two_1`.
+
+}
+{ Views
+
+  Although the `select` statement above can be executed, it cannot be used in a view.
+
+  The following statement also throws a *ORA-00957: duplicate column name* error:
+
+code {
+create view tq84_ora_00957_v as
+select
+   col_one,
+   col_two,
+   col_two,
+   col_three
+from
+   tq84_ora_00957;
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/errors/ORA-00918_column-ambiguously-defined
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
