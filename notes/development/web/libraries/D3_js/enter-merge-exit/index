@@ -1,0 +1,63 @@
+$ D3.js: enter merge exit
+
+This page tries to demonstrate how the → development/web/libraries/D3_js trilogy enter, merge and exit can be used to create dynamic visualizations with → development/web/libraries/D3_js.
+
+
+{ goal.svg
+
+ `goal.svg` is an SVG document that shows the important SVG elements attributes we let D3.js create, update and delete.
+
+  As can be seen, we draw a bar chart with → design/graphic/svg/elements/rect[`<rect>` elements] and label them with
+ `<text>` elements:
+
+  gh|about-d3.js|/enter-merge-exit/goal.svg||
+
+}
+{ HTML/JavaScript source code
+
+  The → development/languages/JavaScript source code defines an variable named `dataSets` which is an array of three data sets, each of which stores its data points in an array (i. e. `dataSets`
+  is an array of arrays).
+
+  Each data point is an object which has a `val` whose value controls the length of the individual bars when drawn, and a `name` whose value will be used to label the bars.
+
+  The HTML source code also defines a button which, when clicked, invokes the function `showNextDataset()`: → development/web/HTML/tags/button[`<button onclick="showNextDataset()"…>`].
+
+  The bar chart will be rendered in the → design/graphic/svg/elements/svg[`<svg>` element] which is provided in the HTML document's → development/web/HTML/tags/body[body].
+
+  When the button is clicked and `showNextDataset()` is invoked, the function will display the next data in `dataSets`.
+  -
+  First
+    • It selects all `<rect>` elements in the `<svg>` (`d3.select…`) …
+    • … and «combines» it with the current dataset (`.data(dataSets[nextDataset])`) …
+    • … and assigns the result to `allRects`
+
+ `allRects.enter()` then
+    • determines how many new rects need to be created (number of data points in current data set minus number of rects already existing ().
+    • Each rect, that needs to be created will then be created (`.append('rect')`) …
+    • … and for each newly created rect, the relevant attributes are set `attr('x', …)` etc.
+
+  Because after the second click on the mouse button, some rects will then already exist, these need to be updated (`width` attribute) rather than created.
+  -
+  However, the the newly created ones have a different value for the `width` attribute.
+  -
+  The «merge» step sets the `width` for both, the newly created and also the updated rect.
+  -
+  The rects that need updating are determined with `newRects.merge(allRects)`.
+
+  Finally, when the new data set has less datapoints than the currently shown one, some rects need to be deleted.
+  -
+  The set of rects to be deleted is determined with `allRects.exit()`.
+  -
+  The rects that need to be updated are determined with `newRects.merge(allRects)`
+
+  { go.html
+
+    gh|about-d3.js|/enter-merge-exit/go.html||
+
+  }
+
+}
+
+sa:
+  → development/web/libraries/D3_js
+
