@@ -1,0 +1,32 @@
+$ Oracle: SQL statement to find primary-foreign key relations
+
+  By joining records of → development/databases/Oracle/installed/data-dictionary/constraints[`all_constraints`] that identify
+  → development/databases/Oracle/objects/tables/constraints/primary-key[primary keys] to
+  records of `all_constraints` that identify → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys], it is possible to
+  select primary-foreign key relations.
+
+code {
+select
+   pk.owner         pk_owner,
+   pk.table_name    pk_table,
+   fk.owner         fk_owner,
+   fk.table_name    fk_table,  
+   pk.status        pk_status,
+   fk.status        fk_status
+from
+   → development/databases/Oracle/installed/data-dictionary/constraints[all_constraints]  pk                                                     join
+   → development/databases/Oracle/installed/data-dictionary/constraints[all_constraints]  fk on pk.owner           = fk.r_owner            and
+                          pk.constraint_name = fk.r_constraint_name
+where
+   pk.owner           =  user                 and
+   pk.table_name      = 'XYZ' 
+-- fk.constraint_name = 'ABC_FK'
+;
+code }
+
+sa:
+
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity#ora-ref-int-error[Error messages] related to → development/databases/Oracle/objects/tables/constraints/referential-integrity.
+
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity: → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys] and
+  → development/databases/Oracle/objects/tables/constraints/primary-key[primary keys].

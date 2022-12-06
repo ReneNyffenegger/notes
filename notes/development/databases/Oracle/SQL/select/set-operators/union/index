@@ -1,29 +1,52 @@
 $ Oracle SQL: UNION
 @ union
 
+The following two `→ development/databases/Oracle/SQL/select` statements are equivalent
+code {
+select * from X UNION
+select * from Y;
 
-`select * from X UNION select * from Y` is equivalent to `select distinct * from (select * from X union all select * from Y)`.
+select → development/databases/Oracle/SQL/select/distinct *
+from (
+   select * from X → development/databases/Oracle/SQL/select/set-operators/union/all
+   select * from Y
+);
+code }
 
+{ Simple test
+
+  Test data:
 code {
 create table tq84_tab_1 (id integer, txt varchar(10));
 create table tq84_tab_2 (id integer, txt varchar(10)); 
 
-insert into tq84_tab_1 values (4, 'four' );
-insert into tq84_tab_1 values (2, 'two'  );
-insert into tq84_tab_1 values (5, 'five' );
-insert into tq84_tab_1 values (2, 'two'  );
-insert into tq84_tab_1 values (5, 'five' );
+begin
+   insert into tq84_tab_1 values (4, 'four' );
+   insert into tq84_tab_1 values (2, 'two'  );
+   insert into tq84_tab_1 values (5, 'five' );
+   insert into tq84_tab_1 values (2, 'two'  );
+   insert into tq84_tab_1 values (5, 'five' );
 
-insert into tq84_tab_2 values (5, 'five' );
-insert into tq84_tab_2 values (4, 'four' );
-insert into tq84_tab_2 values (3, 'three');
+   insert into tq84_tab_2 values (5, 'five' );
+   insert into tq84_tab_2 values (4, 'four' );
+   insert into tq84_tab_2 values (3, 'three');
+end;
+/
+code }
 
+  This `→ development/databases/Oracle/SQL/select` statement returns 4 records:
+code {
 select * from tq84_tab_1 union
 select * from tq84_tab_2; 
+code }
 
+  Cleaning up:
+code {
 drop table tq84_tab_1;
 drop table tq84_tab_2; 
 code }
+
+}
 
 sa:
 
