@@ -1,0 +1,42 @@
+$ Python library: tabulate
+
+{ Displaying the result of a Wikidata SPARQL query #pylib-tabulate-wikidata
+
+  The following example uses the → development/languages/Python library `→ development/languages/Python/libraries/requests` to query the
+  → development/Data/open/Wikidata endpoint and then displays the result in tabular form using the `tabulate` library (see also → development/languages/Python/libraries/requests#py-requests-wikidata[this requests example]).
+
+code {
+import → development/languages/Python/libraries/requests
+from   tabulate import tabulate
+
+query = """
+select
+  (lang(?label) as ?lang)
+   ?label
+{
+   wd:Q22661317  rdfs:label ?label .
+}
+"""
+
+response = requests.get(
+  'https://query.wikidata.org/sparql'                     ,
+   params  = {'query' :  query                           },
+   headers = {'Accept': 'application/sparql-results+json'}
+)
+response_json = response.json()
+results = response_json['results']['bindings']
+
+#
+#  List of tuples containing the data for each row in the table
+#
+table_data = [
+   (
+      result['lang' ]['value'],
+      result['label']['value']
+   )
+   for result in results]
+ 
+→ development/languages/Python/built-in-functions/print[print](tabulate(table_data, headers = ['Item', 'Label']))
+code }
+
+}
