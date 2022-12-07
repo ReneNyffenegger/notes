@@ -1,27 +1,53 @@
 $ ORA-22992: cannot use LOB locators selected from remote tables
 
-rem {
-→ development/databases/Oracle/SQL/data-types/lob[BLOBs and CLOBs] cannot be selected over a → development/databases/Oracle/architecture/database/link in a
-view.
--
-Also, the same error is thrown in `create table … as` statement when the data selected contains a clob/blob over a database link.
-rem }
+{ ORA-22992, CTAS and ROW_NUMBER() analytic function #ora-22992-ctas
 
-{ ROW_NUMBER() analytic function
+  For a reason I don't understand, the following statement threw an ORA-22992 error (Oracle 19.03 and 19.16).
 
-  For a reason I don't understand, the following statement threw an ORA-22992 error (Oracle 19.16).
-  
- `tab_B@db.link` has a column that is a `clob` but I didn't select this column.
-
+  On the remote → development/databases/Oracle/architecture/database, two tables are created:
 code {
+create table tq84_A (
+   id  number  ( 5) not null,
+   txt varchar2(10)
+);
+
+create table tq84_B (
+   id  number  ( 5) not null,
+   clb clob
+);
+code }
+
+  Then, on the local database, I try to create table like so (19.3 and 19.16):
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create/as-select[create table tq84_C as]
 select
-   row_number() over (order by 1)
+   row_number() over (order by 1) r
 from
-   tab_A@db.link a                 join
-   tab_B@db.link b on a.id = b.id
+   tq84_A@dblink a                 join
+   tq84_B@dblink b on a.id = b.id
 ;
 code }
 
+  This throws a *ORA-22992* although the → development/databases/Oracle/SQL/data-types/lob[`clob`] of `tq84_B` is not involved.
+
+  The table can be created if I don't use the analytic function:
+code {
+create table tq84_C as
+select
+   1 r
+from
+   tq84_A@dblink a                 join
+   tq84_B@dblink b on a.id = b.id
+;
+code }
+
+
+  When I drop the `clb` column on the remote database, I can also create the table with the `row_number()` function:
+code {
+alter table tq84_B drop column clb;
+
+create table …
+code }
 
 }
 
