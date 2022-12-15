@@ -1,0 +1,61 @@
+$ ORA-01779: cannot modify a column which maps to a non key-preserved table
+
+{ Demonstration of the error
+
+  The following two tables and SQL statements try to demonstrate the *ORA-01779: cannot modify a column which maps to a non key-preserved table* error:
+code {
+create table tq84_dest ( id number not null, val varchar2(5));
+create table tq84_src  ( id number not null, val varchar2(5));
+ 
+begin
+insert into tq84_dest  values(1, 'i'  );
+insert into tq84_dest  values(3, 'iii');
+insert into tq84_dest  values(4, 'iv' );
+ 
+insert into tq84_src values (1, 'one');
+insert into tq84_src values (2, 'two');
+insert into tq84_src values (4, 'four');
+ commit;
+end;
+/
+ 
+update (
+   select
+      s.val s_val,
+      d.val d_val
+   from
+      tq84_dest d  join
+      tq84_src  s on d.id = s.id
+)
+set
+   d_val = s_val;
+code }
+ 
+The error disappears if the «source» table's join-column is guaranteed to be unique:
+code {
+alter table tq84_src add primary key(id); 
+
+update (
+   select
+     …
+code }
+ 
+  
+  Querying the modified destination table:
+code {
+select * from tq84_dest;
+code }
+
+  Cleaning up:
+code {
+drop table tq84_dest;
+drop table tq84_src;
+code }
+
+}
+
+sa:
+
+  ORA-01732: data manipulation operation not legal on this view
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

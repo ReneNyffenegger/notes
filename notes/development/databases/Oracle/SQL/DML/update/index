@@ -1,6 +1,74 @@
 $ Oracle: UPDATE SQL statement
+@ update
+
+{ Updating a table with data from another table #ora-update-tab-from-other
+
+  Source and destination → development/databases/Oracle/objects/tables[tables], inserting → development/Data/test.
+code {
+create table tq84_dest ( id number not null, val varchar2(5));
+create table tq84_src  ( id number not null, val varchar2(5));
+ 
+→ development/databases/Oracle/PL-SQL/block[begin]
+ insert into tq84_dest  values(1, 'i'  );
+ insert into tq84_dest  values(3, 'iii');
+ insert into tq84_dest  values(4, 'iv' );
+ 
+ insert into tq84_src values (1, 'one');
+ insert into tq84_src values (2, 'two');
+ insert into tq84_src values (4, 'four');
+ 
+ commit;
+end;
+/
+code }
+
+  In the following update statement, the → development/databases/Oracle/SQL/clauses/where/subquery/exists_not-exists[`exists`] clause is technically not necessary because `tq84_src.id` is declared as `not null`.
+  -
+  However, if `tq84_src.id` were nullable, the `update` statement would overwrite `tq84_dest` with `→ development/databases/Oracle/SQL/null` where no matching record is found in `tq84_src`. Thus, IMHO, it's always
+  good practice to add such a safeguard.
+code {
+update  tq84_dest d
+   set d.val = (select s.val from tq84_src s where s.id = d.id)
+where
+   → development/databases/Oracle/SQL/clauses/where/subquery/exists_not-exists[exists]      (select null  from tq84_src s where s.id = d.id);
+code }
+
+  In the following snippet, a → development/databases/Oracle/objects/tables/constraints/primary-key is added to prevent the → development/databases/Oracle/errors/ORA-01779_cannot-modify-a-column-which-maps-to-a-non-key-preserved-table error.
+code {
+alter table tq84_src add primary key (id);
+
+update (
+   → development/databases/Oracle/SQL/select
+      s.val s_val,
+      d.val d_val
+   from
+      tq84_dest d  join
+      tq84_src  s on s.id = d.id
+)
+set
+  d_val = s_val;
+code }
+
+  Alternatively, using the `→ development/databases/Oracle/SQL/DML/merge` statement:
+code {
+merge into tq84_dest d
+using ( select id, val from tq84_src ) s
+on    ( d.id = s.id )
+when matched then update set d.val = s.val;
+code }
+
+  Cleaning up
+code {
+drop table tq84_dest;
+drop table tq84_src;
+code }
+
+
+}
 
 sa:
+
+  The `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update` plan operator.
 
   The amount of → development/databases/Oracle/architecture/database/redo-data[redo] generated for `update` statements can be reduced by using
  `→ development/databases/Oracle/installed/packages/dbms/redefinition[dbms_redefinition].execute_update`.

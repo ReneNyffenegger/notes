@@ -1,0 +1,48 @@
+$ Oracle SQL Plan operation: HASH JOIN SEMI
+@ HASH JOIN SEMI
+
+code {
+create table tq84_dest( id number, val varchar2(5));
+create table tq84_src ( id number, val varchar2(5));
+ 
+begin
+ insert into tq84_dest  values(1, 'i'  );
+ insert into tq84_dest  values(3, 'iii');
+ insert into tq84_dest  values(4, 'iv' );
+ 
+ insert into tq84_src values (1, 'one');
+ insert into tq84_src values (2, 'two');
+ insert into tq84_src values (4, 'four');
+ 
+ commit;
+end;
+/
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+update tq84_dest d
+   set d.val = (select s.val from tq84_src s where s.id = d.id)
+where
+   → development/databases/Oracle/SQL/clauses/where/subquery/exists_not-exists[exists]      (select null  from tq84_src s where s.id = d.id);
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));  
+--
+-- -----------------------------------------
+-- | Id  | Operation           | Name      |
+-- -----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update    |           |
+-- |   1 |  UPDATE             | TQ84_DEST |
+-- |   2 |   HASH JOIN SEMI    |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_DEST |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_SRC  |
+-- |   5 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL] | TQ84_SRC  |
+-- -----------------------------------------
+
+drop table tq84_dest;
+drop table tq84_src;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/join/semi[Semi joins]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
