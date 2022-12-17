@@ -1,0 +1,51 @@
+$ ORA-01732: data manipulation operation not legal on this view
+
+code {
+create table tq84_A (id number, txt varchar2(10));
+
+insert into tq84_A
+select
+   level,
+   dbms_random.string('a', 10)
+from
+   dual connect by level <= 20;
+  
+commit;
+code }
+ 
+The following `→ development/databases/Oracle/SQL/DML/update` statement runs ok …
+code { 
+update (
+   select id
+   from   tq84_A
+)
+set id = 1000 + id
+where
+   rownum <= 5;
+code }
+  
+--
+--: ORA-01732: data manipulation operation not legal on this view
+-- 
+… but this one ends in a *ORA-01732: data manipulation operation not legal on this view* error:
+code {
+update (
+   select   id
+   from     tq84_A
+   order by txt
+)
+set id = 1000 + id
+where
+   rownum <= 5;  
+code }
+
+Cleaning up:
+code {
+drop table tq84_A;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors/ORA-01779_cannot-modify-a-column-which-maps-to-a-non-key-preserved-table
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

@@ -1,0 +1,55 @@
+$ ORA-30926: unable to get a stable set of rows in the source tables
+
+{ Demonstration of the error
+
+  Create two → development/databases/Oracle/objects/tables[tables] and populate them with a few records.
+code {
+→ development/databases/Oracle/SQL/statement/nouns/schema#ora-create-schema[create schema] authorization rene
+ create table tq84_dst (id number, txt varchar2(5))
+ create table tq84_src (id number, txt varchar2(5))
+; 
+ 
+begin
+ insert into tq84_dst (id) values (1);
+ insert into tq84_dst (id) values (2);
+ insert into tq84_dst (id) values (3);
+ insert into tq84_dst (id) values (4);
+  
+ insert into tq84_src values (1, 'one');
+ insert into tq84_src values (2, 'two');
+ insert into tq84_src values (3, 'three');
+end;
+/
+code }
+
+  The following statement runs without problems and merges three records:
+code {
+→ development/databases/Oracle/SQL/DML/merge into tq84_dst dst
+   using (
+       select
+          id,
+          txt
+       from
+          tq84_src
+   ) src
+   on (
+       dst.id = src.id
+   )
+   when matched then update
+        set dst.txt = src.txt;
+code }
+
+  Add another record to `tq84_src` so that `id` is not unique anymore:
+code {
+-- update tq84_src set txt = upper(txt);       
+insert into tq84_src values (2, 'two');
+code }
+
+  When running the `merge` statement again, it produces *ORA-30926: unable to get a stable set of rows in the source tables*.
+
+  However, when the record  with `id=2` is deleted in `tq84_dst`, the statement runs again (but will only merge two records, obviously).
+
+}
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
