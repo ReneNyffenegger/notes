@@ -3,6 +3,25 @@ $ SQLite: REPLACE
 
 `replace` is an alias for `insert or replace`.
 
+{ DELETE first, then INSERT
+
+  It seems that `replace` (or `insert or replace`) first deletes a record (if it exists) and then inserts a (new) one.
+  -
+  Thus, a → development/databases/SQLite/tables/rowid is not stable accross a «replaced» record:
+code {
+sqlite> create table t(a text primary key, b text);
+sqlite> insert or replace into t (a, b) values('p', 'q') returning rowid;
+1
+sqlite> insert or replace into t (a, b) values('x', 'y') returning rowid;
+2
+sqlite> insert or replace into t (a, b) values('x', 'y') returning rowid;
+3
+sqlite> select rowid, t.* from t;
+1|p|q
+3|x|y
+code }
+
+}
 { REPLACE with aggregate function
 
   gh|about-sqlite|/sql/replace/replace_with_aggregate_function.sql||
