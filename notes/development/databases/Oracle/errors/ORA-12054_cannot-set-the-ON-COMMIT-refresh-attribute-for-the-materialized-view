@@ -1,5 +1,101 @@
 $ ORA-12054: cannot set the ON COMMIT refresh attribute for the materialized view
--
+
+{ ANSI join vs traditional joins #ora-12054-ansi-join
+
+  Create two tables that will later be joined in a → development/databases/Oracle/objects/views/materialized:
+code {
+create table tq84_A (
+   id  varchar2( 5) primary key,
+   txt varchar2(10)
+);
+
+create table tq84_B (
+   id    references tq84_A,
+   val_1 number,
+   val_2 number
+)
+code }
+
+  The following materialized view joins these two tables with an → development/databases/Oracle/SQL/join/ANSI. The materialized view is created without any error:
+code {
+create materialized view tq84_MV
+   refresh complete on commit
+as  
+select
+   a.id,
+   sum(b.val_1) sum_val_1
+from
+   tq84_A a                 join
+   tq84_B b on a.id = b.id
+→ development/databases/Oracle/SQL/select/group-by
+   a.id;
+code }
+
+  Trying to create the following materialized view with a → development/databases/Oracle/SQL/select/subquery throws an *ORA-12054: cannot set the ON COMMIT refresh attribute for the materialized view* error:
+code {
+create materialized view tq84_MV_subquery
+   refresh complete on commit
+as  
+select
+   id,
+   sum_val_1
+from (
+   select
+      a.id,
+      sum(b.val_1) sum_val_1
+   from
+      tq84_A a                 join
+      tq84_B b  on a.id = b.id
+   group by
+      a.id
+);
+code }
+
+  It turns out that this error is not thrown anymore if the subquery joins these tables with a «traditional» join:
+code {
+create materialized view tq84_MV_subquery
+   refresh complete on commit
+as  
+select
+   id,
+   sum_val_1
+from (
+select
+   a.id,
+   sum(b.val_1) sum_val_1
+from
+   tq84_A a,
+   tq84_B b
+where
+   a.id = b.id
+group by
+   a.id
+);
+code }
+
+  Testing the materialized view:
+code{
+insert into tq84_A values ('A', 'aaa' );
+insert into tq84_A values ('B', 'bbbb');
+insert into tq84_B values ('A', 5, 1);
+insert into tq84_B values ('A', 6, 2);
+
+→ development/databases/Oracle/SQL/TCL/commit;
+
+select * from tq84_MV;
+select * from tq84_MV_subquery
+code }
+
+
+  Cleaning up:
+code {
+drop materialized view tq84_MV_subquery;
+drop materialized view tq84_MV;
+drop table tq84_B;
+drop table tq84_A;
+code }
+
+}
 
 sa:
 
