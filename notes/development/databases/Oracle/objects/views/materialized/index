@@ -27,27 +27,6 @@ table }
 
 }
 
-rem {
-
-{ Fast refresh restrictions
-
-  In order for a materialized view to be *fast refreshable*, the following items are not allowed
-    • `sysdate` or `rownum`
-    • Data types  → development/databases/Oracle/SQL/data-types/raw[`raw` and `long raw`]
-    • `select` list subquery
-    • → development/databases/Oracle/SQL/select/analytic[Analytic functions] in the select clause.
-    • Referencing tables having an `XMLindex` index.
-    • `model` clause
-    • Nested queries with `any`, `all` or `not exists`
-    • `start with … connect clause`
-    • Mutliple detail tables at different sites
-    • `on commit` refreshalbe MVs cannot have remote detail tables
-    • Index organized tables when using join or aggregates with `group by`
-
-  In addition, nested materialized views must have a → development/databases/Oracle/SQL/join or → development/databases/Oracle/SQL/select/aggregate[aggregate function].
-
-
-}
 
 rem }
 
@@ -105,6 +84,41 @@ rem }
   }
 
 }
+{ Requirements / MOS note 101705.1 #mos-101705-1
+
+  MOS note 101705.1 lists a few requirements/restrictions for *ON COMMIT* and *fast refresh* materialized views
+
+ *ON COMMIT*:
+   • The materialized view should have a single table → development/databases/Oracle/SQL/select/aggregate[aggregate] or
+   • it should have a join only.
+   • `count(*)` must be present for Single-Table Aggregates
+   • `count()` should be present.
+   • It should be possible perform a fast refresh on the materialized view.
+
+ *Fast refresh*:
+   • The `from` list must contain base → development/databases/Oracle/objects/tables[tables] only (i.e. it must not select from → development/databases/Oracle/objects/views[views]).
+   • Expressions must be constant (So, expressions involving `→ development/databases/Oracle/SQL/functions/date/sysdate` or `→ development/databases/Oracle/objects/tables/columns/pseudo/rownum` etc. are not permitted)
+   • It cannot contain references to → development/databases/Oracle/SQL/data-types/raw[`raw` or `long raw`] data types.
+   • It cannot contain `→ development/databases/Oracle/SQL/select/aggregate/having` or → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by/index[`connect by`] clauses.
+   • The → development/databases/Oracle/SQL/clauses/where/[`where` clause] can contain only joins and they must be → development/databases/Oracle/SQL/join/equi/index[equi-joins] (inner or outer) and all join predicates must be connected with ANDs. No selection predicates on individual tables are allowed
+   • It cannot have → development/databases/Oracle/SQL/select/subquery[subqueries], inline views or set functions like `→ development/databases/Oracle/SQL/select/set-operators/union` or `→ development/databases/Oracle/SQL/select/set-operators/minus`.
+
+
+ Further stipulations for *fast refreshability* seem to be:
+    • No `select` list subquery
+    • No → development/databases/Oracle/SQL/select/analytic[Analytic functions] in the select clause.
+    • Referencing tables must not have an `XMLindex` index.
+    • No `model` clause
+    • No Nested queries with `any`, `all` or `not exists`
+    • Mutliple detail tables at different sites / no remote detail tables
+    • → development/databases/Oracle/objects/tables/organization/iot[Index organized tables] when using join or aggregates with `→ development/databases/Oracle/SQL/select/group-by`
+
+  In addition, nested materialized views must have a → development/databases/Oracle/SQL/join or → development/databases/Oracle/SQL/select/aggregate[aggregate function].
+
+
+}
+
+}
 
 
 sa: 
@@ -112,7 +126,7 @@ sa:
 
  `DBA_MVIEWS` lists all materialized views in a database.
   -
- `DBA_BASE_TABLE_MVIEWS` lists magterialized views iwth logs.
+ `DBA_BASE_TABLE_MVIEWS` lists magterialized views with logs.
 
   Errors that occur when materialized views are automatically refreshed are recored in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log.
 
@@ -130,4 +144,5 @@ sa:
 
   The → development/databases/Oracle/errors[error] messages
     • → development/databases/Oracle/errors/ORA-12008_error-in-materialized-view-or-zonemap-refresh-path
+    • → development/databases/Oracle/errors/ORA-12051_ON-COMMIT-attribute-is-incompatible-with-other-options
     • → development/databases/Oracle/errors/ORA-12054_cannot-set-the-ON-COMMIT-refresh-attribute-for-the-materialized-view
