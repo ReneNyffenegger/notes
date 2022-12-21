@@ -1,5 +1,9 @@
 $ ORA-54002: only pure functions can be specified in a virtual column expression
 
+The *ORA-54002: only pure functions can be specified in a virtual column expression* error is thrown when trying to specify a
+→ development/databases/Oracle/objects/tables/columns/virtual that uses non-→ development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] functions.
+
+
 code {
 create table tq84_ora_54002 (
    col_1   number,
@@ -8,8 +12,67 @@ create table tq84_ora_54002 (
 );
 code }
 
+{ REGEXP_REPLACE #ora-54002-regexp_replace
+
+  Apparently, `→ development/databases/Oracle/SQL/functions/regular_expressions/regexp_replace` is not a → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic function], the
+  following `create table` statement throws a *ORA-54002* error:
+code {
+create table tq84_ora_54002 (
+   mm_yy     varchar2(5),
+   yyyy_mm   as (
+      regexp_replace(mm_yy, '^(\d\d)\.(\d\d)$', '20\2 \1')
+   )
+);
+code }
+ 
+   It is possible, however, to create a → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic function] that calls `regexp_replace`:
+code {
+create or replace function tq84_regexp_replace(
+   val   varchar2,
+   regex varchar2,
+   subst varchar2
+) return varchar2
+  → development/databases/Oracle/PL-SQL/function-procedure/deterministic[DETERMINISTIC]
+  authid definer
+as
+begin
+   return regexp_replace(val, regex, subst);
+end tq84_regexp_replace;
+/
+code }
+ 
+  With this function, it is possible to create the table:
+code {
+create table tq84_ora_54002 (
+   mm_yy    varchar2(5),
+   yyyy_mm   as (
+      tq84_regexp_replace(mm_yy, '^(\d\d)\.(\d\d)$', '20\2 \1')
+   )
+);                           
+code }
+
+  Test data:
+code {
+begin
+ insert into tq84_ora_54002(mm_yy) values ('01.13');
+ insert into tq84_ora_54002(mm_yy) values ('04.18');
+ insert into tq84_ora_54002(mm_yy) values ('09.17');
+ commit;
+end;
+/
+
+select * from tq84_ora_54002;
+code }
+
+  Cleaning up
+code {
+drop table tq84_ora_54002;
+code }
+
+}
+
 sa:
 
-  → development/databases/Oracle/objects/tables/columns/virtual
+  → development/databases/Oracle/objects/tables/columns/virtual[Virtual columns]
   
   → development/databases/Oracle/errors[Other Oracle error messages]
