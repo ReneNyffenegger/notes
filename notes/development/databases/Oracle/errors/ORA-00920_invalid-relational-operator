@@ -1,0 +1,52 @@
+$ ORA-00920: invalid relational operator
+
+A simple → development/databases/Oracle/objects/tables:
+code {
+create table tq84_ora_00920 (
+    id  integer   generated always as identity,
+    prt varchar2( 3),
+    txt varchar2(20)
+);
+code }
+ 
+The following → development/databases/Oracle/SQL/statement is syntactically incorrect: it ends with a comma. When trying to execute it, Oracle will throw
+→ development/databases/Oracle/errors/ORA-00936_missing-expression.
+code {
+select
+   max(id),
+   prt
+from
+   tq84_ora_00920
+group by
+   prt,
+;
+code }
+ 
+
+However, a select statement that uses same query in a → development/databases/Oracle/SQL/select/subquery, will throw
+*ORA-00920: invalid relational operator*:
+code {
+select
+   prt,
+   txt
+from
+   tq84_ora_00920
+where
+  (id, prt) in (
+     select
+        max(id),
+        prt
+     from
+        tq84_ora_00920
+     group by
+        prt,     -- <=== ORA-00920: invalid relational operator
+   );
+code }
+
+Cleaning up:
+code {
+drop table tq84_ora_00920;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

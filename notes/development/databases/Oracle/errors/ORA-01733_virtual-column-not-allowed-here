@@ -1,5 +1,43 @@
 $ ORA-01733: virtual column not allowed here
 
+Creating a → development/databases/Oracle/objects/tables …
+code {
+create table tq84_ora_01733_t (
+   id  integer generated always as identity,
+   prt varchar2(10),
+   txt varchar2(10)
+);
+code }
+ 
+… and a → development/databases/Oracle/objects/views that selects from a → development/databases/Oracle/SQL/select/subquery that involves the table:
+code {
+create or replace view tq84_ora_01733_v as
+select
+   prt,
+   txt
+from (
+   select
+      row_number() over (partition by prt order by id desc) rn,
+      prt,
+      txt
+   from
+      tq84_ora_01733_t
+)
+where
+   rn = 1;
+code }
+ 
+
+The following insert statement results in *ORA-01733: virtual column not allowed here*:
+code {
+insert into tq84_ora_01733_v values ('A', 'abc');
+code }
+
+Cleaning up
+code {
+drop table tq84_ora_01733_t;
+code }
+
 sa:
 
   → development/databases/Oracle/objects/tables/columns/virtual[Virtual columns]

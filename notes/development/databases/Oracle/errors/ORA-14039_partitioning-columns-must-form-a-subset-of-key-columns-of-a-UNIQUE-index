@@ -1,0 +1,52 @@
+$ ORA-14039: partitioning columns must form a subset of key columns of a UNIQUE index
+
+Create a → development/databases/Oracle/objects/tables/partitions[partitioned table]:
+code {
+create table tq84_ora_14039 (
+    id_a    integer,
+    id_b    integer,
+    val_1   varchar2(10),
+    val_2   number(10),
+    val_3   date
+    --
+--  constraint tq84_ora_14039 primary key (id_a, id_b) using index local -- <== Throws ORA-14039
+--  constraint tq84_ora_14039 primary key (id_a, id_b)                   -- <== OK
+)
+partition by range(val_2) interval (100000)
+(
+   partition tq84_ora_14039_part_1 values less than (0)
+)
+;
+code }
+ 
+Trying to create the following index results in *ORA-14039: partitioning columns must form a subset of key columns of a UNIQUE index*:
+code {
+alter table tq84_ora_14039 add primary key(id_a, id_b) using index local;
+code }
+ 
+This statement is OK:
+code {
+alter table tq84_ora_14039 add primary key(id_a, id_b);
+code }
+ 
+
+The following two primary keys would also be OK.
+-
+The first one would create a non-aligned, the second one an aligned primary key:
+code {
+alter table tq84_ora_14039 add primary key (val_1, val_2) using index local;
+alter table tq84_ora_14039 add primary key (val_2, val_1) using index local;
+code }
+
+Check alignment of indexes:
+code {
+select alignment from user_part_indexes where table_name = 'TQ84_ORA_14039';
+code }
+
+Cleaning up
+code {
+drop table tq84_ora_14039;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
