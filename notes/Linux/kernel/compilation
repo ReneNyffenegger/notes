@@ -187,9 +187,58 @@ code }
 
 }
 
+
 { TODO
 
-  The compiled kernel should be placed under → Linux/kernel/source/arch/x86/boot/bzImage.
+  The compiled kernel should be placed under `→ Linux/kernel/source/arch/x86/boot/bzImage`.
+
+  { Alternative make targets #linux-alt-make-tgt
+
+    table { ll
+
+   ~Target~ ☰
+    `config` ☰ Plain text interface.
+    `menuconfig` ☰ Text based color menus, radiolists & dialogs.
+    `nconfig` ☰ Enhanced text based color menus.
+    `xconfig` ☰ Qt based configuration tool.
+    `gconfig` ☰ GTK+ based configuration tool.
+    `oldconfig` ☰  Default al`l questions based on the contents of your existing `./.config` file and asking about new config symbols.
+    `olddefconfig` ☰ Like above, but sets new symbols to their default values without prompting.
+    `defconfig` ☰  Create a `./.config` file by using the default symbol values from either `arch/$ARCH/defconfig` or `arch/$ARCH/configs/${PLATFORM}_defconfig`, depending on the architecture.
+    `${PLATFORM}_defconfig` ☰ Create a `./.config` file by using the default symbol values from `arch/$ARCH/configs/${PLATFORM}_defconfig`. Use `make help` to get a list of all available platforms of your architecture.
+    `allyesconfig` ☰ Create a `./.config` file by setting symbol values to 'y' as much as possible.
+    `allmodconfig` ☰ Create a `./.config` file by setting symbol values to 'm' as much as possible.
+    `allnoconfig` ☰ Create a `./.config` file by setting symbol values to 'n' as much as possible.
+    `randconfig` ☰ Create a `./.config` file by setting symbol values to random values.
+    `localmodconfig` ☰ Create a config based on current config and loaded modules (lsmod). Disables any module option that is not needed for the loaded modules.
+    `localyesconfig` ☰ Similar to localmodconfig, except it will convert all module options to built in (=y) options. You can also preserve modules by LMC_KEEP.
+    `kvm_guest.config` ☰  Enable additional options for kvm guest kernel support.
+    `xen.config` ☰  Enable additional options for xen dom0 guest kernel support.
+    `tinyconfig` ☰ Configure the tiniest possible kernel.
+
+  table }
+
+    See also `→ Linux/kernel/source/Documentation/admin-guide/README_rst`
+
+
+  { Creating a localmodconfig for another machine
+
+    To create a `localmodconfig` for another machine, store the lsmod of that machine into a file and pass it in as a LSMOD parameter.
+
+    Also, you can preserve modules in certain folders or kconfig files by specifying their paths in parameter LMC_KEEP.
+
+code {
+target$ lsmod > /tmp/mylsmod
+target$ scp /tmp/mylsmod host:/tmp
+
+host$ make LSMOD=/tmp/mylsmod LMC_KEEP="drivers/usb:drivers/gpu:fs" localmodconfig
+code }
+
+    The above also works when cross compiling.
+
+    }
+
+  }
 
 }
 
