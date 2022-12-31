@@ -1,12 +1,43 @@
 $ Shell command: pkg-config
 @ pkg-config
 
-`pkg-config` provides information about installed libraries in the system and is useful in combination with compiling C/C++ files(?) and linking the resulting  object files.
+`pkg-config` provides information about installed libraries/packages in the system and is useful in combination with compiling C/C++ files(?) and linking the resulting  object files.
+-
+This information is stored in files with a → development/filename-extensions#pc[`.pc`] file suffix. These files are typically found under
+  • `→ Linux/fhs/usr/lib/pkgconfig`
+  • `→ Linux/fhs/usr/share/pkgconfig`
+  • `→ Linux/fhs/usr/local/lib[/usr/local/lib]/pkgconfig` or
+  • `→ Linux/fhs/usr/local[/usr/local]/share/pkgconfig`.
+
+code {
+$ pkg-config --cflags sqlite3
+$ pkg-config --libs   sqlite3
+code }
+
+{ .pc file format
+
+  Example taken from `→ Linux/shell/commands/man pkg-config`:
+code {
+prefix=/home/hp/unst                     # This defines a variable (Query on command line with pkg-config --variable=prefix)
+exec_prefix=${prefix}                    # Defining another variable in terms of the first
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: GObject                            # human-readable name
+Description: Object/type system for GLib # human-readable description
+Version: 1.3.1
+URL: http://www.gtk.org
+Requires: glib-2.0 = 1.3.1
+Conflicts: foobar <= 4.5
+Libs: -L${libdir} -lgobject-1.3
+Libs.private: -lm
+Cflags: -I${includedir}/glib-2.0 -I${libdir}/glib/include
+code }
+
+}
 
 sa:
 
- `→ Linux/fhs/usr/lib/pkgconfig`,
- `→ Linux/fhs/usr/share/pkgconfig`,
-, `→ Linux/fhs/usr/local/lib[/usr/local/lib]/pkgconfig`, `→ Linux/fhs/usr/local[/usr/local]/share/pkgconfig`.
+ `gtk-config`, `gnome-config`
 
   → Linux/shell/commands[Shell commands]

@@ -25,7 +25,7 @@ use notes;
 use RN;
 
 my $debug = 0;
-my $no_internet = 1; # 2022-12-31
+my $no_internet = 0; # 2022-12-31
 # $| = 1;
 
 my $temp_dir;
