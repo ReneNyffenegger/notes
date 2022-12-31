@@ -25,6 +25,7 @@ use notes;
 use RN;
 
 my $debug = 0;
+my $no_internet = 1; # 2022-12-31
 # $| = 1;
 
 my $temp_dir;
@@ -817,8 +818,10 @@ sub process_page { #_{
 
         print "gh: $url\n";
         if ($path =~ m!/([^//]+\.(png|jpg|jpeg|gif))$!) {
-
           my $image_name = $1;
+
+          unless ($no_internet) {
+
 
           print "Found $image_name in dir $dirname_os (url = $url)\n";
           my $http_response_code = getstore($url, $temp_dir . $image_name);
@@ -836,6 +839,10 @@ sub process_page { #_{
           RN::copy_os_path_2_url_path_abs ($temp_dir . $image_name, "/notes/$dirname_os/$image_name");
 
           $gh_ret = "<img src='" . RN::url_path_abs_2_url_full('/notes/') . "$dirname_os/$image_name' />";
+          }
+          else {
+             print "img / no internet: $image_name<p>";
+          }
 
         }
         else {
@@ -844,14 +851,20 @@ sub process_page { #_{
            if (substr($path, 0, 1) ne '/') {
              print "gh: $path does not start with /\n";
            }
+           my $code;
+           unless ($no_internet) {
 
-           my $code = get($url);
+              $code = get($url);
 
            print "\n\n  $url did not return anything\n\n" unless $code;
 
            $code =~ s/&/&amp;/g;
            $code =~ s/</&lt;/g;
            $code =~ s/>/&gt;/g;
+           }
+           else {
+              $code = 'code / no internet';
+           }
 
            $gh_ret = ($in_text ? "</div>" : "") .
            "<pre class='code'>$code</pre>" .
