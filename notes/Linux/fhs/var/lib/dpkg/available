@@ -1,0 +1,71 @@
+$ /var/lib/dpkg/available
+
+`/var/lib/dpkg/available` lists available `→ Linux/distributions/Debian/dpkg` packages.
+
+{ Example entry
+
+  The packages are separated by an empty line.
+
+  An entry for a package might looks like the following xxd/vim example.
+code {
+Package: xxd
+Source: vim
+Version: 2:8.2.2434-3+deb11u1
+Installed-Size: 239
+Maintainer: Debian Vim Maintainers <team+vim@tracker.debian.org>
+Architecture: amd64
+Replaces: vim-common (<< 2:7.4.2347-1~)
+Depends: libc6 (>= 2.3.4)
+Breaks: vim-common (<< 2:7.4.2347-1~)
+Description: tool to make (or reverse) a hex dump
+Description-md5: d658dacad23806722eb421aab7cc53e5
+Multi-Arch: foreign
+Homepage: https://www.vim.org/
+Section: editors
+Priority: optional
+Filename: pool/main/v/vim/xxd_8.2.2434-3+deb11u1_amd64.deb
+Size: 192012
+MD5sum: b94692cf8627729c55dd62e137433091
+SHA256: 312e72745206a58d1152b55d38bfa05740d4244e1005f535ed0791af201f4b0d
+code }
+
+  Some (all?) entry names are optional.
+ 
+  Entry lines might span multiple lines (for example `Tag`).
+
+? An entire entry can be printed with → Linux/distributions/Debian/dpkg[`dpkg --print-avail`]:
+code {
+$ dpkg --print-avail vim-tiny
+code }
+
+}
+{ Print required packages
+
+  The following `→ development/languages/awk` script prints the *required* packages:
+code {
+awk '
+
+   /Package/ {pkg =$2};
+   /Source/  {src =$2};
+   /Priority/{prio=$2};
+
+   $0 == "" && prio == "required" {
+        printf "%-30s %s\n", pkg, src;
+        pkg=src=prio=""
+   }
+
+' /var/lib/dpkg/available
+code }
+
+  Modify the string `required` to `important` or `optional` to change the selected packages.
+
+}
+
+sa:
+
+  Use → Linux/fhs/var/lib/dpkg[`dpkg -l`] to list packages with a given pattern:
+code {
+$ → Linux/fhs/var/lib/dpkg -l *term*
+code }
+
+ `→ Linux/fhs/var/lib/dpkg/available`

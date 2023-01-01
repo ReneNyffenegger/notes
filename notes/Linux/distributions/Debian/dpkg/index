@@ -1,5 +1,116 @@
-abbr: package manager for Debian
 
+`dpkg` is the *package manager for → Linux/distributions/Debian* and thus used to install, build, remove and manage Debian packages.
+
+? `dpkg` is a command line tool, a (more user-friendly?) alternative is `aptitude`.
+
+
+{ Usage
+
+
+code {
+dpkg [<option>...] <command>
+code }
+
+  { Commands
+
+
+    table { llll
+      ☰ ~long form~ ☰ ~argument~ ☰ 
+
+     `-i` ☰ `--install` ☰ `<.deb file>…`      ☰  `-R|--recursive <directory>…`
+          ☰ `--unpack`  ☰ `<.deb file>>…`      ☰  `-R|--recursive <directory>…`
+     `-A` ☰ `--record-avail` ☰ `<.deb file name>…` ☰   `-R|--recursive <directory>…`
+          ☰ `--configure`     ☰ `<package>…` ☰  `-a|--pending`
+          ☰ `--triggers-only`  ☰ `<package>…` ☰ `-a|--pending`
+     `-r` ☰ `--remove`         ☰ `<package>…` ☰ `-a|--pending`
+     `-P` ☰ `--purge`          ☰ `<package>…` ☰ `-a|--pending`
+     `-V` ☰ `--verify`         ☰ `[<package>…]`  ☰ Verify the integrity of package(s).
+          ☰  `--get-selections` ☰ `[<pattern>…]` ☰ Get list of selections to stdout.
+          ☰  `--set-selections` ☰               ☰ Set package selections from stdin.
+          ☰  `--clear-selections` ☰                ☰ Deselect every non-essential package.
+          ☰  `--update-avail` ☰ `[<Packages-file>]`  ☰ Replace available packages info.
+          ☰  `--merge-avail` ☰ ` [<Packages-file>]`   ☰ Merge with info from file.
+          ☰  `--clear-avail` ☰                      ☰ Erase existing available info.
+          ☰  `--forget-old-unavail` ☰              ☰ Forget uninstalled unavailable pkgs.
+     `-s` ☰ `--status` ☰ `[<package>…]`            ☰ Display package status details.
+     `-p` ☰ `--print-avail` ☰ `[<package>…]`       ☰ Display available version details.
+     `-L` ☰ `--listfiles` ☰ `<package>…`         ☰ List files 'owned' by package(s).
+     `-l` ☰ `--list` ☰ `[<pattern>…]`              ☰ List packages concisely.
+     `-S` ☰ `--search` ☰ `<pattern>…`              ☰ Find package(s) owning file(s).
+     `-C` ☰ `--audit` ☰ `[<package>…]`             ☰ Check for broken package(s).
+          ☰ `--yet-to-unpack` ☰                     ☰ Print packages selected for installation.
+          ☰ `--predep-package` ☰                    ☰ Print pre-dependencies to unpack.
+          ☰ `--add-architecture` ☰  `<arch>`        ☰ Add <arch> to the list of architectures.
+          ☰ `--remove-architecture` ☰  `<arch>`     ☰ Remove <arch> from the list of architectures.
+          ☰ `--print-architecture` ☰                ☰ Print dpkg architecture.
+          ☰ `--print-foreign-architectures` ☰       ☰ Print allowed foreign architectures.
+          ☰ `--assert-<feature>` ☰                  ☰ Assert support for the specified feature. `<feature>` is one of `support-predepends`, `working-epoch`, `long-filenames`,` multi-conrep`, `multi-arch`, `versioned-provides`, `protected-field`.
+          ☰ `--validate-<thing>` ☰  `<string>`      ☰ Validate a `<thing>`'s `<string>`. `<thing>` is one of `pkgname`, `archname`, `trigname`, `version`.
+          ☰ `--compare-versions` ☰  `<a> <op> <b>`  ☰ Compare version numbers. `<op>` is one of `lt`, `le`, `eq`, `ne`, `ge`, `gt`  (treat empty version as earlier than any version) / `lt-nl`, `le-nl`, `ge-nl`, `gt-nl` (treat empty version as later than any version) / `<`, `<<`, `<=`, `=`, `>=`, `>>`, `>`    (only for compatibility with control file syntax).
+          ☰ `--force-help` ☰                        ☰ Show help on forcing.
+     `-Dh` ☰ `--debug=help` ☰                       ☰ Show help on debugging.
+     `-?`  ☰ `--help`       ☰                       ☰ Show this help message.
+           ☰ `--version`    ☰                       ☰ Show the version.
+
+    table }
+
+  }
+  { Options
+
+    table { lll
+
+      ☰  `--admindir=<directory>` ☰     Use <directory> instead of /var/lib/dpkg.
+      ☰  `--root=<directory>` ☰         Install on a different root directory.
+      ☰  `--instdir=<directory>` ☰      Change installation dir without changing admin dir.
+      ☰  `--pre-invoke=<command>` ☰     Set a pre-invoke hook.
+      ☰  `--post-invoke=<command>` ☰    Set a post-invoke hook.
+      ☰  `--path-exclude=<pattern>` ☰   Do not install paths which match a shell pattern.
+      ☰  `--path-include=<pattern>` ☰   Re-include a pattern after a previous exclusion.
+ `-O` ☰ `--selected-only` ☰         Skip packages not selected for install/upgrade.
+ `-E` ☰ `--skip-same-version` ☰     Skip packages whose same version is installed.
+ `-G` ☰ `--refuse-downgrade` ☰      Skip packages with earlier version than installed.
+ `-B` ☰ `--auto-deconfigure` ☰      Install even if it would break some other package.
+      ☰ `--[no-]triggers` ☰            Skip or force consequential trigger processing.
+      ☰ `--verify-format=<format>` ☰   Verify output format (supported: `'rpm'`).
+      ☰ `--no-pager` ☰ Disables the use of any pager.
+      ☰ `--no-debsig` ☰ Do not try to verify package signatures.
+      ☰ `--no-act|--dry-run|--simulate` ☰ Just say what we would do but don't do it.
+  `-D` ☰ `--debug=<octal>` ☰  Enable debugging (see `-Dhelp` or `--debug=help`).
+       ☰ `--status-fd <n>` ☰  Send status change updates to file descriptor <n>.
+       ☰ `--status-logger=<command>` ☰  Send status change updates to <command>'s stdin.
+       ☰ `--log=<filename>` ☰ Log status changes and actions to `<filename>` (See also `→ Linux/fhs/var/log/dpkg_log`).
+       ☰ `--ignore-depends=<package>[,…] ☰ Ignore dependencies involving <package>.
+       ☰ `--force-<thing>[,…]` ☰     Override problems (see --force-help).
+       ☰ `--no-force-<thing>[,…]` ☰  Stop when problems encountered.
+       ☰ `--refuse-<thing>[,…]` ☰  Ditto.
+       ☰ `--abort-after <n>` ☰  Abort after encountering <n> errors.
+       ☰ `--robot` ☰  Use machine-readable output on some commands.
+    table }
+
+  }
+  { Options on archives
+
+    table { ll
+
+
+    `-b` ☰ `--build`
+    `-c` ☰ `--contents`
+    `-e` ☰ `--control`
+    `-I` ☰ `--info`
+    `-f` ☰ `--field`
+    `-x` ☰ `--extract`
+    `-X` ☰ `--vextract`
+         ☰ `--ctrl-tarfile`
+         ☰ `--fsys-tarfile`
+    table }
+
+  Compare with 
+code {
+$ dpkg-deb --help
+code }
+
+  }
+}
 
 { -L
 
@@ -9,10 +120,41 @@ $ dpgk -L *package-name* | → Linux/shell/commands/grep[grep] /bin
 code }
 
 }
+{ dpkg-* programs
+
+  table { ll
+   `dpkg-architecture` ☰ set and determine the architecture for package building
+   `dpkg-buildflags` ☰ returns build flags to use during package build
+   `dpkg-buildpackage` ☰ build binary or source packages from sources
+   `dpkg-checkbuilddeps` ☰ check build dependencies and conflicts
+   `dpkg-deb` ☰ Debian package archive (`.deb`) manipulation tool. (`dpkg` can also be used as a frontend for `dpkg-query`)
+   `dpkg-distaddfile` ☰ add entries to debian/files
+   `dpkg-divert` ☰ override a package's version of a file
+   `dpkg-genbuildinfo` ☰ generate Debian `.buildinfo` files
+   `dpkg-genchanges` ☰ generate Debian `.changes` files
+   `dpkg-gencontrol` ☰ generate Debian control files
+   `dpkg-gensymbols` ☰ generate symbols files (shared library dependency information)
+   `dpkg-maintscript-helper` ☰ works around known dpkg limitations in maintainer scripts
+   `dpkg-mergechangelogs` ☰ 3-way merge of debian/changelog files
+   `dpkg-name` ☰ rename Debian packages to full package names
+   `dpkg-parsechangelog` ☰ parse Debian changelog files
+   `dpkg-query` ☰ a tool to query the dpkg database. (`dpkg` can also be used as a frontend for `dpkg-query`)
+   `dpkg-realpath` ☰  print the resolved pathname with `DPKG_ROOT` support
+   `dpkg-scanpackages` ☰ create Packages index files
+   `dpkg-scansources` ☰ create Sources index files
+   `dpkg-shlibdeps` ☰ generate shared library substvar dependencies
+   `dpkg-source` ☰ Debian source package (`.dsc`) manipulation tool
+   `dpkg-split` ☰ Debian package archive split/join tool
+   `dpkg-statoverride` ☰ override ownership and mode of files
+   `dpkg-trigger` ☰ a package trigger utility
+   `dpkg-vendor` ☰ queries information about distribution vendors
+  table }
+
+}
 
 { TODO
 
-  → Linux/APT/[apt] is a high level user friendly utility to operate with dpkg.
+  → Linux/APT[apt] is a high level user friendly utility to operate with dpkg.
 
 code {
 sudo dpkg-reconfigure tzdata
@@ -21,6 +163,15 @@ code }
 }
 
 sa:
-  → Linux/fhs/var/lib/dpkg
+
+ `→ Linux/fhs/etc/dpkg/dpkg_cfg` is the configuration file for `dpkg`.
+
+ `→ Linux/fhs/var/lib/dpkg/available` contains a list of available packages.
+  -
+  The status of these (all of them?) packages is listed in `→ Linux/fhs/var/lib/dpkg/status`.
+
+  The default log file is `→ Linux/fhs/var/log/dpkg_log`.
+
+ `→ Linux/fhs/var/lib/dpkg`
 
   → Linux/deb-rpm
