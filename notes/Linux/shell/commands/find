@@ -27,10 +27,10 @@ code }
     Operators in decreasing order of precedence are:
     table { ll
       `( expr )` ☰ Force precedence. Because paranthesis usually have a meaning in a → Linux/shell, they need to be escaped: `\( expr \)`
-      `! expr`, `-not expr` ☰ Negation of `expr` (`-not` is not POSIX compliant)
+      `! expr`, `-not expr` ☰ Negation of `expr` (`-not` is not → Linux/POSIX compliant)
       `expr1 expr2` ☰ Shorthand for `expr1 -a expr2`
-      `expr1 -a expr2`, `expr1 -and expr2` ☰ AND-evaluation. Lazyly evaluated. `-and` is not POSIx compliant
-      `expr1 -o expr2`, `expr1 -or expr2` ☰ OR-evaluation. Lazyly evaluated. `-or` is not POSIx compliant
+      `expr1 -a expr2`, `expr1 -and expr2` ☰ AND-evaluation. Lazyly evaluated. `-and` is not POSIX compliant
+      `expr1 -o expr2`, `expr1 -or expr2` ☰ OR-evaluation. Lazyly evaluated. `-or` is not POSIX compliant
       `expr1, expr2[, …]` ☰ List: all expressions are evaluated. The list evaluates to the value of the last expression.
     table }
 
@@ -49,7 +49,7 @@ code }
    more useful.
 " [→ https://docstore.mik.ua/orelly/unix/upt/ch17_12.htm[Chapter 17.12]: Finding Many Things with One Command ]
 
-  My *aha experience* was to discover that tests and actions are by default combined with `-a` (logical and) if the operator is missing.
+  My first *aha experience* was to discover that tests and actions are by default combined with `-a` (logical and) if the operator is missing.
   -
   Thus the following two commands are equivalent:
 code {
@@ -59,6 +59,48 @@ find . -path '*xyz*'    -print
 # Explicit and:
 find . -path '*xyz*' -a -print
 code }
+
+  { Lazy evaluation
+
+    The second aha experience was to find out that `find` evaluates its argument lazily.
+
+    In the following example, each file or directory name is compared with `./bin/debug`.
+    -
+    If the name differs, `-path ./bin/debug` returns `false` and there is no point in also evaluating `-prune` (which is implicitely connected to `-path` with `-and`).
+    Because `-path … -and -prune` is `false`, `find` needs to also evaluate `-print` to check if the entire expression is `true`.
+    -
+    However, if the name matches, `find` also evaluates `-prune` to check if `-path ./bin/debug -and -prune` is `true`. If the path is a directory, `-prune` evaluates to true
+    and `find` does not descend into this directory.
+    The name of the directory in that case is not printed because `-path … -prune` is `true` and there is no point in also evaluating `-print`.
+
+code {
+$ find . -path ./bin/debug -prune -o -print
+code }
+
+  }
+
+}
+{ Actions
+
+  table { ll
+
+    `-delete`        ☰ Deletes the file or empty directory and returns `true` if successful. Using `-delete` automatically turns on the `-depth` option.
+    `-exec cmd ;`    ☰ Replaces `{}` in `cmd` with the current file name then executes the `cmd` with the working directory begin the starting directory. Returns `true` if `cmd` exits with `0`?
+    `-exec dmd {} +` ☰ Similar to above, but performs an `xargs` like assembling of the command. Always returns `true`.
+    `-execdir cmd`, `-execdir command {} +` ☰ Like `-exec` but command is executed with the working directory set to the directory where the file resides.
+    `-fls file`  ☰ Like `-ls` but write to file like `-fprint`.
+    `-fprint file` ☰ Writes full filename to `file` and returns `true`.
+    `-fprint0 file` ☰ Like `-print0` but write to file like `-fprint.`
+    `-fprintf file format` ☰ 
+    `-ls` ☰ `ls -dils` on current file, return `true`
+    `-ok cmd ;` ☰ Like `-exec` but ask user before executing command.
+    `-okdir cmd ;` ☰ Like `-execdir` but ask user before executing command.
+    `-print` ☰ Print full incl. new line name on stdout, return `true`.
+    `-print0` ☰ Print full name followed by `NUL` character on stdout. (Compare to `-0` option of `xargs`)
+    `-printf format` ☰ `true`
+    `-prune` ☰ If file is a directory, do not descend into it and return `true`. If `-depth` is also specified, `-prune` has no effect. (Note that `-depth` is implied by `-delete`.
+    `-quit` ☰ Immediately exit the `find` process. Useful to check for the existence of  a given file: `find $dir -name xyz -print -quit`
+  table }
 
 }
 
@@ -137,7 +179,7 @@ code {
 $ find -path ./git -prune -o -type f -name '*b*' -print
 code }
 
-  Excludling multple directories:
+  Excluding multiple directories:
 code {
 $ find / -path /foo/bar/baz  -prune  -o \
          -path /abc/def      -prune  -o \
@@ -254,12 +296,12 @@ code }
 
 sa:
 
-  → Linux/shell/commands/locate
+  The shell command `→ Linux/shell/commands/locate`.
 
   → https://github.com/ReneNyffenegger/shell-commands/tree/master/find
 
   → development/languages/Perl/modules/File/Find
 
-  → Linux/shell/commands/index[Shell commands]
+  → Linux/shell/commands[Shell commands]
 
   A *very cheap and amateurish* equivalent of `touch` in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] is → Windows/dirs/Windows/System32/cmd_exe/commands/forfiles[`forfiles`].
