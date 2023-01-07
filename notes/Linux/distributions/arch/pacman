@@ -1,10 +1,174 @@
 
 pacman is the *package manager* for → Linux/distributions/arch[Arch Linux].
 
-A system is usually updated with `pacman -Syu` (`-S` = *Synchronize packages*, `-y` = *Refresh master package database* (as defined
-in → Linux/fhs/etc/pacman_conf), `-u` = *restrict to out of date packages*)
--
-If `pacman -Syu` returns an *error: … signature from … is unknown trust*, executing `pacman -key --refresh-keys` might help.
+code {
+pacman <operation> [options] [targets]
+code }
+
+`[target]`is usually a package name, file name, URL or a search string.
+
+{ Operations
+
+  table { lll
+
+   `-D` ☰ `--database` ☰ Mmodify certain attributes of the installed packages in pacman’s database or check the databases for internal consistency.
+   `-Q` ☰ `--query` ☰ View installed packages and their files and its meta-information (dependencies, conflicts, install date, build date, size).
+   `-R` ☰ `--remove` ☰ Remove one or more packages or groups from the system.
+   `-S` ☰ `--sync` ☰ Synchronize packages: install them directly from the remote repositories. For example, pacman -S qt will download and install qt and all the packages it depends on.
+   `-T` ☰ `--deptest` ☰ Check dependencies; return a list of dependencies that are not currently satisfied.
+   `-U` ☰ `--upgrade` ☰ Upgrade or add package(s), a *remove-then-add* process.
+   `-F` ☰ `--files` ☰ Query the files database: find  packages with certain files or display files owned by certain packages. Only packages in the sync databases are searched.
+   `-V` ☰ `--version` ☰
+   `-h` ☰ `--help` ☰
+
+  table }
+
+}
+{ Options
+
+  { General options
+
+  table { lll
+
+    `--dbpath <path>` ☰ `-b` ☰ Specifies an alternative database location (default is `→ Linux/fhs/var/cache/pacman/pkg`).
+    `--root <path>` ☰ `-r` ☰ Specifies an alternative installation root (default is `/`). For example used to install software to `→ Linux/fhs/usr/local` rather than `→ Linux/fhs/usr`.
+    `--verbose` ☰ `-v` ☰ Output paths such as the Root, Conf File, DB Path, Cache Dirs, etc.
+    `--arch <arch>` ☰ ☰ Specifies an alternate architecture.
+    `--cachedir <dir>` ☰ ☰ Specifies an alternative package cache location (the default is `→ Linux/fhs/var/cache/pacman/pkg`).
+    `--color <when>` ☰ ☰ Specifies when to enable coloring. Valid options are `always`, `never` or `auto`.
+    `--config <file>` ☰ ☰ Specifies an alternate configuration file.
+    `--debug` ☰ ☰ Display debug messages, recommended when  reporting bugs.
+    `--gpgdir <dir>` ☰ ☰ Specifies a directory of files used by GnuPG to verify package signatures (default is `→ Linux/fhs/etc/pacman_d/gnupg`).
+    `--hookdir <dir>` ☰ ☰ Specifies a alternative directory containing hook files (the default is `/etc/pacman.d/hooks`).
+    `--logfile <file>` ☰ ☰ Specifies an alternate log file.
+    `--noconfirm` ☰ ☰ Bypass any and all *Are you sure?* questions.
+    `--confirm` ☰ ☰ Cancels the effects of a previous `--noconfirm`.
+    `--disable-download-timeout` ☰ ☰ Disable defaults for low speed limit and timeout on downloads. Use this if you have issues downloading files with proxy and/or security gateway.
+    `--sysroot <dir>` ☰ ☰ Specifies an alternative system root. Pacman will `chroot` and `chdir` into the system root prior to running. This allows mounted guest systems to be properly operated on.
+
+  table }
+
+  }
+  { Transaction options
+
+    Transaction options apply to `-S`, `-R` and `-U`.
+
+    table { lll
+
+     `--nodeps` ☰ `-d` ☰ Skips dependency version checks. Compare with `--asume-installed`
+     `--assume-installed <package=version>` ☰ ☰ Add a virtual package "package" with version "version" to the transaction to satisfy dependencies. Compare with `--nodeps`
+     `--dbonly` ☰ ☰ Adds/removes the database entry only, leaving all files in place.
+     `--noprogressbar` ☰ ☰ Do not show a progress bar when downloading files. Typically used in scripts where output is caputured.
+     `--noscriptlet` ☰ ☰ If an install scriptlet exists, do not execute it.
+     `--print` ☰ `-p` ☰ Only print the targets instead of performing the actual operation.
+     `--print-format <format>` ☰ ☰ Specify a printf-like format to control the output of the `--print` operation.
+
+    table }
+
+  }
+  { Upgrade options
+
+    Upgrade options apply to `-S` and `-U`.
+
+    table { lll
+
+     `--downloadonly` ☰ `-w` ☰ Retrieve all packages from the server, but do not install/upgrade anything.
+     `--asdeps` ☰ ☰ Install packages non-explicitly.
+     `--asexplicit` ☰ ☰ Install packages explicitly.
+     `--ignore <package>` ☰ ☰ Ignores upgrades of package even if there is one available.
+     `--ignoregroup <group>` ☰ ☰ Ignore upgrades of all packages in group, even if there is one available.
+     `--needed` ☰ ☰ Do not reinstall the targets that are already up-to-date.
+     `--overwrite <glob>` ☰ ☰ Bypass file conflict checks and overwrite conflicting files.
+
+   table }
+
+  }
+  { Query options
+
+    Query options apply to `-Q`
+
+    table { lll
+
+     `--changelog` ☰ `-c` ☰ View the ChangeLog of a package if it exists.
+     `--deps` ☰ `-d` ☰ Restrict or filter output to packages installed as dependencies. This option can be combined with -t for listing real orphans - packages that were installed as dependencies but are no longer required by any installed package.
+     `--explicit` ☰ `-e` ☰ Restrict or filter output to explicitly installed packages. Combine with `-t` to list explicitly installed packages that are not required by any other package.
+     `--groups` ☰ `-g` ☰ Display all packages that are members of a named group.
+     `--info` ☰ `-i` ☰ Display information on a given package.
+     `--check` ☰ `-k` ☰ Check that all files owned by the given package(s) are present on the system.
+     `--list` ☰ `-l` ☰ List all files owned by a given package.
+     `--foreign` ☰ `-m` ☰ Restrict or filter output to packages that were not found in the sync database(s). Typically these are packages that were downloaded manually and installed with `--upgrade`.
+     `--native` ☰ `-n` ☰ Inverse of `--foreign`
+     `--owns <file>` ☰ `-o` ☰ Search for packages that own the specified file(s).
+     `--file` ☰ `-p` ☰ Signifies that the package supplied on the command line is a file and not an entry in the database; useful in combination with `--info` and `--list`.
+     `--quiet` ☰ `-q` ☰
+     `--search <regexp>` ☰ `-s` ☰ Search each locally-installed package for names or descriptions that match regexp.
+     `--unrequired` ☰ `-t` ☰
+     `--upgrades` ☰ `-u` ☰
+
+    table }
+
+  }
+  { Remove options
+
+    Remove options apply to `-R`
+    table { lll
+
+     `--cascade` ☰ `-c` ☰ Recusively remove all target packages, as well as all packages that depend on one or more target packages.
+     `--nosave` ☰ `-n` ☰ Ignores file backup designations: a removed file is not archived with `.pacsave` extension.
+     `--recursive` ☰ `-s` ☰
+     `--unneeded` ☰ `-u` ☰ Removes targets that are not required by any other packages, useful when removing a group without using the `-c` option to avoid breaking any dependencies.
+
+    table }
+
+  }
+  { Sync options
+
+    table { lll
+
+     `--clean` ☰ `-c` ☰ Remove packages that are no longer installed from the cache as well as currently unused sync databases
+     `--groups` ☰ `-g` ☰ Display all the members for each package group specified.
+     `--info` ☰ `-i` ☰ Display information on a given sync database package.
+     `--list` ☰ `-l` ☰ List all packages in the specified repositories.
+     `--quiet` ☰ `-q` ☰
+     `--search <regexp>` ☰ `-s` ☰ This will search each package in the sync databases for names or descriptions that match regexp.
+     `--sysupgrade` ☰ `-u` ☰ Upgrades all packages that are out-of-date. Option can be doubled (`pacman -Suu`) to enable package downgrades.
+     `--refresh` ☰ `-y` ☰ Download a fresh copy of the master package database from the server(s) defined in `pacman.conf(5)`, typically used when using `--sysupgrade`. Doubling the option (`pacman -Syy`) forces a refresh of all package databases, even if they appear to be up-to-date
+
+   table }
+
+  }
+  { Database options
+
+    Database options apply to `-D`
+
+    table { lll
+
+     `--asdeps <package>` ☰ ☰ Mark a package as non-explicitly installed.
+     `--asexplicit <package>` ☰ ☰ Mark a package as explicitly installed.
+     `--check` ☰ `-k` ☰ Check the local package database is internally consistent. 
+     `--quiet` ☰ `-q` ☰
+
+    table }
+
+  }
+  { File options
+
+    File options apply to `-F`
+
+    table { lll
+
+     `--refresh` ☰ `-y` ☰ Download fresh package databases from the server. Use twice to force a refresh even if databases are up to date.
+     `--list` ☰ `-l` ☰ List the files owned by the queried package.
+     `--regex` ☰ `-x` ☰ Interpret each query as a regular expression.
+     `--quiet` ☰ `-q` ☰
+     `--machinereadable` ☰ ☰ Print each match in a machine readable output format. The format is `repository\0pkgname\0pkgver\0path\n` with `\0` being the NULL character and `\n` a linefeed.
+
+    table }
+
+  }
+
+}
+
 
 { Finding packages #pacman-finding-packages
 
@@ -48,6 +212,12 @@ code }
 }
 
 { TODO
+
+  A system is usually updated with `pacman -Syu` (`-S` = *Synchronize packages*, `-y` = *Refresh master package database* (as defined
+  in → Linux/fhs/etc/pacman_conf), `-u` = *restrict to out of date packages*)
+  -
+  If `pacman -Syu` returns an *error: … signature from … is unknown trust*, executing `pacman -key --refresh-keys` might help.
+
 
   *yaourt* (Yet AnOther User Repository Tool) builds AUR packages.
 
