@@ -7,7 +7,7 @@ UEFI is essentially EFI 2.0.
 
 UEFI requires 64 bit hardware.
 
-When the computer is started up, the UEFI firmware loads files stored on the → hardware/UEFI/ESP to start the installed operating system(s).
+When the computer is started up, the UEFI firmware loads files stored on the → hardware/UEFI/ESP[ESP] (EFI System Partition] to start the installed operating system(s).
 
 { Runtime variables #runtime-variables
 
@@ -21,7 +21,7 @@ When the computer is started up, the UEFI firmware loads files stored on the →
 
 { Required kernel config options #required-kernel-config-options
 
-These are required → Linux/kernel/compilation#config-options[kernel config options]:
+  These are required → Linux/kernel/compilation#config-options[kernel config options]:
 
 `CONFIG_RELOCATABLE=y`
 
@@ -39,14 +39,26 @@ These are required → Linux/kernel/compilation#config-options[kernel config opt
 
 `CONFIG_EFI_PARTITION=y`
 
-See https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/plain/Documentation/x86/x86_64/uefi.txt
+ See also
+  → https://github.com/torvalds/linux/blob/master/security/integrity/platform_certs/load_uefi.c[security/integrity/platform_certs/load_uefi.c],
+  → https://github.com/torvalds/linux/blob/master/Documentation/x86/x86_64/uefi.rst[Documentation/x86/x86_64/uefi.rst],
+  → https://github.com/torvalds/linux/blob/master/Documentation/arm/uefi.rst[Documentation/arm/uefi.rst]
 
 }
-
 { EFI boot stub
 
   → Linux/kernel/source/Documentation/efi-stub_txt,
   → Linux/kernel/CONFIG/EFI_STUB
+
+}
+{ UEFI variables #uefi-variables
+
+  UEFI variables have three parts:
+    • namespace (A → development/UUID-GUID[GUID])
+    • name (→ development/Unicode)
+    • value (binary data)
+
+  UEFI variables can be modifed in the shell with `→ Linux/shell/commands/efivar`.
 
 }
 { Compatibility Support Module (CSM)
@@ -55,7 +67,64 @@ See https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/plain/Docume
   under *CMS* (Compatibility Support Module) or *Legacy Mode*.
 
 }
+{ efibootmgr
 
+ `efibootmgr` is a command line utility to modify settings of the *UEFI Boot Manager* such as
+   • boot entries
+   • boot order
+   • next running boot option
+
+  { Commandline options
+
+    table { lll
+
+     `-a` ☰ `--active` ☰ Set bootnum active.
+     `-A` ☰ `--inactive` ☰ Set bootnum inactive.
+     `-b` ☰ `--bootnum XXXX` ☰ Modify BootXXXX (hex).
+     `-B` ☰ `--delete-bootnum` ☰ Delete bootnum.
+     `-c` ☰ `--create` ☰ Create new variable bootnum and add to bootorder.
+     `-C` ☰ `--create-only` ☰ Create new variable bootnum and and do not add to bootorder.
+     `-d` ☰ `--disk DISK` ☰ The disk containing the loader (defaults to → Linux/fhs/dev/sdX[`/dev/sda`]).
+     `-D` ☰ `--remove-dups` ☰ Remove duplicated entries from BootOrder.
+     `-e 1|3` ☰ `--edd 1|3` ☰ Force EDD 1.0 or 3.0 creation variables. (`-e 3` is deprecated and an alias for `--full-dev-path`)
+     `-E` ☰ `--edd-device NUM` ☰ EDD 1.0 device number (default: `0x80`). See also `--edd`
+          ☰ `--full-dev-path ☰  Force creation of boot entries use a full UEFI device path, starting at the PCIe root or equivalent on the current platform. The default is to use a hard disk based HD() abbreviated path.
+          ☰ `--file-dev-path` ☰ Force creation of boot entries use an abbreviated UEFI device path which starts with the File() portion of the path. The default is to use a hard disk based HD() abbreviated path.
+     `-f` ☰ `--reconnect` ☰ Re-connect devices after driver is loaded. Only applicable for driver entries.
+     `-F` ☰ `--do-not-reconnect` ☰ Do not reconnect devices after driver is loaded. Only applicable for driver entries.
+     `-g` ☰ `--gpt` ☰ Force disk with invalid PMBR (protective MBR) to be treated as → hardware/harddisk/GPT[GPT]
+     `-i` ☰ `--iface NAME` ☰ Create a netboot entry for the named interface.
+     `-k` ☰ `--keep NAME` ☰ Keep old entries when adjusting order.
+     `-l` ☰ `--loader NAME` ☰ Specify a loader (defaults to \EFI\arch\grub.efi).
+     `-L` ☰ `--label LABEL` ☰ Boot manager display label (defaults to "Linux").
+     `-m` ☰ `--mirror-below-4G t|f` ☰ Set t if you want to mirror memory below 4GB.
+     `-M` ☰ `--mirror-above-4G X` ☰ X percentage memory to mirror above 4GB. Floating-point value with up to 2 decimal places is accepted.
+     `-n` ☰ `--bootnext XXXX` ☰ Set BootNext to XXXX (hex).
+     `-N` ☰ `--delete-bootnext` ☰ Delete BootNext.
+     `-o` ☰ `--bootorder XXXX,YYYY,ZZZZ` ☰ Explicitly set BootOrder (hex). Any value from 0 to FFFF is accepted so long as it corresponds to an existing `Boot####` variable, and zero padding is not required.
+     `-O` ☰ `--delete-bootorder` ☰ Delete BootOrder.
+     `-p` ☰ `--part PART` ☰ Partition number containing the bootloader (defaults to 1).
+     `-q` ☰ `--quiet` ☰ Quiet mode - suppresses output.
+     `-r` ☰ `--driver` ☰ Operate on `Driver####` variables instead of `Boot####` variables.
+     `-t` ☰ `--timeout seconds` ☰ Boot Manager timeout, in seconds.
+     `-T` ☰ `--delete-timeout` ☰ Delete Timeout variable.
+     `-u` ☰ `--unicode | --UCS-2` ☰ Handle extra command line arguments as UCS-2 (default is ASCII).
+     `-v` ☰ `--verbose` ☰ Verbose mode - prints additional information.
+     `-V` ☰ `--version` ☰ Just print version string and exit.
+     `-w` ☰ `--write-signature` ☰ Write unique signature to the MBR if needed.
+     `-y` ☰ `--sysprep` ☰ Operate on `SysPrep####` variables instead of `Boot####` variables.
+     `-@` ☰ `--append-binary-args` ☰ Append extra variable args from file (use - to read from stdin). Data in file is appended as command line arguments to the boot loader command, with no modification to the data, so you can pass any binary or text data necessary.
+
+    table }
+
+  }
+
+}
+{ Misc
+
+  The reference implementation is *TianoCore EDK II* (Extensible Development Kit II, (written in C).
+
+}
 { Links
 
   → Linux/shell/commands/efivar, → hardware/UEFI/ESP, → Linux/fhs/sys/firmware/efi/index

@@ -4,17 +4,24 @@ abbr: GUID Partition Table
 
 { Fixing problems of MBR
 
-  GPT fixes two problems of → hardware/harddisk/MBR[MBR]:
-    • It's not limited to 2 TiB
-    • → hardware/UEFI[UEFI] does not boot from an MBR disk.
 
+  Advantages of GPT over MBR include
+    • Logical Block Addresses (LBAs) are 64 bits rather than 32 bits (and is therefore not limited to 2 TiB = 2³²*512, 512 being the block size)
+    • Supports many partitions (rather than just four primary partitions).
+    • Provides both a primary and backup partition table for redundancy.
+    • Uses version number and size fields for future expansion.
+    • Uses CRC32 fields for improved data integrity.
+    • Defines a GUID for uniquely identifying each partition (Hence the name GPT)
+    • Uses a GUID and attributes to define partition content type.
+    • Each partition contains a 36 character human readable name.
+    • → hardware/UEFI[UEFI] cannot boot from an MBR disk.
 
 }
 { Layout on harddisk
 
-  A GPT disk starts with a 512 byte large *protective MBR* (where an ordinary → hardware/harddisk/MBR[MBR] would be) to to prevent MBR-only partitioning tools from overwriting GPT disks.
+  A GPT disk starts with a 512 byte large *protective MBR* (where an ordinary → hardware/harddisk/MBR[MBR] would be) to prevent MBR-only partitioning tools from overwriting GPT disks.
   -
-  This protective MBR contains an entry to an inexisting 2 TiB large partition (with code `EE00`). Thas, the MBR-only partitioning tool thinks the entire disk is occupied.
+  This protective MBR contains an entry to an inexisting 2 TiB large partition (with code `EE00`). Thus, the MBR-only partitioning tool thinks the entire disk is occupied.
 
 When executing `gdisk /dev/sda`, it might print (note the `Found valid GPT with protective MBR`):
 code {
@@ -31,9 +38,11 @@ Found valid GPT with protective MBR; using GPT.
 Command (? for help): 
 code }
 
-The GPT is (usually?) in the 2nd sector (LBA 1).
+  The *GPT header* is stored in the 2nd sector (LBA 1) and is followed by the *GPT partition entry array*.
+  -
+  The minimum size reserved for the GPT partition entry array is 32 blocks (sectors?), i.e. with block size 512 = 16 KiB.
 
-The first → hardware/harddisk/partition (usually) starts with sector 2048.
+  The first → hardware/harddisk/partition (usually) starts with sector 2048.
 
 }
 { ESP
