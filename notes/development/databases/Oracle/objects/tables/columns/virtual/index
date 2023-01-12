@@ -3,7 +3,9 @@ $ Oracle: Virtual columns
 
 { Virtual columns vs default values
 
-  A virtual column provides a value at query time:
+  { Table with virtual columns
+
+    A virtual column provides a value at query time:
 code {
 create table tq84_virt_col_t (
    dt_start  date,
@@ -16,6 +18,8 @@ insert into tq84_virt_col_t(dt_start, dt_end) values (date '2022-03-05', date '2
 
 select * from tq84_virt_col_t;
 code }
+  }
+  { Table with default values
 
   On the other hand, default values are used to provide a value in → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
 code {
@@ -29,26 +33,17 @@ insert into tq84_def_col_t (id) values (1);
 select
    *
 from
-   tq84_virt_col_v;
+   tq84_def_col_t;
 code }
 
-  Cleaning up:
-code {
-drop tabl  tq84_def_col_t;
-drop table tq84_virt_col_t;
-code }
+  }
+  { Querying virtual columns from the data dictionary
 
-}
-{ Non deterministic functions/expressions are not allowed
+  The expression that provides the value for a virtual column *and* default values can be queried from the column `data_default` in the
+  → development/databases/Oracle/installed/data-dictionary[data dictionary's] view `→ development/databases/Oracle/installed/data-dictionary/tab/cols`.
 
-  The expression used for the virtual column must be → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] («pure»), otherwise, Oracle throws
-  → development/databases/Oracle/errors/ORA-54002_only-pure-functions-can-be-specified-in-a-virtual-column-expression
+  The value of `virtual_column` (`YES` or `NO`) determines if `data_default` is a default expression or not.
 
-}
-{ Querying virtual columns from the data dictionary
-
-  The expression that provides the value for a virtual column can be queried from the column `data_default` in the → development/databases/Oracle/installed/data-dictionary[data dictionary's] view
- `→ development/databases/Oracle/installed/data-dictionary/tab/cols`:
 code {
 select
    obj.object_type,
@@ -56,6 +51,7 @@ select
    col.table_name,
    col.column_name,
    col.data_default,
+   col.virtual_column,
    col.*
 from
    → development/databases/Oracle/installed/data-dictionary/objects   obj                                          join
@@ -63,10 +59,25 @@ from
                          obj.object_name = col.table_name
 where
 -- obj.oracle_maintained = 'N'                              and
-   col.table_name in ('TQ84_VIRT_COL_V', 'TQ84_VIRT_COL_T') and
+   col.table_name in ('TQ84_VIRT_COL_T', 'TQ84_DEF_COL_T') and
    col.owner      = user
 ;
 code }
+
+  }
+  { Cleaning up:
+code {
+drop tabl  tq84_def_col_t;
+drop table tq84_virt_col_t;
+code }
+
+  }
+
+}
+{ Non deterministic functions/expressions are not allowed
+
+  The expression used for the virtual column must be → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] («pure»), otherwise, Oracle throws
+  → development/databases/Oracle/errors/ORA-54002_only-pure-functions-can-be-specified-in-a-virtual-column-expression
 
 }
 { Test 1 - 4
