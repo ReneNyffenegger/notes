@@ -1,0 +1,48 @@
+$ PLS-00174: a static boolean expression must be used
+
+  In the following minimalistic example, the package `tq84_compilation_flags` is used to provide `true`/`false` values for → development/databases/Oracle/PL-SQL/compilation/conditional[conditional PL/SQL compilation].
+code {
+create or replace package tq84_compilation_flags authid definer as
+ 
+    verbose boolean := true;
+ 
+end tq84_compilation_flags;
+/
+code }
+ 
+`tq84_compilation_flags` is then used in the «productive» package `tq84_xyz`:
+code {
+create or replace package tq84_xyz authid definer as
+    procedure run;
+end tq84_xyz;
+/
+ 
+create or replace package body tq84_xyz as
+    procedure run is begin
+ 
+       $if tq84_compilation_flags.verbose $then
+           dbms_output.put_line('tq84_xyz.run was called');
+       $end
+ 
+       dbms_output.put_line('XYZ was run');
+ 
+    end run;
+end tq84_xyz;
+/
+code }
+
+When trying to compile `tq84_xyz`, it results in *PLS-00174: a static boolean expression must be used*.
+-
+In `tq84_compilation_flags`, `verbose` must be changed to be a constant:
+code {
+create or replace package tq84_compilation_flags authid definer as
+ 
+    verbose CONSTANT boolean := true;
+ 
+end tq84_compilation_flags;
+/
+code }
+
+
+sa:
+  → development/databases/Oracle/PL-SQL/errors-warnings
