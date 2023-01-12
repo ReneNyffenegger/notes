@@ -3,6 +3,25 @@ $ Shell command: ps
 
 `ps` shows a snapshot of the current → Linux/kernel/process[processes].
 
+{ Shown columns
+
+  By default, `ps` lists the four columns
+  table { ll
+  `PID` ☰ process id
+  `TTY` ☰ terminal associated with the process
+  `TIME` ☰ cumulative CPU time
+  `CMD` ☰ command that started the process
+  table }
+
+  These four columns can be specified explicitely with
+code {
+ps -o pid,tty,time,cmd
+code }
+
+  Some command line options allow → Linux/shell/commands/ps#ps-opt-output[to modify the columns] that are printed.
+
+}
+
 { Option types
 
   A confusing aspect of `ps` is that some command line options come
@@ -20,12 +39,12 @@ $ Shell command: ps
    table { ll
 
     `a` ☰ Lift the BSD-style "only yourself" restriction, which is imposed upon the set of all processes when some BSD-style (without "-") options are used or when the ps personality setting is BSD-like.  The set of processes selected in this manner is in addition to the set of processes selected by other means.  An alternate description is that this option causes ps to list all processes with a terminal (tty), or to list all processes when used together with the x option.
-    `-A`, `-e` ☰ Select all processes.
-    `-a` ☰ Select all processes except both session leaders (see getsid(2)) and processes not associated with a terminal.
-    `-d` ☰ Select all processes except session leaders.
+    `-A`, `-e` ☰ All processes.
+    `-a` ☰ All processes except both session leaders and processes not associated with a terminal.
+    `-d` ☰ All processes except session leaders.
     `--deselect`, `-N` ☰ Reverse selection
     `g` ☰ *Obsolete*, only useful in sunos4: really all processes, even session leaders.
-    `T` ☰ Select all processes associated with *this* terminal (TTY). Identical to the `t` option without any argument.
+    `T` ☰ All processes associated with *this* terminal (TTY). Identical to the `t` option without any argument.
     `r` ☰ Restrict the selection to only running processes.
     `x` ☰ Lift the BSD-style "must have a tty" restriction, which is imposed upon the set of all processes when some BSD-style (without "-") options are used or when the ps personality setting is BSD-like.  The set of processes selected in this manner is in addition to the set of processes selected by other means.  An alternate description is that this option causes ps to list all processes owned by you (same EUID as ps), or to list all processes when used together with the a option.
 
@@ -50,7 +69,7 @@ $ Shell command: ps
     table }
 
   }
-  { Controlling output
+  { Controlling output #ps-opt-output
 
     table { ll
 
@@ -64,7 +83,7 @@ $ Shell command: ps
       `l` ☰ Display BSD long format.
       `-l` ☰ Long format. See also `-y`.
       `-M`, `Z` ☰ Add a column of security data. (for → Linux/security/modules/SELinux).
-      `O fmt` ☰ is preloaded o (overloaded).  The BSD O option can act like -O (user-defined output format with some common fields predefined) or can be used to specify sort order.  Heuristics are used to determine the behavior of this option.  To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g.  with -O or --sort).  When used as a formatting option, it is identical to -O, with the BSD personality.
+      `O fmt` ☰ is preloaded `o` (overloaded). The BSD `O` option can act like `-O` (user-defined output format with some common fields predefined) or can be used to specify sort order. Heuristics are used to determine the behavior of this option. To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g.  with `-O` or `--sort`). When used as a formatting option, it is identical to `-O`, with the BSD personality.
       `-O fmt` ☰ Like `-o`, but preloaded with some default columns. Identical to `-o pid,format,state,tname,time,command` or `-o pid,format,tname,time,cmd`
       `-P` ☰ Add a column showing psr.
       `s` ☰ Display signal format.
@@ -79,11 +98,11 @@ $ Shell command: ps
 
      `fmt` (options `--format`, `-o` and `o`) is given a list of comma or blank-separted → Linux/shell/commands/ps/format-specifiers[format specifiers] to specify the columns to be shown. 
 
-     The `PS_FORMAT` environment specifies a default format.
+      The `PS_FORMAT` environment specifies a default format.
 
-     Column width will increase as needed for wide headers; this may be used to widen up columns such as WCHAN (`ps -o pid,wchan=WIDE- WCHAN-COLUMN -o comm`).
-     -
-     Column width can be explicitely controlled:
+      Column width will increase as needed for wide headers; this may be used to widen up columns such as WCHAN (`ps -o pid,wchan=WIDE- WCHAN-COLUMN -o comm`).
+      -
+      Column width can be explicitely controlled:
 code {
 ps opid, wchan:42,cmd
 code }
@@ -124,16 +143,15 @@ code }
      `h` ☰ No header.  (or, one header per screen in the BSD personality).  The h option is problematic.  Standard BSD ps uses this option to print a header on each page of output, but older Linux ps uses this option to totally disable the header.  This version of ps follows the Linux usage of not printing the header unless the BSD personality has been selected, in which case it prints a header on each page of output.  Regardless of the current personality, you can use the long options --headers and --no-headers to enable printing headers each page or disable headers entirely, respectively.
      `-H` ☰ Show process hierarchy (forest).
      `--headers` ☰ Repeat header lines, one per page of output.
-     `k spec` ☰ Specify sorting order.
+     `k spec`, `--sort spec` ☰ Specify sorting order with a multi-letter → Linux/shell/commands/ps/format-specifiers. The syntax is `[+|-]key[,[+|-]key[,…]]`. Default is order in increasing order (number or lexicographically). For example: `ps jax --sort=uid,-ppid,+pid`
      `--lines n` ☰ Set screen height.
      `n` ☰ Force numeric output for `wchan` and `user` → Linux/shell/commands/ps/format-specifiers[format specifiers], including all types of UID and GID.
      `--no-headers` ☰ Print no header line at all.  --no-heading is an alias for this option.
-     `O order` ☰ Sorting order (overloaded).  The BSD O option can act like -O (user-defined output format with some common fields predefined) or can be used to specify sort order.  Heuristics are used to determine the behavior of this option.  To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g.  with -O or --sort).
+     `O order` ☰ Sorting order (overloaded).  The BSD O option can act like -O (user-defined output format with some common fields predefined) or can be used to specify sort order.  Heuristics are used to determine the behavior of this option.  To ensure that the desired behavior is obtained (sorting or formatting), specify the option in some other way (e.g.  with `-O` or `--sort`).
      `--rows n` ☰ Set screen height.
      `S` ☰ Sum up some information, such as CPU usage, from dead child processes into their parent.  This is useful for examining a system where a parent process repeatedly forks off short-lived children to do work.
-     `--sort spec` ☰ Specify sorting order.  Sorting syntax is [+|-]key[,[+|-]key[,...]].  Choose a multi-letter key from the STANDARD FORMAT SPECIFIERS section.  The "+" is optional since default direction is increasing numerical or lexicographic order.  Identical to k.  For example: ps jax --sort=uid,-ppid,+pid
-     `w` ☰ Wide output.  Use this option twice for unlimited width.
-     `-w` ☰ Wide output.  Use this option twice for unlimited width.
+     `w` ☰ Wide output. Use this option twice for unlimited width.
+     `-w` ☰ Wide output. Use this option twice for unlimited width.
      `--width n` ☰ Set screen width.
 
     table }
@@ -144,9 +162,9 @@ code }
     table { ll
 
     `H` ☰ Show threads as if they were processes.
-    `-L` ☰ Show threads, possibly with LWP and NLWP columns.
+    `-L` ☰ Show threads, possibly with `LWP` and `NLWP` columns.
     `m`, `-m` ☰ Show threads after processes. See also the `pending` → Linux/shell/commands/ps/format-specifiers.
-    `-T` ☰ Show threads, possibly with SPID column.
+    `-T` ☰ Show threads, possibly with `SPID` column.
 
     table }
 
@@ -157,7 +175,7 @@ code }
 
     `--help section` ☰ `section` is one of simple, list, output, threads, misc, or all (or shoert: s, l, o, t, m or a).
     `--info` ☰ Print debugging info.
-    `L` ☰ List all format specifiers.
+    `L` ☰ List all → Linux/shell/commands/ps/format-specifiers[format specifiers].
     `V` ☰ Print the procps-ng version.
     `-V` ☰ Print the procps-ng version.
     `--version` ☰ Print the procps-ng version.
