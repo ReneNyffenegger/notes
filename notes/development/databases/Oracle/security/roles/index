@@ -3,11 +3,18 @@ $ Oracle: Roles
 
 A role is a set of → development/databases/Oracle/security/privileges[privileges] that has been given a name.
 
+A role (unlike a → development/databases/Oracle/users-roles/users) is not an → development/databases/Oracle/objects[Oracle object].
+
+
 { Available roles
 
 code {
-select * from → development/databases/Oracle/installed/data-dictionary/roles[dba_roles];
+select * from → development/databases/Oracle/installed/data-dictionary/roles;
 code }
+
+  Because roles have no owner, there is no `all_roles` or `user_roles` view.
+
+  Roles that are enabled in the current → development/databases/Oracle/architecture/session are listed in `→ development/databases/Oracle/installed/data-dictionary/session/roles`.
 
 }
 { Whom is a specific role granted to?
@@ -24,7 +31,7 @@ select * from → development/databases/Oracle/installed/data-dictionary/tab/pri
 code }
 
 }
-{ sys_context('sys_session_roles', …) #ora-role-sys_context-sys_session_roles
+{ SYS_CONTEXT('sys_session_roles', …) #ora-role-sys_context-sys_session_roles
 
  `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('sys_session_roles', role_name)` returns either `TRUE` or `FALSE` to indiciate if a given role (`role_name`) is enabled
   in a → development/databases/Oracle/architecture/session.
@@ -42,23 +49,30 @@ order by
 code }
 
 }
+{ Oracle maintained roles
+
+  gh|Oracle-Patterns|/Installed/data-dictionary/roles/oracle-maintained-roles.sql||
+
+  TODO: compare with → development/databases/Oracle/security/roles/oracle-maintained.
+
+}
 
 sa:
 
   → development/databases/Oracle/security/roles/default[Default roles] of a → development/databases/Oracle/users-roles/users[user].
 
-  → development/databases/Oracle/security/roles/oracle-maintained
+  Roles are → development/databases/Oracle/security/roles/disabled-in-PLSQL[disabled in `authid definer` PL/SQL objects].
 
   → development/databases/Oracle/security
 
  `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].session_is_role_enabled`
- -
+  -
  `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].current_is_role_enabled`
- -
+  -
  `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].is_role_enabled`
- -
+  -
  `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].set_role`
 
- The `TKPROF` role is created with the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utltkprf_sql[`utltkprof.sql`] script.
+  The `TKPROF` role is created with the → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utltkprf_sql[`utltkprof.sql`] script.
 
- → development/databases/Oracle/errors/ORA-01943_circular-role-grant-detected
+  → development/databases/Oracle/errors/ORA-01943_circular-role-grant-detected

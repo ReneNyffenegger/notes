@@ -1,0 +1,60 @@
+$ Oracle roles are disabled in (authid definer) PL/SQL packages
+
+A → development/databases/Oracle/PL-SQL object compiled with → development/databases/Oracle/PL-SQL/authid[`authid definer`] executes its code with *disabled roles*.
+-
+In order to demonstrate this, three → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL functions] are created, one with `authid definer`, one with `authid current_user` and one without explicitely stating its `authid`.
+These functions are passed the name of a → development/databases/Oracle/security/roles[role] and the use `→ development/databases/Oracle/SQL/functions/sys_context[sys_context('sys_session_roles', …)` to
+determine if the role is enabled.
+-
+All of these functions are the fed the roles found in `→ development/databases/Oracle/installed/data-dictionary/session/roles` (which lists the roles being enabled in the
+current → development/databases/Oracle/architecture/session).
+
+The function defined with `authid definer` always returns false while the function defined with `authid current_user` always returns true.
+
+Creating the functions:
+code {
+create or replace function tq84_sys_session_roles_definer(r varchar2)
+   return varchar2
+   authid definer
+as
+begin
+   return sys_context('sys_session_roles', r);
+end;
+/
+ 
+create or replace function tq84_sys_session_roles_current_user(r varchar2)
+   return varchar2
+   authid current_user
+as
+begin
+   return sys_context('sys_session_roles', r);
+end;
+/
+ 
+create or replace function tq84_sys_session_roles_(r varchar2)
+   return varchar2
+as
+begin
+   return sys_context('sys_session_roles', r);
+end;
+/
+code }
+ 
+Executing the functions:
+code {
+select
+   role,
+   sys_context('sys_session_roles'   , role),
+   tq84_sys_session_roles_definer     (role) definer     , -- FALSE
+   tq84_sys_session_roles_current_user(role) current_user, -- TRUE
+   tq84_sys_session_roles_            (role) default_      -- FALSE
+from
+   session_roles;
+code }
+ 
+Cleaning up
+code {
+drop function tq84_sys_session_roles_;
+drop function tq84_sys_session_roles_definer;
+drop function tq84_sys_session_roles_current_user;
+code }
