@@ -1,33 +1,94 @@
 
 *systemd* is a system and service manager for → Linux/index. The final d stands for → Linux/daemons[daemon], so systemd might also be a system daemon.
 
-{ Units
+{ Units #systemd-unit
 
   A unit is an entity that allows to specify dependencies that are needed for → Linux/booting/index[booting up] Linux.
 
-  A unit has one of the following 11 types:
-    • service
-    • mount point
-    • device
-    • socket
-    • automount point
-    • → Linux/swap-space/index[swap] file
-    • → hardware/harddisk/partition
-    • (start-up) target (These seem to be the systemd equivalent of the → Linux/init/System-V/index#system-v-run-levels[runlevels] of System-V).
-    • timer
-    • resource management slice
-    • group of externally created processes
+  { Type #systemd-unit-type
 
-  A unit is either *active*, *inactive*, *activating* or *deactivating*.
+    A unit has one of the following 11 types
+    table { ll
+      service ☰
+      mount point ☰
+      device ☰
+      socket ☰
+      automount point ☰
+      → Linux/swap-space[swap] file ☰
+      → hardware/harddisk/partition ☰
+      target ☰ Useful to group units and/or provide well-known *synchronization points* during boot up. These seem to be the systemd equivalent of the → Linux/init/System-V#system-v-run-levels[runlevels] of → Linux/init/System-V[System-V].
+      timer ☰
+      resource management slice ☰
+      group of externally created processes ☰
+    table }
+
+    Show units of a given type:
+code {
+→ Linux/shell/commands/systemctl --type=service
+→ Linux/shell/commands/systemctl --type=service,mount
+code }
+
+    Available unit types can be shown with
+code {
+→ Linux/shell/commands/systemctl --type=help
+code }
+
+  }
+  { Unit state #systemd-unit-state
+
+     A unit is either *active*, *inactive*, *activating*, *deactivating* or *failed*.
+
+     Each state has a set of substates.
+
+     Units are started and stopped on the command line with
+code {
+→ Linux/shell/commands/systemctl start …
+→ Linux/shell/commands/systemctl stop  …
+code }
+
+    Check if a unit is activated or is failed::
+code {
+→ Linux/shell/commands/systemctl is-activated systemd-networkd
+→ Linux/shell/commands/systemctl is-failed    systemd-networkd
+code }
+
+  }
+  { Enabled/disabled units #systemd-unit-endisabled
+
+    A unit is either enabled or disabled.
+
+    An enabled unit becomes subject to automatic starting when a certain event occurs, such as booting
+    the system or a specific kind of hardware is plugged in.
+    -
+    Thus,  unit can be active and disabled, inacative and enabled, active and enabled and inactive and disabled.
+
+    A unit is enabled or disabled on the command line with `→ Linux/shell/commands/systemctl enable` and `systemctl disable`.
+
+    Check if a unit is enabled:
+code {
+→ Linux/shell/commands/systemctl is-enabled systemd-networkd
+code }
 
 
-  { Unit configuration files
+?   How a unit is enabled is specified in the `[Install]` section of the unit file.
 
-    Units are configured in *unit configuration files*.
+  }
+  { Unit names - Configuration files #system-d-unit-name
+
+    Units are configured in *unit configuration files* («unit files»).
+    -
+    The name of the unit corresponds to that of the configuration file.
 
     Unit configuration files are searched for in
       • `→ Linux/fhs/etc/systemd/system`, first - and if not found in
       • `→ Linux/fhs/usr/lib/systemd/system`
+
+    The absolute path of a unit file (here: `systemd-networkd.service`, `.service` can be omitted) can be printed on the command line with
+code {
+→ Linux/shell/commands/systemctl show systemd-networkd -p FragmentPath
+code }
+
+?   A unit file might contain an `[Install]` section which specifies what happens when a unit is enabled.
 
   }
   { Listing units per type:
@@ -94,5 +155,7 @@ sa:
  `→ Linux/fhs/var/tmp/systemd-private-star`
 
  `→ Linux/fhs/usr/lib/systemd`
+
+ `→ Linux/shell/commands/journalctl` prints log entries from systemd's journal.
 
  `→ Linux/fhs/etc/systemd/system/default_target` controls what systemd is booting »into« by default.

@@ -5,16 +5,16 @@ code {
 pacman <operation> [options] [targets]
 code }
 
-`[target]`is usually a package name, file name, URL or a search string.
+`[target]` is usually a package name, file name, URL or a search string.
 
 { Operations
 
   table { lll
 
-   `-D` ☰ `--database` ☰ Mmodify certain attributes of the installed packages in pacman’s database or check the databases for internal consistency.
+   `-D` ☰ `--database` ☰ Modify certain attributes of the installed packages in pacman’s database or check the databases for internal consistency.
    `-Q` ☰ `--query` ☰ View installed packages and their files and its meta-information (dependencies, conflicts, install date, build date, size).
    `-R` ☰ `--remove` ☰ Remove one or more packages or groups from the system.
-   `-S` ☰ `--sync` ☰ Synchronize packages: install them directly from the remote repositories. For example, pacman -S qt will download and install qt and all the packages it depends on.
+   `-S` ☰ `--sync` ☰ Synchronize packages: install them directly from the remote repositories. For example, `pacman -S qt` will download and install qt and all the packages it depends on.
    `-T` ☰ `--deptest` ☰ Check dependencies; return a list of dependencies that are not currently satisfied.
    `-U` ☰ `--upgrade` ☰ Upgrade or add package(s), a *remove-then-add* process.
    `-F` ☰ `--files` ☰ Query the files database: find  packages with certain files or display files owned by certain packages. Only packages in the sync databases are searched.
@@ -41,7 +41,7 @@ code }
     `--gpgdir <dir>` ☰ ☰ Specifies a directory of files used by GnuPG to verify package signatures (default is `→ Linux/fhs/etc/pacman_d/gnupg`).
     `--hookdir <dir>` ☰ ☰ Specifies a alternative directory containing hook files (the default is `/etc/pacman.d/hooks`).
     `--logfile <file>` ☰ ☰ Specifies an alternate log file.
-    `--noconfirm` ☰ ☰ Bypass any and all *Are you sure?* questions.
+    `--noconfirm` ☰ ☰ Bypass any and all *Are you sure?* questions by assuming user has used default answer (which is *not* necessarily `Yes`)
     `--confirm` ☰ ☰ Cancels the effects of a previous `--noconfirm`.
     `--disable-download-timeout` ☰ ☰ Disable defaults for low speed limit and timeout on downloads. Use this if you have issues downloading files with proxy and/or security gateway.
     `--sysroot <dir>` ☰ ☰ Specifies an alternative system root. Pacman will `chroot` and `chdir` into the system root prior to running. This allows mounted guest systems to be properly operated on.
@@ -166,21 +166,27 @@ code }
     table }
 
   }
-
 }
 
 
 { Finding packages #pacman-finding-packages
 
-  `pkgfile` is a tool for searching *files* from packages in the 
+  Search for packages containing smalltalk:
+code {
+pacman -Ss smalltalk
+code }
+
+  { pkgfile
+
+   `pkgfile` is a tool for searching *files* from packages in the 
   → https://wiki.archlinux.org/index.php/Official_repositories[official repositories].
   -
-  Installation:
+  `pkgfile` must be installed:
 code {
 sudo pacman -S pkgfile
 code }
 
- Updating its database (apparently stored under → Linux/fhs/var/cache/pkgfile/):
+  Updating its database (apparently stored under `→ Linux/fhs/var/cache/pkgfile/`):
 code {
 pkgfile -u
 code }
@@ -190,10 +196,12 @@ code {
 pkgfile Date.pm
 code }
 
-  If the search via `pkgfile` does not find a package, there's a chance that it can be found
-  on the → Linux/distributions/arch/AUR.
+    If the search via `pkgfile` does not find a package, there's a chance that it can be found
+    on the → Linux/distributions/arch/AUR.
 
-  Then there's also the → https://www.archlinux.org/packages/[Arch linux package search].
+    Then there's also the → https://www.archlinux.org/packages/[Arch linux package search].
+
+  }
 
 }
 { Databases
@@ -214,12 +222,30 @@ code }
 { TODO
 
   A system is usually updated with `pacman -Syu` (`-S` = *Synchronize packages*, `-y` = *Refresh master package database* (as defined
-  in → Linux/fhs/etc/pacman_conf), `-u` = *restrict to out of date packages*)
+  in `→ Linux/fhs/etc/pacman_conf`), `-u` = *restrict to out of date packages*)
   -
   If `pacman -Syu` returns an *error: … signature from … is unknown trust*, executing `pacman -key --refresh-keys` might help.
 
+  { Arch User Repository (AUR)
 
-  *yaourt* (Yet AnOther User Repository Tool) builds AUR packages.
+
+    An AUR package is installed with the following steps:
+      • The build files, including `PKGBUILD` (the package description) and → Linux/init/systemd#systemd-unit[systemd units]) are obtained/downloaded to the computer
+      • Security check if files (especially `PKGBUILD`) does not contain malicious code.
+      • Execute `makepkg` in the directory of the downloaded files. This will download the code, compile it and create a package.
+      • Execute `pacman -U package_file` to install the created package.
+
+   `/etc/makepkg.conf` configures the build process.
+
+  }
+  { AUR helpers
+
+    yay, trizen, pikaur, aurutils, pacaur, pakku
+
+     *yaourt* (Yet AnOther User Repository Tool) is an AUR helper that builds AUR packages. It used to be popular, but it's no longer maintained and it's not recommended to use it, because
+     it may contain security vulnerabilities.
+
+  }
 
 }
 

@@ -1,15 +1,248 @@
-$ Control the systemd system and service manager from the shell with systemctl
-@ systemctl
+$ systemctl
 
 `systemctl` controls the → Linux/init/systemd system and service manager.
 
-`systemctl` is not to be confused with `sysctl`.
+`systemctl` must not to be confused with `→ Linux/shell/commands/sysctl`.
+
+code {
+systemctl [OPTIONS…] COMMAND [UNIT…]
+code }
+
+{ Commands
+
+  { Unit Commands
+
+    Unit commands are used for *introspection and modification*.
+
+    In unit commands (and unit file commands?), `UNIT` specifies a (single) → Linux/init/systemd#system-d-unit-name[unit name] while
+    `PATTERN…` specifies multiple units.
+
+    { Unit name suffix
+
+      The → Linux/init/systemd#systemd-unit-type[type of the unit] is separated from the unit name by a dot. If the type is omitted, `systemctl` appends a suitable suffix (typically `.service` but type specific suffixes are possible).
+      -
+      So, the following four commands are equivalent:
+code {
+systemctl start sshd
+systemctl start sshd.service
+code }
+      These two are also equivalent:
+code {
+systemctl isolate default
+systemctl isolate default.target
+code }
+
+      Absolute path names are converted to device unit names or mount unit names
+      -
+      These two commands are equivalent
+code {
+systemctl status → Linux/fhs/dev/sdX[/dev/sda]
+systemctl status dev-sda.device
+code }
+
+    }
+    { List of commands
+
+    table { ll
+      `list-units [PATTERN…]` ☰ Compare with `list-unit-files`
+      `list-automounts [PATTERN…]` ☰
+      `list-sockets [PATTERN…]` ☰
+      `list-timers [PATTERN…]` ☰
+      `is-active PATTERN…` ☰
+      `is-failed PATTERN…` ☰
+      `status [PATTERN…|PID…]]` ☰
+      `show [PATTERN…|JOB…]` ☰ Show properties of units, jobs or the manager itself. Compare with `set-property`
+      `cat PATTERN…` ☰
+      `help PATTERN…|PID…` ☰
+      `list-dependencies [UNIT…]` ☰
+      `start PATTERN…` ☰ Start the specified → Linux/init/systemd#systemd-unit[units] (i. e. activate them)
+      `stop PATTERN…` ☰
+      `reload PATTERN…` ☰
+      `restart PATTERN…` ☰
+      `try-restart PATTERN…` ☰
+      `reload-or-restart PATTERN…` ☰
+      `try-reload-or-restart PATTERN…` ☰
+      `isolate UNIT` ☰
+      `kill PATTERN…` ☰
+      `clean PATTERN…` ☰
+      `freeze PATTERN…` ☰
+      `thaw PATTERN…` ☰
+      `set-property UNIT PROPERTY=VALUE…` ☰ Compare with `show` and the `-p` (or `--property`) options.
+      `bind UNIT PATH [PATH]` ☰
+      `mount-image UNIT IMAGE [PATH [PARTITION_NAME:MOUNT_OPTIONS]]` ☰
+      `service-log-level SERVICE [LEVEL]` ☰
+      `service-log-target SERVICE [TARGET]` ☰
+      `reset-failed [PATTERN…]` ☰
+
+    table }
+
+    }
+
+  }
+  { Unit File Commands
+
+    table { ll
+
+      `list-unit-files [PATTERN…]` ☰ Compare with `list-units`
+      `enable UNIT…`, `enable PATH…` ☰ → Linux/init/systemd#systemd-unit-endisabled[Enables] the specified units by creating symlinks as specified in the `[Install]` sections of the corresponding unit files.
+      `disable UNIT…` ☰ → Linux/init/systemd#systemd-unit-endisabled[Disables] the specified unit.
+      `reenable UNIT…` ☰
+      `preset UNIT…` ☰
+      `preset-all` ☰
+      `is-enabled UNIT…` ☰ Check if a → Linux/init/systemd#systemd-unit[unit] is → Linux/init/systemd#systemd-unit-endisabled[enabled].
+      `mask UNIT…` ☰
+      `unmask UNIT…` ☰
+      `link PATH…` ☰
+      `revert UNIT…` ☰
+      `add-wants TARGET UNIT…`, `add-requires TARGET UNIT…` ☰
+      `edit UNIT…` ☰
+      `get-default` ☰
+      `set-default TARGET` ☰
+
+    table }
+
+  }
+  { Machine Commands
+
+    There is only one machine command: `list-machines [PATTERN…]`.
+
+  }
+  { Job Commands
+
+    table { ll
+      `list-jobs [PATTERN…]` ☰
+      `cancel JOB…` ☰
+    table }
+
+  }
+  { Environment Commands
+
+    "
+    systemd supports an environment block that is passed to processes
+    the manager spawns. The names of the variables can contain ASCII
+    letters, digits, and the underscore character. Variable names
+    cannot be empty or start with a digit. In variable values, most
+    characters are allowed, but the whole sequence must be valid
+    UTF-8. (Note that control characters like newline (NL), tab
+    (TAB), or the escape character (ESC), are valid ASCII and thus
+    valid UTF-8). The total length of the environment block is
+    limited to _SC_ARG_MAX value defined by sysconf(3).
+    "
+
+     table { ll
+      `show-environment` ☰
+      `set-environment VARIABLE=VALUE…` ☰
+      `unset-environment VARIABLE…` ☰
+      `import-environment VARIABLE…` ☰
+     table }
+
+   }
+   { Manager State Commands
+
+     table { ll
+
+       `daemon-reload` ☰
+       `daemon-reexec` ☰
+       `log-level [LEVEL]` ☰
+       `log-target [TARGET]` ☰
+       `service-watchdogs [yes|no]` ☰
+
+     table }
+   }
+   { System Commands
+
+     table { ll
+
+     `is-system-running` ☰
+     `default` ☰
+     `rescue` ☰
+     `emergency` ☰
+     `halt` ☰
+     `poweroff` ☰
+     `reboot` ☰
+     `kexec` ☰
+     `exit [EXIT_CODE]` ☰
+     `switch-root ROOT [INIT]` ☰
+     `suspend` ☰ Triggers the target unit `system.target` in order to suspends the system.
+     `hibernate` ☰
+     `hybrid-sleep` ☰
+     `suspend-then-hibernate` ☰
+
+    table }
+
+  }
+}
+{ Options
+
+  table { lll
+
+     `-t` ☰ `--type=` ☰ Restricts command to the indicated (comma separated list) → Linux/init/systemd#systemd-unit-type[unit type].
+     ☰ `--state=` ☰
+     `-p` ☰ `--property=` ☰ See also the `set-property` and `show` commands.
+     ☰ `-P` ☰
+     `-a` ☰ `--all` ☰
+     `-r` ☰ `--recursive` ☰
+     ☰ `--reverse` ☰
+     ☰ `--after` ☰
+     ☰ `--before` ☰
+     ☰ `--with-dependencies` ☰
+     `-l` ☰ `--full` ☰
+     ☰ `--value` ☰
+     ☰ `--show-types` ☰
+     ☰ `--job-mode=` ☰
+     `-T` ☰ `--show-transaction` ☰
+     ☰ `--fail` ☰
+     ☰ `--check-inhibitors=` ☰
+     `-i` ☰ ☰ Shortcut for `--check-inhibitors=no`.
+     ☰ `--dry-run` ☰
+     `-q` ☰ `--quiet` ☰
+     ☰ `--no-warn` ☰
+     ☰ `--no-block` ☰
+     ☰ `--wait` ☰
+     ☰ `--user` ☰
+     ☰ `--system` ☰
+     ☰ `--failed` ☰
+     ☰ `--no-wall` ☰
+     ☰ `--global` ☰
+     ☰ `--no-reload` ☰
+     ☰ `--no-ask-password` ☰
+     ☰ `--kill-whom=` ☰
+     `-s` ☰ `--signal=` ☰
+     ☰ `--what=` ☰
+     `-f` ☰ `--force` ☰
+     ☰ `--message=` ☰
+     ☰ `--now` ☰
+     ☰ `--root=` ☰
+     ☰ `--image=image` ☰
+     ☰ `--runtime` ☰
+     ☰ `--preset-mode=` ☰
+     `-n` ☰ `--lines=` ☰
+     `-o` ☰ `--output=` ☰
+     ☰ `--firmware-setup` ☰
+     ☰ `--boot-loader-menu=timeout` ☰
+     ☰ `--boot-loader-entry=ID` ☰
+     ☰ `--reboot-argument=` ☰
+     ☰ `--plain` ☰
+     ☰ `--timestamp=` ☰
+     ☰ `--mkdir` ☰
+     ☰ `--marked` ☰
+     ☰ `--read-only` ☰
+     `-H` ☰ `--host=` ☰
+     `-M` ☰ `--machine=` ☰
+     ☰ `--no-pager` ☰
+     ☰ `--legend=BOOL` ☰
+     `-h` ☰ `--help` ☰
+     ☰ `--version` ☰
+
+  table }
+
+}
 
 { name.service files #name-service-files
 
   `systemctl` reads `name.service` files. These files define how and when services (→ Linux/daemons) should be started.
 
-  These service files are located in → Linux/fhs/usr/lib/systemd/system. (Possibly also in `/run/systemd/system ` or `/etc/systemd/system`).
+  These service files are located in `→ Linux/fhs/usr/lib/systemd/system`. (Possibly also in `/run/systemd/system ` or `/etc/systemd/system`).
 
 }
 { Enabling a service
@@ -18,7 +251,6 @@ code {
 systemctl enable avahi-daemon.service
 code }
 
-  Note, a service (unit?) can be enabled without being started, or it can be started without being enabled.
 
 }
 { Starting a service

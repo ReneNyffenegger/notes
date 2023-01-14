@@ -1,2 +1,99 @@
+$ Linux: networking
 
 `nmcli` is a command-line tool for controlling the *NetworkManager*.
+
+`iwconfig` is similar to `ifconfig`, but dedicated to the wireless interfaces.
+
+`lo` is the → https://en.wikipedia.org/wiki/Loopback#Virtual_loopback_interface[Virtual loopback interface]
+
+`ss` is a tool to investigate network ports.
+
+{ systemd
+
+  { systemd-networkd
+
+   *systemd-networkd* is a system daemon that manages network configurations: it detects and configures network devices as they appear and might create virtual network devices.
+
+    Enabling systemd-networkd.service also enables *systemd-networkd-wait-online.service*, which is a oneshot system service that waits for the network to be configured.
+    -
+   *systemd-networkd-wait-online.service* has `WantedBy=network-online.target`, so it will be started only when *network-online.target* itself is enabled.
+ 
+    Check if systemd-networkd is → Linux/init/systemd#systemd-unit-state[activated]:
+code {
+→ Linux/shell/commands/systemctl is-activated systemd-networkd
+code }
+
+  }
+  { systemd-networkd-wait-online.service
+
+    By default, *systemd-networkd-wait-online.service* waits for (all/at least one?) network to be configured.
+
+  }
+  { systemd-resolved
+
+   *systemd-resolved* is the service that provides network name resolution to local applications via
+     • a → Linux/D-Bus interface,
+     • the NSS service, and
+     • a local DNS stub listener on 127.0.0.53
+
+   *systemd-resolved` is configured in
+     • `/etc/systemd/resolved.conf`
+     • `/etc/systemd/resolved.conf.d` (drop-in conf files)
+
+  }
+
+}
+{ netctl #linux-netctl
+
+ *netctl* is an → Linux/distributions/arch[Arch Linux] related network manager.
+
+  { Profiles
+
+    netctl uses *profiles* to manage networks.
+
+  ? Profiles can be started automatically or on demand, depending on the *mode of operation*.
+
+    Profiles are stored under `→ Linux/fhs/etc/netctl`, example profiles under `/etc/netctl/examples`.
+
+    Profiles can be started on the command line with
+code {
+netctl start profile-name
+code }
+
+    In case the profile cannot be started, use one of the following two commands
+code {
+journalctl -xn
+netctl status profile-name
+code }
+
+    In order to start the profile automatically at start up, it needs to be enabled, which creates
+    a → Linux/init/systemd service (→ Linux/init/systemd#systemd-unit[unit]?) and → Linux/init/systemd#systemd-unit-endisabled[enables] the unit.
+
+  }
+  { Systemd units
+
+    netctl systemd units include
+    table { ll
+      netctl.service ☰
+      netctl@<interface>.service (?) ☰
+      netctl-sleep.service ☰ When enabled, active network profiles are stored and stopped before the machine is put to sleep and restared when the system is resumed.
+      netctl-auto@<interface>.service ☰ Scans «its» interface and tries to start a profile for the found network.
+      netctl-ifplugd@<interface>.service ☰ Starts `ifplugd` on «its» interface
+      netctl-wait-online.service ☰ Waits for all enabled netctl profiles to come online (if activated)
+    table }
+
+  }
+  { wifi-menu
+
+   `wifi-menu` is a tool that interactively connects to a wireless network and/or generate a netctl profile.
+
+  }
+
+}
+
+
+sa:
+
+  `→ Linux/fhs/proc/net`
+
+  → development/networking/start-wifi
