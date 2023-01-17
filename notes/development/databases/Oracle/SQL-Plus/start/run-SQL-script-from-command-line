@@ -1,4 +1,4 @@
-$ SQL*Plus: run SQL script from command line
+$ SQL*Plus: Run SQL scripts from the command line
 
 The → development/databases/Oracle/SQL-Plus/start[`@` symbol] can be used on the command line when invoking → development/databases/Oracle/SQL-Plus[SQL*Plus] to start
 an SQL script file:
@@ -6,14 +6,27 @@ code {
 $ sqlplus usr/pw@db @script.sql
 code }
 
-{ PowerShell: Highlight warnings and errors #sqlplus-highlight-ps
+{ PowerShell
 
-  In PowerShell, it is possible to pipe the output of into a → Windows/PowerShell/pipeline that embeds the text *error* or *warning* into → Linux/shell/ANSI-escape-sequences so that
-  these two words are highlighted:
+  { Highlight warnings and errors #sqlplus-highlight-ps
+
+    In → Windows/PowerShell, it is possible to pipe the output of into a → Windows/PowerShell/pipeline that embeds the text *error* or *warning* into → Linux/shell/ANSI-escape-sequences so that
+    these two words are highlighted:
 code {
 sqlplus rene/secretGarden@Ora19 `@script | → Windows/PowerShell/command-inventory/noun/object/forEach[foreach-object] { $line = $_; $line = $line -replace '^(error|warning).*|^SP2-', "$([char]27)[38;5;9m$line$([char]27)[0m" ; $line }
 code }
 
-  Note: in the example above, the `@` before the script name must be escaped with the back-tick (PowerShell's escape character).
+    Note: in the example above, the `@` before the script name must be escaped with the back-tick (PowerShell's escape character).
+
+  }
+  { Execute a single statement
+
+    The following example executes a single → development/databases/Oracle/SQL/statement by → Windows/PowerShell/pipeline[piping] it into the SQL*Plus executable. The statement is followed by a new line (`n) and
+   `→ development/databases/Oracle/SQL-Plus/exit` so that sqlplus returns to the shell again:
+code {
+PS> "grant select on customer to sales;`nexit" | sqlplus [admin]@db
+code }  
+
+  }
 
 }
