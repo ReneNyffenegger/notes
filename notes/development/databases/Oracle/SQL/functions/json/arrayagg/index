@@ -97,6 +97,8 @@ code }
 }
 { NULL ON NULL clause
 
+  The `null on null` clause controls if aggreaged `→ development/databases/Oracle/SQL/null` values will be added to the resulting array.
+
 code {
 with t as (
    select 'foo' x from dual union all
@@ -114,7 +116,21 @@ from
 X                    XNN                       XAN
 -------------------  ------------------------  -------------------
 ["foo","bar","baz"]  ["foo","bar",null,"baz"]  ["foo","bar","baz"]  
+code }
 
+}
+{ Returning an empty array
+
+  Unfortunately, it doesn't seem possible to force `json_arrayagg` to return `[]` if the aggregated set is empty. Instead, it simply returns `→ development/databases/Oracle/SQL/null`.
+ 
+  The following statement returns `["*"]`:
+code {
+select json_arrayagg('*' returning clob)  from → development/databases/Oracle/SQL/dual where 1 = 1;
+code }
+
+  The following statement returns `null` (At least sometimes, I wished it returned `[]`):
+code {
+select json_arrayagg('*' returning clob)  from → development/databases/Oracle/SQL/dual where 1 = 0;
 code }
 
 
