@@ -27,10 +27,10 @@ code }
     Operators in decreasing order of precedence are:
     table { ll
       `( expr )` ☰ Force precedence. Because paranthesis usually have a meaning in a → Linux/shell, they need to be escaped: `\( expr \)`
-      `! expr`, `-not expr` ☰ Negation of `expr` (`-not` is not → Linux/POSIX compliant)
+      `! expr` *or* `-not expr` ☰ Negation of `expr` (`-not` is not → Linux/POSIX compliant)
       `expr1 expr2` ☰ Shorthand for `expr1 -a expr2`
-      `expr1 -a expr2`, `expr1 -and expr2` ☰ AND-evaluation. Lazyly evaluated. `-and` is not POSIX compliant
-      `expr1 -o expr2`, `expr1 -or expr2` ☰ OR-evaluation. Lazyly evaluated. `-or` is not POSIX compliant
+      `expr1 -a expr2` *or*  `-and expr2` ☰ AND-evaluation. Lazyly evaluated. `-and` is not POSIX compliant
+      `expr1 -o expr2` *or*  `expr1 -or expr2` ☰ OR-evaluation. Lazyly evaluated. `-or` is not POSIX compliant
       `expr1, expr2[, …]` ☰ List: all expressions are evaluated. The list evaluates to the value of the last expression.
     table }
 
@@ -80,13 +80,63 @@ code }
   }
 
 }
+{ Tests
+
+  table { ll
+
+    `-amin n` ☰ File's last access time, in minutes
+    `-anewer reference` ☰ File's last access time, in `n`*24 hours
+    `-atime n` ☰
+    `-cmin n` ☰
+    `-cnewer reference` ☰
+    `-ctime n` ☰
+    `-empty` ☰ File (or directory?) is empty
+    `-executable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-readable`
+    `-false Always false.` ☰
+    `-fstype type` ☰
+    `-gid n` ☰
+    `-group gname` ☰
+    `-ilname pattern` ☰
+    `-iname pattern` ☰
+    `-inum n` ☰
+    `-ipath pattern` ☰
+    `-iregex pattern` ☰
+    `-iwholename pattern` ☰
+    `-links n` ☰
+    `-lname pattern` ☰
+    `-mmin n` ☰
+    `-mtime n` ☰
+    `-name pattern` ☰
+    `-newer reference` ☰
+    `-newerXY reference` ☰
+    `-nogroup` ☰
+    `-nouser` ☰
+    `-path pattern` ☰
+    `-perm [-|+|/]mode` ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute`
+    `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-executable`
+    `-regex pattern` ☰ Checks if regular expression matches whole path of file. See also `-regextype` option
+    `-samefile name` ☰
+    `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³
+    `-true` ☰
+    `-type c` ☰
+    `-uid n` ☰
+    `-used n` ☰
+    `-user uname` ☰ File's owner
+    `-wholename pattern` ☰ Less portable than `-path`
+    `-writable` ☰
+    `-xtype c` ☰
+    `-context pattern` ☰ → Linux/security/modules/SELinux only
+
+  table }
+
+}
 { Actions
 
   table { ll
 
     `-delete`        ☰ Deletes the file or empty directory and returns `true` if successful. Using `-delete` automatically turns on the `-depth` option.
     `-exec cmd ;`    ☰ Replaces `{}` in `cmd` with the current file name then executes the `cmd` with the working directory begin the starting directory. Returns `true` if `cmd` exits with `0`?
-    `-exec dmd {} +` ☰ Similar to above, but performs an `xargs` like assembling of the command. Always returns `true`.
+    `-exec cmd {} +` ☰ Similar to above, but performs an `xargs` like assembling of the command. Always returns `true`.
     `-execdir cmd`, `-execdir command {} +` ☰ Like `-exec` but command is executed with the working directory set to the directory where the file resides.
     `-fls file`  ☰ Like `-ls` but write to file like `-fprint`.
     `-fprint file` ☰ Writes full filename to `file` and returns `true`.
