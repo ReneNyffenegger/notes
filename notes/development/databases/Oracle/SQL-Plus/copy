@@ -7,6 +7,32 @@ code {
 COPY {FROM database | TO database | FROM database TO database}   {APPEND|CREATE|INSERT|REPLACE} { (column) } USING select-statement
 code }
 
+The behavior on the destination database is optionally specified with one of the following verbs:
+  • `append`: Append the selected rows to an existing table, or create a table and insert the rows if the table does not exist
+  • `create`: Create the destination table and insert the selected rows - fails if table already exists
+  • `insert`: Insert the selected rows into the destination table - fails if table does not exist
+  • `replace`: deletes (truncates?) rows in destination table before inserting selected rows. If table does not exist, it is created.
+
+Only five → development/databases/Oracle/SQL/data-types[data types] are supported:
+  • `→ development/databases/Oracle/SQL/data-types/char`
+  • `→ development/databases/Oracle/SQL/data-types/date`
+  • `→ development/databases/Oracle/SQL/data-types/long` (but be sure to set a reasonable value for the → development/databases/Oracle/SQL-Plus/set/long[`long`] variable)
+  • `→ development/databases/Oracle/SQL/data-types/number`
+  • `→ development/databases/Oracle/SQL/data-types/varchar2`
+
+{ ARRAYSIZE
+
+  The SQL*Plus variable development/databases/Oracle/SQL-Plus/set/arraysize[`arraysize`] specifies the number of rows that SQL*Plus fetches from the source data base and copies to the destination database.
+
+}
+{ Transaction handling
+
+  When SQL*Plus has sucessfully copied the selected rows, it → development/databases/Oracle/SQL/TCL/commit[commits] the transaction
+
+  In addtion, the SQL*Plus variable `copycommit` can be set in which case each batch (of size `arraysize`) will be commited.
+
+}
+
 
 sa:
   → development/databases/Oracle/SQL-Plus
