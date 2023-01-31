@@ -1,4 +1,118 @@
 
+
+{ Expected exported functions
+
+  → Microsoft/Office/Excel and the Add-in manager → https://learn.microsoft.com/en-us/office/client-developer/excel/add-in-manager-and-xll-interface-functions[expect (or at least look for) the following exported functions] in an XLL:
+  table { ll
+    `xlAddInManagerInfo12` ☰ Called when the Add-in Manager is invoked the first time in an Excel session in order to query information about the XLL. The pre-2007 version of this function is `xlAddInManagerInfo`, 
+    `xlAutoAdd` ☰ Called when the XLL is activated using the Add-in Manager (but not when Excel loads pre-installed add-ins). Used, for example, to display a dialog box, read configuration data from the → Windows/registry, checking licence etc.
+    `xlAutoClose` ☰ Called when the XLL is deactivated
+    `xlAutoFree12` ☰ Used to to free memory allocated on an `XLOPER12` structure. The pre-2007 version of this function is `xlAutoFree`.
+    `xlAutoOpen` ☰ Used to register XLL functions and commands, initalized data strucuters etc. This function must be implemented.
+    `xlAutoRegister12` ☰ CAlled whenever a call has been made to the XLM function `REGISTER` or the C-API equivalent `xlfRegister`. The pre-2007 version of this function is `xlAutoRegister`.
+    `xlAutoRemove` ☰ Called when the XLL is deactivated using the Add-in Manager.
+  table }
+
+}
+{ Excel12, Excel12v
+
+  Excel provides the two functions → https://learn.microsoft.com/en-us/office/client-developer/excel/c-api-callback-functions-excel4-excel12[`Excel12` and `Excel12v`] to expose internal functionality to XLLs.
+
+  These functions can only be called when Excel has passed control to the XLL (but not, for example in `DllMain`).
+
+  Prior to Excel 2007, these functions were named `Excel4` and `Excel4v`.
+
+code {
+int Excel12(
+      int        iFunction,
+      LPXLOPER12 pxRes,
+      int        iCount,
+      LPXLOPER12 argument1,
+                 ...
+);
+code }
+
+  { iFunction
+
+    The value of iFunction can be one of the following constants:
+    table { ll
+      `xlAbort` ☰
+      `xlAsyncReturn` ☰
+      `xlCoerce` ☰
+      `xlDefineBinaryName` ☰
+      `xlDisableXLMsgs` ☰j *Deprecated*
+      `xlEnableXLMsgs` ☰ *Deprecated*
+      `xlEventRegister` ☰ Introduced in Excel 2010
+      `xlFree` ☰
+      `xlGetBinaryName` ☰
+      `xlGetHwnd` ☰
+      `xlGetInst` ☰
+      `xlGetName` ☰
+      `xlRunningOnCluster` ☰
+      `xlSet` ☰
+      `xlSheetId` ☰
+      `xlSheetNm` ☰
+      `xlStack` ☰
+      `xlUDF` ☰
+      `xlfCaller` ☰
+      `xlfEvaluate` ☰
+      `xlfGetDef` ☰
+      `xlfGetName` ☰
+      `xlfRegister` ☰ Two forms
+      `xlfRegisterId` ☰
+      `xlfUnregister` ☰ Two forms
+      `xlfSetName` ☰
+      `xlcSelect` ☰
+      `xlc…` ☰ Are there other `xlc` constants?
+    table }
+
+  }
+
+}
+{ Framework library functions
+
+  The framework library functions makes writing XLLs easier.
+
+  table { ll
+
+    `debugPrintf` ☰
+    `GetTempMemory` ☰
+    `FreeAllTempMemory` ☰
+    `InitFramework` ☰
+    `QuitFramework` ☰
+	  `Excel12f` ☰
+	  `TempNum12` ☰
+	  `TempStr12` ☰
+	  `TempStr12Const` ☰
+	  `TempBool12` ☰
+	  `TempInt12` ☰
+	  `TempErr12` ☰
+	  `TempActiveRef12` ☰
+	  `TempActiveCell12` ☰
+	  `TempActiveRow12` ☰
+	  `TempActiveColumn12` ☰
+	  `TempMissing12` ☰
+
+  table }
+
+  These functions are found in `framewrk.c` (`framewrk.h`) and `framewrk.lib`.
+
+}
+{ Cluster Connector Functions
+
+  table { ll
+
+    `CallUDF` ☰
+    `CancelOutstandingRequests` ☰
+    `CloseSession` ☰
+    `OpenSession` ☰
+    `PingSession` ☰
+    `ShowOptions` ☰
+
+  table }
+
+}
+
 sa:
 
   The function `→ Microsoft/Office/Excel/Object-Model/Application[application].registerXLL` of the → Microsoft/Office/Excel/Object-Model/Application[Excel Object `application`].
