@@ -86,14 +86,21 @@ code }
     The interesting tables are specified in `tabs`, the users in `usrs`.
 code {
 with tabs as (
-   select 'OWNER_A' own, 'TAB_A' nam from dual union all
-   select 'OWNER_B' own, 'TAB_B' nam from dual
+   select
+       owner       own,
+       object_name nam,
+       object_type typ
+    from
+       dba_objects
+    where
+       owner = 'RENE'           and
+       object_name like 'OBJ%'  and
+       object_type in ('VIEW', 'TABLE')
 ),
 usrs as (
-   select 'USER_1'              nam from dual union all
-   select 'USER_2'              nam from dual union all
-   select 'USER_3'              nam from dual union all
-   select 'USER_4'              nam from dual
+   select 'USR1'                nam from dual union all
+   select 'USR2'                nam from dual union all
+   select 'USR3'                nam from dual
 ),
 roles_of_user (
    user_or_role,
@@ -108,31 +115,37 @@ roles_of_user (
       nam      usr
    from
       usrs
- union all
+union all
    select
       drp.granted_role,
       rou.lvl+1,
       drp.granted_role || ' -> ' || rou.path_,
       rou.usr
    from
-      roles_of_user   rou    join
+      roles_of_user   rou                                           join
       dba_role_privs  drp  on rou.user_or_role = drp.grantee
 )
 search depth first by user_or_role set order_by
 select
    tabs.own,
    tabs.nam,
+   tabs.typ,
+-- prvs.grantee,
    rous.usr,
    prvs.privilege,
    rous.path_,
    prvs.grantor,
    prvs.grantable
 from
-   tabs                                                                       left join
-   dba_tab_privs prvs on tabs.own = prvs.owner and tabs.nam = prvs.table_name left join
+   tabs                                                                        join
+   dba_tab_privs prvs on tabs.own = prvs.owner        and
+                         tabs.nam = prvs.table_name   and
+                         tabs.typ = prvs.type                                  join
    roles_of_user rous on prvs.grantee = rous.user_or_role
 -- where
 --   path_ is not null
+order by
+   tabs.nam
 ;
 code }
   
