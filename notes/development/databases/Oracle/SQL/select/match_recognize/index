@@ -1,54 +1,122 @@
 $ Oracle SQL: MATCH_RECOGNIZE clause
 
-{ Stock prices
+The `MATCH_RECOGNIZE` clause allows formulate a → development/regular-expressions[regular expression] to search and select records in a table or the result of a subquery.
 
-  This is a variation of the «stock price» example that is typically used to explain the `match_recognize` clause. The select statement is suppposed to find prices at their (local) highs and bottoms.
+The `match_recognize` clause consists of the following parts:
+table { ll
+  `partition by` ☰ Used to partition the input data. Each partition is treated separately
+  `order by` ☰ How records in each partition are ordered.
+  `define` ☰ A list of conditions that an input-record must meet to be mapped to a *row pattern variables*
+  `pattern` ☰ The regular expression
+  `measures` ☰ Expressions which can be used in other portions of the SQL statement. Special functions like `last()` and `first()` can be used to refer to a value of the first or last record of matched sequence of records.
+table }
 
-  First, we need a table and some data. The column `dt` is supposed to be date, but to make things a bit easier, it's just a number:
-  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/data.sql||
+{ Examples
 
-  The following query is a poor man's attempt to visualize each company's stock price. It can be seen, for example, that *DEF* has a bottom prices at days 2, 6 and 9 and high prices at days 5, 8 and 11:
-  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/visualization.sql||
+  { Find rows 'between' a starting and ending row
 
-  Now for the select statement.
-  -
-  *NOTE*: ABC is not reported at all because the price at `dt=1` is not recognized as bottom date, nor is the price at `dt=11` recognized as high date
-  gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/select.sql||
-
-}
-{ Find consecutive rows
-
-  gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/data.sql||
-
-  { One row per match
-
-    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/one-row-per-match.sql||
+    The following example selects the value of `txt` that appears between rows whose `txt` value is `BEGIN SECTION` and `END SECTION` (ordered by `nr`):
+code {
+with d as (
+   select  1 nr, 'some text'              txt from dual union all
+   select  2 nr, 'more text'              txt from dual union all
+   select  3 nr, 'BEGIN SECTION'          txt from dual union all
+   select  4 nr, 'hello'                  txt from dual union all
+   select  5 nr, 'world.'                 txt from dual union all
+   select  6 nr, 'END SECTION'            txt from dual union all
+   select  7 nr, 'uninteresing text'      txt from dual union all
+   select  8 nr, 'Really - this is'       txt from dual union all
+   select  9 nr, 'still uninteresting'    txt from dual union all
+   select 10 nr,  null                    txt from dual union all 
+   select 11 nr, 'still uninteresting'    txt from dual union all  
+   select 12 nr, 'BEGIN SECTION'          txt from dual union all  
+   select 13 nr, 'the number'             txt from dual union all  
+   select 14 nr, 'associated with'        txt from dual union all  
+   select 15 nr, 'THE answer is...'       txt from dual union all  
+   select 16 nr, '42'                     txt from dual union all     
+   select 17 nr, 'END SECTION'            txt from dual union all     
+   select 18 nr, 'That, my friend, is'    txt from dual union all     
+   select 19 nr, 'THE END'                txt from dual
+)
+select
+   m.mnr,
+   m.txt,
+   m.nr
+from
+   d
+match_recognize (
+      order by nr
+      measures match_number() as mnr     
+      all rows per match
+      pattern (first_line any_line*? last_line)
+      define
+         first_line as prev(first_line.txt) = 'BEGIN SECTION',
+         last_line  as next(last_line.txt)  = 'END SECTION'
+) m;
+--
+--        MNR TXT                         NR
+-- ---------- ------------------- ----------
+--          1 hello                        4
+--          1 world.                       5
+--          2 the number                  13
+--          2 associated with             14
+--          2 THE answer is...            15
+--          2 42                          16
+code }
 
   }
-  { Find ALL consecutive rows
 
-    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/all.sql||
+  { Stock prices
+
+    This is a variation of the «stock price» example that is typically used to explain the `match_recognize` clause. The select statement is suppposed to find prices at their (local) highs and bottoms.
+
+    First, we need a table and some data. The column `dt` is supposed to be date, but to make things a bit easier, it's just a number:
+    gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/data.sql||
+
+    The following query is a poor man's attempt to visualize each company's stock price. It can be seen, for example, that *DEF* has a bottom prices at days 2, 6 and 9 and high prices at days 5, 8 and 11:
+    gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/visualization.sql||
+
+    Now for the select statement.
+    -
+    *NOTE*: ABC is not reported at all because the price at `dt=1` is not recognized as bottom date, nor is the price at `dt=11` recognized as high date
+    gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/select.sql||
+
+  }
+  { Find consecutive rows
+
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/data.sql||
+
+    { One row per match
+
+      gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/one-row-per-match.sql||
+
+    }
+    { Find ALL consecutive rows
+
+      gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/all.sql||
+
+    }
 
   }
 
-}
-{ Find foo bar baz
+  { Find foo bar baz
 
-  Find records with `foo`, followed by records with `bar`, followed by records with `baz`.
+    Find records with `foo`, followed by records with `bar`, followed by records with `baz`.
 
-  gh|Oracle-Patterns|/SQL/select/match_recognize/find-foo-bar-baz.sql||
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-foo-bar-baz.sql||
 
-}
-{ Find a sequence of the same
+  }
+  { Find a sequence of the same
 
-  Find the first id of sequence of the same words:
-  gh|Oracle-Patterns|/SQL/select/match_recognize/find-sequence-of-same.sql||
+    Find the first id of sequence of the same words:
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-sequence-of-same.sql||
 
-}
-{ Find three in a row
+  }
+  { Find three in a row
 
-  gh|Oracle-Patterns|/SQL/select/match_recognize/find-three-in-a-row.sql||
+    gh|Oracle-Patterns|/SQL/select/match_recognize/find-three-in-a-row.sql||
 
+  }
 }
 
 
