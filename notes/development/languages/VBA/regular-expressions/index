@@ -4,7 +4,14 @@ In → development/languages/VBA[VBA],
 → development/regular-expressions[regular expressions] need the reference → Windows/development/COM/Useful-object-libraries/Microsoft-VBScript-Regular-Expressions[Microsoft VBScript Regular Expressions 5.5].
 (whose → development/UUID-GUID[GUID] is `{3F4DACA7-160D-11D2-A8E9-00104B365C9F}`).
 -
-This GUID might be conveniently added to a VBA project using the → Microsoft/Office/Visual-Basic-Editor/Object-Model#vbe-add-reference[VB Editor Object Model].
+This GUID might be conveniently added to a VBA project using the → Microsoft/Office/Visual-Basic-Editor/Object-Model#vbe-add-reference[VB Editor Object Model]. The following snippet
+works in → Microsoft/Office/Excel:
+code {
+thisWorkbook.VBProject.references.addFromGuid _
+        GUID   :="{3F4DACA7-160D-11D2-A8E9-00104B365C9F}", _
+        major  :=  5,                                      _
+        minor  :=  5
+code }
 
 { Objects
 
@@ -13,40 +20,46 @@ This GUID might be conveniently added to a VBA project using the → Microsoft/O
     Methods and properties of the `RegExp` objects are:
     table { ll
 
-      `Execute(src)` ☰
+      `Execute(src)` ☰ Returns an `IMatchCollection2` object (see `MatchCollection` below)
       `Global` ☰ A `boolean`
       `IgnoreCase` ☰ A `boolean`
       `MultiLine` ☰ A `boolean`
-      `Pattern` ☰ The regulalar expression (`string`)
+      `Pattern` ☰ The regular expression (`string`)
       `Replace(src, repl)` ☰ Returns a `string`
       `Test(src)` ☰ Returns a `boolean`
 
     table }
 
   }
-  { Match
+  { MatchCollection
+
+   `MatchCollection` is a collection of `IMatch2` objects/interfaces (see `Match` below).
+
+    A `MatchCollection` object can be obtained by `RegExp.Excecute()`.
 
     table { ll
-       `FirstINdex` ☰
-       `Length` ☰
-       `SubMatches` ☰
-       `Value` ☰ `string`
+       `Count` ☰ The number of matches captured by this object. Can be greater then 1 if `RegExp.global` is set to `true`.
+       `Item(n)` ☰ The nth item in the collection (first item has index 0)
     table }
 
   }
-  { MatchCollection
+  { Match
 
     table { ll
-       `Count` ☰
-       `Item` ☰
+       `FirstIndex` ☰ The position of the first character that was matched by the corresponding part of the regex pattern.
+       `Length` ☰ The length of the text that was matched by the regex pattern (i. e. the length of `Value`)
+       `SubMatches` ☰ An `ISubmatches` object/interface (See `SubMatches`) below
+       `Value` ☰ `string`. *Default value*
     table }
 
   }
   { SubMatches
 
+?  `SubMatches` are used for the portion captured with → development/languages/VBA/regular-expressions/paranthesis[paranthesis] in the regular expression.
+
     table { ll
-       `Count` ☰
-       `Item` ☰
+       `Count` ☰ Corresponds to the number of capturing parantheses in the regular expression.
+       `Item` ☰ The `string` that was matched by the parantheses.
     table }
 
   }
