@@ -1,0 +1,73 @@
+$ Oracle: UTL_CALL_STACK.DYNAMIC_DEPTH
+
+The *dynamic depth* is incresed when a subprogram (function or procedure) is called and decreased again when the subprogram returns to the caller.
+
+The dynamic depth of an SQL statement that is not executed in PL/SQL context is 0:
+code {
+select
+   utl_call_stack.dynamic_depth
+from
+   → development/databases/Oracle/SQL/dual;
+code }
+
+In anonymous block, the depth is 1:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line(utl_call_stack.dynamic_depth);
+end;
+/
+code }
+
+Calling a procedure increases the depth by 1. The following example prints `2`:
+code {
+create or replace procedure tq84_print_dyn_depth as begin
+   dbms_output.put_line(utl_call_stack.dynamic_depth);
+end;
+/
+
+begin
+   tq84_print_dyn_depth;
+end;
+/
+code }
+
+This example prints `3`:
+code {
+create or replace procedure tq84_wrap_dyn_depth as begin
+   tq84_print_dyn_depth;
+end;
+/
+
+begin
+   tq84_wrap_dyn_depth;
+end;
+/
+code }
+
+Nested procedures also increase the depth: the following example prints `4`:
+code {
+create or replace procedure tq84_nesting_procs as
+   procedure nested_proc as begin
+      tq84_print_dyn_depth;
+   end;
+begin
+-- tq84_print_dyn_depth;
+   nested_proc; 
+end;
+/
+
+begin
+   tq84_nesting_procs;
+end;
+/
+code }
+
+Cleaning up:
+code {
+drop procedure tq84_nesting_procs;
+drop procedure tq84_wrap_dyn_depth;
+drop procedure tq84_print_dyn_depth;
+code }
+
+sa:
+  `→ development/databases/Oracle/installed/packages/utl/call_stack`
