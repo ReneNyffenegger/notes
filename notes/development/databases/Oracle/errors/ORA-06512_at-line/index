@@ -1,20 +1,52 @@
 $ ORA-06512: at <PL/SQL object>, line N
 
+An *ORA-06512* error message is thrown by the → development/databases/Oracle/PL-SQL execution engine if it encountes an SQL error or when `raise_application_error` is called and when no
+→ development/databases/Oracle/PL-SQL/block/exception-handler handles the error or exception.
+-
+The error message contains the actual error followed by a series of lines, starting with `ORA_06512`, that contain the stack trace.
+
 { Find offending source code line in exception handler #ora-06512-find-offending-line
 
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/spec.sql||
+  The following code is an attempt to demonstrate how it can be dealt with with ORA-06512 errors.
 
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/body.sql||
+  { PL/SQL Package
 
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/exec-01.sql||
+    First, we need a PL/SQL package. For demonstration purposes, it is rather simple and does nothing useful. In fact, it only
+    raises an exception in `proc_3`:
 
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/sqlerrm.sql||
+    The package's specification …
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/spec.sql||
 
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/error-backtrace.sql||
+    … and its body: 
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/body.sql||
 
-  Parse the error stack and use → development/databases/Oracle/installed/data-dictionary/source[`dba_source`] to display
-  the source code line that cause the → development/databases/Oracle/PL-SQL/exception:
-  gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/show-code-line.sql||
+  }
+  { Using the package without exception handler
+
+    The following anonymous block executes the package without exception handler. The returned error message conists of multiple lines, of which the lines starting with `ORA-06512` walk the stack from the line of code where
+    the exception was raised to the caller:
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/exec-01.sql||
+
+  }
+  { Using the package with exception handler
+
+    Within an exception handler, the value of → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[`sqlerrm`] is simply the raised error text. There is no stack trace:
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/sqlerrm.sql||
+
+  }
+  { Using DBMS_UTIILITY.FORMAT_ERROR_BACKTRACE
+
+    However, it's possible to use → development/databases/Oracle/installed/packages/dbms/utility/format[`dbms_utility.format_error_backtrace`] to print (or analyze) the stacktrace in the exception handler:
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/error-backtrace.sql||
+
+  }
+  { Parse error stack using DBA_SOURCE
+
+    Parse the error stack and use → development/databases/Oracle/installed/data-dictionary/source[`dba_source`] to display
+    the source code line that cause the → development/databases/Oracle/PL-SQL/exception:
+    gh|oracle-patterns|/errors/ORA/06512_at-line/show-offending-line/show-code-line.sql||
+
+  }
 
 }
 
