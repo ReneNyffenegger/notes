@@ -25,7 +25,6 @@ use notes;
 use RN;
 
 my $debug = 0;
-my $no_internet = 0; # 2022-12-31
 # $| = 1;
 
 my $temp_dir;
@@ -44,7 +43,8 @@ my $verbose = 0;
 print "$0 -> Getopt::Long::GetOptions\n" if $debug;
 Getopt::Long::GetOptions(
     "web"        => \my $web,
-    'verbose'    => \   $verbose
+    'verbose'    => \   $verbose,
+    'no-internet'=> \my $no_internet # 2023-02-11
 );
 
 my $test;
