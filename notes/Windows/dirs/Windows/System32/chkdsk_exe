@@ -2,4 +2,43 @@ $ chkdsk.exe
 
 *Check Disk Utility*
 
-? chkdsk.exe is run by → Windows/dirs/Windows/System32/autochk_exe when the system is initialized.
+
+code {
+chkdsk [volume[[path]filename]]] [options…]
+code }
+
+`volume` is:
+  • drive letter followed by a colon, or
+  • mount point, or
+  • volume name
+
+`[path]filename` specifies the file to check for fragmentation (FAT, FAT32 only)
+
+{ Options
+
+
+   table { ll
+
+      `/F`                  ☰ Take volume offline to scan it and fix errors on the disk. Equivalent to `→ Windows/PowerShell/command-inventory/noun/volume/repair -offlineScanAndFix`
+      `/V`                  ☰ FAT/FAT32: Display full path and name of every file on the disk. → Windows/file-system/NTFS: Displays cleanup messages if any.
+      `/R`                  ☰ Locate bad sectors and recover readable information (implies `/F` when `/scan` not specified).
+      `/L:size`             ☰ NTFS only: Change the log file size to the specified number of kilobytes. If size is not specified, displays current size.
+      `/X`                  ☰ Forcs the volume to dismount first if necessary. All opened handles to the volume would then be invalid (implies `/F`).
+      `/I`                  ☰ NTFS only: Perform a less vigorous check of index entries.
+      `/C`                  ☰ NTFS only: Skip checking of cycles within the folder structure.
+      `/B`                  ☰ NTFS only: Re-evaluate bad clusters on the volume (implies `/R`)
+      `/scan`               ☰ NTFS only: Run an online scan on the volume without attempting to repair it. Equivalent to `→ Windows/PowerShell/command-inventory/noun/volume/repair -scan`.
+      `/forceofflinefix`    ☰ NTFS only: Bypass all online repair; all defects found are queued for offline repair (i. e. `chkdsk /spotfix`). Must be used with `/scan`.
+      `/perf`               ☰ NTFS only: (Must be used with "/scan") Use more system resources to complete a scan as fast as possible. This may have a negative performance impact on other tasks running on the system.
+      `/spotfix`            ☰ NTFS only: Take the volume briefly offline and then fix the issues logged in the `$corrupt` file (this process is referred to as *spot fixing*). Equivalent to `→ Windows/PowerShell/command-inventory/noun/volume/repair -spotfix`.
+      `/sdcleanup`          ☰ Garbage collect unneeded security descriptor data (implies `/F`).
+      `/offlinescanandfix`  ☰ Runs an offline scan and fix on the volume.
+      `/freeorphanedchains` ☰ FAT/FAT32/exFAT only: Free any orphaned cluster chains instead of recovering their contents.
+      `/markclean`          ☰ FAT/FAT32/exFAT only: Mark the volume clean if no corruption was detected, even if `/F` was not specified.
+
+   table }
+
+}
+
+sa:
+  ? chkdsk.exe is run by → Windows/dirs/Windows/System32/autochk_exe when the system is initialized.
