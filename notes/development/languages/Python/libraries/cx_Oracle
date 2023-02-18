@@ -5,3 +5,69 @@ $ Python library: cx_Oracle
 
 In the May 2022 release, cx_Oracle was renamed to → development/languages/Python/libraries/python-oracledb (for example, because cx has nothing to do with → https://www.oracle.com/cx/[Oracle Advertising and Customer Experience (CX)] or to better align
 with the name of the → development/languages/JavaScript/Node_js node-oracledb driver).
+-
+However, it seems that there is no python-oracledb for Python 3.6 or earlier available on PyPI, so in outdated Python environment, cx_Oracle might still be useful.
+
+{ Demonstration
+
+  Connecting with a *proxy user*, i. e. without password:
+code {
+import cx_Oracle as cxora
+con = cxora.connect(user='[rene]', dsn='dreampt1')
+print("Database version:", con.version)
+print("Current schema:  ", con.current_schema)
+print("Internal name:   ", con.internal_name)
+# print(dir(con))
+code }
+
+  Create a table. *Note*: `cursor()` is a method, not an attribute!
+code {
+con.cursor().execute('create table tq84_cx_Oracle(a number, b varchar2(20))')
+code }
+
+  Insert some values using named bind variables:
+code {
+ins = con.cursor()
+
+sql = 'insert into tq84_cx_Oracle values (:a, :b)'
+
+ins.execute    (sql, dict(a=  42, b='Hello world') )
+
+ins.executemany(sql,[dict(a=  99, b='Ninety-nine'),
+                     dict(a=None, b='null'       ),
+                     dict(a=  -1, b='minus one'  )])
+code }
+
+  Insert more values using positional bind variables:
+code {
+ins = con.cursor()
+sql = 'insert into tq84_cx_Oracle values (:1, :2)'
+
+ins.executemany(sql, [[1, 'one'  ],
+                      [2, 'two'  ],
+                      [3, 'three'],
+                      [4, 'four' ],
+                      [5, 'five' ]])
+code }
+
+  Commit the → development/databases/Oracle/architecture/transaction:
+code {
+con.commit()
+code }
+
+  Select some values:
+code {
+sel = con.cursor()
+sel.execute('select * from tq84_cx_Oracle where b like :b', b = '%i%')
+
+for a, b in sel.fetchall():
+    print(f'{a:>3} {b}')
+code }
+
+  Cleaning up:
+code {
+con.cursor().execute('drop table tq84_cx_Oracle')
+con.close()
+code }
+
+}
