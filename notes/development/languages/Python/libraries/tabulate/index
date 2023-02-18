@@ -1,5 +1,79 @@
 $ Python library: tabulate
 
+Import `tabulate` and create a list of list (`data`) to be printed in tabular form:
+code {
+from tabulate → development/languages/Python/statements/import#py-from-mod-import-star[import] *
+
+data = [ [  42, 'forty-two'  , 'foo & bar' ],
+         [  99, 'ninety-nine',  None       ],
+         [   7, 'seven'      , 'baz'       ],
+         [-113,  None        , 'xyz etc.'  ]]
+code }
+
+Use `tabululate()` to print `data`:
+code {
+print(tabulate(data))
+
+----  -----------  ---------
+  42  forty-two    foo & bar
+  99  ninety-nine
+   7  seven        baz
+-113               xyz etc.
+----  -----------  ---------
+code }
+
+Adding a header:
+code {
+print(tabulate(data, headers = ['Num', 'Text', 'Other']))
+
+  Num  Text         Other
+-----  -----------  ---------
+   42  forty-two    foo & bar
+   99  ninety-nine
+    7  seven        baz
+ -113               xyz etc.
+code }
+
+Specify the columns' alignment:
+code {
+print(tabulate(data, headers = ['Num', 'Text', 'Other'], colalign=('left', 'center', 'right')))
+
+Num       Text          Other
+-----  -----------  ---------
+42      forty-two   foo & bar
+99     ninety-nine
+7         seven           baz
+-113                 xyz etc.
+code }
+
+{ Render the result of an SQL statement in a Jupyter Notebook
+
+ `tablefmt = 'html'` formats the data as → development/web/HTML. This is especially useful when being used in a → development/Notebook-interface/Jupyter.
+
+  The following example uses the `→ development/languages/Python/libraries/cx_Oracle` library to execute an SQL statement on an Oracle database and render the result in an HTML table:
+code {
+import cx_Oracle as cxora
+import tabulate
+
+con = cxora.connect(user='rene', password = 'theSecret' dsn='ora19')
+
+cur = con.cursor()
+res = cur.execute('''
+   select
+      object_name,
+      object_type,
+      status,
+      created,
+      object_id
+   from
+      → development/databases/Oracle/installed/data-dictionary/objects[user_objects]'''
+).fetchall()
+
+tabulate.tabulate(res, tablefmt = 'html', headers = [ _[0] for _ in cur.description ])
+code }
+
+}
+
 { Displaying the result of a Wikidata SPARQL query #pylib-tabulate-wikidata
 
   The following example uses the → development/languages/Python library `→ development/languages/Python/libraries/requests` to query the
