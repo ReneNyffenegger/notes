@@ -50,20 +50,53 @@ torch.float64
 code }
 
 }
+{ item() / tolist()
+
+ `tensor.item()` obtains the numerical value as a standard Python number if the tensor has *one element only*:
+code {
+>>> import torch
+>>> t = torch.tensor([ 4.2 ])
+>>> t.item()
+4.199999809265137
+code }
+
+  If the tensor has more than one element, `item()` throws a `ValueError` exception:
+code {
+>>> tt = torch.tensor([ 4.2, 5.3, 6.1 ])
+>>> tt.item()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: only one element tensors can be converted to Python scalars
+code }
+
+ `tensor.tolist()` returns the elements of the tensors as a → development/languages/Python/types/list:
+code {
+>>> tt.tolist()
+[4.199999809265137, 5.300000190734863, 6.099999904632568]
+code }
+
+}
 { pow(2).sum().item()
 
   The sequence `pow(2).sum().item()` might be used to calculate a *loss*:
 code {
 >>> import torch
->>> x = torch.tensor([1,2,3])
->>> x.pow(4)
-tensor([ 1, 16, 81])
 
->>> x.pow(4).sum()
-tensor(98)
+>>> y        = torch.tensor([ 2.0, 5.0,  8.0 ])
+>>> expected = torch.tensor([ 3.0, 3.0, 11.0 ])
 
->>> x.pow(4).sum().item()
-98
+>>> (y-expected)
+tensor([-1.,  2., -3.])
+
+>>> (y-expected).pow(2)
+tensor([1., 4., 9.])
+
+>>> (y-expected).pow(2).sum()
+tensor([14.])
+
+>>> loss = (y-expected).pow(2).sum().item()
+>>> loss.item()
+14.0
 code }
 
 }
@@ -86,7 +119,7 @@ code }
 
   The following prints `47.0` (= 4*3² + 2*3 + 5)
 code {
-print(y.data.item())
+print(y.item())
 code }
 
   With `y.backward()`, it's possible to calculate the gradients of the variables that have an influence on the value of `y`.
@@ -97,6 +130,11 @@ code }
   The following prints 26 (= 2ax + b)
 code {
 print(x.grad.item())
+code }
+
+  The following prints 9 (=x³):
+code {
+print(a.grad.item())
 code }
 
 }
@@ -110,3 +148,6 @@ rnd = torch.randn((), device=dev, dtype=torch.float)
 code }
 
 }
+
+sa:
+  The → development/languages/Python/libraries/torch/types/Tensor[`Tensor`] class.
