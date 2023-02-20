@@ -3,24 +3,15 @@ $ Oracle: SQL statement execution
 { Processing an SQL statement
 
   In order to process an SQL statement, the statement goes roughly to the following four stages:
-    • Parsing the SQL text
+    • → development/databases/Oracle/SQL/statement/execution/parsing[Parsing the SQL text]
     • Optimizing
     • Row source generation
     • Execution
 
-  { Hard and soft parse #ora-hard-soft-parse
+? At some point in time (after parsing?), Oracle stores the result of the parsing in the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache
+  -
+  Additional memory is allocated from the private SQL area during each execution of an SQL statement.
 
-    Part of the process is to check if → development/databases/Oracle already has parsed the SQL text before. If this is the case and the result of that previous parsing can be used
-    for execution, then Oracle can use that result for the execution of the «new» SQL statement. This situation is referred to as ~soft parse~ and the reusable data structures are
-    found in the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache/Shared-SQL-Area of the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache.
-
-    If Oracle does not find a suitable representation in the shared SQL area, the statement needs to be parsed. This is referred to as *hard parse* or *library cache miss*.
-
-    Part of the hard parse is to determine if the available → development/databases/Oracle/optimizer/statistics[optimizer statistics] are sufficient to generate an optimal
-    → development/databases/Oracle/SQL/statement/execution/plan[execution plan]. If this is not the case, Oracle determines → development/databases/Oracle/optimizer/statistics/dynamic[dynamic statistics] as part
-    of the hard parse.
-
-  }
   { Updating statistics
 
     When Oracle is done executing an SQL statement, it updates some statistical numbers for that statement in

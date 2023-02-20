@@ -1,0 +1,32 @@
+$ Oracle: SQL parsing
+
+When → development/databases/Oracle/SQL/statement/execution[executing] an → development/databases/Oracle/SQL/statement, the first step is to parse the SQL statement's text.
+-
+This is a non-trivial and costly (in terms of CPU cycles) task:
+  • Syntactical check: does the statement adheres to the rules of SQL
+  • If the SQL text references → development/databases/Oracle/objects/views[views], they need to be parsed also and merged into the statement
+  • If the SQL text references → development/databases/Oracle/objects/synonyms[synonyms], they need to be translated to actual objects
+  • Semantic check: Are referred tables and columns available; are used data types ok etc.
+  • Authorization check: Does the user have the necessary → development/databases/Oracle/security/privileges[privileges] to execute the statement (See also error message → development/databases/Oracle/errors/ORA-01031_insufficient-privileges)
+  • Is → development/databases/Oracle/security/RLS[Row Level Security (RLS)] involved?
+
+{ Hard and soft parse #ora-hard-soft-parse
+
+  Because parsing a statement is costly, Oracle checks if → development/databases/Oracle already has parsed the SQL text (and stored the result in the library cahce)
+  wheneven an SQL statement is requested to be executed.
+
+  If this is the case and the result of that previous parsing can be used
+  for execution, then Oracle can use that result for the execution of the «new» SQL statement. This situation is referred to as ~soft parse~ and the reusable data structures are
+  found in the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache/Shared-SQL-Area of the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache.
+
+  If Oracle does not find a suitable representation in the shared SQL area, the statement needs to be parsed (possibly again). This is referred to as ~hard parse~ or *library cache miss*.
+
+  Part of the hard parse is to determine if the available → development/databases/Oracle/optimizer/statistics[optimizer statistics] are sufficient to generate an optimal
+  → development/databases/Oracle/SQL/statement/execution/plan[execution plan]. If this is not the case, Oracle determines → development/databases/Oracle/optimizer/statistics/dynamic[dynamic statistics] as part
+  of the hard parse.
+
+}
+
+sa:
+
+  → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache

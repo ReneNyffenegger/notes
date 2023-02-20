@@ -40,5 +40,29 @@ order by
    lower(replace(par.ksppinm, '_', ''));
 code }
 
+{ TODO
+
+  Apparently, `x$ksppi` can be joined to `x$ksppcv2` like so:
+code {
+select
+   x.ksppinm    name,
+   ksppdesc     description,
+   y.kspftctxvl value,
+   y.kspftctxdf isdefault,
+   decode(bitand(y.kspftctxvf, 7), 1,'MODIFIED',4,'SYSTEM_MOD','FALSE') ismod, decode(bitand(y.kspftctxvf, 2), 2, 'TRUE', 'FALSE') isadj
+from
+   sys.x$ksppi   x,
+   sys.x$ksppcv2 y
+where
+   x.inst_id   = userenv('instance') and
+   y.inst_id   = userenv('instance') and
+   x.indx + 1 = y.kspftctxpn
+order by
+   name;
+code }
+
+}
+
+
 sa:
   → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

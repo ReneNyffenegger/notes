@@ -4,14 +4,16 @@ $ Oracle: Library Cache
 The *library cache* is a component of the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool which itself is a component of the
 → development/databases/Oracle/architecture/instance/SGA.
 
+The library cache was introduced because → development/databases/Oracle/SQL/statement/execution/parsing[parsing], validating and checking privileges of SQL statements is expensive in terms of CPU cycles.
+-
+The cache stores the results of a parsed SQL statement so that (the same) SQL statement can be executed multiple times (without having to re-parse it).
+
 The library cache consists of
  • → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/library-cache/Shared-SQL-Area[Shared SQL Area]
  • → development/databases/Oracle/architecture/instance/PGA/private-SQL-area[Private SQL Area] (Shared Server only, otherwise, the private SQL area is located in the → development/databases/Oracle/architecture/instance/PGA)
  • → development/databases/Oracle/PL-SQL objects
  • Control structures (locks and library cache handles)
 
-The library cache was introduced because parsing, validating and checking privileges of SQL statements is expensive in terms of CPU cycles. The cache stores the results so that they can be used with less
-resources.
 
 The library cache is divided into namespaces (or libraries) which can be queried with:
 code {
@@ -20,6 +22,11 @@ select kglstdsc  from → development/databases/Oracle/architecture/instance/fix
 code }
 
 sa:
+
+   In → development/databases/Oracle/Releases-and-versions[versions] prior to 10g, using `→ development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats` would invalidate a cursor (i. e. remove
+   the associated data from the library cache and cause a → development/databases/Oracle/SQL/statement/execution/parsing#ora-hard-soft-parse[hard parse] for the purged statements.
+   -
+   This behavior can now be controlled with the paramter → development/databases/Oracle/installed/packages/dbms/stats#dbms_stats-no_invalidate[`no_invalidate`] of the `→ development/databases/Oracle/installed/packages/dbms/stats` packages.
 
   `→ development/databases/Oracle/installed/dynamic-performance-views/librarycache`
 
