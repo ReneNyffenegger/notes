@@ -11,21 +11,44 @@ The dialect can be chosen with the command line options `-G`, `-E` or `-P`.
 The name *grep* originates in `g/re/p` which was a command in → development/editors/qed and → development/editors/ed where a → development/languages/Perl/regular-expressions[regular expression] (`re`) is globally (`g`) searched for and matched
 text is printed (`p`).
 
+code {
+ grep [option…] patterns [file…]
+ grep [option…] -e patterns … [file…]
+ grep [option…] -f patern-file … [file…]
+code }
+
 { Command line options
 
-  table { lll
-     `--version` ☰ `-V` ☰ Print version and exit
-     `--help` ☰ ☰
+ 
+  { Optiones related to pattern
+
+    table { lll
+
      `--extended-regexp` ☰ `-E` ☰
-     `--fixed-strings` ☰ `-F` ☰
+     `--fixed-strings` ☰ `-F` ☰ `pattern` is not interpreted as a regular expression, but as a fixed text instead.
      `--basic-regexp` ☰ `-G` ☰
-     `--perl-regexp` ☰ `-P` ☰
-     `--regexp=…` ☰ `-e …` ☰ Specifies the regular expression for which `grep` searches. Multipe regular expressions can be stated (of which at least one must match in order for a line to be printed)
-     `--ignore-case` ☰ `-i` ☰
-     `--no-ingore-case` ☰ ☰
+     `--perl-regexp` ☰ `-P` ☰ `pattern` is interpreted as PCRE (Perl compatible regex)
+
+    table }
+
+  }
+  { Matching control
+
+    table { lll
+      `--regexp=…` ☰ `-e …` ☰ Specifies the regular expression for which `grep` searches. Multipe regular expressions can be stated (of which at least one must match in order for a line to be printed)
+      `--file FILE` ☰ `-f FILE` ☰ Read patterns, being separated by end of line, from `FILE`.
+     `--ignore-case` ☰ `-i` ☰ `-y` is an obsolte synonym for `-i`.
+     `--no-ingore-case` ☰ ☰ This is the default.
      `--invert-match` ☰ `-v` ☰ Print lines where the regular expression does *not* match; don't print lines where it matches.
      `--word-regexp` ☰ `-w` ☰
      `--line-regexp` ☰ `-x` ☰ The regular expression must match the entire line (i. e. as though the regexp were enclosed between `^…$`)
+
+    table}
+
+  }
+  { General output control
+
+    table { lll
      `--count` ☰ `-c` ☰ Count the number of lines that matched (or didn't match if combined with `-v`)
      `--color=$W` ☰ ☰ `$W` = Use → Linux/shell/ANSI-escape-sequences[escape sequences] to color interesting parts of the output. `$W` is `never`, `always` or `auto`
      `--files-without-match` ☰ `-L` ☰ Instaead of printing matched lines, print the names of the files where no match was found.
@@ -34,18 +57,37 @@ text is printed (`p`).
      `--only-matching` ☰ `-o` ☰ Print only the portion that was matched by the regular expression.
      `--silent` ☰ `-q` ☰ Print nothing to → development/stdin-stdout-stderr[stdout] (used to query → Linux/kernel/process[process's] exit status)
      `--no-messages` ☰ `-s` ☰  Don't print to stderr(?) if indicated file is inexistent or not readable.
+
+    table }
+
+  }
+  { Output line prefix control
+
+    table { lll
      `--byte-offset` ☰ `-b` ☰ print 0-based byte offset. Compare with `-n`
      `--with-filename` ☰ `-H` ☰ Also print filename where regular expression matched / default when grepping multiple files
      `--no-filename` ☰ `-h` ☰ Opposite of `-H`
      `--label=L` ☰ ☰
      `--line-number` ☰ `-n` ☰ Also print matched line's 1-based line number. Compare with `-b`
      `--initial-tab` ☰ `-T` ☰ Typically used in combination with `-H`, `-n` or `-b`
-     `--null` ☰ `-Z` ☰
-     `--after-context` ☰ `-A` ☰
-     `--before-context` ☰ `-B` ☰
-     `--context` ☰ `-C` ☰
-     `--group-separator` ☰ ☰
-     `--no-group-separator` ☰ ☰
+     `--unix-byte-offsets` ☰ `-u` ☰ DOS/Windows end of lines (which consists of two bytes) are counted as one. No effect when used with `-b`
+     `--null` ☰ `-Z` ☰ add a `NUL` byte after file names to make reported file names unambiguous (for example if they contain new lines). Used with commands like `find -print0`, `perl -0`, `sort -z` and `xargs -0` to process arbitrary file names.
+
+    table }
+
+  }
+  { Context line control
+
+    table { lll
+       `--after-context N` ☰ `-A N` ☰ Print `N` lines following matched line
+       `--before-context N` ☰ `-B N` ☰ Print `N` lines preceeding matched line
+       `--context N` ☰ `-C N` ☰
+    table }
+
+  }
+  { File and directory selection
+
+    table { lll
      `--text` ☰ `-a` ☰
      `--binary-files` ☰ ☰
      `--devices=ACTION` ☰ `-D ACTION` ☰
@@ -54,16 +96,31 @@ text is printed (`p`).
      `--exclude-from` ☰ ☰
      `--exclude-dir` ☰ ☰
      ☰ `-I` ☰
-     `--include=GLOB` ☰ ☰
+     `--include=GLOB` ☰ ☰ specify a glob (see `man 7 glob`) to limit the searched files. For example `grep -rl --include '*.c' 'int main'` should (hopefully) find a C program's `main` function by searching all C sources below the current directory.
      `--recursive` ☰ `-r` ☰ Process all files under a given directory(-tree). Equivalent to `-d recurse`
      `--dereference-recursive` ☰ `-R` ☰
+
+    table }
+
+  }
+  { Other options
+
+
+  table { lll
+
      `--line-buffered` ☰ ☰
      `--binary` ☰ `-U` ☰
      `--null-data` ☰ `-z` ☰
 
-    
+     `--group-separator` ☰ ☰
+     `--no-group-separator` ☰ ☰
 
-  table }
+     `--version` ☰ `-V` ☰ Print version and exit
+     `--help` ☰ ☰
+
+    table }
+
+  }
 
 }
 
@@ -119,6 +176,25 @@ $ grep -e PatternOne -e PatternTwo -e PatternThree file
 code }
 
 Find lines that match any of `PatternOne`, `PatternTwo` or `PatternThree`.
+
+}
+{ \b vs \< and \>
+
+ `\b` matches at a word boundary.
+ -
+ `\<` only matches at the beginning of a word, `\>` only at the end of a word.
+ -
+  Thus, `\b` matches whenever either `\<` or `\>` matches.
+
+  The following regexp matches the input …
+code {
+echo 'abcd  efgh' | grep '\b..\b'
+code }
+
+  … but this one does not:
+code {
+echo 'abcd  efgh' | grep  '\<..\>'
+code }
 
 }
 { Searching for hexadecimal values
