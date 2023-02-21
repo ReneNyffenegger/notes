@@ -1,0 +1,63 @@
+$ Shell command: xargs
+@ xargs
+
+code {
+xargs [options] [cmd [init-args]]
+code }
+
+
+`xargs` reads `{items}` from → development/stdin-stdout-stderr[stdin] and executes `cmd [init-args] {items}`.o
+
+If `cmd` is omitted, `xargs` executes `/bin/echo`.
+
+The items that `xargs` reads are delimited by blanks.
+-
+In order to pass an item that contains a blank, it can be put in quotes (`"this is ONE item"` or `'this would be ONE item, too'`) or the blank can be escaped with a backslash
+(`this\ is\ also\ an\ item').
+
+`cmd` will be executed multiple times if the length including the items exceeds a certain limit (unless `-n` or `-L` are involved).
+
+{ Options   
+
+  table { llll
+
+    `-0` ☰ `--null` ☰ ☰ Input items are terminated by a `NUL` character instead of by whitespace. Quotes and backslash are not special. Disables the end of file string, which is treated like any other argument. Useful when input items might contain white space, quote marks, or backslashes. (GNU `→ Linux/shell/commands/find -print0` option produces input suitable for this mode).
+    `-a` ☰ `--arg-file=` ☰ `file` ☰ Read items from `file` instead of → development/stdin-stdout-stderr[stdin]. With this option, stdin remains unchanged when commands are run. Otherwise, stdin is redirected from `→ Linux/fhs/dev/null`.
+    `-d` ☰ `--delimiter=` ☰ `delim` ☰ Input items are terminated by the specified character, escaped characters such as `\n` or an octal or hexadecimal escape code.  Octal and hexadecimal escape codes are understood as for the printf command. Multibyte characters are not supported. When processing the input, quotes and backslash are not special; every character in the input is taken literally.  The `-d` option disables any end-of-file string, which is treated like any other argument.  You can use this option when the  input  consists  of  simply newline-separated items, although it is almost always better to design your program to use `--null` where this is possible.
+    `-E` ☰ ☰ `eof-str` ☰ Set the end of file string to `eof-str`. If the end of file string occurs as a line of input, the rest of the input is ignored. If neither -E nor -e is used, no end of file string is used.
+    `-e` ☰ `--eof` ☰ `eof-str` ☰ This option is non-POSIX complianta synonym for the `-E` option. If eof-str is omitted, there is no end of file string.  If neither -E nor -e is used, no end of file string is used.
+    `-I` ☰ ☰ `replace-str` ☰ Replace occurrences of `replace-str` in the initial-arguments with names read from standard input. Also, unquoted blanks do not terminate input items; instead the separator is the newline character. Implies `-x` and `-L 1`.
+    `-i[replace-str]` ☰ `--replace[=replace-str]` ☰ ☰ This option is a synonym for -Ireplace-str if replace-str is specified.  If the replace-str argument is missing, the effect is the same as -I{}.  This option is deprecated; use -I instead.
+    `-L max-lines` ☰ ☰ ☰ Use at most max-lines nonblank input lines per command line.  Trailing blanks cause an input line to be logically continued on the next input line.  Implies -x.
+    `-l[max-lines]` ☰ `--max-lines[=max-lines]` ☰ ☰ *deprecated* synonym for `-L`.  Unlike -L, the max-lines argument is optional.  If max-lines is not specified, it defaults to one.
+    `-n` ☰ `--max-args=` ☰ `max-args` ☰ Use at most `max-args` arguments per command line.
+    `-P` ☰ `--max-procs=` ☰ `max-procs` ☰ Run up to `max-procs` processes at a time (default = 1). `-P 0` will run as many processes as possible at a time. Should probably be used with `-n` or `-L`.
+    `-o` ☰ `--open-tty` ☰ ☰ Reopen stdin as `→ Linux/fhs/dev/tty` in the child process before executing the command. Useful to run interactive applications.
+    `-p` ☰ `--interactive` ☰ ☰ Prompt the user about whether to run each command line and read a line from the terminal. Only run the command line if the response starts with `y' or `Y'. Implies `-t`.
+         ☰ `--process-slot-var=` ☰ `name` ☰ Set the → development/environment-variable[environment variable] `name` to a unique value in each running child process.  Values are reused once child processes exit.  This can be used in a rudimentary load distribution scheme, for example.
+    `-r` ☰ `--no-run-if-empty` ☰ ☰ If the standard input does not contain any nonblanks, do not run the command.  Normally, the command is run once even if there is no input.  This option is a GNU extension.
+    `-s` ☰ `--max-chars=` ☰ `max-chars` ☰ Use at most `max-chars` characters per command line.
+         ☰ `--show-limits` ☰ ☰ Display the limits on the command-line length which are imposed by the operating system, xargs' choice of buffer size and the -s option.  Pipe the input from /dev/null (and perhaps specify --no-run-if-empty) if you don't want xargs to do anything.
+    `-t` ☰ `--verbose` ☰ ☰ Print the command line on the standard error output before executing it.
+    `-x` ☰ `--exit` ☰ ☰ Exit if the size (see the -s option) is exceeded.
+         ☰ `--help` ☰ ☰ Print a summary of the options to xargs and exit.
+         ☰ `--version` ☰ ☰ Print the version number of xargs and exit.
+
+    table }
+
+    The options `--max-lines` (`-L`, `-l`), `--replace` (`-I`, `-i`) and `--max-args` (`-n`) are mutually exclusive.
+     -
+    The special `max-args` value `1` (`-n1`) is ignored after the `--replace` option and its aliases `-I` and `-i` because it would not actually conflict.
+
+}
+{ TODO
+
+code {
+echo -e 'foo bar baz\x00one two three' | xargs -0 -t -n 1 echo
+echo -e '"foo bar baz" hello\ world  xyz' | xargs  -t -n 1 echo
+code }
+
+}
+
+sa:
+  → Linux/shell/commands[Shell commands]

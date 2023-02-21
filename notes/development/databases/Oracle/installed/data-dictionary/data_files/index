@@ -1,8 +1,36 @@
-$ DBA_DATA_FILES
+$ Oracle: DBA_DATA_FILES
+@ dba_data_files
 
+`dba_data_files` returns a record for each → development/databases/Oracle/architecture/database/files/data.
+-
 This view comes in the two variants `dba_data_files` and `cdb_data_files`.
 
-Returns a record for each → development/databases/Oracle/architecture/database/files/data.
+code {
+select
+   dtf.tablespace_name,
+   dtf.status,
+   dtf.autoextensible,
+   round(dtf.maxbytes   / 1024/1024/1024, 1) max_gb,
+   round(dtf.bytes      / 1024/1024/1024, 1) gb,
+   round(dtf.user_bytes / 1024/1024/1024, 1) usr_gb,
+   dtf.file_name,
+   dtf.online_status,  
+   dtf.blocks,  
+   dtf.maxblocks,  
+   dtf.user_blocks,  
+   dtf.increment_by,
+   dtf.lost_write_protect,
+   dtf.file_id,  
+   dtf.relative_fno
+from
+   sys.dba_data_files dtf
+-- where
+--    dtf.tablespace_name = '…';
+order by
+   dtf.tablespace_name
+;
+code }
+
 
 The following query lists the data files that belong to a given → development/databases/Oracle/architecture/database/logical-structures/tablespace.
 code {
