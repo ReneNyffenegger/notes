@@ -1,5 +1,189 @@
 $ Oracle Resource Manager
 
+code {
+begin
+--
+-- Prevent ORA-29370: pending area is already active:
+--
+   dbms_resource_manager.clear_pending_area;
+--
+   dbms_resource_manager.create_pending_area;
+end;
+/
+
+select * from dba_rsrc_categories where status = 'PENDING';
+code }
+
+code {
+begin
+   dbms_resource_manager.create_consumer_group(
+        consumer_group   => 'limit_exec_time_grp',
+        comment          => 'Don''t let users run statements for longer than a given amoun of time'
+   );
+end;
+/
+
+select * from dba_rsrc_consumer_groups where lower(consumer_group) = 'limit_exec_time_grp';
+code }
+
+code {
+begin
+   dbms_resource_manager.create_plan(
+        plan             => 'limit_exec_time_pln',
+        comment          => 'Kill a statement when it exceeds the permitted execution time'
+   );
+end;
+/
+
+--
+-- Plan exists, but no plan directives were added:
+--
+select pln.num_plan_directives, pln.* from dba_rsrc_plans pln where lower(pln.plan) = 'limit_exec_time_pln';
+code }
+
+code {
+begin
+   dbms_resource_manager.create_plan_directive(
+        plan             => 'limit_exec_time_pln',
+        group_or_subplan => 'limit_exec_time_grp',
+        switch_time      =>  3                   , -- After three seconds, switch to 
+        switch_group     => 'CANCEL_SQL'         , -- CANCEL_SQL, which is one of the predefined resource manager consumer groups
+        switch_estimate  =>  false               ,
+        switch_for_call  =>  true                ,
+        comment          => 'Kill a statement when it exceeds the permitted execution time'
+   );
+end;
+/
+
+select * from dba_rsrc_plan_directives where lower(plan) = 'limit_exec_time_pln';
+code }
+
+code {
+begin
+--
+-- Fallback for non-impacted users.
+-- OTHER_GROUPS needs to be included in each top plan,
+-- otherwise, validate_pending_area throws
+--   ORA-29377: consumer group OTHER_GROUPS is not part of top-plan
+--
+   dbms_resource_manager.create_plan_directive(
+        plan             => 'limit_exec_time_pln',
+        group_or_subplan => 'OTHER_GROUPS',
+        comment          => 'Don''t impact others'
+   );
+end;
+/
+code }
+
+code {
+begin
+   dbms_resource_manager.validate_pending_area;
+   dbms_resource_manager.submit_pending_area;
+end;
+/
+code }
+
+code {
+begin
+   dbms_resource_manager_privs.grant_switch_consumer_group(
+        grantee_name     => 'RENE',
+        consumer_group   => 'limit_exec_time_grp',
+        grant_option     =>  false
+   );
+
+end;
+/
+code }
+
+code {
+begin
+   dbms_resource_manager.set_initial_consumer_group(
+        user             => 'RENE',
+        consumer_group   => 'limit_exec_time_grp');
+end;
+/
+
+select usr.initial_rsrc_consumer_group, usr.*
+from
+   dba_users usr
+where
+   usr.username = 'RENE';
+code }
+
+code {
+alter system
+      set resource_manager_plan = limit_exec_time_pln
+      scope                     = memory;
+code }
+
+Force a new session:
+code {
+alter session set events 'immediate crash';
+connect rene/rene
+code }
+
+code {
+select
+   username,
+   resource_consumer_group 
+from
+   v$session
+where
+   sid = sys_context('userenv', 'sid');
+code }
+
+Execute an SQL statement that takes a long time. It will throw *ORA-00040: active time limit exceeded - call aborted* after
+approximately 3 seconds:
+code {
+select count(*) from dba_objects, dba_objects, dba_objects, dba_objects;
+code }
+
+But this one runs ok:
+code {
+begin
+   dbms_session.sleep(10);
+end;
+/
+code }
+
+So does this one:
+code {
+with
+   function f(s integer) return integer is
+   begin
+      dbms_session.sleep(s);
+      return s;
+   end f;
+select f(2) from dual union all
+select f(3) from dual union all
+select f(4) from dual
+/
+code }
+
+Cleaning up:
+code {
+alter system
+      set resource_manager_plan = ''
+      scope                     = memory;
+
+begin
+   dbms_resource_manager.create_pending_area;
+   dbms_resource_manager.delete_plan('limit_exec_time_pln');
+   dbms_resource_manager.delete_consumer_group('limit_exec_time_grp');
+   dbms_resource_manager.validate_pending_area;
+   dbms_resource_manager.submit_pending_area;
+end;
+/
+code }
+
+TODO:
+code {
+select * from v$rsrc_consumer_group;
+select * from v$rsrc_plan;
+select * from v$rsrc_plan_history;
+select * from v$rsrc_session_info;
+code }
+
 sa:
  `→ development/databases/Oracle/installed/packages/dbms/resource_manager`, `dbms_resource_manager_privs`
 
