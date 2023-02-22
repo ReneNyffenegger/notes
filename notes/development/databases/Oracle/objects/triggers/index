@@ -1,10 +1,22 @@
 $ Oracle triggers
 @ trigger
 
-{ Commit and rollback not permitted
+Triggers have their own → development/databases/Oracle/objects/_namespace and can therefor have have the same name as other → development/databases/Oracle/objects in the same schema.
 
-  A trigger is not permitted to commit or roll back a → development/databases/Oracle/architecture/transaction[transaction] *unless* the block is
-  declared with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`].
+A trigger is not permitted to commit or roll back a → development/databases/Oracle/architecture/transaction[transaction] *unless* the block is
+declared with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`].
+
+The SQL statements of a trigger are not shown in the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] of the
+→ development/databases/Oracle/SQL/statement[statement] that fires the trigger.
+
+{ BEFORE dml FOR EACH ROW
+
+  gh|Oracle-Patterns|/DatabaseObjects/Triggers/before_for_each_row.sql||
+
+}
+{ DDL trigger (INSTEAD OF)
+
+  gh|Oracle-Patterns|/DatabaseObjects/Triggers/ddl_instead_of.sql||
 
 }
 { Logon trigger #ora-logon-triggers
@@ -119,23 +131,31 @@ code {
 create table tq84_foo(a number, b varchar2(20));
 insert /* stmt 1 */ into tq84_foo values (1, 'one');
 insert /* stmt 2 */ into tq84_foo values ('a', 'two');
---  ORA-01722: invalid number
+--  → development/databases/Oracle/errors/ORA-01722_invalid-number
 select * from tq84_error order by ts desc;
 code }
 
-}
-{ Names of triggers
+  { Another (the same?) example
 
-  A trigger can have the same name as another → development/databases/Oracle/objects[object] in the same schema.
+   gh|Oracle-Patterns|/DatabaseObjects/Triggers/error_trigger.sql||
+
+  }
+
+}
+{ Determine the firing SQL statement
+
+  gh|Oracle-Patterns|/DatabaseObjects/Triggers/determine_firing_sql.sql||
 
 }
 
 sa:
 
-  → development/databases/Oracle/installed/data-dictionary/procedures[`ALL_PROCEDURES`]
+  → development/databases/Oracle/objects/views/trigger[Triggers on views]
 
   `→ development/databases/Oracle/installed/data-dictionary/triggers`,
   `dba_trigger_ordering` and
   `dba_internal_triggers`
+
+  → development/databases/Oracle/errors/ORA-04091_table-is-mutating_trigger-function-may-not-see-it
 
   → development/databases/Oracle/objects

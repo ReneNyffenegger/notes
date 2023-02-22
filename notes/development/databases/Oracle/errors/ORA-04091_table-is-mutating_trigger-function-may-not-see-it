@@ -1,0 +1,51 @@
+$ ORA-04091: table … is mutating, trigger/function may not see it
+
+code {
+create table tq84_ORA_04091 (
+   txt                 varchar2(10)  not null,
+   val                 number(5,2)   not null,
+   sum_before_ins_upd  number(7,2)
+);
+
+create or replace trigger tq84_ORA_04091_trg_before_dml
+   before insert or update or delete on tq84_ORA_04091
+   for each row  
+begin
+   select sum(val) into :new.sum_before_ins_upd from tq84_ORA_04091;
+end tq84_table_with_trigger_trg;
+/
+code }
+
+These statements execute without problem:
+code {
+insert into tq84_ORA_04091 (txt, val) values ('1st ins', 14.18);
+insert into tq84_ORA_04091 (txt, val) values ('2nd ins',  5.93);
+insert into tq84_ORA_04091 (txt, val) values ('3rd ins', 22.56);
+
+select * from tq84_ORA_04091;
+code }
+
+Either of the following statements throws *ORA-04091: table …TQ84_ORA_04091 is mutating, trigger/function may not see it*:
+code {
+update      tq84_ORA_04091 set val = 0.01 where txt = '2nd ins';
+delete      tq84_ORA_04091                where txt = '2nd ins';
+code }
+
+Cleaning up;
+code {
+drop   table tq84_ORA_04091;
+code }
+
+{ TODO
+
+? Mutating table trigger-errors can be avoided with *compound DDL triggers*.
+
+}
+
+sa:
+
+  → development/databases/Oracle/objects/triggers[Triggers]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
+
+  → http://www.adp-gmbh.ch/ora/err/ora_04091.html[Old page on adp-gmbh.ch]
