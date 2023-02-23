@@ -1,0 +1,58 @@
+$ Python library: MechanicalSoup
+
+{ Generate github token
+
+code {
+#!/usr/bin/env python
+#
+# Modifed from
+#   https://github.com/MechanicalSoup/MechanicalSoup/blob/main/examples/example.py
+#
+
+import mechanicalsoup
+import sys
+
+username  = sys.argv[1]
+password  = sys.argv[2]
+tokenName = sys.argv[3]
+
+browser = mechanicalsoup.StatefulBrowser(
+    soup_config  = {'features': 'lxml'},
+    raise_on_404 = True,
+    user_agent   = 'githubTokenGetter/0.1 (https://renenyffenegger.ch/notes/development/languages/Python/libraries/MechanicalSoup)'
+)
+
+# browser.set_verbose(2)
+
+browser.open("https://github.com")
+browser.follow_link("login")
+
+browser.select_form('#login form')
+browser["login"   ] = username
+browser["password"] = password
+
+resp = browser.submit_selected()
+
+# View 'current html' in browser:
+# browser.launch_browser()
+
+browser.follow_link('/settings/profile'   )
+browser.follow_link('/settings/apps'      )
+browser.follow_link('/settings/tokens$'   )  # note the $ - prevent clicking on /settings/tokens?…
+browser.follow_link('/settings/tokens/new')
+
+browser.select_form('#new_oauth_access')
+browser['oauth_access[description]'] = tokenName
+browser['oauth_access[scopes][]'   ] = (
+  'repo',                              # Use tuple to select multiple check boxes
+     'repo:status',
+     'repo_deployment',
+     'public_repo',
+     'repo:invite',
+     'security_events') 
+
+resp = browser.submit_selected()
+print('Generated token is: ' + resp.soup.find(id = 'new-oauth-token').get_text())
+code }
+
+}

@@ -3,5 +3,74 @@ $ Python library: tiktoken
 
 *tiktoken* is a fast BPE (→ https://en.wikipedia.org/wiki/Byte_pair_encoding[Byte pair encoding]) tokeniser for use with OpenAI's models.
 
+{ Use different encoders to encode the same text
+
+code {
+import tiktoken
+
+from tiktoken_ext.openai_public import ENCODING_CONSTRUCTORS
+
+def tokenize(encName):
+
+    print(encName)    
+
+    encFunc = ENCODING_CONSTRUCTORS[encName]
+    encDict = encFunc()
+    
+    enc = tiktoken.Encoding(encDict['name'],
+             pat_str         = encDict['pat_str'        ],
+             mergeable_ranks = encDict['mergeable_ranks'],
+             special_tokens  = encDict['special_tokens' ])
+    
+    tokens = enc.encode_ordinary('''
+select
+   o.id,
+   o.order_date,
+   o.amount,
+   i.article_nr,
+   i.price
+from
+   orders  o                         join
+   items   i o o.id, items.order_id
+    ''')
+    
+    print(tokens)
+    print('')
+
+#   --------------------------------------------------------
+
+tokenize('gpt2'       )
+tokenize('r50k_base'  )
+tokenize('p50k_base'  )
+tokenize('cl100k_base')
+code }
+
+}
+{ Encode, then decode
+
+code {
+import tiktoken
+from tiktoken_ext.openai_public import ENCODING_CONSTRUCTORS
+
+encFunc = ENCODING_CONSTRUCTORS['gpt2']
+encDict = encFunc()
+
+enc = tiktoken.Encoding(encDict['name'],
+         pat_str         = encDict['pat_str'        ],
+         mergeable_ranks = encDict['mergeable_ranks'],
+         special_tokens  = encDict['special_tokens' ])
+
+tokens = enc.encode('''
+def F(txt):
+    print(txt)
+''')
+
+print(tokens)
+
+print(enc.decode(tokens))
+code }
+
+}
+
 sa:
   *tiktoken* is a prerequisite for nanoGPT
