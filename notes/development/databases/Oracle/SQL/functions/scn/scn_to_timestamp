@@ -4,5 +4,34 @@ $ Oracle SQL function: SCN_TO_TIMESTAMP
 `scn_to_timestamp(v_scn)` returns the → development/databases/Oracle/SQL/data-types/timestamp, with a resulution of three seconds, at which
 the → development/databases/Oracle/architecture/transaction/SCN[System Commit Number] `v_scn` as generated.
 
+The following query selects all timestamps of the past period and counts how often they occured. It shows that the
+granularity of `scn_to_timestamp` is indeed three seconds:
+code {
+with x(scn, ts) as (
+   select
+      dbms_flashback.get_system_change_number                   scn,
+      scn_to_timestamp(dbms_flashback.get_system_change_number) ts
+   from
+      dual
+               union all
+   select
+      x.scn -1,
+      scn_to_timestamp(x.scn-1)
+   from
+      x
+   where
+      scn_to_timestamp(x.scn-1) > sysdate - 1/24/60
+)
+select
+   count(*),
+   ts
+from
+   x
+group by
+   ts
+order by
+   ts desc;
+code }
+
 sa:
   The `→ development/databases/Oracle/objects/tables/columns/pseudo/ora_rowscn` → development/databases/Oracle/objects/tables/columns/pseudo.
