@@ -1,0 +1,59 @@
+$ Oracle flashback data archive - Granularity of VERSIONS_STARTTIME
+
+The following statements create a → development/databases/Oracle/Features_Options_Management-Packs/Flashback/Logical-Features/data-archive[flashback archived] table
+(`tq84_fba_ts_gran`) and insert and commit one record each second for a duration of 20 seconds:
+
+code {
+create table tq84_fba_ts_gran (
+   ts   timestamp
+)
+flashback archive tq84_fba
+;
+
+begin
+   for i in 1 .. 20 loop
+       insert into tq84_fba_ts_gran values (systimestamp);
+       commit;
+       dbms_session.sleep(1);
+   end loop;
+end;
+/
+code }
+
+The following statement reveals that the `versions_starttime` is accurate down to three secons (which is in line with the
+accuracy of `→ development/databases/Oracle/SQL/functions/scn/scn_to_timestamp`).
+-
+However, it also shows that the first 9 records (10 seconds?) don't have an associated `versions_starttime`. Interestingly, when the same statement is executed
+some minutes later, all records have a `versions_starttime` associated with it.
+code {
+select
+   min(ts) min_ts,
+   max(ts) max_ts,
+   count(*),
+   versions_starttime
+-- versions_startscn
+from
+   tq84_fba_ts_gran versions between scn minvalue and maxvalue
+group by
+   versions_starttime
+order by
+   min(ts)
+;
+code }
+
+There is no version timestamp recorded 
+code {
+MIN_TS                        MAX_TS                          COUNT(*) VERSIONS_STARTTIME           
+----------------------------- ----------------------------- ---------- -----------------------------
+2023-02-24 15:08:41.818000000 2023-02-24 15:08:49.869000000          9                              
+2023-02-24 15:08:50.883000000 2023-02-24 15:08:52.897000000          3 2023-02-24 15:08:49.000000000
+2023-02-24 15:08:53.908000000 2023-02-24 15:08:55.974000000          3 2023-02-24 15:08:52.000000000
+2023-02-24 15:08:56.981000000 2023-02-24 15:08:58.991000000          3 2023-02-24 15:08:55.000000000
+2023-02-24 15:08:59.993000000 2023-02-24 15:09:00.997000000          2 2023-02-24 15:08:58.000000000
+code }
+
+Cleaning up:
+alter table tq84_fba_ts_gran no flashback archive;
+drop  table tq84_fba_ts_gran;
+code {
+code }
