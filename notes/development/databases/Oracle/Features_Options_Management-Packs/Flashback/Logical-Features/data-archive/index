@@ -12,6 +12,140 @@ In order to create a *flashback data archive*, the following (or a default flash
 
 Flashback archiving can be turned on and of for individual tables.
 
+{ Demonstration
+
+  { Create a flashback archive
+
+    First we need to create a flashback archive. The archive resides in a → development/databases/Oracle/architecture/database/logical-structures/tablespace which needs to be named (here: `data`)
+    when the flashback archive is created:
+    gh|Oracle-demo-flashback-archive|/create-flashback-archive.sql||
+
+  }
+  { Create tables
+
+    We also need some tables for the demonstration. With the `flashback archive …` clause, we could put the tables into the archive as they're created, but for this demonstration, we
+    alsoc create («register») an application, see next step.
+    gh|Oracle-demo-flashback-archive|/create-tables.sql||
+
+  }
+  { Register an application
+
+    We use the `→ development/databases/Oracle/installed/packages/dbms/flashback_archive` package to register an «application»:
+    to provide an umbrella to manage all (i. e. in this demo: two) tables together:
+    gh|Oracle-demo-flashback-archive|/register-application.sql||
+
+  }
+  { Add tables to application
+
+    The tables are added to the application.
+    gh|Oracle-demo-flashback-archive|/add-tables-to-application.sql||
+
+  }
+  { Enable application
+    
+    By enabling the application, the tables become subject to flashback queries:
+    gh|Oracle-demo-flashback-archive|/enable-application.sql||
+
+  }
+  { Wait 20 seconds
+
+    → https://docs.oracle.com/en/database/oracle/oracle-database/21/adfns/flashback.html#GUID-06AA782A-3F79-4235-86D5-2D136485F093[Oracle's documentation (Flashback Time Travel Restrictions]] recommends
+    to wait 20 seconds before inserting data into the table.
+code {
+begin
+   dbms_session.sleep(20);   
+end;
+/
+code }
+  }
+  { Context package
+
+    A nice feature of flashback archive is that it also trackes the values of context variables. The following package and context allows to set such values:
+    gh|Oracle-demo-flashback-archive|/context-package.sql||
+
+  }
+  { Helper package
+
+    The following helper package is intended to store the → development/databases/Oracle/architecture/transaction/SCN and timestamp of a → development/databases/Oracle/SQL/TCL/commit. These values are associated
+    with a tag (whose value is provied when calling the package's `commit_` procecure).
+    -
+    Because the time resolution of timestamps → development/databases/Oracle/Features_Options_Management-Packs/Flashback/Logical-Features/data-archive/versions-starttime-timestamp[is three seconds when using flashback queries],
+    the package also sleeps for a certain amount when commiting. In addition, it adds six seconds to the timestamp of the commit because it turned out that this is the value actually needed when doing
+   `as of timestamp` flashback queries:
+    gh|Oracle-demo-flashback-archive|/demo-hlp-package.sql||
+
+  }
+  { Set context level
+
+    We set the context level to `ALL` in order to track all context values:
+    gh|Oracle-demo-flashback-archive|/set-context-level.sql||
+
+  }
+  { Set a context value
+
+    We also set the value of the context name `ctx-1` to `yes`:
+    gh|Oracle-demo-flashback-archive|/set-ctx-val-1.sql||
+
+  }
+  { Initial insert
+
+    The initial values for the tables. Note the *typo* (Penalyt rather than Penalty):
+    gh|Oracle-demo-flashback-archive|/init-insert.sql||
+
+  }
+  { Change the context value
+
+    gh|Oracle-demo-flashback-archive|/set-ctx-val-2.sql||
+
+  }
+  { Fix typo
+
+    The typo (Penalyt) is fixed: 
+    gh|Oracle-demo-flashback-archive|/fix-typo.sql||
+
+  }
+  { Decrease debit limit
+
+    The debit limit is decreased from 2000 to 1500:
+    gh|Oracle-demo-flashback-archive|/decrease-debit-limit.sql||
+
+  }
+  { Wait 5 minutes
+
+    Oracle documentation (again under *Flashback Time Travel Restrictions*) also recommends to wait 5 minutes before using Flashback query on the table:
+code {
+begin
+   dbms_session.sleep(5*60);   
+end;
+/
+code }
+
+  }
+  { Queries
+ 
+    The following queries provide an idea how the tables might be queried:
+    gh|Oracle-demo-flashback-archive|/queries.sql||
+ 
+  }
+  { Execution plan (regular)
+ 
+    gh|Oracle-demo-flashback-archive|/exec-plan-regular.sql||
+ 
+  }
+  { Execution plan (as of query)
+ 
+    gh|Oracle-demo-flashback-archive|/exec-plan-as-of.sql||
+ 
+  }
+  { Cleanup
+
+    Drop the application, the flashback archives and the tables that were used for this demonstration:
+    gh|Oracle-demo-flashback-archive|/cleanup.sql||
+
+  }
+
+}
+
 sa:
 
   Some investigations into the → development/databases/Oracle/Features_Options_Management-Packs/Flashback/Logical-Features/data-archive/versions-starttime-timestamp[granularity of `versions_starttime`].
