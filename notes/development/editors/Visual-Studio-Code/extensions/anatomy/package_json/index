@@ -8,24 +8,13 @@ Apparently, `package.json` is a concept of Yarn where it is used to describe a p
 
 The four *required fields* in `package.json` are
 table { ll
-  `name` ☰  All lowercase
+  `name` ☰  All lowercase. Compare with `displayName`.
   `version` ☰ In → https://semver.org/[Semantic versioning format] (`maj.min.pch`).
   `publisher` ☰ which identifies the identity that is allowed to publish an extension to the *Visual Studio Code Marketplace*.
   `engines` ☰
 table }
 
-Other *important* or *interesting* fields are
-table { ll
-  `main`             ☰ Extension's entry point: the name of a → development/languages/JavaScript file, relative to the extension's root. The `.js` suffix can be submitted (in fact, it even seems to be recommended because it is assumed to be a JavaScript file).
-  `activationEvents` ☰ Activation events
-  `contributes`      ☰ Description of the functionality that is provided by the extension.
-  `engines.vscode`   ☰ The minimum → development/editors/Visual-Studio-Code/API[VS Code API] version that the extension requires
-  `dependencies`     ☰
-  `repository`       ☰
-  `license`          ☰
-  `displayName`      ☰ Extension's name in the market place
-table }
-
+Thus, a minimal `package.json` could be:
 code {
 {
    "name"       : "basic-extension"    ,
@@ -35,6 +24,21 @@ code {
     …
 }
 code }
+
+Other *important* or *interesting* fields are
+table { ll
+  `main`             ☰ The extension's main module, i. e. the name of a → development/languages/JavaScript file, relative to the extension's root. This module must expose the function `activate()` (which is called when the first event listed in `activationEvents` is triggerd). The `.js` suffix can be omitted (in fact, it even seems to be recommended because it is assumed to be a JavaScript file anyway). `browser` is the same, but for VS Code running in the browser.
+  `activationEvents` ☰ List of *activation events*. The special event `*` is fired when VS Code is started. When one of the given activation events are triggered, the extension is activated, i. e. the `activate()` function in the extension's main module is called. `activate()` is not called multiple times.
+  `contributes`      ☰ Description of the functionality that is provided («contributed…) by the extension.
+  `engines.vscode`   ☰ The minimum → development/editors/Visual-Studio-Code/API[VS Code API] version that the extension requires
+  `dependencies`     ☰
+  `repository`       ☰
+  `license`          ☰ For example `"MIT"`. It's possible to refer to a license file in the root of the extension (`"See license in LICENSE"`)
+  `categories`       ☰ A list of strings. Permitted values are: `Programming Languages`, `Snippets`, `Linters`, `Themes`, `Debuggers`, `Formatters`, `Keymaps`, `SCM Providers`, `Other`, `Extension Packs`, `Language Packs`, `Data Science`, `Machine Learning`, `Visualization`, `Notebooks`, `Education` and `Testing`. Compare with `keywords`.
+  `displayName`      ☰ Extension's name in the market place. Compare with `name` and `description`.
+  `keywords`         ☰ A list of up to 5 keywords, used to find the extension on the Marketplace. Campare with `cateogries`.
+table }
+
 
 
 `publisher` dot `name` (`tq84.demo-extension`) is the extension's *unique ID*, used by → development/editors/Visual-Studio-Code[VS Code] to identify the extension.
@@ -66,16 +70,18 @@ code }
 { contributes
 
   table { ll
-    `configuration` ☰ 
+    `configuration` ☰ Specification of extension settings that the user can modify.
     `configurationDefaults` ☰ Overwrite default editor configurations
     `commands` ☰ add a titled command (and optionally an icon, category and enabled state). Such commands show up in the *Command Palette* (`ctrl+shift+p`) and possibly in other menus, too.
     `menus` ☰
-    `keybindings` ☰ Assign a command to combination of keys being pressed.
+    `submenus` ☰
+    `keybindings` ☰ Assigns a command to combination of keys being pressed (shortcut key)
     `languages` ☰ Defines a «new» → development/editors/Visual-Studio-Code/language[language] (id?)
     `debuggers` ☰
     `breakpoints` ☰
     `grammars` ☰ A *TextMate* grammar
     `themes` ☰ Color theme
+    `icons` ☰
     `iconThemes` ☰ File icon themes, which are shown next to file names
     `productIconThemes` ☰
     `snippets` ☰
@@ -92,6 +98,10 @@ code }
     `resourceLabelFormatters` ☰
     `customEditors` ☰
     `contributes.con` ☰
+    `terminal` ☰
+    `semanticTokenModifiers` ☰
+    `semanticTokenScopes` ☰
+    `semanticTokenTypes` ☰
   table }
 
 }
