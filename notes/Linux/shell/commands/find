@@ -82,52 +82,66 @@ code }
 }
 { Tests
 
-  table { ll
+  The *test operators* check various file properties and return either true or false.
 
-    `-amin n` ☰ File's last access time, in minutes
-    `-anewer reference` ☰ File's last access time, in `n`*24 hours
-    `-atime n` ☰
-    `-cmin n` ☰
-    `-cnewer reference` ☰
-    `-ctime n` ☰
-    `-empty` ☰ File (or directory?) is empty
-    `-executable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-readable`
-    `-false Always false.` ☰
-    `-fstype type` ☰
-    `-gid n` ☰
-    `-group gname` ☰
-    `-ilname pattern` ☰
-    `-iname pattern` ☰
-    `-inum n` ☰
-    `-ipath pattern` ☰
-    `-iregex pattern` ☰
-    `-iwholename pattern` ☰
-    `-links n` ☰ Number of hard links
-    `-lname pattern` ☰
-    `-mmin n` ☰
-    `-mtime n` ☰
-    `-name pattern` ☰
-    `-newer reference` ☰
-    `-newerXY reference` ☰
-    `-nogroup` ☰
-    `-nouser` ☰
-    `-path pattern` ☰
-    `-perm [-|+|/]mode` ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute`
-    `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-executable`
-    `-regex pattern` ☰ Checks if regular expression matches whole path of file. See also `-regextype` option
-    `-samefile name` ☰
-    `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³
-    `-true` ☰
-    `-type c` ☰
-    `-uid n` ☰
-    `-used n` ☰
-    `-user uname` ☰ File's owner
-    `-wholename pattern` ☰ Less portable than `-path`
-    `-writable` ☰
-    `-xtype c` ☰
-    `-context pattern` ☰ → Linux/security/modules/SELinux only
+  Some tests take a numerical value (marked as `n` in the table below). In this case, the value of `n` can be `+n` (value is greater than `n`), `-n` (value is less than `n`) or simply `n`
+ (value must be *exactly* `n`).
+
+  Some of these tests come in a case-senstive and case-insenstive variant (`-i…`). Case insensitive variants are listed in the 3rd column.
+
+  table { lll
+
+    `-amin n` ☰ File's last access time, in minutes ☰
+    `-anewer reference` ☰ File's last access time, in `n`*24 hours ☰
+    `-atime n` ☰ ☰
+    `-cmin n` ☰ ☰
+    `-cnewer reference` ☰ ☰
+    `-ctime n` ☰ ☰
+    `-empty` ☰ File (or directory?) is empty ☰
+    `-executable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-readable` ☰
+    `-false Always false.` ☰ ☰
+    `-fstype type` ☰ ☰
+    `-gid n` ☰ ☰
+    `-group gname` ☰ ☰
+    `-inum n` ☰ Inode number ☰
+    `-links n` ☰ Number of hard links ☰
+    `-lname pattern` ☰  Symbolic link whose content matches the shell pattern `pattern` ☰ `-ilname`
+    `-mmin n` ☰ ☰
+    `-mtime n` ☰ ☰
+    `-name pattern` ☰ ☰ `-iname`
+    `-newer reference` ☰ ☰
+    `-newerXY reference` ☰ ☰
+    `-nogroup` ☰ ☰
+    `-nouser` ☰ ☰
+    `-path pattern` ☰ ☰ `-ipath`
+    `-perm [-|+|/]mode` ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute` ☰
+    `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-executable` ☰
+    `-regex pattern` ☰ Checks if regular expression matches whole path of file. See also `-regextype` option ☰ `-iregex`
+    `-samefile name` ☰ ☰
+    `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³ ☰
+    `-true` ☰ ☰
+    `-type c` ☰ ☰
+    `-uid n` ☰ ☰
+    `-used n` ☰ ☰
+    `-user uname` ☰ File's owner ☰
+    `-wholename pattern` ☰ Less portable than `-path` ☰ `-iwholename`
+    `-writable` ☰ ☰
+    `-xtype c` ☰ ☰
+    `-context pattern` ☰ → Linux/security/modules/SELinux only ☰
 
   table }
+
+  { Positional options
+
+    The so-called *position options* influence the interpretation of the test operators:
+    table { ll
+      `-daystart` ☰ Causes `-amin`, `-atime`, `-cmin`, `-ctime`, `-mmin` and `-mtime` to measure time from the beginnig of *today* rather than 24 hours ago.
+      `-follow` ☰ *Deprecated* in favor of → #find-H-L-P[ `-L`]
+      `-regextype` ☰ Sets the regular expression dialect used for `-regex` and `-iregex`. Valid regex types seem to be: `findutils-default`, `ed`, `emacs`, `gnu-awk`, `grep`, `posix-awk`, `awk`, `posix-basic`, `posix-egrep`, `egrep`, `posix-extended`, `posix-minimal-basic`, `sed`
+      `-warn`, `-nowarn` ☰ Turn on or off warings.
+    table }
+
+  }
 
 }
 { Actions
@@ -153,7 +167,6 @@ code }
   table }
 
 }
-
 { Search in path names
 
   The `-path` option concatenates the path and filename to match files.

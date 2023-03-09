@@ -136,6 +136,29 @@ end;
 code }
 
 }
+{ Strings / apostrophes
+
+  If the text to be executed contains apostrophes (the string delimiters), they need to be escaped by doubling them:
+code {
+execute immedate 'create or replace view tq84_v as
+select
+   to_char(dt, ''yyyy-mm-dd'') dt
+from
+   tab';
+code }
+
+  Of course, this makes it rather tedious to copy paste such statements for debugging purposes. In order to make that easier, q-strings (`q'[…]'`) should be used:
+code {
+execute immedate q'[
+create or replace view tq84_v as
+select
+   to_char(dt, ''yyyy-mm-dd'') dt
+from
+   tab'
+]';
+code }
+
+}
 { Iterate over result (21c)
 
   In 21c, it's possible to iterate over the result set produced by `execute immediate`:
