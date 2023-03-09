@@ -116,11 +116,11 @@ code }
     `-path pattern` ☰ ☰ `-ipath`
     `-perm [-|+|/]mode` ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute` ☰
     `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-executable` ☰
-    `-regex pattern` ☰ Checks if regular expression matches whole path of file. See also `-regextype` option ☰ `-iregex`
+    `-regex pattern` ☰ Checks if regular expression matches *whole* path of file (see also → #find-regex[here]). Specify regex dialect with the `-regextype` option ☰ `-iregex`
     `-samefile name` ☰ ☰
     `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³ ☰
     `-true` ☰ ☰
-    `-type c` ☰ ☰
+    `-type x` ☰ `x` is one of `b` (block), `c` (character), `d` (directory), `p` (named pipe), `f` (regular file), `l` (symbolic link), `s` (socket), `D` (door, Solaris only?)  ☰
     `-uid n` ☰ ☰
     `-used n` ☰ ☰
     `-user uname` ☰ File's owner ☰
@@ -290,13 +290,21 @@ code }
 
   }
 
+}
+{ Regular expression #find-regex
+
+  The `-regex pattern` evaluates to true if the regular expression `pattern` matches the *entire path*, i. e. as though pattern was enclosed in `^…$`.
+
+  The following command finds all files that have ancester directory (immediate or not) named `release-notes` and the text `1.7` in their file name:
+code {
+find -type f -regex '.*/relase-notes/.*1\.7.*'
+code }
 
 
 }
 { Operator precedence
 
   `-a` takes precedence over `-o`.
-
 
 }
 { Global options

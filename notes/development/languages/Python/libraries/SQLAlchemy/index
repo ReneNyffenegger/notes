@@ -5,5 +5,563 @@ code {
 pip install SQLAlchemy
 code }
 
+code {
+import sqlalchemy
+code }
+
+{ Simple example
+
+code {
+import sqlalchemy
+import os
+
+db_name = 'a.db'
+
+if os.path.exists(db_name):
+   print(f'deleting {db_name}')
+   os.remove(db_name)
+
+eng = sqlalchemy.create_engine(f'sqlite:///{os.getcwd()}/{db_name}')
+
+with eng.connect() as con:
+     con.execute(sqlalchemy.text('create table tab_one (id integer, txt text)'))
+
+     con.execute(
+         sqlalchemy.text("insert into tab_one (id, txt) values (:i, :t)"), [
+           {'i': 42, 't': 'forty-two'  },
+           {'i': 99, 't': 'ninety-nine'}
+         ]
+     )
+
+     con.commit()
+  #  con.rollback()
+
+     res = con.execute(sqlalchemy.text('select * from tab_one'))
+     for id, txt in res:
+         print(f'{id} {txt}')
+code }
+
+}
+
+{ Module members
+
+  table { ll
+
+    `AdaptedConnection` ☰ 
+    `Alias` ☰ 
+    `alias()` ☰ 
+    `AliasedReturnsRows` ☰ 
+    `all_()` ☰ 
+    `and_()` ☰ 
+    `annotations` ☰  A future feature ?
+    `Any` ☰  `typing._SpecialForm` ?
+    `any_()` ☰ 
+    `ARRAY` ☰ 
+    `asc()` ☰ 
+    `AssertionPool` ☰ 
+    `AsyncAdaptedQueuePool` ☰ 
+    `BaseDDLElement` ☰ 
+    `BaseRow` ☰ 
+    `between()` ☰ 
+    `BIGINT` ☰ 
+    `BigInteger` ☰ 
+    `BINARY` ☰ 
+    `BinaryExpression` ☰ 
+    `bindparam()` ☰ 
+    `BindParameter` ☰ 
+    `BindTyping` ☰  `enum.EnumMeta` ?
+    `bitwise_not()` ☰ 
+    `BLANK_SCHEMA` ☰  enum `SchemaConst`
+    `BLOB` ☰ 
+    `BOOLEAN` ☰ 
+    `Boolean` ☰ 
+    `BooleanClauseList` ☰ 
+    `CacheKey` ☰ 
+    `Case` ☰ 
+    `case()` ☰ 
+    `Cast` ☰ 
+    `cast()` ☰ 
+    `CHAR` ☰ 
+    `CheckConstraint` ☰ 
+    `ChunkedIteratorResult` ☰ 
+    `ClauseElement` ☰ 
+    `ClauseList` ☰ 
+    `CLOB` ☰ 
+    `collate()` ☰ 
+    `CollectionAggregate` ☰ 
+    `Column` ☰ 
+    `column()` ☰ 
+    `ColumnClause` ☰ 
+    `ColumnCollection` ☰ 
+    `ColumnDefault` ☰  `abc.ABCMeta`
+    `ColumnElement` ☰ 
+    `ColumnOperators` ☰ 
+    `Compiled` ☰ 
+    `CompoundSelect` ☰ 
+    `Computed` ☰ 
+    `Connection` ☰ 
+    `Constraint` ☰ 
+    `create_engine()` ☰  A function to create an `Engine` object. Its parameter is a URL in the form `dialect+driver://username:password@host:port/database`. Dialect names include `sqlite`, `mysql`, `postgresql`, `oracle`, `mssql` etc. Connection is established by calling `connect()` on the `Engine` object. See also `create_mock_engine()` and `engine_from_config()`.
+    `CreateEnginePlugin` ☰ 
+    `create_mock_engine()` ☰  Creates a «mock» engines which echoes DDL statements
+    `CTE` ☰ 
+    `cte()` ☰ 
+    `CursorResult` ☰ 
+    `custom_op` ☰  `typing._ProtocolMeta` ?
+    `cyextension` ☰  A module
+    `DATE` ☰ 
+    `Date` ☰ 
+    `DATETIME` ☰ 
+    `DateTime` ☰ 
+    `DDL` ☰ 
+    `DDLElement` ☰ 
+    `DECIMAL` ☰ 
+    `DefaultClause` ☰ 
+    `Delete` ☰ 
+    `delete()` ☰ 
+    `desc()` ☰ 
+    `Dialect` ☰ 
+    `dialects` ☰ A module
+    `distinct()` ☰ 
+    `DOUBLE` ☰ 
+    `Double` ☰ 
+    `DOUBLE_PRECISION` ☰ 
+    `Engine` ☰  The `Engine` object is required by all SQLAlchemy applications that connect to a → development/databases. Such an object can be created with `create_engine()`.
+    `engine` ☰ A module
+    `engine_from_config()` ☰ Creates an `Engine` object. See also `create_engine()`
+    `Enum` ☰ 
+    `event` ☰ A module
+    `exc` ☰ A module
+    `except_()` ☰ 
+    `except_all()` ☰ 
+    `ExceptionContext` ☰ 
+    `Executable` ☰ 
+    `ExecutableDDLElement` ☰ 
+    `ExecutionContext` ☰ 
+    `Exists` ☰ 
+    `exists()` ☰ 
+    `Extract` ☰ 
+    `extract()` ☰ 
+    `FallbackAsyncAdaptedQueuePool` ☰ 
+    `False_` ☰ 
+    `false()` ☰ 
+    `FetchedValue` ☰ 
+    `FLOAT` ☰ 
+    `Float` ☰ 
+    `ForeignKey` ☰ 
+    `ForeignKeyConstraint` ☰ 
+    `FromClause` ☰ 
+    `FromGrouping` ☰ 
+    `FrozenResult` ☰ 
+    `func` ☰  `sqlalchemy.sql.functions._FunctionGenerator`
+    `funcfilter()` ☰ 
+    `Function` ☰ 
+    `FunctionElement` ☰ 
+    `FunctionFilter` ☰ 
+    `GenerativeSelect` ☰ 
+    `Grouping` ☰ 
+    `HasCTE` ☰ 
+    `HasPrefixes` ☰ 
+    `HasSuffixes` ☰ 
+    `Identity` ☰ 
+    `Index` ☰ 
+    `Insert` ☰ 
+    `insert()` ☰ 
+    `inspect()` ☰ 
+    `inspection` ☰ A module
+    `Inspector` ☰ 
+    `INT` ☰ 
+    `INTEGER` ☰ 
+    `Integer` ☰ 
+    `intersect()` ☰ 
+    `intersect_all()` ☰ 
+    `Interval` ☰ 
+    `IteratorResult` ☰ 
+    `Join` ☰ 
+    `join()` ☰ 
+    `JSON` ☰ 
+    `Label` ☰ 
+    `label()` ☰ 
+    `LABEL_STYLE_DEFAULT` ☰  enum `SelectLabelStyle`
+    `LABEL_STYLE_DISAMBIGUATE_ONLY` ☰ `SelectLabelStyle`
+    `LABEL_STYLE_NONE` ☰  `SelectLabelStyle`
+    `LABEL_STYLE_TABLENAME_PLUS_COL` ☰ `SelectLabelStyle`
+    `LambdaElement` ☰ 
+    `lambda_stmt()` ☰ 
+    `LargeBinary` ☰ 
+    `Lateral` ☰ 
+    `lateral()` ☰ 
+    `literal()` ☰ 
+    `literal_column()` ☰ 
+    `log` ☰ A module
+    `make_url()` ☰ 
+    `MappingResult` ☰ 
+    `MergedResult` ☰ 
+    `MetaData` ☰ 
+    `modifier` ☰  `sqlalchemy.sql.functions._FunctionGenerator`
+    `NCHAR` ☰ 
+    `NestedTransaction` ☰ 
+    `not_()` ☰ 
+    `Null` ☰ 
+    `null()` ☰ 
+    `NullPool` ☰ 
+    `nulls_first()` ☰ 
+    `nullsfirst()` ☰ 
+    `nulls_last()` ☰ 
+    `nullslast()` ☰ 
+    `NUMERIC` ☰ 
+    `Numeric` ☰ 
+    `NVARCHAR` ☰ 
+    `Operators` ☰ 
+    `or_()` ☰ 
+    `outerjoin()` ☰ 
+    `outparam()` ☰ 
+    `Over` ☰ 
+    `over()` ☰ 
+    `PickleType` ☰ 
+    `Pool` ☰ 
+    `pool` ☰ A module
+    `PoolProxiedConnection` ☰ 
+    `PoolResetState` ☰ 
+    `PrimaryKeyConstraint` ☰ 
+    `QueuePool` ☰ 
+    `quoted_name` ☰ 
+    `REAL` ☰ 
+    `ReleaseSavepointClause` ☰ 
+    `Result` ☰ 
+    `ResultProxy` ☰ 
+    `result_tuple()` ☰ 
+    `ReturnsRows` ☰ 
+    `RollbackToSavepointClause` ☰ 
+    `RootTransaction` ☰ 
+    `Row` ☰  `abc.ABCMeta`
+    `RowMapping` ☰  `abc.ABCMeta`
+    `SavepointClause` ☰ 
+    `ScalarResult` ☰ 
+    `ScalarSelect` ☰ 
+    `schema` ☰ A module
+    `Select` ☰ 
+    `select()` ☰ 
+    `Selectable` ☰ 
+    `SelectBase` ☰ 
+    `SelectLabelStyle` ☰ `enum.EnumMeta`
+    `Sequence` ☰ 
+    `SingleonThreadPool` ☰ 
+    `SMALLINT` ☰ 
+    `SmallInteger` ☰ 
+    `sql` ☰ A module
+    `SQLColumnExpression` ☰ 
+    `StatementLambdaElement` ☰ 
+    `StaticPool` ☰ 
+    `String` ☰ 
+    `Subquery` ☰ 
+    `Table` ☰ 
+    `table()` ☰ 
+    `TableClause` ☰ 
+    `TableSample` ☰ 
+    `tablesample()` ☰ 
+    `TableValuedAlias` ☰ 
+    `TEXT` ☰ 
+    `Text` ☰ 
+    `text()` ☰ Returns an `sqlalchemy.sql.elements.TextClause` object
+    `TextAsFrom` ☰ 
+    `TextClause` ☰ 
+    `TextualSelect` ☰ 
+    `TIME` ☰ 
+    `Time` ☰ 
+    `TIMESTAMP` ☰ 
+    `Transaction` ☰ 
+    `True_` ☰ 
+    `true()` ☰ 
+    `Tuple` ☰ 
+    `tuple_()` ☰ 
+    `TupleType` ☰ 
+    `TwoPhaseTransaction` ☰ 
+    `TypeClause` ☰ 
+    `TypeCoerce` ☰ 
+    `type_coerce()` ☰ 
+    `TypeCompiler` ☰ 
+    `TypeDecorator` ☰ 
+    `types` ☰ A module
+    `UnaryExpression` ☰ 
+    `Unicode` ☰ 
+    `UnicodeText` ☰ 
+    `union()` ☰ 
+    `union_all()` ☰ 
+    `UniqueConstraint` ☰ 
+    `Update` ☰ 
+    `update()` ☰ 
+    `UpdateBase` ☰ 
+    `URL` ☰ 
+    `_util` ☰ A module
+    `util` ☰ A module
+    `UUID` ☰ 
+    `Uuid` ☰ 
+    `Values` ☰ 
+    `values()` ☰ 
+    `ValuesBase` ☰ 
+    `VARBINARY` ☰ 
+    `VARCHAR` ☰ 
+    `Visitable` ☰ 
+    `WithinGroup` ☰ 
+    `within_group()` ☰ 
+
+  table }
+
+}
+{ Members of an Engine object
+
+  table { ll
+
+    `begin` ☰
+    `clear_compiled_cache` ☰
+    `_compiled_cache` ☰
+    `connect` ☰ Returns a `sqlalchemy.engine.base.connection` object.
+    `_connection_cls` ☰
+    `dialect` ☰
+    `dispatch` ☰
+    `dispose` ☰
+    `driver` ☰
+    `_echo` ☰
+    `echo` ☰
+    `engine` ☰
+    `_execution_options` ☰
+    `execution_options` ☰
+    `get_execution_options` ☰
+    `_has_events` ☰
+    `hide_parameters` ☰
+    `_is_future` ☰
+    `_is_protocol` ☰
+    `logger` ☰
+    `logging_name` ☰
+    `_lru_size_alert` ☰
+    `name` ☰
+    `_optional_conn_ctx_manager` ☰
+    `_option_cls` ☰
+    `pool` ☰
+    `raw_connection` ☰
+    `_run_ddl_visitor` ☰
+    `_schema_translate_map` ☰
+    `_should_log_debug` ☰
+    `_should_log_info` ☰
+    `_sqla_logger_namespace` ☰
+    `update_execution_options` ☰
+    `url` ☰
+
+  table }
+
+}
+{ Members of sqllachemy.engine.base.connection
+
+  table { ll
+
+   `_allow_autobegin` ☰  A boolean
+   `_autobegin` ☰ 
+   `begin` ☰ 
+   `_begin_impl` ☰ 
+   `begin_nested` ☰ 
+   `begin_twophase` ☰ 
+   `_begin_twophase_impl` ☰ 
+   `close` ☰ 
+   `closed` ☰  A boolean
+   `commit` ☰ 
+   `_commit_impl` ☰ 
+   `commit_prepared` ☰ 
+   `_commit_twophase_impl` ☰ 
+   `connection` ☰  `sqlalchemy.pool.base._ConnectionFairy`
+   `_Connection__can_reconnect` ☰  A boolean
+   `_Connection__in_begin` ☰  A boolean
+   `_Connection__savepoint_seq` ☰ An integer
+   `_cursor_execute` ☰ 
+   `_dbapi_connection` ☰ `sqlalchemy.pool.base._ConnectionFairy`
+   `default_isolation_level` ☰ A string
+   `detach` ☰ 
+   `dialect` ☰ A dialect (for example `sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite`)
+   `dispatch` ☰  A `sqlalchemy.event.base.JoinedConnectionEventsDispatch` class
+   `_echo` ☰  A boolean
+   `engine` ☰  A `sqlalchemy.engine.base.Engine` (Engine?) object
+   `exec_driver_sql` ☰ 
+   `_exec_insertmany_context` ☰ 
+   `_exec_single_context` ☰ 
+   `execute` ☰ 
+   `_execute_clauseelement` ☰ 
+   `_execute_compiled` ☰ 
+   `_execute_context` ☰ 
+   `_execute_ddl` ☰ 
+   `_execute_default` ☰ 
+   `_execute_function` ☰ 
+   `_execution_options` ☰  `sqlalchemy.cyextension.immutabledict.immutabledict`
+   `execution_options` ☰ 
+   `get_execution_options` ☰ 
+   `get_isolation_level` ☰ 
+   `get_nested_transaction` ☰ 
+   `_get_required_nested_transaction` ☰ 
+   `_get_required_transaction` ☰ 
+   `get_transaction` ☰ 
+   `_handle_dbapi_exception` ☰ 
+   `_handle_dbapi_exception_noconnection` ☰ 
+   `_has_events` ☰  A boolean
+   `info` ☰  A dict
+   `in_nested_transaction` ☰ 
+   `in_transaction` ☰ 
+   `invalidate` ☰ 
+   `invalidated` ☰  A boolean
+   `_invalid_transaction` ☰ 
+   `_invoke_before_exec_event` ☰ 
+   `_is_autocommit_isolation` ☰ 
+   `_is_disconnect` ☰  A boolean
+   `_is_protocol` ☰  A boolean
+   `_log_debug` ☰ 
+   `_log_info` ☰ 
+   `_message_formatter` ☰ 
+   `_nested_transaction` ☰ 
+   `_prepare_twophase_impl` ☰ 
+   `recover_twophase` ☰ 
+   `_reentrant_error` ☰  A boolean
+   `_release_savepoint_impl` ☰ 
+   `_revalidate_connection` ☰ 
+   `rollback` ☰ 
+   `_rollback_impl` ☰ 
+   `rollback_prepared` ☰ 
+   `_rollback_to_savepoint_impl` ☰ 
+   `_rollback_twophase_impl` ☰ 
+   `_run_ddl_visitor` ☰ 
+   `_safe_close_cursor` ☰ 
+   `_savepoint_impl` ☰ 
+   `scalar` ☰ 
+   `scalars` ☰ 
+   `schema_for_object` ☰ 
+   `_schema_translate_map` ☰ 
+   `should_close_with_result` ☰ A boolean
+   `_sqla_logger_namespace` ☰ A string
+   `_still_open_and_dbapi_connection_is_valid` ☰ A boolean
+   `_transaction` ☰ 
+   `_trans_context_manager` ☰ 
+
+     table }
+
+}
+{ Members of sqlalchemy.sql.elements.TextClause
+
+  table { ll
+
+   `_add_context_option` ☰
+   `_allow_label_resolve` ☰
+   `allows_lambda` ☰
+   `_all_selected_columns` ☰
+   `_annotate` ☰
+   `_annotations` ☰
+   `_annotations_cache_key` ☰
+   `_assert_no_memoizations` ☰
+   `_bindparams` ☰
+   `bindparams` ☰
+   `_bind_params_regex` ☰
+   `_cache_key_traversal` ☰
+   `_clone` ☰
+   `_cloned_set` ☰
+   `columns` ☰
+   `comparator` ☰
+   `compare` ☰
+   `compile` ☰
+   `_compiler` ☰
+   `_compiler_dispatch` ☰
+   `_compile_w_cache` ☰
+   `_constructor` ☰
+   `_copy_internals` ☰
+   `_deannotate` ☰
+   `description` ☰
+   `_effective_plugin_target` ☰
+   `entity_namespace` ☰
+   `_executable_traverse_internals` ☰
+   `_execute_on_connection` ☰
+   `_execute_on_scalar` ☰
+   `_execution_options` ☰
+   `execution_options` ☰
+   `_from_objects` ☰
+   `_gen_annotations_cache_key` ☰
+   `_gen_cache_key` ☰
+   `_generate` ☰
+   `_generate_cache_attrs` ☰
+   `_generate_cache_key` ☰
+   `_generate_cache_key_for_object` ☰
+   `_generate_compiler_dispatch` ☰
+   `_gen_static_annotations_cache_key` ☰
+   `get_children` ☰
+   `get_execution_options` ☰
+   `_hide_froms` ☰
+   `_hierarchy_supports_caching` ☰
+   `inherit_cache` ☰
+   `_is_bind_parameter` ☰
+   `is_clause_element` ☰
+   `_is_clause_list` ☰
+   `_is_clone_of` ☰
+   `_is_column_element` ☰
+   `_is_default_generator` ☰
+   `is_delete` ☰
+   `is_dml` ☰
+   `_is_from_clause` ☰
+   `_is_from_container` ☰
+   `_is_has_cache_key` ☰
+   `_is_immutable` ☰
+   `_is_implicitly_boolean` ☰
+   `is_insert` ☰
+   `_is_keyed_column_element` ☰
+   `_is_lambda_element` ☰
+   `_is_protocol` ☰
+   `_is_returns_rows` ☰
+   `is_select` ☰
+   `is_selectable` ☰
+   `_is_select_base` ☰
+   `_is_select_container` ☰
+   `_is_select_statement` ☰
+   `_is_singleton_constant` ☰
+   `_is_star` ☰
+   `_is_subquery` ☰
+   `_is_table` ☰
+   `is_text` ☰
+   `_is_text_clause` ☰
+   `_is_textual` ☰
+   `is_update` ☰
+   `key` ☰
+   `_label` ☰
+   `label` ☰
+   `memoized_attribute` ☰
+   `memoized_instancemethod` ☰
+   `_memoized_keys` ☰
+   `_negate` ☰
+   `_negate_in_binary` ☰
+   `options` ☰
+   `_order_by_label_element` ☰
+   `_original_compiler_dispatch` ☰
+   `params` ☰
+   `_post_inspect` ☰
+   `_propagate_attrs` ☰
+   `_render_label_in_columns_clause` ☰
+   `_replace_params` ☰
+   `_reset_memoizations` ☰
+   `_role_name` ☰
+   `_select_iterable` ☰
+   `self_group` ☰
+   `_set_compile_options` ☰
+   `_set_memoized_attribute` ☰
+   `_set_propagate_attrs` ☰
+   `stringify_dialect` ☰
+   `subquery` ☰
+   `supports_execution` ☰
+   `text` ☰
+   `_traverse_internals` ☰
+   `type` ☰
+   `_ungroup` ☰
+   `unique_params` ☰
+   `_update_compile_options` ☰
+   `uses_inspection` ☰
+   `_with_annotations` ☰
+   `_with_binary_element_type` ☰
+   `_with_context_options` ☰
+   `_with_options` ☰
+  table }
+
+}
+
 sa:
   → development/languages/Python/PEP/0249

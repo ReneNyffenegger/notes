@@ -1,0 +1,44 @@
+$ pandas: read_sql_query
+
+code {
+#!/usr/bin/env python
+
+import pandas
+import sqlalchemy
+import os
+
+db_name = 'a.db'
+
+if os.path.exists(db_name):
+   print(f'deleting {db_name}')
+   os.remove(db_name)
+
+eng = sqlalchemy.create_engine(f'sqlite:///{os.getcwd()}/{db_name}')
+
+#
+#    Create data
+#
+with eng.connect() as con:
+     con.execute(sqlalchemy.text('create table tab_one (id integer, txt text)'))
+
+     con.execute(
+         sqlalchemy.text("insert into tab_one (id, txt) values (:i, :t)"), [
+           {'i': 42, 't': 'forty-two'  },
+           {'i': 99, 't': 'ninety-nine'},
+           {'i':  1, 't': 'one'        }
+         ]
+     )
+
+     con.commit()
+
+#   ---------------------------
+
+with eng.connect() as con:
+ 
+     df = pandas.read_sql_query(sqlalchemy.text('select id, txt from tab_one'), con)
+
+     print(df);
+code }
+
+sa:
+ `→ development/languages/Python/libraries/pandas`
