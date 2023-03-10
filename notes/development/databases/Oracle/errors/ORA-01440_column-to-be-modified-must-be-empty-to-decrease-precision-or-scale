@@ -1,0 +1,41 @@
+$ ORA-01440: column to be modified must be empty to decrease precision or scale
+
+code {
+create table tq84_t (
+    id   integer,
+    num  number(6,3),
+    txt  varchar2(10)
+);
+begin
+insert into tq84_t values(1, 111.11, 'one'  );
+insert into tq84_t values(4, 444.44, 'four' );
+insert into tq84_t values(7, 777.77, 'seven');
+insert into tq84_t values(8, 888.88, 'eight');
+end;
+/
+code }
+
+The following statement throws *ORA-01440: column to be modified must be empty to decrease precision or scale*.
+code {
+alter table tq84_t modify num number(5,2);
+code }
+
+code {
+alter table tq84_t add num_copy number(5,2);
+update tq84_t set num_copy = num, num = null;
+alter table tq84_t modify num number(5,2);
+update tq84_t set num = num_copy;
+alter table tq84_t drop column num_copy;
+code }
+
+code {
+select * from tq84_t;
+code }
+
+Cleaning up
+code {
+drop table tq84_t;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
