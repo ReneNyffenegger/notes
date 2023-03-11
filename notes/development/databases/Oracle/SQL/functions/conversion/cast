@@ -1,0 +1,30 @@
+$ Oracle SQL: CAST
+@ cast
+
+`CAST(expr AS → development/databases/Oracle/SQL/data-types[data-type])` converts `expr` to a value of the indicated → development/databases/Oracle/SQL/data-types[data type].
+
+`CAST(MULTISET (→ development/databases/Oracle/SQL/select/subquery) AS type-name)` transforms the result set of the subquery to a → development/databases/Oracle/PL-SQL/collection-types.
+
+`CAST(expr AS → development/databases/Oracle/SQL/data-types[data-type] DEFAULT val ON CONVERSION ERROR)` evaluates to `val` if `expr` cannot be converted to → development/databases/Oracle/SQL/data-types[data-type].
+-
+Compare the `default … on conversion error` clause with the `→ development/databases/Oracle/SQL/functions/type-conversion/validate_conversion` function.
+
+The indicated precision of the number (here: `4.1`) is not respected when casting:
+code {
+select
+   cast('42.1'      as number(4,1) default -1 on conversion error) x,
+   cast('foo'       as number(4,1) default -1 on conversion error) y,
+   cast('12345.678' as number(4,1) default -1 on conversion error) z
+from
+   dual;
+--
+--          X          Y          Z
+-- ---------- ---------- ----------
+--       42.1         -1  12345.678
+code }
+
+
+sa:
+  The `DEFAULT val ON CONVERSION ERROR` clause can also be applied in the more specific conversion functions
+  • → development/databases/Oracle/SQL/functions/type-conversion/to_date[`to_date`] and
+  • → development/databases/Oracle/SQL/functions/type-conversion/to/number[`to_number`].
