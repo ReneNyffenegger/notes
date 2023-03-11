@@ -1,5 +1,16 @@
 $ Overpass API queries
 
+{ Find just everything
+
+  The following query uses `nwr` (a shorthand for `node`, `way` and `relation`)) to find just everything in the area visible in *Overpass turbo*. I like this because makes nodes and ways clickable and I can
+  quickly get some information about a (small) area:
+code {
+[→ development/OpenStreetMap/API/Overpass/settings/bbox[bbox]: → development/OpenStreetMap/API/Overpass/extensions/bbox ];
+nwr;
+→ development/OpenStreetMap/API/Overpass/statements/out;
+code }
+
+}
 { Shops
 
   The following query tries to find «non-specialized» shops.
@@ -102,6 +113,23 @@ code {
 );
 
 out geom;
+code }
+
+}
+{ List of countries
+
+  The following query produces the list of countries in → development/Data/exchange/formats/CSV format (using a vertical bar (`|`) instead of a comma to seperate the fields):
+code {
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](::id,name,'name:en','ISO3166-1',wikidata;
+    false;  // No header
+   '|'      // Seperator
+)];
+  
+relation
+   [admin_level='2']
+   ["ISO3166-1"~"^..$"];
+
+→ development/OpenStreetMap/API/Overpass/statements/out;
 code }
 
 }
