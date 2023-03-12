@@ -1,4 +1,4 @@
-$ Overpass API: querying an area
+$ Overpass API: Querying an area
 @ area
 
 The `area` query *seems* to find closed ways:
@@ -65,9 +65,32 @@ wr(pivot.areas) -> .x;
 code }
 
 }
+{ Querying an area whose relation id is known
+
+   → https://www.openstreetmap.org/relation/1690227[1690227] is the relation id of *Kt. Zürich*. By adding this number to 3600000000 (=3601690227), it's possible to query
+   an area if the corresponding relation's id is known.
+code {
+[→ development/OpenStreetMap/API/Overpass/settings/out#overpass-out-csv[out:csv](
+   ::id,
+     name,
+    'swisstopo:BFS_NUMMER'
+   ;
+     false;
+    '|'
+)];
+
+area(3601690227);         // Select the area of Kt. Zürich
+
+rel[admin_level=8](area); // Find municipalities (CH: admin_level=8) within the selected area
+
+out;
+code }
+
+  See also the `→ development/OpenStreetMap/API/Overpass/statements/map_to_area` function which seems to do
+  more or less the same.
+
+}
 
 sa:
-
-  The `→ development/OpenStreetMap/API/Overpass/statements/map_to_area` statement.
 
   The → development/OpenStreetMap/API/Overpass/statements/query
