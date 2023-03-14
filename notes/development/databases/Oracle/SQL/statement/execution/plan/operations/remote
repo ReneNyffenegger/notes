@@ -1,0 +1,43 @@
+$ Oracle SQL Plan operation: REMOTE
+@ REMOTE
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for 
+select
+   rem.col_a,
+   rem.col_b,
+   rem.col_c,
+   rem.col_d
+from
+   tab_local                loc                            join
+   tab_remote@db.abc.xyz    pen on loc.id_x = rem.id_y
+where
+   loc.col_1 = 'abc'
+;
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format=>'basic remote'));
+--
+-- ------------------------------------------------------------------------------------------------------
+-- | Id  | Operation                                   | Name                           | Inst   |IN-OUT|
+-- ------------------------------------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                            |                                |        |      |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join                                  |                                |        |      |
+-- |   2 |   PARTITION RANGE ALL                       |                                |        |      |
+-- |   3 |    TABLE ACCESS BY LOCAL INDEX ROWID BATCHED| TAB_LOCAL                      |        |      |
+-- |   4 |     BITMAP CONVERSION TO ROWIDS             |                                |        |      |
+-- |   5 |      BITMAP INDEX SINGLE VALUE              | TAB_LOCAL_IX_COL_1             |        |      |
+-- |   6 |   REMOTE                                    | TAB_REMOTE                     |     DB | R->S |
+-- ------------------------------------------------------------------------------------------------------
+--
+-- Remote SQL Information (identified by operation id):
+-- ----------------------------------------------------
+--
+--    6 - SELECT "COL_A","COL_B","COL_C","COL_D" FROM "TAB_REMOTE " "REM" 
+--        (accessing 'DB.ABC.XYZ' )
+code }
+
+sa:
+
+  The column named `other` of the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` stores the SQL statement executed on the remote site for the plan opterator `remote`.
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
