@@ -1,0 +1,175 @@
+$ Oracle functions: RPAD and LPAD
+
+code {
+LPAD ('string', n [, 'string_pad')
+RPAD ('string', n [, 'string_pad')
+code }
+
+`'string'` is left/riight padded to length `n` using `'string_pad'`.
+-
+If string_pad is ommited, a space will be used as default.
+
+The second parameter (`n`) to lpad or rpad determines the resulting length. If it is longer than `n`, string will be truncated:
+code {
+select 
+  lpad('string with 25 characters', 20) lpad,
+  rpad('string with 25 characters', 20) rpad
+from dual;
+--
+-- LPAD                 RPAD
+-- -------------------- --------------------
+-- string with 25 chara string with 25 chara
+code }
+
+
+The literal string is lpadded to all lengths between 1 and 15. The < shows where the string is cut. As soon as the second parameter becomes larger than the length of the first parameter, lpadding occurs. The default is space, so spaces are prepended to string:
+code {
+begin
+
+  for i in 1 .. 15 loop
+    dbms_output.put_line(
+      lpad('string', i) || '<'
+    );
+  end loop;
+
+end;
+/
+--
+-- s<
+-- st<
+-- str<
+-- stri<
+-- strin<
+-- string<
+--  string<
+--   string<
+--    string<
+--     string<
+--      string<
+--       string<
+--        string<
+--         string<
+--          string<
+code }
+
+Same thing as prefious, but with rpad instead of lpad: 
+
+
+code {
+begin
+
+  for i in 1 .. 15 loop
+    dbms_output.put_line(
+      rpad('string', i) || '<'
+    );
+  end loop;
+
+end;
+/
+--
+-- s<
+-- st<
+-- str<
+-- stri<
+-- strin<
+-- string<
+-- string <
+-- string  <
+-- string   <
+-- string    <
+-- string     <
+-- string      <
+-- string       <
+-- string        <
+-- string         <
+code }
+
+This demonstration is again similar to demonstration 2, but it uses a non-default padding string (`'.,_'`):
+code {
+begin
+
+  for i in 1 .. 15 loop
+    dbms_output.put_line(
+      lpad('string', i, '.,_') 
+    );
+  end loop;
+
+end;
+/
+--
+-- s
+-- st
+-- str
+-- stri
+-- strin
+-- string
+-- .string
+-- .,string
+-- .,_string
+-- .,_.string
+-- .,_.,string
+-- .,_.,_string
+-- .,_.,_.string
+-- .,_.,_.,string
+-- .,_.,_.,_string
+code }
+
+{ Pretty printing output
+
+   This demonstration shows how to pretty print some output.
+
+code {
+create table rlpad_tbl (
+  col_1 varchar2(10),
+  col_2 varchar2(10)
+);
+
+insert into rlpad_tbl values ('apple',     'pear'      );
+insert into rlpad_tbl values ('grapefruit','mango'     );
+insert into rlpad_tbl values ('orange',    'banana'    );
+insert into rlpad_tbl values ('lemon',     'watermelon');
+code }
+
+   Now, the values of `col_1` and `col_2` are selected and *concatenated*: 
+code {
+select col_1 || ' - ' || col_2 from rlpad_tbl;
+code }
+
+  The query returns:
+code {
+apple - pear
+grapefruit - mango
+orange - banana
+lemon - watermelon
+code }
+
+  The length of the values of col_1 varies. This is because col_1 is of type varchar2. Only the relevant (or used) portion of its capacity is printed.
+
+  It might be desired to neatly align the parts of the concatenated string. rpad and lpad comes to rescue: 
+code {
+select
+  rpad(col_1, 10) || ' - ' ||
+  lpad(col_2, 10)
+from
+  rlpad_tbl;
+code }
+
+  This query returns:
+code {
+apple      -       pear
+grapefruit -      mango
+orange     -     banana
+lemon      - watermelon
+code }
+
+}
+
+{ Side effects of empty strings
+
+  Oracle treats an empty string as `→ development/databases/Oracle/SQL/null`. And nulls are always a bit special within Oracle.
+  Particularly, `rpad('', n)` and `lpad('', n)` return `null`.
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/functions/text[Functions related to text]
