@@ -1,0 +1,49 @@
+$ Oracle: Order of invisible columns
+
+code {
+create table tq84_invis_col (
+    col_a      number,
+    col_b      number      invisible,
+    col_c      number
+);
+
+insert into tq84_invis_col (col_a, col_b, col_c) values (1, 2, 3);
+code }
+
+Data dictionary:
+code {
+select
+   col.column_id,
+   col.column_name,
+   col.data_type
+from
+   → development/databases/Oracle/installed/data-dictionary/tab/columns[user_tab_columns] col
+where
+   col.table_name = 'TQ84_INVIS_COL'
+order by
+   col.column_name;
+--
+-- COLUMN_ID  COLUMN_NAME  DATA_TYPE 
+-- ---------  -----------  ---------
+--         1  COL_A        NUMBER    
+--            COL_B        NUMBER    
+--         2  COL_C        NUMBER    
+code }
+
+code {
+alter table    tq84_invis_col modify col_b visible;
+
+select * from tq84_invis_col;
+-- 
+--      COL_A      COL_C      COL_B
+-- ---------- ---------- ----------
+--          1          3          2
+code }
+
+  Cleaning up
+code {
+drop table tq84_invis_col;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/columns/invisible[Invisible columns]
