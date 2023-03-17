@@ -26,6 +26,8 @@ from
    dual;
 code }
 
+The *ORA-01722* error can also occur in → #ora-01722-concat[combination with the concatenation operator (`||`)].
+
 { Finding values that are not numerical
 
   Unfortunately, Oracle does not have a built-in function that checks if a value is numerical. However, it is possible to create a user defined function that returns `y` if a value can be converted to a
@@ -85,6 +87,32 @@ SQL> select value from → development/databases/Oracle/installed/dynamic-perfor
 SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] events '1722 trace name errorstack level 1';
 SQL> select to_number('not a number') from dual;
 ORA-01722: invalid number
+code }
+
+}
+{ Concatenation operator #ora-01722-concat
+
+  `'str' || num` evaluates to string. When applying `+` to the string, it tries to evaluate the string as number which throws *ORA-01722* if the string is not convertible to a number.
+
+   This is demonstrated with this silly example:
+code {
+create table tq84_xy (  x number,  y number  );
+insert into tq84_xy values (13, 28);
+code }
+
+   The following statment throws the error:
+code {
+select 'The sum of ' || x || '+' || y || ' is ' ||  x+y  || '.' from tq84_xy;
+code }
+
+   Here, the addition is put into parantheses so that the `+` is not applied to strings. This statement runs without problems:
+code {
+select 'The sum of ' || x || '+' || y || ' is ' || (x+y) || '.' from tq84_xy;
+code }
+
+  Cleaning up
+code {
+drop table tq84_xy;
 code }
 
 }
