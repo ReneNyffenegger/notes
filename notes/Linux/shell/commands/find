@@ -114,9 +114,9 @@ code }
     `-nogroup` ☰ ☰
     `-nouser` ☰ ☰
     `-path pattern` ☰ ☰ `-ipath`
-    `-perm [-|+|/]mode` ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute` ☰
-    `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-executable` ☰
-    `-regex pattern` ☰ Checks if regular expression matches *whole* path of file (see also → #find-regex[here]). Specify regex dialect with the `-regextype` option ☰ `-iregex`
+    → #find-perm[`-perm [-|+|/]mode`] ☰ Permission bits: (`mode`: exactly, `-mode`: all bits, `/mode`: any bit, `+mode`: deprecated). Compare `-execute` ☰
+    `-readable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which → #find-perm[`-perm`] ignores). Compare `-executable` ☰
+    → #find-regex[`-regex pattern`] ☰ Checks if regular expression matches *whole* path of file (see also → #find-regex[here]). Specify regex dialect with the `-regextype` option ☰ `-iregex`
     `-samefile name` ☰ ☰
     `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³ ☰
     `-true` ☰ ☰
@@ -162,7 +162,7 @@ code }
     `-print` ☰ Print full incl. new line name on stdout, return `true`.
     `-print0` ☰ Print full name followed by `NUL` character on stdout. (Compare to `-0` option of `→ Linux/shell/commands/xargs`)
     `-printf format` ☰ `true`
-    `-prune` ☰ If file is a directory, do not descend into it and return `true`. If `-depth` is also specified, `-prune` has no effect. (Note that `-depth` is implied by `-delete`).
+    → #find-prune[`-prune`] ☰ If file is a directory, do not descend into it and return `true`. If `-depth` is also specified, `-prune` has no effect. (Note that `-depth` is implied by `-delete`).
     `-quit` ☰ Immediately exit the `find` process. Useful to check for the existence of  a given file: `find $dir -name xyz -print -quit`
   table }
 
@@ -184,7 +184,6 @@ code }
   This option is useful to → Linux/shell/commands/rm#rm-special-character[remove files with special characters].
 
 }
-
 { Find files case insensitively
 
 Use the `-iname` argument:
@@ -193,7 +192,6 @@ $ find . -iname '*foo*'
 code }
 
 }
-
 { Find files that were changed during a certain period
 
 { During the last 5 minutes
@@ -251,7 +249,7 @@ $ find / -path /foo/bar/baz  -prune  -o \
 code }
 
 }
-{ Finding files with special permissions
+{ Finding files with special permissions #find-perm
 
   The `-perm` option allows to find files with specific permissions (such as readable by me, writeable by group or executable by anyone).
 
@@ -300,6 +298,13 @@ code {
 find -type f -regex '.*/relase-notes/.*1\.7.*'
 code }
 
+  { Files that are not world readable
+
+code {
+find files -not -perm /o=r
+code }
+
+  }
 
 }
 { Operator precedence
@@ -352,7 +357,7 @@ code }
 }
 { -Olevel #find-O
 
-  `-Olevel` specifies the level of query optimizationl
+  `-Olevel` specifies the level of query optimization.
 
   `level` can be set to one of the following values:
   table { ll
@@ -375,4 +380,10 @@ sa:
 
   → Linux/shell/commands[Shell commands]
 
-  A *very cheap and amateurish* equivalent of `touch` in → Windows/dirs/Windows/System32/cmd_exe[cmd.exe] is → Windows/dirs/Windows/System32/cmd_exe/commands/forfiles[`forfiles`].
+  { Windows
+
+    A *very cheap and amateurish* equivalent of `find` in `→ Windows/dirs/Windows/System32/cmd_exe` is `→ Windows/dirs/Windows/System32/cmd_exe/commands/forfiles`.
+
+    The command line utilities `→ Windows/dirs/Windows/System32/find_exe` and `→ Windows/dirs/Windows/System32/findstr_exe`.
+
+  }
