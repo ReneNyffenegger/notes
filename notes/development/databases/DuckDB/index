@@ -1,0 +1,122 @@
+
+DuckDB has no dependencies to compile or to run it.
+-
+All DuckDB needs to be compiled is a C++ 11 compiler.
+
+Like → development/databases/SQLite, there is no server, rather DuckDB runs within the same → Linux/kernel/process as also the program using DuckDB.
+
+{ Misc
+
+  { SELECT * FROM T
+
+   `select * from t` can be abreviated with:
+code {
+from t;
+code }
+
+  }
+  { Specify selected columns
+
+    Select all columns from `t`, *except* `id` and `val_2`:
+code {
+select * exclude (id, val_2) from t;
+code }
+
+  Replace a given column with an expression
+code {
+select * replace(upper(val_1) as val_1) from t;
+code }
+
+   Select columns whose names match a regular expression: 
+code {
+select columns('val_\d') from t;
+code }
+
+    Select `min(…)` for *all* columns: 
+code {
+select min(columns(*)) from t;
+code }
+
+  } 
+  { Lists
+
+  «List» is a native data type:
+code {
+select  [1, 2, 3, 4, 5];
+code }
+
+  `apply()` can be used to evaluate an expression on each element of a list and return a list.
+code {
+select ([1, 2, 3, 4, 5]).apply( x -> x**2 );
+code }
+ 
+ `filter()` selects the elements of a list that meet a given condition:
+code {
+select ([1, 2, 3, 4, 5]).apply( x -> x**2 ).filter( x -> x>10 );
+code }
+
+
+    Create a table with list column:
+code {
+create table t (id int primary key, elems int[]);
+
+insert into t values (1,  [10, 20, 30    ]);
+insert into t values (2,  [22, 55, 88, 99]);
+insert into t values (3,  [              ]);
+
+select elems.apply( elem -> elem * id) from t;
+code }
+
+code {
+select id, elems.aggregate('sum') from t;
+code }
+
+    A list of words can be created from a string and the `split()` function.
+    -
+    The following example splits a sentences into words and then uses `regexp_matches()` to remove the words that contain commas or periods.
+code {
+create table s(txt varchar);
+
+insert into s values ('Hello world, the number is 42.');
+select txt.split(' ').filter( word -> not word.regexp_matches('\.|,')) from s;
+code }
+
+   A list of increasing integers can be created with `generate_series`:
+code {
+select generate_series( 1, 100 );
+code }
+
+   A list can be «rotated» 90 degress:
+code {
+select unnest(generate_series(1, 100));
+code }
+
+  }
+
+
+  { Exporting and importing data
+
+    A database can be exported to different file formats:
+code {
+export database '/home/rene/dbexp' (format csv, delimiter ',');
+export database '/home/rene/dbexp' (format parquet);
+code }
+
+   There is also an `import` command: 
+code {
+import database '/home/rene/dbexp':
+code }
+
+
+  A single → development/Data/exchange/formats/CSV file can be loaded with the `copy` command:
+code {
+copy destTbl from '→ Linux/fhs/home/username[/home/rene]/data.csv';
+code }
+
+  }
+  { ILIKE
+
+   `ilike` matches case insensitively.
+
+  }
+}
