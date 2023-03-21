@@ -1,0 +1,77 @@
+$ Python: yield from
+
+{ Simple example
+
+  → https://stackoverflow.com/a/66502060[This Stackoverflow answer] was helpful to understand `→ development/languages/Python/statements/yield from`:
+code {
+def yieldXYZ():
+
+    yield 'X'
+    yield 'Y'
+    yield 'Z'
+
+
+def yieldFromYieldXYZ():
+
+    for i in range(3):
+        yield from yieldXYZ()
+
+
+for x in yieldFromYieldXYZ():            
+    print(x)
+code }
+
+  When executed, it prints
+code {
+X
+Y
+Z
+X
+Y
+Z
+X
+Y
+Z
+code }
+
+}
+{ Modifying yielded elements
+
+  In the following example, the function `squaredNubmers` uses `yield from` to create lists with two elements: the first is the number yielded from `numbers` while the second one is the number squared:
+code {
+def numbers():
+    yield  7
+    yield 28
+    yield 12
+    yield  3
+
+
+def squaredNubmers():
+    yield from ( [x, x**2] for x in numbers() )
+
+
+for i in squaredNubmers():
+    print(f'{i[0]} -> {i[1]}')
+code }
+
+  I am not sure if this is a form of → development/languages/Python/types/list/comprehension.
+
+}
+{ Flattening nested lists
+
+code {
+def flatten(listOrElem):
+
+    if isinstance(listOrElem, list):
+       for x in listOrElem:
+           yield from flatten(x)
+
+    else:
+       yield listOrElem
+
+
+for i in flatten( [ 1, ['a', 'b', ['I', 'II', 'III', 'IV' ], 'c' ], 2, 3] ):
+    print(i)
+code }
+
+}
