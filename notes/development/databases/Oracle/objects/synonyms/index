@@ -29,6 +29,30 @@ drop synonym defg;
 drop table abcd;
 code }
 
+{ Foreign key constraints #ora-syn-fk
+
+  A synonym name can be used when creating a → development/databases/Oracle/objects/tables/constraints/foreign-key constraint:
+code {
+create table   tq84_p ( id integer primary key );
+create synonym tq84_s for tq84_p;
+create table   tq84_c ( x references tq84_s );
+ 
+select
+   pk.table_name
+from
+   user_constraints pk       join
+   user_constraints fk on fk.r_constraint_name = pk.constraint_name
+where
+   fk.table_name = 'TQ84_C';
+  
+drop   synonym tq84_s;  
+   
+drop table tq84_c;
+drop table tq84_p;
+code }
+
+}
+
 sa:
 
   A synonym can be renamed with the → development/databases/Oracle/SQL/statement/verbs/rename[SQL verb `rename`].
