@@ -1,0 +1,170 @@
+
+
+`jq` is like `→ development/languages/sed` for → development/languages/JavaScript/JSON data.
+
+{ Installation on apt based systems
+
+code {
+→ Linux/shell/commands/sudo apt install jq -y
+code }
+
+}
+{ Usage
+
+code {
+jq [options…] filter [files…]
+code }
+
+ `filter` is a program, written in the `jq` language`, that specifies how the input data (JSON format) is transformed for the output.
+
+  By default, `jq` will pretty-print its output (but see `-c` command line option).
+
+}
+{ Filters
+
+  A filter takes input and produces output. Some filters even produce multiple outputs.
+
+  Literals (Such as `"Hello world"` or `42`) are filters: these disregard their input and produce their own value as output.
+ 
+  The output of a filter can be piped into another filter or collected into an array.w
+
+  table { ll
+
+    `.` ☰ Identity (output is equal to input) (for example `echo 11 | jq '(. + 10) * 2'` produces `42`.
+    `..` ☰ Recirsive descent (similar to XPath `//` operator)
+    `.keyName`, `.["keyName"]` ☰ Value JSON object's element whose name is `keyName`. If followed by question mark (`.keyName?`, `.["keyName"]?`), then value evaluates to `null` if `keyName` does not exist (rather than outputting an error)
+    `.[n]` ☰ nth element of array. `n` can be negative to count from the other end (`.[-1]` is last element)
+    `.[n:m]` ☰ Slice. Can be applied on array or string.
+    `.[]` ☰ All elements (`.[]?` prevents errors)
+    `… , …` ☰ Comma operator: input is fed to the filter on the left and on the right, output values are concatenated.
+    `… | …` ☰ Pipe operator (similar to the pipe of shells)
+    `[ elem1, elem2, … ]` ☰ Array construction
+    `{ key: val … }` ☰ Object construction
+
+  table }
+
+}
+{ Operators and functions
+
+  table { ll
+
+    `+`, `-` ☰
+    `*` ☰
+    `/` ☰
+    `%` ☰
+    `length` ☰
+    `utf8bytelength` ☰
+    `keys`, `keys_unsorted` ☰
+    `has(key)` ☰
+    `in` ☰
+    `map(x)`, `map_values(x)` ☰
+    `path(expr)` ☰
+    `del(path_expression)` ☰
+    `getpath(PATHS)` ☰
+    `setpath(PATHS; VALUE)` ☰
+    `delpaths(PATHS)` ☰
+    `to_entries, from_entries, with_entries` ☰
+    `select(boolean_expression)` ☰
+    `arrays, objects, iterables, booleans, numbers, normals, finites, strings, nulls, values, scalars` ☰
+    `empty` ☰
+    `error(message)` ☰
+    `halt` ☰
+    `halt_error, halt_error(exit_code)` ☰
+    `$__loc__` ☰
+    `paths, paths(node_filter), leaf_paths` ☰
+    `add` ☰
+    `any, any(condition), any(generator; condition)` ☰
+    `all, all(condition), all(generator; condition)` ☰
+    `flatten, flatten(depth)` ☰
+    `range(upto), range(from;upto) range(from;upto;by)` ☰
+    `floor` ☰
+    `sqrt` ☰
+    `tonumber` ☰
+    `tostring` ☰
+    `type` ☰
+    `infinite, nan, isinfinite, isnan, isfinite, isnormal` ☰
+    `sort, sort_by(path_expression)` ☰
+    `group_by(path_expression)` ☰
+    `min, max, min_by(path_exp), max_by(path_exp)` ☰
+    `unique, unique_by(path_exp)` ☰
+    `reverse` ☰
+    `contains(element)` ☰
+    `indices(s)` ☰
+    `index(s), rindex(s)` ☰
+    `inside` ☰
+    `startswith(str)` ☰
+    `endswith(str)` ☰
+    `combinations, combinations(n)` ☰
+    `ltrimstr(str)` ☰
+    `rtrimstr(str)` ☰
+    `explode` ☰
+    `implode` ☰
+    `split(str)` ☰
+    `join(str)` ☰
+    `ascii_downcase, ascii_upcase` ☰
+    `while(cond; update)` ☰
+    `until(cond; next)` ☰
+    `recurse(f), recurse, recurse(f; condition), recurse_down` ☰
+    `walk(f)` ☰
+    `transpose` ☰
+    `bsearch(x)` ☰
+    `tojson, fromjson` ☰
+
+  table }
+
+
+}
+{ Variables
+
+  Variables start with a dollar sign (`$thisIsAVariable`)
+
+}
+{ Modules
+
+ `jq` has a module system.
+
+}
+{ Command line options
+
+  table { lll
+
+
+    ☰ `--version` ☰ 
+    ☰ `--seq` ☰ Use the `application/json-seq` MIME type scheme for separating JSON texts in input and output: print an ASCII RS (record separator) character before each value on output and an ASCII LF (line feed) after every output.
+    ☰ `--stream` ☰ Outputarrays of path and leaf values (scalars and empty arrays or empty objects), usefule for processing large inptus in conjunction with filtering (`"a"` becomes `[[],"a"]` ; `[[],"a",["b"]]` becomes `[[0],[]]`, `[[1],"a"]` and `[[1,0],"b"]`)
+    `-s` ☰ `--slurp`  ☰ Read entire input string into a large array, then run filter once (Instead of running the filter for each JSON object in the input).
+    `-R` ☰ `--raw-input`  ☰ Input is not treated as JSON; each line is passed to the filter as a string. Combine with `--slurp` to process entire input as *one* string. 
+    `-n` ☰ `--null-input`  ☰ Run filter once with `null` as input (for example to construct JSON data from scratch)
+    `-c`☰ `--compact-output` ☰ Do not pretty-print output.
+    ☰ `--tab` ☰ Use tab rather than two spaces for indentation 
+    ☰ `--indent n` ☰ Use the given number of spaces for indentation.
+    `-C` ☰ `--color-output` ☰ See also `JQ_COLORS` environment variable
+    `-M` ☰ `--monochrome-output` ☰
+    `-a` ☰ `--ascii-output`  ☰
+    ☰ `--unbuffered` ☰ Flush the output after each JSON object is printed 
+    `-S` ☰ `--sort-keys`  ☰ Output object fields in sorted order
+    `-r` ☰ `--raw-output`  ☰ Strings won't be quoted
+    `-j` ☰ `--join-output`  ☰ Like `-r` but `jq` won´t print a newline after an output.
+   `-f filename` ☰ `--from-file filename` ☰ Read filter from `filemane` (like → development/languages/awk[awk's] `-f` option). Apparently, such files allow `#` for comments
+   `-Ldirectory` ☰  ☰ Prepend `directory` to the search list for modules. If this option is used then no builtin search list is used.
+    `-e` ☰ `-exit-status` ☰
+    ☰ `--arg name value` ☰ Pass a value to the jq program as a predefined variable (`$name` then has the value `value`)
+    ☰ `--argjson name JSON-text` ☰
+    ☰ `--slurpfile variable-name filename` ☰
+    ☰ `--rawfile variable-name filename` ☰ Assign content of `filename` to `variable-name`.
+    ☰ `--argfile variable-name filename` ☰ Use `--slurpfile` instead.
+    ☰ `--args` ☰ Remaining arguments are positional string arguments. These are available to the jq program as `$ARGS.positional[]`.
+    ☰ `--jsonargs` ☰ Remaining arguments are positional JSON text arguments. These are available to the jq program as `$ARGS.positional[]`.
+    ☰ `--run-tests [filename]` ☰
+
+  table }
+
+}
+
+sa:
+  → https://github.com/mikefarah/yq[yq] has the same idea, but is for YAML.
+
+  → https://github.com/wader/fq[fq] is inspired by jq, but works with → development/Data/binary formats.
+
+links:
+  → https://stedolan.github.io/jq/
