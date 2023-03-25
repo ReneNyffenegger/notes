@@ -109,10 +109,64 @@ code }
     `transpose` ☰
     `bsearch(x)` ☰
     `tojson, fromjson` ☰
+    `builtins` ☰ Returns a list of all built in functions in the format `name/arity`
+    `repeat` ☰
 
   table }
 
+  { Date functions
 
+    table { ll
+
+      `fromdateiso8601` ☰ Parses dates in ISO 8601 format, returns number of seconds since the Unix epoch (1970-01-01T00:00:00Z).
+      `todateiso8601` ☰ Reverse of `fromdateiso8601`
+      `fromdate` ☰
+      `todate` ☰ An alias for `todateiso8601`
+      `now` ☰ Current time in seconds since Unix epoch
+
+    table }
+
+    Pipe empty JSON object to `jq` (because `jq` expects a JSON object) and evaluate `now`:
+code {
+$ echo '{}' | jq 'now'
+1679756466.497302
+code }
+
+    Pipe the evaluated number of seconds to `todateiso8601` so that we get an ISO 8601 formatted string:
+code {
+$ echo '{}' | jq 'now | todateiso8601'
+1679756466.497302
+"2023-03-25T15:01:06Z"
+code }
+
+    Get the number of seconds from an ISO 8601 formatted string:
+code {
+$ echo '"2022-02-18T14:57:13Z"' | jq 'fromdateiso8601'
+1645196233
+code }
+
+    There are also interfaces to the C-library time functions:
+      • `strptime`
+      • `strftime`
+      • `strflocaltime`
+      • `mktime`
+      • `gmtime`
+      • `localtime`
+
+  }
+
+  { SQL style operators
+
+    table { ll
+       `INDEX(stream; index_expression)` ☰
+       `JOIN($idx; stream; idx_expr; join_expr)` ☰
+       `JOIN($idx; stream; idx_expr)` ☰
+       `JOIN($idx; idx_expr:` ☰
+       `IN(s)` ☰
+       `IN(source; s)` ☰
+    table }
+
+  }
 }
 { Variables
 
@@ -121,7 +175,21 @@ code }
 }
 { Modules
 
- `jq` has a module system.
+ `jq` allows to create libraries/modules in `.jq` files.
+
+}
+{ @ syntax
+
+  The `@` syntax formats and escapes strings.
+    • `@text`
+    • `@json`
+    • `@html`
+    • `@uri`
+    • `@csv`
+    • `@tsv`
+    • `@sh`
+    • `@base64`
+    • `@base64d`
 
 }
 { Command line options
@@ -150,7 +218,7 @@ code }
     `-e` ☰ `-exit-status` ☰
     ☰ `--arg name value` ☰ Pass a value to the jq program as a predefined variable (`$name` then has the value `value`)
     ☰ `--argjson name JSON-text` ☰
-    ☰ `--slurpfile variable-name filename` ☰
+    ☰ `--slurpfile variable-name filename` ☰ Assigns to content of a JSON document to a variable.
     ☰ `--rawfile variable-name filename` ☰ Assign content of `filename` to `variable-name`.
     ☰ `--argfile variable-name filename` ☰ Use `--slurpfile` instead.
     ☰ `--args` ☰ Remaining arguments are positional string arguments. These are available to the jq program as `$ARGS.positional[]`.
@@ -165,6 +233,8 @@ sa:
   → https://github.com/mikefarah/yq[yq] has the same idea, but is for YAML.
 
   → https://github.com/wader/fq[fq] is inspired by jq, but works with → development/Data/binary formats.
+
+  If `→ Linux/fhs/home/username/_jq` is a file, it is sourced into the main program
 
 links:
   → https://stedolan.github.io/jq/
