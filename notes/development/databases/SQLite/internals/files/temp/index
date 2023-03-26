@@ -1,0 +1,27 @@
+$ SQLite: Temporary files
+
+The → https://www.sqlite.org/tempfiles.html[documentation] lists nine types of temporary files:
+table { ll
+  Rollback journals ☰ Name is name of → development/databases/SQLite/internals/database-file[database file] with `-journal` appended. Used for atomic commit and rollback. See also `pragma locking_mode=exclusive` and WAL files.
+  Super-journals ☰ Used when committing transactions on multiple databases (added with `attach`).
+  Write-ahead Log (WAL) files ☰ Used instead of a rollback journal when operating in WAL mode.
+  Shared-memory files ☰ In Linux: created with `mmap()`. Name is database file name with `-shm` appended. Used to share memory accross connections when operating in WAL mode.
+  Statement journals ☰
+  Temp databases ☰ `create temp database`
+  Materializations of views and subqueries ☰
+  Transient indices ☰ Possibly used for `order by`, `group by`, `distinct`, `union`, `except`, `intersect`.
+  Transient databases used by `vacuum` ☰
+table }
+
+{ Location
+
+  In Unix, the location of the temporary files is determined in the following order:
+    • The directory set by `pragma temp_store_directory` (*deprecated*!) or by the `sqlite3_temp_directory` global variable
+    • The `SQLITE_TMPDIR` environment variable
+    • The `TMPDIR` environment variable
+    • `→ Linux/fhs/var/tmp`
+    • `→ Linux/fhs/usr/tmp`
+    • `→ Linux/fhs/tmp`
+    • The current working directory (`.`) 
+
+}
