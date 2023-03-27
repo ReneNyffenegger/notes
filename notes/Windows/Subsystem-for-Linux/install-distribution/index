@@ -1,0 +1,57 @@
+$ Installing a WSL Distribution on an external harddisk
+
+Some notes about installing a → Windows/Subsystem-for-Linux distribution on an external harddisk. I've found most of the interesting pieces in
+→ https://superuser.com/a/1572837/16610[this helpful SuperUser anser].
+
+First, I had to make sure that → Windows/optional-features/Hyper-V was enabled (prevent message *Please enable the Virtual Machine Platform Windows feature and ensure virtualization is enabled in the BIOS.*).
+-
+In order to also prevent *One or several parent features are disabled so current feature can not be enabled.*, I use the `-all` option in the following command:
+code {
+enable-windowsOptionalFeature -featureName microsoft-hyper-v -online -all
+code }
+
+It should be noted that after enabling Hyper-V, I was unable to start → Companies-Products/Oracle/VM-VirtualBox[Oracle VirtualBox] anymore.
+
+Making sure I am running wsl version 2:
+code {
+→ Windows/dirs/Windows/System32/wsl_exe[wsl] --set-default-version 2
+code }
+
+Specify the directory to which the → development/filename-extensions#appx[`.appx`] file should be downloaded and the directory (on the external harddsik) where the distribution is to be installed:
+code {
+$downloadDir = $env:temp
+$destDir     = 'd:/wsl/debian'
+code }
+
+I want to install → Linux/distributions/Debian. A list of available download links is → https://learn.microsoft.com/en-us/windows/wsl/install-manual#downloading-distributions[here].
+code {
+$appxUrl = 'https://aka.ms/wsl-debian-gnulinux'
+
+→ Windows/PowerShell/language/variable/preference/progressPreference = 'silentlyContinue'
+→ Windows/PowerShell/command-inventory/noun/webRequest/invoke $appxUrl -outFile $downloadDir/linux.appx -useBasicParsing
+code }
+
+Uncompress the downloaded appx file (which is a → development/archive-files/zip[zip file] in disguise):
+code {
+→ Windows/PowerShell/command-inventory/noun/item/move[mv] ./linux.appx ./linux.zip
+→ Windows/PowerShell/command-inventory/noun/archive/expand ./linux.zip
+code }
+
+
+The extracted files contain «nested» appx's. Running a x64 system (as opposed to an ARM system), I extract the corresponding appx:
+code {
+→ Windows/PowerShell/command-inventory/noun/item/move[mv] DistroLauncher-Appx_1.12.2.0_x64.appx x64.zip
+→ Windows/PowerShell/command-inventory/noun/archive/expand x64.zip
+code }
+
+The extracted files are moved to the hardddisk:
+code {
+cd x64
+mv * $destDir
+code }
+
+I am finally able to install the distribution:
+code {
+cd $destDir
+./debian
+code }
