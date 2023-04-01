@@ -1,13 +1,85 @@
 $ Shell command: od
 @ od
 
-`od` dumps files in octal and other formats (such as hex numbers).
+`od` dumps the content of files. By default, in octal format, but other formats (such as hex numbers) can be chosen
 
-{ Specify format
+code {
+od               [OPTION]…       [FILE]…
+od               [-abcdfilosx]…  [FILE] [[+]OFFSET[.][b]]
+od --traditional [OPTION]…       [FILE] [[+]OFFSET[.][b] [+][LABEL][.][b]]
+code }
 
-  `-t TYPE` (see `man od`)
+Instead of `FILE`, `-` can be specified, which reads → development/stdin-stdout-stderr[stdin].
+
+{ Options
+
+  Arguments to long options are connected to the option name with a `=` sign.
+  
+  table { llll
+
+  `-A` ☰ `--address-radix=` ☰ `RADIX` ☰  output format for file offsets (left most column); RADIX is one of [doxn], for Decimal, Octal, Hex or None
+       ☰ `--endian=`        ☰ `big` or `little` ☰   swap input bytes according the specified order
+  `-j` ☰ `--skip-bytes=`    ☰ `nofBytes` ☰ skip `nofBytes` input bytes first
+  `-N` ☰ `--read-bytes=`    ☰ `nofBytes` ☰ limit dump to `nofBytes` input bytes
+  `-S` ☰ `--strings=`       ☰ `nofBytes` ☰ Output strings of at least `nofBytes` graphic chars; `3` is implied when optional `nofBytes` is not specified
+  `-t` ☰ `--format=`        ☰ `TYPE`     ☰ select output format or formats
+  `-v` ☰ `--output-duplicates` ☰         ☰ Do not use `*` to mark line suppression
+  `-w` ☰ `--width=`         ☰ `nofBytes` ☰ put `nofBytes` per output line; `32` is implied when optional `nofBytes` is not specified
+       ☰ `--traditional` ☰ ☰ ?
+       ☰ `--help` ☰ ☰ 
+       ☰ `--verion` ☰ ☰ Print version.
+
+  table }
+
+  { TYPE
+
+    table { lll
+
+      `a`       ☰ Named character, ignoring high-order bit ☰ `-t a` can be abbreviated with `-a`
+      `c`       ☰ Printable character or backslash escape ☰ `-t c` = `-c`
+      `d[SIZE]` ☰ Signed decimal, SIZE bytes per integer ☰ `-t dI` = `-i`, `-t dL` = `-l`, `-t d2` = `-s`
+      `f[SIZE]` ☰ Floating point, SIZE bytes per float ☰ `-t fF` = `-f`
+      `o[SIZE]` ☰ Octal, SIZE bytes per integer ☰ `-t o1` = `-b`, `-t o2` = `-o`
+      `u[SIZE]` ☰ Unsigned decimal, SIZE bytes per integer ☰ `-t u2` = `-d`
+      `x[SIZE]` ☰ Hexadecimal, SIZE bytes per integer ☰ `-t x2` = `-x`
+
+    table }
+
+    Adding a `z` suffix to any type also displays printable characters at the end of each output line.
+
+    { SIZE
+
+     `SIZE` is a number. If `TYPE` is one of `d`, `o`, `u` or `x`, `SIZE` can also be specified with one of the following
+      letters:
+      table { ll
+         `C` ☰ `sizeof(char)`
+         `S` ☰ `sizeof(short)`
+         `I` ☰ `sizeof(int)`
+         `L` ☰ `sizeof(long)` or `sizeof(long double`)
+         `F` ☰ `sizeof(float)`
+         `D` ☰ `sizeof(double)`
+      table }
+
+
+    }
+
+  }
+  { nofBytes
+
+   `nofBytes` is a hexadecimal number, prefixed with `0x` or `0X`, and an optional multiplier suffix:
+      • `b`    512
+      • `KB`   1000
+      • `K`    1024
+      • `MB`   1000*1000
+      • `M`    1024*1024
+      • `G`, `T`, `P`, `E`, `Z`, `Y` etc.
+      
+    Binary prefixes can be used, too: KiB=K, MiB=M, and so on.
+
+  }
 
 }
+
 { Showing hexadecimal bytes
 
 code {
@@ -26,7 +98,22 @@ $ printf abc@def | od -t x1 -An
  61 62 63 40 64 65 66
 code }
 
+}
+{ Show one int per line
 
+code {
+od -t d4 --width=4   /path/to/file
+code }
+
+  Or a bit shorter:
+code {
+od -i -w4            /path/to/file
+code }
+
+  Use `z` to also display printable characters:
+code {
+od -t d4z --width=4  /path/to/file
+code }
 
 }
 { Specify range to be dumped
@@ -37,7 +124,7 @@ od -j $startAtByte -N $countBytes $file
 code }
 
 }
-{ Format of address
+{ Address format
 
   The format of the addresses (printed to the left) is specified with `-A`
 
