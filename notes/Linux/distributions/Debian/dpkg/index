@@ -34,9 +34,9 @@ code }
           ☰  `--forget-old-unavail` ☰              ☰ Forget uninstalled unavailable pkgs.
      `-s` ☰ `--status` ☰ `[<package>…]`            ☰ Display package status details.
      `-p` ☰ `--print-avail` ☰ `[<package>…]`       ☰ Display available version details.
-     `-L` ☰ `--listfiles` ☰ `<package>…`         ☰ List files 'owned' by package(s).
+     → #dpkg-L[`-L`] ☰ → #dpkg-L[`--listfiles`] ☰ `<package>…` ☰ List files 'owned' by package(s).
      `-l` ☰ `--list` ☰ `[<pattern>…]`              ☰ List packages concisely.
-     `-S` ☰ `--search` ☰ `<pattern>…`              ☰ Find package(s) owning file(s).
+     → #dpkg-S[`-S`] ☰ → #dpkg-S[`--search`] ☰ `<pattern>…` ☰ Find package(s) owning file(s).
      `-C` ☰ `--audit` ☰ `[<package>…]`             ☰ Check for broken package(s).
           ☰ `--yet-to-unpack` ☰                     ☰ Print packages selected for installation.
           ☰ `--predep-package` ☰                    ☰ Print pre-dependencies to unpack.
@@ -79,7 +79,7 @@ code }
        ☰ `--status-fd <n>` ☰  Send status change updates to file descriptor <n>.
        ☰ `--status-logger=<command>` ☰  Send status change updates to <command>'s stdin.
        ☰ `--log=<filename>` ☰ Log status changes and actions to `<filename>` (See also `→ Linux/fhs/var/log/dpkg_log`).
-       ☰ `--ignore-depends=<package>[,…] ☰ Ignore dependencies involving <package>.
+       ☰ `--ignore-depends=<package>[,…]` ☰ Ignore dependencies involving <package>.
        ☰ `--force-<thing>[,…]` ☰     Override problems (see --force-help).
        ☰ `--no-force-<thing>[,…]` ☰  Stop when problems encountered.
        ☰ `--refuse-<thing>[,…]` ☰  Ditto.
@@ -112,11 +112,31 @@ code }
   }
 }
 
-{ -L
+{ -L #dpkg-L
 
-  `dpkg -L` lists files that are »owned« by a package. Thus, it's possible to find the executables of a package with
+ `dpkg -L` lists files (and directories) that are «owned» by an (installed) package.
+
+  The following command lists the files which are installed by the *openssh-client* package:
 code {
-$ dpgk -L *package-name* | → Linux/shell/commands/grep[grep] /bin
+$ dpkg -L openssh-client
+code }
+
+  In order to find which packages owns a file that is not yet installed, `apt-file` or the → http://packages.ubuntu.com/[Ubuntu package search] can be used:
+code {
+$ sudo apt-get install apt-file
+$ sudo apt-file update
+$ apt-file /usr/bin/scp
+code }
+  
+
+}
+{ -S #dpkg-S
+
+  `dpkg -S` lists the package that «owns» a file.
+
+  The following command shows that the package *openssh-client* owns the file `/usr/bin/scp`:
+code {
+$ openssh-client: /usr/bin/scp
 code }
 
 }
