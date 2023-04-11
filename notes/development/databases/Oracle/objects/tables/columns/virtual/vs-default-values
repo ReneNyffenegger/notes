@@ -1,0 +1,74 @@
+$ Oracle: Virtual columns vs DEFAULT values
+
+
+{ Table with virtual columns
+
+  A → development/databases/Oracle/objects/tables/columns/virtual/vs-default-values provides a value at query time:
+code {
+create table tq84_virt_col_t (
+   dt_start  date,
+   dt_end    date,
+   days      as ( dt_end - dt_start )
+);
+
+
+insert into tq84_virt_col_t(dt_start, dt_end) values (date '2022-03-05', date '2022-05-16');
+
+select * from tq84_virt_col_t;
+code }
+
+}
+{ Table with default values
+
+  On the other hand, → development/databases/Oracle/objects/tables/columns/default[default values] are used to provide a value in
+  → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
+code {
+create table tq84_def_col_t (
+   id           number(5),
+   default_val  date  default sysdate
+);
+
+insert into tq84_def_col_t (id) values (1);
+
+select
+   *
+from
+   tq84_def_col_t;
+code }
+
+}
+{ Querying virtual columns from the data dictionary
+
+  The expression that provides the value for a virtual column *and* default values can be queried from the column `data_default` in the
+  → development/databases/Oracle/installed/data-dictionary[data dictionary's] view `→ development/databases/Oracle/installed/data-dictionary/tab/cols`.
+
+  The value of `virtual_column` (`YES` or `NO`) determines if `data_default` is a default expression or not.
+
+code {
+select
+   obj.object_type,
+   obj.owner,
+   col.table_name,
+   col.column_name,
+   col.data_default,
+   col.virtual_column,
+   col.*
+from
+   → development/databases/Oracle/installed/data-dictionary/objects   obj                                          join
+   → development/databases/Oracle/installed/data-dictionary/tab/cols  col  on obj.owner       = col.owner      and
+                         obj.object_name = col.table_name
+where
+-- obj.oracle_maintained = 'N'                              and
+   col.table_name in ('TQ84_VIRT_COL_T', 'TQ84_DEF_COL_T') and
+   col.owner      = user
+;
+code }
+
+}
+{ Cleaning up:
+code {
+drop tabl  tq84_def_col_t;
+drop table tq84_virt_col_t;
+code }
+
+}

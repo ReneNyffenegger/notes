@@ -1,95 +1,22 @@
 $ Oracle: Virtual columns
 @ virtual column
 
-{ Virtual columns vs default values
+A *virtual column* is essentially an expression that provides a value at query time (which thus → development/databases/Oracle/objects/tables/columns/virtual/vs-default-values[differs from a `default` value] which provides a value at
+`insert` time).
+-
+Because the value is computed, it does not take disk space.
 
-  { Table with virtual columns
+In many respects, virtual columns can be treated like ordinary → development/databases/Oracle/objects/tables/columns[columns], notably, they
+  • can be used for → development/databases/Oracle/objects/indexes[indexes] (which is equivalent to a function based index) and
+  • → development/databases/Oracle/optimizer/statistics[statistics] can be gathered.
 
-    A virtual column provides a value at query time:
-code {
-create table tq84_virt_col_t (
-   dt_start  date,
-   dt_end    date,
-   days      as ( dt_end - dt_start )
-);
+Virtual columns are only allowed in «traditional» *heap organized* tables.
 
 
-insert into tq84_virt_col_t(dt_start, dt_end) values (date '2022-03-05', date '2022-05-16');
-
-select * from tq84_virt_col_t;
-code }
-  }
-  { Table with default values
-
-  On the other hand, → development/databases/Oracle/objects/tables/columns/default[default values] are used to provide a value in
-  → development/databases/Oracle/SQL/DML/insert[insert statements] in absence of an explicitely given value:
-code {
-create table tq84_def_col_t (
-   id           number(5),
-   default_val  date  default sysdate
-);
-
-insert into tq84_def_col_t (id) values (1);
-
-select
-   *
-from
-   tq84_def_col_t;
-code }
-
-  }
-  { Querying virtual columns from the data dictionary
-
-  The expression that provides the value for a virtual column *and* default values can be queried from the column `data_default` in the
-  → development/databases/Oracle/installed/data-dictionary[data dictionary's] view `→ development/databases/Oracle/installed/data-dictionary/tab/cols`.
-
-  The value of `virtual_column` (`YES` or `NO`) determines if `data_default` is a default expression or not.
-
-code {
-select
-   obj.object_type,
-   obj.owner,
-   col.table_name,
-   col.column_name,
-   col.data_default,
-   col.virtual_column,
-   col.*
-from
-   → development/databases/Oracle/installed/data-dictionary/objects   obj                                          join
-   → development/databases/Oracle/installed/data-dictionary/tab/cols  col  on obj.owner       = col.owner      and
-                         obj.object_name = col.table_name
-where
--- obj.oracle_maintained = 'N'                              and
-   col.table_name in ('TQ84_VIRT_COL_T', 'TQ84_DEF_COL_T') and
-   col.owner      = user
-;
-code }
-
-  }
-  { Cleaning up:
-code {
-drop tabl  tq84_def_col_t;
-drop table tq84_virt_col_t;
-code }
-
-  }
-
-}
 { Non deterministic functions/expressions are not allowed
 
   The expression used for the virtual column must be → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] («pure»), otherwise, Oracle throws
   → development/databases/Oracle/errors/ORA-54002_only-pure-functions-can-be-specified-in-a-virtual-column-expression
-
-}
-{ Test 1 - 4
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_01.sql||
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_02.sql||
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_03.sql||
-
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_04.sql||
 
 }
 
@@ -103,6 +30,100 @@ code }
   gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/virt-cols-referencing-virt-cols.sql||
 
 }
+{ SQL error at query time
+
+  Create a table implementing the four basic arithmetic operations as virtual columns:
+code {
+create table tq84_virtual_test (
+       c1        number,
+       c2        number,
+       ------------
+       addition       as (c1+c2),
+       subtraction    as (c1-c2),
+       multiplication as (c1*c2),
+       division       as (c1/c2)
+);
+code }
+
+  Fill a few values:
+code {
+begin
+   insert into tq84_virtual_test          values (18, 13, default, default, default, default);
+   insert into tq84_virtual_test (c1, c2) values ( 2, 42);
+   insert into tq84_virtual_test (c1, c2) values (13, null);
+   insert into tq84_virtual_test (c1, c2) values (14,   0);
+   commit;
+end;
+/
+code }
+
+  The following `select` statements run ok:
+code {
+select c1, c2, addition, subtraction, multiplication           from tq84_virtual_test;
+
+select c1, c2, addition, subtraction, multiplication, division from tq84_virtual_test where c2 is null or c2 != 0;
+code }
+
+  However, this one throws → development/databases/Oracle/errors/ORA-01476_divisor-is-equal-to-zero:
+code {
+select * from tq84_virtual_test;
+code }
+
+  This query runs ok, again:
+code {
+select
+   c1, c2,
+   addition,
+   subtraction,
+   multiplication,
+   case when c2 = 0 then null else division end division
+from
+   tq84_virtual_test;
+code }
+
+  Cleaning up:
+code {
+drop table tq84_virtual_test;
+code }
+
+}
+{ Deterministic tests
+
+code {
+create or replace package tq84_virtual_test_pck as
+
+          function f_non_deterministic (c1_ in number) return number;
+          function f_deterministic     (c1_ in number) return number deterministic;
+
+end tq84_virtual_test_pck;
+/
+
+create or replace package body tq84_virtual_test_pck as
+
+          function f_non_deterministic (c1_ in number) return number as
+          begin
+              return dbms_random.value(0, c1_);
+          end f_non_deterministic;
+
+          function f_deterministic (c1_ in number) return number deterministic as
+          begin
+              return c1_ * 42;
+          end f_deterministic;
+
+end tq84_virtual_test_pck;
+/
+
+code }
+
+
+  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_02.sql||
+
+  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_03.sql||
+
+  gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/test_04.sql||
+
+}
+
 
 sa:
 
