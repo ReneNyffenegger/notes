@@ -13,6 +13,48 @@ In many respects, virtual columns can be treated like ordinary → development/d
 Virtual columns are only allowed in «traditional» *heap organized* tables.
 
 
+{ Updating and inserting values of virtual columns
+
+code {
+create table tq84_virt (
+   num number,
+   dbl as (2*num)
+);
+code }
+ 
+  Trying to insert a value into a column with a virtual column results in *ORA-54013: INSERT operation disallowed on virtual columns*.
+code {
+insert into tq84_virt values (4, 8);
+code }
+ 
+   It is possible to use the keyword `default` where the value of a virtual column is specified. The following statement inserts a record into `tq84_virt`:
+code {
+insert into tq84_virt values (4, default);
+code }
+ 
+  Updating a virtual value results in *ORA-54017: UPDATE operation disallowed on virtual columns*:
+code {
+update tq84_virt
+set
+  num =  5,
+  dbl = 10;
+code }
+ 
+  Unlike with `insert` statements, the `default` keyword does not solve the problem when used in the update's `set` clause, the following statement
+  also throws an *ORA-54017* error message.
+code {
+update tq84_virt
+set
+  num =  5,
+  dbl = default;
+code }
+ 
+  Cleaning up:
+code {
+drop table tq84_virt;
+code }
+
+}
 { Non deterministic functions/expressions are not allowed
 
   The expression used for the virtual column must be → development/databases/Oracle/PL-SQL/function-procedure/deterministic[deterministic] («pure»), otherwise, Oracle throws
