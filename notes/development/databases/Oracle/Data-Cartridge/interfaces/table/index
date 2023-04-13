@@ -17,9 +17,16 @@ gh|Oracle-patterns|/misc/ODCI/table/multiplication/img/result.png||
   gh|Oracle-patterns|/misc/ODCI/table/multiplication/body.plsql||
 
 }
-{ Not working on Version 19.9
+{ Not working if CURSOR_SHARING is set to FORCE
 
-  Update *2020-11-20*: it turns out that this example does not Work if → development/databases/Oracle/adminstration/init-parameters/cursor_sharing[`cursor_sharing`] is set to `force` because
-  in that case, Oracle calls the function with *bind variables* and `odciTableDescribe` receives → development/databases/Oracle/SQL/null[`null`] for the parameters `r` and `c`.
+  Update *2020-11-20*: it turns out that this example does not work if → development/databases/Oracle/adminstration/init-parameters/cursor_sharing[`cursor_sharing`] is set to `force`: it throws the
+  → development/databases/Oracle/errors[error message] *ORA-29913: error in executing ODCITABLEDESCRIBE callout*.
+  -
+  This is because with this setting, Oracle calls the function with *bind variables* and `odciTableDescribe` receives `→ development/databases/Oracle/SQL/null` for the parameters `r` and `c`.
+
+  Therefore, in such an environment, the session must be altered in order to make the example run:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] cursor_sharing = exact;
+code }
 
 }
