@@ -1,0 +1,50 @@
+$ Oracle SQL Plan operation HASH JOIN FULL OUTER
+
+code {
+create table tq84_foj_a (
+  id_a   number,
+  txt_a  varchar2(10)
+);
+ 
+create table tq84_foj_b (
+  id_b   number,
+  txt_b  varchar2(10)
+);
+ 
+begin
+  insert into tq84_foj_a values (1, 'abc');
+  insert into tq84_foj_a values (2, 'def');
+  insert into tq84_foj_a values (3, 'ghi');
+ 
+  insert into tq84_foj_b values (2, 'FOO');
+  insert into tq84_foj_b values (4, 'BAR');
+end;
+/
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+  coalesce(a.id_a, b.id_b) id,
+  a.txt_a,
+  b.txt_b
+from
+  tq84_foj_a a full outer join
+  tq84_foj_b b                   on id_a = id_b;
+ 
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- --------------------------------------------
+-- | Id  | Operation             | Name       |
+-- --------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select      |            |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view                 | VW_FOJ_0   |
+-- |   2 |   HASH JOIN FULL OUTER|            |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_FOJ_B |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full  | TQ84_FOJ_A |
+-- --------------------------------------------
+ 
+drop table tq84_foj_a purge;
+drop table tq84_foj_b purge;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
