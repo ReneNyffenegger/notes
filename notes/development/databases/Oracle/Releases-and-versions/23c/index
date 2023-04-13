@@ -13,7 +13,7 @@ Oracle claims that 23c has 300+ new features and enhancements compared to → de
 
   Oracle 23c introduces the `boolean` → development/databases/Oracle/SQL/data-types[datatype].
 
-  Some textual values such as `true`, `false`, `y`, `yes` will be converted to a boolean value, Any numerical value that is not 0 will be converted to `true`, 0 values to `false`.
+  Some textual values such as `true`, `false`, `y`, `yes` will be converted to a boolean value, any numerical value that is not 0 will be converted to `true`, 0 values to `false`.
 
 code {
 create table tq84_bool_test (val varchar2(10), flg boolean);
@@ -54,7 +54,7 @@ rem }
 code {
 select
   'Hello world'     as txt,
-   7 * 6            as num
+   7 * 6            as num,
    sysdate          as now;
 code }
 
@@ -260,30 +260,72 @@ code }
     • a collation
 
 code {
-create domain email_addr as varchar2(99) …
+create domain email_addr as varchar2(99);
+
+create domain month_year as varchar2(7)
+   constraint month_fmt check (regexp_like(month_year, '^\d\d-\d\d\d\d$'))
+   display 'Year: ' || substr(month_year, 4, 4) || ', Month: ' || substr(month_year, 1, 2)
+   order substr(month_year, 4, 4) || substr(month_year, 1, 2)
 ;
 
-create domain month_year
-   constraint month_fmt check (regexp_like(year_month, '^\d\d-\d\d\d\d$')
-   display 'Year: ' || substr(year_month, 4, 4) || ', Month: ' || substr(year_month, 1, 2)
-   order substr(year_month, 4, 4) || substr(year_month, 1, 2)
-;
-
-create table financial_report
-   …
-   corrections_to email_addr
+create table financial_report (
+   id             integer    primary key,
+   corrections_to email_addr,
    rep_period     month_year,
-   …
-)
-;
+   pdf            blob
+);
+
+insert into financial_report values
+( 1, 'fred@xyz.ab', '03-2023', null ),
+( 2, 'fred@xyz.ab', '08-2023', null ),
+( 3, 'maya@xyz.ab', '02-2023', null ),
+( 4, 'joey@xyz.ab', '06-2023', null );
 code }
 
-  Particularities about domains can be quried with the new functions `domain_display` and `domain_order`. These get a domain's definition of display and order functions.
+  The `order` clause of the `month_year` domains influences the sort order of `order by` so that it is sorted logically rather than by the by the displayed value:
+code {
+select
+   rep_period,
+   corrections_to,
+   id
+from
+   financial_report
+order by
+   rep_period;
+--
+-- REP_PER CORRECTIONS_TO         ID
+-- ------- -------------- ----------
+-- 02-2023 maya@xyz.ab             3
+-- 03-2023 fred@xyz.ab             1
+-- 06-2023 joey@xyz.ab             4
+-- 08-2023 fred@xyz.ab             2
+code }
+
+ `domain_display(…)` applies the display rules when selecting values from a domain:
+code {
+select
+   domain_display(rep_period) repper,
+   corrections_to
+from
+   financial_report
+order by
+   rep_period;
+
+-- REPPER                CORRECTIONS_TO                                                                                     
+-- --------------------- ---------------------------------------------------------------------------------------------------
+-- Year: 2023, Month: 02 maya@xyz.ab                                                                                        
+-- Year: 2023, Month: 03 fred@xyz.ab                                                                                        
+-- Year: 2023, Month: 06 joey@xyz.ab                                                                                        
+-- Year: 2023, Month: 08 fred@xyz.ab                                                                                        
+code }
+
+  Domains are stored in the data dictionary in `dba_domains` etc.
+
 
 }
 { Developer role
 
-  A special developer role to facilitate developers's jobs.
+  A special developer role (named `db_developer_role`) can be granted to facilitate developers's jobs.
 code {
 begin
    dbms_developer_admin.grant_privs('rene');
@@ -330,6 +372,9 @@ ON COMMIT REFRESH
 24 rows selected.
 code }
 
+  The `db_developer_role` is created in `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catdevrol_sql` (in which script also the corresponding
+  → development/databases/Oracle/security/privileges[privileges] are granted).
+
 }
 { Up to 4096 columns per table
 
@@ -350,48 +395,105 @@ code }
 
   Annotations are supported for tables, views, materialized views, columns, indexes and domains.
 
-}
-{ «Asynchronous» transactions
-
-  A session updates a record in a table:
+  Annotations can be queried in the data dictionary:
 code {
-SES 1> select * from tq84_tab;
-       ID        VAL
----------  ---------
-       42        100
-        
-SES 1> update tq84_tab set val = val + 10 where id = 42;
-
-1 row updated.
+select * from user_annotations;
+select * from user_annotation_values;
+select * from user_annotations_usage;
 code }
 
-  Approximately at the same time in another session:
+}
+{ «Asynchronous» transactions (lock-free reservations)
+
+  A *numeric* column that is marked *reservable* allows multiple transactions to concurrently update the value.
+
+  The following example creates such a table and inserts some test data:
 code {
-SES 2> update tq84_tab set val = val +  1 where id = 42;
+create table tq84_async (
+    id    integer     primary key,
+    val   number(5,2) RESERVABLE
+);
 
-1 row updated.
+insert into tq84_async values
+(  13,   18.22 ),
+(  19,    7.83 ),
+(  42,  100.00 ),
+(  99,   68.54 );
 
+commit;
+code }
+
+  A session updates a record in this table and then queries the value (which does not seem to change, i.e. is still 100):
+code {
+SES 1> update tq84_async set val = val + 10 where id = 42;
+SES 1> select * from tq84_async where id = 42;
+--
+--         ID        VAL
+-- ---------- ----------
+--         42        100
+code }
+
+
+  Another session also updates `val` (while the first session has not commited the update). This session also sees the value of 100:
+code {
+SES 2> update tq84_async set val = val +  1 where id = 42;
+SES 2> select * from tq84_async where id = 42;
+--
+--         ID        VAL
+-- ---------- ----------
+--         42        100
+code }
+
+   The first session then commits its transaction. It now sees its modification:
+code {
+SES 1> commit;
+SES 1> select * from tq84_async where id = 42;
+--
+--         ID        VAL
+-- ---------- ----------
+--         42        110
+code }
+
+  The second session also sees the update of the first session but still not its own update:
+code {
+SES 2> select * from tq84_async where id = 42;
+--
+--         ID        VAL
+-- ---------- ----------
+--         42        110
+code }
+
+  Only when the 2nd session commits its transaction, its modification becomes visible also:
+code {
 SES 2> commit;
-
-Commit complete.
+SES 2> select * from tq84_async where id = 42;
+--
+--         ID        VAL
+-- ---------- ----------
+--         42        111
 code }
 
   After the commit in the second session, the first session commits also and then selects the updated record:
 code {
 SES 1> commit;
-
-Commit complete.
-
 SES 1> select * from tq84_tab;
        ID        VAL
 ---------  ---------
        42        111
 code }
 
-  In order for this behavior to occur, it must be enabled on column level.
+  A table with a reservable column cannot be dropped (error message *ORA-55764: Cannot DROP or MOVE tables with reservable columns*). Thus, the column must be first set to `not reservable`:
+code {
+alter table tq84_async modify val not reservable;
+drop  table tq84_async;
+code }
 
-  See also *Connor McDonald's* → https://twitter.com/connor_mc_d/status/1588432563638796288[tweet] and the follow up on
-  → https://www.youtube.com/watch?v=oO3yrdU7w18[YouTube].
+  { See also
+
+    See also *Connor McDonald's* → https://twitter.com/connor_mc_d/status/1588432563638796288[tweet] and the follow up on
+    → https://www.youtube.com/watch?v=oO3yrdU7w18[YouTube].
+
+  }
 }
 { Improved error messages #ora-23c-err
 
@@ -435,6 +537,52 @@ code }
   • On OCI: Oracle Database Zero Data Loss Autonomous Recovery Service (with which Oracle hopes to address the challenges of ransomware, outages and human errors)
   • On OCI: Oracle Full Stack Disaster Recovery Service (Configuration, monitoring and management of the disaster recovery process for the *full stack* of technologies, including middleware, databases, networks, storage)
   • Support for Unicode Ideographic Variation Sequences (IVS)
+
+}
+{ Docker image
+
+  There is a docker image for the free edition of Oracle 23c:
+code {
+docker pull container-registry.oracle.com/database/free
+code }
+
+  However, this image is poorly (if at all) documented, thus I had to make a few dabbles in the dark to get it running usefully.
+
+  Start a new container:
+code {
+docker run -d -p 1521:1521 container-registry.oracle.com/database/free
+code }
+
+  Check the status of the container until it changes from *Up … seconds (health: starting)* to *Up 2 minutes (healthy)*:
+code {
+docker ps
+code }
+
+  When it is running, I opened a shell in the container:
+code {
+docker exec -it dreamy_heisenberg bash
+code }
+
+  In this shell, I could run SQL*Plus and change the password for SYS:
+code {
+bash-4.4$ sqlplus / as sysdba
+…
+SQL> alter user sys identified by IamTheDBA;
+
+User altered.
+code }
+
+  With this password, I could then connect to the instance from SQL Developer using the service names *FREE* and *FREEPDB1*.
+
+  It should be noted that all changes to the databse disappear when the docker container is stopped.
+
+rem {
+SYS_PW=IAmTheDBA
+ORA_USER=rene
+ORA_PW=IAmTheUser
+docker run -d -p 1521:1521 -e ORACLE_PASSWORD=$SYS_PW -e APP_USER=$ORA_USER -e APP_USER_PASSWORD=$ORA_PW                                      container-registry.oracle.com/database/free # gvenzl/oracle-free
+docker run -d -p 1521:1521 -e ORACLE_PASSWORD=$SYS_PW -e APP_USER=$ORA_USER -e APP_USER_PASSWORD=$ORA_PW -v oracle-volume:/opt/oracle/oradata container-registry.oracle.com/database/free # gvenzl/oracle-free
+rem }
 
 }
 { Oracle Database 23c Umbrella Beta Program
