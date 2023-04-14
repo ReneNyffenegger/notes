@@ -1,0 +1,36 @@
+$ ORA-02290: check constraint … violated
+
+The *ORA-02290* error message is thrown if the condition of a formulated → development/databases/Oracle/objects/tables/constraints/check is not met.
+
+
+Create a table with a few check constraints:
+code {
+create table tq84_chk (
+    col_1  varchar2(5)    check (col_1 = lower(col_1)),
+    col_2  number  (5)    check (col_2 > 0           ),
+    --
+    check (length(col_1) < col_2)
+);
+code }
+ 
+Insert a record which violates one of the constraints:
+code {
+insert into tq84_chk values ('foo', 2);
+code }
+
+The insert statement throws *ORA-02290: check constraint (RENE.SYS_C0038178) violated*.
+-
+Query `dba_constraints` to find out which constraint was violated:
+code {
+select
+   owner,
+   table_name,
+   search_condition
+from
+   dba_constraints
+where
+   owner || '.' || constraint_name = 'RENE.SYS_C0038178';
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
