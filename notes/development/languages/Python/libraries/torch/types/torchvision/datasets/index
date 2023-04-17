@@ -1,0 +1,72 @@
+$ torchvision.datasets
+
+All data sets found in `torchvision.datasets` inherit from `→ development/languages/Python/libraries/torch/types/utils/data/Dataset`, so they can be passed to an instance of
+`→ development/languages/Python/libraries/torch/types/utils/data/DataLoader`.
+
+Every TorchVision data set includes two arguments, `transform` and `target_transform`. These can be used to modify the sample and target data.
+
+{ Analysis of the data set format #torchvision-ds-analysis
+  
+ `torchvision.datasets.FashionMNIST` downloads the data set if is not already found in the directory indicated with the `root` parameter:
+code {
+→ development/languages/Python/statements/import torchvision
+
+raw_data = torchvision.datasets.FashionMNIST(
+    root      ='data',
+    train     = True,
+    download  = True
+)
+code }
+
+  Inspecting the «raw data», we see that it a list of `torchvision.datasets.mnist.FashionMNIST` objects.
+  -
+  Each object is a `→ development/languages/Python/types/tuple` with two elements.
+  -
+  The first element is a `→ development/languages/Python/libraries/Pillow[PIL].Image.Image` object (which represents the data to be classified), the second object an `int` (which represents the label or target).
+
+code {
+print(type(raw_data      ))  # <class 'torchvision.datasets.mnist.FashionMNIST'>
+print(type(raw_data[0]   ))  # <class 'tuple'>
+print(len (raw_data[0]   ))  # 2
+print(type(raw_data[0][0]))  # <class 'PIL.Image.Image'>
+print(type(raw_data[0][1]))  # <class 'int'>
+code }
+
+  In order to be able to work with the data, is is typically transformed using the `transform` parameter. It turns out using `→ development/languages/Python/libraries/torch/types/torchvision/transforms/ToTensor` converted the PIL images
+  to `→ development/languages/Python/libraries/torch/types/Tensor` objects:
+code {
+transformed_data = torchvision.datasets.FashionMNIST(
+    root      ='data',
+    train     = True,
+    download  = True,
+    transform = → development/languages/Python/libraries/torch/types/torchvision/transforms/ToTensor[torchvision.transforms.ToTensor](),
+)
+
+print(type(transformed_data      ))  # <class 'torchvision.datasets.mnist.FashionMNIST'>
+print(type(transformed_data[0]   ))  # <class 'tuple'>
+print(len (transformed_data[0]   ))  # 2
+print(type(transformed_data[0][0]))  # <class '→ development/languages/Python/libraries/torch/types/Tensor[torch.Tensor]'>
+print(type(transformed_data[0][1]))  # <class 'int'>
+code }
+
+  The shape of these tensors is `1, 28, 28`: 
+code {
+image_index = 123
+print(transformed_data[image_index][0].shape)  # torch.Size([1, 28, 28])
+code }
+
+  → development/languages/Python/libraries/matplotlib allows to plot an image like so:
+code {
+import → development/languages/Python/libraries/matplotlib/pyplot as plt
+
+fig = plt.figure(figsize=(1, 1))
+plt.imshow(
+       transformed_data[image_index][0].squeeze(), # squeeze(): Remove dimensions with size = 1.
+       cmap='gray_r'
+     )
+
+plt.axis('off')
+plt.show()
+code }
+
+}
