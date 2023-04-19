@@ -1,0 +1,92 @@
+$ Oracle: DBMS_SEARCH
+@ dbms_search
+
+`dbms_search` was introduced with → development/databases/Oracle/Releases-and-versions/23c[Oracle 23c].
+
+{ Procedures and functions
+
+  table { ll
+    `add_source` ☰
+    `create_index` ☰ 
+    `drop_index` ☰
+    `find` ☰
+    `get_document` ☰
+    `get_index` ☰
+    `remove_source` ☰
+    `sync_index` ☰
+  table }
+
+}
+{ Test
+
+code {
+create table tq84_search_one (
+    id  integer generated always as identity primary key,
+    txt varchar2(100),
+    jsn json
+);
+
+create table tq84_search_two (
+    id  integer generated always as identity primary key,
+    txt varchar2(100),
+    jsn json
+);
+
+insert into tq84_search_one (txt, jsn) values
+   ('To be or not to be, that is the question', '{"name": "John Doe", "age": 35, "email": "johndoe@example.com"}' ),
+   ('In the beginning, God created the heavens and the earth.', '{"product_name": "iPhone 13", "manufacturer": "Apple Inc.", "price": 1099.00, "in_stock": true}'),
+   ('It was a bright cold day in April, and the clocks were striking thirteen', '{"event_name": "TEDxTalks", "date": "2022-05-15", "location": "New York City", "speakers": ["Jane Smith", "John Doe", "David Kim"]}' ),
+   ('We hold these truths to be self-evident, that all men are created equal.', '{"country_name": "France", "capital_city": "Paris", "population": 66990000, "languages": ["French"], "currency": "Euro"}'),
+   ('It was the best of times, it was the worst of times', '{"vehicle_make": "Tesla", "model": "Model S", "year": 2022, "price": 84900, "specs": {"range": 373, "acceleration": 1.98, "top_speed": 200}}'),
+   ('I am not a crook.', '{"restaurant_name": "Chez Panisse", "cuisine": "French", "location": "Berkeley, CA", "rating": 4.8, "menu_items": [{"name": "Lobster bisque", "price": 18.00}, {"name": "Coq au vin", "price": 34.00}, {"name": "Crème brûlée", "price": 10.00}]}')
+;
+insert into tq84_search_two(txt, jsn) values
+   ('All animals are equal, but some animals are more equal than others.', '{"artwork_title": "The Starry Night", "artist": "Vincent van Gogh", "year": 1889, "medium": "Oil on canvas", "dimensions": {"height": 73.7, "width": 92.1}}'),
+   ('Not all those who wander are lost.', '{"sport_name": "Basketball", "league": "NBA", "teams": ["Los Angeles Lakers", "Boston Celtics", "Golden State Warriors"], "current_season": "2022-2023"}'),
+   ('I think, therefore I am.', '{"book_title": "The Hitchhiker''s Guide to the Galaxy", "author": "Douglas Adams", "publication_year": 1979, "publisher": "Pan Books", "genres": ["science fiction", "comedy"]}'),
+   ('All that glitters is not gold.', '{"product_name": "PlayStation 5", "manufacturer": "Sony Interactive Entertainment", "price": 499.99, "in_stock": false}'),
+   ('One small step for man, one giant leap for mankind.', '{"planet_name": "Mars", "distance_from_sun": "227.9 million km", "diameter": "6,779 km", "moons": ["Phobos", "Deimos"], "atmosphere": ["carbon dioxide", "argon", "nitrogen"], "average_temperature": "-63°C"}')
+;
+
+commit;
+code }
+
+code {
+
+begin
+   dbms_search.create_index('TQ84_SEARCH_TEST');
+   --
+   dbms_search.add_source('TQ84_SEARCH_TEST', 'TQ84_SEARCH_ONE');
+   dbms_search.add_source('TQ84_SEARCH_TEST', 'TQ84_SEARCH_TWO');
+end;
+/
+code }
+
+code {
+select
+   ix.metadata,
+   t1.*,
+   t2.*
+from
+   tq84_search_test  ix                                     left join
+   tq84_search_one   t1 on ix.metadata."KEY"."ID" = t1.id   left join
+   tq84_search_two   t2 on ix.metadata."KEY"."ID" = t2.id
+where
+   contains(ix.data, 'Berkeley') > 0
+;
+code }
+
+}
+
+sa:
+
+ `dr$dbms_search_index_source` records the sources (tables and views) for a given index.
+
+ `dr$dbms_search_index` is a table to keep track of indexes.
+
+  The data dictionary views
+    • `user_dbms_search_index_sources`
+    • `user_dbms_search_indexes`
+
+
+  → development/databases/Oracle/installed/packages/dbms
