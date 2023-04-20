@@ -8,7 +8,7 @@ These examples try to outline some pecularities when using function parameters w
   gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/create-table.sql||
 
 }
-{ function randomTable
+{ Function randomTable
 
   The function `randomTable` returns a → development/databases/Oracle/SQL/select[select statement] that depending on the (alleged) current time selects from `T0` or `T1`.
   The statement also adds `compile_time` and `exec_time`:
@@ -24,20 +24,25 @@ These examples try to outline some pecularities when using function parameters w
   gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/random-table-select.sql||
 
 }
-{ function tabN
+{ Function tabN
 
   Because `randomTable()` cannot be forced to change the select statement once it is defined, another approach is tried. The SQL macro function `tabN` has a parameter that is supposed to specify which table
   is selected from:
   gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN.sql||
 
 }
-{ select from tabN
+{ Select from tabN
 
-  When `tabN` is used, it turns out that the select statement selects from `T` (!)
+  The behavior of the following `select` statement depends on the value of the initialization parameter `→ development/databases/Oracle/adminstration/init-parameters/cursor_sharing`.
+  -
+  If this value is `exact` (which it should ideally be), the value of the parameter *does* determine the table from which the function selects.
+  -
+  However, if the parameter's value is `force`, the passed value is silently disregared (i.e. becomes `null` in the function), and the function selects from `T`.
+
   gh|oracle-patterns|/PL-SQL/function-procedure/sql_macro/parameters/tabN-select-1.sql||
 
-  Also, the `→ development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line()` in the function shows that the parameter `n` is always
-  → development/databases/Oracle/SQL/null[`null`], irrespective of the actual value passed to the function.
+  The `→ development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line()` in the function can be used to show that the parameter `n` is always
+ `→ development/databases/Oracle/SQL/null`, irrespective of the actual value passed to the function (if the init parameter is `force`).
 
 code {
 tabN being called, n = 
