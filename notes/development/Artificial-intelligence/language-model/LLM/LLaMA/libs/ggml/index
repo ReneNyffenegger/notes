@@ -8,3 +8,147 @@ ggml → https://github.com/ggerganov/ggml/blob/d71eba44c9485d0c2d0877b2ab390d68
   • a set of tensor operations
   • automatic differentiation
   • basic optimization algorithms
+
+
+{ Tensors
+
+  The library supports tensors up to 4 dimensions (`#define GGML_MAX_DIMS 4`).
+
+  The tensors are stored in *row-major* order. (See the members `ne` and `nb` of the `ggml_tensor` struct)
+
+  Tensors are created with `ggml_new_tensor`, `ggml_new_tensor_1d`, `ggml_new_tensor_2d`, `ggml_new_tensor_3d` or `ggml_new_tensor_4d`.
+
+}
+{ Tensor operations
+
+  Each tensor operation produces a new tensor.
+
+  The library provides a forward and a backward computation function for each tensor operation.
+  -
+  The forward function computes the output tensor value given the input tensor values.
+  -
+  The backward function computes the adjoint of the input tensors given the adjoint of the output tensor.
+
+  For a detailed explanation of what this means, take a calculus class, or watch → https://www.youtube.com/watch?v=wG_nF1awSSY[What is Automatic Differentiation?]
+
+  Available tensors operations correspond to the entries in the `ggml_op` enum.
+
+
+}
+{ Data types
+
+  FP16 and FP32 are first class citizens.
+
+  Theortically, the library could be extended to support FP8 and (other?) integer data types as well.
+
+}
+
+{ Functions
+ 
+  Some possibly interesting functions …
+
+  table { ll
+
+    `ggml_time_init` ☰ To be called once when the program initializes
+
+    `ggml_init` ☰ Allocates a *memory buffer* (for a tensor?) and returns a pointer to a `ggml_context`.
+    `ggml_new_tensor_*` ☰ Create new tensors whose data is stored in the memory allocated with `ggml_init`.
+    `ggml_new_tensor_1d` ☰ Returns a pointer to a `ggml_tensor`
+    `ggml_set_param` ☰
+    `ggml_used_mem` ☰ Determine amount of memory used in ???
+
+    `ggml_build_forward`, `ggml_build_forward_expand`, `ggml_build_backward` ☰
+
+    `ggml_free` ☰
+
+    `ggml_nelements`, `ggml_nbytes` ☰
+
+    `ggml_graph_compute` ☰ Requests to compute 'a function'
+
+    `ggml_blck_size`, `ggml_type_size`, `ggml_type_sizef` ☰
+
+    `ggml_permute` ☰
+    `ggml_conv_1d_1s` ☰
+    `ggml_conv_1d_2s` ☰
+
+    `ggml_quantize_q4_0`, `ggml_quantize_q4_1` ☰
+
+    `ggml_get_f32_1d`, `ggml_set_f32_1d` ☰
+
+    `ggml_time_ms`, `ggml_time_us` ☰
+    `ggml_cycles`, `ggml_cycles_per_ms` ☰
+
+    `ggml_print_object`, `ggml_print_objects` ☰
+
+    `ggml_used_mem` ☰
+
+    `ggml_add`,`ggml_mul`, … ☰
+
+  table }
+
+}
+{ Structs
+
+  table { ll
+   `ggml_init_params` ☰
+   `ggml_context` ☰ A pointer to a `ggml_context` is returned by `ggml_init()`
+   `ggml_tensor` ☰ A representation about a tensor stored in the momory. The struct has fields to query the tensor's size, data type and memory buffer. `src` points to the tensors from which the tensor was computed from. A pointer to a `ggml_tensor` is returned by `ggml_new_tensor_1d`
+   `ggml_object` ☰
+   `ggml_cgraph` ☰ Computation graph
+   `ggml_scratch` ☰ Scratch buffer
+  table }
+
+  { ggml_tensor
+
+    table { ll
+       `src` ☰
+       `ne` ☰ Number of elements in each dimension of the tensor
+       `nb` ☰ Number of bytes (a.k.a. stride)
+       `data` ☰ Pointer to the memory buffer
+
+    table }
+
+  }
+
+
+}
+{ Examples
+
+  There are a few → https://github.com/ggerganov/ggml/tree/master/examples[examples]
+
+}
+{ Misc
+
+  { source tensor
+
+code {
+{
+    struct ggml_tensor * c = ggml_add(ctx, a, b);
+
+    assert(c->src[0] == a);
+    assert(c->src[1] == b);
+}
+code }
+
+  }
+  { Enums
+
+   `ggml_type`, `ggml_op`
+
+  }
+  { Optimization methods
+
+    The enum `ggml_opt_type` allows for the two optimization methods
+      • Adam (Adaptive Moment Estimation)
+      • LBFGS (Limited-memory Broyden-Fletcher-Goldfarb-Shanno)
+
+  }
+  { Linsearch methods
+
+    Linsearch methods (enum `ggml_linesearch`):
+      • ARMIJO
+      • WOLFE
+      • STRONG_WOFLE
+
+  }
+}
