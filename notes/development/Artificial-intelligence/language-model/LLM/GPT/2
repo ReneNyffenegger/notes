@@ -1,5 +1,165 @@
 $ GPT-2
 
+The GPT-2 model was developed by researchers at OpenAI to help them understand
+how the capabilities of language model capabilities scale as a function of the
+size of the models (by parameter count) combined with very large internet-scale
+datasets (WebText).
+
+{ Models
+
+  There are 4 model versions
+  table { rl
+    124 M ☰
+    355 M ☰
+    774 M ☰
+    1.5 B ☰ The fourth and largest GPT-2 model
+
+  table }
+
+
+  { Download
+
+    { Files
+
+      table { ll
+         `checkpoint` ☰
+         `encoder.json` ☰ The vocabulary
+         `hparams.json` ☰ The model's *hyper-parameters* with the values `n_vocab` (number of tokens in the vocabulary), `n_ctx` (the maximum input sequence length), `n_embd` (Embedding dimension, the width of the network), `n_head` (number of attention heads, `n_embd` must be divisible by `n_head`) and `n_layer` (the depth of the network).
+         `model.ckpt.data-00000-of-00001` ☰
+         `model.ckpt.index` ☰
+         `model.ckpt.meta` ☰
+         `vocab.bpe` ☰ Byte-pair merges
+      table }
+
+
+    }
+
+    { Pseudocode
+code {
+for $model in '124M', '335M', '774M', '1558M' loop
+
+    for $filename in 'checkpoint','encoder.json','hparams.json','model.ckpt.data-00000-of-00001', 'model.ckpt.index', 'model.ckpt.meta', 'vocab.bpe' loop
+
+        download(https://openaipublic.blob.core.windows.net/gpt-2/models/$model/$filename)
+
+    end loop
+
+end loop
+code }
+
+    See also: → https://github.com/openai/gpt-2/blob/master/download_model.py 
+
+  }
+
+
+
+
+rem {
+
+   checkpoint:
+code {
+model_checkpoint_path: "model.ckpt"
+all_model_checkpoint_paths: "model.ckpt"
+code }
+
+   encoder.json
+code {
+{
+  "!"               : 0,
+  "\""              : 1,
+  "#"               : 2,
+  "$"               : 3,
+  "%"               : 4,
+  
+  "en"              : 268,
+  "\u0120c"         : 269,
+  "it"              : 270,
+  "is"              : 271,
+  …
+  "\u0120determines": 15947,
+  "Obama"           : 15948,
+  "kers"            : 15949,
+  "\u0120utterly"   : 15950
+  …
+}
+code }
+   Unicode → https://db.renenyffenegger.ch/IT/Unicode-Character-Database/cp/288[`\u0120` is a Ġ] and → https://github.com/karpathy/minGPT/blob/37baab71b9abea1b76ab957409a1cc2fbfba8a26/mingpt/bpe.py#L29-L30[represents a space] (0x120 = 0x20 (space) + 0x100).
+ 
+
+  hparams.json
+code {
+{
+  "n_vocab": 50257,
+  "n_ctx"  : 1024,
+  "n_embd" : 768,
+  "n_head" : 12,
+  "n_layer": 12
+}
+code }
+
+   model.ckpt.data-00000-of-00001 : For the 124M model, this is a 491 MB binary file.
+
+   model.ckpt.index: For the 124M model, this is a 5.1 KB binary file
+
+   model.ckpt.meta: For the 124M model, this is a 461 KB binary file
+
+   vocab.bpe: For the 124M model, this is a 446 KB binary file
+
+
+    https://openaipublic.blob.core.windows.net/gpt-2/models/{124M,355M,774M,1558M}
+
+
+rem }
+
+
+   }
+
+}
+{ Dataset: WebText
+
+  All (? or only the largest ?) model(s) were trained on (and evaluated against)
+  WebText.
+
+  rem {
+
+  … , a dataset consisting of the text contents of 45 million links posted
+  by users of the ‘Reddit’ social network. WebText is made of data derived from
+  outbound links from Reddit and does not consist of data taken directly from
+  Reddit itself. Before generating the dataset we used a blocklist to ensure we
+  didn’t sample from a variety of subreddits which contain sexually explicit or
+  otherwise offensive content.
+
+  The motivation behind WebText was to create an Internet-scale, heterogeneous
+  dataset that we could use to test large-scale language models against.
+  WebText was (and is) intended to be primarily for research purposes rather
+  than production purposes.
+
+  rem }
+
+}
+{ Misc
+
+  { Activation function
+
+    The preferred activation function for GPT-2 is → https://arxiv.org/pdf/1606.08415.pdf[GELU].
+
+  }
+
+}
 
 sa:
   → development/Artificial-intelligence/language-model/LLM/GPT
+
+links:
+  The → https://github.com/openai/gpt-2/tree/master[openai/gpt-2 github repository] is meant as a starting point for experiments with GPT-2. It contains code and models from the paper
+  → https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf[Language Models are Unsupervised Multitask Learners].
+
+  More about GPT-2 and its staged release
+    • in the → https://blog.openai.com/better-language-models/[original blog post]
+    • the → https://openai.com/blog/gpt-2-6-month-follow-up/[6 month follow-up post] and
+    • the → https://www.openai.com/blog/gpt-2-1-5b-release/[final post].
+
+  There is a → https://github.com/openai/gpt-2-output-dataset[GPT-2 output dataset] that contains
+    • 250K documents from the WebText test set
+    • For each GPT-2 model (trained on the WebText training set), 250K random samples (temperature 1, no truncation) and 250K samples generated with Top-K 40 truncation
+
