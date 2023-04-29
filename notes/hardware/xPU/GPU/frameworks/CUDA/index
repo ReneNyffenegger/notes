@@ -1,0 +1,138 @@
+
+CUDA is a general purpose parallel computing architecture.
+
+CUDA was introdoced by → hardware/xPU/GPU/Nvidia in November 2006.
+
+At the core of CUDA are three key abstractions:
+  • A hierarchy of thread groups
+  • Shared memories
+  • Barrier synchronization
+
+{ Host and device
+
+  A CUDA program assumes a system with a host and a device.
+
+  Both, the host and the device, have their own separate memory.
+
+  { Device memory
+
+    Memory on the device can be allocated either as
+      • linear memory, or as
+      • CUDA arrays (which are memory layouts optimized for texture fetching)
+
+    Linear device memory can be allocated with `cudaMalloc()`, `cudaMallocPitch()` or `cudaMalloc3D()`.
+    -
+    After allocating linear memory, data can be copied from the host memory to the device memory with `cudeMemcpy()`.
+    -
+    When the device memory is not used anymore, it can be freed with `cudaFree()`.
+
+  }
+}
+
+{ CUDA C
+
+  CUDA C allows to write programs to be executed on a GPU. It consists of
+    • a few extensions to C, and
+    • a runtime library.
+
+  A CUDA C program is compiled with `nvcc`.
+
+  { Kernel
+
+    A kernel is a function that is executed on the device in parallel by *CUDA threads*.
+
+    A kernel can be called from the host only (compare with functions declared with `__device__` which also run on the device, but can be called from the device only).
+
+    Kernels can be written either in
+      • PTX (the CUDA instruction set), or
+      • C
+
+
+    In a CUDA program, a kernel is defined using the keyword `__global__`.
+
+  }
+  { Shared memory
+
+    Shared memory is expected to be much faster than global memory
+
+    Shared memory is allocated using the `__shared__` qualifier.
+
+  }
+
+}
+{ CUDA programs etc. 
+
+  { Error message: the provided PTX was compiled with an unsupported toolchain.
+
+    When I started playing with CUDA and `nvcc`, I got the error message *the provided PTX was compiled with an unsupported toolchain.* when I compiled the following
+    program with `nvcc err.cu -o err` and executed it:
+code {
+#include <stdio.h>
+
+__global__ void testKernel(int nr) {
+   printf("kernel received parameter '%d'\n", nr);
+}
+
+int main(void) {
+
+   testKernel<<< 1,1 >>>(42);
+
+   cudaDeviceSynchronize();
+   cudaError_t error = cudaGetLastError();
+
+   if(error != cudaSuccess) {
+      printf("CUDA error: %s\n", cudaGetErrorString(error));
+      exit(-1);
+   }
+
+   return 0;
+}
+code }
+
+    When I used the compiler flag `-arch=native`, the error went away:
+code {
+$ nvcc -arch=native err.cu -o err
+$ ./err
+kernel received parameter '42'
+code }
+    
+
+  }
+  { show-device-properties.cu
+
+    The following CUDA program shows some device properties (as found in the → https://docs.nvidia.com/cuda/cuda-runtime-api/structcudaDeviceProp.html[`cudaDeviceProp` struct]).
+
+code {
+#include <stdio.h>
+#include <cuda.h>
+
+int main() {
+
+   int deviceCount;
+   cudaGetDeviceCount(&deviceCount);
+
+   for (int dev = 0; dev < deviceCount; ++dev) {
+      cudaDeviceProp prp;
+      cudaGetDeviceProperties(&prp, dev);
+
+      printf("Device %d (%s)\n", dev, prp.name);
+      printf("  Compute capability: %d.%d.\n", prp.major, prp.minor);
+      printf("  Multiprocessors:    %d\n"    , prp.multiProcessorCount);
+      printf("  Concur. kernels:    %d\n"    , prp.concurrentKernels);
+      printf("  32-bit regs/block:  %d\n"    , prp.regsPerBlock);
+      printf("  Shared mem/block:   %d\n"    , prp.sharedMemPerBlock);
+      printf("  L2 cache size:      %d\n"    , prp.l2CacheSize);
+      printf("  Global memory:      %d\n"    , prp.totalConstMem);
+//    printf("  ? :  %d\n"    , prp.reservedSharedMemPerBlock );
+   }
+}
+code }
+  }
+
+}
+
+{ TODO
+
+ `~/.nv/ComputeCache`
+
+}
