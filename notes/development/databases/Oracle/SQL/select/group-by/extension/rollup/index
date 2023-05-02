@@ -1,0 +1,30 @@
+$ Oracle: GROUP BY extension ROLLUP
+
+code {
+select
+   case
+     when grouping(owner) = 1 and grouping(segment_type) = 1 then '== GRAND TOTAL =='
+     else                                                          owner
+   end    owner_,
+   case
+     when grouping(owner) = 1 and grouping(segment_type) = 1 then  null
+     when grouping(segment_type) = 1                         then '= TOTAL ='
+     else                                                          segment_type
+   end    type_,
+   to_char(sum(bytes/1024/1024), '999,999,990.00') mb
+from
+   dba_segments
+where
+   owner in ('SYS', 'SYSTEM', user) and
+   segment_type not in ('TYPE2 UNDO')
+group by
+   rollup(owner, segment_type)
+order by
+   owner,
+   sum(bytes)
+;
+
+code }
+
+sa:
+  → development/databases/Oracle/SQL/select/group-by/extension[`group by` extensions]

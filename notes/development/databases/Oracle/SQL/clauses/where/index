@@ -6,6 +6,47 @@ $ Oracle SQL: WHERE clause
   gh|Oracle-Patterns|/SQL/where_in.sql||
 
 }
+{ Compare values case insensitively #ora-where-ci
+
+  It's possible to select values case insenstively by setting → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_sort[`nls_sort`] to a value ending in `_ci` and
+  → development/databases/Oracle/adminstration/init-parameters/nls#nls_comp[`nls_comp`] to `linguistic`.
+
+  First, we query current relevant → development/databases/Oracle/adminstration/init-parameters/nls[NLS values] so that we can revert the changes when we're done with the example:
+code {
+select
+   *
+from
+   nls_session_parameters
+where
+   parameter in ('NLS_COMP', 'NLS_SORT');
+code }
+
+  Change required NLS values:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_sort = ascii7_ci;
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_comp = linguistic;
+code }
+
+  Select all tables, case insensitively:
+code {
+select
+   owner,
+   object_name,
+   subobject_name,
+   object_type
+from
+   → development/databases/Oracle/installed/data-dictionary/objects
+where
+   object_type = 'table';
+code }
+
+  Revert changes to values previously selected from `nls_session_parameters`.
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_sort = binary;
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_comp = binary;
+code }
+
+}
 
 sa:
 
