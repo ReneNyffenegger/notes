@@ -1,0 +1,88 @@
+$ Oracle: Recycle bin
+@ recycle bin
+
+→ development/databases/Oracle/objects[Objects] that were moved to the recyclebin typically have names starting with 'BIN$'.
+
+{ Simple example
+
+  Empty the recycle bin for this example:
+code {
+purge recyclebin;  
+code }
+
+  Make sure the recycle bin functionality is enabled for this session:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] recyclebin = on;
+code }
+ 
+   Create a table with an index (primary key) …
+code {
+create table tq84_recyclebin_test (
+   id  integer generated always as identity primary key,
+   val number(6,2)
+);
+code }
+ 
+  … and fill a few values:
+code {
+insert into tq84_recyclebin_test (val) values (7.01);
+insert into tq84_recyclebin_test (val) values (5.83);
+insert into tq84_recyclebin_test (val) values (5.26);
+ 
+commit;
+code }
+
+  Drop table:
+code {
+drop table tq84_recyclebin_test;
+code }
+
+  Table is not actually dropped, but moved to the recycle bin:
+code {
+select
+   object_name,
+   original_name,
+   type,
+   can_undrop,
+   operation
+from
+   user_recyclebin;
+code }
+  
+  Undrop the table:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/flashback tq84_recyclebin_test to before drop;
+code }
+ 
+   The recycle bin is empty again …
+code {
+select count(*) from → development/databases/Oracle/installed/data-dictionary/recyclebin[user_recyclebin];
+code }
+ 
+  … and the original table is restored:
+code {
+select * from tq84_recyclebin_test;
+code }
+ 
+   Drop the table again, this time, use the `purge` clause so that the table does not go to the recycle bin again:
+code {
+drop table tq84_recyclebin_test purge;
+code }
+
+}
+{ TODO
+
+  Show the content of the recycle bin in SQL, using the data dictionary:
+gh|Oracle-Patterns|/DatabaseObjects/Tables/RecycleBin/show_recycle_bin_sql.sql||
+
+→ development/databases/Oracle/SQL-Plus/show[Show] the content of the recycle bin in → development/databases/Oracle/SQL-Plus:
+gh|Oracle-Patterns|/DatabaseObjects/Tables/RecycleBin/show_recycle_bin_sqlplus.sql||
+
+Purge the recycle bin:
+gh|Oracle-Patterns|/DatabaseObjects/Tables/RecycleBin/purge.sql||
+
+}
+
+sa:
+
+ `→ development/databases/Oracle/installed/data-dictionary/recyclebin`

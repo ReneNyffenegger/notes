@@ -1,0 +1,86 @@
+$ Oracle: NLS_DATE_FORMAT
+@ nls_date_format
+
+The value of `→ development/databases/Oracle/adminstration/init-parameters/nls/format/date` is used as default date format in
+  → development/databases/Oracle/SQL/functions/type-conversion/to/char[`to_char`] and
+  → development/databases/Oracle/SQL/functions/type-conversion/to_date[`to_date`].
+
+If not explicitely defined, the value for `nls_date_format` is defined by `nls_territory`, not by `nls_date_language`.
+
+The value can be set to a combination of → development/databases/Oracle/SQL/functions/type-conversion/format-models#ora-fmt-date[date format elements].
+
+{ Influence of NLS_DATE_FORMAT to selecting records #nls_date_format-where
+
+  The following example tries to demonstrate how the value of `nls_date_format` influences a `→ development/databases/Oracle/SQL/clauses/where` condition.
+
+  Save current value of `nls_date_format` so we can restore it later.
+code {
+select sys_context('userenv', 'nls_date_format') from dual;
+code }
+
+  Change value of `nls_date_format`:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_date_format = 'yyyy-mm-dd hh24:mi:ss';
+code }
+
+  Alternatively, use `→ development/databases/Oracle/installed/packages/dbms/session/set_nls` (but this doesn't seem to work in
+→ development/Software/Oracle-SQL-Developer[SQL Developer]:
+code {
+begin
+   dbms_session.set_nls('nls_date_format', '"yyyy-mm-dd hh24:mi:ss"');
+end;
+/
+code }
+
+  Verify value was changed:
+code {
+select value from → development/databases/Oracle/installed/dynamic-performance-views/parameter where name = 'nls_date_format';
+code }
+
+  Select a few `created` values from `→ development/databases/Oracle/installed/data-dictionary/objects`. They're returned in the specified format:
+code {
+select
+   owner,
+   object_name,
+   object_type,
+   created
+from
+   dba_objects;
+code }
+
+  Pick one of the selected values and select all objects that were created in the given second:
+code {
+select * from dba_objects where created = '2023-03-26 02:26:30';
+code }
+
+  Change date format:
+code {
+alter session set nls_date_format = 'yyyy-mm-dd';
+code }
+
+  Try the same query. It throws → development/databases/Oracle/errors/ORA-01830_date-format-ends-before-converting-entire-input-string.
+code {
+select * from dba_objects where created = '2023-03-26 02:26:30';
+code }
+
+  One might be tempted to change the `where` condition. But this query doesn't (very likely) find anything, as the string `2023-03-26` is exactly midnight:
+code {
+select * from dba_objects where created = '2023-03-26';
+code }
+
+  Using `→ development/databases/Oracle/SQL/functions/type-conversion/to_date` to make sure we're independent from the date format. This query will return some records:
+code {
+select * from dba_objects where created = to_date('2023-03-26 02:26:30', 'yyyy-mm-dd hh24:mi:ss');
+code }
+
+  Possibly a more lightweight solution to select records using the `timestamp` literal:
+code {
+select * from dba_objects where created = timestamp '2023-03-26 02:26:30';
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/adminstration/init-parameters/nls  
+
+  → development/databases/Oracle/errors/ORA-01830_date-format-ends-before-converting-entire-input-string.

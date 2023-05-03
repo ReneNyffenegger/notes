@@ -1,0 +1,25 @@
+$ Oracle: Using an identity column silently creates a sequence
+
+Behind the scenes, Oracle creates a → development/databases/Oracle/objects/sequences for → development/databases/Oracle/objects/tables/columns/identity[identity columns].
+
+code {
+create table tq84_ident_test (
+   id   integer generated always as identity primary key,
+   val  number(6,2)
+);
+
+select
+   object_name,
+   (sysdate - created) * 24*60*60 created_secs_ago,
+   user_objects.*
+from
+   user_objects
+where
+   object_type = 'SEQUENCE'
+order by
+   created desc;
+   
+drop table tq84_ident_test;
+code }
+
+In Oracle's free edition of → development/databases/Oracle/Releases-and-versions/23c, → https://twitter.com/renenyffenegger/status/1653675439980724224[the sequence is not dropped] when the table is dropped.
