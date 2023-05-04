@@ -1,0 +1,128 @@
+$ Oracle: DBMS_CLOUD
+@ dbms_cloud
+
+`DBMS_CLOUD` containes procedures to import data from the *Cloud Object Store* to an → development/databases/Oracle/architecture/database[Oracle database].
+-
+The package can transparently handle authentication and reading data from either of the Object Stores.
+
+The currently (beginning of 2023) supported *object stores* are:
+   • Amazon S3
+   • Oracle Bare Metal Cloud (BMC) ObjectStore
+
+{ Procedures and functions
+
+  { HTTP Access
+
+    table { ll
+      `set_proxy` ☰ sets a proxy host/port for HTTP requests
+      `send_request` ☰ send HTTP request
+      `get_response_headers` ☰ get response headers
+      `get_response_text` ☰ get response as text
+      `get_response_raw` ☰ get response as raw
+      `get_response_status_code` ☰ get response status code
+    table }
+
+  }
+  { Credential Management
+
+    table { ll
+      `create_credential` ☰ create a credential object to access Object Store
+      `enable_credential` ☰ enable credential object to access Object Store
+      `disable_credential` ☰ disable credential object to access Object Store
+      `update_credential` ☰ update attribute in credential object
+      `drop_credential` ☰ drop credential object to access Object Store
+    table }
+
+  }
+  { Data Access
+
+    table { ll
+      `create_external_table` ☰ Create External Table on Object Store files (used to accessd a file in the object store)
+      `create_external_part_table` ☰ Create External Partitioned Table on Object Store files
+      `create_hybrid_part_table` ☰ Create Hybrid Partitioned Table on Object Store files
+      `validate_external_table` ☰ Validate External Table on Object store file
+      `validate_external_part_table` ☰ Validate External Partitioned Table on Object Store files
+      `validate_hybrid_part_table` ☰ Validate Hybrid Partitioned Table on Object Store files
+      `copy_data` ☰ Copy data from Object Store files in to Oracle RDBMS table
+      `copy_collection` ☰ Load data from Object Store files in to Oracle RDBMS SODA collection
+      `export_data` ☰ Export Data from Oracle RDBMS Table to Object Store files
+    table }
+
+  }
+  { Operation Management
+
+    table { ll
+     `delete_operation` ☰ Delete an operation for cloud data access
+     `delete_all_operations` ☰ Delete all operations for cloud data access
+    table }
+
+  }
+  { Object Access
+
+    table { ll
+     `get_object` ☰ Get the contents of an object in Cloud Store
+     `put_object` ☰ Put the contents in an object in Cloud Store
+     `get_metadata` ☰ Get the metadata for an object in Cloud Store
+     `list_objects` ☰ List objects at a given location in Cloud Store
+     `delete_object` ☰ Delete object in Cloud Store
+    table }
+
+  }
+  { File Access
+
+    table { ll
+     `list_files` ☰ List files at a given directory object location
+     `delete_file` ☰ Delete file in a directory object
+    table }
+
+  }
+  { API Result Cache Config:
+
+    table { ll
+     `set_api_result_cache_size` ☰ Set the max size of the rest api cache
+     `get_api_result_cache_size` ☰ Get the max size of the rest api cache
+    table }
+
+  }
+
+}
+{ TODO
+
+  { Load external, publicly availale CSV data into an autonomous database
+
+code {
+begin
+   dbms_cloud.create_external_table(
+    table_name      =>'TEST_EXT',
+    credential_name => null,
+    file_uri_list   =>'https://www.web.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002063_00004104.csv',
+    format          => json_object('type' value 'csv', 'delimiter' value ',', 'header' value true),
+    column_list     => 'JAHR VARCHAR2(200),'                  ||
+                       'DATUM VARCHAR2(200), '                ||
+                       'GEMEINDE_NUMMER VARCHAR2(200), '      ||
+                       'GEMEINDE_NAME VARCHAR2(200), '        ||
+                       'BEZIRK_NUMMER VARCHAR2(200), '        ||
+                       'BEZIRK_NAME VARCHAR2(200), '          ||
+                       'VERTEILZONE VARCHAR2(200), '          ||
+                       'ANALYT VARCHAR2(200), '               ||
+                       'KATEGORIE VARCHAR2(200), '            ||
+                       'KATEGORIE_SORTIERUNG VARCHAR2(200), ' ||
+                       'EINHEIT VARCHAR2(200), '              ||
+                       'QUELLE VARCHAR2(200)'
+   );
+end;
+/
+code }
+
+    See → https://github.com/ReneNyffenegger/oracle-patterns/issues/3[here].
+
+  }
+
+}
+
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms
+
+links:
+  → https://support.oracle.com/knowledge/Oracle%20Cloud/2748362_1.html[How To Setup And Use DBMS_CLOUD Package] (MOS Note 2748362.1)

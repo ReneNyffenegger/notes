@@ -17,12 +17,41 @@ $ docker run
 code {
 C:\> docker run -i -t mcr.microsoft.com/windows:1809 → Windows/dirs/Windows/System32/cmd_exe[cmd.exe]
 code }
- 
 
 }
 { -v
 
   `-v hostPath:imagePath` allows to access a host directory or file from a container, see → development/tools/Docker/commands/run/volume[`-volume`].
+
+}
+{ --name #docker-run-name
+
+ `--name xyz` assigns a name to the container (here: `xyz`).w
+
+  Without using `--name`, Docker will randomly create a container name consisting of an → https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go#L20-L128[adjective] and a name of an
+  → https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go#L133-L842[(allegedly) noteable scientist or hacker] (for example `epic_curie`).
+  -
+  The container name → https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go#L852[`boring_wozniak` won't be chosen].
+
+  { docker: Error response from daemon: Conflict. The container name … is already in use by container …
+
+code {
+$ docker run  --name xyz …
+docker: Error response from daemon: Conflict. The container name "xyz" is already in use by container "…". You have to remove (or rename) that container to be able to reuse that name.
+…
+$ docker rm xyz
+…
+$ docker run  --name xyz …
+…
+code }
+
+    Find container names that are alread assigned with either of
+code {
+$ docker container ls -a
+$ docker ps -a
+code }
+
+  }
 
 }
 { Got permission denied while trying to connect to the Docker daemon socket at …
@@ -44,3 +73,6 @@ $ docker run hello-world
 code }
 
 }
+
+sa:
+  → development/tools/Docker/commands

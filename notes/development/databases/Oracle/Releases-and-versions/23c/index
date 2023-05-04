@@ -7,6 +7,7 @@ Oracle claims that 23c has 300+ new features and enhancements compared to → de
 
   Oracle 23c introduces the `→ development/databases/Oracle/SQL/data-types/boolean` → development/databases/Oracle/SQL/data-types[datatype] for
   → development/databases/Oracle/SQL[SQL] (after it having been in → development/databases/Oracle/PL-SQL[PL/SQL] for quite some time).
+  -
 
   Some textual values such as `true`, `false`, `y`, `yes` will be converted to a boolean value, any numerical value that is not 0 will be converted to `true`, 0 values to `false`.
 
@@ -27,6 +28,16 @@ code }
 
   The new datatype comes with the function `to_boolean(…)`.
 
+  The introduction of the `boolean` data type is rather unexpected: Some 20 years ago, Tom Kyte asserted that → https://asktom.oracle.com/pls/apex/f?p=100:11:0::::P11_QUESTION_ID:6263249199595[a `boolean` datatype is not needed]
+  "
+    since
+
+    flag char(1) check (flag in ( 'Y', 'N' ))
+
+    serves the same purpose, requires the same amount of space and does the same thing.
+  "
+
+
   Oracle clients earlier than 23c will display `true` values as `1` and `false` values as `0`:
 code {
 SQL> select true, false;
@@ -36,6 +47,7 @@ SQL> select true, false;
 --    1     0
 code }
 
+  
 
   Trying to use a `boolean` in a release earlier than 23c would result in a → development/databases/Oracle/errors/ORA-00902_invalid-datatype#ora-00902-boolean[ORA-00902: invalid datatype] error message.
 
@@ -542,9 +554,15 @@ code }
 
   However, this image is poorly (if at all) documented, thus I had to make a few dabbles in the dark to get it running usefully.
 
+  If the container named `ora23c` was previously started (and stopped), it must be removed:
+code {
+$ docker rm ora23c
+code }
+
   Start a new container:
 code {
-docker run -d -p 1521:1521 container-registry.oracle.com/database/free
+
+→ development/tools/Docker/commands/run  → development/tools/Docker/commands/run#docker-run-name[--name] ora23c -d -p 1521:1521 container-registry.oracle.com/database/free
 code }
 
   Check the status of the container until it changes from *Up … seconds (health: starting)* to *Up 2 minutes (healthy)*:
@@ -552,18 +570,19 @@ code {
 docker ps
 code }
 
-  When it is running, I opened a shell in the container:
+  When it was running, I changed the password of `sys`: opened a shell in the container:
 code {
-docker exec -it dreamy_heisenberg bash
-code }
-
-  In this shell, I could run → development/databases/Oracle/SQL-Plus and change the password for SYS:
-code {
-bash-4.4$ sqlplus / as sysdba
-…
-SQL> alter user sys identified by IamTheDBA;
+$ docker exec ora23c sh -c "echo 'alter user sys identified by IamTheDBA;' | sqlplus -S / as sysdba"
 
 User altered.
+code }
+
+  It's also possible to open a shell in the container and run SQLPlus interactively:
+code {
+$ docker exec -it ora23c bash
+bash-4.4$ sqlplus / as sysdba
+…
+SQL>
 code }
 
   With this password, I could then connect to the instance from → development/Software/Oracle-SQL-Developer[SQL Developer] using the service names *FREE* and *FREEPDB1*

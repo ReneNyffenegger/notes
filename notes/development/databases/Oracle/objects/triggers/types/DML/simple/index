@@ -1,0 +1,81 @@
+$ Oracle: Simple DML triggers
+
+code {
+create table tq84_trigger_test_tab (
+   val  number(5,2) unique
+);
+
+create table tq84_trigger_log (
+   id  integer generated always as identity primary key,
+   msg  varchar2(4000)
+);
+
+create or replace procedure tq84_trigger_log_ins(msg varchar2)
+   authid definer
+as
+   pragma autonomous_transaction;
+begin
+   insert into tq84_trigger_log(msg) values (msg);
+   commit;
+end;
+/
+
+create or replace trigger tq84_trigger_before_for_each_row
+   before insert or update or delete on tq84_trigger_test_tab
+   for each row
+begin
+  tq84_trigger_log_ins('before, old.val = ' || :old.val || ', new.val = ' || :new.val);
+end;
+/
+
+create or replace trigger tq84_trigger_after_for_each_row
+   after insert or update or delete on tq84_trigger_test_tab
+   for each row
+begin
+   tq84_trigger_log_ins('after, old.val = ' || :old.val || ', new.val = ' || :new.val);
+end;
+/
+
+create or replace trigger tq84_trigger_before_statement
+   before insert or update or delete on tq84_trigger_test_tab
+-- for each row
+begin
+  tq84_trigger_log_ins('Before statement');
+end;
+/
+
+create or replace trigger tq84_trigger_after_statement
+   after insert or update or delete on tq84_trigger_test_tab
+-- for each row
+begin
+  tq84_trigger_log_ins('After statement');
+end;
+/
+
+insert into tq84_trigger_test_tab (val) values (1.1);
+insert into tq84_trigger_test_tab (val) values (2.2);
+update tq84_trigger_test_tab set val = 3.3 where val = 1.1;
+delete from tq84_trigger_test_tab  where val = 3.3;
+
+insert into tq84_trigger_test_tab (val) values (2.2);
+insert into tq84_trigger_test_tab (val) values (5.5);
+
+select msg from tq84_trigger_log order by id;
+
+select
+   trg.trigger_name,
+   trg.trigger_type,
+   trg.triggering_event,
+   trg.*
+from user_triggers trg
+where
+   trg.table_owner = user and
+   trg.table_name  = 'TQ84_TRIGGER_TEST_TAB';
+
+drop procedcure tq84_trigger_log_ins
+drop table      tq84_trigger_test_tab;
+drop table      tq84_trigger_log;
+code }
+
+sa:
+  → development/databases/Oracle/objects/triggers[Triggers]

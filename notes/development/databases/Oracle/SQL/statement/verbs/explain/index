@@ -11,9 +11,17 @@ EXPLAIN PLAN FOR <sql statement>;
 code }
 
 By default, `explain plan` writes the result into a table named → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`].
-However, the destination table can changed with the `into …` clause, see → #ora-explain-plan-result-table[below]. It is also possible to give a plan
-a *statement id* so that records that belong to a plan can be identified (see → #ora-explain-plan-stmt-id[here]).
 -
+However, the destination table can changed with the `into …` clause, see → #ora-explain-plan-result-table[below]. It is also possible to give a plan
+-
+In order to make it easier to identify a plan in the plan table, a → development/databases/Oracle/SQL/statement/verbs/explain/statement-id[statement id] can be provided:
+code {
+EXPLAIN PLAN FOR
+   SET → development/databases/Oracle/SQL/statement/verbs/explain/statement-id[STATEMENT ID] = 'long-running-query'
+FOR
+   SELECT …
+code }
+
 It turns out that the installation script → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catplan_sql[`catplan.sql`] creates a public synonym `plan_table` that points to a
 → development/databases/Oracle/objects/tables/types/global-temporary[global temporary table (GTT)] named `plan_table$`. Because `plan_table$` is a GTT, every session has its own version of the contents of `plan_table$`.
 
@@ -55,23 +63,6 @@ code }
   Of course, in the real world, more columns that are found in `plan_table` would probably be added.
 
 }
-{ Specifying a statement id #ora-explain-plan-stmt-id
-
-  Oracle allows to specify a *statement id* when a plan is explained. The value of this statement is found in the column `statement_id` of the
-  → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] and allows to select the records that belong to a plan more easily:
-code {
-explain plan
-   set statement_id = 'st1'
-for
-   select
-      foo, bar, baz
-   from
-      tab;
-code }
-
-  If the `set statement_id` clause is not used, `statement_id` is assigned from → development/databases/Oracle/objects/sequences `SYS.ORA_PLAN_ID_SEQ$`.
-
-}
 { Specifying a result table #ora-explain-plan-result-table
  
   It is also possible to specify a result table that is different from `plan_table`:
@@ -92,8 +83,7 @@ code }
 
  `EXPLAIN PLAN` assumes bind variables to be → development/databases/Oracle/SQL/data-types/varchar2[a `varchar2` data type] and accordingly calulates an execution plan.
 
-  If then the same statement is executed but with the bind variables bound to different data types, Oracle might choose to execute the statement with a different
-  plan.
+  If then the same statement is executed but with the bind variables bound to different data types, Oracle might choose to execute the statement with a different plan.
 
 }
 
