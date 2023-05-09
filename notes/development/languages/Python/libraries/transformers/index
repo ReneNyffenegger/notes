@@ -11,6 +11,59 @@ tokenizer = AutoTokenizer.from_pretrained(       "EleutherAI/gpt-j-6B")
 model     = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-j-6B")
 code }
 
+{ Standard classes
+
+? A model is required to use three classes derived from
+   • `PreTrainedModel`
+   • `PreTrainedConfig`
+   • `PreTrainedTokenizer` (NLP), `ImageProcessingMixin` (?) for vision, `FeatureExtractionMixin` (?) for audio, `ProcessorMixin` (?) for multimodal inputs
+
+  Instances of these classes are created by calling `from_pretrained()`. This method downloads (if necessary), caches and loads the followin related data from a pretrained checkpoint provided on Hugging Face Hub/
+     • Hyperparameters of configuration
+     • Vocabulary of tokenizer
+     • Weights of the model
+
+}
+
+{ PreTrainedModel
+
+ `PreTrainedModel` is the base class for all models and implements the  methods for loading and saving a model.
+
+  Compare with `TFPreTrainedModel` and `FlaxPreTrainedModel`.
+
+}
+{ PreTrainedConfig
+
+ `PreTrainedConfig` is the base class that implements methods for loading and saving configurations.
+
+  Common attributes in derived classes include
+    • `hidden_size`
+    • `num_attention_heads`
+    • `num_hidden_layers`
+    • `vocab_size` (Text models only)
+
+}
+{ GPT2LMHeadModel
+
+  Print class hierarchy:
 code {
-from transformers import GPT2LMHeadModel
+>>> import transformers
+>>> for baseClass in transformers.GPT2LMHeadModel.mro()[::-1]:
+...     print(f'{baseClass.__name__:<20} {baseClass.__module__}')
+...
+object               builtins
+PushToHubMixin       transformers.utils.hub
+GenerationMixin      transformers.generation.utils
+ModuleUtilsMixin     transformers.modeling_utils
+Module               torch.nn.modules.module
+PreTrainedModel      transformers.modeling_utils
+GPT2PreTrainedModel  transformers.models.gpt2.modeling_gpt2
+GPT2LMHeadModel      transformers.models.gpt2.modeling_gpt2
 code }
+
+}
+{ from_pretrained()
+
+  …
+
+}

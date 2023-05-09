@@ -2,6 +2,30 @@ $ torch.nn.Module
 
 `torch.nn.Module` is the base class for all → development/Data/science/Machine-learning/neural-networks modules.
 
+Some classes that inherit from `torch.nn.Module` include
+  • `→ development/languages/Python/libraries/torch/types/nn/Sequential`
+  • `→ development/languages/Python/libraries/torch/types/nn/ModuleList`
+  • `→ development/languages/Python/libraries/torch/types/nn/ModuleDict`
+  • `→ development/languages/Python/libraries/torch/types/nn/Transformer`
+  • `→ development/languages/Python/libraries/torch/types/nn/Embedding`
+  • `→ development/languages/Python/libraries/torch/types/nn/LayerNorm`
+  • `torch.nn.Container`
+
+Torch's documentation refers to `torch.nn.Module` as → https://pytorch.org/docs/stable/nn.html#containers[a container].
+
+{ Relation to torch.nn.modules.module.Module
+
+  `torch.nn.Module` and `torch.nn.modules.module.Module` are → https://discuss.pytorch.org/t/difference-between-nn-module-and-module-from-nn-modules-module/46631/6[the same class]:
+code {
+import torch
+print(torch.nn.Module.__module__ + '.' + torch.nn.Module.__name__)
+#
+# torch.nn.modules.module.Module
+code }
+
+}
+
+
 { Members
 
   Members of a `torch.nn.Module` object include
@@ -9,12 +33,12 @@ $ torch.nn.Module
 
     `add_module()` ☰ Add a child module to the module. See also `children()` and `apply()`
     `_apply()` ☰
-    `apply()` ☰
+    `apply()` ☰ Applies a function recursively to every submodule (as returned by `→ development/languages/Python/libraries/torch/types/nn/Module/children[children()]`).
     `bfloat16()` ☰
     `buffers()` ☰
     `_call_impl()` ☰
     `call_super_init` ☰ `bool` object
-    `children()` ☰ See also `add_module()`
+    → development/languages/Python/libraries/torch/types/nn/Module/children[`children()`] ☰ See also `add_module()`
     `cpu()` ☰ Compare with `to()`
     `cuda()` ☰ Moves all model parameters and buffers to the → hardware/xPU/GPU. Compare with `cpu()`
     `double()` ☰
@@ -86,11 +110,20 @@ class RenesNeuralNetwork(torch.nn.Module):
 
    def __init__(self):
 
+     #
+     # Call to parent class's __init__() function so that assigning submodules (self.xx = xyzmodule)
+     # are automatically registered (which is useful for their parameters to be converted in calls
+     # to .to() etc.)
+     #
        super(RenesNeuralNetwork, self).__init__()
 
+     #
+     # After calling the parent class' __init__() function, the
+     # submodules can be added:
+     #
        self.flatten = → development/languages/Python/libraries/torch/types/nn/Flatten()
 
-       self.layers = → development/languages/Python/libraries/torch/types/nn/Sequential(
+       self.layers  = → development/languages/Python/libraries/torch/types/nn/Sequential(
            …
        )
 
