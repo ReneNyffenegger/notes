@@ -1,0 +1,19 @@
+$ ORA-01940: cannot drop a user that is currently connected
+
+A user that has open → development/databases/Oracle/architecture/session[sessions] cannot be dropped, in such a case, the following statement would throw the error meesage *ORA-01940: cannot drop a user that is currently connected*:
+code {
+drop user k cascade;
+code }
+
+Generate `alter system kill session` statemens for each session that the user has open:
+code {
+select
+  'alter system kill session ''' || sid || ',' || serial# || ''' immediate;'  stmt
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session[gv$session]
+where
+   username ='K';
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
