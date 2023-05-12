@@ -26,11 +26,53 @@ code }
 
 }
 
-{ PreTrainedModel
+{ «Base» classes
 
- `PreTrainedModel` is the base class for all models and implements the  methods for loading and saving a model.
+  { PreTrainedModel #py-transformers-PreTrainedModel
 
-  Compare with `TFPreTrainedModel` and `FlaxPreTrainedModel`.
+   `PreTrainedModel` is the base class for all models and implements the  methods for loading and saving a model.
+
+   `PreTrainedModel` immediatly derives from:
+code {
+>>> import transformers
+>>> for parent in transformers.PreTrainedModel.→ development/languages/Python/dunders/__bases__:
+...     print(f'{parent.__name__:<20} {parent.__module__}')
+...
+→ development/languages/Python/libraries/torch/types/nn/Module[Module]               torch.nn.modules.module
+ModuleUtilsMixin     transformers.modeling_utils
+GenerationMixin      transformers.generation.utils
+PushToHubMixin       transformers.utils.hub
+code }
+
+  }
+  { TFPreTrainedModel
+
+    Same thing, but for `TFPreTrainedModel`:
+code {
+>>> → development/languages/Python/statements/import transformers
+>>> for parent in transformers.TFPreTrainedModel.→ development/languages/Python/dunders/__bases__:
+...     print(f'{parent.__name__:<20} {parent.__module__}')
+...
+Model                → development/languages/Python/libraries/TensorFlow/Keras[keras].engine.training
+TFModelUtilsMixin    transformers.modeling_tf_utils
+TFGenerationMixin    transformers.generation.tf_utils
+PushToHubMixin       transformers.utils.hub
+code }
+
+  }
+  { FlaxPreTrainedModel
+
+    Same thing, but for `FlaxPreTrainedModel`:
+code {
+>>> → development/languages/Python/statements/import transformers
+>>> for parent in transformers.FlaxPreTrainedModel.→ development/languages/Python/dunders/__bases__:
+...     print(f'{parent.__name__:<20} {parent.__module__}')
+...
+object               builtins
+code }
+
+  }
+
 
 }
 { PreTrainedConfig
@@ -46,20 +88,18 @@ code }
 }
 { GPT2LMHeadModel
 
-  Print class hierarchy:
+ `GPT2LMHeadModel` inherits from `GPT2PreTrainedModel` which inherits from → #py-transformers-PreTrainedModel[`PreTrainedModel`]:
 code {
->>> import transformers
->>> for baseClass in transformers.GPT2LMHeadModel.mro()[::-1]:
+>>> → development/languages/Python/statements/import transformers
+>>> for baseClass in transformers.GPT2LMHeadModel.__bases__:
 ...     print(f'{baseClass.__name__:<20} {baseClass.__module__}')
 ...
-object               builtins
-PushToHubMixin       transformers.utils.hub
-GenerationMixin      transformers.generation.utils
-ModuleUtilsMixin     transformers.modeling_utils
-Module               torch.nn.modules.module
-PreTrainedModel      transformers.modeling_utils
-GPT2PreTrainedModel  transformers.models.gpt2.modeling_gpt2
-GPT2LMHeadModel      transformers.models.gpt2.modeling_gpt2
+GPT2PreTrainedModel  transformers.models.gpt2.modeling_gpt
+
+>>> for baseClass in transformers.GPT2PreTrainedModel.__bases__:
+...     print(f'{baseClass.__name__:<20} {baseClass.__module__}')
+...
+→ #py-transformers-PreTrainedModel[PreTrainedModel]      transformers.modeling_utils
 code }
 
 }
