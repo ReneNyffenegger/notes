@@ -16,6 +16,53 @@ The *Shared Pool* is part of the → development/databases/Oracle/architecture/i
 
 The Shared Pool also stores → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/buffer-header[buffer headers].
 
+Most components of the Shared Pool are shared among → development/databases/Oracle/architecture/session[sessions].
+-
+A notable distinction between the Shared Pool and the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache (which is also shared between sessions) is that the
+shared pool primarily caches metadata while the buffer cache stores data.
+
+{ Examining the contents of the Shared Pool #ora-exam-cont-shared-pool
+
+  The following query shows the summed up allocations of memory for various components in the Shared Pool:
+code {
+select
+   name,
+   to_char(bytes/1024/1024, '999,999,990.00') mb
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sga/stat
+where
+   pool = 'shared pool'
+order by
+   bytes desc;
+code }
+
+  While the previous query shows summations, more detailed information about individual objects in the Shared Pool can be queried from
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/db/object_cache` and its related views
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/sql` and `→ development/databases/Oracle/installed/dynamic-performance-views/sql/area`
+
+}
+{ Allocating memory / Heap manager #ora-shared-pool-alloc-mem
+
+  The *heap manager* allocates and releases memory for/from the Shared Pool and keeps track of allocations in the Shared Pool.
+
+  When the heap manager is requested to allocate a certain amount of memory, it tries to locate a chunk of contiguous memory to satisfy this request.
+
+  If such a contiguous space cannot be found, a process begins to free batches of heaps from the shared pool until the chunk can be allocated.
+
+  If even after trying five times to find free memory by going trhough the LRU list there is still not enough *contiguous* memory left after freeing the memory still (typically because the objects
+  are being used, see → #ora-shared-pool-pinned-objects[pinned objects]), Oracle throws the error message
+  → development/databases/Oracle/errors/ORA-04031_unable-to-allocate_bytes-of-shared-memory.
+
+}
+{ Pinned objects #ora-shared-pool-pinned-objects
+
+  The → #ora-shared-pool-alloc-mem[heap manager] does not free memory associated with objects that are being used.
+  -
+  Such objects are referred to as *pinned objects*.
+
+  An object can be pinned manually using the `→ development/databases/Oracle/installed/packages/dbms/shared_pool` package.
+
+}
 { LRU list
 
   The Shared Pool uses a LRU list to determine which memory can or should be freed if memory becomes sparse. 
@@ -46,11 +93,33 @@ select * from → development/databases/Oracle/architecture/instance/fixed-table
 code }
 
 }
+{ Problems arising from an undersized pool
+
+  If the Shared Pool is sized too small, the following symptoms are expected
+    • → development/databases/Oracle/errors/ORA-04301_unable-to-allocate_bytes-of-shared-memory
+    • Library cache lock and pin contention (high library cache reloads), investigate in `→ development/databases/Oracle/installed/dynamic-performance-views/librarycache`
+    • Row cache enqueue contention (high row cache reloads), investigate in `→ development/databases/Oracle/installed/dynamic-performance-views/rowcache`
+    • Latch contention (Shared pool, library cache, row cache)
+
+}
 
 sa:
+
+  The → development/databases/Oracle/adminstration/init-parameters
+     • `→ development/databases/Oracle/adminstration/init-parameters/shared/pool/size`
+     • `→ development/databases/Oracle/adminstration/init-parameters/shared/pool/size/reserved`
 
   → development/databases/Oracle/installed/packages/dbms/shared_pool[`dbms_shared_pool`]
 
   → development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/lru
 
   → development/databases/Oracle/SQL-Plus/sqlpath/ratzeputz[`ratzeputz.sql`]
+
+links:
+  Tanel Poder's → https://twitter.com/TanelPoder/status/1657223277096361984[tweet] mentions that the paper
+  → https://www.oracle.com/technetwork/database/manageability/ps-s003-274003-106-1-fin-v2-128827.pdf[Understanding Shared Pool Memory Structures] from 2005
+  is still relevant.
+  -
+  Because the paper is a bit dated, it should mention that
+ `shared_pool_size` → https://twitter.com/tmmdv/status/1657235238420881411[should not be set] on PDB level.
+

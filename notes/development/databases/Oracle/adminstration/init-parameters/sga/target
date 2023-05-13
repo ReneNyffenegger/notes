@@ -1,0 +1,38 @@
+$ Oracle: Init parameter SGA_TARGET
+@ sga_target
+
+Setting `sga_target` to a non zero value enables → development/databases/Oracle/adminstration/memory-management/automatic[automatich shared memory management
+and specifies the size of → development/databases/Oracle/architecture/instance/SGA.
+-
+With `sga_target` > 0, the following pools are automatically sized:
+  • Buffer cache (`→ development/databases/Oracle/adminstration/init-parameters/db/cache/size`)
+  • Shared pool (`→ development/databases/Oracle/adminstration/init-parameters/shared/pool/size`)
+  • Large pool (`→ development/databases/Oracle/adminstration/init-parameters/large_pool/size`)
+  • Java pool (`→ development/databases/Oracle/adminstration/init-parameters/java/pool_size`)
+  • Streams pool (`→ development/databases/Oracle/adminstration/init-parameters/streams_pool/size`)
+  • Data transfer cache (`→ development/databases/Oracle/adminstration/init-parameters/data/transfer_cache/size`)
+
+
+{ Calculating the value for SGA_TARGET
+
+  Oracle → https://docs.oracle.com/en/database/oracle/oracle-database/23/admin/managing-memory.html#GUID-0E0EBCD5-6134-492B-9232-3F76D92B1900[recommends to determine a possible value for `sga_target`] with
+  the following query:
+code {
+select (
+   (select sum(value  ) from → development/databases/Oracle/installed/dynamic-performance-views/sga                    ) -
+   (select current_size from → development/databases/Oracle/installed/dynamic-performance-views/sga/dynamic/free_memory)
+) "sga_target"
+from
+  dual;
+code }
+
+  Whatever value is chosen when setting `sga_target`, it must be smaller than `sga_max_size` (otherwise an → development/databases/Oracle/errors/ORA-02097_parameter-cannot-be-modified-because-specified-value-is-invalid
+  combined with ORA-56747 is thrown).
+
+}
+
+sa:
+
+  → development/databases/Oracle/architecture/instance/SGA
+
+  → development/databases/Oracle/adminstration/init-parameters
