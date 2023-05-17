@@ -1,7 +1,7 @@
 
 DuckDB has no dependencies to compile or to run it.
 -
-All DuckDB needs to be compiled is a C++ 11 compiler.
+All DuckDB needs to be compiled is a → development/languages/C-C-plus-plus/CPP[C++ 11] compiler.
 
 Like → development/databases/SQLite, there is no server, rather DuckDB runs within the same → Linux/kernel/process as also the program using DuckDB.
 
@@ -12,6 +12,31 @@ Like → development/databases/SQLite, there is no server, rather DuckDB runs wi
    `select * from t` can be abbreviated with:
 code {
 from t;
+code }
+
+  }
+  { Pivot
+
+code {
+create table p (
+   txt      varchar      not null,
+   val      decimal(5,2) not null
+);
+
+insert into p values
+  ('A',   4.31),
+  ('A',   2.18),
+  ('A',   3.72),
+  ('B',   2.81),
+  ('B',   5.36),
+  ('C',   6.12),
+  ('C',   8.27);
+
+pivot p 
+  on txt
+using
+  sum  (val) as total,
+  count(val) as cnt;
 code }
 
   }
@@ -27,7 +52,7 @@ code {
 select * replace(upper(val_1) as val_1) from t;
 code }
 
-   Select columns whose names match a regular expression: 
+   Select columns whose names match a → development/regular-expressions[regular expression]:
 code {
 select columns('val_\d') from t;
 code }
@@ -97,11 +122,9 @@ select unnest(generate_series(1, 100));
 code }
 
   }
-
-
   { Exporting and importing data
 
-    A database can be exported to different file formats:
+    A database can be exported to different → development/Data/exchange/formats[file formats] such as → development/Data/exchange/formats/Apache-Parquet:
 code {
 export database '/home/rene/dbexp' (format csv, delimiter ',');
 export database '/home/rene/dbexp' (format parquet);

@@ -1,0 +1,85 @@
+$ Oracle: Execution plan for INSERT ALL
+
+The following example demonstrates the two → development/databases/Oracle/SQL/statement/execution/plan/operations[SQL plan operators] `MULTI-TABLE INSERT` and `INTO`.
+
+code {
+create schema authorization rene 
+
+  create table tq84_dest_one (
+      id     number,
+      val_2  number,
+      val_3  number,
+      val_5  number
+  )
+
+  create table tq84_dest_two (
+      id     number,
+      val_1  number,
+      val_3  number,
+      val_4  number
+  )
+
+  create table tq84_src (
+      id     number,
+      val_1  number,
+      val_2  number,
+      val_3  number,
+      val_4  number,
+      val_5  number
+  )
+;
+
+
+begin
+
+   insert into tq84_src values (1 , 1.1 , 1.11 , 1.111 , 1.1111 , 1.11111);
+   insert into tq84_src values (2 , 2.2 , 2.22 , 2.222 , 2.2222 , 2.22222);
+   insert into tq84_src values (3 , 3.3 , 3.33 , 3.333 , 3.3333 , 3.33333);
+   insert into tq84_src values (4 , 4.4 , 4.44 , 4.444 , 4.4444 , 4.44444);
+   insert into tq84_src values (5 , 5.5 , 5.55 , 5.555 , 5.5555 , 5.55555);
+   insert into tq84_src values (6 , 6.6 , 6.66 , 6.666 , 6.6666 , 6.66666);
+   insert into tq84_src values (7 , 7.7 , 7.77 , 7.777 , 7.7777 , 7.77777);
+   insert into tq84_src values (8 , 8.8 , 8.88 , 8.888 , 8.8888 , 8.88888);
+   insert into tq84_src values (9 , 9.9 , 9.99 , 9.999 , 9.9999 , 9.99999);
+
+   commit;
+
+end;
+/
+
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+→ development/databases/Oracle/SQL/DML/insert/all
+   when id <= 7 then into tq84_dest_one(id, val_2, val_3, val_5) values (id, val_2, val_3, val_5)
+   when id >= 3 then into tq84_dest_two(id, val_1, val_3, val_4) values (id, val_1, val_3, val_4)
+with dat as
+(
+   select
+      id,
+      val_1, val_2, val_3, val_4, val_5
+   from
+      tq84_src
+)
+select
+   *
+from
+   dat;
+
+
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic'));
+--
+-- ---------------------------------------------
+-- | Id  | Operation           | Name          |
+-- ---------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert    |               |
+-- |   1 |  MULTI-TABLE INSERT |               |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_SRC      |
+-- |   3 |   INTO              | TQ84_DEST_ONE |
+-- |   4 |   INTO              | TQ84_DEST_TWO |
+-- ---------------------------------------------
+--
+
+drop table tq84_dest_one;
+drop table tq84_dest_two;
+drop table tq84_src;
+code }

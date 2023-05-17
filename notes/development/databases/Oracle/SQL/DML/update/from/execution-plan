@@ -1,0 +1,40 @@
+$ Oracle SQL: Executino plan for UPDATE stement with a FROM clause
+
+The → development/databases/Oracle/SQL/statement/execution/plan[execution plan] for → development/databases/Oracle/SQL/DML/update/from[`update` statement with a `from` clause] (version → development/databases/Oracle/Releases-and-versions/23c and later) is not particularly spectacular.
+
+code {
+drop table if exists tq84_dst;
+drop table if exists tq84_src;
+
+create table tq84_dst (
+   id  integer,
+   val number
+);
+
+create table tq84_src (
+   id      integer,
+   val_new number
+);
+
+explain plan for
+update
+  tq84_dst dst
+set
+   dst.val = src.val_new
+from
+   tq84_src src
+where
+   dst.id = src.id;
+
+select * from table(dbms_xplan.display(format=>'basic'));
+--
+-- ----------------------------------------
+-- | Id  | Operation           | Name     |
+-- ----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update    |          |
+-- |   1 |  UPDATE             | TQ84_DST |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join         |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_SRC |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_DST |
+-- ----------------------------------------
+code } 

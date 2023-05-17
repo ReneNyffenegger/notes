@@ -1,4 +1,10 @@
-$ ORA-00932: inconsistent datatypes
+$ ORA-00932: inconsistent datatypes: expected … got …
+
+An *ORA-00932* is thrown when a → development/databases/Oracle/SQL/data-types[data type] cannot be converated to another.
+-
+In Oracle versions prior to → development/databases/Oracle/Releases-and-versions/23c, the message is *ORA-00932: inconsistent datatypes: expected … got …*, with the «error message improvement program», the messages
+changed to *ORA-00932: expression is of data type …, which is incompatible with expected data type …*.
+
 
 { CHAR / NUMBER
 
@@ -89,6 +95,38 @@ select
 from
    dual;
 code }
+
+}
+{ ORA-00932: inconsistent dataytpes: expected UDT got NUMBER
+
+
+  The following snippet throws *ORA-00932: inconsistent dataytpes: expected UDT got NUMBER*.
+code {
+create type tq84_result_line as object (
+   num     number(2),
+   txt     varchar2(10)
+);
+/
+
+create type tq84_result_table as table of tq84_result_line;
+/
+
+
+declare
+   res tq84_result_table;
+begin
+
+   select
+      tq84_result_table(level, rpad('x', level, 'x')) --- <== Change to tq84_result_line to fix problem
+   bulk collect into res
+   from
+      dual connect by level <= 10;
+      
+end;
+/
+code }
+
+  
 
 }
 { ORA_00932: inconsistent datatypes: expected NLS PARAMETER got NUMBER #ora-00932-exp-nls-parameter-got-number

@@ -1,0 +1,59 @@
+$ Oracle SQL: UPDATE stement with a FROM clause
+
+In → development/databases/Oracle/Releases-and-versions/23c[Oracle 23c], its possible to use the `→ development/databases/Oracle/SQL/select/from` clause in an `→ development/databases/Oracle/SQL/DML/update` statement.
+
+code {
+drop table if exists tq84_B;
+drop table if exists tq84_A;
+
+create table tq84_A (
+   id           integer primary key,
+   total_val    number(6,2),
+   last_updated date
+);
+
+create table tq84_B (
+    id_A     integer references tq84_A not null,
+    val      number(5,2)       not null
+);
+
+insert into tq84_A (id) values (1),(2),(3),(4),(5);
+
+insert into tq84_B values
+  (1, 189.57),
+  (1, 134.12),
+  (2,  56.89),
+  (2,  78.43),
+  (2, 167.26),
+  (2,  22.99),
+  (3, 115.71),
+  (5,  42.15),
+  (5, 153.88),
+  (5,  96.03);
+
+update
+   tq84_A a                 
+set
+   total_val    = b.sum_val,
+   last_updated = sysdate
+from (
+   select
+      id_a,
+      sum(val) sum_val
+   from
+      tq84_B b
+    group by
+      id_a
+) b
+where
+   a.id = b.id_A
+;
+  
+select * from tq84_A;     
+code }
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/execution/plan[execution plan] for an `update` statement with a `from` clause is not → development/databases/Oracle/SQL/DML/update/from/execution-plan[particularly spectacular].
+
+  → development/databases/Oracle/errors/ORA-30926_unable-to-get-a-stable-set-of-rows-in-the-source-table[ORA-30926: The operation attempted to update the same row (rowid: '…') twice].
