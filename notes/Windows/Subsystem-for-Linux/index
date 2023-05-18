@@ -32,7 +32,7 @@ code }
     The → https://github.com/microsoft/wslg#wslg-system-distro[WSLg System Distro] is a containerized Linux environment (based on → https://github.com/microsoft/CBL-Mariner[CBL Mariner])
     where the following components are running.
     table { ll
-       ☰ Env var
+       ☰ ~Env var~
       WSLg XServer ☰ `$DISPLAY`
       Wayland server ☰ `$WAYLAND_DISPLAY`
       PulseAudio server ☰ `$PULSE_SERVER`
@@ -41,16 +41,19 @@ code }
   }
 
 }
-{ Enabling WSL in a console
+{ Enabling WSL in a Windows console
 
-  WSL (Version 1?) is enabled in → Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`] with
+  WSL must be specifically enabled before it can be started. It's possible to enable WSL from the command line with elevated privileges. In order for the enabling to take effect,
+  the computer needs to be restarted.
+
+  WSL (Version 1?) is enabled `→ Windows/dirs/Windows/System32/cmd_exe` with
 code {
 C:\> → Windows/dirs/Windows/System32/Dism_exe[dism] /online /enable-Feature /featureName:Microsoft-Windows-Subsystem-Linux
 code }
 
   In → Windows/PowerShell, it can be enabled with
 code {
-C:\> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/enable[enable-WindowsOptionalFeature] -online -featureName microsoft-Windows-Subsystem-Linux
+PS:\> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/enable[enable-WindowsOptionalFeature] -online -featureName microsoft-Windows-Subsystem-Linux
 code }
 
 }
@@ -96,6 +99,31 @@ code {
 → Windows/dirs/Windows/System32/wsl_exe[wsl] --install --distribution Debian
 code }
 
+   { WslRegisterDistribution failed with error: 0x800701bc
+
+    *2023-05-18* on a new laptop, when trying to install Debian, I rceived the error *0x800701bc* along with a link to → https://aka.ms./wsl2kernel where I could find more information.
+
+     This link told me to → #wsl-linux-kernel-update[install the Linux kernel update].
+
+   }
+   { WslRegisterDistribution failed with error: 0x80370102
+
+     Still on the *2023-05-18* on a new laptop after updating the kernel, I got the *0x800701bc* error along with a link to → https://aka.ms./enablevirtualization.
+
+     This link suggested to enable hypervisor launch in the boot configuration with `→ Windows/dirs/Windows/System32/bcdedit_exe`:
+code {
+→ Windows/dirs/Windows/System32/bcdedit_exe[bcdedit] /set hypervisorlaunchtype Auto
+code }
+
+     However, even after rebooting the system and verifying that virtualization was enabled in the BIOS, this didn't work.
+
+     The next attempt was to enable *VirtualMachinePlatform* (which then seemed to finally work!)
+code {
+PS:\> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/enable[enable-WindowsOptionalFeature] -online -featureName VirtualMachinePlatform -all
+code }
+ 
+
+   }
    { Old attempts
 
   (*The following describes an unsuccessful attempt of mine to install a distribution*).
@@ -133,6 +161,7 @@ code }
 
   }
 
+
 }
 { Update WSL 1 to WSL 2
 
@@ -156,20 +185,29 @@ For information on key differences with WSL 2 please visit → https://aka.ms/ws
 code }
 
   → https://github.com/microsoft/WSL/issues/5651[This thread] seems to contain some information on how to get around this issue. It is suggested that the kernel needs to be installed into
-  ­ → Windows/dirs/Windows/System32/lxss/tools[`C:\Windows\System32\lxss\tools`]:
-code {
-rem → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi -outFile WSLUpdate.msi -useBasicParsing
-    → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi                        -useBasicParsing
-rem → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package WSLUpdate.msi     /quiet
-    → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package wsl_upate_x64.msi /quiet
-code }
+  → Windows/dirs/Windows/System32/lxss/tools[`C:\Windows\System32\lxss\tools`].
+  -
+  I was able to to that by → #wsl-linux-kernel-update[updating the Linux kernel].
 
-  Installing the kernel seemed to work, setting the default version to 2 works now:
+  Installing (updating) the kernel seemed to work, setting the default version to 2 works now:
 code {
 C:\users\rene> → Windows/dirs/Windows/System32/wsl_exe[wsl] --set-default-version 2
 For information on key differences with WSL 2 please visit → https://aka.ms/wsl2
 code }
 
+}
+{ Install Linux kernel update #wsl-linux-kernel-update
+
+code {
+    cd $env:temp
+    $progressPreference = 'SilentlyContinue'
+    → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi -outFile WSLUpdate.msi -useBasicParsing
+rem → Windows/PowerShell/command-inventory/noun/webRequest/invoke[invoke-webRequest] -uri → https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi                        -useBasicParsing
+
+rem → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package WSLUpdate.msi     /quiet
+    → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package WSLUpdate.msi     /passive
+rem → Windows/dirs/Windows/System32/msiexec_exe[msiexec] /package wsl_upate_x64.msi /quiet
+code }
 
 }
 { Reset password
@@ -353,7 +391,7 @@ code }
     }
     { Attempt two
 
-      In a WSL 2 Debian installation, I had sound in Chrome, but when trying use a CSound fronend (`blue`, `csoundqt`), these were mute. `csoundqt` issued this error message
+      In a WSL 2 Debian installation, I had sound in Chrome, but when trying use a → Kunst/Musik/Csound frontend (`blue`, `csoundqt`), these were mute. `csoundqt` issued this error message
      *PortAudio V19.6.0-devel, …   error: No sound device is available … closing device* and *Failed to initialize real time audio output*.
 
       After installing the following two pacakges and restarting the WSL distro, I had sound for both, Chrome and csound frontends:
