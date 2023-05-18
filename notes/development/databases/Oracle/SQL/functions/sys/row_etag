@@ -1,0 +1,43 @@
+$ Oracle: SYS_ROW_ETAG
+@ sys_row_etag
+
+For all practical purposes, `sys_row_etag(col_1[, col_2 … ])` seems to calculate a hash value from the values of the passed column values, where the order of the columns doesn't play a role.
+
+code {
+drop table if exists tq84_etag_test_1;
+drop table if exists tq84_etag_test_2;
+drop table if exists tq84_etag_test_3;
+
+create table tq84_etag_test_1 (
+   num number,
+   txt varchar2(10)
+);
+
+insert into tq84_etag_test_1 values
+   (1, 'one'  ),
+   (2, 'two'  ),
+   (3, 'three');
+
+create table tq84_etag_test_2       as select * from tq84_etag_test_1;
+create table tq84_etag_test_3(n, t) as select * from tq84_etag_test_1;
+
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_1 where num = 2 union all
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_2 where num = 2 union all
+select sys_row_etag(n  ) etag_num, sys_row_etag(t  ) etag_txt, sys_row_etag(n  , t  ) etag_num_txt, sys_row_etag(t  , n  ) etag_txt_num from tq84_etag_test_3 where n   = 2;
+
+update tq84_etag_test_1 set txt = 'TWO' where num = 2;
+update tq84_etag_test_2 set txt = 'TWO' where num = 2;
+update tq84_etag_test_3 set t   = 'TWO' where n   = 2;
+
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_1 where num = 2 union all
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_2 where num = 2 union all
+select sys_row_etag(n  ) etag_num, sys_row_etag(t  ) etag_txt, sys_row_etag(n  , t  ) etag_num_txt, sys_row_etag(t  , n  ) etag_txt_num from tq84_etag_test_3 where n   = 2;
+
+update tq84_etag_test_1 set txt = 'two' where num = 2;
+update tq84_etag_test_2 set txt = 'two' where num = 2;
+update tq84_etag_test_3 set t   = 'two' where n   = 2;
+
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_1 where num = 2 union all
+select sys_row_etag(num) etag_num, sys_row_etag(txt) etag_txt, sys_row_etag(num, txt) etag_num_txt, sys_row_etag(txt, num) etag_txt_num from tq84_etag_test_2 where num = 2 union all
+select sys_row_etag(n  ) etag_num, sys_row_etag(t  ) etag_txt, sys_row_etag(n  , t  ) etag_num_txt, sys_row_etag(t  , n  ) etag_txt_num from tq84_etag_test_3 where n   = 2;
+code }

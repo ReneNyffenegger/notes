@@ -1,0 +1,44 @@
+$ Oracle: CREATE … IF NOT EXITS … / DROP … IF EXISTS …
+
+→ development/databases/Oracle/Releases-and-versions/23c[Oracle 23c] has added the `if not exists` clause to the `→ development/databases/Oracle/SQL/statement/verbs/create` SQL verb,
+and `if exists` clause to the `→ development/databases/Oracle/SQL/statement/verbs/drop` statement which prevent → development/databases/Oracle/errors[errors] from being
+thrown when creating or dropping → development/databases/Oracle/objects[objects] (→ development/databases/Oracle/objects/tables[tables], → development/databases/Oracle/objects/views[views] etc.).
+
+{ Demonstration
+
+  The following statement creates a table with one column, named `num`:
+code {
+create table tq84_tab (num number);
+code }
+
+  The following statement creates the table `tq84_tab` if it does not alerady exist. Since the table aready exists, the table is not created, but the error
+→ development/databases/Oracle/errors/ORA-0955_name-is-already-used-by-an-existing-object is not thrown, either:
+code {
+create table if not exists tq84_tab(txt varchar2(10));
+code }
+
+  When showing the table structure with → development/databases/Oracle/SQL-Plus/describe[SQL*Plus `desc`] command, it shows that the table's column's name is `num`, not `txt`.
+code {
+SQL> desc tq84_tab
+
+Name Null? Type   
+---- ----- ------ 
+NUM        NUMBER 
+code }
+
+  The following statement drop the table if it exists:
+code {
+drop table if exists tq84_tab;
+code }
+
+  The following statement does not throw the error message → development/databases/Oracle/errors/ORA-00942_table-or-view-does-not-exist because of the `if exists` clause:
+code {
+drop table if exists tq84_tab;
+code }
+
+}
+
+sa:
+
+  The → development/databases/Oracle/SQL-Plus script → development/databases/Oracle/SQL-Plus/sqlpath/drop_if_exists[`drop_if_exists.sql`] that drops an
+  → development/databases/Oracle/objects[object] if it exists (which I used in times before 23c).
