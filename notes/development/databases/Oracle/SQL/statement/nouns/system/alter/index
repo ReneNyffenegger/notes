@@ -28,7 +28,6 @@ code {
 alter system register;
 code }
 
-
 code {
 alter system reset …
 code }
@@ -111,6 +110,11 @@ alter system kill       session 'sid,serial'                   [ immediate | nor
 alter system kill       session 'sid,serial,@instance_id'      [ immediate | noreplay ];
 code }
 
+  → development/databases/Oracle/Releases-and-versions/23c (?) also comes with the `force` option to terminate a session more immediately than using `immediately` (i. e. not waiting for transactions to be rolled back, session locks to be released and the session state to be recovered):
+code {
+alter system kill       session 'sid,serial'                     force;
+code }
+
   The values for `sid` and `serial` can be found in → development/databases/Oracle/installed/dynamic-performance-views/session#vSsession-sid-serial[`v$session`]
 
   Compare with → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/orakill[`orakill.exe`]
@@ -119,6 +123,7 @@ code }
     • the → development/databases/Oracle/SQL/statement/nouns/system/alter/kill-session/kill_my_session[procedure `kill_my_session`] procedure,
     • `→ development/databases/Oracle/tools/oradebug/suspend` 
     • the → development/databases/Oracle/architecture/session#ora-session-terminate[`alter session set events 'immediate crash'`] statement to kill the own session
+    • → development/databases/Oracle/errors/ORA-01940_cannot-drop-a-user-that-is-currently-connected
     • the dynamic view `v$dead_cleanup` shows dead processes and killed sessions.
 
 }

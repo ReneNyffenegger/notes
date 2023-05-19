@@ -5,7 +5,7 @@ code {
 drop user k cascade;
 code }
 
-Generate `alter system kill session` statemens for each session that the user has open:
+Generate → development/databases/Oracle/SQL/statement/nouns/system/alter#ora-alter-system-end-session[`alter system kill session`] statements for each session that the user has open:
 code {
 select
   'alter system kill session ''' || sid || ',' || serial# || ''' immediate;'  stmt
@@ -15,5 +15,25 @@ where
    username ='K';
 code }
 
+The following anonymous → development/databases/Oracle/PL-SQL/block uses `→ development/databases/Oracle/PL-SQL/execute-immediate` to execute the statements created with the previous `select` statement.
+-
+In addition, it uses the `force` option available with → development/databases/Oracle/Releases-and-versions/23c to *immediatly* terminate all sessions of a given user:
+code {
+begin
+   for r in (
+      select
+        'alter system kill session ''' || sid || ',' || serial# || ''' force'  stmt
+      from
+         gv$session
+      where
+         username ='GTFS_ZURICH') loop
+
+         execute immediate r.stmt;
+    end loop;
+end;
+/
+code }
+
 sa:
+
   → development/databases/Oracle/errors[Other Oracle error messages]
