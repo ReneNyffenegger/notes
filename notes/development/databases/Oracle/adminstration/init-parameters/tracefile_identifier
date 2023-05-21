@@ -17,6 +17,23 @@ from
 exec → development/databases/Oracle/installed/packages/dbms/monitor/session_trace_[dbms_monitor.session_trace_disable];
 code }
 
+{ Bug when setting TRACEFILE_IDENTIFIER
+
+  Cary Millsap describes a → https://github.com/CaryMillsap/tracing-oracle/blob/main/code/bugs/tracefile_identifier/bug.sql[bug related to setting `tracefile_identifier`]:
+  "
+   When you set TRACEFILE_IDENTIFIER, the Oracle kernel process closes the
+   existing trace file and opens a new one. The new file doesn't contain all of
+   the information that it should. Specifically, it will not contain
+   some "PARSING IN CURSOR" sections that have been written to the first of the two
+   trace files. Impact is that, when we look at the trace file whose name has
+   the new tracefile identifier in it, we can't determine the SQL or PL/SQL
+   associated with all the cursors reported on in the trace. The workaround is
+   to simply never use TRACEFILE_IDENTIFIER. This has been a problem since at
+   least Oracle 10g, and it's still reproducible in → development/databases/Oracle/Releases-and-versions/23c FREE. 
+  "
+
+}
+
 sa:
 
   The parameter → development/databases/Oracle/adminstration/init-parameters/sql_trace[`sql_trace`]
