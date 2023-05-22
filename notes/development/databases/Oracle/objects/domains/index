@@ -3,6 +3,96 @@ $ Oracle: Domains
 
 The → development/databases/Oracle/objects[object type] *domain* is new in → development/databases/Oracle/Releases-and-versions/23c.
 
+{ Simple example
+
+code {
+create domain rating as varchar2(4)
+   constraint rating_chk check (rating in (
+       'AAA', 'AA+', 'AA', 'AA−', 'A+', 'A', 'A−',
+       'BBB+', 'BBB', 'BBB−', 'BB+', 'BB', 'BB−', 'B+', 'B', 'B−',
+       'CCC', 'CC', 'C',
+       'D'
+   ))
+   order case rating
+        when 'AAA' then 1 when 'AA+' then 2 when 'AA' then 3 when 'AA−' then 4 when 'A+' then 5 when 'A' then 6 when 'A−' then 7
+        when 'BBB+' then 8 when 'BBB' then 9 when 'BBB−' then 10 when 'BB+' then 11 when 'BB' then 12 when 'BB−' then 13 when 'B+' then 14 when 'B' then 15 when 'B−' then 16
+        when 'CCC' then 17 when 'CC' then 18 when 'C'  then 19
+        when 'D' then 20
+    end
+; 
+code }
+
+code {
+create table instruments (
+   nam  varchar2(50),
+   rat  rating 
+);
+code }
+
+  { Data dictionary
+
+    Query → development/databases/Oracle/installed/data-dictionary#ora-dd-domain[domain related] → development/databases/Oracle/installed/data-dictionary[data dictionary views] about the new created objects.
+
+    { USER_DOMAINS
+
+code {
+select
+   data_order
+from
+   user_domains
+where
+   name = 'RATING';
+code }
+
+    }
+    { Constraints
+
+     `user_domain_constraints` stores the *template* for a check constraint:
+code {
+select
+   constraint_type,
+   search_condition
+from
+   user_domain_constraints
+where
+   domain_name = 'RATING';
+code }
+
+    When the domain is used for a column, the template is applied as check constraint to the template:
+code {
+select
+   constraint_name,
+   search_condition
+from
+   user_constraints
+where
+   table_name      = 'INSTRUMENTS'   and
+   constraint_type = 'C';
+code }
+
+  }
+    { Data type
+
+      Similarly to `user_domain_constraints`, `user_domain_cols` stores the data type template for
+      columns that are created with a domain:
+code {
+select
+   column_name,
+   data_type,
+   data_length,
+   discriminant
+from
+   user_domain_cols
+where
+   domain_name = 'RATING';
+code }
+
+    }
+
+  }
+
+}
+
 sa:
 
   → development/databases/Oracle/SQL/functions[SQL functions] related → development/databases/Oracle/SQL/functions/domain[domains].
