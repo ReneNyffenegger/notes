@@ -18,15 +18,28 @@ select
  
    trc.payload,
    trc.timestamp,
-   trc.section_id,
+   trc.section_id,                           -- This value is 0 except when RECORD_TYPE IS BETWEEN 3 AND 8.
+                                             -- When a section, dump or bucket(?) starts, the value of an internal counter is increased and returned in SECTION_ID.
+                                             -- When the section, dump or bucket(?) ends, the current value of the internal counter is returned in SECTION_ID.
+                                              
    trc.section_name,
-   trc.component_name,
+   trc.component_name,                       -- Find list of component names with → development/databases/Oracle/tools/oradebug/doc/component
    trc.operation_name,
    trc.session_id,
    trc.serial#,
    trc.file_name,
    trc.function_name,
-   trc.record_type,
+-- trc.record_type,
+    case trc.record_type
+        when 1 then 'regular'
+        when 2 then 'freeform'
+        when 3 then 'section begin'          -- Start of a new section whose id is shown in SECTION_ID
+        when 4 then 'dump begin'
+        when 5 then 'bucket begin'
+        when 6 then 'section end'
+        when 7 then 'dump end'
+        when 8 then 'bucket end'
+   end                             rec_typ,
    trc.record_level,
    trc.parent_level,
    trc.container_name,
