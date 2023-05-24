@@ -4,7 +4,8 @@ $ Oracle: DBMS_XPLAN.DISPLAY
 code {
 → development/databases/Oracle/SQL/statement/verbs/explain for → development/databases/Oracle/SQL/statement[<sql statement>];
 
-select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan[dbms_xplan].display)
+select * from → development/databases/Oracle/installed/packages/dbms/xplan[dbms_xplan].display();
+select * from table(→ development/databases/Oracle/installed/packages/dbms/xplan[dbms_xplan].display);
 code }
 
 { Parameters
@@ -15,7 +16,7 @@ code }
     `table_name` ☰ Name of the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[plan table] where the plan is stored ☰ `'PLAN_TABLE'`
     `statement_id` ☰ The → development/databases/Oracle/SQL/statement/verbs/explain/statement-id[statement id] that was used in the → development/databases/Oracle/SQL/statement/verbs/explain[`explain plan`] statement ☰ `→ development/databases/Oracle/SQL/null`
     `format` ☰ Level of information displayed ☰ `'TYPICAL'`
-    `filter_preds` ☰ The prediate that is applied to the records selected from the plan table. ☰ `→ development/databases/Oracle/SQL/null`
+    `filter_preds` ☰ The predicate that is applied to the records selected from the plan table. ☰ `→ development/databases/Oracle/SQL/null`
   table }
 
 }
@@ -36,24 +37,24 @@ code {
 --
 -- Minimal information: operation id, operation name, operation options
 --
-select * from table(dbms_xplan.display(format=>'basic'));
+select * from dbms_xplan.display(format=>'basic');
 
 --
 -- Add #rows, #bytes, optimizer costs and, if applicable, pruning
 -- parallel and predicate information
 --
-select * from table(dbms_xplan.display(format=>'typical'));
+select * from dbms_xplan.display(format=>'typical');
 
 --
 -- Add projection, alias and, if a distributed query is displayed,
 -- information about the remote SQL statement.
 --
-select * from table(dbms_xplan.display(format=>'all'));
+select * from dbms_xplan.display(format=>'all');
 
 -- Don't show «parallel information», even if if the plan were
 -- for a parallel execution. Otherwise the same as 'typical'
 --
-select * from table(dbms_xplan.display(format=>'serial'));
+select * from dbms_xplan.display(format=>'serial');
 code }
 
   More control on the displayed result set can be added with `+xxx` where `xxx` is
@@ -63,7 +64,7 @@ code }
     `cost`      ☰ → development/databases/Oracle/optimizer cost information
     `note` ☰ note section
     `outline` ☰
-    `partition` ☰ partition pruning information (shows values of → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] columns → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/partition_start-stop[`partition_start` and `partition_stop`]).
+    `partition` ☰ partition pruning information (shows values of `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` columns → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/partition_start-stop[`partition_start` and `partition_stop`]).
     `parallel`  ☰ → development/databases/Oracle/SQL/statement/execution/parallel#ora-parallel-px[PX] information (distribution method and table queue information)
     `predicate` ☰ predicate section
     `projection` ☰ projection section
@@ -75,20 +76,20 @@ code }
   The plus sign is optional, thus the following two statements are equivalent:
 
 code {
-select * from table(dbms_xplan.display(format=>'basic +note'));
-select * from table(dbms_xplan.display(format=>'basic  note'));
+select * from dbms_xplan.display(format=>'basic +note');
+select * from dbms_xplan.display(format=>'basic  note');
 code }
 
   Multiple options can be seperated with a comma or by introducing each one with a plus (`+`):
 code {
-select * from table(dbms_xplan.display(format=>'basic +cost +bytes'));
-select * from table(dbms_xplan.display(format=>'basic +cost, bytes'));
+select * from dbms_xplan.display(format=>'basic +cost +bytes');
+select * from dbms_xplan.display(format=>'basic +cost, bytes');
 code }
 
   Options can be turned off with a minus sign. Each option that is to be turned off must
   be prepended with a minus, otherwise, it's interpreted as a plus:
 code {
-select * from table(dbms_xplan.display(format => 'typical -cost,-rows'));
+select * from dbms_xplan.display(format => 'typical -cost,-rows');
 code }
 
 }
