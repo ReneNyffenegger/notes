@@ -1,0 +1,110 @@
+$ apt update
+
+Getting some statistics before updating:
+code {
+$ → Linux/package-managers/APT/commands/apt-cache stats
+Total package names: 100337 (2,809 k)
+Total package structures: 89372 (3,932 k)
+  Normal packages: 59590
+  Pure virtual packages: 924
+  Single virtual packages: 19360
+  Mixed virtual packages: 379
+  Missing: 9119
+Total distinct versions: 63056 (5,549 k)
+Total distinct descriptions: 123265 (2,958 k)
+Total dependencies: 386354/105572 (9,416 k)
+Total ver/file relations: 64664 (1,552 k)
+Total Desc/File relations: 57729 (1,385 k)
+Total Provides mappings: 23904 (574 k)
+Total globbed strings: 192227 (4,345 k)
+Total slack space: 109 k
+Total space accounted for: 34.2 M
+Total buckets in PkgHashTable: 196613
+  Unused: 124934
+  Used: 71679
+  Utilization: 36.4569%
+  Average entries: 1.24684
+  Longest: 16
+  Shortest: 1
+Total buckets in GrpHashTable: 196613
+  Unused: 118051
+  Used: 78562
+  Utilization: 39.9577%
+  Average entries: 1.27717
+  Longest: 6
+  Shortest: 1
+code }
+
+Count the number of package before updating. Note: 59969 is equal to the number of *normal packages* (59590) plus the number of *mixed virtual packages* (379):
+code {
+$ → Linux/package-managers/APT/commands/apt-cache pkgnames | → Linux/shell/commands/wc -l
+59969
+code }
+
+Updating, first attempt:
+code {
+$ apt update
+Reading package lists... Done
+E: Could not open lock file → Linux/fhs/var/lib/apt/lists/lock - open (13: Permission denied)
+E: Unable to lock directory → Linux/fhs/var/lib/apt/lists
+W: Problem unlinking the file /var/cache/apt/pkgcache.bin - RemoveCaches (13: Permission denied)
+W: Problem unlinking the file /var/cache/apt/srcpkgcache.bin - RemoveCaches (13: Permission denied)
+code }
+
+Updating needs admin privileges…
+code {
+$ sudo apt update
+Get:1 http://ftp.debian.org/debian bullseye-backports InRelease [49.0 kB]
+Get:2 http://security.debian.org/debian-security bullseye-security InRelease [48.4 kB]
+Hit:3 http://deb.debian.org/debian bullseye InRelease
+…
+Get:20 http://deb.debian.org/debian bullseye-updates/main amd64 Contents (deb) [68.7 kB]
+Fetched 50.1 MB in 16s (3,080 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+36 packages can be upgraded. Run 'apt list --upgradable' to see them.
+code }
+
+Check stats again. Some numbers are slightly different:
+code {
+Total package names: 100339 (2,809 k)
+Total package structures: 89374 (3,932 k)
+  Normal packages: 59592
+  Pure virtual packages: 924
+  Single virtual packages: 19360
+  Mixed virtual packages: 379
+  Missing: 9119
+Total distinct versions: 63070 (5,550 k)
+Total distinct descriptions: 123279 (2,959 k)
+Total dependencies: 386470/105446 (9,417 k)
+Total ver/file relations: 64674 (1,552 k)
+Total Desc/File relations: 57743 (1,386 k)
+Total Provides mappings: 23906 (574 k)
+Total globbed strings: 192116 (4,344 k)
+Total slack space: 105 k
+Total space accounted for: 34.2 M
+Total buckets in PkgHashTable: 196613
+  Unused: 124933
+  Used: 71680
+  Utilization: 36.4574%
+  Average entries: 1.24685
+  Longest: 16
+  Shortest: 1
+Total buckets in GrpHashTable: 196613
+  Unused: 118050
+  Used: 78563
+  Utilization: 39.9582%
+  Average entries: 1.27718
+  Longest: 6
+  Shortest: 1
+code }
+
+count the number of packages again:
+code {
+$ → Linux/package-managers/APT/commands/apt-cache pkgnames | → Linux/shell/commands/wc -l
+59971
+code }
+
+sa:
+  `→ Linux/package-managers/APT/commands/apt-get update`

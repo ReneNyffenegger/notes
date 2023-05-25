@@ -1,0 +1,107 @@
+$ Python library: apt_pkg
+@ apt_pkg
+
+{ Print the information about a given package 
+
+code {
+import os
+import apt_pkg
+
+apt_pkg.init()
+
+pkg_dir  = '/var/lib/apt/lists/'
+pkg_name = 'xxgdb'
+
+for filename in os.listdir(pkg_dir):
+    filepath = os.path.join(pkg_dir, filename)
+
+    if not filename.endswith('Packages'):
+        continue
+
+    pkg_tag_file = apt_pkg.TagFile(open(filepath, 'r'))
+
+    for pkg in pkg_tag_file:
+        if pkg.get('Package') == pkg_name:
+            print(f'Package:        {pkg.get("Package"       )}')
+            print(f'Version:        {pkg.get("Version"       )}')
+            print(f'Architecture:   {pkg.get("Architecture"  )}')
+            print(f'Maintainer:     {pkg.get("Maintainer"    )}')
+            print(f'Installed-Size: {pkg.get("Installed-Size")}')
+            print(f'Depends:        {pkg.get("Depends"       )}')
+            print(f'Recommends:     {pkg.get("Recommends"    )}')
+            print(f'Suggests:       {pkg.get("Suggests"      )}')
+            print(f'Section:        {pkg.get("Section"       )}')
+            print(f'Priority:       {pkg.get("Priority"      )}')
+            print(f'Homepage:       {pkg.get("Homepage"      )}')
+            print(f'Description:    {pkg.get("Description"   )}')
+            print(f'Source:         {pkg.get("Source"        )}')
+            quit()
+
+print(f'Package {pkg} not found in the package index files.')
+code }
+
+}
+{ Print list of all sections
+
+code {
+import apt_pkg
+import os
+
+apt_pkg.init()
+
+pkg_dir = '/var/lib/apt/lists/'
+sections = set()
+
+for filename in os.listdir(pkg_dir):
+    filepath = os.path.join(pkg_dir, filename)
+
+    if not filename.endswith('Packages'):
+     # Only package index files are interesting
+       continue
+
+    pkg_tag_file = apt_pkg.TagFile(open(filepath, 'r'))
+
+    for pkg in pkg_tag_file:
+        section = pkg.get('Section')
+        if section is not None:
+            sections.add(section)
+
+for section in sorted(sections):
+    print(section)
+code }
+
+}
+{ All packages in a given section
+
+code {
+import os
+import apt_pkg
+
+apt_pkg.init()
+
+pkg_dir = '/var/lib/apt/lists/'
+
+for filename in os.listdir(pkg_dir):
+    filepath = os.path.join(pkg_dir, filename)
+
+    if not filename.endswith('Packages'):
+     # Only package index files are interesting
+       continue
+
+  # Initialize new package tag file object
+    pkg_tag_file = apt_pkg.TagFile(open(filepath, 'r'))
+
+    for pkg in pkg_tag_file:
+        if pkg.get('Section') == 'fonts':
+            print(pkg.get('Package'))
+code }
+
+}
+{ Installation 
+
+  On Debian:
+code {
+sudo apt install -y python3-apt --fix-missing
+code }
+
+}

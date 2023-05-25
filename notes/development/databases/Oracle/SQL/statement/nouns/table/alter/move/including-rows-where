@@ -1,0 +1,75 @@
+$ Oracle: ALTER TABLE … MOVE INCLUDING ROWS WHERE
+
+Create a table and insert some test data:
+code {
+create table tq84_data (
+    val     number(5,2),
+    ins_dt  date          -- Pretend this columns stores the record's insert date
+);
+
+
+begin
+   insert into tq84_data values ( 129.27, sysdate - 40);
+   insert into tq84_data values ( 554.87, sysdate -  3);
+   insert into tq84_data values ( 304.21, sysdate - 35);
+   insert into tq84_data values ( 273.98, sysdate - 46);
+   insert into tq84_data values ( 520.13, sysdate - 37);
+   insert into tq84_data values ( 815.71, sysdate - 15);
+   insert into tq84_data values ( 804.68, sysdate - 29);
+   insert into tq84_data values ( 877.34, sysdate -  4);
+   insert into tq84_data values ( 108.42, sysdate - 37);
+   insert into tq84_data values ( 871.66, sysdate - 15);
+   insert into tq84_data values ( 729.81, sysdate -  2);
+   insert into tq84_data values ( 957.49, sysdate -  7);
+   insert into tq84_data values ( 848.32, sysdate - 44);
+   insert into tq84_data values ( 108.17, sysdate -  7);
+   insert into tq84_data values ( 350.00, sysdate -  8);
+   insert into tq84_data values ( 571.49, sysdate - 44);
+   insert into tq84_data values ( 886.14, sysdate - 30);
+   insert into tq84_data values ( 250.38, sysdate - 26);
+   insert into tq84_data values (  74.72, sysdate -  7);
+   insert into tq84_data values ( 960.03, sysdate - 35);
+
+   commit;
+end;
+/
+code }
+
+Count the number of records and determine how old the oldest record is:
+code {
+select
+   count(*)                 cnt,
+   max  (sysdate - ins_dt)  oldest_rec
+from
+   tq84_data;
+--
+--
+--        CNT OLDEST_REC
+-- ---------- ----------
+--         20 46.0000694
+code }
+
+Remove all records from the table whose (pretended) insert date is older than a month:
+code {
+alter table tq84_data
+      move online
+      including rows where ins_dt >= add_months(sysdate, -1);
+code }
+
+The `alter table … move` statement removed 9 records, the oldest record now is less than one month old:
+code {
+select
+   count(*)                 cnt,
+   max  (sysdate - ins_dt)  oldest_rec
+from
+   tq84_data;
+--
+--        CNT OLDEST_REC
+-- ---------- ----------
+--         11 29.0003704
+code }
+
+Clean up:
+code {
+drop table tq84_data;
+code }

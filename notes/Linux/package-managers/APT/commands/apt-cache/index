@@ -1,0 +1,81 @@
+$ apt-cache
+
+`apt-cache` queries the APT cache (which stores metadata).
+
+rem {
+`apt-cache` works offline and therefore does not have an operation to modify the cache. In order to refresh the cache, an `update` operation is needed (for exampe `→ Linux/package-managers/APT/commands/apt-get update`)
+rem }
+
+code {
+
+apt-cache [-agipns] [-o=config_string] [-c=config_file] {gencaches | showpkg pkg...  | showsrc pkg...  | stats | dump | dumpavail | unmet | search regex...  | show pkg [{=pkg_version_number | /target_release}]...  | depends pkg [{=pkg_version_number | /target_release}]...  |
+                 rdepends pkg [{=pkg_version_number | /target_release}]...  | pkgnames [prefix]  | dotty pkg [{=pkg_version_number | /target_release}]...  | xvcg pkg [{=pkg_version_number | /target_release}]...  | policy [pkg...]  | madison pkg...  | {-v | --version} | {-h | --help}}
+code }
+
+{ Commands
+
+  table { ll
+    `gencaches` ☰  creates APT's package cache. (This operation is executed implicitly by all commands that need  this cache if it is missing or outdated.
+    `→ Linux/package-managers/APT/commands/apt-cache/showpkg[showpkg] pkg…` ☰ displays package information (forward and reverse dependencies. Remaining arguments are package names. The available versions and reverse dependencies of each package listed are listed, as well as forward dependencies for each version. Forward (normal) dependencies are those packages
+    `stats`  ☰ Cache statistics (number of packages in the cache etc).
+    `showsrc pkg…` ☰ All the source package records. Using `--only-source` displays only source package names. (TODO: Error message You must put some 'deb-src' URIs in your `sources.list`)
+    `dump` ☰ Short listing of every package in the cache.
+    `dumpavail` ☰ Prints out an *available list* to → development/stdin-stdout-stderr[stdout]. (Suitable for use with `→ Linux/distributions/Debian/dpkg`, also used by the `dselect` method.)
+    `unmet` ☰ Summary of all unmet dependencies in the package cache.
+    `show pkg…` ☰ Displays package records. Similar to `→ Linux/distributions/Debian/dpkg --print-avail`.
+    `search regex…` ☰ Use POSIX → development/regular-expressions[regular expression] for searching in package names and descriptions.
+    `depends pkg…` ☰ Report dependencies a package has and all the possible other packages that can fulfill that dependency.
+    `rdepends pkg… `☰ Show reverse dependencies
+    `pkgnames [prefix]` ☰ All package names that APT knows. The optional `prefix` filters the result. The output is suitable for use in a *shell tab complete function*. Consider using the `--generate` options.
+    `dotty pkg…` ☰ Generate source for a *dotty* graph (→ tools/Graphviz) displaying the relationships between packages. (See also the `APT::Cache::GivenOnly` option).
+    `xvcg pkg…` ☰ The same as `dotty` but for xvcg from the → https://www.rw.cdl.uni-saarland.de/people/sander/private/html/gsvcg1.html[VCG tool].
+    `policy [pkg…]` ☰ Debug issues relating to the preferences file.
+    `madison pkg…` ☰ Mimic the output format and a subset of the functionality of `madison` (the Debian archive management tool).
+
+  table }
+
+}
+{ Options
+
+  table { llll
+
+   ☰ ☰ ☰ ~Configuration item~
+      `-p` ☰ `--pkg-cache` ☰  Select the file to store the package cache. ☰ `Dir::Cache::pkgcache`
+      `-s` ☰ `--src-cache` ☰  Select the file to store the source cache (only used by `gencaches`). When building the package cache the source cache is used to avoid reparsing all of the package files.  ☰ `Dir::Cache::srcpkgcache`
+      `-q` ☰ `--quiet` ☰  `-q -q` is even more quiet. ☰ `quiet`
+      `-i` ☰ `--important` ☰  Used for `unmet` and `depends`: print only important dependencies only. ☰ `APT::Cache::Important`
+           ☰ `--implicit` ☰ used for `depends` and `rdepends` to alsoshow implicit dependencies. ☰ `APT::Cache::ShowImplicit`
+      `-f` ☰ `--full` ☰  Print full package records when searching. ☰ `APT::Cache::ShowFull`
+      `-a` ☰ `--no-all-versions` ☰ Used for `show`:  Only print candiate version, not full records for all available versions.  ☰ `APT::Cache::AllVersions`
+      `-g` ☰ `--no-generate` ☰  Don't perform automatic package cache regeneration, rather than use the cache as it is. ☰ `APT::Cache::Generate`
+      `-n` ☰ `--names-only` ☰ Search package names only, not in long description ☰ `APT::Cache::NamesOnly`
+           ☰ `--all-names` ☰  Used for `pkgnames` to print all names (including virtual packages and missing dependencies) ☰ `APT::Cache::AllNames`
+           ☰ `--recurse` ☰  Used for `depends` and `rdepends` to behave recursivivly: all packages mentioned are printed once. ☰ `APT::Cache::RecurseDepends`
+           ☰ `--installed` ☰ Used for `depends` and `rdepends` to limit the output to currently installed packages. ☰ `APT::Cache::Installed`
+           ☰ `--with-source filename` ☰  Adds the given file(s) (`*.deb`, `*.dsc` and `*.changes`) as a source for metadata. ☰ `APT::Sources::With`
+      `-h` ☰ `--help` ☰  ☰
+      `-v` ☰ `--version` ☰   ☰
+      `-c` ☰ `--config-file` ☰  Specify a configuration file to use after reading the default configuration file. ☰
+      `-o` ☰ `--option` ☰  Set a configuration option (`-o Foo::Bar=bar`). ☰
+
+   table }
+
+   There is also a `--all-versions` and `--generate` (which are the default if not indicated.
+
+   { Tweaking options for depends and rdepends
+
+     Per default, `apt-cache depends` and `apt-cache rdepends` print all dependencies.
+     -
+     Using the following flags will omit the specified dependency types
+       • `--no-pre-depends`
+       • `--no-depends`
+       • `--no-recommends`
+       • `--no-suggests`
+       • `--no-conflicts`
+       • `--no-breaks`
+       • `--no-replaces`
+       • `--no-enhances`
+
+      The corresponding configuration items are `APT::Cache::ShowDependencyType` (e.g. `APT::Cache::ShowRecommends`).
+   }
+}
