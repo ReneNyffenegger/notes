@@ -1,7 +1,244 @@
 $ Oracle: SQL/PGQ
 
+{ Create demonstration tables
+
+  Table `N` stands for *node* …
+code {
+create table N (
+   id      char    (1) primary key,
+   val     number  (2) not null,
+   color   varchar2(6) not null
+);
+code }
+
+  … while `E` stands for *edge*:
+code {
+create table E (
+   n1     not null references N,
+   n2     not null references N,
+   weight number(1)
+);
+code }
+
+}
+{ Fill test data
+
+code {
+begin
+   insert into N values
+     ('A', 34, 'red'    ),
+     ('B', 28, 'blue'   ),
+     ('C', 31, 'green'  ),
+     ('D', 48, 'yellow' ),
+     ('E', 45, 'orange' ),
+     ('F', 26, 'purple' );
+   
+   insert into E values
+     ('A', 'B', 5 ),
+     ('A', 'F', 3 ),
+     ('A', 'D', 4 ),
+     ('E', 'F', 3 ),
+     ('B', 'C', 4 ),
+     ('B', 'E', 3 ),
+     ('C', 'D', 3 );
+
+end;
+/
+code }
+
+}
+{ Create property graph
+
+code {
+create property graph nodes_and_edges
+   vertex tables (
+        N
+        key (id)
+        properties (id, val)
+   )
+   edge tables (
+        E
+        key (n1, n2)
+        source      key (n1) references N(id)
+        destination key (n2) references N(id)
+        properties      (n1, n2, weight)
+   )
+;     
+code }
+
+}
+{ Select from the property graph
+
+ { Don't consider direction of edges
+
+code {
+select *
+from
+   graph_table ( nodes_and_edges
+--    match (n_from)  - [e] -  (n_to)
+      match (n_from) <- [e] -> (n_to)
+      columns (
+        n_from.id       as node_from,
+        n_to.id         as node_to,
+        e.weight        as edge_weight,
+        n_to.val        as node_to_value
+      )
+   )
+;
+code }
+
+ }
+ { DO consider direction of edges
+
+code {
+select *
+from
+   graph_table ( nodes_and_edges
+      match (n_from) - [e] -> (n_to)
+      columns (
+        n_from.id       as node_from,
+        n_to.id         as node_to,
+        e.weight        as edge_weight,
+        n_to.val        as node_to_value
+      )
+   )
+;
+code }
+
+  }
+  { DO consider direction of edges, but in reverse direction
+
+code {
+select *
+from
+   graph_table ( nodes_and_edges
+      match (n_from) <- [e] - (n_to)
+      columns (
+        n_from.id       as node_from,
+        n_to.id         as node_to,
+        e.weight        as edge_weight,
+        n_to.val        as node_to_value
+      )
+   )
+;
+code }
+
+  }
+  { Hop over a stop node to and end node.
+
+code {
+select *
+from
+   graph_table ( nodes_and_edges
+      match (n_from) - [e1] -> (n_stop) - [e2] -> (n_to)
+      columns (
+        n_from.id   as from_id,
+        e1.weight   as edge_1_weight,
+        n_stop.id   as stop_id,
+        e2.weight   as edge_2_weight,
+        n_to.id     as to_id,
+        n_to.val    as end_val
+      )
+   )
+;
+code }
+
+  }
+
+}
+{ Property graphs are SQL statement creators
+
+code {
+explain plan for …
+
+select * from dbms_xplan.display();
+--
+-- ------------------------------------
+-- | Id  | Operation           | Name |
+-- ------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |      |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join          |      |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join         |      |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| N    |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| E    |
+-- |   5 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | E    |
+-- ------------------------------------
+code }
+
+
+code {
+declare
+  c clob;
+begin
+  → development/databases/Oracle/installed/packages/dbms/utility/api/expand_sql_text(
+    input_sql_text  => q'[
+
+      select *
+      from
+         graph_table ( nodes_and_edges
+            match (n_from) - [e1] -> (n_stop) - [e2] -> (n_to)
+            columns (
+              n_from.id   as from_id,
+              e1.weight   as edge_1_weight,
+              n_stop.id   as stop_id,
+              e2.weight   as edge_2_weight,
+              n_to.id     as to_id,
+              n_to.val    as end_val
+            )
+         )
+
+    ]',
+    output_sql_text =>  c);
+
+  dbms_output.put_line(c);
+end;
+/
+code }
+
+code {
+SELECT
+    "A1"."FROM_ID"       "FROM_ID",
+    "A1"."EDGE_1_WEIGHT" "EDGE_1_WEIGHT",
+    "A1"."STOP_ID"       "STOP_ID",
+    "A1"."EDGE_2_WEIGHT" "EDGE_2_WEIGHT",
+    "A1"."TO_ID"         "TO_ID",
+    "A1"."END_VAL"       "END_VAL"
+FROM
+    (
+        SELECT
+            "A6"."ID"     "FROM_ID",
+            "A5"."WEIGHT" "EDGE_1_WEIGHT",
+            "A4"."ID"     "STOP_ID",
+            "A3"."WEIGHT" "EDGE_2_WEIGHT",
+            "A2"."ID"     "TO_ID",
+            "A2"."VAL"    "END_VAL"
+        FROM
+            "RENE"."N" "A6",
+            "RENE"."E" "A5",
+            "RENE"."N" "A4",
+            "RENE"."E" "A3",
+            "RENE"."N" "A2"
+        WHERE
+                "A6"."ID" = "A5"."N1"
+            AND "A4"."ID" = "A5"."N2"
+            AND "A4"."ID" = "A3"."N1"
+            AND "A2"."ID" = "A3"."N2"
+    ) "A1"
+code }
+
+}
+{ Cleaning up
+
+code {
+drop   property graph nodes_and_edges;
+drop   table E;
+drop   table N;
+code }
+
+}
+
 sa:
 
- → development/databases/Oracle/SQL/PGQ/graph_table[graph_table()`], `vertex_id()`  and `edge_id()`
+ → development/databases/Oracle/SQL/PGQ/graph_table[`graph_table()`], `vertex_id()`  and `edge_id()`
 
   → development/databases/Oracle/installed/data-dictionary[Data dictionary] views → development/databases/Oracle/installed/data-dictionary#ora-dd-property-graph[related to property graphs].
