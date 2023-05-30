@@ -1,0 +1,78 @@
+$ Oracle: DBMS_SNAPSHOT.EXPLAIN_REWRITE
+
+code {
+create table tq84_t1 (id char(1) primary key, num number(3));
+create table tq84_t2 (id_t1 references tq84_t1, val number(3));
+ 
+ 
+create materialized view tq84_mv_t12 as
+select
+    t1.id,
+    t1.num,
+    sum(t2.val) sum_val
+from
+   tq84_t1  t1                     left join
+   tq84_t2  t2 on t1.id = t2.id_t1
+group by
+   t1.id,
+   t1.num;
+   
+begin
+   insert into tq84_t1 values ('A', 1);
+   insert into tq84_t2 values ('A', 3);
+   commit;
+end;
+/
+
+select * from tq84_mv_t12;
+exec dbms_mview.refresh('tq84_mv_t12');
+
+begin
+   dbms_snapshot.explain_rewrite(
+ q'[
+   select
+   t1.num,
+   sum(t2.val)
+from
+   tq84_t1  t1                     left join
+   tq84_t2  t2 on t1.id = t2.id_t1
+where
+   t1.id = 'A'
+group by
+   t1.num ]',
+
+   'tq84_mv_t12',
+   'why_is_mat_view_not_used');
+end;
+/
+
+
+select
+-- statement_id,
+-- mv_owner,
+-- mv_name,
+   pass,
+   message,
+   mv_in_msg,
+   query,
+   rewritten_txt,
+   query_block_no,
+   measure_in_msg,
+   join_back_tbl,
+   join_back_col,
+   original_cost,
+   rewritten_cost,
+   flags
+from
+    rewrite_table
+where
+   statement_id = 'why_is_mat_view_not_used'
+order by
+   sequence;
+
+alter materialized view tq84_mv_t12 enable query rewrite;
+code }
+
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/mview` which is a synonym for `→ development/databases/Oracle/installed/packages/dbms/snapshot`.
