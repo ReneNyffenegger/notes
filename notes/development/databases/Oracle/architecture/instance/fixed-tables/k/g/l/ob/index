@@ -1,12 +1,13 @@
 $ X$KGLOB
+@ x$kglob
 
-Kernel Genereic Libraray Cache Mananger (KGL): *All Objects*?
+Kernel Generic Libraray Cache Mananger (KGL): *All Objects*?
 
 code {
 select
-   ob.kglnaown    ob_owner,
+   ob.kglnaown    ob_owner,     -- Can be null. Also found: $BUILD$
    ob.kglobtyd    ob_type,
-   ob.kglnaobj    ob_name,   -- ??
+   ob.kglnaobj    ob_name,      -- ??
    ob.kglhdnsd    "namespace?",
    ob.kglobts0,
    ob.kglobts5,
@@ -14,6 +15,41 @@ select
 from
    x$kglob ob;
 code }
+
+{ Column KGLHDADR
+
+  The value of the column `kglhdadr` identifies each record in `x$kglob`, the following query returns `1`:
+code {
+select
+   max(count(*))
+from
+   x$kglob
+group by
+   kglhdadr;
+code }
+
+  This column can be → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/dp#x-kglob-join[joined to the columns `kglrfhdl` and `kglhdadr`]
+  in `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/dp`.
+
+}
+{ Namespaces
+
+code {
+select   
+   count(*)       cnt,
+   ob.kglhdnsp    name_space_id,
+   ob.kglhdnsd    name_space_text
+from
+   x$kglob ob
+group by
+   ob.kglhdnsp,
+   ob.kglhdnsd
+order by
+   ob.kglhdnsd;
+code }
+
+}
+{ Other queries
 
 code {
 select
@@ -104,6 +140,7 @@ from
 ;   
 code }
 
+}
 { Columns KGLNAOBJ vs. KGLFNOBJ
 
   The column `kglnaobj` is a `varchar2(1000)`, `kglfnobj` a `clob`.

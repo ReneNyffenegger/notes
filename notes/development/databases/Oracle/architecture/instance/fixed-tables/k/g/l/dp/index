@@ -1,11 +1,33 @@
 $ X$KGLDP
+@ x$kgldp
 
 Object dependency.
 
 Compare with *read only* dependencies in → development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/rd[`x$kglrd`].
 
+{ Join with X$KGLOB #x-kglob-join
+
+ `x$kgldp` can be joined to `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/ob` and `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/xs`:
+code {
+select
+   xob.kglnaobj,
+   cur.kglnaobj,
+   xob.kglnaobj
+from
+   x$kglob xob                                      join
+   x$kgldp dep  on xob.kglhdadr = dep.kglrfhdl      join
+   x$kglob cur  on dep.kglhdadr = cur.kglhdadr      join
+   x$kglxs axs  on dep.kglhdadr = axs.kglhdadr and        --  make sure it is not a transitive
+                   dep.kgldepno = axs.kglxsdep            --  reference, but a direct one
+where
+    cur.kglhdnsp = 0 -- a cursor
+;
+code }
+
+}
+
 sa:
 
-  → development/databases/Oracle/installed/data-dictionary/dependencies[`dba_dependencies` - `all_dependencies` - `user_dependencies`]
+ `→ development/databases/Oracle/installed/data-dictionary/dependencies`
 
   → development/databases/Oracle/architecture/instance/fixed-tables
