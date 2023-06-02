@@ -1,6 +1,32 @@
 $ $ORACLE_HOME/rdbms/admin/utldtree.sql
 
-`utldtree.sql` creates tables and views that show dependencies between → development/databases/Oracle/objects[objects].
+`utldtree.sql` creates object that can be used to show dependencies between → development/databases/Oracle/objects[objects].
+-
+The objects created are:
+table { ll
+  `deptree_fill` ☰ The procedure that collects dependency information.
+  `deptree_temptab` ☰ The table that stores the collected dependency data.
+  `deptree` ☰ A view that select from `deptree_temptab` (and, if created by `sys`, also from the → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables] `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/dp`, `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/ob`, `→ development/databases/Oracle/architecture/instance/fixed-tables/k/g/l/xs` to show cursors that depend on the given object)
+  `ideptree` ☰ A view that selects from `deptree` and shows the data somewhat more prettier.
+  `deptree_seq` ☰ The sequence that provides the primary key values for `deptree_temptab`.
+table }
+
+Install the objects in → development/databases/Oracle/SQL-Plus:
+code {
+SQL> → development/databases/Oracle/SQL-Plus/start#sqlplus-start-at[@] → development/databases/Oracle/SQL-Plus/start#sqlplus-start-qm[?]rdbms/admin/utldtree.sql
+code }
+
+code {
+-- exec deptree_fill(type => 'view'     , schema => user, name => 'ideptree')
+-- exec deptree_fill(type => 'view'     , schema => user, name => 'deptree')
+-- exec deptree_fill(type => 'view'     , schema => user, name => 'deptree')
+-- exec deptree_fill(type => 'procedure', schema => user, name => 'deptree_fill')
+   exec deptree_fill(type => 'table'    , schema => user, name => 'deptree_temptab')
+
+select * from ideptree;
+select * from deptree          order by seq#;
+select * from deptree_temptab  order by seq#;
+code }
 
 { Misc
 
