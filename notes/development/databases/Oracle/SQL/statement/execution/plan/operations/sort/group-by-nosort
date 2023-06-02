@@ -1,0 +1,46 @@
+$ Oracle SQL Plan operation SORT GROUP BY NOSORT
+
+code {
+create table tq84_tab (
+    g   char    (1) not null,
+    v   number  (2) not null,
+    x   varchar2(3) not null
+);
+
+begin
+   insert into tq84_tab values ('A',   1, 'z');
+   insert into tq84_tab values ('A',   2, 'y');
+   insert into tq84_tab values ('A',   3, 'x');
+   insert into tq84_tab values ('B',   4, 'w');
+   insert into tq84_tab values ('C',   5, 'v');
+   insert into tq84_tab values ('C',   6, 'u');
+end;
+/
+
+create index tq84_ix on tq84_tab (g, v);
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   g,
+   any_value(v)
+from
+   tq84_tab
+group by
+   g;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic');
+--
+-- ----------------------------------------
+-- | Id  | Operation            | Name    |
+-- ----------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select     |         |
+-- |   1 |  SORT GROUP BY NOSORT|         |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan    | TQ84_IX |
+-- ----------------------------------------
+
+drop table tq84_tab;
+code }
+
+sa:
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
