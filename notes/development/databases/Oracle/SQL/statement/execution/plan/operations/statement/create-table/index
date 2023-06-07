@@ -2,6 +2,23 @@ $ Oracle SQL Plan operation: CREATE TABLE STATEMENT
 @ CREATE TABLE STATEMENT
 
 code {
+explain plan for create table tq84_tab (a number);
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display[dbms_xplan.display](format => 'basic');
+--
+-- ---------------------------------------
+-- | Id  | Operation              | Name |
+-- ---------------------------------------
+-- |   0 | CREATE TABLE STATEMENT |      |
+-- ---------------------------------------
+code }
+
+
+{ CREATE TABLE AS SELECT
+
+  In a → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[`create table … as select`] (CTAS) statement, the
+  → development/databases/Oracle/SQL/statement/execution/plan[execution plan] contains `→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select` operator:
+code {
 → development/databases/Oracle/SQL/statement/verbs/explain for
    create table dual_copy as
    select * from dual;
@@ -17,6 +34,69 @@ select * from table(→ development/databases/Oracle/installed/packages/dbms/xpl
 -- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full             | DUAL      |
 -- ------------------------------------------------------
 code }
+
+  { Scalar subqueries #ora-pln-create-table-stmt-subquery
+
+    Usually, the child operator of `CREATE TABLE STATMENT` in CTAS statements is `LOAD AS SELECT`.
+    -
+    If one of the columns involves a → development/databases/Oracle/SQL/select/subquery/scalar, the plans for the subquery are children of the `CREATE TABLE STATEMENET` operator:
+code {
+create table tq84_A (
+   id  integer primary key,
+   val number(5,2),
+   ltr char(1)
+);
+ 
+create table tq84_B (
+    ltr  char(1)
+);
+ 
+begin
+   insert into tq84_A values (1, 413.01, 'a');
+   insert into tq84_A values (2, 170.67, 'b');
+   insert into tq84_A values (3, 859.85, 'c');
+   insert into tq84_A values (4, 529.55, 'd');
+   insert into tq84_A values (5, 437.13, 'e');
+ 
+   insert into tq84_B values ('a');
+   insert into tq84_B values ('e');
+   insert into tq84_B values ('i');
+end;
+/
+ 
+ 
+explain plan for
+create table tq84_X as
+select
+   a.id,
+   a.ltr,
+   case when exists (select null from tq84_b b where b.ltr = a.ltr) then 'y' else 'n' end exists_
+from
+  tq84_A a;
+ 
+select * from dbms_xplan.display(format => 'basic');
+--
+-- ---------------------------------------------------
+-- | Id  | Operation                        | Name   |
+-- ---------------------------------------------------
+-- |   0 | CREATE TABLE STATEMENT           |        |
+-- |   1 |  TABLE ACCESS FULL               | TQ84_B |
+-- |   2 |  LOAD AS SELECT                  | TQ84_X |
+-- |   3 |   OPTIMIZER STATISTICS GATHERING |        |
+-- |   4 |    TABLE ACCESS FULL             | TQ84_A |
+-- ---------------------------------------------------
+ 
+ 
+drop table tq84_A;
+drop table tq84_b;
+code }
+
+    See also → development/databases/Oracle/SQL/select/subquery/scalar/sql-plan[SQL plan for scalar subqueries].
+
+
+  }
+
+}
 
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
