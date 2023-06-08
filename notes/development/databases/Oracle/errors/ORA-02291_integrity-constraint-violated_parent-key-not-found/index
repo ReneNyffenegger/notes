@@ -1,9 +1,13 @@
 $ ORA-02291: integrity constraint … violated - parent key not found
 
-The value of a → development/databases/Oracle/objects/tables/constraints/foreign-key that was attempted to be inserted into a
-→ development/databases/Oracle/objects/tables was not found in the
-→ development/databases/Oracle/objects/tables/constraints/primary-key[primary key].
+The *ORA-02291: integrity constraint … violated - parent key not found* error message is thrown if the value of a → development/databases/Oracle/objects/tables/constraints/foreign-key that was attempted to be inserted into a
+→ development/databases/Oracle/objects/tables was not found in the → development/databases/Oracle/objects/tables/constraints/primary-key[primary key].
 
+{ Demonstration
+
+  The following simple demonstration will throw this error.
+
+  First, we need two tables with a foreign-primary key relationship:
 code {
 create table tq84_P (
    id  number(6),
@@ -21,7 +25,7 @@ create table tq84_F (
 code }
 
 
-The following statement throws *ORA-02291: integrity constraint (RENE.FK) violated - parent key not found*:
+  The following statement throws *ORA-02291: integrity constraint (RENE.FK) violated - parent key not found*:
 code {
 insert into tq84_F values (1, 'xyz');
 code }
@@ -32,13 +36,37 @@ drop table tq84_F;
 drop table tq84_P;
 code }
 
+}
+{ Determining parent and child table #ora-02291-det-tab
+
+  The following statement helps to find the involved tables given the constraint name in the error message:
+code {
+select
+   pk.owner         pk_owner,
+   pk.table_name    pk_table,
+   fk.owner         fk_owner,
+   fk.table_name    fk_table, 
+   pk.status        pk_status,
+   fk.status        fk_status
+from
+   → development/databases/Oracle/installed/data-dictionary/constraints[all_constraints]  pk                                                     join
+   → development/databases/Oracle/installed/data-dictionary/constraints[all_constraints]  fk on pk.owner           = fk.r_owner            and
+                          pk.constraint_name = fk.r_constraint_name
+where
+   fk.owner || '.' || fk.constraint_name = ‘RENE.FK';
+code }
+
+
+  See also → development/databases/Oracle/installed/data-dictionary/constraints/primary-foreign-key-relations[this SQL statement to find primary-foreign key relationships].
+
+}
+
 sa:
 
   → development/databases/Oracle/objects/tables/constraints/referential-integrity#ora-ref-int-error[Error messages] related to → development/databases/Oracle/objects/tables/constraints/referential-integrity.
 
   → development/databases/Oracle/errors/ORA-02292_integrity-constraint-violated_child-record-found
 
-  An SQL statement to → development/databases/Oracle/installed/data-dictionary/constraints/primary-foreign-key-relations[find primary-foreign key relationships].
 
   → development/databases/Oracle/objects/tables/constraints/referential-integrity
 
