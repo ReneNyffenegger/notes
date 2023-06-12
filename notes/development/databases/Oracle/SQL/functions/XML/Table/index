@@ -78,6 +78,44 @@ select * from table(dbms_xplan.display(format=>'basic'));
 -- -------------------------------------------------------------------
 code }
 
+}
+{ Split comma separated values (CSV) to columns
+
+ `xmltable` can be used to to turn comma separated values into columns.
+
+  The values need to be preprocessed so that each value is enclosed in apostrophes.
+  -
+  For example, `foo,bar,baz` needs to be converted to `"foo","bar","baz"` which can be achieved with `'"' || replace(val, ',', '"') || '"'`.
+
+  Most basic query:
+code {
+select * from xmltable('"foo","bar","baz"');
+--
+-- Result Sequence
+-- ---------------
+-- foo
+-- bar
+-- baz
+code }
+
+  Using `trim` to get varchar2 values and a column alias `val`:
+code {
+select trim(column_value) va from xmltable('"foo","bar","baz"');
+-- VAL
+-- ---
+-- foo
+-- bar
+-- baz
+code }
+
+  Using `replace` to embed values in apostrophes:
+code {
+select trim(column_value) val from xmltable(( -- Note the double parantheses!
+  '"' ||                                      -- With single parantheses, error message is thrown: ORA-02000: missing COLUMNS keyword
+  replace('foo,bar,baz', ',', '","') ||
+  '"'
+));
+code }
 
 }
 
