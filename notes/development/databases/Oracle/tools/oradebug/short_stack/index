@@ -1,7 +1,8 @@
 $ oradebug short_stack
 
 code {
-SQL> → development/databases/Oracle/tools/oradebug/setorapid …
+SQL> → development/databases/Oracle/tools/oradebug/setorapid 1452
+Oracle pid: 66, Unix process pid: 1452, NID: 4026532587, image: oracle@c56c67e1f6b7
 code }
 
 Execute query in target session:
@@ -13,8 +14,39 @@ code }
 Get (possibly repeatedly) the stack of the target session:
 code {
 SQL> oradebug short_stack
+ksedsts()+784<-ksdxcb()+2524<-sspuser()+213<-__sighandler()<-lxsCnvCaseUTF8()+468<-lxpsCnvCase()+113<-
+lxsCnvCase()+69<-evaupr()+377<-evaopn2()+887<-qerhnProbeInnerNofragVf()+3967<-qersoFetchSimple()+463<-
+qersoFetch()+222<-qerjoCartesianFetch()+265<-rwsfcd()+120<-qerhnFetch()+6802<-opifch2()+3779<-kpoal8()+4407<-
+opiodr()+1297<-ttcpip()+1292<-opitsk()+2093<-opiino()+1018<-opiodr()+1297<-opidrv()+1069<-sou2o()+153<-
+opimai_real()+408<-ssthrdmain()+412<-main()+299<-__libc_start_main()+229<-_start()+46
 code }
 
+{ Compare result with gdb command backtrace
+
+  The stack of a process can be shown with `gdb`. The argument `-p` of `gdb` specifies the process id which can be queried from the column `spid` in `→ development/databases/Oracle/installed/dynamic-performance-views/process`.
+
+code {
+$ gdb -q -p 1452
+…
+(gdb) backtrace
+#0  0x00007f2653db2a92 in read () from /lib64/libpthread.so.0
+#1  0x0000000018c6df5c in read ()
+#2  0x0000000018c6d910 in snttread ()
+#3  0x0000000018c6c0e3 in nttfprd ()
+#4  0x0000000018c282fb in nsbasic_brc ()
+#5  0x0000000018c52022 in nioqrc ()
+#6  0x00000000185a19de in opikndf2 ()
+#7  0x000000000340cead in opitsk ()
+#8  0x000000000341553a in opiino ()
+#9  0x00000000185a4d51 in opiodr ()
+#10 0x0000000003408e3d in opidrv ()
+#11 0x00000000043cdcb9 in sou2o ()
+#12 0x0000000001004ff8 in opimai_real ()
+#13 0x00000000043da7ac in ssthrdmain ()
+#14 0x0000000001004e3b in main ()
+code }
+
+}
 { TODO
 
   The bottom (top?) of the call stack seems always to be
