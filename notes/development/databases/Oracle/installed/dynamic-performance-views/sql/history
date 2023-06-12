@@ -1,0 +1,68 @@
+$ Oracle: V$SQL_HISTORY
+@ v$sql_history
+
+`v$sql_history` shows the last 52 (or so, but see also the value of `→ development/databases/Oracle/adminstration/init-parameters/sql/history/buffers`) executed → development/databases/Oracle/SQL/statement[SQL statements].
+
+`v$sql_history` was introduced in → development/databases/Oracle/Releases-and-versions/23c.
+
+`v$sql_history` is only populated if the init parameter `→ development/databases/Oracle/adminstration/init-parameters/sql/history/enabled` is set to `true`:
+code {
+→ development/databases/Oracle/SQL-Plus/show/parameters-spparameters[show parameters] sql_history
+alter system set sql_History_enabled=true;
+code }
+
+Reconnect
+
+code {
+select * from user_objects where 1 = 2;
+
+select
+   sqh.sql_text,
+   sqh.sql_id,
+   sqh.application_wait_time,
+   sqh.buffer_gets,
+   sqh.child_number,
+   sqh.cluster_wait_time,
+   sqh.con_id,
+   sqh.concurrency_wait_time,
+   sqh.cpu_time,
+   sqh.current_user#,
+   sqh.elapsed_time,
+   sqh.error_facility,
+   sqh.error_number,
+   sqh.error_signalled,
+   sqh.io_cell_offload_eligible_bytes,
+   sqh.io_cell_uncompressed_bytes,
+   sqh.io_interconnect_bytes,
+   sqh.is_full_sqltext,
+   sqh.java_exec_time,
+   sqh.key,
+   sqh.last_active_time,
+   sqh.physical_read_bytes,
+   sqh.physical_read_requests,
+   sqh.physical_write_bytes,
+   sqh.physical_write_requests,
+   sqh.plan_hash_value,
+   sqh.plsql_exec_time,
+-- sqh.sid,
+-- sqh.session_serial#,
+-- sqh.session_user#,
+   sqh.sql_exec_id,
+   sqh.sql_exec_start,
+   sqh.statement_type,
+   sqh.user_io_wait_time
+from
+   v$sql_history sqh
+where
+   sqh.sid              = sys_context('userenv', 'sid'   )
+-- sqh.session_serial#  = …
+;
+code }
+
+sa:
+
+  In my admittedly short investigations of this feature, `v$sql_history` is always empty on PDB level.
+
+  `→ development/databases/Oracle/adminstration/init-parameters/sql/history/enabled`
+
+  Martin Bergers → https://twitter.com/martinberx/status/1644685453998555137[Twitter thread on `v$sql_history`].
