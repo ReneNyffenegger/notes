@@ -1,0 +1,136 @@
+$ Oracle: MLE Modules
+@ MLE module
+
+An MLE module persists a JavaScript module in the database (and is thus different from the dynamic execution of a transient piece of code executed with
+`→ development/databases/Oracle/installed/packages/dbms/mle`).
+
+{ Creating an MLE module
+
+code {
+create or replace mle module tq84_mle_module
+  language javascript
+as
+
+  function js_proc() {
+     console.log('js_proc was called');
+  }
+
+  export {
+     js_proc
+  }
+
+/
+code }
+
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/mle/modules[user_mle_modules]
+where
+   module_name = 'TQ84_MLE_MODULE';
+code }
+
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/source[user_source]
+where
+   type = 'MLE MODULE' and
+   name = 'TQ84_MLE_MODULE';
+code }
+
+code {
+create or replace procedure plsql_proc as
+   mle module tq84_mle_module
+   signature 'js_proc()';
+/
+code }
+
+code {
+select *
+from
+   user_mle_procedures
+where
+   object_name = 'PLSQL_PROC';
+code }
+
+code {
+set serveroutput on
+
+begin
+   plsql_proc;
+end;
+/
+code }
+
+
+}
+{ Executing SQL with mle-js-oracledb
+
+code {
+create or replace mle module tq84_sql_example language javascript as
+
+import oracledb from "mle-js-oracledb";
+
+function print_objs_of_type_js(obj_type) {
+
+   if (obj_type === undefined) {
+      throw "obj_type is undefined";
+   }
+
+   try {
+     let connection = oracledb.defaultConnection();
+
+     const result = connection.execute(`
+        select
+           object_name,
+           created
+        from
+           user_objects
+        where
+           lower(object_type) = lower(:t)`,
+        [ obj_type ],
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+     );
+
+     for (let row of result.rows) {
+         console.log(`${row.OBJECT_NAME} (${row.CREATED})`);
+     }
+
+   }
+   catch (e) {
+      console.error(`an error occurred while processing the query: ${e.message}`);
+   }
+}
+
+export { print_objs_of_type_js };
+/
+
+
+
+create or replace procedure print_objs_of_type(obj_type varchar2)
+   as mle module tq84_sql_example
+   signature 'print_objs_of_type_js(string)';
+/
+
+begin
+    print_objs_of_type('procedure');
+end;
+/
+code }
+
+  See also → https://oracle-samples.github.io/mle-modules/docs/mle-js-oracledb/23c/[MLE SQL Driver (mle-js-oracledb)]
+
+
+}
+{ Required privileges
+
+  In order to execute `plsql_proc`, the following privilege must be granted, otherwise, Oracle throws → development/databases/Oracle/errors/ORA-01031_insufficient-privileges:
+code {
+grant execute on javavascript to … ;
+code }
+
+}
+
+sa:
+  An → development/databases/Oracle/objects/mle/environments stores metadata that complements an MLE module.
