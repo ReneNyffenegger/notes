@@ -36,7 +36,7 @@ $ Oracle Data Cartridge Interfaces
    `ODCIIndexDelete` ☰
    `ODCIIndexDrop` ☰ Drops the table that was crated when `ODCIIndexCreate` was invoked.
    `ODCIIndexExchangePartition` ☰
-   `ODCIIndexFetch` ☰ Returns a batch of ROWIDs of rows (parameter `ODCIRidList`) that match the operator predicate.
+   `ODCIIndexFetch` ☰ Repeatedly invoked to determine the rowids of the rows that satisfy the operator's predicate; returns a batch of ROWIDs of rows (parameter `ODCIRidList`) that match the operator predicate.
    `ODCIIndexGetMetadata` ☰ Optional, used for the export utility.
    `ODCIIndexInsert` ☰
    `ODCIIndexStart` ☰ Two definitions.
@@ -115,7 +115,7 @@ code }
      `ODCIFUNCINFO` ☰
      `ODCIGRANULELIST` ☰
      `ODCIINDEXCTX` ☰ An object that has three attributes: `indexInfo` (which is an instance of `ODCIIndexInfo`), `rid` (which is a `→ development/databases/Oracle/SQL/data-types/varchar2`, probably used to store a rowid?) and  `queryInfo` (which is an instance of `ODCIQueryInfo`).
-     `ODCIINDEXINFO` ☰ Stores information about an index. The member `indexCols` (`ODCIColInfoList`) has information about the index's columns. `ODCIIndexInfo` is used in index management related functions such as `ODCIIndexCreate`, `ODCIIndexDrop` and `ODCIIndexTruncate`, `ODCIIndexInsert`, `ODCIIndexDelete`, `ODCIIndexUpdate`, `ODCIIndexStart` (and possibly others, too?). See also `ODCIIndexCtx`.
+     `ODCIINDEXINFO` ☰ Stores information about an index. The member `indexCols` (`ODCIColInfoList`) has information about the index's columns. `ODCIIndexInfo` is used in index management related functions such as `ODCIIndexCreate`, `ODCIIndexDrop` and `ODCIIndexTruncate`, `ODCIIndexInsert`, `ODCIIndexDelete`, `ODCIIndexUpdate`, `ODCIIndexStart` (and possibly others, too?). See also `ODCIIndexCtx` and `ODCIIndexInfoDump`.
      `ODCINUMBERLIST` ☰
      `ODCINUMBERLIST2` ☰
      `ODCIOBJECT` ☰ Stores an object's name and schema name (thus identifies an object). See also `ODBObjectList`.
@@ -127,7 +127,7 @@ code }
      `ODCIPREDINFO` ☰
      `ODCIQUERYINFO` ☰ See also `ODCIIndexInfo`
      `ODCIRAWLIST` ☰
-     `ODCIRIDLIST` ☰
+     `ODCIRIDLIST` ☰ `varray(32767) of varchar2(5072 byte)`; out paramter of `ODCIIndexFetch`, `ODCIIndexInsert`, `ODCIIndexDelete` and `ODCIIndexUpdate`. (`MX_UROWID_S` Z= 3800(Max UROWID)*4/3(URWOIDR2Char ovhd)= 5066.67 < 5072)
      `ODCISECOBJ` ☰
      `ODCISECOBJTABLE` ☰
      `ODCISTATSOPTIONS` ☰
@@ -153,7 +153,7 @@ code }
       `ODCIENVDUMP` ☰
       `ODCIINDEXALTEROPTIONDUMP` ☰
       `ODCIINDEXCALLPROPERTYDUMP` ☰
-      `ODCIINDEXINFODUMP` ☰
+      `ODCIINDEXINFODUMP` ☰ Dumps the content of an instance of `ODCIIndexInfo` (using `dbms_output` ?).
       `ODCIINDEXINFOFLAGSDUMP` ☰
       `ODCIPARTINFODUMP` ☰
       `ODCIPARTINFOLISTDUMP` ☰
