@@ -1,0 +1,41 @@
+$ Oracle: Init parameter _EXCLUDE_SEED_CDB_VIEW
+@ _exclude_seed_cdb_view
+
+If `_exclude_seed_cdb_view` is set to `true` (which is the default), everything releated to `PDB$SEED` is hidden in queries related to multitenant containers.
+
+{ Example
+
+  When connected to a container root, the data files for `pdb$seed` are not shown in using the following query:
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/data_files[cdb_data_files];
+code }
+
+  However, when setting `_exclude_seed_cdb_view` to `false`, the `pdb$seed` data files are included in the previous query:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "_exclude_seed_cdb_view" = true;
+code }
+
+  It's probably good practice to revert this change after having seen the relevant information:  
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "_exclude_seed_cdb_view" = false;
+code }
+
+  It's also possible to view the data files of `pdb$seed` by setting the current container to `pdb$seed`.
+code {
+alter session set container = pdb$seed;
+code }
+
+However, *only* this container's data files are now shown in `cdb_data_files`.
+
+  Going back to the original container:
+code {
+alter session set container = cdb$root;
+code }
+
+}
+
+sa:
+
+  Mike Dietrich: → https://mikedietrichde.com/2017/07/21/why-exclude_seed_cdb_view-is-now-an-underscore-in-oracle-12-2/[Why is `EXCLUDE_SEED_CDB_VIEW` now `_EXCLUDE_SEED_CDB_VIEW` in Oracle 12.2]?

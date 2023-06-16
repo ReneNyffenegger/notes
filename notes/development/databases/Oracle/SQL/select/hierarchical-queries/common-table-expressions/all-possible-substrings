@@ -1,0 +1,68 @@
+$ Oracle: Using a CTE to generate all possible substrings of a word (or text)
+
+The folling query uses a → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[Common Table Expression (CTE)] to generate all possible substring of a word (or any string, for that matter):
+code {
+with s as (
+--
+-- The word for which the substrings need to be extracted:
+--
+   select 'hydrochlorofluorocarbon' tr from dual
+),
+b (str, sub, beg, len) as (
+--
+-- This query generates all character-positions (i. e. the
+-- numbers 1 … LENGTH(str) ) of the chosen words
+-- and returns these positions in the attribut BEG.
+--
+   select
+      s.tr                  str,
+      substr(s.tr, 1, 1)    sub,
+      1                     beg,
+      1                     len
+   from s
+           union all
+   select
+      str,
+      substr(str,beg+1, 1)        sub,
+      beg+1,
+      len
+   from
+      b
+   where
+     beg+1 <= length(str)
+),
+l (str, sub, beg, len) as (
+--
+-- This query generates all possible lengths for the
+-- substrings given a character-position (BEG) and
+-- applies BEG and LEN with SUBSTR on STR:
+--
+   select
+      str,
+      sub,
+      beg,
+      len
+    from b
+            union all
+    select
+       str,
+       substr(str, beg, len+1),
+       beg,
+       len+1
+    from
+       l
+    where
+       beg+len <= length(str)
+)
+--
+-- Finally, we're able to select all (distinct) substring
+-- from the chosen word:
+--
+select distinct
+   sub
+from
+   l
+order by
+   length(sub),
+   sub;
+code }
