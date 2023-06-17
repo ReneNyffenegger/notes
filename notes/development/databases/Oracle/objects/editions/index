@@ -1,0 +1,99 @@
+$ Oracle: Editions
+@ edition
+
+A database has at least one edition. The first edition is named `ORA$BASE`.
+
+The edition names are unique in their own → development/databases/Oracle/objects/_namespace.
+
+An edition is an object without an owner.
+
+An adition can have at most one child.
+
+{ Simple example
+
+code {
+--
+--  Kind of important:
+--
+alter user rene enable editions;
+
+create edition tq84_ed_01;
+
+select * from → development/databases/Oracle/installed/data-dictionary/objects  where object_name  = 'TQ84_ED_01';
+select * from dba_editions where edition_name = 'TQ84_ED_01';
+
+alter session set edition = tq84_ed_01;
+
+create editionable function tq84_f return varchar2 authid definer is begin
+   return 'This function was created in edition 01';
+end tq84_f;
+/
+
+select tq84_f from dual;
+
+create edition tq84_ed_02;
+alter session set edition = tq84_ed_02;
+select tq84_f from dual;
+
+create or replace  editionable function tq84_f return varchar2 authid definer is begin
+   return 'This function was altered in edition 02';
+end tq84_f;
+/
+
+select tq84_f from dual;
+
+alter session set edition = tq84_ed_01;
+select tq84_f from dual;
+drop function tq84_f;
+
+alter session set edition = ora$base;
+
+--
+--  Show current edition of object
+--
+select * from user_objects    where object_name = 'TQ84_F';
+--
+--  Unlike user_object, → development/databases/Oracle/installed/data-dictionary/objects/ae[user_objects_AE] lists all editions of an object
+--
+select * from user_objects_ae where object_name = 'TQ84_F';
+
+drop edition tq84_ed_02;
+--
+-- ORA-38811: need CASCADE option to drop edition that has actual objects
+--
+drop edition tq84_ed_02 cascade;
+drop edition tq84_ed_01 cascade;
+code }
+
+} 
+
+{ TODO
+
+code {
+select
+   sys_context('userenv', 'current_edition_id'  ) id,
+   dbms_metadata.get_edition_id                   id_,
+   sys_context('userenv', 'current_edition_name') name
+from
+   dual;
+code }
+
+}
+
+{ TODO
+
+ `sys.user_editioning$`
+
+ `dba_edition_inherited_objects`
+
+}
+
+sa:
+
+  The → development/databases/Oracle/SQL/statement/nouns/edition[`edition`] SQL → development/databases/Oracle/SQL/verb-noun#ora-sql-noun[noun].
+
+ `→ development/databases/Oracle/installed/data-dictionary/editionable_types` lists editionable → development/databases/Oracle/objects#ora-obj-types[object types].
+
+ `→ development/databases/Oracle/installed/data-dictionary/base-tables/_current_edition_obj`
+
+  → development/databases/Oracle/objects[Other Oracle object types]

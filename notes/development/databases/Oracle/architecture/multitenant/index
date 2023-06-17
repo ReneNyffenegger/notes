@@ -18,6 +18,7 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
     • Exactly one *system container*
     • Exactly one *seed PDB*
 
+  The value of `CDB` in `→ development/databases/Oracle/installed/dynamic-performance-views/database` shows if the database is a container database (`YES` or `NO`).
 
 }
 { Container
@@ -27,6 +28,8 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
     • a PDB.
 
   Each container has a separate data dictionary (and can therefore have different database objects). The data dictionary internally links to objects in the CDB root.
+
+  The CDB root and all containers share an instance (or, when using RAC, multiple concurrent instances).
 
   { CDB root (Root container)
 
@@ -66,7 +69,7 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
 
   }
 }
-{ Portable Database PDB
+{ Portable Database (PDB)
 
   A *portable database* (PDB) is a collection of
     • Schemas
@@ -86,10 +89,12 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
 
   A PDB is associated with a GUID whose main purpose is to make sure that directory names for files with PDB related data are unique.
 
+  When a PDB is created, the the PDB belongs to the current container. 
+
 }
 { Seed
 
-  A *seed* serves as a (required) template from which PDBs are created (`create pluggable database`).
+  A *seed* serves as a template from which PDBs are created (`create pluggable database`).
 
 ? When a PDB is created, some or all of the contents of the seed is copied to the new PDB.
 
@@ -101,7 +106,7 @@ Starting with → development/databases/Oracle/Releases-and-versions/21c, Oracle
 
     The *seed PDB* is a system-supplied, read-only template from which new PDBs are created.
 
-    The name of the seed PDB is `PDB$SEED`.
+    There is exactly on seed PDB in a CDB, its name is `PDB$SEED`.
 
   }
 
@@ -219,6 +224,8 @@ code }
 
   Functions that are → development/databases/Oracle/SQL/functions/CDB[useful in a container database].
 
+  The `dbms_service` package can be used to create services and associate them with PDBs.
+
   { Creating PDBs
 
     There are multiple ways to create a PDB:
@@ -244,7 +251,6 @@ code }
     An application root is created in a CDB root container with `create pluggable database … as application container`.
     -
     An application seed is created in an application container with` create pluggable database … as seed`.
-
 
 code {
 SQL> show pdbs
@@ -387,3 +393,5 @@ sa:
 
   `→ development/databases/Oracle/installed/dynamic-performance-views/pdbs`,
   `→ development/databases/Oracle/installed/dynamic-performance-views/containers`.
+
+  The init parameters `max_pdbs` and `enable_pluggable_database`
