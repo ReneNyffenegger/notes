@@ -1,0 +1,39 @@
+$ WinAPI Namespaces
+
+WinAPI has two important namespaces:
+table { ll
+  NT namespaces ☰ The lowest level namespace on which other subsystems (such as the Win32 or POSIX subsystem) and other namespaces could be built
+  Win32 namespaces ☰ ?The namespace of the Win32 subsystem?
+table }
+
+{ Win32 namespace #win32-namespace
+
+  In `→ Windows/tools/Sysinternals/Winobj` (or generally?), the Win32 namespace is found under the folder
+  named `Global??`.
+
+  { Prefixes
+
+    table { ll
+      `\\?\` ☰ When calling a WinAPI function that accepts a file path, the path can be prefixed with `\\?\` which tells the function not to parse the path but to route it directly to the file system.
+      `\\.\` ☰ Access the Win32 device namespace instead of the Win32 file namespace (for example to directly access physical disks and volumes, for example `\\.\PhysicalDriveN` or `\\.\CdRomN` or `\\.\COMN` where `N` is an integer).
+    table }
+
+    File names such as `con` or `aux` cannot normally be created. With the `\\.\` prefix, it becomes possible. This is demonstrated in the following PowerShell example:
+code {
+PS:> mkdir $env:temp/test
+PS:> mkdir $env:temp/test/con
+mkdir : The directory specified, 'con', is not a subdirectory of…
+PS:> mkdir "\\.\$env:temp/test/con"
+PS:> new-item "\\.\$env:temp/test/con/aux"
+code }
+
+    Apparently, the directory cannot be removed in Powershell(?), it's possible in `→ Windows/dirs/Windows/System32/cmd_exe`, though:
+code {
+C:\> rmdir /s \\.\%temp%\temp\con
+code }
+
+  }
+}
+
+links:
+  MSDN: → https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file[Naming Files, Paths, and Namespaces].
