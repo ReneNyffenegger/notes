@@ -1,0 +1,80 @@
+$ x64 assembler dialects
+
+Here are a few example that demonstrate different → development/languages/assembler dialects for → development/languages/assembler/x86[x64].
+
+All sources use the `syscall` instruction to call the (Linux) → Linux/kernel/sys-calls[syscall] `exit`.
+
+{ GNU assembler #x64-gnu-as-dialects
+
+  { AT&T syntax
+
+code {
+.globl   _start
+.text
+
+_start:
+  
+  #
+  # Load RAX register with syscall number
+  #
+    mov  $60, %rax   #  60 is syscall number for exit()
+  # mov $231, %rax   # 231 is syscall number for exit_group()
+  
+  #
+  # Load RDI (first argument), for exit(),
+  # this is the status code.
+  #
+    mov  $42, %rdi   # exit status code
+
+    syscall
+code }
+
+    Compile this source with
+code {
+gcc -nostdlib -o prog prog.s
+code }
+
+  }
+  { Intel syntax
+
+    In order to write an assmembler source for the GNU assembler in intel syntax, the → development/languages/C-C-plus-plus/GCC/as#gnu-as-intel-syntax[`.intel_syntax noprefix`] directive is required:
+code {
+.intel_syntax noprefix
+
+.globl   _start
+.text
+
+_start:
+  
+    mov  rax, 60
+    mov  rdi, 42
+    syscall
+code }
+
+   This source is compiled with the exactly same command as the AT&T source.
+
+  }
+
+}
+{ nasm
+
+code {
+section .text
+global  _start
+
+_start:
+
+   mov  rax, 60
+   mov  rdi, 42
+   syscall
+code }
+
+  Compile and link with the following two commands:
+code {
+nasm -felf64 prog.nasm -o prog.o
+ld prog.o -o prog
+code }
+
+  The same source can also be compiled with `yasm -felf64 …`.
+
+}
