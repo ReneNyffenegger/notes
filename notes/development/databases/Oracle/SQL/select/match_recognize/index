@@ -1,4 +1,5 @@
 $ Oracle SQL: MATCH_RECOGNIZE clause
+@ match_recognize
 
 The `MATCH_RECOGNIZE` clause allows to formulate a → development/regular-expressions[regular expression] to search and select records in a table or the result of a subquery.
 
@@ -6,16 +7,67 @@ The `match_recognize` clause consists of the following parts:
 table { ll
   `partition by` ☰ Used to partition the input data. Each partition is treated separately
   `order by` ☰ How records in each partition are ordered.
-  `define` ☰ A list of conditions that an input-record must meet to be mapped to a *row pattern variables*
-  `pattern` ☰ The regular expression
+  `define` ☰ Definition of *pattern variables*. All rows that meet the specified conditions are mapped to the defined row pattern variable. All pattern variables must be used in the `pattern` clause, otherwise, Oracle throws → development/databases/Oracle/errors/ORA-62503_Illegal-variable-definitions.
+  `pattern` ☰ The pattern, expressed with *pattern variables* and regular expression syntax. All pattern variables must be used in the `pattern` clause (but no variables defined in `subset` must be used)
   `measures` ☰ Expressions which can be used in other portions of the SQL statement. Special functions like `last()` and `first()` can be used to refer to a value of the first or last record of matched sequence of records.
 table }
 
+In addition, the `match_recognize` allows to specify if all records that match a pattern (`all rows per match`) or just a summary row (`one row per match`, which is the default) should be returned.
+-
+See → development/databases/Oracle/SQL/select/match_recognize/clauses/one-row-per-match-vs-all-rows-per-match[`one row per match` vs `all rows per match`]
+
+After matching a pattern, one of the following clauses specifies where the next pattern should be attempted to be matched:
+  • `after match skip to next row`
+  • `after match skip past last row` (This is the default)
+  • `after match skip to first PATTERN-VARIABLE-NAME`
+  • `after match skip to [last] PATTERN-VARIABLE-NAME`
+
 { Examples
 
+  { Most simple pattern matching query
+
+    I believe the following query (or a variation thereof) is the most simple possible query using the `match_recognize` clause.
+
+    The query defines one *pattern variable* (`ptrn`) which matches all records (because `1` is always equal to `1`).
+
+    The `pattern` clause stipulates to match all records that are mapped to `ptrn`, i. e. *all* records in this query.
+
+    Finally, it adds a `measures` clause to prevent an → development/databases/Oracle/errors/ORA-30732_table-contains-no-user-visible-columns error:
+code {
+select
+   *
+from
+   dual
+match_recognize (
+   measures dummy as col
+   pattern(ptrn)
+   define
+      ptrn as 1=1
+);
+code }
+
+    See also the related example → development/databases/Oracle/SQL/select/match_recognize/examples/first-row[first row] which uses the pattern `ptrn+` to match the *entire* result set and applies `first(…)` to
+    the selected columns to return a table's first record.
+
+  }
   { Find rows 'between' a starting and ending row
 
-    The following example selects the value of `txt` that appears between rows whose `txt` value is `BEGIN SECTION` and `END SECTION` (ordered by `nr`):
+    The following example selects the value of `txt` that appears between rows whose `txt` value is `BEGIN SECTION` and `END SECTION` (ordered by `nr`).
+
+    The `define` clause uses `first_line as prev(first_line.txt) = 'BEGIN SECTION'` to define a *pattern variable* named `first_line` which maps to all records whose `txt` value of the previous (`prev(…)`) record
+    is `BEGIN SECTION`.
+    -
+    Similarly, a pattern variable named `last_line` is defined.
+
+    The `pattern` specifies to start with a mandatory `first_line`, have any number of `any_line` and end with a mandatory `last_line`.
+    -
+    Note that `any_line` is not defined in the `define` clause and thus any record is mapped to `any_line`.
+
+    Because we want all `txt` values of the matched records, we specify `all rows per match`.
+
+    Finally, we need to distinguish the matched sections (i. e. matched patterns) and therefore assign the value of `match_number()` to the alias `mnr`.
+    
+
 code {
 with d as (
    select  1 nr, 'some text'              txt from dual union all
@@ -51,7 +103,7 @@ match_recognize (
       pattern (first_line any_line*? last_line)
       define
          first_line as prev(first_line.txt) = 'BEGIN SECTION',
-         last_line  as next(last_line.txt)  = 'END SECTION'
+         last_line  as next( last_line.txt) = 'END SECTION'
 ) m;
 --
 --        MNR TXT                         NR
@@ -82,22 +134,6 @@ code }
     gh|Oracle-Patterns|/SQL/select/match_recognize/stock-price/select.sql||
 
   }
-  { Find consecutive rows
-
-    gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/data.sql||
-
-    { One row per match
-
-      gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/one-row-per-match.sql||
-
-    }
-    { Find ALL consecutive rows
-
-      gh|Oracle-Patterns|/SQL/select/match_recognize/find-consecutive-rows/all.sql||
-
-    }
-
-  }
 
   { Find foo bar baz
 
@@ -121,8 +157,6 @@ code }
 
 
 { TODO
-
-  Pattern variables
 
  *Running semantics* is used while the rows are being matched into a pattern. When the complete match is established, *final semantics* becomes possible.
   -
@@ -149,5 +183,9 @@ code }
 
 }
 sa:
+
+  → development/databases/Oracle/SQL/select/match_recognize/examples/hierarchically-sum-up-values[Hierarchically summing up values]
+
+  The SQL plan operator → development/databases/Oracle/SQL/statement/execution/plan/operations/match-recognize[`match recognize`].
 
   → misc/ISO/9075/features/R010[SQL Feature R010: Row pattern recognition: `from` clause]

@@ -1,0 +1,44 @@
+$ Oracle SQL Plan operation: MATCH RECOGNIZE
+
+code {
+create table tq84_test_data (id integer, letter char(1));
+insert into tq84_test_data
+select
+   level,
+   chr(64+level)
+from
+   dual connect by level < 10;
+code }
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   *
+from
+   tq84_test_data
+→ development/databases/Oracle/SQL/select/match_recognize (
+   order by id
+   measures
+      first(id    ) as id,
+      first(letter) as letter
+   pattern(ptrn*)
+   define
+      ptrn as 1=1
+);
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- -------------------------------------------------------------------------------
+-- | Id  | Operation                                            | Name           |
+-- -------------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                                     |                |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                                |                |
+-- |   2 |   MATCH RECOGNIZE SORT DETERMINISTIC FINITE AUTOMATON|                |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                                 | TQ84_TEST_DATA |
+-- -------------------------------------------------------------------------------
+code }
+
+
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

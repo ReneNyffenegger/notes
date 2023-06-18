@@ -1,0 +1,120 @@
+$ Oracle SQL: Hierarchically sum up values
+
+
+
+code {
+create table tq84_data (
+   id      varchar2(10) primary key,
+   pid     references tq84_data,
+   val     number(5,2)
+);
+
+begin
+
+   insert into tq84_data values ( 'A'      , null, 1.1);
+   insert into tq84_data values (   'X'    ,'A'  , 4.3);
+   insert into tq84_data values (   'Y'    ,'A'  , 2.8);
+   insert into tq84_data values (     'D'  ,'Y'  , 1.2);
+   insert into tq84_data values (     'E'  ,'Y'  , 1.2);
+   insert into tq84_data values (     'F'  ,'Y'  , 4.1);
+   insert into tq84_data values (   'G'    ,'A'  , 2.8);
+   insert into tq84_data values (     'H'  ,'G'  , 3.1);
+   insert into tq84_data values (     'I'  ,'G'  , 2.9);
+   insert into tq84_data values ( 'J'      , null, 0.5);
+   insert into tq84_data values ( 'K'      , null, 0.5);
+   insert into tq84_data values (   'L'    ,'K'  , 0.1);
+   insert into tq84_data values (     'M'  ,'L'  , 0.3);
+   insert into tq84_data values (   'N'    ,'K'  , 0.2);
+   insert into tq84_data values (   'O'    ,'K'  , 0.4);
+
+end;
+/
+code }
+
+code {
+create or replace view tq84_data_hierarchy as
+with hier (id, lvl, val) as (
+   select
+      id,
+      0,
+      val
+   from
+      tq84_data
+   where
+      pid is null
+                    union all
+   select
+      d.id,
+      h.lvl + 1,
+      d.val
+   from
+      hier      h                     join
+      tq84_data d on h.id = d.pid
+)
+search depth first by id set ordby
+select
+   id,
+   lpad(' ', 2*lvl) || id as id_,
+   val,
+   lvl,
+   ordby
+from
+   hier
+order by
+   ordby
+;
+
+select * from tq84_data_hierarchy;
+code }
+
+code {
+select
+   id_,
+   val,
+   sum_val
+from
+   tq84_data_hierarchy
+      → development/databases/Oracle/SQL/select/match_recognize
+   (
+      order by
+         ordby
+      measures
+         node.ordby                                as ordby,
+--       node.lvl                                  as lvl,
+--       node.id                                   as id,
+         node.id_                                  as id_,
+         node.val                                  as val,
+         node.val + nvl(sum(node_below.val), 0)    as sum_val
+      one row per match
+      after match skip to next row
+      pattern (node node_below*)
+      define node_below as lvl > node.lvl
+)
+order by
+   ordby;
+--
+-- ID_               VAL    SUM_VAL
+-- ---------- ---------- ----------
+-- A                 1.1       23.5
+--   G               2.8        8.8
+--     H             3.1        3.1
+--     I             2.9        2.9
+--   X               4.3        4.3
+--   Y               2.8        9.3
+--     D             1.2        1.2
+--     E             1.2        1.2
+--     F             4.1        4.1
+-- J                 0.5        0.5
+-- K                 0.5        1.5
+--   L               0.1        0.4
+--     M             0.3        0.3
+--   N               0.2        0.2
+--   O               0.4        0.4
+code }
+
+code {
+drop   table tq84_data purge;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[Hierachical queries (common table expressions)]

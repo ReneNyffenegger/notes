@@ -1,0 +1,41 @@
+$ Oracle MATCH_RECOGNIZE: Select first row
+
+Some test data:
+code {
+create table tq84_test_data (id integer, letter char(1));
+insert into tq84_test_data
+select
+   level,
+   chr(64+level)
+from
+   dual connect by level < 10;
+code }
+
+Use a *pattern variable* (`ptrn`) that matches each row. Then match as many rows as possible (`ptrn*`), i. e. the entire result set. Apply `first(…)` in the measures clause to return values of the «first» (matched) record:
+code {
+select
+   *
+from
+   tq84_test_data
+→ development/databases/Oracle/SQL/select/match_recognize (
+   order by id
+   measures
+      first(id    ) as id,
+      first(letter) as letter
+   pattern(ptrn*)
+   define
+      ptrn as 1=1
+);
+code }
+
+Same result, but different method:
+code {
+select
+   id,
+   letter
+from
+   tq84_test_data
+order by
+   id
+→ development/databases/Oracle/SQL/select/first-n-rows#ora-fetch-first-row-only[fetch first row only];
+code }
