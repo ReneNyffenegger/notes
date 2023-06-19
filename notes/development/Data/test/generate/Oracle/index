@@ -1,0 +1,123 @@
+$ Generate test data in Oracle
+
+code {
+drop   table tq84_product_supplier;
+drop   table tq84_product;
+drop   table tq84_supplier;
+
+create table tq84_product (
+   id    integer        generated always as identity primary key,
+   name  varchar2(30)   not null
+);
+
+create table tq84_supplier (
+   id    integer        generated always as identity primary key,
+   name  varchar2(30)   not null
+);
+
+begin -- {
+   insert into tq84_product(name)
+   ------------------------------
+   select 'Laptop'                     from dual union all
+   select 'Smartphone'                 from dual union all
+   select 'Television'                 from dual union all
+   select 'Headphones'                 from dual union all
+   select 'Camera'                     from dual union all
+   select 'Gaming Console'             from dual union all
+   select 'Fitness Tracker'            from dual union all
+   select 'Portable Bluetooth Speaker' from dual union all
+   select 'Smartwatch'                 from dual union all
+   select 'Wireless Earbuds'           from dual union all
+   select 'External Hard Drive'        from dual union all
+   select 'Wireless Router'            from dual union all
+   select 'Printers'                   from dual union all
+   select 'Home Security Camera'       from dual union all
+   select 'Drone'                      from dual union all
+   select 'Electric Toothbrush'        from dual union all
+   select 'Vacuum Cleaner'             from dual union all
+   select 'Power Bank'                 from dual union all
+   select 'Smart Thermostat'           from dual union all
+   select 'LED Light Bulbs'            from dual;
+
+   insert into tq84_supplier(name)
+   -------------------------------
+   select 'ABC Electronics'            from dual union all
+   select 'XYZ Technologies'           from dual union all
+   select 'Global Gadgets'             from dual union all
+   select 'Super Tech Solutions'       from dual union all
+   select 'Reliable Electronics'       from dual union all
+   select 'MegaMart Electronics'       from dual union all
+   select 'TechZone'                   from dual union all
+   select 'FutureTech'                 from dual union all
+   select 'Gadget World'               from dual union all
+   select 'E-Tech Supplies'            from dual;
+
+   commit;
+
+end; -- }
+/
+
+create table tq84_product_supplier (
+    product_id                not null references tq84_product,
+    supplier_id               not null references tq84_supplier,
+    val          number(6,2)  not null,
+    --
+    unique(product_id, supplier_id)
+);
+
+create or replace view tq84_product_supplier_v as
+select
+   prod.name   product_name,
+   supp.name   supplier_name,
+   prsu.val,
+   prsu.product_id,
+   prsu.supplier_id
+from
+   tq84_product_supplier   prsu                               join
+   tq84_product            prod on prsu. product_id = prod.id join
+   tq84_supplier           supp on prsu.supplier_id = supp.id
+;   
+
+truncate table tq84_product_supplier;
+insert into tq84_product_supplier
+select
+   prod.id   prod_id,
+-- prod.name prod_name,
+   supp.id   supp_id,
+-- supp.name supp_name
+   dbms_random.value(100, 2000)
+from
+(
+   select
+       p.*,
+       dbms_random.value(1, 7) nof_suppliers
+    from
+       tq84_product p
+)
+   prod cross apply
+(
+   select * from 
+   (
+      select *
+      from
+         tq84_supplier
+      order by
+         dbms_random.value
+   )
+   where
+      rownum <= prod.nof_suppliers
+) supp
+;
+
+select
+   count(*),
+   product_name,
+   product_id
+from
+   tq84_product_supplier_v
+group by
+   product_name,
+   product_id
+order by
+   product_id;
+code }
