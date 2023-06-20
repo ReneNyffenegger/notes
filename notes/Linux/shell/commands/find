@@ -98,7 +98,7 @@ code }
     `-cnewer reference` ☰ ☰
     `-ctime n` ☰ ☰
     `-empty` ☰ File (or directory?) is empty ☰
-    `-executable` ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-readable` ☰
+    → #find-executable[`-executable`] ☰ Checks if file (or directory) is executable by current user, taking into account access control lists (which `-perm` ignores). Compare `-readable` ☰
     `-false Always false.` ☰ ☰
     `-fstype type` ☰ ☰
     `-gid n` ☰ ☰
@@ -293,7 +293,7 @@ code }
 
   The `-regex pattern` evaluates to true if the regular expression `pattern` matches the *entire path*, i. e. as though pattern was enclosed in `^…$`.
 
-  The following command finds all files that have ancester directory (immediate or not) named `release-notes` and the text `1.7` in their file name:
+  The following command finds all files that have ancestor directory (immediate or not) named `release-notes` and the text `1.7` in their file name:
 code {
 find -type f -regex '.*/relase-notes/.*1\.7.*'
 code }
@@ -305,6 +305,19 @@ find files -not -perm /o=r
 code }
 
   }
+
+}
+{ Find executables #find-executable
+
+ `-execute` finds executable files and directories. In order to just find executables (such as binaries or shell scripts), the search must be further restricted to files (`-type f`):
+code {
+find -executable -type f
+code }
+
+  The previous command also finds shared objects (which typically end in `.so` or `.so.6.1`). If these should not be included in the result, they can be excluded with a regular expression:
+code {
+find-executable -type f -not -regex '.*\.so\(\.\d\)?.*'
+code }
 
 }
 { Operator precedence

@@ -1,0 +1,110 @@
+$ Oracle: Data Pump executables expdp and impdb
+
+`impdp` and `expdp` are the command line clients of → development/databases/Oracle/tools/Data-Pump.
+
+code {
+expdp scott/tiger DIRECTORY=dmpdir DUMPFILE=scott.dmp
+impdp scott/tiger DIRECTORY=dmpdir DUMPFILE=scott.dmp
+code }
+
+{ Program options
+
+  Third column: `dbexp`, fourth column: `dbimp`
+
+  table { llll
+
+   `ABORT_STEP` ☰ Stop the job after it is initialized or at the indicated object.  Valid values are -1 or N where N is zero or greater.  N corresponds to the object's process order number in the master table. ☰ ✓ ☰ ✓
+   `ACCESS_METHOD`  ☰ Instructs Export to use a particular method to unload data. Valid keyword values are: `[AUTOMATIC]`, `DIRECT_PATH` and `EXTERNAL_TABLE` for `expdb` and these three plus `CONVENTIONAL` and `INSERT_AS_SELECT` for `impdp`→ development/databases/Oracle/objects/operators ☰ ✓ ☰ ✓
+   `ATTACH` ☰ Attach to an existing job.  For example, ATTACH=job_name. → development/databases/Oracle/objects/operators ☰ ✓ ☰ ✓
+   `CHECKSUM` ☰  Specifies whether to generate a checksum for each file in the dump set [NO]. → development/databases/Oracle/objects/operators ☰ ✓ ☰ ✗
+   `CHECKSUM_ALGORITHM` ☰ Specify the checksum algorithm that should be used.  Valid keyword values are: CRC32, [SHA256], SHA384 and SHA512.   ☰ ✓ ☰ ✗
+   `CLUSTER` ☰ Utilize cluster resources and distribute workers across the Oracle RAC [YES]. ☰ ✓ ☰ ✓
+   `COMPRESSION` ☰ Reduce the size of a dump file.  Valid keyword values are: ALL, DATA_ONLY, [METADATA_ONLY] and NONE. ☰ ✓ ☰ ✗
+   `COMPRESSION_ALGORITHM` ☰ Specify the compression algorithm that should be used.  Valid keyword values are: [BASIC], LOW, MEDIUM and HIGH. ☰ ✓ ☰ ✗
+   `CONTENT` ☰ Specifies data to unload or load. Valid keyword values are: [ALL], DATA_ONLY and METADATA_ONLY. ☰ ✓ ☰ ✓
+   `DATA_OPTIONS` ☰ Data layer option flags.  Valid keyword values for `expdp` are: GROUP_PARTITION_TABLE_DATA, VERIFY_STREAM_FORMAT and XML_CLOBS. For `impdb`: DISABLE_APPEND_HINT, ENABLE_NETWORK_COMPRESSION, REJECT_ROWS_WITH_REPL_CHAR, SKIP_CONSTRAINT_ERRORS, CONTINUE_LOAD_ON_FORMAT_ERROR, TRUST_EXISTING_TABLE_PARTITIONS, VALIDATE_TABLE_DATA and VERIFY_BLOCKCHAIN ☰ ✓ ☰ ✓
+   `DIRECTORY` ☰ → development/databases/Oracle/objects/directories[Directory object] to be used for dump and log files. If not specified, the default directory `DATA_PUMP_DIR` is assumed. ☰ ✓ ☰ ✓
+   `DUMPFILE` ☰  Specify list of destination or import dump file names [expdat.dmp].  ☰ ✓ ☰ ✓
+   `ENCRYPTION` ☰ Encrypt part or all of a dump file.  Valid keyword values are: ALL, DATA_ONLY, ENCRYPTED_COLUMNS_ONLY, METADATA_ONLY and NONE. ☰ ✓ ☰ ✗
+   `ENCRYPTION_ALGORITHM` ☰ Specify how encryption should be done.  Valid keyword values are: [AES128], AES192 and AES256. ☰ ✓ ☰ ✗
+   `ENCRYPTION_MODE` ☰ Method of generating encryption key. Valid keyword values are: DUAL, PASSWORD and [TRANSPARENT]. ☰ ✓ ☰ ✗
+   `ENCRYPTION_PASSWORD` ☰ Password key ☰ ✓ ☰ ✓
+   `ENCRYPTION_PWD_PROMPT` ☰ Specifies whether to prompt for the password [NO]. (Terminal echo is suppressed) ☰ ✓ ☰ ✓
+   `ESTIMATE` ☰  Calculate job and/or network estimates. Valid keyword values are: [BLOCKS] and STATISTICS.  ☰ ✓ ☰ ✓
+   `ESTIMATE_ONLY` ☰ Calculate job estimates without performing the export [NO].  ☰ ✓ ☰ ✗
+   `EXCLUDE` ☰ Exclude specific object types. For example, EXCLUDE=SCHEMA:"='HR'". ☰ ✓ ☰ ✓
+   `FILESIZE` ☰ Specify the size of each dump file in units of bytes. ☰ ✓ ☰ ✗
+   `FLASHBACK_SCN` ☰ SCN used to reset session snapshot. ☰ ✓ ☰ ✓
+   `FLASHBACK_TIME` ☰ Time used to find the closest corresponding SCN value. ☰ ✓ ☰ ✓
+   `FULL` ☰ Export/import entire database/source [NO]. ☰ ✓ ☰ ✓
+   `HELP` ☰ Display Help messages [NO]. ☰ ✓ ☰ ✓
+   `INCLUDE` ☰ Include specific object types.  For example, INCLUDE=TABLE_DATA. ☰ ✓ ☰ ✓
+   `JOB_NAME` ☰ Name of export/import job to create. ☰ ✓ ☰ ✓
+   `KEEP_MASTER` ☰ Retain the master table after an import/export job that completes successfully [NO]. ☰ ✓ ☰ ✓
+   `LOGFILE` ☰ Specify log file name [export.log] / [import.log] ☰ ✓ ☰ ✓
+   `LOGTIME` ☰ Specifies that messages displayed during export/import operations be timestamped. Valid keyword values are: ALL, [NONE], LOGFILE and STATUS.  ☰ ✓ ☰ ✓
+   `MASTER_ONLY` ☰ Import just the master table and then stop the job [NO]. ☰ ✗ ☰ ✓
+   `METRICS` ☰ Report additional job information to the export log file [NO]. ☰ ✓ ☰ ✓
+   `NETWORK_LINK` ☰ Name of remote database link to the source system. ☰ ✓ ☰ ✓
+   `NOLOGFILE` ☰ Do not write log file [NO]. ☰ ✓ ☰ ✓
+   `PARALLEL` ☰ Change the number of active workers for current job. ☰ ✓ ☰ ✓
+   `PARFILE` ☰ Specify parameter file name. ☰ ✓ ☰ ✓
+   `QUERY` ☰ Predicate clause used to export/import a subset of a table. For example, `QUERY=employees:"WHERE department_id > 10"`.  ☰ ✓ ☰ ✓
+   `REMAP_DATA` ☰ Specify a data conversion function.  For example, `REMAP_DATA=EMP.EMPNO:REMAPPKG.EMPNO`  ☰ ✓ ☰ ✓
+   `REMAP_DATAFILE` ☰ Redefine data file references in all DDL statements. ☰ ✗ ☰ ✓
+   `REMAP_SCHEMA` ☰ Objects from one schema are loaded into another schema. ☰ ✗ ☰ ✓
+   `REMAP_TABLE` ☰ Table names are remapped to another table. For example, REMAP_TABLE=HR.EMPLOYEES:EMPS. ☰ ✗ ☰ ✓
+   `REMAP_TABLESPACE` ☰ Tablespace objects are remapped to another tablespace. ☰ ✗ ☰ ✓
+   `REUSE_DUMPFILES` ☰ Overwrite destination dump file if it exists [NO]. ☰ ✓ ☰ ✗
+   `REUSE_DATAFILES` ☰ Tablespace will be initialized if it already exists [NO]. ☰ ✗ ☰ ✓
+   `SAMPLE` ☰ Percentage of data to be exported. ☰ ✓ ☰ ✗
+   `SCHEMAS` ☰ List of schemas to export [login schema]/import ☰ ✓ ☰ ✓
+   `SERVICE_NAME` ☰ Name of an active Service and associated resource group to constrain Oracle RAC resources. ☰ ✓ ☰ ✓
+   `SOURCE_EDITION` ☰ Edition to be used for extracting metadata. ☰ ✓ ☰ ✓
+   `STATUS` ☰ Frequency (secs) job status is to be monitored where the default [0] will show new status when available. ☰ ✓ ☰ ✓
+   `TABLES` ☰ Identifies a list of tables to export/import. For example, TABLES=HR.EMPLOYEES,SH.SALES:SALES_1995. ☰ ✓ ☰ ✓
+   `TABLESPACES` ☰ Identifies a list of tablespaces to export/import. ☰ ✓ ☰ ✓
+   `TARGET_EDITION` ☰ Edition to be used for loading metadata. ☰ ✗ ☰ ✓
+   `TRANSFORM` ☰ Metadata transform to apply to applicable objects.  Valid keywords are: DISABLE_ARCHIVE_LOGGING, INMEMORY, INMEMORY_CLAUSE, LOB_STORAGE, OID, PCTSPACE, SEGMENT_ATTRIBUTES, SEGMENT_CREATION, STORAGE, and TABLE_COMPRESSION_CLAUSE.  ☰ ✗ ☰ ✓
+   `TRANSPORTABLE` ☰ Specify whether transportable method can be used.  Valid keyword values are: ALWAYS and [NEVER]. (When importing: only valid in NETWORK_LINK mode import operations)  ☰ ✓ ☰ ✓
+   `TRANSPORT_DATAFILES` ☰ List of data files to be imported by transportable mode.  ☰ ✗ ☰ ✓
+   `TRANSPORT_DATAFILES_LOG` ☰ Specify file name where the list of data files associated with the transportable export will be written. ☰ ✓ ☰ ✗
+   `TRANSPORT_FULL_CHECK` ☰ Verify storage segments of all tables [NO]. (When importing: only valid in NETWORK_LINK mode import operations) ☰ ✓ ☰ ✓
+   `TRANSPORT_TABLESPACES` ☰ List of tablespaces from which metadata will be unloaded.(When importing: only valid in NETWORK_LINK mode import operations)  ☰ ✓ ☰ ✓
+   `TTS_CLOSURE_CHECK` ☰ Transportable self-containment check option flags.  Valid keyword values are: [ON], OFF, FULL, and TEST_MODE.  May conflict with TRANSPORT_FULL_CHECK.  ☰ ✓ ☰ ✓
+   `VERIFY_CHECKSUM` ☰ Specifies whether to verify the checksum, if present, for each file in the dump set [NO].  ☰ ✓ ☰ ✓
+   `VERIFY_ONLY` ☰ Specifies whether to perform only a verification check for each file in the dump set [NO].  ☰ ✓ ☰ ✓
+   `VERSION` ☰ Version of objects to export.  Valid keyword values are: [COMPATIBLE], LATEST or any valid database version. (When importing: Only valid for NETWORK_LINK and SQLFILE.)  ☰ ✓ ☰ ✓
+   `VIEWS_AS_TABLES` ☰ Identifies one or more views to be exported/imported as tables.  For example, `VIEWS_AS_TABLES=HR.EMP_DETAILS_VIEW`.  ☰ ✓ ☰ ✓
+
+  table }
+
+  { Commands in interactive mode
+
+    The following commands are valid while in interactive mode.
+
+    It's possible to abbreviate the commands.
+
+    table { llll
+      `ADD_FILE` ☰ Add dumpfile to dumpfile set. ☰ ✓ ☰ ✗
+      `CONTINUE_CLIENT` ☰ Return to logging mode. Job will be restarted if idle.  ☰ ✓ ☰ ✓
+      `EXIT_CLIENT` ☰ Quit client session and leave job running.  ☰ ✓ ☰ ✓
+      `FILESIZE` ☰ Default filesize (bytes) for subsequent ADD_FILE commands. ☰ ✓ ☰ ✗
+      `HELP` ☰ Summarize interactive commands.  ☰ ✓ ☰ ✓
+      `KILL_JOB` ☰ Detach and delete job.  ☰ ✓ ☰ ✓
+      `PARALLEL` ☰ Change the number of active workers for current job. ☰ ✓ ☰ ✓
+      `REUSE_DUMPFILES` ☰ Overwrite destination dump file if it exists [NO]. ☰ ✓ ☰ ✗
+      `START_JOB` ☰ Start or resume current job.  Valid keyword values are: SKIP_CURRENT.  ☰ ✓ ☰ ✗
+      `STATUS` ☰ Frequency (secs) job status is to be monitored where the default [0] will show new status when available.  ☰ ✓ ☰ ✓
+      `STOP_JOB` ☰ Orderly shutdown of job execution and exits the client. Valid keyword values are: IMMEDIATE. ☰ ✓ ☰ ✓
+      `STOP_WORKER` ☰ Stops a hung or stuck worker.  ☰ ✓ ☰ ✓
+      `TRACE` ☰ Set trace/debug flags for the current job.  ☰ ✓ ☰ ✓
+    table }
+
+  }
+
+}
+
+sa:
+ `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/expdp`,
+ `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/impdp`

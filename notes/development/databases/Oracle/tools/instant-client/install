@@ -1,0 +1,46 @@
+$ Oracle: Install Instant Client in Linux
+
+The following shell commands try to demonstrate how parts of Oracle's instant can be installed on Linux. It installes the *Basic Light* package (only English error messages and US and European character set),
+→ development/databases/Oracle/SQL-Plus and *tools* (Data Pump, → development/databases/Oracle/tools/sql-loader and Workload Replay Client).
+
+code {
+DESTDIR=~/oracle
+
+if [ ! -e client.zip ]; then
+   wget https://download.oracle.com/otn_software/linux/instantclient/2110000/instantclient-basiclite-linux.x64-21.10.0.0.0dbru.zip -O client.zip
+fi
+
+if [ ! -e sqlplus.zip ]; then
+   wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linuxx64.zip -O sqlplus.zip
+fi
+
+if [ ! -e tools.zip ]; then
+   wget https://download.oracle.com/otn_software/linux/instantclient/2110000/instantclient-tools-linux.x64-21.10.0.0.0dbru.zip -O tools.zip
+fi
+
+if [ ! -e $DESTDIR ]; then
+   mkdir -p $DESTDIR
+fi
+
+→ Linux/shell/commands/unzip -o -d $DESTDIR client.zip
+→ Linux/shell/commands/unzip -o -d $DESTDIR sqlplus.zip
+→ Linux/shell/commands/unzip -o -d $DESTDIR tools.zip
+code }
+
+{ Setting LD_LIBRARY_PATH and executing binaries
+
+ `LD_LIBRARY_PATH` must be set to the directory into which the files were extracted:
+code {
+export LD_LIBRARY_PATH=$DESTDIR/instantclient_21_10:$LD_LIBRARY_PATH
+code }
+
+  Then, the binaries can be executed
+
+code {
+$DESTDIR/instantclient_21_10/sqlplus …
+code }
+
+}
+
+links:
+  Find the newest zip files in the → https://www.oracle.com/database/technologies/instant-client/linux-x86-64-downloads.html[download page].
