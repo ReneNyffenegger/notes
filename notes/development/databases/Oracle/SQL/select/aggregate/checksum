@@ -1,0 +1,136 @@
+$ Oracle: Aggregate function CHECKSUM
+@ checksum
+
+The → development/databases/Oracle/SQL/select/aggregate[aggregate] and → development/databases/Oracle/SQL/select/analytic[analytic function] `checksum` can be used to detect data changes in a table.
+
+{ Simple demonstration
+
+code {
+create table tq84_tab (
+    id  integer    generated always as identity primary key,
+    grp char(1)    not null,
+    val number(5,2),
+    txt varchar2(10)
+);
+
+begin
+    insert into tq84_tab (grp, val, txt) values ('A',   1.11, 'abc');
+    insert into tq84_tab (grp, val, txt) values ('A',   null, 'def');
+    insert into tq84_tab (grp, val, txt) values ('A',   2.22, 'ghi');
+
+    insert into tq84_tab (grp, val, txt) values ('B',  10.10, 'jkl');
+    insert into tq84_tab (grp, val, txt) values ('B',   1.01, 'mno');
+
+    insert into tq84_tab (grp, val, txt) values ('C', 444.44,  null);
+    insert into tq84_tab (grp, val, txt) values ('C', 555.55, 'pqr');
+    commit;
+end;
+/
+code }
+
+code {
+create or replace view tq84_checksum_v as
+select
+   grp,
+   checksum(id || '~' || val || '~' || txt) checksum_
+from
+   tq84_tab
+group by
+   grp
+;
+
+select * from tq84_checksum_v;
+--
+-- G  CHECKSUM_
+-- - ----------
+-- A     388079
+-- B     955475
+-- C     110315
+code }
+
+code {
+create table tq84_checksum_safe as select * from tq84_checksum_v;
+code }
+
+code {
+update tq84_tab set val = 22.2 where txt = 'ghi';
+commit;
+code }
+
+code {
+select
+   nvl(v.grp, s.grp),
+   case when nvl(v.checksum_, -1) <> nvl(s.checksum_, -1) then 'different' end diff
+from
+   tq84_checksum_v      v   full outer join
+   tq84_checksum_safe   s on v.grp = s.grp
+;
+
+drop   table tq84_checksum_safe;
+drop   table tq84_tab;
+code }
+
+}
+{ Achieving independence of order of rows
+
+  The returned value of `checksum` is independent of the order of the input rows. It is very likely that this is achieved by xor-ing the input values. The downside of
+  this approach is that the `checksum` value of three repeated values is equal to the `checksum` of that value and the `checksum` value of two repeated values is zero, as
+  demonsrated with the following statements:
+code {
+create table tq84_checksum_test (val number);
+
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--
+
+insert into tq84_checksum_test values (1);
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--        863352
+
+insert into tq84_checksum_test values (1);
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--             0
+
+insert into tq84_checksum_test values (1);
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--        863352
+
+insert into tq84_checksum_test values (1);
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--             0
+
+insert into tq84_checksum_test values (1);
+select checksum(val) from tq84_checksum_test;
+--
+-- CHECKSUM(VAL)
+-- -------------
+--        863352
+
+drop   table tq84_checksum_test;
+code }
+
+}
+{ Not available in autonomous database
+
+  A cursory test in an autonomous databaseseemed to indicate that the function is not available in Oracle Cloud environments.
+
+}
+
+sa:
+  The packages
+    • `→ development/databases/Oracle/installed/packages/dbms/comparison`
+    • `→ development/databases/Oracle/installed/packages/dbms/sqlhash`

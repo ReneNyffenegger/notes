@@ -61,6 +61,27 @@ group by
 code }
 
 }
+{ UNION ALL combined with GROUP BY #ora-00933-union-all-group-by
+
+  An *ORA-00933* is also thrown when appling an `order by` clause to the first query of a statement that combines two queries with `→ development/databases/Oracle/SQL/select/set-operators/union/all`:
+code {
+begin
+   insert into tq84_ora_933(gr, val) values ('A', 1000);
+   insert into tq84_ora_933(gr, val) values ('B',  500);
+   insert into tq84_ora_933(gr, val) values ('C', 1500);
+   commit;
+end;
+/
+ 
+select  gr    , val      from tq84_ora_933 order by val desc union all
+select 'TOTAL', sum(val) from tq84_ora_933;
+
+drop table tq84_ora_933;
+code }
+
+  If the `order by` clause is applied at the end of the statement, Oracle throws → development/databases/Oracle/errors/ORA-00904_invalid-identifier#ora-00904-union-all-order-by[ORA-00904: invalid identifier].
+
+}
 
 sa:
 

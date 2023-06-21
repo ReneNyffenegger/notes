@@ -1,10 +1,52 @@
 $ Oracle: Analytic functions
 
-{ TODO
+{ SUM and ORDER BY clause / Producing cumulative sum
 
- `checksum` can be used to detect changes in a table. Compare with → development/databases/Oracle/installed/packages/dbms/comparison[`dbms_comparison`]
+ `sum(…) over (order by …)` is equivalent to `sum() over (order by … range between unbounded preceding and current row)`. A bit surprising to me, this default does not pruduce a cumulative
+  sum. In order to produce such a sum, the clause `order by … rows between unbounded preceding and current row` must be used, as demonstrated in the following example:
+
+code {
+alter session set nls_date_format = 'yyyy-mm-dd';
+
+create table tq84_accum_sum (
+    dt     date,
+    val    number(4,2)
+);
+ 
+begin
+   insert into tq84_accum_sum values (date '2023-01-06', 4.03);
+   insert into tq84_accum_sum values (date '2023-01-09', 2.12);
+   insert into tq84_accum_sum values (date '2023-01-09', 1.07);
+   insert into tq84_accum_sum values (date '2023-01-12', 2.85);
+ 
+   commit;
+end;
+/
+ 
+select
+   dt,
+   val,
+   sum(val) over(order by dt                                                  ) accum_sum_1,
+   sum(val) over(order by dt range between unbounded preceding and current row) accum_sum_2,
+   sum(val) over(order by dt rows  between unbounded preceding and current row) accum_sum_3
+from
+   tq84_accum_sum;
+--
+-- DT                VAL ACCUM_SUM_1 ACCUM_SUM_2 ACCUM_SUM_3
+-- ---------- ---------- ----------- ----------- -----------
+-- 2023-01-06       4.03        4.03        4.03        4.03
+-- 2023-01-09       2.12        7.22        7.22        6.15
+-- 2023-01-09       1.07        7.22        7.22        7.22
+-- 2023-01-12       2.85       10.07       10.07       10.07
+
+
+drop   table tq84_accum_sum;
+code }
 
 }
+
+
+
 
 sa:
 
@@ -31,3 +73,6 @@ sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations/window[`window`] operation.
 
   Using analytic functions in a → development/databases/Oracle/objects/views prevents the view from being → development/databases/Oracle/objects/views#ora-updatable-view[updatable].
+
+  The analytic and → development/databases/Oracle/SQL/select/aggregate `→ development/databases/Oracle/SQL/select/aggregate/checksum` can be used to detect data changes in a table.
+  Compare with `→ development/databases/Oracle/installed/packages/dbms/comparison`.
