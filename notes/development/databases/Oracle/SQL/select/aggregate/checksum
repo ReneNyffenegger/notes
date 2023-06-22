@@ -73,16 +73,23 @@ code }
   Because we have to original checksums, we're able to at least determine in which group the data was changed:
 code {
 select
-   nvl(v.grp, s.grp),
+   nvl(v.grp, s.grp) grp,
    case when nvl(v.checksum_, -1) <> nvl(s.checksum_, -1) then 'different' end diff
 from
    tq84_checksum_v      v                  → development/databases/Oracle/SQL/join/outer/full
    tq84_checksum_safe   s on v.grp = s.grp
+where
+   nvl(v.checksum_, -1) <> nvl(s.checksum_, -1)
 ;
+--
+-- G DIFF     
+-- - ---------
+-- A different
 code }
 
   Cleaning up:
 code {
+drop   view  tq84_checksum_v;
 drop   table tq84_checksum_safe;
 drop   table tq84_tab;
 code }
@@ -143,7 +150,7 @@ code }
 }
 { Not available in autonomous database
 
-  A cursory test in an autonomous databaseseemed to indicate that the function is not available in Oracle Cloud environments.
+  A cursory test in an autonomous database seemed to indicate that the function is not available in Oracle Cloud environments.
 
 }
 
