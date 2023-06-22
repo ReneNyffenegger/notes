@@ -1,10 +1,14 @@
 $ Oracle: Aggregate function CHECKSUM
 @ checksum
 
-The → development/databases/Oracle/SQL/select/aggregate[aggregate] and → development/databases/Oracle/SQL/select/analytic[analytic function] `checksum` can be used to detect data changes in a table.
+The → development/databases/Oracle/SQL/select/aggregate[aggregate] and → development/databases/Oracle/SQL/select/analytic[analytic function] `checksum` calculates a number from a set of exrpessions
+and is intended to detect data changes in a table: if the number changes, the data has changed (or was possibly even tampered with).
 
 { Simple demonstration
 
+  The following simple snippets try to demonstate `checksum`.
+
+  First, we need a → development/databases/Oracle/objects/tables and fill it with some data:
 code {
 create table tq84_tab (
     id  integer    generated always as identity primary key,
@@ -28,6 +32,10 @@ end;
 /
 code }
 
+  Then, we create a → development/databases/Oracle/objects/views to calculate the checksums. Because we use the `→ development/databases/Oracle/SQL/select/group-by` clause,
+  we get a checksum for each different value of `grp`.
+  -
+  The expression on which the checksum is calculated is the concatenation of the remaining columns, i. e. all columns except `grp` (`id || '~' || val || '~' || txt`):
 code {
 create or replace view tq84_checksum_v as
 select
@@ -38,7 +46,10 @@ from
 group by
    grp
 ;
+code }
 
+  Selecting from the view gives the following result:
+code {
 select * from tq84_checksum_v;
 --
 -- G  CHECKSUM_
@@ -48,24 +59,30 @@ select * from tq84_checksum_v;
 -- C     110315
 code }
 
+  We safe the calculated checksums in `tq84_checksum_safe`:  
 code {
 create table tq84_checksum_safe as select * from tq84_checksum_v;
 code }
 
+  At a later time, some data is altered:
 code {
 update tq84_tab set val = 22.2 where txt = 'ghi';
 commit;
 code }
 
+  Because we have to original checksums, we're able to at least determine in which group the data was changed:
 code {
 select
    nvl(v.grp, s.grp),
    case when nvl(v.checksum_, -1) <> nvl(s.checksum_, -1) then 'different' end diff
 from
-   tq84_checksum_v      v   full outer join
+   tq84_checksum_v      v                  → development/databases/Oracle/SQL/join/outer/full
    tq84_checksum_safe   s on v.grp = s.grp
 ;
+code }
 
+  Cleaning up:
+code {
 drop   table tq84_checksum_safe;
 drop   table tq84_tab;
 code }
