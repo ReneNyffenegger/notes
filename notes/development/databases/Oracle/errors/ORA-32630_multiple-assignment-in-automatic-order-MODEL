@@ -1,0 +1,53 @@
+$ ORA-32630: multiple assignment in automatic order MODEL
+
+In the following example, the error message *ORA-32630: multiple assignment in automatic order MODEL* is thrown because the `→ development/databases/Oracle/SQL/select/model` clause of
+the `select` statement uses `automatic order` in the `rules` clause and multple rules apply
+to the same row (so that Oracle cannot determine the order in which the rules should be applied):
+code {
+create table tq83_model_cell_assignment (
+    dim_1     number(2),
+    dim_2     char(1),
+    val_1     number(5,2),
+    val_2     varchar2(3)
+);
+
+exec dbms_random.seed(42);
+insert into tq84_model_cell_assignment
+select
+   level,
+   chr(ascii('A')+10 - level),
+   dbms_random.value(1,1000),
+   dbms_random.string('a', 3)
+from
+   dual connect by level <= 10;
+
+select *
+from
+   tq84_model_cell_assignment
+model
+   dimension by (dim_1, dim_2)
+   measures     (val_1, val_2)
+ rules
+   automatic order
+  (
+    val_1[any      , dim_2 <= 'F'] = 999.99,
+    val_1[dim_1 > 7, any         ] =   0.01
+  );
+code }
+
+When `automatic order` is removed, the error disappears:
+code {
+select *
+from
+   tq84_model_cell_assignment
+model
+   dimension by (dim_1, dim_2)
+   measures     (val_1, val_2)
+  (
+    val_1[any      , dim_2 <= 'F'] = 999.99,
+    val_1[dim_1 > 7, any         ] =   0.01
+  );
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

@@ -1,0 +1,28 @@
+$ Oracle SQL MODEL clause example: Approximate PI with the Leibnitz formula
+
+The → https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80[Leibnitz formula for π] is: π/4 = 1 - 1/3 + 1/5 - 1/7 + 1/9 - …
+
+The following example uses the `→ development/databases/Oracle/SQL/select/model` to approximate pi. The iteration stops when the approximated value for π is equal to four decimal
+places to approximated value in the previous iteration.
+
+code {
+create table tq84_approx_pi as
+select
+   iter,
+   round(pi_approx,4) pi_approx
+from
+   dual 
+model
+   dimension by (0 as iter     )
+   measures     (0 as pi_approx, 0 as div)
+  rules
+   iterate (10000000) until (
+      round(pi_approx[iteration_number+1], 4) = round(pi_approx[iteration_number], 4)
+   )
+   (
+      pi_approx[iteration_number+1] = pi_approx[iteration_number] + 4 /( (iteration_number  ) * 2 +1) * case when mod(iteration_number+1,2) = 1 then 1 else -1 end,
+      div      [iteration_number+1] =                               4 /( (iteration_number  ) * 2 +1) * case when mod(iteration_number+1,2) = 1 then 1 else -1 end
+   );
+
+select * from tq84_approx_pi order by iter desc;
+code }

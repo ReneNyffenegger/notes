@@ -1,4 +1,5 @@
 $ Oracle SQL: MODEL clause
+@ model
 
 { Test data
 
@@ -85,12 +86,44 @@ $ Oracle SQL: MODEL clause
 
     Model functions can only be used in the *model clause*. They include
     table { ll
-      `cv` ☰ `cv` can only be used on the right-nand side of a model rule. The function returns the current value of a dimension column or partitioning column (carried from the left-hand side). If used outside of a cell reference, an argument (`dimension_column`) is required.
+      `cv` ☰ `cv` can only be used on the right-hand side of a model rule. The function returns the current value of a dimension column or partitioning column (carried from the left-hand side). If used outside of a cell reference, an argument (`dimension_column`) is required.
       `iteration_number` ☰ Can only be used if `iterate(num)` is used. The function returns the number of completed iterations through the model rules (`0` during the first iteration).
       `presentnnv` ☰ Can only be used on the right-nand side of a model rule. Compare with `nvl2`
       `presentv` ☰ Can only be used on the right-nand side of a model rule.
-      `previous` ☰ Can only be used in the `iterate … [until]` clause of the model rules clause.
+      `previous` ☰ Can only be used in the `iterate … [until]` clause of the model rules clause (see also the → development/databases/Oracle/errors/ORA-32618_incorrect-use-of-MODEL-PREVIOUS-function message).
     table }
+
+  }
+  { ITERATE
+
+    The `iterate` clause executes the rules a number of times. The value of `iteration_number` starts with 0 and increases by 1 in each iteration.
+
+code {
+select
+   id,
+   num
+from
+   dual 
+model
+   dimension by (0 as id )
+   measures     (0 as num)
+  rules
+   iterate (100)
+   (
+      num[iteration_number] = iteration_number * iteration_number
+   );
+--
+--         ID        NUM
+-- ---------- ----------
+--          0          0
+--          1          1
+--          2          4
+--    …
+--         98       9604
+--         99       9801
+-- 
+-- 100 rows selected. 
+code }
 
   }
 
@@ -103,8 +136,14 @@ sa:
   Examples:
     • → development/databases/Oracle/SQL/select/model/examples/forecast[Forecasting values]
     • → development/databases/Oracle/SQL/select/model/examples/date-generator[Date series generator]
+    • → development/databases/Oracle/SQL/select/model/examples/approximate-pi[Aproximate π] using the Leibnitz formula
 
   → development/databases/SQL/operation-order[In the order of `select` operations], the *model clause* is applied between → development/databases/Oracle/SQL/select/set-operators[set operators]
   (`→ development/databases/Oracle/SQL/select/set-operators/union` etc.) and `→ development/databases/SQL/select/order-by`.
 
   Using the model clause in a → development/databases/Oracle/objects/views prevents the view from being → development/databases/Oracle/objects/views#ora-updatable-view[updatable].
+
+  Error messages:
+    • → development/databases/Oracle/errors/ORA-00957_duplicate-column-name#ora-00957-model[ORA-00957: duplicate column name]
+    • → development/databases/Oracle/errors/ORA-32617_missing-MEASURES-keyword-in-MODEL-clause
+    • → development/databases/Oracle/errors/ORA-32630_multiple-assignment-in-automatic-order-MODEL

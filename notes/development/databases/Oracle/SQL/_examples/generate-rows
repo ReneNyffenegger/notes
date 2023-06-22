@@ -1,0 +1,76 @@
+$ Oracle SQL: Generate (an arbitrary amount of) rows/data
+
+{ Selecting from DBA_OBJECTS #ora-gen-data-rownum
+
+  My current installation has 64974 records in `→ development/databases/Oracle/installed/data-dictionary/objects`. Thus, I can abuse `dba_objects` as a row source to generate up to 64974 records.
+  
+  In order to create a table with 50000 records, I can limit the number or generated numbers with `where → development/databases/Oracle/objects/tables/columns/pseudo/rownum <= 50000`:
+code {
+create table tq84_xyz as
+select
+   date '1987-01-01' + rownum          dt,
+   round(dbms_random.value(1, 100), 2) num
+from
+   dba_objects
+where
+   rownum <= 50000;
+code }
+
+  If more than 64K records need to be produced, `dba_objects` can be → development/databases/Oracle/SQL/join/cross[cross joined] to itself. This produces a cartesian product, i. e. can provide up toe 64974*64974 records.
+  -
+  The following statement creates a table with a record for each second in the year 2023:
+code {
+drop   table tq84_xyz;
+
+create table tq84_xyz as
+select
+   date '2023-01-01' + rownum/24/60/60    dt,
+   rownum                                 num
+from
+   dba_objects cross join dba_objects
+where
+   rownum <= 365*24*60*60 -1
+;
+
+select
+   min(dt),
+   max(dt),
+   count(*)
+from
+   tq84_xyz;
+code }
+
+}
+{ Using CONNECT BY without START WITH #ora-gen-data-connect-by
+
+  A given number of records can also be generated with the `→ development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by` clause.
+
+  The following statement generates 15 rows:
+code {
+select
+   rownum
+from
+   → development/databases/Oracle/SQL/dual connect by rownum <= 14;
+code }
+
+}
+{ XMLTable #ora-gen-data-xmltable
+
+  A series of numbers can be created with `→ development/databases/Oracle/SQL/functions/XML/Table`:
+code {
+select
+   → development/databases/Oracle/objects/tables/columns/pseudo/rownum
+from
+   xmlTable('1 to 42');
+code }
+
+}
+{ Using the MODEL clause
+
+  Rows can also be generated using the `→ development/databases/Oracle/SQL/select/model` clause, an example demonstrating this is → development/databases/Oracle/SQL/select/model/examples/date-generator[here].
+
+}
+
+sa:
+  → development/Data/test/generate/Oracle
+
