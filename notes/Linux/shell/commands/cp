@@ -4,19 +4,105 @@ $ Shell command: cp
 
 `cp` copies files and directories
 
+code {
+cp [OPTION]… [-T] SOURCE DEST
+cp [OPTION]… SOURCE… DIRECTORY
+cp [OPTION]… -t DIRECTORY SOURCE…
+code }
+
+Copy `SOURCE` to `DEST,` or multiple `SOURCE(s)` to DIRECTORY.
+
+{ Options
+
+Mandatory arguments to long options are mandatory for short options too.
+
+table { lll
+
+  `-a` ☰  `--archive`                    ☰ Same as `-dR --preserve=all`
+       ☰ `--attributes-only`             ☰ Don't copy the file data, just the attributes
+       ☰ `→ #cp-backup[--backup][=CONTROL]`  ☰ Make a backup of each existing destination file
+  `-b` ☰                                 ☰ Like `--backup` but does not accept an argument
+       ☰ `--copy-contents`               ☰ Copy contents of special files when recursive
+  `-d` ☰                                 ☰ Same as `--no-dereference --preserve=links`
+  `-f` ☰  `--force`                      ☰ If an existing destination file cannot be opened, remove it and try again (this option is ignored when the -n option is also used)
+  `-i` ☰  `--interactive`                ☰ Prompt before overwrite (overrides a previous `-n` option)
+  `-H` ☰                                 ☰ Follow command-line symbolic links in `SOURCE`
+  `-l` ☰  `--link`                       ☰ Hard link files instead of copying
+  `-L` ☰  `--dereference`                ☰ Always follow symbolic links in `SOURCE`
+  `-n` ☰  `--no-clobber`                 ☰ Do not overwrite an existing file (overrides a previous -i option)
+  `-P` ☰  `--no-dereference`             ☰ Never follow symbolic links in `SOURCE`
+  `-p` ☰                                 ☰ Same as `--preserve=mode,ownership,timestamps`
+       ☰ `→ #cp-preserve[--preserve][=ATTR_LIST]`        ☰ Preserve the specified attributes (default: mode,ownership,timestamps), if possible additional attributes: context, links, xattr, all
+       ☰ `--no-preserve=ATTR_LIST`       ☰ Don't preserve the specified attributes
+       ☰ `--parents`                     ☰ Use full source file name under `DIRECTORY`
+  `-R`, `-r` ☰ `--recursive`             ☰ Copy directories recursively
+       ☰ `→ #cp-reflink[--reflink][=WHEN]` ☰ Control clone/CoW copies.
+       ☰ `--remove-destination`          ☰ Remove each existing destination file before attempting to open it (contrast with `--force`)
+       ☰ `→ #cp-sparse[--sparse]=WHEN`   ☰ Control creation of sparse files.
+       ☰ `--strip-trailing-slashes`      ☰ Remove any trailing slashes from each `SOURCE` argument
+  `-s` ☰ `--symbolic-link`               ☰ Make symbolic links instead of copying
+  `-S` ☰ `--suffix=SUFFIX`               ☰ Override the default backup suffix which is a tilde (`~`)
+  `-t` ☰ `--target-directory=DIRECTORY`  ☰ Copy all `SOURCE` arguments into `DIRECTORY`
+  `-T` ☰ `--no-target-directory`         ☰ Treat `DEST` as a normal file
+  `-u` ☰ `--update`                      ☰ Copy only when the `SOURCE` file is newer than the destination file or when the destination file is missing
+  `-v` ☰ `--verbose`                     ☰ Explain what is being done
+  `-x` ☰ `--one-file-system`             ☰ Stay on this file system
+  `-Z` ☰                                 ☰ Set → Linux/security/modules/SELinux security context of destination file to default type
+       ☰ `--context[=CTX]`               ☰ Like `-Z` or if CTX is specified then set the SELinux or SMACK security context to CTX
+       ☰ `--help`                        ☰ Display this help and exit
+       ☰ `--version`                     ☰ Output version information and exit
+
+  table }
+
+
+
+}
 { Copy recursively
 
-  `cp` can be instructed to copy entire directory trees with `-r`.
+ `cp` can be instructed to copy entire directory trees with `-r`.
 
-   gh|shell-commands|/cp/r_dest-dir-does-not-exist||
-
+  gh|shell-commands|/cp/r_dest-dir-does-not-exist||
   
   Perl: See also → development/languages/Perl/modules/File/Copy/Recursive.
 
 }
-{ Preserving timestamps
+{ Preserving timestamps #cp-preserve
 
   The copied file's → Linux/filesystem/file-directory-metadata#fs-amt-time[timestamps] can be preserved with the `--preserve=timestamp` option.
+
+}
+{ --sparse #cp-sparse
+
+  By default or if `--sparse=auto` is used, sparse `SOURCE` files are detected by a crude heuristic and the
+  corresponding `DEST` file is made sparse as well.
+
+ `--sparse=always` creates a sparse `DEST` file whenever the `SOURCE` file contains a long enough sequence of zero bytes.
+
+ `--sparse=never` inhibits the creation of sparse files.
+
+}
+{ --reflink #cp-reflink
+
+ `--reflink[=always]` performs a lightweight copy, where the data blocks are copied only when modified (possibly not supported by the file system).
+ -
+  If this is not possible the copy fails
+
+ `--reflink=auto` tries to create a lightweight copy, but falls back to a standard copy if not possible.
+
+ `--reflink=never` creates a standard copy.
+
+}
+{ Setting the version control method with the --backup option or VERSION_CONTROL environment variable #cp-backup
+
+  The value of the `--backup` option or `VERSION_CONTROL` environment variable selects the *version control method*.
+
+  The value can be:
+  table { ll
+    `none`, `off`      ☰ Never make backups (even if `--backup` is given)
+    `numbered`, `t`    ☰ Make numbered backups (`filename.~1~`, `filename.~2~` etc)
+    `existing`, `nil`  ☰ Numbered if numbered backups exist, simple otherwise
+    `simple`, `never`  ☰ Always make simple backups
+  table }
 
 }
 

@@ -12,25 +12,36 @@ code {
 select
    column_value as val
 from
-   table(sys.ku$_vcnt('one', 'two', 'three'));
+   sys.ku$_vcnt('one', 'two', 'three');
 code }
 
 }
-{ dbms_debug_vc2_coll
+{ DBMS_DEBUG_VC2COLL #dbms_debug_vc2coll
+
+  The intended purpose of `dbms_debug_vc2coll` is to pass data back to the caller of `dbms_debug.execute` (See source of `dbmspb.sql`).
 
   The column name is `column_value`:
 
-  gh|oracle-patterns|/PL-SQL/CollectionTypes/predefined/dbms_debug_vc2coll.sql||
+code {
+select
+   t.column_value
+from
+   sys.dbms_debug_vc2coll('foo', 'bar', 'baz') t;
+code }
 
 }
-{ ku$_vcnt
+{ KU$_VCNT
+
+  `vcnt` stands for *varchar2 nested table* and is a `table of varchar2(4000)`.
 
   `ku$_vcnt` also has a *public → development/databases/Oracle/objects/synonyms[synonym]* so that it is not required to prefix with `sys`:
 code {
 select
    column_value as val
 from
-   table(ku$_vcnt('one', 'two', 'three'));
+   ku$_vcnt('one', 'two', 'three');
 code }
+
+  Apparently, there is supposed to be a type named `ku$_vcntbig` which stores `varchar2(32000)`, but I was unable to locate it.
 
 }
