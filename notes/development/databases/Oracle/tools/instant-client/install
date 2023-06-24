@@ -1,7 +1,7 @@
 $ Oracle: Install Instant Client in Linux
 
-The following shell commands try to demonstrate how parts of Oracle's instant can be installed on Linux. It installes the *Basic Light* package (only English error messages and US and European character set),
-→ development/databases/Oracle/SQL-Plus and *tools* (Data Pump, → development/databases/Oracle/tools/sql-loader and Workload Replay Client).
+The following shell commands try to demonstrate how parts of Oracle's instant client can be installed on Linux. It installs the *Basic Light* package (only English error messages and US and European character set),
+→ development/databases/Oracle/SQL-Plus and *tools* (Data Pump, → development/databases/Oracle/tools/sql-loader and Workload Replay Client). Noteably, → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/tnsping[`tnsping`] is not part of the instant client.
 
 code {
 DESTDIR=~/oracle
@@ -45,9 +45,17 @@ PATH=$PATH:$DESTDIR/instantclient_21_10:$LD_LIBRARY_PATH
 code }
 
 }
-{ Creating symlinks
+{ Copying files
 
+  In order not to modify `PATH` and `LD_LIBRARY_PATH`, shared objects (i. e. exectuables which match the regular expression `.so(\.\d)?`) must be copied to `→ Linux/fhs/usr/lib` and
+  other executables to `→ Linux/fhs/usr/bin`.
+  -
+  This can be achieved with the following `→ Linux/shell/commands/find` command:
 code {
+→ Linux/shell/commands/sudo find $DESTDIR -executable -type f  \
+  \(     -regex '.*\.so\(\.\d\)?.*' -exec cp -i {} /usr/lib \;   -o \
+                                    -exec cp -i {} /usr/bin \; \)
+ 
 code }
 
 }
