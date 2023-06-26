@@ -1,0 +1,144 @@
+$ Oracle SQL: Using the Largest Reminder Method to round numbers so that their sum is 100 percent
+
+code {
+create table tq84_pct_rounding (
+    gr   varchar2(3) not null,
+    val  number      not null
+);
+
+begin
+   delete tq84_pct_rounding;
+   insert into tq84_pct_rounding(gr, val) values ('A', 331.172154);
+   insert into tq84_pct_rounding(gr, val) values ('B', 519.632271);
+   insert into tq84_pct_rounding(gr, val) values ('C', 213.466626);
+   insert into tq84_pct_rounding(gr, val) values ('D', 729.200169);
+   insert into tq84_pct_rounding(gr, val) values ('E', 410.338305);
+   insert into tq84_pct_rounding(gr, val) values ('F', 613.159488);
+   insert into tq84_pct_rounding(gr, val) values ('G',   0       );
+   commit;
+end;
+/
+code }
+
+code {
+column val   format 990.000
+column pct   format  90.00
+column pct_2 format  90.00
+
+select
+   gr,
+   round(val, 3)                                val,
+   round(100 * ratio_to_report(val) over (), 2) pct
+from
+   tq84_pct_rounding
+order by
+   val desc;
+--
+-- GR       VAL    PCT
+-- --- -------- ------
+-- D    729.200  25.89
+-- F    613.159  21.77
+-- B    519.632  18.45
+-- E    410.338  14.57
+-- A    331.172  11.76
+-- C    213.467   7.58
+-- G      0.000   0.00
+code }
+
+It turns out that the sum of the (rounded) `PCT` values is 100.02! Arguably, these values should add up to 100 percent.
+
+There are several ways to achieve this, for example to simply subtract 0.02 from a randomly chosen `PCT` values, but this feels
+a bit odd. I feel there should be a more *mathematical* way to achieve a sum of 100 percent.
+
+This article tries to demonstrate how the → https://en.wikipedia.org/wiki/Largest_remainder_method[Largest reminder method] can be used in SQL for our goal. While this method solves our problem,
+it is a bit complex in that it requires to write three views.
+
+{ First view: Determine percentage to 2 decimal places and its reminder
+ 
+  The first view determines a percentage to 2 decimal places (column `pct_2`). It uses `trunc`, not `round`, so that all percentages are rounded down rather than mathematically.
+
+  The column `pct_rem` keeps track of the remaining, not accounted, value of `pct_2` in respect to the *real* value of `pct`
+
+code {
+create or replace view tq84_pct_rounding_w_1 as
+select
+          gr,
+          val,
+          100 * ratio_to_report(val) over ()     pct,
+   trunc( 100 * ratio_to_report(val) over (), 2) pct_2,
+          ---
+          100 * ratio_to_report(val) over ()     -
+   trunc( 100 * ratio_to_report(val) over (), 2) pct_rem
+from
+   tq84_pct_rounding;
+code }
+
+}
+{ Second view: Determine number of modifcations
+
+  The second view determines the number of required modifications by subtracting the
+  total sum of `pct_2` (in the query: `sum(pct_2) over ()`) from 100 (which results on `0.02` with our test data)
+  and multiplying this result with 100 (which results in 2).
+  -
+  This value is stored in `nof_required_modifications`.
+
+  In addition, this view adds an increasing value (`rn)` in order of decreasing `pct_rem` so that the largest reminder
+  gets the value one, the second largest reminder 2 and so on. 
+
+code {
+create or replace view tq84_pct_rounding_w_2 as
+select
+   gr,
+   val,
+   pct_2,
+   100 * (100 - sum(pct_2) over() )          nof_required_modifications,
+   row_number() over (order by pct_rem desc) rn
+from
+   tq84_pct_rounding_w_1
+;
+code }
+
+}
+{ Third view: Appling the modifications
+
+  NOw that we know the number of modifications and have the column `rn`, we can apply
+  the modification where `rn <= nof_required_modifications`:
+code {
+create or replace view tq84_pct_rounding_w_3 as
+select
+   gr,
+   val,
+   pct_2 + case when rn <= nof_required_modifications then 0.01 else 0.00 end pct_2
+from
+   tq84_pct_rounding_w_2
+;
+code }
+
+}
+{ Querying the view
+
+  Finally, we're able to query the view.
+code {
+select
+   gr,
+   round(val, 3) val,
+   pct_2
+from
+   tq84_pct_rounding_w_3
+order by
+   val desc;
+--
+-- GR       VAL  PCT_2
+-- --- -------- ------
+-- D    729.200  25.88
+-- F    613.159  21.77
+-- B    519.632  18.45
+-- E    410.338  14.57
+-- A    331.172  11.75
+-- C    213.467   7.58
+-- G      0.000   0.00
+code }
+
+  NOw, the sum of `PCT_2` is 100, as expected.
+
+}
