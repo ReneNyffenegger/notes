@@ -1,0 +1,40 @@
+$ ORA-22913: must specify table name for nested table column or attribute
+
+code { 
+create or replace type tq84_obj  authid definer as object (
+   num number,
+   txt varchar2(10)
+);
+/
+ 
+create type tq84_obj_t as table of tq84_obj;
+/
+code }
+ 
+
+The following `create table` statement throws *ORA-22913: must specify table name for nested table column or attribute*:
+code {
+create table tq84_tab (
+   tab_id      integer,
+   obj_tab     tq84_obj_t
+);
+code }
+ 
+This `create table` statement succeeds because it specifies the required table name for the nested table column:
+code {
+create table tq84_tab (
+   tab_id      integer,
+   obj_tab     tq84_obj_t
+)
+nested table obj_tab store as tq84_nt return as locator;
+code }
+
+Cleaning up:
+code {
+drop table tq84_tab;
+drop type tq84_obj_t;
+drop type tq84_obj;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

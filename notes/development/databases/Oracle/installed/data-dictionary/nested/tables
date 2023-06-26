@@ -1,0 +1,31 @@
+$ Oracle: DBA_NESTED_TABLES
+
+code {
+create or replace type tq84_obj  authid definer as object (
+   num number,
+   txt varchar2(10)
+);
+/
+ 
+create type tq84_obj_t as table of tq84_obj;
+/
+ 
+ 
+create table tq84_tab (
+   tab_id      integer,
+   obj_tab     tq84_obj_t
+)
+nested table obj_tab store as tq84_nt return as locator;
+ 
+select * from → development/databases/Oracle/installed/data-dictionary/objects[user_objects]        where object_name = 'TQ84_NT';
+select * from user_tables         where table_name  = 'TQ84_NT';
+select * from → development/databases/Oracle/installed/data-dictionary/object/tables[user_object_tables]  where table_name  = 'TQ84_NT';
+select * from user_nested_tables  where table_name  = 'TQ84_NT';
+
+drop table tq84_tab;
+drop type  tq84_obj_t;
+drop type  tq84_obj;
+code } 
+
+sa:
+ `dba_nested_table_cols`, `dba_xml_nested_tables`
