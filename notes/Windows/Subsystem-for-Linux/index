@@ -29,10 +29,16 @@ code }
 
   Audio (in and out) is supported by a *PulseAudio* server.
   
-  When starting GUI applications, the first process being launched is the deamon like `WSLGd` which in turn starts Weston and Pulse and then establishes the RDP connection to the host.
-  -
-  There seems to be no visible process or an executable (binary) with this name.
 
+  { WSLGd
+
+   `WSLGd` is the first process launched after `init`. This process is similar to a daemon and
+      • starts *Weston* (with XWayland) and *PulseAudio* and
+      • then launces `→ Windows/dirs/Windows/System32/mstsc_exe` on the host in silend mode in order to establish an RDP connection.
+
+    There seems to be no visible process or an executable (binary) with this name.
+
+  }
   { System Distro
 
     The → https://github.com/microsoft/wslg#wslg-system-distro[WSLg System Distro] is a containerized Linux environment (based on → https://github.com/microsoft/CBL-Mariner[CBL Mariner])
@@ -49,7 +55,10 @@ code }
 
     See also Steve Pronovost's post on the → https://devblogs.microsoft.com/commandline/wslg-architecture/[WSLg architecture].
 
-   `→ Linux/fhs/mnt/wslg`, `→ Linux/fhs/mnt/wslg/distro`
+    Apparently, WSLg relies on Microsoft's *CBL-Mariner* Linux distribution.
+
+   `→ Linux/fhs/mnt/wslg`, `→ Linux/fhs/mnt/wslg/distro`,
+   `/mnt/c/ProgramData/Microsoft/WSL/.wslgconfig`
 
   }
 
@@ -376,7 +385,6 @@ code }
 
   `→ Linux/fhs/etc/hosts` inherits the entries from → Windows/dirs/Windows/System32/drivers/etc/hosts[`%windir%\system32\drivers\etc\hosts`].
 
-
   → Linux/fhs/bin/wslpath[`wslpath`] performs WSL/Windows path conversions:
 code {
 $ wslpath C:/Users/Rene
@@ -419,6 +427,21 @@ sudo apt-get install pavucontrol
 code }
 
     }
+
+  }
+  { GPU
+
+    MS Devblogs:
+      • → https://devblogs.microsoft.com/directx/directx-heart-linux/[DirectX is coming to the Windows Subsystem for Linux]
+      • → https://devblogs.microsoft.com/commandline/wslg-architecture/#hardware-accelerated-opengl[Hardware accelerated OpenGL]
+
+
+    → https://developer.nvidia.com/cuda/wsl[CUDA on Windows Subsystem for Linux] where a link leads to https://www.nvidia.com/Download/index.aspx?lang=en-us[NVIDIA driver downloads].
+    -
+    Intel drivers can be downloaded from → https://www.intel.com/content/www/us/en/homepage.html?ref=https://www.intel.com/content/www/us/en/download/19619.html[here] (→ https://www.intel.com/content/www/us/en/download-center/home.html[Download center])
+    -
+    AMD drivers can be downloaded from → https://community.amd.com/t5/radeon-pro-graphics/announcing-amd-support-for-gpu-accelerated-machine-learning/ba-p/414185[here].
+ 
 
   }
   { Developer mode
@@ -520,6 +543,7 @@ sa:
  `→ Linux/fhs/run/WSL`, `→ Linux/fhs/usr/lib/wsl`
 
   → Linux/shell/commands/ps/WSL[Running `ps` in WSL]
+
 
 links:
 
