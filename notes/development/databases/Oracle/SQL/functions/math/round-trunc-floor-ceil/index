@@ -1,11 +1,68 @@
 $ Oracle SQL: ROUND, ROUND_TIES_TO_EVEN, TRUNC, FLOOR, CEIL
 
-`floor(n)` returns the largest integer equal to or less than `n`; `floor(n) <= n`
+`floor(n)` returns the largest integer equal to or less than `n`, i.e. `floor(n) <= n`
 -
-`ceil(n)` returns the smallest integer that is greater than or equal to `n`; `ceal(n) >= n`
+`ceil(n)` returns the smallest integer that is greater than or equal to `n`, i.e. `ceal(n) >= n`
 
+code {
+set numformat 999990.000
 
-gh|Oracle-patterns|/SQL/functions/math/round-trunc-floor-ceil/select.sql||
+with numbers as (
+   select  12345.6789 num from dual union all
+   select - 7777.77   num from dual union all
+   select      0.5    num from dual union all
+   select      0.05   num from dual union all
+   select     -0.05   num from dual union all
+   select     -0.005  num from dual union all
+   select      3.05   num from dual union all
+   select      3.005  num from dual union all
+   select     -3.005  num from dual union all
+   select     -3.04   num from dual union all
+   select     -3.05   num from dual union all
+   select     -3.06   num from dual union all
+   select      4.04   num from dual union all
+   select      4.05   num from dual union all
+   select      4.06   num from dual union all
+   select      4.005  num from dual union all
+   select     -4.05   num from dual union all
+   select     -4.005  num from dual
+)
+select
+         num    ,
+
+   trunc(num   ) "tr"   , round(num   ) "rd"   , round_ties_to_even(num   ) "ty"   ,
+   trunc(num, 2) "tr 2" , round(num, 2) "rd 2" , round_ties_to_even(num, 2) "ty 2" ,
+   trunc(num,-2) "tr -2", round(num,-2) "rd -2", round_ties_to_even(num,-2) "ty -2",
+
+   ceil (num   ) "cl",
+   floor(num   ) "fl"
+from
+   numbers;
+--
+--        NUM         tr         rd         ty       tr 2       rd 2       ty 2      tr -2      rd -2      ty -2         cl         fl
+-- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+--  12345.679  12345.000  12346.000  12346.000  12345.670  12345.680  12345.680  12300.000  12300.000  12300.000  12346.000  12345.000
+--  -7777.770  -7777.000  -7778.000  -7778.000  -7777.770  -7777.770  -7777.770  -7700.000  -7800.000  -7800.000  -7777.000  -7778.000
+--      0.500      0.000      1.000      0.000      0.500      0.500      0.500      0.000      0.000      0.000      1.000      0.000
+--      0.050      0.000      0.000      0.000      0.050      0.050      0.050      0.000      0.000      0.000      1.000      0.000
+--     -0.050      0.000      0.000      0.000     -0.050     -0.050     -0.050      0.000      0.000      0.000      0.000     -1.000
+--     -0.005      0.000      0.000      0.000      0.000     -0.010      0.000      0.000      0.000      0.000      0.000     -1.000
+--      3.050      3.000      3.000      3.000      3.050      3.050      3.050      0.000      0.000      0.000      4.000      3.000
+--      3.005      3.000      3.000      3.000      3.000      3.010      3.000      0.000      0.000      0.000      4.000      3.000
+--     -3.005     -3.000     -3.000     -3.000     -3.000     -3.010     -3.000      0.000      0.000      0.000     -3.000     -4.000
+--     -3.040     -3.000     -3.000     -3.000     -3.040     -3.040     -3.040      0.000      0.000      0.000     -3.000     -4.000
+--     -3.050     -3.000     -3.000     -3.000     -3.050     -3.050     -3.050      0.000      0.000      0.000     -3.000     -4.000
+--     -3.060     -3.000     -3.000     -3.000     -3.060     -3.060     -3.060      0.000      0.000      0.000     -3.000     -4.000
+--      4.040      4.000      4.000      4.000      4.040      4.040      4.040      0.000      0.000      0.000      5.000      4.000
+--      4.050      4.000      4.000      4.000      4.050      4.050      4.050      0.000      0.000      0.000      5.000      4.000
+--      4.060      4.000      4.000      4.000      4.060      4.060      4.060      0.000      0.000      0.000      5.000      4.000
+--      4.005      4.000      4.000      4.000      4.000      4.010      4.000      0.000      0.000      0.000      5.000      4.000
+--     -4.050     -4.000     -4.000     -4.000     -4.050     -4.050     -4.050      0.000      0.000      0.000     -4.000     -5.000
+--     -4.005     -4.000     -4.000     -4.000     -4.000     -4.010     -4.000      0.000      0.000      0.000     -4.000     -5.000
+code }
 
 sa:
+
+  → development/databases/Oracle/SQL/_examples/largest-reminder-method-for-rounding[Using the Largest Reminder Method to round percentages so that their sum is 100 percent]
+
   → development/databases/Oracle/SQL/functions

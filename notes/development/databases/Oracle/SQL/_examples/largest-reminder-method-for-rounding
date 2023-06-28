@@ -1,5 +1,7 @@
-$ Oracle SQL: Using the Largest Reminder Method to round numbers so that their sum is 100 percent
+$ Oracle SQL: Using the Largest Reminder Method to round percentages so that their sum is 100 percent
 
+When rounding percentages and summing them up, the total does not necessarily equal 100. For example, this is the case
+with the following test data:
 code {
 create table tq84_pct_rounding (
     gr   varchar2(3) not null,
@@ -20,6 +22,8 @@ end;
 /
 code }
 
+The following query uses the `→ development/databases/Oracle/SQL/select/analytic/ranking/ratio_to_report` analytic function calculate the percentage of `VAL` and then
+rounds it to two decimal places.
 code {
 column val   format 990.000
 column pct   format  90.00
@@ -28,7 +32,7 @@ column pct_2 format  90.00
 select
    gr,
    round(val, 3)                                val,
-   round(100 * ratio_to_report(val) over (), 2) pct
+   round(100 * → development/databases/Oracle/SQL/select/analytic/ranking/ratio_to_report(val) over (), 2) pct
 from
    tq84_pct_rounding
 order by
@@ -51,11 +55,13 @@ There are several ways to achieve this, for example to simply subtract 0.02 from
 a bit odd. I feel there should be a more *mathematical* way to achieve a sum of 100 percent.
 
 This article tries to demonstrate how the → https://en.wikipedia.org/wiki/Largest_remainder_method[Largest reminder method] can be used in SQL for our goal. While this method solves our problem,
-it is a bit complex in that it requires to write three views.
+it is a bit complex in that it requires to write three → development/databases/Oracle/objects/views[views].
 
 { First view: Determine percentage to 2 decimal places and its reminder
  
-  The first view determines a percentage to 2 decimal places (column `pct_2`). It uses `trunc`, not `round`, so that all percentages are rounded down rather than mathematically.
+  The first → development/databases/Oracle/objects/views calculates a percentage to two decimal places (column `pct_2`). It uses
+  → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[`trunc`] not → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[`round`],
+  so that all percentages are rounded down rather than mathematically.
 
   The column `pct_rem` keeps track of the remaining, not accounted, value of `pct_2` in respect to the *real* value of `pct`
 
@@ -76,11 +82,10 @@ code }
 }
 { Second view: Determine number of modifcations
 
-  The second view determines the number of required modifications by subtracting the
-  total sum of `pct_2` (in the query: `sum(pct_2) over ()`) from 100 (which results on `0.02` with our test data)
+  The second view calculates the number of required modifications to `PCT` where `0.01` must be added to obtain 100 and makes this number available in the column `nof_required_modifications`.
+
+  This number can be calculated by subtracting the total sum of `pct_2` (in the query: `sum(pct_2) over ()`) from 100 (which results on `0.02` with our test data)
   and multiplying this result with 100 (which results in 2).
-  -
-  This value is stored in `nof_required_modifications`.
 
   In addition, this view adds an increasing value (`rn)` in order of decreasing `pct_rem` so that the largest reminder
   gets the value one, the second largest reminder 2 and so on. 
