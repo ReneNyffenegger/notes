@@ -1,12 +1,15 @@
 $ ORA-00905: missing keyword
 
+In the following SQL statement, the parser expects the keyword `end` after `'n/a'` but does not encounter it, so
+in Oracle releases prior to → development/databases/Oracle/Releases-and-versions/23c, the error message *ORA-00905: missing keyword* is thrown.
 code {
 select
-    *
+   case when owner in ('SYS', 'SYSTEM') then 'n/a'
 from
-   dual
-pivot(max(dummy));
+   dba_tables;
 code }
+
+In 23c or later, Oracle specifed the expected keyword, for example → development/databases/Oracle/errors/ORA-02000_missing_keyword[ORA-02000: missing END keyword].
 
 { INTO clause / Copy paste from PL/SQL
 
@@ -21,6 +24,18 @@ from
 code }
 
 }
+{ Misc
+
+code {
+select
+    *
+from
+   dual
+pivot(max(dummy));
+code }
+
+}
 
 sa:
-  → development/databases/Oracle/errors[Other Oracle error messages]
+  → development/databases/Oracle/errors[Other Oracle error messages] such as
+  → development/databases/Oracle/errors/ORA-02000_missing_keyword
