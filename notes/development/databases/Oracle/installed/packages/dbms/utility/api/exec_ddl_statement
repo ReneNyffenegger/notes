@@ -1,0 +1,55 @@
+$ Oracle: DBMS_UTILITY.EXEC_DDL_STATEMENT
+@ dbms_utility.exec_ddl_statement
+
+`dbms_utility.exec_ddl_statement` is similar to `→ development/databases/Oracle/PL-SQL/execute-immediate` but executes only → development/databases/Oracle/SQL/DDL[DDL statements]
+(i. e. → development/databases/SQL/DML[DML statements] are not executed).
+
+Create a table in a PL/SQL procedure:
+code {
+…
+
+   dbms_utility.exec_ddl_statement(q'[
+      create table tab_xyz (
+         id  integer primary key,
+         val number(5,2)
+      )
+   ]');
+…
+code }
+
+The following statement is not a DDL statement, hence, no value is inserted:
+code {
+begin
+   dbms_utility.exec_ddl_statement('insert into tab_a (id) values (42)');
+end;
+/
+code }
+
+{ Database links #exec_ddl_statement-db-link
+
+  Unlike `→ development/databases/Oracle/PL-SQL/execute-immediate`, `dbms_utility.exec_ddl_statement` allows to execute a DDL statement in a remote
+  database using a → development/databases/Oracle/architecture/database/link.
+code {
+begin
+   dbms_utility.exec_ddl_statement@remote_db('create table t1 (id number)');
+end;
+/
+code }
+
+}
+{ Under the hood
+
+  Under the hood, `exec_ddl_statement` simply executes something like the following snippet. Because `dbms_sql.execute` is not called, DML (and select) statements are not executed.
+code {
+c := → development/databases/Oracle/installed/packages/dbms/sql/open_cursor;
+→ development/databases/Oracle/installed/packages/dbms/sql/parse(stmt);
+dbms_sql.close_cursor(c);
+code }
+
+}
+
+sa:
+
+ `→ development/databases/Oracle/PL-SQL/execute-immediate`
+
+ `→ development/databases/Oracle/installed/packages/dbms/utility`
