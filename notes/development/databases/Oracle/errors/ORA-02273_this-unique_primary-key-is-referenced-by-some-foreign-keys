@@ -1,0 +1,36 @@
+$ ORA-02273: this unique/primary key is referenced by some foreign keys
+
+A → development/databases/Oracle/objects/tables/constraints/primary-key cannot be dropped as long as → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys] reference it. An attempt to do so results in
+the error message *ORA-02273: this unique/primary key is referenced by some foreign keys*.
+
+This is demonstrated with the following simple snippets.
+
+Create two tables with a primary key-foreign key relation:
+code {
+create table tq84_P (
+    id  integer,
+    txt varchar2(10) not null,
+    constraint tq84_P_pk primary key (id)
+);
+
+create table tq84_C (
+    id_p   not null,
+    val    number(5,2),
+    constraint tq84_C_fk foreign key (id_p) references tq84_P
+);
+code }
+
+
+The following statement throws *ORA-02273: this unique/primary key is referenced by some foreign keys*:
+code {
+alter table tq84_P drop constraint tq84_P_pk;
+code }
+
+Cleaning up:
+code {
+drop table tq84_C;
+drop table tq84_P;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages] especially those → development/databases/Oracle/objects/tables/constraints/referential-integrity#ora-ref-int-error[referential integrity].
