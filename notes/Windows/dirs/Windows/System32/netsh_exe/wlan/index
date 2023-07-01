@@ -62,6 +62,21 @@ code }
 
 }
 
+{ Opening a port and forwarding its incoming connections to an application listening a port
+
+  The following combination of `netsh` commands was helpful to me to open port 11521 and to forward it to an Oracle listener which listened on poart 1521:
+code {
+netsh advfirewall firewall add rule name="Oracle Connections" dir=in action=allow protocol=TCP localport=11521
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=11521 connectaddress=localhost connectport=1521
+code }
+
+  In order to delete the firewall rule:
+code {
+netsh advfirewall firewall delete rule name="Oracle Connections"
+code }
+
+}
+
 sa:
  `→ Windows/dirs/Windows/System32/netsh_exe`
 
