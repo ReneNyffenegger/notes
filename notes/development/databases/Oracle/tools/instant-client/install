@@ -25,6 +25,10 @@ fi
 → Linux/shell/commands/unzip -o -d $DESTDIR client.zip
 → Linux/shell/commands/unzip -o -d $DESTDIR sqlplus.zip
 → Linux/shell/commands/unzip -o -d $DESTDIR tools.zip
+
+→ Linux/shell/commands/rm client.zip
+→ Linux/shell/commands/rm sqlplus.zip
+→ Linux/shell/commands/rm tools.zip
 code }
 
 { Setting PATH and LD_LIBRARY_PATH to execute binaries
@@ -55,7 +59,20 @@ code {
 → Linux/shell/commands/sudo find $DESTDIR -executable -type f  \
   \(     -regex '.*\.so\(\.\d\)?.*' -exec cp -i {} /usr/lib \;   -o \
                                     -exec cp -i {} /usr/bin \; \)
- 
+code }
+
+}
+{ Missing libaio.so.1
+
+  It's possible that → https://pagure.io/libaio[libaio] must be installed:
+code {
+$ → development/databases/Oracle/SQL-Plus[sqlplus] rene/rene@ora23
+sqlplus: error while loading shared libraries: libaio.so.1: cannot open shared object file: No such file or directory
+code }
+
+  In this case, it needs to be installed as well
+code {
+$ → Linux/shell/commands/sudo → Linux/package-managers/APT/commands/apt install -y libaio1
 code }
 
 }
