@@ -9,7 +9,7 @@ code {
 INSTRUCTION arguments
 code }
 
-  With the execption of `ARG`, a Dockefile must begin with a `FROM` instruction (which specifies the *parent image* from which a new image is built).
+  With the execption of → #dockerfile-arg[`ARG`], a Dockefile must begin with a `FROM` instruction (which specifies the *parent image* from which a new image is built).
 
   Dockerfiles allow *comments*: they look similar to those in shell script, → development/languages/Python or → Windows/PowerShell: they start with a `#` and continue to the end of the line. However, only white spaces are
   allowed to the left side of the `#` symbol.
@@ -40,76 +40,21 @@ FROM im:${env}
 code }
 
   }
-  { RUN
 
-    Executes a command in the current image and commits the result.
+  { ARG #dockerfile-ARG
 
-    The committed result is used as next «current image» in the next step.
+   `ARG` defines a variable whose value can be set and used when building the container.
+    -
+    In contrast,  → #dockerfile-ENV[`ENV`] variables are used while an image of a container is running (see → development/tools/Docker/Dockerfile/commands/vs/arg-env[`ARG` vs `ENV`]).
 
+   with → development/tools/Docker/commands/build[`docker build`] (`--build-arg varname=value`).
 code {
-# shell form: executed using → Linux/fhs/bin/sh[/bin/sh -c command] (Linux) or → Windows/dirs/Windows/System32/cmd_exe[cmd.exe /s /c command]
-RUN <command>
-
-# «Other» form:
-RUN ["executable", "argument-one", "argument-two", …]
+ARG varname
 code }
 
-  }
-  { CMD
+    Predefined ARG variables are: `HTTP_PROXY`, `HTTPS_PROXY`, `FTP_PROXY` and `NO_PROXY`. These variables are also available in a lowercase version.
 
-   `CMD` provides defaults for for the resulting container.
-
-    At most one `CMD` instruction is allowed in a Dockerfile.
-
-  }
-  { ENTRYPOINT #dockerfile-ENTRYPOINT
-
-   `ENTRYPOINT` configures a container that will run as an executable.
-
-    Both, `CMD` and `ENTRYPOINT` define the commands that will be executed when running a container.
-
-  }
-  { LABEL #dockerfile-label
-
-   `LABEL` adds metadata as a key/value pair to an image.
-
-    Such added information can be viewed with → development/tools/Docker/commands/inspect[`docker inspect`].
-
-code {
-LABEL version=42.0
-LABLE description=Hello world
-code }
-
-  }
-  { MAINTAINER
-
-   `MAINTAINER` sets the *Author* field of the generated image. This command is deprecated in favor of `LABEL`.
-
-  }
-  { EXPOSE #dockerfile-EXPOSE
-
-   `EXPOSE` documents a → development/web/TCP-IP (default) or UDP port for a container.
-
-    When running  the → development/tools/Docker/container, this or these ports are
-    published with the `-p` or `-P` command line option in → development/tools/Docker/commands/run[`docker run`].
-
-code {
-EXPOSE 80  # TCP/IP 
-code }
-
-code {
-EXPOSE 80/tcp
-EXPOSE 67/udp
-code }
-
-  }
-  { ENV #dockerfile-ENV
-
-   `ENV` sets an → development/environment-variable[environment variable].
-
-code {
-ENV version=4.2
-code }
+    Build time variables can be queried with `→ development/tools/Docker/commands/history`
 
   }
   { COPY / ADD #dockerfile-COPY-ADD
@@ -140,40 +85,75 @@ ADD --chown=rene:dev *.cs /dev/src
 code }
 
   }
-  { VOLUME
+  { CMD #dockerfile-CMD
 
-   `VOLUME` creates a mount point.
+   `CMD` provides defaults for for the resulting container.
+
+    At most one `CMD` instruction is allowed in a Dockerfile.
+
+    The specified command is executed as user and group specified with the → #dockerfile-USER[`USER`] directive.
+
+    Compare with → #dockerfile-ENTRYPOINT[`ENTRYPOINT`] and → #dockerfile-RUN[`RUN`]
 
   }
-  { USER
+  { ENV #dockerfile-ENV
 
-   `USER` controls which user and group will be running the commands that were specified with `RUN`, `CMD` and `ENTRYPOINT`.
-
-  }
-  { WORKDIR #dockerfile-WORKDIR
-
-   `WORKDIR` sets the directory for subsequent `RUN`, `CMD`, `ENTRYPOINT`, `COPY` and `ADD` commands.
+   `ENV` sets the value of → development/environment-variable[environment variable] when a container is running.
+    -
+    In contrast, the value of a variable being set with → #dockerfile-ARG[`ARG`] is available when a container is built (see → development/tools/Docker/Dockerfile/commands/vs/arg-env[`ARG` vs `ENV`]).
 
 code {
-WORKDIR /dev/src
+ENV version=4.2
+code }
+
+
+  }
+  { ENTRYPOINT #dockerfile-ENTRYPOINT
+
+   `ENTRYPOINT` configures a container that will run as an executable.
+
+    Both, → #dockerfile-CMD[`CMD`] and → #dockerfile-ENTRYPOINT[`ENTRYPOINT`] define the commands that will be executed when running a container.
+
+    The specified command is executed as user and group specified with the → #dockerfile-USER[`USER`] directive.
+
+  }
+  { EXPOSE #dockerfile-EXPOSE
+
+   `EXPOSE` documents a → development/web/TCP-IP (default) or UDP port for a container.
+
+    When running  the → development/tools/Docker/container, this or these ports are
+    published with the `-p` or `-P` command line option in → development/tools/Docker/commands/run[`docker run`].
+
+code {
+EXPOSE 80  # TCP/IP 
+code }
+
+code {
+EXPOSE 80/tcp
+EXPOSE 67/udp
 code }
 
   }
-  { ARG #dockerfile-ARG
-
-   `ARG` defines a variable whose value can be set when building the container with → development/tools/Docker/commands/build[`docker build`] (`--build-arg VAR=value`).
-code {
-ARG VAR
-code }
-
-    Predefined ARG variables are:`HTTP_PROXY`, `HTTPS_PROXY`, `FTP_PROXY` and `NO_PROXY`. These variables are also available in a lowercase version.
-
-    Build time variables can be queried with `→ development/tools/Docker/commands/history`
-
-  }
-  { SCOPE
+  { HEALTHCHECK
 
     …
+
+  }
+  { LABEL #dockerfile-label
+
+   `LABEL` adds metadata as a key/value pair to an image.
+
+    Such added information can be viewed with → development/tools/Docker/commands/inspect[`docker inspect`].
+
+code {
+LABEL version=42.0
+LABLE description=Hello world
+code }
+
+  }
+  { MAINTAINER
+
+   `MAINTAINER` sets the *Author* field of the generated image. This command is deprecated in favor of `LABEL`.
 
   }
   { ONBUILD
@@ -181,12 +161,26 @@ code }
    `ONBUILD` defines an instruction that is triggered when the built image is used as a base for another image.
 
   }
-  { STOPSIGNAL
+  { RUN #dockerfile-RUN
 
-    …
+    Executes a command in the current image and commits the result.
+
+    The committed result is used as next «current image» in the next step.
+
+    Compare with → #dockerfile-CMD[`CMD`] and → #dockerfile-ENTRYPOINT[`ENTRYPOINT`].
+
+code {
+# shell form: executed using → Linux/fhs/bin/sh[/bin/sh -c command] (Linux) or → Windows/dirs/Windows/System32/cmd_exe[cmd.exe /s /c command]
+RUN <command>
+
+# «Other» form:
+RUN ["executable", "argument-one", "argument-two", …]
+code }
+
+    The specified command is executed as user and group specified with the → #dockerfile-USER[`USER`] directive.
 
   }
-  { HEALTHCHECK
+  { SCOPE
 
     …
 
@@ -198,6 +192,30 @@ code }
 code {
 SHELL ["powershell", "-command"]
 RUN powershell-cmdLet
+code }
+
+  }
+  { STOPSIGNAL
+
+    …
+
+  }
+  { USER #dockerfile-USER
+
+   `USER` controls which user and group will be running the commands that were specified with → #dockerfile-RUN[`RUN`], → #dockerfile-CMD[`CMD`] and → #dockerfile-ENTRYPOINT[`ENTRYPOINT`].
+
+  }
+  { VOLUME
+
+   `VOLUME` creates a mount point.
+
+  }
+  { WORKDIR #dockerfile-WORKDIR
+
+   `WORKDIR` sets the directory for subsequent → #dockerfile-RUN[`RUN`], → #dockerfile-CMD[`CMD`], → #dockerfile-ENTRYPOINT[`ENTRYPOINT`], `COPY` and `ADD` commands.
+
+code {
+WORKDIR /dev/src
 code }
 
   }
