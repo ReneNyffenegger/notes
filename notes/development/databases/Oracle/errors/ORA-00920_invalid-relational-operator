@@ -1,6 +1,45 @@
 $ ORA-00920: invalid relational operator
 
-A simple → development/databases/Oracle/objects/tables:
+{ Example 1
+
+code {
+create table tq84_a (
+   id  integer,
+   txt varchar2(10),
+   val number(5,2)
+);
+
+
+begin
+insert into tq84_a values(1, 'abc', 1.11);
+insert into tq84_a values(2, 'def', 2.22);
+insert into tq84_a values(1, 'ghi', 4.00);
+insert into tq84_a values(3, 'jkl', 3.99);
+insert into tq84_a values(2, 'def', 7.07);
+insert into tq84_a values(2, 'abc', 4.50);
+end;
+/
+code }
+
+  The following select statment throws *ORA-00920: invalid relational operator*:
+code {
+select * from tq84_a where  id, txt  in ( (1, 'ghi'), (1,'def'));
+code }
+   
+  This statement runs OK:
+code {
+select * from tq84_a where (id, txt) in ( (1, 'ghi'), (1,'def'));
+code }
+
+  Cleaning up:
+code {
+drop table tq84_a;
+code }
+
+}
+{ Example 2
+
+  A simple → development/databases/Oracle/objects/tables:
 code {
 create table tq84_ora_00920 (
     id  integer   generated always as identity,
@@ -9,8 +48,8 @@ create table tq84_ora_00920 (
 );
 code }
  
-The following → development/databases/Oracle/SQL/statement is syntactically incorrect: it ends with a comma. When trying to execute it, Oracle will throw
-→ development/databases/Oracle/errors/ORA-00936_missing-expression.
+  The following → development/databases/Oracle/SQL/statement is syntactically incorrect: it ends with a comma. When trying to execute it, Oracle will throw
+  → development/databases/Oracle/errors/ORA-00936_missing-expression.
 code {
 select
    max(id),
@@ -23,8 +62,8 @@ group by
 code }
  
 
-However, a select statement that uses same query in a → development/databases/Oracle/SQL/select/subquery, will throw
-*ORA-00920: invalid relational operator*:
+  *However*, a select statement that uses *same query* in a → development/databases/Oracle/SQL/select/subquery will throw
+  *ORA-00920: invalid relational operator*:
 code {
 select
    prt,
@@ -43,10 +82,12 @@ where
    );
 code }
 
-Cleaning up:
+  Cleaning up:
 code {
 drop table tq84_ora_00920;
 code }
+
+}
 
 sa:
   → development/databases/Oracle/errors[Other Oracle error messages]

@@ -1,0 +1,56 @@
+$ Dockerfile: ARG vs ENV
+
+There there two instructions with which it is possible to define variables and their values in a → development/tools/Docker/Dockerfile:
+→ development/tools/Docker/Dockerfile#dockerfile-ARG[`ARG`] and → development/tools/Docker/Dockerfile#dockerfile-ENV[`ENV`].
+-
+`ARG` defines a variable whose value is used while a → development/tools/Docker/image is built. This value is not accessible anymore when a corresponding
+→ development/tools/Docker/container is run.
+-
+In constrast, `ENV` defines an → development/environment-variable[environment variable] whose value is accessible inside a running container.
+
+The value of an `ARG` variable is either a default value specfied with `ARG var=val` or set with the command line option `--build-arg` when
+`→ development/tools/Docker/commands/build` is executed.
+
+The vale of an `ENV` variable is either the default value given in the Docker file (`ENV envar=xyz`) or explicitely specified with the command line option `-e` when
+a container is run with `→ development/tools/Docker/commands/run`
+
+{ Demonstration
+
+  This difference is demonstrated with this simple example.
+
+  { Dockerfile
+
+    This dockerfile specifies an ARG variable (`filename`). A file with this name is created (→ Linux/shell/commands/touch[touched]) in the `/tmp` directory of the image.
+
+    The dockerfile also specifies to execute a shell script named `script.sh` (`CMD /script.sh`). This script is copied from the host with the `COPY` instruction.
+
+    gh|about-Docker|/Dockerfile/ARG-vs-ENV/Dockerfile||
+
+  }
+  { The shell script to be executed (script.sh)
+
+    The shell script being executed is rather simple: it → Linux/shell/bash/built-in/echo[echoes] the value of the environment variable `$value` and lists
+    the files in `/tmp`)
+
+    gh|about-Docker|/Dockerfile/ARG-vs-ENV/script.sh||
+
+  }
+  { Building the images
+
+    The following commands build two images: one image (named `arg-vs-env-default`) where the default value for the `ARG` values `filename` is used and another image (`arg-vs-env-go`) where this
+    value is explicitely set to `overwritten`:
+    gh|about-Docker|/Dockerfile/ARG-vs-ENV/build-image||
+
+  }
+  { Running the images
+
+    The following commands create three images and essentially run the mentioned shell script. For the last image, `-e` is used to set the value of the environment variable `value` to `xyz`.
+
+    gh|about-Docker|/Dockerfile/ARG-vs-ENV/run-image||
+
+  }
+}
+
+sa:
+  → development/tools/Docker/Dockerfile#dockerfile-ARG[`ARG`],
+  → development/tools/Docker/Dockerfile#dockerfile-ENV[`ENV`]
