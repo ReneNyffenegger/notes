@@ -1,0 +1,38 @@
+
+*Process substitution* allows a program to read the output of another program as though the output were a file. In a → Linux/shell, the command for the program producing the output is be embedded in `<( … )`.
+
+{ Simple example
+
+  The following example compares the file and directory names in two directories:
+code {
+$ → Linux/shell/commands/diff  <( → Linux/shell/commands/ls -1 ~/dir-one )  <( → Linux/shell/commands/ls -1 ~/dir-two )
+code }
+
+}
+{ /dev/fd #proc-subst-dev-fd
+
+  The output of a program is made available through a special «file» under `→ Linux/fhs/dev/fd` as is demonstrated with the following shell script:
+code {
+for file in "$@"; do
+
+   if [ -e "$file" ]; then
+
+     echo Reading content of $file
+
+     while IFS= read -r line || [ -n "$line" ]; do
+        echo "  $line"
+     done < "$file"
+
+   else
+
+      echo Not reading $file
+
+   fi
+
+done
+code }
+
+}
+
+sa:
+  Using process substition with `→ Linux/shell/commands/pr` to → Linux/shell/commands/pr#pr-process-substitition[print the output of two programs side by side].
