@@ -2,17 +2,17 @@ $ Oracle: Dynamic Optimizer Statistics
 
 When an → development/databases/Oracle/SQL/statement is → development/databases/Oracle/SQL/statement/execution/parsing#ora-hard-soft-parse[hard parsed] and the relevant
 → development/databases/Oracle/optimizer/statistics[statistics] are stale, missing or insufficent, Oracle scans a small portion («sample») of the underlying data to get
-some *dynamic statistics* that can be used to generate an → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan].
+calculate *dynamic statistics* that can be used to generate an → development/databases/Oracle/SQL/statement/execution/plan[SQL execution plan].
 
-{ Controlling behavior of dynamic statistics
+{ Controlling behavior of dynamic statistics (Degree of sampling) #ora-dyn-sample-degree
 
-  The behavior of gathering dynamic statistics can be controlled with a number that is speciied with
+  The behavior of gathering dynamic statistics can be controlled with a number that is specified with
     • the → development/databases/Oracle/adminstration/init-parameters[init parameter `optimizer_dynamic_sampling`], or
-    • the → development/databases/Oracle/SQL/hints[`dynamic_sampling` hint].
+    • the `→ development/databases/Oracle/SQL/hints/list/dynamic_sampling` hint.
 
   These names contain «dynamic sampling» because in earlier releases (11g?), dynamic optimizer statistics was named *dynamic sampling*.
 
-  This number is an integer between 0 and 10 with the following meaning:
+  This number is an integer between 0 and 11 with the following meaning:
   table { ll
     ~Level~ ☰ ~Description~
     0 ☰ Don't gather dynamic sample statistics
@@ -21,7 +21,8 @@ some *dynamic statistics* that can be used to generate an → development/databa
     3 ☰ Apply dynamic sampling to all tables that meet Level 2 criteria, plus all tables for which standard selectivity estimation used a guess for some predicate that is a potential dynamic sampling predicate. The number of blocks sampled is the default number of dynamic sampling blocks. For unanalyzed tables, the number of blocks sampled is two times the default number of dynamic sampling blocks.
     4 ☰ Apply dynamic sampling to all tables that meet Level 3 criteria, plus all tables that have single-table predicates that reference 2 or more columns. The number of blocks sampled is the default number of dynamic sampling blocks. For unanalyzed tables, the number of blocks sampled is two times the default number of dynamic sampling blocks.
     5 - 9 ☰ Apply dynamic sampling to all tables that meet the previous level criteria using 2, 4, 8, 32, or 128 times the default number of dynamic sampling blocks respectively.
-    10 ☰ Apply dynamic sampling to all tables that meet the Level 9 criteria using all blocks in the table.
+    10 ☰ Apply dynamic sampling to all tables that meet the level 9 criteria using all blocks in the table.
+    11 ☰ Oracle uses other criteria (which exactly?) to determine if dynamic statistics will be collected
   table }
 
   The relevant conditions for level 1 are:
@@ -29,6 +30,159 @@ some *dynamic statistics* that can be used to generate an → development/databa
    • The unanalyzed table is joined to another table or appears in a → development/databases/Oracle/SQL/select/subquery or *non-mergeable view*
    • The unanalyzed table has no indexes
    • The unanalyzed table has more blocks than the number of blocks that would be used for dynamic sampling of this table. The number of blocks sampled is the default number of dynamic sampling blocks (32).
+
+}
+{ Simple example
+
+  First, we verify that the init parameter `→ development/databases/Oracle/adminstration/init-parameters` is set to the (default) value of 2:
+code {
+select
+   value
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/parameter
+where
+   name = 'optimizer_dynamic_sampling';
+code }
+ 
+   We also create a table and fill it with some → development/Data/test/generate/Oracle[generated test data]. The value of `id` is unique (but not enforced with a → development/databases/Oracle/objects/tables/constraints:
+code {
+create table tq84_dyn_smp_tst (
+   id   integer, -- primary key,
+   val  number(7,2)
+);
+ 
+insert into tq84_dyn_smp_tst
+select
+   level,
+   dbms_random.value(1000, 100000)
+from
+   dual connect by level <= 10000;
+
+commit;
+code }
+  
+  Because there are no table statistics for the table and the `optimizer_dynamic_sampling` is set to two, Oracle will use dynamic statistics in the following SQL statement:
+code { 
+explain plan for
+select
+   *
+from
+   tq84_dyn_smp_tst
+where
+   id = 1;
+  
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic rows note');
+--
+-- ------------------------------------------------------
+-- | Id  | Operation         | Name             | Rows  |
+-- ------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT]  |                  |     1 |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_DYN_SMP_TST |     1 |
+-- ------------------------------------------------------
+--  
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+code }
+  
+  We now gather table statistics …
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_dyn_smp_tst');
+end;
+/
+code }
+  
+  … and inspect the new execution plan. This time, because there *are* statistics, Oracle will not dynamically sample the table again:
+code {
+explain plan for
+select
+   *
+from
+   tq84_dyn_smp_tst
+where
+   id = 1;
+  
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic rows note');
+--
+-- ------------------------------------------------------
+-- | Id  | Operation         | Name             | Rows  |
+-- ------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |                  |     1 |
+-- |   1 |  TABLE ACCESS FULL| TQ84_DYN_SMP_TST |     1 |
+-- ------------------------------------------------------
+code }
+ 
+  We change the value of `id` to 1 in each record (thus the `where id = 1` condition will essentially become meaningless):
+code {
+update tq84_dyn_smp_tst set id=1;
+code }
+ 
+  Again, the execution plan. Note that the plan, notably, the number of estimated rows, did not change:
+  Oracle still thinks the query will return 1 row (which is of course wrong).
+code {
+explain plan for
+select
+   *
+from
+   tq84_dyn_smp_tst
+where
+   id = 1;
+  
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic rows note');
+--
+-- ------------------------------------------------------
+-- | Id  | Operation         | Name             | Rows  |
+-- ------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |                  |     1 |
+-- |   1 |  TABLE ACCESS FULL| TQ84_DYN_SMP_TST |     1 |
+-- ------------------------------------------------------
+code }
+ 
+  In order to force Oracle to use dynamic samples, we use the `→ development/databases/Oracle/SQL/hints/list/dynamic_sampling` hint.
+  -
+  Because dynamic sampling will be used, the number of returned rows is now correctly estimated to 10000:
+code {
+explain plan for
+select /*+ dynamic_sampling(tq84_dyn_smp_tst 1) */
+   *
+from
+   tq84_dyn_smp_tst
+where
+   id = 1;
+  
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic rows note');
+--
+-- ------------------------------------------------------
+-- | Id  | Operation         | Name             | Rows  |
+-- ------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |                  | 10000 |
+-- |   1 |  TABLE ACCESS FULL| TQ84_DYN_SMP_TST | 10000 |
+-- ------------------------------------------------------
+Note
+-----
+   - dynamic statistics used: dynamic sampling (level=2)
+
+code }
+
+  Cleaning up
+code {
+drop table tq84_dyn_smp_tst;
+code }
+
+}
+{ /* OPT_DYN_SAMP */ and /* DS_SVC */ comments
+
+  When an SQL statement is executed with dynamic optimizer statistics, the statement is stored in the shared pool with one of the two comments (not hints) `/* OPT_DYN_SAMP */` or `/* DS_SVC */`.
+  -
+  These comments are → https://asktom.oracle.com/pls/apex/f?p=100:12:::NO:RP:P12_QUESTION_ID,P12_PREV_PAGE:9534476300346475576,11[used by Oracle's optimizer team] to make it easier for them to identify
+  such statements in the shared pool.
+
+ `/* OPT_DYN_SAMP */` comments indicate that regular statistics were not sufficient to esimate a cardinality, or such statistics were even missing.
+
+ `/* DS_SVC */` comments were used in 11gR2 and 12c.
+
+  In Oracle 19c, there seems to also be comments like `/* SQL Analyze(181,0) */`.
 
 }
 { TODO
@@ -84,7 +238,7 @@ select * from table(dbms_xplan.display);
 -- ----------------------------------------------------------------------------
 -- | Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
 -- ----------------------------------------------------------------------------
--- |   0 | SELECT STATEMENT  |        |     4 |    80 |    68   (0)| 00:00:01 |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select  |        |     4 |    80 |    68   (0)| 00:00:01 |
 -- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] FULL| TQ84_T |     4 |    80 |    68   (0)| 00:00:01 |
 -- ----------------------------------------------------------------------------
 --  
@@ -141,3 +295,6 @@ code }
   with the last `dbms_output.display_cursor` statement.
 
 }
+
+sa:
+  The init parameter `→ development/databases/Oracle/adminstration/init-parameters/optimizer/dyn_smp_blks`

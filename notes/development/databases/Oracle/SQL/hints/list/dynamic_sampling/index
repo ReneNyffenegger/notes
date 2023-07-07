@@ -1,0 +1,72 @@
+$ Oracle hint: DYNAMIC_SAMPLING
+@ dynamic_sampling
+
+{ Variants
+
+  There are two variants of the hint.
+
+  { Setting sampling level
+
+    The following form sets the → development/databases/Oracle/optimizer/statistics/dynamic#ora-dyn-sample-degree[dynamic sampling level] for the duration of a cursor to `n` (an integer value between 0 and 10)
+code {
+/*+ dynamic_sampling(n) */
+code }
+
+  }
+  {  
+
+    If the hint has two arguments, the first is a *table reference* (`t`) and the second is a number (`b`).
+
+    When using this variant, Oracle will read («sample») `2^(b-1) * → development/databases/Oracle/adminstration/init-parameters/optimizer/dyn_smp_blks` → development/databases/Oracle/architecture/database/logical-structures/data-block
+    to estimate a better selectivity of `where` clauses on the referenced table.
+code {
+/*+ dynamic_sampling(t b) */
+code }
+
+  }
+
+}
+rem {
+{ Example
+
+code {
+
+create table tq84_dyn_smp (
+    a   integer,
+    b   integer,
+    v   number(5,2)
+);
+
+insert into tq84_dyn_smp
+select
+   level,
+   level,
+   dbms_random.value(100, 1000)
+from
+   dual connect by level <= 10000;
+
+explain plan for
+select
+   sum(v)
+from
+   tq84_dyn_smp
+where
+   a = b;
+
+select * from dbms_xplan.display();
+
+drop table tq84_dyn_smp;
+
+code }
+
+
+}
+rem }
+
+sa:
+
+  → development/databases/Oracle/optimizer/statistics/dynamic[Dynamic optimizer statistics]
+
+  The init parameter `→ development/databases/Oracle/adminstration/init-parameters/optimizer/dynamic_sampling`.
+
+  Other → development/databases/Oracle/SQL/hints[hints]
