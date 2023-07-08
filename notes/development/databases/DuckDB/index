@@ -33,10 +33,10 @@ insert into p values
   ('C',   8.27);
 
 pivot p 
-  on txt
+   on txt
 using
-  sum  (val) as total,
-  count(val) as cnt;
+   sum  (val) as total,
+   count(val) as cnt;
 code }
 
   }
@@ -142,6 +142,112 @@ copy destTbl from '→ Linux/fhs/home/username[/home/rene]/data.csv';
 code }
 
   }
+  { FILTER clause for aggregate functions
+
+code {
+create table T (
+   grp   varchar,
+   val   integer,
+   txt   varchar
+);
+
+insert into T values
+   ('A', 7, 'seven'),
+   ('A', 3, 'three'),
+   ('A', 9, 'nine' ),
+   ('B', 2, 'two'  ),
+   ('B', 4, 'four' ),
+   ('B', 5, 'five' ),
+   ('B', 1, 'one'  ),
+   ('B', 8, 'eight');
+
+select
+   grp,
+   --
+   count( * )                   cnt,
+   count( * ) filter (val <  6) cnt_lt_6,
+   max  (txt) filter (val >  4) max_txt_val_gt_4
+from
+   T
+group by
+   grp;
+--
+-- ┌─────────┬───────┬──────────┬──────────────────┐
+-- │   grp   │  cnt  │ cnt_lt_6 │ max_txt_val_gt_4 │
+-- │ varchar │ int64 │  int64   │     varchar      │
+-- ├─────────┼───────┼──────────┼──────────────────┤
+-- │ A       │     3 │        1 │ seven            │
+-- │ B       │     5 │        4 │ five             │
+-- └─────────┴───────┴──────────┴──────────────────┘
+code }
+
+  }
+  { QUALIFY clause to filter window functions
+
+   `qualify` is to window functions what `having` is to aggregate functions.
+
+    With `qualify`, it's especially convenient to formulate *top-N* queries:
+code {
+create table T (
+   grp   varchar,
+   val   integer,
+   txt   varchar
+);
+
+insert into T values
+   ('A', 7, 'seven'),
+   ('A', 3, 'three'),
+   ('A', 9, 'nine' ),
+   ('B', 2, 'two'  ),
+   ('B', 4, 'four' ),
+   ('B', 5, 'five' ),
+   ('B', 1, 'one'  ),
+   ('C', 8, 'eight'),
+   ('C', 0, 'zero' ),
+   ('C', 6, 'six'  );
+
+select
+   row_number() over (partition by grp order by val desc)  rn,
+   grp,
+   val,
+   txt
+from
+   T
+qualify
+   rn = 1;
+--
+-- ┌───────┬─────────┬───────┬─────────┐
+-- │  rn   │   grp   │  val  │   txt   │
+-- │ int64 │ varchar │ int32 │ varchar │
+-- ├───────┼─────────┼───────┼─────────┤
+-- │     1 │ C       │     8 │ eight   │
+-- │     1 │ A       │     9 │ nine    │
+-- │     1 │ B       │     5 │ five    │
+-- └───────┴─────────┴───────┴─────────┘
+
+
+
+select
+   grp,
+   val,
+   txt
+from
+   T
+qualify
+   row_number() over (partition by grp order by val desc) = 1;
+--
+-- ┌─────────┬───────┬─────────┐
+-- │   grp   │  val  │   txt   │
+-- │ varchar │ int32 │ varchar │
+-- ├─────────┼───────┼─────────┤
+-- │ C       │     8 │ eight   │
+-- │ A       │     9 │ nine    │
+-- │ B       │     5 │ five    │
+-- └─────────┴───────┴─────────┘
+code }
+
+
+  }
   { ILIKE
 
    `ilike` matches case insensitively.
@@ -201,6 +307,52 @@ from (
 │  6.1086523819801535 │       0.984807753012208 │ ███████████████████▊ │
 │   6.283185307179586 │                     1.0 │ ████████████████████ │
 ├─────────────────────┴─────────────────────────┴──────────────────────┤
+code }
+
+  }
+  { ARG_MAX and ARG_MIN aggregate function #duckdb-arg_max
+
+    The aggregate functions `arg_max(v, w)` returns the value of `w` of the column where `v` has tha maximum value in an aggregated group. The functionality is equal (or at least
+    similar) to the → development/databases/SQL/select/group-by/keep-dense_rank[`max(w) keep (dense_rank last order by v)`], but more legible (imho).
+
+code {
+create table T (
+   grp   varchar,
+   val   integer,
+   txt   varchar
+);
+
+insert into T values
+   ('A', 7, 'seven'),
+   ('A', 3, 'three'),
+   ('A', 9, 'nine' ),
+   ('B', 2, 'two'  ),
+   ('B', 4, 'four' ),
+   ('C', 5, 'five' ),
+   ('C', 1, 'one'  ),
+   ('C', 8, 'eight');
+
+select
+   grp,
+   --
+   max(val)           maxval,
+   arg_max(txt, val)  txtofmaxval,
+   --
+   min(val)           minval,
+   arg_min(txt, val)  txtofminval
+from
+   T
+group by
+   grp;
+--
+-- ┌─────────┬────────┬─────────────┬────────┬─────────────┐
+-- │   grp   │ maxval │ txtofmaxval │ minval │ txtofminval │
+-- │ varchar │ int32  │   varchar   │ int32  │   varchar   │
+-- ├─────────┼────────┼─────────────┼────────┼─────────────┤
+-- │ A       │      9 │ nine        │      3 │ three       │
+-- │ B       │      4 │ four        │      2 │ two         │
+-- │ C       │      8 │ eight       │      1 │ one         │
+-- └─────────┴────────┴─────────────┴────────┴─────────────┘
 code }
 
   }
