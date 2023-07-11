@@ -1,0 +1,28 @@
+$ Loading Switzerland's GTFS Data into an Oracle Database
+
+→ https://github.com/ReneNyffenegger/OpenData-CH-GTFS[OpenData-CH-GTFS] is a Github repository that contains the necessary scripts to load
+→ https://opentransportdata.swiss/en/[Open data platform mobility Switzerland] GTFS data into an → https://renenyffenegger.ch/notes/development/databases/Oracle/architecture/database[Oracle database].
+
+{ run.sh
+
+  → https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/master/run.sh[`run.sh`] is a shell script that
+    • downloads the → https://opentransportdata.swiss/en/dataset/istdaten[data from the Open data platform mobility Switzerland]
+    • extracts the downloaded → https://renenyffenegger.ch/notes/development/archive-files/zip[zip file]
+    • creates the `gtfs_ch` schema (→ https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/master/load/create-schema.sql[`create-schema.sql`]) and its tables (→ https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/master/load/create-tables.sql[`create-tables.sql`]).
+    • loads the extracted CSV files into these tables using → development/databases/Oracle/tools/sql-loader
+
+  Note: the following variables are currently hard coded and need to be modified in `run.sh`:
+    • → https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/5b4707946af98624e7f148e1e5c3de912e5983b7/run.sh#L1[`URL`] (the location of the zip file) and
+    • → https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/5b4707946af98624e7f148e1e5c3de912e5983b7/run.sh#L20-L21[`admin` and `connect_identifier`] (information for connection to the database)
+
+}
+{ post-process.sql
+
+  Because → development/databases/Oracle/tools/sql-loader disables → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign key] and
+  → development/databases/Oracle/objects/tables/constraints/check[check] constraints and
+  leaves some → https://renenyffenegger.ch/notes/development/databases/Oracle/objects/indexes[indexes] in an unusable state,
+  the → https://github.com/ReneNyffenegger/OpenData-CH-GTFS/blob/master/load/post-process.sql[`post-process.sql`] script enables and rebuilds these objects.
+
+  TODO: There is a `reenable` option in SQL*Loader to automatically reenable foreign key constraints.
+
+}
