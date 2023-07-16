@@ -304,9 +304,10 @@ code }
 }
 { Accessing an USB device #wsl-usb
 
-  WSL → https://learn.microsoft.com/en-us/windows/wsl/connect-usb[cannot natively access a USB device], but it's possible with → https://github.com/dorssel/usbipd-win[usbipd-win] (in WSL 2 only?)
-  -
-  Apparently, → https://youtu.be/I2jOuLU4o8E[the default WSL kernel also does not have support for USB storage device] so that a kernel must be compiled.
+  WSL → https://learn.microsoft.com/en-us/windows/wsl/connect-usb[cannot natively access a USB device], but (with WSL 2 only?), it's possible with → https://github.com/dorssel/usbipd-win[usbipd-win].
+  
+  In order to be able to mount an USB device, the kernel must be → #wsl-compile-kernel[compiled] with *Mass USB* enabled (by setting config optition `CONFIG_USB_STORAGE` to `y`)
+  because → https://youtu.be/I2jOuLU4o8E[the default WSL kernel also does not have support for USB storage device].
 
   usbipd-win can be installed with the following command line (which requires elevated privileges at one point)
 code {
@@ -422,6 +423,45 @@ code }
     • `→ Windows/registry/tree/HKEY_CURRENT_USER/Software/Microsoft/Windows/CurrentVersion/Lxss` (where a WSL distribution can be renamed)
     • `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows/CurrentVersion/Lxss`
     • `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\P9NP`
+
+}
+{ Compile a new Kernel #wsl-compile-kernel
+
+code {
+$ → development/version-control-systems/git/commands/clone[git clone] → https://github.com/microsoft/WSL2-Linux-Kernel
+$ cd WSL2-Linux-Kernel/
+$ cp → https://github.com/microsoft/WSL2-Linux-Kernel/blob/master/Microsoft/config-wsl[Microsoft/config-wsl] .config
+code }
+
+  When I tried to build the Kernel (version WSL 5.15) with the copied `.config` file, → https://github.com/microsoft/WSL/issues/10299[I encountered] the error message: *FAILED: load BTF from vmlinux: No such file or directory*.
+  -
+  I could solve this by commenting the config option `CONFIG_DEBUG_INFO_BTF` in the `.config` file.
+
+  In order to be able to → #wsl-usb[mount an USB device], The the config option `CONFIG_USB_STORAGE` must be set to `y`.
+
+  With at least the `CONFIG_DEBUG_INFO_BTF` change in the `.config` file, the Kernel can be built with
+code {
+$ → development/make -j4
+code }
+
+  The new Kernel can then be copied to the WSL host:
+code {
+$ WINUSER=Rene
+$ cp arch/x86_64/boot/bzImage /mnt/c/Users/$WINUSER/
+code }
+
+  It's necessary to tell the host where the new Kernel is located:
+code {
+$ cat "[wsl2]
+kernel=C:\\\\Users\\\\$WINUSER\\\\bzImage
+" > → Windows/dirs/Users/username/_wslconfig[/mnt/c/Users/$WINUSER/.wslconfig]
+code }
+
+  Finally, the new kernel can be started by shutting down and restarting wsl:
+code {
+C:\> → Windows/dirs/Windows/System32/wsl_exe[wsl] --shutdown
+C:\> → Windows/dirs/Windows/System32/wsl_exe[wsl]
+code }
 
 }
 { Misc
