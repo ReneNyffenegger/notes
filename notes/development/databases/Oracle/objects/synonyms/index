@@ -1,11 +1,21 @@
 $ Oracle: Synonyms
 @ synonym
 
+A synonym is an alternate name for one of the following → development/databases/Oracle/objects:
+   → development/databases/Oracle/objects/tables,
+   → development/databases/Oracle/objects/views,
+   → development/databases/Oracle/objects/views/materialized,
+   → development/databases/Oracle/objects/sequences,
+   → development/databases/Oracle/objects/operators,
+   PL/SQL → development/databases/Oracle/PL-SQL/function-procedure[procedures, functions] or package
+   Java class schema object,
+   user-defined object type,
+   another synonym.
+
+The following example creates a table named `abcd` and a synonym for this table, named `defg`, and then
+uses both the real table name and the synonym name to insert and select data from the table:
 code {
-create table abcd (a number);
-
-insert into abcd values (  1);
-
+create table   abcd (a number);
 create synonym defg for abcd;
 
 --
@@ -14,9 +24,9 @@ create synonym defg for abcd;
 insert into defg values (42);
 
 --
--- Insert another record into abcd:
+-- Insert another record into abcd, using the synonym:
 --
-insert into abcd values (99);
+insert into defg values (99);
 
 --
 -- Select from abcd, directly and via synonym:
@@ -24,11 +34,113 @@ insert into abcd values (99);
 select * from abcd;
 select * from defg;
 
+--
+-- Drop both, the synonym and the table:
+--
 drop synonym defg;
-
 drop table abcd;
 code }
 
+{ Public and private synonyms #ora-syn-prv-pub
+
+  There are two types of synonyms: public and private synonyms.
+
+  A ~public synonym~ will be used for → development/databases/Oracle/users-roles/users.
+  -
+  The owner of a public synonym is the special user `PUBLIC`.
+
+  A ~private synonym~ is visible in the schema to which it belongs, or can be accessed by qualifying the synonym name with the schema name of the owner.
+  -
+  the owner of a private synonym is the creator of the synonym.
+
+
+  { Example
+
+    The following example creates two users to demonstrate public and private synonyms.
+
+    First: we need two users:
+code {
+create user usr_syn_maker
+identified by pw
+default tablespace data
+quota unlimited on data
+temporary tablespace temp;
+
+create user usr_syn_consumer
+identified by pw
+temporary tablespace temp;
+
+grant
+   create session,
+   create synonym, create public synonym,
+   create table,
+   drop   public synonym
+to
+   usr_syn_maker;
+
+grant
+   create session
+to
+   usr_syn_consumer;
+code }
+
+  `usr_syn_maker` creates two tables and a public and private synonym pointing to these tables:
+code {
+connect usr_syn_maker/pw
+
+drop public synonym syn_pub;
+drop public synonym syn_prv;
+
+create table tab_pub (txt varchar2(50));
+create table tab_prv (txt varchar2(50));
+
+grant select on tab_pub to usr_syn_consumer;
+grant select on tab_prv to usr_syn_consumer;
+
+create public synonym syn_pub for tab_pub;
+create        synonym syn_prv for tab_prv;
+
+insert into tab_pub values('A public  synonym points here');
+insert into tab_prv values('A private synonym points here');
+
+commit;
+code }
+
+  Finally, `usr_syn_consumer` uses the synonyms to select from the tables:
+code {
+connect usr_syn_consumer/pw
+
+select * from syn_pub;
+
+select * from syn_prv;
+-- ORA-00942: table or view does not exist
+
+select * from usr_syn_maker.syn_prv;
+code }
+
+  }
+  { Well known examples for predefined public synonyms
+
+    Some well known examples for predefined synonyms include:
+      • `DUAL` for → development/databases/Oracle/SQL/dual[`SYS.DUAL`]
+      • `V$…` for objects whose name is `V_$…` (the so-called → development/databases/Oracle/installed/dynamic-performance-views[dynamic performance views])
+      • `PLAN_TABLE` for → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`SYS.PLAN_TABLE$`]
+
+  }
+  { Public synonym with the same name as a schema
+
+    If a public synonym has the same name as a schema, then all PL/SQL units in that schema will be invalidated.
+
+  }
+  { Privileges
+
+    A public synonym can be dropped by anyone who has the `dop public synonym` system privilege, regardless of who created the synonym.
+
+    There is a `drop public synonym`, but no `drop synonym` system privilege.
+
+  }
+
+}
 { Foreign key constraints #ora-syn-fk
 
   A synonym name can be used when creating a → development/databases/Oracle/objects/tables/constraints/foreign-key constraint:
@@ -36,7 +148,7 @@ code {
 create table   tq84_p ( id integer primary key );
 create synonym tq84_s for tq84_p;
 create table   tq84_c ( x references tq84_s );
- 
+
 select
    pk.table_name
 from
@@ -44,9 +156,9 @@ from
    user_constraints fk on fk.r_constraint_name = pk.constraint_name
 where
    fk.table_name = 'TQ84_C';
-  
-drop   synonym tq84_s;  
-   
+
+drop   synonym tq84_s;
+
 drop table tq84_c;
 drop table tq84_p;
 code }
