@@ -2,15 +2,15 @@ $ Oracle: Synonyms
 @ synonym
 
 A synonym is an alternate name for one of the following → development/databases/Oracle/objects:
-   → development/databases/Oracle/objects/tables,
-   → development/databases/Oracle/objects/views,
-   → development/databases/Oracle/objects/views/materialized,
-   → development/databases/Oracle/objects/sequences,
-   → development/databases/Oracle/objects/operators,
-   PL/SQL → development/databases/Oracle/PL-SQL/function-procedure[procedures, functions] or package
-   Java class schema object,
-   user-defined object type,
-   another synonym.
+   • → development/databases/Oracle/objects/tables
+   • → development/databases/Oracle/objects/views
+   • → development/databases/Oracle/objects/views/materialized
+   • → development/databases/Oracle/objects/sequences
+   • → development/databases/Oracle/objects/operators
+   • PL/SQL → development/databases/Oracle/PL-SQL/function-procedure[procedure, function] or package
+   • Java class schema object
+   • user-defined object type
+   • another synonym
 
 The following example creates a table named `abcd` and a synonym for this table, named `defg`, and then
 uses both the real table name and the synonym name to insert and select data from the table:
@@ -53,12 +53,13 @@ code }
   -
   the owner of a private synonym is the creator of the synonym.
 
-
   { Example
 
     The following example creates two users to demonstrate public and private synonyms.
 
-    First: we need two users:
+    { Creating test users
+
+      A user with enough privileges to create users creates the two demonstration users and grants the necessary privileges to the users:
 code {
 create user usr_syn_maker
 identified by pw
@@ -84,12 +85,12 @@ to
    usr_syn_consumer;
 code }
 
-  `usr_syn_maker` creates two tables and a public and private synonym pointing to these tables:
+    }
+    { Objects of USR_SYN_MAKER
+
+     `usr_syn_maker` creates two tables and a public and private synonym pointing to these tables:
 code {
 connect usr_syn_maker/pw
-
-drop public synonym syn_pub;
-drop public synonym syn_prv;
 
 create table tab_pub (txt varchar2(50));
 create table tab_prv (txt varchar2(50));
@@ -105,8 +106,10 @@ insert into tab_prv values('A private synonym points here');
 
 commit;
 code }
+    }
+    { USR_SYN_CONSUMER
 
-  Finally, `usr_syn_consumer` uses the synonyms to select from the tables:
+     `usr_syn_consumer` uses the synonyms to select from the tables:
 code {
 connect usr_syn_consumer/pw
 
@@ -118,6 +121,38 @@ select * from syn_prv;
 select * from usr_syn_maker.syn_prv;
 code }
 
+    }
+    { Using the synonyms in PL/SQL
+
+      In addition to using direct SQL, `usr_syn_consumer` now also creates a → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL procedure] to select via the synonyms.
+
+      First, the privileged user needs to grant `create procedure` to usr_syn_consumer`:
+code {
+connect / as sysdba
+
+grant create procedure to usr_syn_consumer;
+code }
+
+      Now, `usr_syn_consumer` is ready to create the procedure:
+code {
+connect usr_syn_consumer/pw
+
+create procedure use_syn authid definer as begin
+   for pub in (select txt from syn_pub) loop
+       dbms_output.put_line(pub.txt);
+   end loop;
+   for prv in (select txt from usr_syn_maker.syn_prv) loop
+       dbms_output.put_line(prv.txt);
+   end loop;
+end use_syn;
+/
+
+begin
+    use_syn;
+end;
+/
+code }
+    }
   }
   { Well known examples for predefined public synonyms
 
