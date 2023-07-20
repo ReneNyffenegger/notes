@@ -10,6 +10,29 @@ from
    dba_objects;
 code }
 
+{ Selecting column name and asterisk #ora-00936-asterisk
+
+  The following SQL statement uses an asterisk (`*`) and combines it with column names, which causes an ORA-00936:
+code {
+select
+   object_type,
+   *
+from
+   user_objects;
+code }
+
+  This can be fixed by using an alias:
+code {
+select
+   object_type,
+   obj.*
+from
+   user_objects obj;
+code }
+
+  Related to the cause of this error might be the error message → development/databases/Oracle/errors/ORA-00960_ambiguous-column-naming-in-select-list.
+
+}
 { Using a column name that is a semi-reserved keyword
 
   Semi-reserved keywords can be used as column names when tables or views are created. However, when using such column names in a query's select list,
@@ -54,7 +77,7 @@ code }
 }
 { Error after reformatting an SQL statement
 
-  This error can also be caused when sloppily reformat an SQL statement, for example when the commans in the select list are put to the left side of the expressions
+  This error can also be caused when sloppily reformatting an SQL statement, for example when the commas in the select list are put to the left side of the expressions
   and a comma on the right side is not deleted (here: `num,`):
 code {
 select
