@@ -42,6 +42,46 @@ drop table tq84_tab_a;
 drop table tq84_tab_b;
 code }
 
+{ Subquery
+
+  The following query, executed in a tool like → development/databases/Oracle/SQL-Plus or
+  → development/Software/Oracle-SQL-Developer[SQL Developer], runs fine, even though the column name `NUM` appears twice. Oracle silently renames the second `NUM` to `NUM_1`:
+code {
+select
+   4   num,
+   8   num,
+  'x'  txt
+from
+   → development/databases/Oracle/SQL/dual;
+code }
+
+  This query can be used as a → development/databases/Oracle/SQL/select/subquery as long as `NUM` is not selected from the subquery, i. e. the following statement runs fine as well:
+code {
+select txt from (
+   select
+      4   num,
+      8   num,
+      7   num_1,
+     'x'  txt
+   from
+      dual
+);
+code }
+
+  However, if either `NUM` or `*` is selected from this subquery, the ORA-00918 error is raised, as demonstrated with the following query:
+code {
+select * from (
+   select
+      4   num,
+      8   num,
+     'x'  txt
+   from
+      dual
+);
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/objects/tables/columns[Columns]
