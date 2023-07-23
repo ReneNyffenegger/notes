@@ -1,5 +1,55 @@
 $ Oracle hint: QB_NAME
 @ qb_name
 
+The `qb_name` → development/databases/Oracle/SQL/hints specifies the value with which the column `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/qblock_name` in the
+`→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` is filled.
+
+code {
+create table TQ84_A (id  number, txt varchar2(10));
+create table TQ84_B (id  number, txt varchar2(10));
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ no_merge(v) qb_name(qry) */
+   a.id,
+   a.txt,
+   v.txt
+from
+   TQ84_A  a,
+  (select /*+ qb_name(vw) */
+      b.id,
+      b.txt
+   from
+      TQ84_B b
+  ) v
+where
+  a.id = v.id;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic → development/databases/Oracle/installed/packages/dbms/xplan/api/display/format/alias[alias]');
+--
+-- --------------------------------------
+-- | Id  | Operation           | Name   |
+-- --------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select    |        |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join          |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full | TQ84_A |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view              |        |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- --------------------------------------
+--  
+-- Query Block Name / Object Alias (identified by operation id):
+-- -------------------------------------------------------------
+--  
+--    1 - QRY
+--    2 - QRY / "A"@"QRY"
+--    3 - VW  / "V"@"QRY"
+--    4 - VW  / "B"@"VW"
+
+drop table TQ84_A;
+drop table TQ84_B;
+code }
+
 sa:
+
+  → development/databases/Oracle/SQL/statement/query-block[Query blocks]
+
   Other → development/databases/Oracle/SQL/hints[hints]
