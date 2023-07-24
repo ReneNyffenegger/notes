@@ -5,8 +5,7 @@ code {
 xargs [options] [cmd [init-args]]
 code }
 
-
-`xargs` reads `{items}` from → development/stdin-stdout-stderr[stdin] and executes `cmd [init-args] {items}`.o
+`xargs` reads `{items}` from → development/stdin-stdout-stderr[stdin] and executes `cmd [init-args] {items}`.
 
 If `cmd` is omitted, `xargs` executes `/bin/echo`.
 
@@ -37,9 +36,9 @@ In order to pass an item that contains a blank, it can be put in quotes (`"this 
          ☰ `--process-slot-var=` ☰ `name` ☰ Set the → development/environment-variable[environment variable] `name` to a unique value in each running child process.  Values are reused once child processes exit.  This can be used in a rudimentary load distribution scheme, for example.
     `-r` ☰ `--no-run-if-empty` ☰ ☰ If the standard input does not contain any nonblanks, do not run the command.  Normally, the command is run once even if there is no input.  This option is a GNU extension.
     `-s` ☰ `--max-chars=` ☰ `max-chars` ☰ Use at most `max-chars` characters per command line.
-         ☰ `--show-limits` ☰ ☰ Display the limits on the command-line length which are imposed by the operating system, xargs' choice of buffer size and the -s option.  Pipe the input from /dev/null (and perhaps specify --no-run-if-empty) if you don't want xargs to do anything.
+         ☰ `--show-limits` ☰ ☰ Display the limits on the command-line length which are imposed by the operating system, xargs' choice of buffer size and the `-s` option.  Pipe the input from `→ Linux/fhs/dev/null` (and perhaps specify `--no-run-if-empty`) if you don't want xargs to do anything.
     `-t` ☰ `--verbose` ☰ ☰ Print the command line on the standard error output before executing it.
-    `-x` ☰ `--exit` ☰ ☰ Exit if the size (see the -s option) is exceeded.
+    `-x` ☰ `--exit` ☰ ☰ Exit if the size (see the `-s` option) is exceeded.
          ☰ `--help` ☰ ☰ Print a summary of the options to xargs and exit.
          ☰ `--version` ☰ ☰ Print the version number of xargs and exit.
 
@@ -48,6 +47,24 @@ In order to pass an item that contains a blank, it can be put in quotes (`"this 
     The options `--max-lines` (`-L`, `-l`), `--replace` (`-I`, `-i`) and `--max-args` (`-n`) are mutually exclusive.
      -
     The special `max-args` value `1` (`-n1`) is ignored after the `--replace` option and its aliases `-I` and `-i` because it would not actually conflict.
+
+}
+{ Simple example
+
+  Create a (empty) file:
+code {
+$ → Linux/shell/commands/touch a.file
+code }
+
+  Pipe the words `a.file` and `renamed.file` to `xargs mv` (which will build and execute the command `mv a.file renamed.file`):
+code {
+$ echo a.file renamed.file | xargs mv
+code }
+
+  Verify that `a.file` was renamed to `renamed.file`:
+code {
+$ → Linux/shell/commands/ls -ltr
+code }
 
 }
 { TODO
@@ -60,4 +77,9 @@ code }
 }
 
 sa:
+
+ `xargs` is often used in conjunction with `→ Linux/shell/commands/find … -exec xargs {} + …`
+
   → Linux/shell/commands[Shell commands]
+
+  → Windows/PowerShell/language/type/array/as-argument#ps-emulate-xargs[Emulating `xargs`] in → Windows/PowerShell.

@@ -30,15 +30,26 @@ code }
   The → Windows/PowerShell/command-inventory/noun/object/forEach[`forEach-object`] part is required to transform the returned objects into strings.
 
 code {
-get-childItem -recurse -attributes !directory | → Windows/PowerShell/command-inventory/noun/object/where[where-object] { → Windows/PowerShell/language/variable/automatic/psItem[$_].lastWriteTime → Windows/PowerShell/language/operator/comparison[-gt] (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).addDays(-1) } | forEach-object { $_.directoryName + '\' + $_.name }
+get-childItem -recurse -attributes !directory | → Windows/PowerShell/command-inventory/noun/object/where { → Windows/PowerShell/language/variable/automatic/psItem[$_].lastWriteTime → Windows/PowerShell/language/operator/comparison[-gt] (→ Windows/PowerShell/command-inventory/noun/date/get).addDays(-1) } | forEach-object { $_.directoryName + '\' + $_.name }
 code }
 
 }
-{ List files that were written at a given date
+{ List files that were written at a given date or in a specific perdiod
 
   The following command finds files that were written at a given date, irrespective from the hour, minute or second:
 code {
-get-childItem -recurse | where-object { $_.LastWriteTime.ToString('yyyy-mm-dd') -eq '2022-06-07' }
+get-childItem -recurse | → Windows/PowerShell/command-inventory/noun/object/where { $_.LastWriteTime.ToString('yyyy-mm-dd') -eq '2022-06-07' }
+code }
+
+  This pipieline finds `.sql` files that were written in the month of January of the current year:
+code {
+$root = "C:\Path\to\dir
+
+$begDt = → Windows/PowerShell/command-inventory/noun/date/get -year (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).year -month 1 -day 1
+$endDt = → Windows/PowerShell/command-inventory/noun/date/get -year (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).year -month 2 -day 1
+
+$files = get-childItem -path $root -filter *.sql -recurse | → Windows/PowerShell/command-inventory/noun/object/where { $_.lastWriteTime -ge $begDt -and $_.lastWriteTime -lt $endDt }
+$files
 code }
 
 }
