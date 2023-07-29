@@ -3,3 +3,101 @@ $ Oracle hint: FIRST_ROWS
 
 The `first_rows(n)` → development/databases/Oracle/SQL/hints optimzes for returning the first `n` rows.
 
+{ Demonstration
+
+  We need two table to demonstrate the effect of `first_rows` to an → development/databases/Oracle/SQL/statement/execution/plan[execution plan]:
+code {
+create table tq84_A (
+    id   integer   not null,
+    num  number(1) not null
+);
+
+create table tq84_B (
+    id   integer,
+    txt  varchar2(10)
+);
+code }
+
+  Each table is populated with one million records and statistics are gathered for the optimizer:
+code {
+begin
+
+   insert into tq84_A
+   select
+      level,
+      dbms_random.value*9
+   from
+      dual → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] level <= 1000000;
+      
+   insert into tq84_B
+   select
+      level,
+      dbms_random.string('a', 10)
+   from
+      dual → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] level <= 1000000;      
+      
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_A');
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_B');
+      
+end;
+/
+code }
+
+  An index is also created:
+code {
+create unique index tq84_a_ix on tq84_A(id);
+code }
+
+  The execution plan without using a hint (assuming `→ development/databases/Oracle/adminstration/init-parameters/optimizer/mode` is set to the default value `all_rows`):
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   *
+from
+   tq84_A a                 join
+   tq84_B b on a.id = b.id
+where
+   a.num = 5;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- -------------------------------------
+-- | Id  | Operation          | Name   |
+-- -------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |        |
+-- |   1 |  HASH JOIN         |        |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_B |
+-- -------------------------------------
+code }
+
+  Same query, but this time with the `first_rows` hint:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ first_rows */
+   *
+from
+   tq84_A a                 join
+   tq84_B b on a.id = b.id
+where
+   a.num = 5;
+   
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- --------------------------------------------------
+-- | Id  | Operation                    | Name      |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops/nested[NESTED LOOPS]                |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops/nested[NESTED LOOPS]               |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full         | TQ84_B    |
+-- |   4 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan         | TQ84_A_IX |
+-- |   5 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_A    |
+-- --------------------------------------------------
+code }
+
+}
+
+sa:
+
+  The init parameter `→ development/databases/Oracle/adminstration/init-parameters/optimizer/mode`
