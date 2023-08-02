@@ -11,26 +11,145 @@ This view comes in the three variations `dba_arguments`, `all_arguments` and `us
 
   { PL/SQL Package
 
-    We create a test package: the specificiation …
-    gh|oracle-patterns|/Installed/data-dictionary/arguments/extract/package.sql||
-  
+    We create a test package: the specification …
+code {
+create or replace package tq84_funcs_and_procs
+    authid definer
+as
+
+    procedure proc_no_args;
+    function  func_no_args return number;
+
+    procedure proc_2_arg2(arg1 number, arg2 varchar2);
+    function  func_2_arg2(arg1 number, arg2 varchar2) return number;
+
+    procedure proc_args_in_out(arg1 out number, arg2 in out date);
+    function  func_args_in_out(arg1 out number, arg2 in out date) return number;
+
+end tq84_funcs_and_procs;
+/
+code }
+
     … and its body:
-    gh|oracle-patterns|/Installed/data-dictionary/arguments/extract/package-body.sql||
-  
+code {
+create or replace package body tq84_funcs_and_procs as
+
+    procedure proc_no_args                                                      is begin        null; end;
+    function  func_no_args                                        return number is begin return null; end;
+
+    procedure proc_2_arg2(arg1 number, arg2 varchar2)                           is begin        null; end;
+    function  func_2_arg2(arg1 number, arg2 varchar2)             return number is begin return null; end;
+
+    procedure proc_args_in_out(arg1 out number, arg2 in out date)               is begin        null; end;
+    function  func_args_in_out(arg1 out number, arg2 in out date) return number is begin return null; end;
+
+end tq84_funcs_and_procs;
+/
+code }
+
   }
   { Query
 
     The following query shows the the package's procedures and functions and their arguments:
-    gh|oracle-patterns|/Installed/data-dictionary/arguments/extract/query.sql||
+code {
+select
+   case when new_item = 'new' then prc_or_fnc      end prc_or_fnc,
+   case when new_item = 'new' then prc_or_fnc_name end name,
+   count(arg_name) over (partition by prc_counter)  arg_cnt,
+   arg_name,
+   case when arg_pos = 0 then 'RETURN' else arg_in_out end arg_in_out,
+   arg_data_type,
+   arg_pls_type,
+   arg_defaulted,
+   arg_type_name,
+   arg_type_owner
+-- case when arg_defaulted = 'Y' then 'defaulted' end defaulted
+from (
+select
+   case when prc.subprogram_id !=
+             nvl(lag(prc.subprogram_id) over (
+                       order by
+                          prc.procedure_name,
+                          prc.subprogram_id,
+                          case when arg.position = 0 then 99999999 else arg.position end),
+                 0
+                ) then 'new' else '' end new_item,
+   case
+     when arg.position is null        then 'Procedure' -- No arguments
+     when arg.position = arg.sequence then 'Procedure' -- With arguments
+     else                                  'Function'
+   end                          prc_or_fnc,
+   arg.position                 arg_pos,
+   arg.sequence                 arg_seq,
+   prc.procedure_name           prc_or_fnc_name,
+   lag(prc.subprogram_id) over (order by prc.subprogram_id, arg.position),
+   prc.subprogram_id            prc_counter,
+   arg.argument_name            arg_name,
+   arg.in_out                   arg_in_out,
+   arg.data_type                arg_data_type,
+   arg.pls_type                 arg_pls_type,
+   arg.type_owner               arg_type_owner,
+   arg.type_name                arg_type_name,
+   arg.defaulted                arg_defaulted,
+   prc.overload,
+   prc.aggregate,
+   prc.pipelined
+from
+   dba_procedures prc left join
+   dba_arguments  arg on prc.owner         = arg.owner        and
+                         prc.object_name   = arg.package_name and
+                         prc.subprogram_id = arg.subprogram_id
+where
+   prc.procedure_name is not null           and
+   prc.object_name = 'TQ84_FUNCS_AND_PROCS' and
+   prc.owner       =  user
+)
+order by
+   prc_or_fnc_name,
+   prc_counter,
+   case when arg_pos = 0 then 99999999 else arg_pos end
+;
+--
+-- PRC_OR_FN NAME                ARG_CNT  ARG_NAME  ARG_IN_OU ARG_DATA_TYPE  ARG_PLS_TYPE  A ARG_TYPE_NAME  ARG_TYPE_OWNER
+-- --------- ----------------  ---------  --------  --------- -------------  ------------  - -------------  --------------
+-- Function  FUNC_2_ARG2               2  ARG1      IN        NUMBER         NUMBER        N
+--                                     2  ARG2      IN        VARCHAR2       VARCHAR2      N
+--                                     2            RETURN    NUMBER         NUMBER        N
+-- Function  FUNC_ARGS_IN_OUT          2  ARG1      OUT       NUMBER         NUMBER        N
+--                                     2  ARG2      IN/OUT    DATE           DATE          N
+--                                     2            RETURN    NUMBER         NUMBER        N
+-- Function  FUNC_NO_ARGS              0            RETURN    NUMBER         NUMBER        N
+-- Procedure PROC_2_ARG2               2  ARG1      IN        NUMBER         NUMBER        N
+--                                     2  ARG2      IN        VARCHAR2       VARCHAR2      N
+-- Procedure PROC_ARGS_IN_OUT          2  ARG1      OUT       NUMBER         NUMBER        N
+--                                     2  ARG2      IN/OUT    DATE           DATE          N
+-- Procedure PROC_NO_ARGS              0
+--
+code }
+
 
   }
 
 }
+
+{ Misc
+
+  { Column DEFAULTS_VALUE always NULL
+
+    Even in → development/databases/Oracle/Releases-and-versions/23c, the value of the column `defaults_values` (which is supposed to display an argument's default value) is still
+    always `→ development/databases/Oracle/SQL/null`.
+
+  }
+
+}
+
 sa:
 
   Details about procedures and functions are found in `→ development/databases/Oracle/installed/data-dictionary/procedures`
 
   Use the column `type_name` to join `dba_arguments` to
     → development/databases/Oracle/installed/data-dictionary/plsql/types[`dba_plsql_types`],
-     `dba_plsql_type_attrs` and 
+     `dba_plsql_type_attrs` and
     → development/databases/Oracle/installed/data-dictionary/plsql/coll_types[`dba_plsql_coll_types`].
+
+  `→ development/databases/Oracle/installed/packages/dbms/describe`
