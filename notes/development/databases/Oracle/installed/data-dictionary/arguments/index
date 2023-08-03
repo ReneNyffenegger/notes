@@ -55,9 +55,10 @@ code {
 select
    case when new_item = 'new' then prc_or_fnc      end prc_or_fnc,
    case when new_item = 'new' then prc_or_fnc_name end name,
-   count(arg_name) over (partition by prc_counter)  arg_cnt,
+   case when new_item = 'new' then ret_data_type   end ret_data_type,
+   count(arg_name) over (partition by prc_counter)     arg_cnt,
    arg_name,
-   case when arg_pos = 0 then 'RETURN' else arg_in_out end arg_in_out,
+   arg_in_out,
    arg_data_type,
    arg_pls_type,
    arg_defaulted,
@@ -79,6 +80,7 @@ select
      when arg.position = arg.sequence then 'Procedure' -- With arguments
      else                                  'Function'
    end                          prc_or_fnc,
+   ret.data_type                ret_data_type,
    arg.position                 arg_pos,
    arg.sequence                 arg_seq,
    prc.procedure_name           prc_or_fnc_name,
@@ -95,10 +97,15 @@ select
    prc.aggregate,
    prc.pipelined
 from
-   dba_procedures prc left join
-   dba_arguments  arg on prc.owner         = arg.owner        and
-                         prc.object_name   = arg.package_name and
-                         prc.subprogram_id = arg.subprogram_id
+   dba_procedures prc                                                   left join
+   dba_arguments  arg on prc.owner         = arg.owner         and
+                         prc.object_name   = arg.package_name  and
+                         prc.subprogram_id = arg.subprogram_id and
+                         arg.position      > 0                          left join
+   dba_arguments  ret on prc.owner         = ret.owner         and
+                         prc.object_name   = ret.package_name  and
+                         prc.subprogram_id = ret.subprogram_id and
+                         ret.position      = 0
 where
    prc.procedure_name is not null           and
    prc.object_name = 'TQ84_FUNCS_AND_PROCS' and
@@ -107,23 +114,22 @@ where
 order by
    prc_or_fnc_name,
    prc_counter,
-   case when arg_pos = 0 then 99999999 else arg_pos end
+-- case when arg_pos = 0 then 99999999 else arg_pos end
+   arg_pos
 ;
 --
--- PRC_OR_FN NAME                ARG_CNT  ARG_NAME  ARG_IN_OU ARG_DATA_TYPE  ARG_PLS_TYPE  A ARG_TYPE_NAME  ARG_TYPE_OWNER
--- --------- ----------------  ---------  --------  --------- -------------  ------------  - -------------  --------------
--- Function  FUNC_2_ARG2               2  ARG1      IN        NUMBER         NUMBER        N
---                                     2  ARG2      IN        VARCHAR2       VARCHAR2      N
---                                     2            RETURN    NUMBER         NUMBER        N
--- Function  FUNC_ARGS_IN_OUT          2  ARG1      OUT       NUMBER         NUMBER        N
---                                     2  ARG2      IN/OUT    DATE           DATE          N
---                                     2            RETURN    NUMBER         NUMBER        N
--- Function  FUNC_NO_ARGS              0            RETURN    NUMBER         NUMBER        N
--- Procedure PROC_2_ARG2               2  ARG1      IN        NUMBER         NUMBER        N
---                                     2  ARG2      IN        VARCHAR2       VARCHAR2      N
--- Procedure PROC_ARGS_IN_OUT          2  ARG1      OUT       NUMBER         NUMBER        N
---                                     2  ARG2      IN/OUT    DATE           DATE          N
--- Procedure PROC_NO_ARGS              0
+-- PRC_OR_FN NAME              RET_DATA_TYPE  ARG_CNT  ARG_NAME  ARG_IN_OU  ARG_DATA_TYPE  ARG_PLS_TYPE  A ARG_TYPE_NAME  ARG_TYPE_OWNER
+-- --------- ----------------  -------------  -------  --------  ---------  -------------  ------------  - -------------  --------------
+-- Function  FUNC_2_ARG2       NUMBER               2  ARG1      IN         NUMBER         NUMBER        N                              
+--                                                  2  ARG2      IN         VARCHAR2       VARCHAR2      N                              
+-- Function  FUNC_ARGS_IN_OUT  NUMBER               2  ARG1      OUT        NUMBER         NUMBER        N                              
+--                                                  2  ARG2      IN/OUT     DATE           DATE          N                              
+-- Procedure FUNC_NO_ARGS      NUMBER               0                                                                                   
+-- Procedure PROC_2_ARG2                            2  ARG1      IN         NUMBER         NUMBER        N                              
+--                                                  2  ARG2      IN         VARCHAR2       VARCHAR2      N                              
+-- Procedure PROC_ARGS_IN_OUT                       2  ARG1      OUT        NUMBER         NUMBER        N                              
+--                                                  2  ARG2      IN/OUT     DATE           DATE          N                              
+-- Procedure PROC_NO_ARGS                           0                                                                                   
 --
 code }
 
@@ -153,3 +159,5 @@ sa:
     → development/databases/Oracle/installed/data-dictionary/plsql/coll_types[`dba_plsql_coll_types`].
 
   `→ development/databases/Oracle/installed/packages/dbms/describe`
+
+  → development/databases/Oracle/installed/data-dictionary/arguments/VBA

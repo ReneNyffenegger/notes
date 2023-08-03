@@ -1,0 +1,67 @@
+$ MS Word VBA: Insert multiple tables
+
+The following snippet demonstrates how it is possible to insert two → Microsoft/Office/Word/Object-Model/Table[tables] into an MS Word document with → development/languages/VBA:
+code {
+option explicit
+
+sub main()
+
+    selection.typeText "Text before the first table"
+
+    dim rng1stTable as range
+    set rng1stTable = selection.range
+
+    selection.typeParagraph
+
+    dim rngAfter1stTable as range
+    set rngAfter1stTable = selection.range
+
+    dim tbl as table
+    set tbl = activeDocument.tables.add(range := rng1stTable, numRows := 4, numColumns := 3)
+    tbl.allowAutofit = true
+
+    tbl.cell(1,1).select
+    selection.font.bold = true
+    selection.typeText "Col A"
+
+    tbl.cell(1,2).select
+    selection.font.bold = true
+    selection.typeText "Col B"
+
+    tbl.cell(1,3).select
+    selection.font.bold = true
+    selection.typeText "Col C"
+
+    tbl.cell(3,2).select
+    selection.typeText "3 * 2 = 6"
+
+    tbl.cell(2,2).select
+    selection.typeText "2 / 2 = 1"
+
+    tbl.cell(4,1).select
+    selection.typeText "fourth row, first cell"
+
+    tbl.cell(4,3).select
+    selection.typeText "4 + 3 = 7"
+
+    dim brd as borders
+    set brd = tbl.rows(1).borders
+    brd(wdBorderBottom).lineStyle = wdLineStyleSingle
+    brd(wdBorderBottom).lineWidth = wdLineWidth075pt
+
+'  ' Get out of the table
+'  ' https://stackoverflow.com/a/54562919/180275
+'    tbl.range.collapse wdCollapseEnd
+
+  ' Insert another table
+
+    set tbl = activeDocument.tables.add(range := rngAfter1stTable, numRows := 2, numColumns := 2)
+    tbl.allowAutofit = true
+
+    tbl.cell(1,1).select : selection.typeText("1 - 1")
+    tbl.cell(1,2).select : selection.typeText("1 - 2")
+    tbl.cell(2,1).select : selection.typeText("2 - 1")
+    tbl.cell(2,2).select : selection.typeText("2 - 2")
+
+end sub
+code }

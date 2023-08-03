@@ -1,0 +1,223 @@
+$ Crating an MS Word documentation skeletton for a PL/SQL pacakge with VBA
+
+code {
+option explicit
+
+'  application.VBE.activeVBProject.references.addFromGuid "{B691E011-1797-432E-907A-4D8C69339129}", 6,  1
+
+sub main ' {
+
+    dim con as adodb.connection
+
+    set con = openConnection("[dwh_dm_abs]", "", "dreamtst1")
+
+    writeProcedures con, "ENGINE"
+
+end sub ' }
+
+private function openConnection(dbUser as string, dbPassword as string, dbName as string) as ADODB.connection ' {
+
+   dim cn as    ADODB.connection
+   set cn = new ADODB.connection
+
+   dim fetchSize as long: fetchSize = 10000
+
+   cn.open ( _
+      "User ID="     & dbUser       & _
+     ";Password="    & dbPassword   & _
+     ";Data Source=" & dbName       & _
+     ";FetchSize="   & fetchSize    & _
+     ";Provider=OraOLEDB.Oracle")
+
+   set openConnection = cn
+
+   exit function
+
+error_handler:
+   if   err.number = -2147467259 then
+              msgBox("Oracle error while opening connection: " & err.description)
+   else 
+              msgBox(err.number & " " & err.description)
+   end if
+
+end function ' }
+
+private sub writeProcedures(con as adodb.connection, pkg as string) ' {
+
+    dim rs as adodb.recordSet
+    set rs = execSQLstatement(con, pkg)
+
+    do while not rs.eof ' {
+        writeProcedure rs
+    loop ' }
+
+end sub ' }
+
+private sub writeProcedure(rs as adodb.recordSet) ' {
+
+    dim headerText as string
+    headerText = rs("PRC_OR_FNC") & " " & rs("NAME")
+
+    selection.typeText headerText
+    selection.style = activeDocument.styles("Heading 2")
+    selection.typeParagraph
+
+    if rs("PRC_OR_FNC") = "Function" then ' {
+       selection.typeText("Returns data type is " & rs("RET_DATA_TYPE"))
+       selection.typeParagraph
+    end if ' }
+
+    dim rngTable      as range
+    dim rngAfterTable as range
+    set rngTable      = selection.range
+
+    selection.typeParagraph
+    set rngAfterTable = selection.range
+
+    dim nofArguments as long : nofArguments = rs("ARG_CNT")
+
+    if nofArguments > 0 then ' {
+       dim tbl as table
+       set tbl = activeDocument.tables.add(range := rngTable, numRows := nofArguments + 1, numColumns := 4)
+       tbl.allowAutofit = true
+
+       tbl.cell(1,1).select
+       selection.font.bold = true
+       selection.typeText "Argument name"
+
+       tbl.cell(1,2).select
+       selection.font.bold = true
+       selection.typeText "Data type"
+
+       tbl.cell(1,3).select
+       selection.font.bold = true
+       selection.typeText "Def?"
+
+       dim curArg as long
+
+       for curArg = 1 to nofArguments ' {
+
+           tbl.cell(curArg+1, 1).select
+           selection.typeText(rs("ARG_NAME"))
+
+           tbl.cell(curArg+1, 2).select
+           selection.typeText(rs("ARG_DATA_TYPE"))
+
+           tbl.cell(curArg+1, 3).select
+           selection.typeText(rs("ARG_DEFAULTED"))
+
+           rs.moveNext
+
+       next curArg ' }
+
+       dim brd as borders
+       set brd = tbl.rows(1).borders
+       brd(wdBorderTop   ).lineStyle = wdLineStyleSingle
+       brd(wdBorderTop   ).lineWidth = wdLineWidth100pt
+       brd(wdBorderBottom).lineStyle = wdLineStyleSingle
+       brd(wdBorderBottom).lineWidth = wdLineWidth075pt
+
+       set brd = tbl.rows(nofArguments+1).borders
+       brd(wdBorderBottom).lineStyle = wdLineStyleSingle
+       brd(wdBorderBottom).lineWidth = wdLineWidth100pt
+
+    else
+       rs.moveNext
+    end if ' }
+
+    rngAfterTable.select
+
+end sub ' }
+
+private function execSQLstatement(con as adodb.connection, pkg as string) as ADODB.recordSet ' {
+
+    dim cmd as new ADODB.command
+    dim rs  as new ADODB.recordset
+
+  ' { SQL Statement
+
+     cmd.commandText = cmd.commandText & "select" & vbCrlf
+     cmd.commandText = cmd.commandText & "   case when new_item = 'new' then prc_or_fnc      end prc_or_fnc," & vbCrlf
+     cmd.commandText = cmd.commandText & "   case when new_item = 'new' then prc_or_fnc_name end name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   case when new_item = 'new' then ret_data_type   end ret_data_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   count(arg_name) over (partition by prc_counter)     arg_cnt," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_in_out," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_data_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_pls_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_defaulted," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_type_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_type_owner" & vbCrlf
+     cmd.commandText = cmd.commandText & "from (" & vbCrlf
+     cmd.commandText = cmd.commandText & "select" & vbCrlf
+     cmd.commandText = cmd.commandText & "   case when prc.subprogram_id !=" & vbCrlf
+     cmd.commandText = cmd.commandText & "             nvl(lag(prc.subprogram_id) over (" & vbCrlf
+     cmd.commandText = cmd.commandText & "                       order by" & vbCrlf
+     cmd.commandText = cmd.commandText & "                          prc.procedure_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "                          prc.subprogram_id," & vbCrlf
+     cmd.commandText = cmd.commandText & "                          case when arg.position = 0 then 99999999 else arg.position end)," & vbCrlf
+     cmd.commandText = cmd.commandText & "                 0" & vbCrlf
+     cmd.commandText = cmd.commandText & "                ) then 'new' else '' end new_item," & vbCrlf
+     cmd.commandText = cmd.commandText & "   case" & vbCrlf
+     cmd.commandText = cmd.commandText & "     when arg.position is null        then 'Procedure'" & vbCrlf
+     cmd.commandText = cmd.commandText & "     when arg.position = arg.sequence then 'Procedure'" & vbCrlf
+     cmd.commandText = cmd.commandText & "     else                                  'Function'" & vbCrlf
+     cmd.commandText = cmd.commandText & "   end                          prc_or_fnc," & vbCrlf
+     cmd.commandText = cmd.commandText & "   ret.data_type                ret_data_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.position                 arg_pos," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.sequence                 arg_seq," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.procedure_name           prc_or_fnc_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   lag(prc.subprogram_id) over (order by prc.subprogram_id, arg.position)," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.subprogram_id            prc_counter," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.argument_name            arg_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.in_out                   arg_in_out," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.data_type                arg_data_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.pls_type                 arg_pls_type," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.type_owner               arg_type_owner," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.type_name                arg_type_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg.defaulted                arg_defaulted," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.overload," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.aggregate," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.pipelined" & vbCrlf
+     cmd.commandText = cmd.commandText & "from" & vbCrlf
+     cmd.commandText = cmd.commandText & "   dba_procedures prc                                                   left join" & vbCrlf
+     cmd.commandText = cmd.commandText & "   dba_arguments  arg on prc.owner         = arg.owner         and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         prc.object_name   = arg.package_name  and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         prc.subprogram_id = arg.subprogram_id and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         arg.position      > 0                          left join" & vbCrlf
+     cmd.commandText = cmd.commandText & "   dba_arguments  ret on prc.owner         = ret.owner         and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         prc.object_name   = ret.package_name  and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         prc.subprogram_id = ret.subprogram_id and" & vbCrlf
+     cmd.commandText = cmd.commandText & "                         ret.position      = 0" & vbCrlf
+     cmd.commandText = cmd.commandText & "where" & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.procedure_name is not null           and" & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.object_name =  :obj                  and" & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc.owner       =  user" & vbCrlf
+     cmd.commandText = cmd.commandText & ")" & vbCrlf
+     cmd.commandText = cmd.commandText & "order by" & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc_or_fnc_name," & vbCrlf
+     cmd.commandText = cmd.commandText & "   prc_counter," & vbCrlf
+     cmd.commandText = cmd.commandText & "   arg_pos" & vbCrlf
+
+    ' }
+
+    cmd.CommandType = adCmdText
+
+    cmd.activeConnection = con
+    cmd.namedParameters  = true
+
+    dim p as adodb.parameter
+    set p = cmd.createParameter("OBJ", adVarchar, adParamInput, 4000, pkg)
+
+    cmd.parameters.append p
+
+    set execSQLstatement = cmd.execute
+
+end function ' }
+code }
+
+sa:
+
+  → Microsoft/Office/Word/Object-Model/Table/insert-multiple-tables
+
+ `→ development/databases/Oracle/installed/data-dictionary/arguments`
