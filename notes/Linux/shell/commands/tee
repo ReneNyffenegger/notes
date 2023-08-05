@@ -1,14 +1,51 @@
 $ Shell command: tee
--
 @ tee
 
-View a command's output *and* writing it to a file, too.
+View a command's output *and* writing it to a file, too:
+code {
+$ tee [option …] [file …]
+code }
+
+code {
+$ echo xyz | tee → Linux/fhs/tmp[/tmp]/out.1 → Linux/fhs/tmp[/tmp]/out.2
+xyz
+$ cat → Linux/fhs/tmp[/tmp]/out.1 → Linux/fhs/tmp[/tmp]/out.2
+xyz
+xyz
+code }
+
+{ Options
+
+  table { lll
+
+  `-a` ☰ `--append` ☰ append to the given FILEs (i. e. do not overwrite)
+  `-i` ☰ `--ignore-interrupts` ☰ ignore interrupt signals
+  `-p` ☰ ☰ diagnose errors writing to non pipes
+       ☰ `--output-error[=MODE]` ☰ set behavior on write error. If `--output-error` is not specified, `tee` will exit immediately on error writing to a pipe, and diagnose errors writing to non pipe outputs.
+       ☰ `--help` ☰
+       ☰ `--version` ☰ output version information and exit
+  table }
+
+  { MODE
+
+    The value of `MODE` determines the behavior with write errors on the output:
+    table { ll
+     `warn` ☰ diagnose errors writing to any output
+     `warn-nopipe` ☰ diagnose errors writing to any output not a pipe
+     `exit` ☰ exit on error writing to any output
+     `exit-nopipe` ☰ exit on error writing to any output not a pipe
+    table }
+
+    The default `MODE` for the `-p` option is `warn-nopipe`.
+  
+  }
+}
 
 { $PIPESTATUS
 
   { cmd-bad
 
-   `cmd-bad` is a shell script that write some text to std out and more text to std error.
+   `cmd-bad` is a shell script that write some text to → development/stdin-stdout-stderr[stdout] and more text to → development/stdin-stdout-stderr[stderr].
 
     It → Linux/shell/bash/built-in/exit[exits] with code `42`.
 
@@ -17,14 +54,13 @@ View a command's output *and* writing it to a file, too.
   }
   { teeing output of cmd-bad
 
-    The following example shows how the output both to std out and std error can be captured and written to a file *while at the same time* writing it also to the console.
+    The following example shows how the output both to stdout and stderror can be captured and written to a file *while at the same time* writing it also to the console.
 
     Additionally, the variable `$PIPESTATUS` is used to query the exit status of the command (rather than `tee`'s exit status.
 
     gh|shell-commands|/tee/PIPESTATUS||
 
   }
-
 }
 
 sa:
