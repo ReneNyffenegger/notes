@@ -1,0 +1,274 @@
+$ Linux kernel compilation: make
+
+{ make targets #linux-make-targets
+
+ `make help` prints a summary of make targets:
+
+{ Cleaning targets
+
+  table { ll
+   `clean`            ☰ Remove most generated files but keep the `config` and enough build support to build external modules
+   `mrproper`         ☰ Remove all generated files, `config` and various backup files
+   `distclean`        ☰ `mrproper` and remove editor backup and patch files
+  table }
+
+}
+{ Configuration targets
+
+  table { ll
+   `config`           ☰ Update current config utilising a line-oriented program
+   `nconfig`          ☰ Update current config utilising a ncurses menu based program (requires *ncurses*)
+   `menuconfig`       ☰ Update current config utilising a menu based program (menus, radiolists, dialogs)
+   `xconfig`          ☰ Update current config utilising a Qt based front-end
+   `gconfig`          ☰ Update current config utilising a GTK+ based front-end
+   `oldconfig`        ☰ Update current config utilising a provided `.config` as base (Default all questions based on the contents of your existing `./.config` file and asking about new config symbols.)
+   `olddefconfig`     ☰ Same as `oldconfig` but sets new symbols to their default value without prompting
+   `defconfig`        ☰ New config with default from ARCH supplied defconfig
+   `localmodconfig`   ☰ Update current config disabling modules not loaded except those preserved by `LMC_KEEP` environment variable
+   `localyesconfig`   ☰ Update current config converting local mods to core except those preserved by `LMC_KEEP` environment variable
+   `savedefconfig`    ☰ Save current config as `./defconfig` (minimal config)
+   `allnoconfig`      ☰ New config (`.config`?) where all options are answered with no
+   `allyesconfig`     ☰ New config where all options are accepted with yes
+   `allmodconfig`     ☰ New config selecting modules when possible
+   `alldefconfig`     ☰ New config with all symbols set to default
+   `randconfig`       ☰ New config with random answer to all options
+   `yes2modconfig`    ☰ Change answers from yes to mod if possible
+   `mod2yesconfig`    ☰ Change answers from mod to yes if possible
+   `mod2noconfig`     ☰ Change answers from mod to no if possible
+   `listnewconfig`    ☰ List new options
+   `helpnewconfig`    ☰ List new options and help text
+   `tinyconfig`       ☰ Configure the tiniest possible kernel
+   `testconfig`       ☰ Run Kconfig unit tests (requires `python3` and `pytest`)
+  table }
+
+
+? `${PLATFORM}_defconfig` creates a `./.config` file by using the default symbol values from `arch/$ARCH/configs/${PLATFORM}_defconfig`. Use `make help` to get a list of all available platforms of your architecture.
+
+}
+{ Other generic targets
+
+  table { ll
+   `all`              ☰ Build `vmlinux`, `modules` and `bzImage`
+   `vmlinux`          ☰ Build the bare kernel
+   `modules`          ☰ Build all modules
+   `modules_install`  ☰ Install all modules to `INSTALL_MOD_PATH` (default: `/`)
+   `dir/`             ☰ Build all files in dir and below
+   `dir/file.[ois]`   ☰ Build specified target only
+   `dir/file.ll`      ☰ Build the LLVM assembly file (requires compiler support for LLVM assembly generation)
+   `dir/file.lst`     ☰ Build specified mixed source/assembly target only (requires a recent binutils and recent build (System.map))
+   `dir/file.ko`      ☰ Build module including final link
+   `modules_prepare`  ☰ Set up for building external modules
+   `tags/TAGS`        ☰ Generate tags file for editors
+   `cscope`           ☰ Generate cscope index
+   `gtags`            ☰ Generate GNU GLOBAL index
+   `kernelrelease`    ☰ Output the release version string (use with make -s)
+   `kernelversion`    ☰ Output the version stored in Makefile (use with make -s)
+   `image_name`       ☰ Output the image name (use with make -s)
+   `headers_install`  ☰ Install sanitised kernel headers to `INSTALL_HDR_PATH` (default: `./usr`)
+
+  table }
+
+}
+{ Static analysers
+
+  table { ll
+   `checkstack`       ☰ Generate a list of stack hogs
+   `versioncheck`     ☰ Sanity check on version.h usage
+   `includecheck`     ☰ Check for duplicate included header files
+   `export_report`    ☰ List the usages of all exported symbols
+   `headerdep`        ☰ Detect inclusion cycles in headers
+   `coccicheck`       ☰ Check with Coccinelle
+   `clang-analyzer`   ☰ Check with clang static analyzer
+   `clang-tidy`       ☰ Check with clang-tidy
+  table }
+
+}
+{ Tools
+
+  table { ll
+   `nsdeps`           ☰ Generate missing symbol namespace dependencies
+  table }
+
+}
+{ Kernel selftest
+
+  table { ll
+   `kselftest`          ☰ Build and run kernel selftest Build, install, and boot kernel before running kselftest on it. Run as root for full coverage
+   `kselftest-all`      ☰ Build kernel selftest
+   `kselftest-install`  ☰ Build and install kernel selftest
+   `kselftest-clean`    ☰ Remove all generated kselftest files
+   `kselftest-merge`    ☰ Merge all the config dependencies of kselftest to existing `.config`.
+  table }
+
+}
+{ Rust targets
+
+  table { ll
+   `rustavailable`    ☰ Checks whether the Rust toolchain is available and, if not, explains why.
+   `rustfmt`          ☰ Reformat all the Rust code in the kernel
+   `rustfmtcheck`     ☰ Checks if all the Rust code in the kernel is formatted, printing a diff otherwise.
+   `rustdoc`          ☰ Generate Rust documentation (requires kernel .config)
+   `rusttest`         ☰ Runs the Rust tests (requires kernel .config; downloads external repos)
+   `rust-analyzer`    ☰ Generate rust-project.json rust-analyzer support file (requires kernel .config)
+   `dir/file.[os]`    ☰ Build specified target only
+   `dir/file.rsi`     ☰ Build macro expanded source, similar to C preprocessing. Run with `RUSTFMT=n` to skip reformatting if needed. The output is not intended to be compilable.
+   `dir/file.ll`      ☰ Build the LLVM assembly file
+  table }
+
+}
+{ Userspace tools targets
+
+  use make `tools/help` or  `cd tools; make help`
+
+}
+{ Kernel packaging
+
+  table { ll
+
+   `rpm-pkg`              ☰ Build both source and binary RPM kernel packages
+   `srcrpm-pkg`           ☰ Build only the source kernel RPM package
+   `binrpm-pkg`           ☰ Build only the binary kernel RPM package
+   `deb-pkg`              ☰ Build both source and binary deb kernel packages
+   `srcdeb-pkg`           ☰ Build only the source kernel deb package
+   `bindeb-pkg`           ☰ Build only the binary kernel deb package
+   `snap-pkg`             ☰ Build only the binary kernel snap package (will connect to external hosts)
+   `dir-pkg`              ☰ Build the kernel as a plain directory structure
+   `tar-pkg`              ☰ Build the kernel as an uncompressed tarball
+   `targz-pkg`            ☰ Build the kernel as a gzip compressed tarball
+   `tarbz2-pkg`           ☰ Build the kernel as a bzip2 compressed tarball
+   `tarxz-pkg`            ☰ Build the kernel as a xz compressed tarball
+   `tarzst-pkg`           ☰ Build the kernel as a zstd compressed tarball
+   `perf-tar-src-pkg`     ☰ Build the perf source tarball with no compression
+   `perf-targz-src-pkg`   ☰ Build the perf source tarball with gzip compression
+   `perf-tarbz2-src-pkg`  ☰ Build the perf source tarball with bz2 compression
+   `perf-tarxz-src-pkg`   ☰ Build the perf source tarball with xz compression
+   `perf-tarzst-src-pkg`  ☰ Build the perf source tarball with zst compression
+
+  table }
+
+}
+{ Documentation targets
+
+  Linux kernel internal documentation in different formats from ReST:
+
+  table { ll
+   `htmldocs`         ☰ HTML
+   `texinfodocs`      ☰ Texinfo
+   `infodocs`         ☰ Info
+   `latexdocs`        ☰ LaTeX
+   `pdfdocs`          ☰ PDF
+   `epubdocs`         ☰ EPUB
+   `xmldocs`          ☰ XML
+   `linkcheckdocs`    ☰ check for broken external links (will connect to external hosts)
+   `refcheckdocs`     ☰ check for references to non-existing files under Documentation
+   `cleandocs`        ☰ clean all generated files
+  table }
+
+  `make SPHINXDIRS="s1 s2" [target]` Generate only docs of folder s1, s2
+  -
+  valid values for `SPHINXDIRS` are: PCI RCU accel accounting admin-guide arch block bpf cdrom core-api cpu-freq crypto dev-tools devicetree doc-guide driver-api fault-injection fb filesystems firmware-guide fpga gpu hid hwmon i2c iio infiniband input isdn kbuild kernel-hacking leds livepatch locking loongarch maintainer mhi mips misc-devices mm netlabel networking pcmcia peci power powerpc process riscv rust s390 scheduler scsi security sound spi staging target timers tools trace translations usb userspace-api virt w1 watchdog wmi
+
+ `make SPHINX_CONF={conf-file} [target]`: use *additional* sphinx-build configuration. This is e.g. useful to build with nit-picking config.
+
+ `make DOCS_THEME={sphinx-theme}`: selects a different Sphinx theme.
+
+ `make DOCS_CSS={a .css file}`: adds a DOCS_CSS override file for html/epub output.
+
+  Default location for the generated documents is `Documentation/output`
+
+}
+{ Architecture specific targets (x86)
+
+  table { ll
+   `bzImage`          ☰ Compressed kernel image (`arch/x86/boot/bzImage`)
+   `→ Linux/kernel/compilation/make/install`          ☰ Install kernel using (your) `~/bin/installkernel` or (distribution) `→ Linux/fhs/sbin/installkernel` or install to `$(INSTALL_PATH)` and run → Linux/booting/LILO
+   `fdimage`          ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
+   `fdimage144`       ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
+   `fdimage288`       ☰ Create 2.8MB boot floppy image (`arch/x86/boot/fdimage`)
+   `hdimage`          ☰ Create a BIOS/EFI hard disk image (`arch/x86/boot/hdimage`)
+   `isoimage`         ☰ Create a boot CD-ROM image (`arch/x86/boot/image.iso`)
+   `kvm_guest.config` ☰ Enable Kconfig items for running this kernel as a KVM guest
+   `xen.config`       ☰ Enable Kconfig items for running this kernel as a Xen guest
+   `x86_debug.config` ☰ Enable tip tree debugging options for testing
+   `i386_defconfig`   ☰ Build for i386
+   `x86_64_defconfig` ☰ Build for x86_64
+  table }
+
+  Targets `bzdisk`, `fdimage*`, `hdimage` and `isoimage` also accept: `FDARGS="…"` arguments and `FDINITRD=file` for the booted kernel
+
+
+} 
+{ Variables
+
+ `make V=n   [targets]`:
+   • 1: verbose build
+   • 2: give reason for rebuild of target
+  V=1 and V=2 can be combined with V=12
+
+ `make O=dir [targets]`: Locate all output files in `dir`, including `.config`
+
+ `make C=1   [targets]`: Check re-compiled c source with `$CHECK` (sparse by default)
+
+ `make C=2   [targets]`: Force check of all c source with `$CHECK`
+
+ `make RECORDMCOUNT_WARN=1 [targets]`: Warn about ignored mcount sections
+
+ `make W=n   [targets]`: Enable extra build checks, value of `n`:
+               • 1: warnings which may be relevant and do not occur too often
+               • 2: warnings which occur quite often but may still be relevant
+               • 3: more obscure warnings, can most likely be ignored
+               • e: warnings are being treated as errors
+ Multiple levels can be combined with W=12 or W=123
+
+}
+
+  Execute "make" or "make all" to build all targets marked with [*]
+  For further info see the `./README` file
+}
+
+rem {
+    table { ll
+
+   ~Target~ ☰
+    `config` ☰ Plain text interface.
+    `menuconfig` ☰ Text based color menus, radiolists & dialogs.
+    `nconfig` ☰ Enhanced text based color menus.
+    `xconfig` ☰ Qt based configuration tool.
+    `gconfig` ☰ GTK+ based configuration tool.
+    `oldconfig` ☰  Default all questions based on the contents of your existing `./.config` file and asking about new config symbols.
+    `olddefconfig` ☰ Like above, but sets new symbols to their default values without prompting.
+    `defconfig` ☰  Create a `./.config` file by using the default symbol values from either `arch/$ARCH/defconfig` or `arch/$ARCH/configs/${PLATFORM}_defconfig`, depending on the architecture.
+    `allyesconfig` ☰ Create a `./.config` file by setting symbol values to `y` as much as possible.
+    `allmodconfig` ☰ Create a `./.config` file by setting symbol values to `m` as much as possible.
+    `allnoconfig` ☰ Create a `./.config` file by setting symbol values to `n` as much as possible.
+    `randconfig` ☰ Create a `./.config` file by setting symbol values to random values.
+    `localmodconfig` ☰ Create a config based on current config and loaded modules (`→ Linux/shell/commands/lsmod`). Disables any module option that is not needed for the loaded modules.
+    `localyesconfig` ☰ Similar to localmodconfig, except it will convert all module options to built in (=y) options. You can also preserve modules by LMC_KEEP.
+    `kvm_guest.config` ☰  Enable additional options for kvm guest kernel support.
+    `xen.config` ☰  Enable additional options for xen dom0 guest kernel support.
+    `tinyconfig` ☰ Configure the tiniest possible kernel.
+
+  table }
+
+rem }
+
+
+{ Creating a localmodconfig for another machine
+
+  To create a `localmodconfig` for another machine, store the lsmod of that machine into a file and pass it in as a LSMOD parameter.
+
+    Also, you can preserve modules in certain folders or kconfig files by specifying their paths in parameter LMC_KEEP.
+
+code {
+target$ lsmod > /tmp/mylsmod
+target$ scp /tmp/mylsmod host:/tmp
+
+host$ make LSMOD=/tmp/mylsmod LMC_KEEP="drivers/usb:drivers/gpu:fs" localmodconfig
+code }
+
+  The above also works when cross compiling.
+
+}
+
+sa:
+  → Linux/kernel/compilation
