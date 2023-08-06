@@ -1,0 +1,26 @@
+$ GIT: Inspect each version of a file
+
+The `Makefile` of the → Linux/kernel[Linux kernel] defines 5 variables at the beginning: `VERSION`, `PATCHLEVEL` etc.
+
+The following simple loop iterates over each version of the Makefile and uses `→ Linux/shell/commands/grep` to extract the values of these variables.
+-
+The → development/version-control-systems/git/objects/commit id and the values are then printed to → development/stdin-stdout-stderr[stdout]:
+code {
+filename=Makefile
+
+for commit in $(→ development/version-control-systems/git/commands/log --pretty=format:%H -- $filename); do
+
+    → development/version-control-systems/git/commands/checkout[git checkout] -q $commit $filename
+
+    version=$(     grep → Linux/shell/commands/grep#grep-P[-P] -o '(?<=^VERSION = ).*'      $filename)
+    patchlevel=$(  grep → Linux/shell/commands/grep#grep-P[-P] -o '(?<=^PATCHLEVEL = ).*'   $filename)
+    sublevel=$(    grep → Linux/shell/commands/grep#grep-P[-P] -o '(?<=^SUBLEVEL = ).*'     $filename)
+    extraversion=$(grep → Linux/shell/commands/grep#grep-P[-P] -o '(?<=^EXTRAVERSION = ).*' $filename)
+    name=$(        grep → Linux/shell/commands/grep#grep-P[-P] -o '(?<=^NAME = ).*'         $filename)
+
+    printf "%s %d.%02d.%d%-5s %s\n" $commit $version $patchlevel $sublevel "$extraversion" "$name"
+done
+
+# reset the file to its state in the current commit
+→ development/version-control-systems/git/commands/checkout[git checkout] HEAD $filename
+code }
