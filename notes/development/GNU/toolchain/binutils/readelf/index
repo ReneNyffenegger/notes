@@ -1,5 +1,31 @@
--
 
 `readelf -w` dumps all DWARF data (compare with → development/languages/C-C-plus-plus/GCC/options/g[`gcc -g`]).
 
-`readelf -p .comment prog` can be used to determine with which gcc compiler version a program was compiled with.
+{ Deteremine GCC compiler version
+
+  `readelf -p .comment obj|prog` can be used to determine with which GCC compiler version a program was compiled with:
+
+code {
+$ echo 'void f() {}' | gcc → development/languages/C-C-plus-plus/GCC/options/x[-xc] → development/languages/C-C-plus-plus/GCC/options/c → development/languages/C-C-plus-plus/GCC/options/o f.obj -
+$ readelf -p .comment f.obj
+
+String dump of section '.comment':
+  [     1]  GCC: (Debian 10.2.1-6) 10.2.1 20210110
+
+$ gcc → development/languages/C-C-plus-plus/GCC/options/version[--version] | → Linux/shell/commands/head -1
+gcc (Debian 10.2.1-6) 10.2.1 20210110
+code }
+
+  Alternatively, the `.comment` section can also be read with `objdump`:
+code {
+$ -s -j .comment f.obj
+
+f.obj:     file format elf64-x86-64
+
+Contents of section .comment:
+ 0000 00474343 3a202844 65626961 6e203130  .GCC: (Debian 10
+ 0010 2e322e31 2d362920 31302e32 2e312032  .2.1-6) 10.2.1 2
+ 0020 30323130 31313000                    0210110.
+code }
+
+}

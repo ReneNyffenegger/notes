@@ -1,0 +1,18 @@
+$ gcc -Qn
+@ -Qn
+
+By default, gcc writes the compiler version to an object file's `.comment` section:
+code {
+$ echo 'void f() {}' | gcc     → development/languages/C-C-plus-plus/GCC/options/x[-xc] → development/languages/C-C-plus-plus/GCC/options/c → development/languages/C-C-plus-plus/GCC/options/o f.obj -
+$ → development/GNU/toolchain/binutils/readelf -p .comment f.obj
+
+String dump of section '.comment':
+  [     1]  GCC: (Debian 10.2.1-6) 10.2.1 20210110
+code }
+
+With `-Qn`, such a section is not written.
+code {
+$ echo 'void f() {}' | gcc -Qn → development/languages/C-C-plus-plus/GCC/options/x[-xc] → development/languages/C-C-plus-plus/GCC/options/c → development/languages/C-C-plus-plus/GCC/options/o f.obj -
+$ → development/GNU/toolchain/binutils/readelf -p .comment f.obj
+readelf: Warning: Section '.comment' was not dumped because it does not exist!
+code }

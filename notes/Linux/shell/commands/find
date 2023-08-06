@@ -5,21 +5,27 @@ code {
 find [→ #find-H-L-P[-H]] [→ #find-H-L-P[-L]] [→ #find-H-L-P[-P]] [→ #find-D[-D debugopts]] [-Olevel] [dir…] [→ #find-expression[expression]]
 code }
 
-`find` descends into a filesystem hierarchy below `dir` (when omitted the current directory) and evaluates `expression` (if non given then `-print`) for each file or directory it encounters.
+`find` descends into a filesystem hierarchy below `dir` (when omitted the current directory) and evaluates `expression` (if none given then `-print`) for each file or directory it encounters.
 
 { Expressions #find-expression
 
-  The *expression* defines the *criteria* (tests) with which *matched* files are identified and the *actions* to perform.
+  An *expression* is one of:
+  table { ll
+    → #find-tests[criteria] (test) ☰ identifies matched files
+    action ☰ performed with the name of the mached file
+  table }
 
-  The behavior of the evaluation of the tests and actions can be influenced with *options*. `find` distinguishes between
+  The behavior of the evaluation of the tests and actions can be influenced with *options*.
+  -
+ `find` distinguishes between
     • global and
     • positional options.
 
-  Criteria, actions and options evaluate to a boolean value (`true` or `false`). The value of any option is `true`.
+  Criteria, actions and options evaluate to a boolean value (`true` or `false`).
+  -
+  The value of any option is `true`.
 
- *Operators* logically combine the (boolean) values of the criteria, actions and options and evaluate to a boolean value.
-
-  The default operator is `-a` (and)
+ *Operators* logically combine the (boolean) values of the criteria, actions and options and evaluate to a resulting boolean value.
 
 
   { Operators
@@ -34,12 +40,17 @@ code }
       `expr1, expr2[, …]` ☰ List: all expressions are evaluated. The list evaluates to the value of the last expression.
     table }
 
-  }
+    The ~default operator~ is `-a` (and).  So, the following two commands are equivalent:
+code { 
+$ find . -name xyz    -print
+$ find . -name xyz -a -print
+code }
 
+  }
 }
 
 
-{ Understading the working of find
+{ Understanding the working of find
 
 → https://docstore.mik.ua/orelly/unix/upt/index.htm[Unix Power Tools] has the following quote about `find`:
 "
@@ -80,14 +91,16 @@ code }
   }
 
 }
-{ Tests
+{ Tests (criteria) #find-tests
 
   The *test operators* check various file properties and return either true or false.
 
   Some tests take a numerical value (marked as `n` in the table below). In this case, the value of `n` can be `+n` (value is greater than `n`), `-n` (value is less than `n`) or simply `n`
  (value must be *exactly* `n`).
 
-  Some of these tests come in a case-sensitive and case-insensitive variant (`-i…`). Case insensitive variants are listed in the 3rd column.
+  Some of these tests come in a case-sensitive and case-insensitive variant (`-i…`).
+  -
+  Variants of the tests that text ~case insensitiveli~ are listed in the 3rd column.
 
   table { lll
 
@@ -120,7 +133,7 @@ code }
     `-samefile name` ☰ ☰
     `-size n[cwbkMG]` ☰ File size. `c` = bytes, `b` = blocks (512 bytes, the *default*), `w`: two-byte words, `k`: kibi-bytes (1024), `M`: Mebi-bytes (1024²), `G`: 1024³ ☰
     `-true` ☰ ☰
-    `-type x` ☰ `x` is one of `b` (block), `c` (character), `d` (directory), `p` (named pipe), `f` (regular file), `l` (symbolic link), `s` (socket), `D` (door, Solaris only?)  ☰
+    `-type x` ☰ `x` is one of `b` (block), `c` (character), `d` (directory), `p` (named pipe), `f` (regular file), `l` (symbolic link), `s` (socket), `D` (door, Solaris only?). (Compare with the shell command `→ Linux/shell/commands/test`)  ☰
     `-uid n` ☰ ☰
     `-used n` ☰ ☰
     `-user uname` ☰ File's owner ☰
