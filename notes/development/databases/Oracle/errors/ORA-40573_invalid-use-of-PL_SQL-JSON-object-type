@@ -1,0 +1,42 @@
+$ ORA-40573: invalid use of PL/SQL JSON object type
+
+This statement throws *ORA-40573: invalid use of PL/SQL JSON object type*:
+code {
+select
+   json_array_t(json_arrayagg(column_name))
+from
+   dba_tab_cols
+where
+   owner      = 'SYS'                   and
+   table_name = 'USER_TAB_COMMENTS'
+;
+code }
+ 
+So does this statement:
+code {
+select
+   json_array_t('["TABLE_NAME","TABLE_TYPE","COMMENTS","ORIGIN_CON_ID"]')
+from
+   dual;
+code }
+ 
+
+The following → development/databases/Oracle/PL-SQL/block runs fine, however: 
+code {
+declare
+   a json_array_t;
+begin
+   a := json_array_t('["TABLE_NAME","TABLE_TYPE","COMMENTS","ORIGIN_CON_ID"]');
+end;
+/ 
+code }
+
+My *assumption* (!) is that this error is thrown in SQL because `json_object_t` is not a → development/databases/Oracle/objects/types#ora-plsql-type-persistable[persistable type].
+
+sa:
+
+  → development/databases/Oracle/errors/ORA-40587_invalid-JSON-type
+
+  → development/databases/Oracle/installed/types/json[JSON related PL/SQL object types]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

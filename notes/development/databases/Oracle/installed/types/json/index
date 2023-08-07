@@ -1,4 +1,11 @@
-$ Oracle: JSON related types
+$ Oracle: JSON related PL/SQL types
+
+Oracle defines some PL/SQL object types to be used for → development/databases/Oracle/SQL/JSON[JSON in combination with SQL]: 
+  • `json_element_t` (The super type for the following three types)
+  • `json_scalar_t`
+  • `→ development/databases/Oracle/installed/types/json/object_t`
+  • `json_array_t`
+  • `json_key_list`, which is simply a `varray of varchar2(4000)` and used as return type of the `get_keys()` function of `json_object_t`.
 
 code {
 declare
@@ -34,9 +41,276 @@ end;
 /
 code }
 
+{ Method overview
+
+code {
+set lines 500
+column elm_method  format a15
+column scl_method  format a15
+column obj_method  format a15
+column ary_method  format a15
+column params      format a90
+column result_type format a20
+with meth as (
+   select
+      met.type_name,
+      met.method_name        method,
+      met.method_type,
+      met.final,
+      met.instantiable,
+      met.overriding,
+      met.inherited,
+      listagg( par.param_name || ' ' || lower(par.param_mode || ' ' || par.param_type_name), ', ') within group (order by par.param_no) params,
+      res.result_type_name   result_type,
+      met.method_no
+   from
+      dba_type_methods   met                                                     join
+      dba_method_params  par on met.owner        = par.owner       and
+                                met.type_name    = par.type_name   and
+                                met.method_name  = par.method_name and
+                                met.method_no    = par.method_no            left join
+      dba_method_results res on met.owner        = res.owner       and
+                                met.type_name    = res.type_name   and
+                                met.method_name  = res.method_name and
+                                met.method_no    = res.method_no
+   where
+      met.owner     = 'SYS'
+   group by
+      met.type_name,
+      met.method_name,
+      met.method_type,
+      met.final,
+      met.instantiable,
+      met.overriding,
+      met.inherited,
+      res.result_type_name,
+      met.method_no
+),
+   elm as (select * from meth where type_name = 'JSON_ELEMENT_T'),
+   scl as (select * from meth where type_name = 'JSON_SCALAR_T' ),
+   obj as (select * from meth where type_name = 'JSON_OBJECT_T' ),
+   ary as (select * from meth where type_name = 'JSON_ARRAY_T'  )
+select
+   elm.method                                                                    elm_method,
+   scl.method                                                                    scl_method,
+   obj.method                                                                    obj_method,
+   ary.method                                                                    ary_method,
+   coalesce(elm.params     , scl.params     , obj.params     , ary.params     )  params,
+   coalesce(elm.result_type, scl.result_type, obj.result_type, ary.result_type)  result_type
+from
+   elm                                                                                    full outer join
+   scl on          elm.method                                   = scl.method         and
+                   elm.method_no                                = scl.method_no           full outer join
+   obj on coalesce(elm.method   , scl.method                  ) = obj.method         and
+                   elm.method_no                                = obj.method_no           full outer join
+   ary on coalesce(elm.method   , scl.method   , obj.method   ) = ary.method         and
+                   elm.method_no                                = ary.method_no
+order by
+   coalesce(elm.method   , scl.method   , obj.method   , ary.method   ),
+   coalesce(elm.method_no, scl.method_no, obj.method_no, ary.method_no)
+;
+--
+-- ELM_METHOD      SCL_METHOD      OBJ_METHOD      ARY_METHOD      PARAMS                                                                                     RESULT_TYPE         
+-- --------------- --------------- --------------- --------------- ------------------------------------------------------------------------------------------ --------------------
+--                                                 APPEND          SELF in out json_array_t, VAL in varchar2                                                                      
+--                                                 APPEND          SELF in out json_array_t, VAL in number                                                                        
+--                                                 APPEND          SELF in out json_array_t, VAL in boolean                                                                       
+--                                                 APPEND          SELF in out json_array_t, VAL in date                                                                          
+--                                                 APPEND          SELF in out json_array_t, VAL in timestamp                                                                     
+--                                                 APPEND          SELF in out json_array_t, VAL in binary_float                                                                  
+--                                                 APPEND          SELF in out json_array_t, VAL in binary_double                                                                 
+--                                                 APPEND          SELF in out json_array_t, VAL in timestamp with tz                                                             
+--                                                 APPEND          SELF in out json_array_t, VAL in clob                                                                          
+--                                                 APPEND          SELF in out json_array_t, VAL in blob                                                                          
+--                                                 APPEND          SELF in out json_array_t, VAL in json                                                                          
+--                                                 APPEND          SELF in out json_array_t, VAL in json_element_t                                                                
+--                                                 APPEND_ALL      SELF in out json_array_t, VAL in json_array_t, EXCL_EXIST in boolean                                           
+--                                                 APPEND_NCLOB    SELF in out json_array_t, VAL in nclob                                                                         
+--                                                 APPEND_NULL     SELF in out json_array_t                                                                                       
+--                                                 APPEND_RAW      SELF in out json_array_t, VAL in raw                                                                           
+--                 CLONE                                           SELF in json_scalar_t                                                                      JSON_SCALAR_T       
+--                                                 CLONE           SELF in json_array_t                                                                       JSON_ARRAY_T        
+--                                 CLONE                           SELF in json_object_t                                                                      JSON_OBJECT_T       
+-- COMPARE_TO      COMPARE_TO      COMPARE_TO      COMPARE_TO      SELF in json_element_t, CMP in json_element_t, ORDER_BY_COMPARE in boolean                 NUMBER              
+-- COMPARE_TO      COMPARE_TO      COMPARE_TO      COMPARE_TO      SELF in json_element_t, CMP in json, ORDER_BY_COMPARE in boolean                           NUMBER              
+--                                 CREATE_ARRAY                    SELF in json_object_t, KEY in varchar2                                                     JSON_ARRAY_T        
+--                                                 CREATE_ARRAY    SELF in json_array_t, POS in number                                                        JSON_ARRAY_T        
+--                                 CREATE_OBJECT                   SELF in json_object_t, KEY in varchar2                                                     JSON_OBJECT_T       
+--                                                 CREATE_OBJECT   SELF in json_array_t, POS in number                                                        JSON_ELEMENT_T      
+--                                                 DEDUPLICATE     SELF in out json_array_t                                                                                       
+-- EQUALS          EQUALS          EQUALS          EQUALS          SELF in json_element_t, CMP in json_element_t                                              BOOLEAN             
+-- EQUALS          EQUALS          EQUALS          EQUALS          SELF in json_element_t, CMP in json                                                        BOOLEAN             
+--                                                 GET             SELF in json_array_t, POS in number                                                        JSON_ELEMENT_T      
+--                                 GET                             SELF in json_object_t, KEY in varchar2                                                     JSON_ELEMENT_T      
+--                                 GET_ARRAY                       SELF in json_object_t, KEY in varchar2                                                     JSON_ARRAY_T        
+--                                                 GET_BLOB        SELF in json_array_t, POS in number                                                        BLOB                
+--                                                 GET_BLOB        SELF in out json_array_t, POS in number, B in out blob                                                         
+--                                 GET_BLOB                        SELF in json_object_t, KEY in varchar2                                                     BLOB                
+--                                 GET_BLOB                        SELF in out json_object_t, KEY in varchar2, B in out blob                                                      
+--                                                 GET_BOOLEAN     SELF in json_array_t, POS in number                                                        BOOLEAN             
+--                                 GET_BOOLEAN                     SELF in json_object_t, KEY in varchar2                                                     BOOLEAN             
+--                                                 GET_CLOB        SELF in json_array_t, POS in number                                                        CLOB                
+--                                                 GET_CLOB        SELF in out json_array_t, POS in number, C in out clob                                                         
+--                                 GET_CLOB                        SELF in json_object_t, KEY in varchar2                                                     CLOB                
+--                                 GET_CLOB                        SELF in out json_object_t, KEY in varchar2, C in out clob                                                      
+--                                                 GET_DATE        SELF in json_array_t, POS in number                                                        DATE                
+--                                 GET_DATE                        SELF in json_object_t, KEY in varchar2                                                     DATE                
+--                                                 GET_DOUBLE      SELF in json_array_t, POS in number                                                        BINARY_DOUBLE       
+--                                 GET_DOUBLE                      SELF in json_object_t, KEY in varchar2                                                     BINARY_DOUBLE       
+--                                                 GET_FLOAT       SELF in json_array_t, POS in number                                                        BINARY_FLOAT        
+--                                 GET_FLOAT                       SELF in json_object_t, KEY in varchar2                                                     BINARY_FLOAT        
+--                                                 GET_JSON        SELF in json_array_t, POS in number                                                        JSON                
+--                                                 GET_JSON        SELF in out json_array_t, POS in number, J in out json                                                         
+--                                 GET_JSON                        SELF in json_object_t, KEY in varchar2                                                     JSON                
+--                                 GET_JSON                        SELF in out json_object_t, KEY in varchar2, J out json                                                         
+--                                 GET_KEYS                        SELF in json_object_t                                                                      JSON_KEY_LIST       
+--                                 GET_KEYS_AS_NCH                 SELF in json_object_t                                                                      JSON_NKEY_LIST      
+--                                 AR                                                                                                                                             
+-- 
+--                                                 GET_NCLOB       SELF in json_array_t, POS in number                                                        NCLOB               
+--                                                 GET_NCLOB       SELF in out json_array_t, POS in number, N in out nclob                                                        
+--                                 GET_NCLOB                       SELF in json_object_t, KEY in varchar2                                                     NCLOB               
+--                                 GET_NCLOB                       SELF in out json_object_t, KEY in varchar2, N in out nclob                                                     
+--                                                 GET_NSTRING     SELF in json_array_t, POS in number                                                        NVARCHAR2           
+--                                 GET_NSTRING                     SELF in json_object_t, KEY in varchar2                                                     NVARCHAR2           
+--                                                 GET_NUMBER      SELF in json_array_t, POS in number                                                        NUMBER              
+--                                 GET_NUMBER                      SELF in json_object_t, KEY in varchar2                                                     NUMBER              
+--                                 GET_OBJECT                      SELF in json_object_t, KEY in varchar2                                                     JSON_OBJECT_T       
+--                                                 GET_RAW         SELF in json_array_t, POS in number                                                        RAW                 
+--                                 GET_RAW                         SELF in json_object_t, KEY in varchar2                                                     RAW                 
+-- GET_SIZE        GET_SIZE        GET_SIZE        GET_SIZE        SELF in json_element_t                                                                     NUMBER              
+--                                                 GET_STRING      SELF in json_array_t, POS in number                                                        VARCHAR2            
+--                                 GET_STRING                      SELF in json_object_t, KEY in varchar2                                                     VARCHAR2            
+--                                                 GET_TIMESTAMP   SELF in json_array_t, POS in number                                                        TIMESTAMP           
+--                                 GET_TIMESTAMP                   SELF in json_object_t, KEY in varchar2                                                     TIMESTAMP           
+--                                                 GET_TIMESTAMPTZ SELF in json_array_t, POS in number                                                        TIMESTAMP WITH TZ   
+--                                 GET_TIMESTAMPTZ                 SELF in json_object_t, KEY in varchar2                                                     TIMESTAMP WITH TZ   
+--                                 GET_TYPE                        SELF in json_object_t, KEY in varchar2                                                     VARCHAR2            
+--                                                 GET_TYPE        SELF in json_array_t, POS in number                                                        VARCHAR2            
+--                                 HAS                             SELF in json_object_t, KEY in varchar2                                                     BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in varchar2                                                  BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in number                                                    BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in boolean                                                   BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in date                                                      BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in timestamp                                                 BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in json_element_t                                            BOOLEAN             
+--                                                 HAS_VALUE       SELF in out json_array_t, VAL in json                                                      BOOLEAN             
+-- IS_ARRAY        IS_ARRAY        IS_ARRAY        IS_ARRAY        SELF in json_element_t                                                                     BOOLEAN             
+-- IS_BINARY       IS_BINARY       IS_BINARY       IS_BINARY       SELF in json_element_t                                                                     BOOLEAN             
+-- IS_BOOLEAN      IS_BOOLEAN      IS_BOOLEAN      IS_BOOLEAN      SELF in json_element_t                                                                     BOOLEAN             
+-- IS_DATE         IS_DATE         IS_DATE         IS_DATE         SELF in json_element_t                                                                     BOOLEAN             
+-- IS_FALSE        IS_FALSE        IS_FALSE        IS_FALSE        SELF in json_element_t                                                                     BOOLEAN             
+-- IS_NULL         IS_NULL         IS_NULL         IS_NULL         SELF in json_element_t                                                                     BOOLEAN             
+-- IS_NUMBER       IS_NUMBER       IS_NUMBER       IS_NUMBER       SELF in json_element_t, TYP in varchar2                                                    BOOLEAN             
+-- IS_OBJECT       IS_OBJECT       IS_OBJECT       IS_OBJECT       SELF in json_element_t                                                                     BOOLEAN             
+-- IS_SCALAR       IS_SCALAR       IS_SCALAR       IS_SCALAR       SELF in json_element_t                                                                     BOOLEAN             
+-- IS_STRING       IS_STRING       IS_STRING       IS_STRING       SELF in json_element_t                                                                     BOOLEAN             
+-- IS_TIMESTAMP    IS_TIMESTAMP    IS_TIMESTAMP    IS_TIMESTAMP    SELF in json_element_t                                                                     BOOLEAN             
+-- IS_TRUE         IS_TRUE         IS_TRUE         IS_TRUE         SELF in json_element_t                                                                     BOOLEAN             
+--                                                 JSON_ARRAY_T    SELF in out json_array_t                                                                   JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in varchar2                                                  JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in jdom_t                                                    JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in clob                                                      JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in blob                                                      JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in json                                                      JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, JSN in blob, FORMAT in varchar2                                  JSON_ARRAY_T        
+--                                                 JSON_ARRAY_T    SELF in out json_array_t, E in json_element_t                                              JSON_ARRAY_T        
+--                                 JSON_OBJECT_T                   SELF in out json_object_t                                                                  JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in jdom_t                                                   JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in varchar2                                                 JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in clob                                                     JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in blob                                                     JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in json                                                     JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, JSN in blob, FORMAT in varchar2                                 JSON_OBJECT_T       
+--                                 JSON_OBJECT_T                   SELF in out json_object_t, E in json_element_t                                             JSON_OBJECT_T       
+--                 JSON_SCALAR_T                                   SELF in out json_scalar_t, JSN in jdom_t                                                   JSON_SCALAR_T       
+--                 JSON_SCALAR_T                                   SELF in out json_scalar_t, JSN in json                                                     JSON_SCALAR_T       
+--                 JSON_SCALAR_T                                   SELF in out json_scalar_t, E in json_element_t                                             JSON_SCALAR_T       
+-- LOAD            LOAD            LOAD            LOAD            JSN in json                                                                                JSON_ELEMENT_T      
+--                                                 LOAD            JSN in json                                                                                JSON_ARRAY_T        
+--                                 LOAD                            JSN in json                                                                                JSON_OBJECT_T       
+-- MERGEPATCH      MERGEPATCH      MERGEPATCH      MERGEPATCH      SELF in out json_element_t, PATCH in varchar2                                                                  
+-- MERGEPATCH      MERGEPATCH      MERGEPATCH      MERGEPATCH      SELF in out json_element_t, PATCH in json_element_t                                                            
+-- ON_ERROR        ON_ERROR        ON_ERROR        ON_ERROR        SELF in out json_element_t, VAL in number                                                                      
+-- PARSE           PARSE           PARSE           PARSE           JSN in varchar2                                                                            JSON_ELEMENT_T      
+-- PARSE           PARSE           PARSE           PARSE           JSN in clob                                                                                JSON_ELEMENT_T      
+-- PARSE           PARSE           PARSE           PARSE           JSN in blob                                                                                JSON_ELEMENT_T      
+-- PARSE           PARSE           PARSE           PARSE           JSN in blob, FORMAT in varchar2                                                            JSON_ELEMENT_T      
+--                                 PARSE                           JSN in varchar2                                                                            JSON_OBJECT_T       
+--                                                 PARSE           JSN in varchar2                                                                            JSON_ARRAY_T        
+--                                 PARSE                           JSN in clob                                                                                JSON_OBJECT_T       
+--                                                 PARSE           JSN in clob                                                                                JSON_ARRAY_T        
+--                                                 PARSE           JSN in blob                                                                                JSON_ARRAY_T        
+--                                 PARSE                           JSN in blob                                                                                JSON_OBJECT_T       
+--                                                 PARSE           JSN in blob, FORMAT in varchar2                                                            JSON_ARRAY_T        
+--                                 PARSE                           JSN in blob, FORMAT in varchar2                                                            JSON_OBJECT_T       
+-- PATCH           PATCH           PATCH           PATCH           SELF in out json_element_t, SPEC in varchar2                                                                   
+-- PATCH           PATCH           PATCH           PATCH           SELF in out json_element_t, SPEC in json_element_t                                                             
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in varchar2                                                    
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in number                                                      
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in boolean                                                     
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in date                                                        
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in timestamp                                                   
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in timestamp with tz                                           
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in clob                                                        
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in blob                                                        
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in json                                                        
+--                                 PUT                             SELF in out json_object_t, KEY in varchar2, VAL in json_element_t                                              
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in varchar2, OVERWRITE in boolean                                 
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in number, OVERWRITE in boolean                                   
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in boolean, OVERWRITE in boolean                                  
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in date, OVERWRITE in boolean                                     
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in timestamp, OVERWRITE in boolean                                
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in binary_float, OVERWRITE in boolean                             
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in timestamp with tz, OVERWRITE in boolean                        
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in binary_double, OVERWRITE in boolean                            
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in clob, OVERWRITE in boolean                                     
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in blob, OVERWRITE in boolean                                     
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in json, OVERWRITE in boolean                                     
+--                                                 PUT             SELF in out json_array_t, POS in number, VAL in json_element_t, OVERWRITE in boolean                           
+--                                 PUT_DOUBLE                      SELF in out json_object_t, KEY in varchar2, VAL in binary_double                                               
+--                                 PUT_FLOAT                       SELF in out json_object_t, KEY in varchar2, VAL in binary_float                                                
+--                                 PUT_NCLOB                       SELF in out json_object_t, KEY in varchar2, VAL in nclob                                                       
+--                                                 PUT_NCLOB       SELF in out json_array_t, POS in number, VAL in nclob, OVERWRITE in boolean                                    
+--                                 PUT_NULL                        SELF in out json_object_t, KEY in varchar2                                                                     
+--                                                 PUT_NULL        SELF in out json_array_t, POS in number, OVERWRITE in boolean                                                  
+--                                 PUT_RAW                         SELF in out json_object_t, KEY in varchar2, VAL in raw                                                         
+--                                                 PUT_RAW         SELF in out json_array_t, POS in number, VAL in raw, OVERWRITE in boolean                                      
+-- REDACT          REDACT          REDACT          REDACT          SELF in out json_element_t, SPEC in varchar2                                                                   
+-- REDACT          REDACT          REDACT          REDACT          SELF in out json_element_t, SPEC in json_element_t                                                             
+--                                 REMOVE                          SELF in out json_object_t, KEY in varchar2                                                                     
+--                                                 REMOVE          SELF in out json_array_t, POS in number                                                                        
+--                                 RENAME_KEY                      SELF in out json_object_t, KEYOLD in varchar2, KEYNEW in varchar2                                              
+-- SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SELF in out json_element_t, SPEC in varchar2, CAST in boolean                              BOOLEAN             
+-- SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SELF in out json_element_t, SPEC in json, CAST in boolean                                  BOOLEAN             
+-- SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SCHEMA_VALIDATE SELF in out json_element_t, SPEC in json_element_t, CAST in boolean                        BOOLEAN             
+--                                                 SORT            SELF in out json_array_t, ASCENDING in boolean                                                                 
+-- STRINGIFY       STRINGIFY       STRINGIFY       STRINGIFY       SELF in json_element_t, PRETTY in boolean                                                  VARCHAR2            
+-- TO_BLOB         TO_BLOB         TO_BLOB         TO_BLOB         SELF in json_element_t                                                                     BLOB                
+-- TO_BLOB         TO_BLOB         TO_BLOB         TO_BLOB         SELF in json_element_t, FORMAT in varchar2                                                 BLOB                
+-- TO_BLOB         TO_BLOB         TO_BLOB         TO_BLOB         SELF in out json_element_t, B in out blob                                                                      
+-- TO_BLOB         TO_BLOB         TO_BLOB         TO_BLOB         SELF in out json_element_t, B in out blob, FORMAT in varchar2                                                  
+-- TO_BOOLEAN      TO_BOOLEAN      TO_BOOLEAN      TO_BOOLEAN      SELF in json_element_t                                                                     BOOLEAN             
+-- TO_CLOB         TO_CLOB         TO_CLOB         TO_CLOB         SELF in json_element_t                                                                     CLOB                
+-- TO_CLOB         TO_CLOB         TO_CLOB         TO_CLOB         SELF in out json_element_t, C in out clob                                                                      
+-- TO_DATE         TO_DATE         TO_DATE         TO_DATE         SELF in json_element_t                                                                     DATE                
+-- TO_JSON         TO_JSON         TO_JSON         TO_JSON         SELF in json_element_t                                                                     JSON                
+-- TO_JSON         TO_JSON         TO_JSON         TO_JSON         SELF in out json_element_t, J out json                                                                         
+-- TO_NCLOB        TO_NCLOB        TO_NCLOB        TO_NCLOB        SELF in json_element_t                                                                     NCLOB               
+-- TO_NCLOB        TO_NCLOB        TO_NCLOB        TO_NCLOB        SELF in out json_element_t, N in out nclob                                                                     
+-- TO_NUMBER       TO_NUMBER       TO_NUMBER       TO_NUMBER       SELF in json_element_t                                                                     NUMBER              
+-- TO_STRING       TO_STRING       TO_STRING       TO_STRING       SELF in json_element_t, PRETTY in boolean                                                  VARCHAR2            
+-- TO_TIMESTAMP    TO_TIMESTAMP    TO_TIMESTAMP    TO_TIMESTAMP    SELF in json_element_t                                                                     TIMESTAMP           
+code }
+
+
+}
+
 sa:
 
-  JSON object types don't accept `→ development/databases/Oracle/SQL/null` when they're initialized. If doing so, they throw
-  → development/databases/Oracle/errors/ORA-40834_invalid-input-to-JSON-parse-load-function.
+  Error messages:
+    • JSON object types don't accept `→ development/databases/Oracle/SQL/null` when they're initialized. If doing so, they throw → development/databases/Oracle/errors/ORA-40834_invalid-input-to-JSON-parse-load-function.
+    • → development/databases/Oracle/errors/ORA-40587_invalid-JSON-type
+    • → development/databases/Oracle/errors/ORA-40573_invalid-use-of-PL_SQL-JSON-object-type
 
   → development/databases/Oracle/SQL/JSON

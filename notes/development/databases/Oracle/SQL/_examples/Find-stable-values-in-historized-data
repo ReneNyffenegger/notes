@@ -1,0 +1,56 @@
+$ Oracle SQL: Find stable values in historized data
+
+code {
+create table tq84_historized_data (
+   pk          integer  not null,  -- Not a REAL primary key, because data ist historized
+   valid_from  date not null check (valid_from = trunc(valid_from)),
+   col_1       number,
+   col_2       varchar2(10),
+   col_3       varchar2(10),
+   col_4       varchar2(10)
+);
+
+begin
+   insert into tq84_historized_data values (  1, date '2020-08-07',  17, 'abc', 'def', 'xxx');
+   insert into tq84_historized_data values (  1, date '2021-03-21',   5, 'abc', 'def', 'xxx');
+   insert into tq84_historized_data values (  1, date '2022-11-11',   2, 'abc', 'def', 'xxx');
+
+   insert into tq84_historized_data values (  2, date '2020-09-12',   8, 'ghi', 'jkl', 'yyy');
+   insert into tq84_historized_data values (  2, date '2020-12-05',  22, 'ghi', 'jkl', 'yyy');
+   insert into tq84_historized_data values (  2, date '2021-03-28',  15, null , 'jkl', 'yyy');
+   insert into tq84_historized_data values (  2, date '2021-12-20',  13, 'ghi', 'mno', 'yyy');
+
+   insert into tq84_historized_data values (  3, date '2021-05-10',   4, 'pqr', 'stu', 'zzz');
+   insert into tq84_historized_data values (  3, date '2021-10-14',   7, 'pqr', 'stu', 'zzz');
+
+   commit;
+end;
+/
+code }
+
+Count the number of distinct values per (virtual) primary key. If the maximum value of this count is `1`, the
+value of the column can be considered stable for the primary key.
+code {
+select distinct
+   'col_1 is ' || case when max(count(distinct sys_op_map_nonnull(col_1))) over() > 1 then 'NOT ' end || 'stable' c1,
+   'col_2 is ' || case when max(count(distinct sys_op_map_nonnull(col_2))) over() > 1 then 'NOT ' end || 'stable' c2,
+   'col_3 is ' || case when max(count(distinct sys_op_map_nonnull(col_3))) over() > 1 then 'NOT ' end || 'stable' c3,
+   'col_4 is ' || case when max(count(distinct sys_op_map_nonnull(col_4))) over() > 1 then 'NOT ' end || 'stable' c4
+from
+   tq84_historized_data
+group by
+   pk;
+code }
+
+The result of the query suggests that only the value of `col_4` is stable:
+code {
+--
+-- C1                   C2                   C3                   C4                 
+-- -------------------  -------------------  -------------------  -------------------
+-- col_1 is NOT stable  col_2 is NOT stable  col_3 is NOT stable  col_4 is stable  
+code }
+
+Cleaning up:
+code {
+drop   table tq84_historized_data;
+code }

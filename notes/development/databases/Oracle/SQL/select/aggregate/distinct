@@ -2,17 +2,66 @@ $ Oracle SQL: DISTINCT and COUNT
 
 gh|Oracle-Patterns|/SQL/select/aggregate/distinct.sql||
 
-Unlike some SQL implementations found in other → development/databases[databases] (for example → development/databases/MySQL), Oracle does not allow to use a (comma-separated) list
-of expressions in the `count(distinct …)` clause. The following statement raises *ORA-00909: invalid number of arguments*:
+{ NULL is no distinct value
+
+  `count distinct(…)` doesn't consider `→ development/databases/Oracle/SQL/null` to be a distinct value:
+code {
+create table tq84_count_distinct_test ( a number );
+ 
+begin
+   insert into tq84_count_distinct_test values ( 1 );
+   insert into tq84_count_distinct_test values ( 1 );
+   insert into tq84_count_distinct_test values ( 1 );
+ 
+   insert into tq84_count_distinct_test values ( 2 );
+ 
+   insert into tq84_count_distinct_test values ( 3 );
+   insert into tq84_count_distinct_test values ( 3 );
+   insert into tq84_count_distinct_test values ( 3 );
+   insert into tq84_count_distinct_test values ( 3 );
+ 
+   commit;
+end;
+/
+code }
+ 
+  The following statement returns 3 (which corresponds to the number distinct values in `tq84_count_distinct_test`):
+code { 
+select
+   count(distinct a) cnt_dist
+from
+   tq84_count_distinct_test;
+code }
+ 
+   A `null` value is inserted - but the select statement will still return 3:
+code {
+insert into tq84_count_distinct_test values ( null );
+commit;
+code }
+ 
+  Using `→ development/databases/Oracle/SQL/functions/null-related/sys_op_map_nonnull` gives the alternative (some would say: more accurate) value 4:
+code {
+select
+   count(distinct sys_op_map_nonnull(a)) cnt_dist
+from
+   tq84_count_distinct_test;
+code }
+
+}
+{ COUNT(DISTINCT col-1, col_2) raises ORA-00909
+
+  Unlike some SQL implementations found in other → development/databases[databases] (for example → development/databases/MySQL), Oracle does not allow to use a (comma-separated) list
+  of expressions in the `count(distinct …)` clause. The following statement raises *ORA-00909: invalid number of arguments*:
 code {
 select count(distinct owner, object_type) from all_objects
 code }
 
-This shortcoming is typically circumvented with a subquery:
+  This shortcoming is typically circumvented with a subquery:
 code {
 select count(*) from (select distinct owner, object_type from all_objects);
 code }
 
+}
 sa:
   The `→ development/databases/Oracle/SQL/functions/approx/count/distinct(…)` function.
 

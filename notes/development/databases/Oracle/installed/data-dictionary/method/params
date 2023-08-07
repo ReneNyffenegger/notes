@@ -1,0 +1,51 @@
+$ Oracle: DBA_METHOD_PARAMS
+@ dba_method_params
+
+code {
+select
+   met.owner,
+   met.method_name,
+   met.method_type,
+   met.final,
+   met.instantiable,
+   met.overriding,
+   met.inherited,
+   listagg( par.param_name || ' ' || lower(par.param_mode || ' ' || par.param_type_name), ', ') within group (order by par.param_no) params,
+   res.result_type_name,
+   met.method_no
+from
+   dba_type_methods  met                                                      join
+   dba_method_params par  on met.owner        = par.owner       and
+                             met.type_name    = par.type_name   and
+                             met.method_name  = par.method_name and
+                             met.method_no    = par.method_no            left join
+   dba_method_results res on met.owner        = res.owner       and
+                             met.type_name    = res.type_name   and
+                             met.method_name  = res.method_name and
+                             met.method_no    = res.method_no
+where
+   met.inherited = 'NO'                  and
+   --
+   met.owner     = 'SYS'                 and
+   met.type_name = 'JSON_ELEMENT_T'
+-- met.type_name = 'JSON_OBJECT_T'
+-- met.type_name = 'JSON_ARRAY_T'
+-- met.type_name = 'JSON_SCALAR_T'
+group by
+   met.owner,
+   met.method_name,
+   met.method_type,
+   met.final,
+   met.instantiable,
+   met.overriding,
+   met.inherited,
+   res.result_type_name,
+   met.method_no
+order by
+   met.method_name,
+   met.method_no
+;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary
