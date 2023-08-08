@@ -1,0 +1,26 @@
+$ PLS-00215: String length constraints must be in range (1 .. 32767)
+
+A variable that is declared to be a `→ development/databases/Oracle/SQL/data-types/varchar2` needs also to have the
+→ development/databases/Oracle/SQL/data-types/varchar2#varchar2-max-length[maximum length], for example `varname varchar2(20)`. If this length is not present (`varname varchar2`), the PL/SQL compiler
+will throw the error *PLS-00215: String length constraints must be in range (1 .. 32767)*.
+
+Note, a → development/databases/Oracle/PL-SQL/function-procedure[function or procedure] parameter must not have such a maximum length.
+
+code {
+create or replace procedure tq84_pls_00215(txt varchar2) -- << This is ok
+   authid definer
+as
+   txt_out varchar2;                                     -- << This throws PLS-00215: String length constraints must be in range (1 .. 32767)
+begin
+   txt_out := upper(txt);
+   dbms_output.put_line(txt);
+end tq84_pls_00215;
+/
+code }
+
+sa:
+
+  When trying to create a table with a `→ development/databases/Oracle/SQL/data-types/varchar2` without specifying a maximum length, Oracle will throw
+  → development/databases/Oracle/errors/ORA-00906_missing-left-paranthesis
+
+  → development/databases/Oracle/PL-SQL/errors-warnings

@@ -1,10 +1,69 @@
 $ SP2-0027: Input is too long (> 4999 characters) - line ignored
 
-This is the year 2022 and Oracle's → development/databases/Oracle/SQL-Plus does not allow to read lines that are longer than 4999 characters.
-
+This is the year 2023, Oracle has released → development/databases/Oracle/Releases-and-versions/23c and Oracle's → development/databases/Oracle/SQL-Plus does still not allow to read lines that are longer than 4999 characters.
+-
 After *variable substitution* (if any), a line must not be longer than 3000 characters, otherwise a
 → development/databases/Oracle/SQL-Plus/_errors/SP2-0341_line-overflow-during-variable-substitution error is thrown.
 
+{ Demonstration
+
+  { Creating SQL scripts
+
+    Four SQL scripts are created: `/tmp/3001.sql`, `/tmp/3002.sql`, `/tmp/4999.sql` and `/tmp/5000.sql`.
+
+    The number in the filename corresponds to the number of characters in the first line (including new line):
+code {
+printf "%-2999s;\nexit\n" "select '3001' len from dual" > /tmp/3001.sql
+printf "%-3000s;\nexit\n" "select '3002' len from dual" > /tmp/3002.sql
+printf "%-4997s;\nexit\n" "select '4999' len from dual" > /tmp/4999.sql
+printf "%-4998s;\nexit\n" "select '5000' len from dual" > /tmp/5000.sql
+code }
+
+    Using `→ Linux/shell/commands/wc` to verify the length of the first lines:
+code {
+→ Linux/shell/commands/head -1 /tmp/3001.sql | → Linux/shell/commands/wc -c
+→ Linux/shell/commands/head -1 /tmp/3002.sql | → Linux/shell/commands/wc -c
+→ Linux/shell/commands/head -1 /tmp/4999.sql | → Linux/shell/commands/wc -c
+→ Linux/shell/commands/head -1 /tmp/5000.sql | → Linux/shell/commands/wc -c
+code }
+
+  }  
+  { Executing the scripts
+
+    The scripts are now executed in SQL*Plus.
+
+     SQL*Plus can execute files whose maximum line length is 3000 characters (without new line):
+code {
+$ sqlplus -S rene/rene@localhost/freepdb1 @/tmp/3001.sql
+
+LEN
+----
+3001
+code }
+
+  However, adding *one* character does not permit to execute the script anymore:
+code {
+$ sqlplus -S rene/rene@localhost/freepdb1 @/tmp/3002.sql
+SP2-0341:
+line overflow during variable substitution (>3000 characters at line 1)
+code }
+
+  Still the same error with 4999 characters:
+code {
+$ sqlplus -S rene/rene@localhost/freepdb1 @/tmp/4999.sql
+SP2-0341:
+line overflow during variable substitution (>3000 characters at line 1)
+code }
+
+  As soon as the input length reaches 5000 characters, a different error is throns:
+code {
+$ sqlplus -S rene/rene@localhost/freepdb1 @/tmp/5000.sql
+SP2-0027: Input is too long (> 4999 characters) - line ignored
+code }
+
+  }
+
+}
 sa:
 
   The → development/databases/Oracle/SQL-Plus/start[`start` command]
