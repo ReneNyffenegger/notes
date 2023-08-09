@@ -1,0 +1,120 @@
+$ Oracle: DBMS_COMPRESSION
+@ dbms_compression
+
+`dbms_compression` estimates compression rates for → development/databases/Oracle/Options/advanced-compression.
+
+Estimate the compression rate for the 100 largest table segments:
+code {
+drop   table tq84_compression_rate;
+
+create table tq84_compression_rate (
+   seg            varchar2(128),
+   part           varchar2(128),
+   blkcnt_cmp     integer,
+   blkcnt_uncmp   integer,
+   row_cmp        integer,
+   row_uncmp      integer,
+   cmp_ratio      number ,
+   gb_orig        number,
+   gb_comp        number,
+   comptype_str   varchar2(1000)
+);
+ 
+set serveroutput on
+declare
+   i              pls_integer := 0;
+   cnt            integer;
+   blkcnt_cmp     pls_integer;
+   blkcnt_uncmp   pls_integer;
+   row_cmp        pls_integer;
+   row_uncmp      pls_integer;
+   cmp_ratio      number;
+   comptype_str   varchar2(1000);
+ 
+begin
+ 
+   for r in (
+      select
+         seg.segment_name,
+         seg.partition_name,
+         seg.bytes,
+         obj.object_type
+      from
+         user_segments  seg         join
+         user_objects   obj on     seg.segment_name           =     obj.object_name            and
+                               nvl(seg.partition_name, 'n/a') = nvl(obj.subobject_name, 'n/a')
+      where
+         obj.object_type like 'TABLE%'
+      order by
+              bytes desc
+ 
+   ) loop
+ 
+      i := i+1; exit when i >= 100;
+ 
+   --
+   -- Skip segments whose compression rate was already determined
+   --
+      select
+         count(*) into cnt
+      from
+         tq84_compression_rate t
+      where
+            t.seg          =     r.segment_name            and
+        nvl(t.part, 'n/a') = nvl(r.partition_name, 'n/a');
+ 
+ 
+     if cnt > 0 then
+        dbms_output.put_line('continue ' || r.segment_name || ' ' || r.partition_name);
+        continue;
+     end if;
+ 
+     begin
+ 
+        dbms_compression.get_compression_ratio (
+           scratchtbsname        => 'DWH_TMP2',            -- select * from user_tablespaces
+           ownname               =>  user,
+           objname               =>  r.segment_name,
+           subobjname            =>  r.partition_name,
+           comptype              =>  dbms_compression.comp_advanced,
+           blkcnt_cmp            =>  blkcnt_cmp       ,
+           blkcnt_uncmp          =>  blkcnt_uncmp     ,
+           row_cmp               =>  row_cmp          ,
+           row_uncmp             =>  row_uncmp        ,
+           cmp_ratio             =>  cmp_ratio        ,
+           comptype_str          =>  comptype_str
+--         subset_numrows        in     number  default comp_ratio_minrows,
+--         objtype               in     pls_integer default objtype_table
+         );
+ 
+         insert into tq84_compression_rate values (
+              r.segment_name,
+              r.partition_name,
+              blkcnt_cmp       ,
+              blkcnt_uncmp     ,
+              row_cmp          ,
+              row_uncmp        ,
+              cmp_ratio        ,
+              r.bytes /1024/1024/1024,
+              r.bytes /1024/1024/1024/cmp_ratio,
+              comptype_str
+         );
+ 
+      exception when others then
+         dbms_output.put_line(sqlerrm);
+         dbms_output.put_line(r.segment_name);
+         dbms_output.put_line(r.partition_name);
+      end;
+ 
+   end loop;
+ 
+   commit;
+ 
+end;
+/
+ 
+select * from tq84_compression_rate;
+code }
+
+sa:
+  → development/databases/Oracle/installed/packages/dbms

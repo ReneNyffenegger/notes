@@ -6,6 +6,7 @@ An MLE module persists a JavaScript module in the database (and is thus differen
 
 { Creating an MLE module
 
+  Create a MLE module with a JavaScript function (`js_proc`) and export the function:
 code {
 create or replace mle module tq84_mle_module
   language javascript
@@ -22,38 +23,18 @@ as
 /
 code }
 
+Add a → development/databases/Oracle/PL-SQL interface to the exported JavaScript function:
 code {
-select *
-from
-   → development/databases/Oracle/installed/data-dictionary/mle/modules[user_mle_modules]
-where
-   module_name = 'TQ84_MLE_MODULE';
-code }
-
-code {
-select *
-from
-   → development/databases/Oracle/installed/data-dictionary/source[user_source]
-where
-   type = 'MLE MODULE' and
-   name = 'TQ84_MLE_MODULE';
-code }
-
-code {
-create or replace procedure plsql_proc as
+create or replace procedure plsql_proc
+   → development/databases/Oracle/PL-SQL/authid definer
+as
    mle module tq84_mle_module
    signature 'js_proc()';
 /
 code }
 
-code {
-select *
-from
-   user_mle_procedures
-where
-   object_name = 'PLSQL_PROC';
-code }
-
+Call the PL/SQL procedure. When executed in → development/databases/Oracle/SQL-Plus or → development/Software/Oracle-SQL-Developer, the → development/databases/Oracle/SQL-Plus/set/serveroutput[`serveroutput`] SQL*Plus option must be on to see the output (as
+apparently, under the hood, `console.log` is routed to `→ development/databases/Oracle/installed/packages/dbms/output`).
 code {
 set serveroutput on
 
@@ -63,10 +44,46 @@ end;
 /
 code }
 
+If the attempt to execute `plsql_proc` throws the error message → development/databases/Oracle/errors/ORA-01031_insufficient-privileges, the executing user might lack the `execute`
+→ development/databases/Oracle/security/privileges[privelege] on `javascript`. This privilege can be by someone with the necessary rights like so:
+code {
+grant execute on javascript to rene;
+code }
+
+Querying the → development/databases/Oracle/installed/data-dictionary for information peratinging the newly created MLE module…
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/mle/modules[user_mle_modules]
+where
+   module_name = 'TQ84_MLE_MODULE';
+code }
+
+… and the JavaScript source code …
+code {
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/source[user_source]
+where
+   type = 'MLE MODULE' and
+   name = 'TQ84_MLE_MODULE';
+code }
+
+… and the information about the PL/SQL interface:
+code {
+select *
+from
+   user_mle_procedures
+where
+   object_name = 'PLSQL_PROC';
+code }
+
+
 
 }
 { Executing SQL with mle-js-oracledb
 
+  It's possible to execute → development/databases/Oracle/SQL/statement[SQL statements] from JavaScript by importhing the `mle-js-oracledb` module: 
 code {
 create or replace mle module tq84_sql_example language javascript as
 
@@ -86,7 +103,7 @@ function print_objs_of_type_js(obj_type) {
            object_name,
            created
         from
-           user_objects
+           → development/databases/Oracle/installed/data-dictionary/objects[user_objects]
         where
            lower(object_type) = lower(:t)`,
         [ obj_type ],
@@ -105,14 +122,25 @@ function print_objs_of_type_js(obj_type) {
 
 export { print_objs_of_type_js };
 /
+code }
 
+  Note, the previous code block might show the *Enter Binds* dialog when executed with `ctrl+enter` in → development/Software/Oracle-SQL-Developer because the
+  → development/databases/Oracle/SQL/statement/bind-variables `:t` does not occur in a PL/SQL string and SQL developer wants to privide a value for the variable.
+  -
+  Therefore, in this case, the code should be executed with `F5`.
 
-
+  The PL/SQL wrapper for the JavaSCript code:
+code {
 create or replace procedure print_objs_of_type(obj_type varchar2)
-   as mle module tq84_sql_example
+   authid definer
+as
+   mle module tq84_sql_example
    signature 'print_objs_of_type_js(string)';
 /
+code }
 
+  Calling the wrapper:
+code {
 begin
     print_objs_of_type('procedure');
 end;

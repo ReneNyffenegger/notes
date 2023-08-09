@@ -4,9 +4,70 @@ $ Oracle Option: Advanced Compression
 Oracle Advanced Compression complements Enterprise Edition *basic table compression* feature with comprehensive data compression and Information Lifecycle Management capabilities,
 including those specifically tailored to Oracle's engineered systems, like Oracle → development/databases/Oracle/Exadata.
 
+
+
 Oracle advanced compression promises to
   • reduce the cost of data storage
   • improve performance
 
+{ Compression algorithm
+
+  { Database block level (Advanced Row Compression?)
+
+    The *compression algorithm* replaces duplicate values within a → development/databases/Oracle/architecture/database/logical-structures/data-block[database block] with a refernce to a *symbol table* in the same block which contains the actual (duplicated) value.
+
+    The benefit of storing the symbol table in the same database block is that no IO costs are involved when resolving a reference.
+
+    This strategy is assumes that OLTPs and datawarehouse applications have lot of duplicate values in a database block.
+
+  }
+
+}
+{ Features
+
+  table { ll
+    Advanced Row Compression ☰ Used for → development/Data/structured
+    Advanced LOB Deduplication and Compression ☰ Used for unstructered data
+    Advanced Index Compression ☰
+    RMAN and Data Pump compression ☰ Database backups
+    Advanced Network Compression ☰ Compression of data transferred between database and application.
+    Data Guard redo log transport Compression ☰ Network
+  table }
+
+}
+{ Heat maps
+
+  A heat map records data modification times at row and → development/databases/Oracle/architecture/database/logical-structures/segment level and access time at
+  segment level.
+
+? These statics can then be used to automaticaly compress and move data base using the declarative language of *automatic data optimization* (ADO).
+
+}
+{ Compress existing tables
+
+  Existing table can be compress with
+    • `→ development/databases/Oracle/installed/packages/dbms/redefinition/`
+    • `alter table … move row store compress advanced`
+    • `alter table … row store compress advanced` (only data of future DML is compressed)
+
+  { Estimating compression ratios
+
+    Before compressing existing tables, it might be worthwile to estimate ther compression ratio with `→ development/databases/Oracle/installed/packages/dbms/compression` (also referred to as *compression advisor*).
+
+  }
+
+}
+{ Flashback Data Archives
+
+  Advanced Compression also optimizes storage requirements for history tables in
+  → development/databases/Oracle/Features_Options_Management-Packs/Flashback/Logical-Features/data-archive[Flashback Data Archives]
+  when using them to track transactional changes.
+
+}
+
 sa:
+
  → development/databases/Oracle/Options 
+
+links:
+  → https://www.oracle.com/a/ocom/docs/database/advanced-compression-faq.pdf[Oracle Advanced Compression FAQ]
