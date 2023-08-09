@@ -1061,6 +1061,15 @@ sub open_html { #_{
 <link rel="stylesheet" type="text/css" href="${notes_root}notes.css">$styles_
 <script src='${notes_root}q.js'></script>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JRYJQTGB2N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-JRYJQTGB2N');
+</script>
 <body>
 <div class='screen-only'>Search notes: <input size='50' id='q' onchange='q();'></div>
 <h1>$title</h1>
