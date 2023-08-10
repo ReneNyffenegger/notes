@@ -1,11 +1,30 @@
 $ Oracle: DBMS_SQL.PARSE
 @ dbms_sql.parse
 
-`dbms_sql.parse(…)` parses the text of an → development/databases/Oracle/SQL/statement[SQL statement].
+`dbms_sql.parse(…)` parses the text of an → development/databases/Oracle/SQL/statement[SQL statement] and associates it with a cursor opened with → development/databases/Oracle/installed/packages/dbms/sql/open_cursor[`dbms_sql.open_cursor`]).
 -
 A → development/databases/Oracle/SQL/DDL[DDL] statement is immediately executed.
 
+code {
+declare
+   cur    number;
+begin
+
+   cur := → development/databases/Oracle/installed/packages/dbms/sql/open_cursor;
+
+   dbms_sql.parse(cur, q'[ SQL STATEMENT GOES HERE ]', dbms_sql.native);
+
+-- Do something meaningful
+   …
+
+   dbms_sql.close_cursor(cur);
+end;
+/
+code }
+
 { Parse twice
+
+  The following example demonstrates that `parse` can be executed mutliple time on the same cursor.
 
   gh|Oracle-Patterns|/Installed/dbms/sql/parse/parse-twice.sql||
 
@@ -13,6 +32,6 @@ A → development/databases/Oracle/SQL/DDL[DDL] statement is immediately execute
 
 sa:
 
- `→ development/databases/Oracle/installed/packages/dbms/utility/api/exec_ddl_statement`
+  `→ development/databases/Oracle/installed/packages/dbms/utility/api/exec_ddl_statement`
 
   `→ development/databases/Oracle/installed/packages/dbms/sql`

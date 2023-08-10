@@ -1,8 +1,144 @@
 $ Oracle: DBMS_SQL.DEFINE_ARRAY
 
-gh|Oracle-patterns|/Installed/dbms/sql/define_array/table.sql||
+`→ development/databases/Oracle/installed/packages/dbms[dbms_sql].define_array` associates a column of a `select` statement with one of the `dbms_sql.xxx_table` types (`xxx` being a data type) in order to fetch the result set of the SQL statement in batches
+of multiple records.
 
-gh|Oracle-patterns|/Installed/dbms/sql/define_array/fetch.sql||
+The values of fetched records are transferred with a call to `dbms_sql.column_value`.
+
+{ Example
+
+  { Test data
+
+    A table with 12 records is created:
+
+code {
+create table tq84_dbms_sql_array_test (
+   num number,
+   txt varchar2(10),
+   dat date
+);
+
+insert into tq84_dbms_sql_array_test
+select
+   level,
+   to_char(to_date(level, 'J'), 'JSP'), -- Spell number
+   sysdate - level * 4.3
+from
+   dual
+connect by
+   level <= 12;
+code }
+
+  }
+  { Fetch SQL result set in batches of 4 records
+
+    The following anonymous block selects all records from `tq84_dbms_sql_array_test` where `txt` contains at least one upper case letter `E`, i. e. 9 records (`TWO`, `FOUR` and `SIX` don't match).
+
+    The result set is fetched in batch sizes of 4 recods (`array_size`).
+
+code {
+declare
+   array_size integer := 4;
+
+   cur        number;
+
+   num    dbms_sql.number_table;
+   txt    dbms_sql.varchar2_table;
+   dat    dbms_sql.date_table;
+
+   dummy      integer;
+   rows       integer;
+
+   a integer := 0;
+
+begin
+
+   cur := dbms_sql.open_cursor;
+
+   → development/databases/Oracle/installed/packages/dbms/sql/parse(cur, q'{
+      select
+         num,
+         txt,
+         dat
+      from
+         tq84_dbms_sql_array_test
+      where
+         txt  like :txt
+      }',
+      dbms_sql.native
+   );
+
+   → development/databases/Oracle/installed/packages/dbms/sql/api/bind_variable(cur, ':txt', '%E%');
+
+   dbms_sql.define_array(cur, 1, num, array_size, 1);
+   dbms_sql.define_array(cur, 2, txt, array_size, 1);
+   dbms_sql.define_array(cur, 3, dat, array_size, 1);
+--
+-- The return value of → development/databases/Oracle/installed/packages/dbms/sql/api/execute is undefined for
+-- select statements. Therefor, we assign it to a variable
+-- named dummy:
+--
+   dummy := → development/databases/Oracle/installed/packages/dbms/sql/api/execute(cur);
+
+   loop
+         rows := → development/databases/Oracle/installed/packages/dbms/sql/api/fetch_rows(cur);
+
+         → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line('-- rows = ' || rows || ', num.count = ' || num.count);
+
+      --
+      -- The call to dbms_sql.column_value APPENDS the fetched
+      -- values. Therefore, we need to delete the
+      -- entries in the collections:
+      --
+         num.delete;
+         txt.delete;
+         dat.delete;
+
+         dbms_sql.column_value(cur, 1, num );
+         dbms_sql.column_value(cur, 2, txt );
+         dbms_sql.column_value(cur, 3, dat );
+
+         for i in 1 .. rows loop
+
+             → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line(
+                 to_char(num(a+i), '99') || ' ' ||
+                 rpad(   txt(a+i),   10) || ' ' ||
+                 to_char(dat(a+1), 'yyyy-mm-dd hh24:mi;ss')
+             );
+
+         end loop;
+
+         exit when rows != array_size;
+         
+         a := a+rows;
+   end loop;
+
+   dbms_sql.close_cursor (cur);
+
+end;
+/
+code }
+
+    The output shows that the calls to `dbms_sql.fetch_rows` fetched 4 rows, 4 rows again and 1 final row:
+code {
+-- rows = 4, num.count = 0
+  1 ONE        2023-08-06 04:53;48
+  3 THREE      2023-08-06 04:53;48
+  5 FIVE       2023-08-06 04:53;48
+  7 SEVEN      2023-08-06 04:53;48
+-- rows = 4, num.count = 4
+  8 EIGHT      2023-07-07 02:29;48
+  9 NINE       2023-07-07 02:29;48
+ 10 TEN        2023-07-07 02:29;48
+ 11 ELEVEN     2023-07-07 02:29;48
+-- rows = 1, num.count = 4
+ 12 TWELVE     2023-06-19 21:41;48
+code }
+
+  }
+
+}
+
 
 sa:
   `→ development/databases/Oracle/installed/packages/dbms/sql`
