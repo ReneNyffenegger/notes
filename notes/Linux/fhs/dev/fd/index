@@ -1,6 +1,22 @@
 $ /dev/fd
 
-The directory `/dev/fd` is (or should be) symlinked to `→ Linux/fhs/proc/self/fd`
+`/dev/fd` contains numbered files  (`0`, `1`, `2`, …), each corresponding to a file descriptor.
+
+The directory `/dev/fd` is (or should be) symlinked to `→ Linux/fhs/proc/self/fd`:
+code {
+$ → Linux/shell/commands/ls -ld /dev/fd
+lrwxrwxrwx 1 root root 13 Jul 24 06:48 /dev/fd -> → Linux/fhs/proc/self/fd
+code }
+
+The files under `/proc/self/fd` are symlinked as well:
+code {
+$ ls -l /proc/self/fd
+lrwx------ 1 rene rene 64 Aug 10 09:08 0 -> /dev/pts/0
+lrwx------ 1 rene rene 64 Aug 10 09:08 1 -> /dev/pts/0
+lrwx------ 1 rene rene 64 Aug 10 09:08 2 -> /dev/pts/0
+lr-x------ 1 rene rene 64 Aug 10 09:08 3 -> /proc/274/fd
+code }
+
 
 { /dev/fd/0#fd_0
 
@@ -18,6 +34,22 @@ The directory `/dev/fd` is (or should be) symlinked to `→ Linux/fhs/proc/self/
   → Linux/fhs/dev/stdX#dev_stderr[`/dev/stderr`] is symlinked to `/dev/fd/2`
 }
 
+{ Equivalent calls
+
+  As per → https://www.manpagez.com/man/4/stdin/[`man 4 stdin`], the following calls are equivalent:
+code {
+fd = open("/dev/fd/0", mode);
+fd = fcntl(0, F_DUPFD, 0);
+code }
+
+  An also, per the same man page, opening → Linux/fhs/dev/stdX[`/dev/stdin`], `/dev/stdout` and `/dev/stderr` is equivalent to
+code {
+fd = fcntl(STDIN_FILENO,  F_DUPFD, 0);
+fd = fcntl(STDOUT_FILENO, F_DUPFD, 0);
+fd = fcntl(STDERR_FILENO, F_DUPFD, 0);
+code }
+
+}
 
 sa:
  `→ Linux/fhs/dev`

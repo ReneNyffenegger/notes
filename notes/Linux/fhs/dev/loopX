@@ -1,0 +1,52 @@
+$ /dev/loopX
+
+`/dev/loopX` (`X` being a number) is a → Linux/loop-device[loopback device].
+
+{ Example
+
+  Create a file with a size of 1 GiB:
+code {
+$ → Linux/shell/commands/dd of=~/fs if=/dev/zero bs=GiB count=1
+1+0 records in
+1+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 5.0458 s, 213 MB/s
+code }
+
+  Verify file size:
+code {
+$ → Linux/shell/commands/stat -c %s ~/fs
+1073741824
+code }
+
+  Associate the file with a loopback device:
+code {
+$ → Linux/shell/commands/sudo losetup /dev/loop0 ~/fs
+code }
+
+  Create a filesystem:
+code {
+$ sudo mkfs.ext4 /dev/loop0
+…
+Creating filesystem with 262144 4k blocks and 65536 inodes
+…
+code }
+
+  Mount the new file system:
+code {
+$ mkdir ~/mnt
+$ sudo → Linux/shell/commands/mount /dev/loop0 ~/mnt
+code }
+
+  Use the new file system:
+code {
+$ ls /mnt
+lost+found
+code }
+
+}
+
+
+sa:
+
+
+ `→ Linux/fhs/dev`
