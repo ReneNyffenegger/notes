@@ -9,7 +9,7 @@ $ Oracle: DBMS_RANDOM
 { Procedures and functions
 
 table { ll
-  `normal` ☰ Returns numbers whose distribution is *standard normal*.
+  → development/databases/Oracle/installed/packages/dbms/random/api/normal[`normal`] ☰ Returns numbers whose distribution is *standard normal*.
   `seed` ☰ Sets or resets the random generator's seed. By default, the package is seeded with the user's name, current time (accurate down to a second) and the → development/databases/Oracle/architecture/session.
   → development/databases/Oracle/installed/packages/dbms/random/api/string[`string`] ☰ Returns a text with a given characteristic
   `value` ☰ Returns a number between 0 and 1 or a choosable lower and upper limit.
@@ -18,12 +18,12 @@ table { ll
   `terminate` ☰ Deprecated
  table }
 
- { normal
+ { NORMAL
 
    gh|Oracle-Patterns|/Installed/dbms/random/normal.sql||
 
  }
- { value
+ { VALUE
 
   `dbms_random.value` returns a number between 0 and 1.
 
@@ -32,7 +32,7 @@ table { ll
    gh|Oracle-Patterns|/Installed/dbms/random/value.sql||
 
  }
- { seed
+ { SEED
 
    Seeding `dbms_random` with a given value causes it to produce the same series of «random» data if a given sequence of functions is called.
 code {
@@ -44,11 +44,45 @@ LZZZJ
 code }
 
  }
- { terminate
+ { TERMINATE
 
    gh|Oracle-Patterns|/Installed/dbms/random/terminate.sql||
 
  }
+}
+
+{ Misc
+
+  Create a normal distribution with a given mean and a given probability that a value is less than another given value:
+code {
+create table tq84_test as
+with param as (
+   select
+      3.09023  zScore, --   0.1 % -- https://www.socscistatistics.com/tests/ztest/zscorecalculator.aspx / Calculate z from p
+--    1.28155  zScore, --  10.0 %
+--    0.67449  zScore, --  25.0 %
+      5000     mean,
+      10       x
+   from
+      dual
+)
+select
+   dbms_random.normal * (param.x - param.mean) / param.zScore + param.mean    val
+from
+   param, dual
+connect by
+   level <= 1000000;
+ 
+select
+   round(avg(val), 1)   mean,
+-- count(*),
+   to_char(100 * count(case when val <= 10 then 1 end) / count(*), '90.0') || ' %' pct
+from
+   tq84_test;
+
+drop   table tq84_test;
+code }
+
 }
 
 sa:

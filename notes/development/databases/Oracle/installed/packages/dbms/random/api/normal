@@ -1,0 +1,58 @@
+$ DBMS_RANDOM.RANDOM
+@ dbms_random.random
+
+`dbms_random.normal` returns pseudo random numbers whose distribution follows the normal distribution.
+
+code {
+exec dbms_random.seed(2808);
+ 
+create table tq84_normal as
+select
+   dbms_random.normal n
+from
+   dual connect by level <= 999999;
+ 
+select
+   substr(range, 3)                                                  band,
+   to_char(100 * ratio_to_report(count(*)) over (), '90.00') || ' %' pct
+from (
+   select
+      n,
+      case                             --   Expected
+                                       --   ========
+         when n < -3 then 'a    - -3'  --     0.13 %
+         when n < -2 then 'b -3 - -2'  --     2.14 %
+         when n < -1 then 'c -2 - -1'  --    13.59 %
+         when n <  0 then 'd -1 -  0'  --    34.13 %
+         when n <  1 then 'e  0 -  1'  --    34.13 %
+         when n <  2 then 'f  1 -  2'  --    13.59 %
+         when n <  3 then 'g  2 -  3'  --     2.14 %
+                     else 'h  3 -   '  --     0.13 %
+      end                                                  range
+   from
+      tq84_normal
+)
+group by
+   range
+order by
+   substr(range, 1, 1)
+;
+--
+-- BAND    PCT     
+-- ------- --------
+--    - -3   0.14 %
+-- -3 - -2   2.15 %
+-- -2 - -1  13.60 %
+-- -1 -  0  34.12 %
+--  0 -  1  34.08 %
+--  1 -  2  13.65 %
+--  2 -  3   2.13 %
+--  3 -      0.13 %
+
+drop   table tq84_normal;
+code }
+
+sa:
+  `→ development/databases/Oracle/installed/packages/dbms/random`
+
+  The R function `→ development/languages/R/functions/rnorm`.

@@ -5,24 +5,29 @@ The function `dbms_stats.conv_raw` is related to the procedure → development/d
 -
 Such raw values are found, for example in the view → development/databases/Oracle/installed/data-dictionary/tab/columns[`dba_tab_columns`].
 
-The function's first parameter takes the `raw` value to be converted, the second parameter the numerical id of the → development/databases/Oracle/SQL/data-types[datatype].
+The function's first parameter takes the `raw` value to be converted, the second parameter the *numerical id* of the → development/databases/Oracle/SQL/data-types[datatype]
+(which possibly corresponds to the `typecode_*` values in `→ development/databases/Oracle/installed/packages/dbms/types`).
 
 
 code {
 with datatype_name_to_num as (
-    select 'NUMBER'        nam,   2 num from dual union all
-    select 'VARCHAR2'      nam,   1 num from dual union all
-    select 'DATE'          nam,  12 num from dual union all
-    select 'CHAR'          nam,  96 num from dual union all
-    select 'BINARY_FLOAT'  nam, 100 num from dual union all
-    select 'BINARY_DOUBLE' nam, 101 num from dual
+    select 'NUMBER'        nam,   2 val from dual union all
+    select 'VARCHAR2'      nam,   1 val from dual union all
+    select 'DATE'          nam,  12 val from dual union all
+    select 'CHAR'          nam,  96 val from dual union all
+    select 'BINARY_FLOAT'  nam, 100 val from dual union all
+    select 'BINARY_DOUBLE' nam, 101 val from dual
  --
- -- TODO: Complete numbers here…
+ -- TODO: Complete numbers here with values found in → development/databases/Oracle/installed/packages/dbms/types
  --
 )
 select
-   dbms_stats.conv_raw(col.low_value, dt.num)  lowValue,
-   dbms_stats.conv_raw(col.high_value,dt.num)  highValue,
+   col.owner,
+   col.table_name,
+   col.column_name,
+   --
+   dbms_stats.conv_raw(col.low_value, dt.val)  lowValue,
+   dbms_stats.conv_raw(col.high_value,dt.val)  highValue,
    --
    col.low_value,
    col.high_value,
@@ -34,17 +39,20 @@ select
    col.histogram,
    col.global_stats,
    col.user_stats,
+   col.data_type,
    col.*
 from
-   dba_tab_columns        col               left join
+   → development/databases/Oracle/installed/data-dictionary/tab/cols           col                              → development/databases/Oracle/SQL/join/outer/left[left join]
    datatype_name_to_num   dt  on col.data_type = dt.nam
 where
-   col.owner      = 'RENE' and
-   col.table_name = 'TQ84_T';
+   col.low_value is not null
+-- col.owner      = 'RENE'     and
+-- col.table_name = 'TQ84_T'
+;
 code }
 
 sa:
 
- `dbms_stats.conv_raw` is used, for example(?), in `dba_tab_histograms`.
+ `dbms_stats.conv_raw` can be used, for example, when selecting values from `dba_tab_histograms` and `dba_tab_columns`.
 
-  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`].
+ `→ development/databases/Oracle/installed/packages/dbms/stats`
