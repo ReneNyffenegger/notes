@@ -1,0 +1,45 @@
+$ Oracle: Create a normal distribution with a given mean and a given value of a percentile
+
+Create a normal distribution with a given mean and a given probability that a value is less than another given value:
+code {
+exec dbms_random.seed(2808)
+
+create table tq84_normal as
+→ development/databases/Oracle/SQL/clauses/with[with] param as (
+   select
+      3.09023  zScore, --   0.1 % -- https://www.socscistatistics.com/tests/ztest/zscorecalculator.aspx / Calculate z from p
+--    1.28155  zScore, --  10.0 %
+--    0.67449  zScore, --  25.0 %
+      5000     mean,
+      10       x
+   from
+      → development/databases/Oracle/SQL/dual
+)
+→ development/databases/Oracle/SQL/select/
+   → development/databases/Oracle/installed/packages/dbms/random/api/normal * (param.x - param.mean) / param.zScore + param.mean    val
+from
+   param, dual
+connect by
+   level <= 1000000;
+code }
+
+Verify created data:
+code {
+→ development/databases/Oracle/SQL/select
+   → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](avg(val), 1)   mean,
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char(100 * count(case when val <= 10 then 1 end) / count(*), '90.00') || ' %' pct
+from
+   tq84_normal;
+--
+--       MEAN PCT     
+-- ---------- --------
+--     5000.7   0.10 %
+code }
+
+Cleaning up
+code {
+drop   table tq84_normal;
+code }
+
+links:
+  Cross Validated: → https://stats.stackexchange.com/questions/535410/mean-and-sd-for-a-normal-distribution-given-value-of-a-percentile[Mean and SD for a normal distribution given value of a percentile]

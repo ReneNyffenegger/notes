@@ -1,4 +1,54 @@
 $ include/linux/kobject.h
 
+{ struct kobject
+
+code {
+struct kobject {
+
+  const        char             *name;
+        struct list_head         entry;
+        struct kobject          *parent;
+        struct kset             *kset;
+  const struct kobj_type        *ktype;
+        struct kernfs_node      *sd;       /* sysfs directory entry */
+        struct kref              kref;
+
+#ifdef CONFIG_DEBUG_KOBJECT_RELEASE
+        struct delayed_work     release;
+#endif
+
+        unsigned int state_initialized:1;
+        unsigned int state_in_sysfs:1;
+        unsigned int state_add_uevent_sent:1;
+        unsigned int state_remove_uevent_sent:1;
+        unsigned int uevent_suppress:1;
+};
+code }
+
+}
+{ enum kobject_action
+
+code {
+enum kobject_action {
+	KOBJ_ADD,
+	KOBJ_REMOVE,
+	KOBJ_CHANGE,
+	KOBJ_MOVE,
+	KOBJ_ONLINE,
+	KOBJ_OFFLINE,
+	KOBJ_BIND,
+	KOBJ_UNBIND,
+};
+code }
+
+  The enumerated actions must match the index to the string array in `lib/kobject_uevent.c`.
+
+}
+
 sa:
   → Linux/kernel/kobject
+
+links:
+   → https://github.com/torvalds/linux/blob/master/include/linux/kobject.h
+
+   → https://github.com/torvalds/linux/blob/master/Documentation/core-api/kobject.rst

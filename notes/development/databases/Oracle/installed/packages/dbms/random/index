@@ -51,41 +51,11 @@ code }
  }
 }
 
-{ Misc
-
-  Create a normal distribution with a given mean and a given probability that a value is less than another given value:
-code {
-create table tq84_test as
-with param as (
-   select
-      3.09023  zScore, --   0.1 % -- https://www.socscistatistics.com/tests/ztest/zscorecalculator.aspx / Calculate z from p
---    1.28155  zScore, --  10.0 %
---    0.67449  zScore, --  25.0 %
-      5000     mean,
-      10       x
-   from
-      dual
-)
-select
-   dbms_random.normal * (param.x - param.mean) / param.zScore + param.mean    val
-from
-   param, dual
-connect by
-   level <= 1000000;
- 
-select
-   round(avg(val), 1)   mean,
--- count(*),
-   to_char(100 * count(case when val <= 10 then 1 end) / count(*), '90.0') || ' %' pct
-from
-   tq84_test;
-
-drop   table tq84_test;
-code }
-
-}
-
 sa:
+
+  → development/databases/Oracle/installed/packages/dbms/random/create-normal-distribution-with-given-mean-and-given-value-of-a-percentile[Create a normal distribution with a given mean and a given value of a percentile]
+
+
   → development/databases/Oracle/installed/packages/dbms
 
   `dbms_random` used in a → http://www.adp-gmbh.ch/ora/misc/dummy_data_generator.html[simple dummy data generator].
