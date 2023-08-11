@@ -19,7 +19,6 @@ code }
 
 { Command line options
 
- 
   { Options related to pattern
 
     table { lll
@@ -153,19 +152,31 @@ code }
 
   If the mattern matches multiple times per line, each match is printed
 
-  So, the following prints the words in a (text-)file:
-
+  So, using the regex `\w+` (together with → #grep-P[`-P`], Perl commands regular expressions) prints the words in a (text-)file:
 code {
-grep -oP '\w+' file.txt
+$ → Linux/shell/commands/cat <<EOT | grep -P -o '\w+'
+> foo bar baz
+> one two three
+> EOT
+foo
+bar
+baz
+one
+two
+three
 code }
 
-  When using → #grep-P[`-P`] (Perl compatible regular expressions), the pattern can contain a → development/regular-expressions/index#re-lookaround-assertions[(positive) lookbehind assertions]:
-  -
-  The following example finds numbers that follow `value=`:
+  When using → #grep-P[`-P`], the pattern can contain a → development/regular-expressions/index#re-lookaround-assertions[(positive) lookbehind assertions] which prevents portions
+  of the matched text not to be printed:
 code {
-$ echo value=42 etc. | grep -P -o '(?<=value=)\d+'
+$ → Linux/shell/commands/cat <<EOT | grep -P -o '(?<=value=)\d+'
+This number 99 does not match
+because is is not prepended by "value=", but
+this one is: value=42. The -o option
+combined with (?<=…) prevents the value=
+to be returned by grep.
+EOT
 42
-$ echo xyz=42 | grep -P -o '(?<=value=)\d+'
 code }
 
 }
