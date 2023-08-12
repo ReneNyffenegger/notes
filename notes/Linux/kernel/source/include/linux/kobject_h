@@ -1,12 +1,18 @@
 $ include/linux/kobject.h
 
-{ struct kobject
+{ struct kobject #linux-kobject
+
+  A `kobject` controls access to a domain-specific object.
+
+  In object-oriented speach, a kobject is an abstract base class that specifies some capabilities
+  which are then used by concrete users of these capabilities.
+
 
 code {
 struct kobject {
 
   const        char             *name;
-        struct list_head         entry;
+        struct → Linux/kernel/source/include/linux/types_h#linux-list_head[list_head]         entry;
         struct kobject          *parent;
         struct kset             *kset;
   const struct kobj_type        *ktype;
@@ -22,6 +28,56 @@ struct kobject {
         unsigned int state_add_uevent_sent:1;
         unsigned int state_remove_uevent_sent:1;
         unsigned int uevent_suppress:1;
+};
+code }
+
+}
+{ struct kobj_type (ktype)
+
+  The `kobj_type` (*ktype*) describes the type of an object that embeds a `kobject`.
+
+code {
+struct kobj_type {
+               void                    (*release)(struct kobject *kobj);
+  const struct sysfs_ops               *sysfs_ops;
+  const struct attribute_group        **default_groups;
+  const struct kobj_ns_type_operations *(*child_ns_type)(const struct kobject *kobj);
+  const void                           *(*namespace)(const struct kobject *kobj);
+        void                          (*get_ownership)(const struct kobject *kobj, kuid_t *uid, kgid_t *gid);
+};
+code }
+
+}
+{ struct kset #linux-kset
+
+  A `kset` is a list of `kobject` (whose type does not necessarily need to be equal for all members).
+
+  ksets are used to define the *attribute callbacks* and other 
+  common events that happen to a kobject.
+
+  Each directory in In sysfs directory that contains other directories usually  corresponds to a `kobject` of
+  the same `kset`.
+
+code {
+struct kset {
+        struct → Linux/kernel/source/include/linux/types_h#linux-list_head[list_head]        list;      /* The list                                   */
+               spinlock_t       list_lock; /* Lock for iterating over the kobjectds      */
+        struct kobject          kobj;      /* The embedded kobect for this kset          */
+  const struct kset_uevent_ops *uevent_ops;/* The set of uevent operations for this kset */
+} __randomize_layout;
+code }
+
+  The operations in `kset_uevent_ops` are called whenever a `kobject` has something happen to it
+  so that the `kset` can add new environment variables or filter out the uevents if so desired.
+
+}
+{ struct kset_uevent_ops
+
+code {
+struct kset_uevent_ops {
+       int   (* const filter)(const struct kobject *kobj);
+ const char *(* const name  )(const struct kobject *kobj);
+       int   (* const uevent)(const struct kobject *kobj, struct kobj_uevent_env *env);
 };
 code }
 
