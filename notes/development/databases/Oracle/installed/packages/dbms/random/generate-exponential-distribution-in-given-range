@@ -1,0 +1,76 @@
+$ Oracle: Generate an exponential distribution in a given range
+
+The following select statement creates a random variable that follows an
+→ https://en.wikipedia.org/wiki/Exponential_distribution[exponential distribution] in the range 0 … 254 and
+a lambda of 0.01:
+code {
+with p as (
+   select
+       0    min_,
+     255    max_,
+       0.01 lambda
+   from
+      dual
+)
+select
+   -(1/lambda)*ln(exp(-lambda*min_) - dbms_random.value * ( exp(-lambda*min_) - exp(-lambda*max_) ))
+from
+   p;
+code }
+
+Create a table with 100000 records where the formula is applied with a random number generator
+(`→ development/databases/Oracle/installed/packages/dbms/random[dbms_random].value`) and by dividing 100000 by the
+record number (`(level-1)/100000`):
+code {
+create table tq84_exp_distr as
+with p as (
+   select
+       0    min_,
+     255    max_,
+       0.01 lambda
+   from
+      dual
+)
+select
+   -(1/lambda)*ln(exp(-lambda*min_) - (level-1)/100000  * ( exp(-lambda*min_) - exp(-lambda*max_) )) r,
+   -(1/lambda)*ln(exp(-lambda*min_) - dbms_random.value * ( exp(-lambda*min_) - exp(-lambda*max_) )) s
+from
+   p connect by level <= 100000;
+code }
+
+Count the occurences of each `cnt`:
+code {
+with r as (
+  select
+     trunc(r) r,
+     count(*) cnt
+  from
+     tq84_exp_distr
+  group by
+     trunc(r)
+),
+s as (
+  select
+     trunc(s) s,
+     count(*) cnt
+  from
+     tq84_exp_distr
+  group by
+     trunc(s)
+)
+select
+   nvl(r, s)  x,
+   r.cnt      cnt_r,
+   s.cnt      cnt_s
+from
+   r                                 full outer join
+   s on r.r = s.s
+order by
+   nvl(r, s);
+code }
+
+
+
+links:
+
+  This → https://math.stackexchange.com/a/788310/223263[math.stackexchange answer] was helpful.
