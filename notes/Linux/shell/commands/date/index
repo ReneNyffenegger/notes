@@ -1,25 +1,132 @@
 $ Shell command: date
 @ date
 
-{ -d date arithmetic #d
+code {
+date [OPTION]… [→ #date-formatting-output[+FORMAT]]
+date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]
+code }
 
-Display the time described by the *user friendly* string, not by *now*.
+{ Options
+  table { llll
 
-gh|shell-commands|/date/d_arithmetic||
+     `-d` ☰ `--date` ☰ `STRING` ☰ display time described by STRING (without `-d`, `date` assumes `now`).
+       ☰ `--debug` ☰ ☰ Annotate the parsed date, and warn about questionable usage to → development/stdin-stdout-stderr[stderr].
+       `-f` ☰ `--file` ☰ `DATEFILE` ☰ like `--date`; once for each line of `DATEFILE`
+       `-I`☰ `--iso` ☰ `FMT` ☰ Output date/time in → misc/ISO/8601 format. FMT is one of `date`, `hours`, `minutes`, `seconds` or `ns` and specifies the intended precision, for example: `2006-08-14T02:34:56-06:00`.
+       ☰ `--resolution` ☰ ☰ Output the available resolution of timestamps, for example: `0.000000001`
+       `-R` ☰ `--rfc-email` ☰ ☰ Output date and time in RFC 5322 (internet message) format, for example: `Mon, 14 Aug 2006 02:34:56 -0600`
+       ☰ `--rfc-3339` ☰ `PREC` ☰ Output date/time in → development/web/RFC/index.html#rfc-3339[RFC 3339] (date and time on the internet) format. `PREC` is one of `date`, `seconds` or `ns` and specifies the precision, for example: `2006-08-14 02:34:56-06:00`.
+       `-r` ☰ `--reference` ☰ `FILE` ☰ display the last modification time of `FILE`
+       `-s` ☰ `--set` ☰ `STRING` ☰ set time described by `STRING`
+       `-u` ☰ `--utc`, `--unversal` ☰ ☰ Use → misc/UTC
+       ☰ `--help` ☰ ☰
+       ☰ `--version` ☰ ☰ output version information and exit
+    table }
+}
 
-Compare with → Linux/shell/commands/touch#d[-d flag] of → Linux/shell/commands/touch.
+{ -d Specify a date with a user friendly string #d
+
+  Display the time described by the *user friendly* string.
+
+  Without `-d`, `date` operates on the date described by `now`.
+
+  gh|shell-commands|/date/d_arithmetic||
+
+  Using `@…` allows to calculate the date from a → development/date-time/Unix-time[Unix epoch] (seconds since 1970-01-01):
+code {
+$ date +%s -d '2023-08-14 08:05:17'
+1691964000
+$ date date +'%F %T' -d @1691993117
+2023-08-14 08:05:17
+code }
+
+  Compare with → Linux/shell/commands/touch#d[`-d` flag] of `→ Linux/shell/commands/touch`.
 
 }
 { Formatting output #date-formatting-output
 
-  The output of `date` can be formatted with a format string that is preceded by a `+` sign (see also → development/misc/strftime).
+  The output of `date` can be formatted with a format string that is preceded by a `+` sign (see also `→ development/misc/strftime`):
+code {
+$ date +'Year: %Y, Month: %m, Day: %d'
+Year: 2023, Month: 08, Day: 14
+code }
 
-  gh|shell-commands|/date/+format||
+  { Format specifiers
+
+    Each format specifier is prepended by a percent sign (i. e. the `%` is factually a `%%`):
+    table { lll
+    ☰ ☰ ~Example~
+    `%` ☰    A literal % ☰
+    `a` ☰    Locale's abbreviated weekday name  ☰ `Sun`
+    `A` ☰    Locale's full weekday name  ☰ `Sunday`
+    `b` ☰    Locale's abbreviated month name  ☰ `Jan`
+    `B` ☰    Locale's full month name  ☰ `January`
+    `c` ☰    Locale's date and time  ☰ `Thu Mar  3 23:05:25 2005`
+    `C` ☰    Century; like `%Y`, except omit last two digits. See also `%y`  ☰ `20`
+    `d` ☰    Day of month  ☰ `01`
+    `D` ☰    Date, same as `%m/%d/%y` (but *locale dependend*, so it might also print `%y-%d-%m`!) ☰
+    `e` ☰    Day of month, space padded; same as `%_d` ☰
+    `F` ☰    Full date; like `%+4Y-%m-%d` ☰
+    `g` ☰    Last two digits of year of ISO week number, see `%G` ☰
+    `G` ☰    Year of ISO week number (see `%V`); normally useful only with `%V` ☰
+    `h` ☰    Same as `%b` ☰
+    `H` ☰    Hour (`00` … `23`) ☰
+    `I` ☰    Hour (`00` … `12`) ☰
+    `j` ☰    Day of year (`001` … `366`) ☰
+    `k` ☰    Hour, space padded (` 0` … `23`); same as `%_H` ☰
+    `l` ☰    Hour, space padded (` 1` … `12`); same as `%_I` ☰
+    `m` ☰    Month (`01` … `12`) ☰
+    `M` ☰    Minute (`00` … `59`) ☰
+    `n` ☰    A → development/line-break[newline] ☰
+    `N` ☰    Nanoseconds (`000000000` … `999999999`) ☰
+    `p` ☰    Locale's equivalent of either `AM` or `PM`. Blank if not known ☰
+    `P` ☰    Lower case variant of `%p` ☰
+    `q` ☰    Quarter of year (`1` … `4`) ☰
+    `r` ☰    Locale's 12-hour clock time  ☰ `11:11:04 PM`
+    `R` ☰    24-hour hour and minute; same as %H:%M ☰
+    `s` ☰    Seconds since the → development/date-time/Unix-time[Unix epoch] ☰
+    `S` ☰    Second `00` … `60` (is this correct, should it not be 59?) ☰
+    `t` ☰    A tab ☰
+    `T` ☰    Time; same as `%H:%M:%Ss ☰
+    `u` ☰    Day of week (`1` … `7`, 1 is Monday) ☰
+    `w` ☰    Day of week (`0` … `6`); 0 is Sunday ☰
+    `U` ☰    Week number of year, with Sunday as first day of week (`00` … `53`) ☰
+    `V` ☰    ISO week number, with Monday as first day of week (`01` … `53`) ☰
+    `W` ☰    Week number of year, with Monday as first day of week (`00` … `53`) ☰
+    `x` ☰    Locale's date representation  ☰ `12/31/99`
+    `X` ☰    Locale's time representation  ☰ `23:13:48`
+    `y` ☰    Last two digits of year (`00` … `99`). See also `%C` ☰
+    `Y` ☰    Year ☰
+    `z` ☰    +hhmm numeric time zone  ☰ `-0400`
+    `:z` ☰   +hh:mm numeric time zone  ☰ `-04:00`
+    `::z` ☰  +hh:mm:ss numeric time zone  ☰ `-04:00:00`
+    `:::z` ☰ numeric time zone with : to necessary precision  ☰ `-04, +05:30`
+    `Z` ☰    alphabetic time zone abbreviation  ☰ `EDT`
+
+    table }
+
+    { Flags
+
+      The following optional flags may be put between the `%` and the format specifier:
+      table { ll
+        `-` ☰ (hyphen) do not pad the field
+        `_` ☰ (underscore) pad with spaces
+        `0` ☰ (zero) pad with zeros
+        `+` ☰ pad with zeros, and put `+` before future years with >4 digits
+        `^` ☰ use upper case if possible
+        `#` ☰ use opposite case if possible
+      table}
+
+    }
+
+  }
+  
+
 
 }
 { ISO 8601, RFC 3339 or email format #I
 
-  `-I` or `--iso-8601` prints the date in → development/misc/Datumsformate#iso-8601 format.
+ `-I` or `--iso-8601` prints the date in → development/misc/Datumsformate#iso-8601 format.
 code {
 $ date -I
 2018-03-15
@@ -50,7 +157,7 @@ code }
 }
 { Seconds since Unix epoch #shell-date-unix-time
 
-  `+%s` (lower case `s`) formats a date as → development/date-time/Unix-time (which is the number of (non-leap) seconds since 1970-01-01).
+ `+%s` (lower case `s`) formats a date as → development/date-time/Unix-time (which is the number of (non-leap) seconds since 1970-01-01).
 
   gh|shell-commands|/date/d_seconds-since-epoch||
 
@@ -67,30 +174,37 @@ code }
   gh|shell-commands|/date/TZ||
 
 }
+
 { Common formats
 
-  gh|shell-commands|/date/common-formats||
+  → https://zxq9.com/archives/795 summarizes which options return a desired comman date format:
+  table { lll
+   `YYYY-MM-DD_hh:mm:ss`              ☰ `date +%F_%T` ☰
+   `YYYYMMDD_hhmmss`                  ☰ `date +%Y%m%d_%H%M%S` ☰
+   `YYYYMMDD_hhmmss` (UTC version)    ☰ `date --utc +%Y%m%d_%H%M%SZ` ☰
+   `YYYYMMDD_hhmmss` (with local TZ)  ☰ `date +%Y%m%d_%H%M%S%Z` ☰
+   `YYYYMMSShhmmss`                   ☰ `date +%Y%m%d%H%M%S` ☰
+   `YYYYMMSShhmmssnnnnnnnnn`          ☰ `date +%Y%m%d%H%M%S%N` ☰
+   `YYMMDD_hhmmss`                    ☰ `date +%y%m%d_%H%M%S` ☰
+    Seconds since → development/date-time/Unix-time[UNIX epoch] ☰ `date +%s` ☰ This option is useful for → Linux/shell/commands/date/arithmetic[date arithmetic] such as calculating the differences between to timestamps.
+    Nanoseconds only                  ☰ `date +%N` ☰
+    Nanoseconds since UNIX epoch      ☰ `date +%s%N` ☰
+    Z-notation UTC timestamp          ☰ `date --utc +%FT%TZ` ☰
+    Z-notation UTC timestamp + ms     ☰ `date --utc +%FT%T.%3NZ` ☰
+    ISO8601 UTC timestamp             ☰ `date --utc +%FT%T%Z` ☰
+    ISO8601 UTC timestamp + ms        ☰ `date --utc +%FT%T.%3N%Z` ☰
+    ISO8601 Local TZ timestamp        ☰ `date +%FT%T%Z` ☰
+   `YYYY-MM-DD` (Short day)           ☰ `date +%F\(%a\)` ☰
+   `YYYY-MM-DD` (Long day)            ☰ `date +%F\(%A\)` ☰
+  table }
 
-}
-{ Date arithmetic
-
-  { Calcuate difference between two dates in days
-
-code {
-dt_1=2022-02-18
-dt_2=2023-08-28
-dt_1_sec=$(  date --date=$dt_1 +%s  )
-dt_2_sec=$(  date --date=$dt_2 +%s  )
-dt_d_sec=$(( dt_2_sec - dt_1_sec   ))
-dt_d_day=$(( dt_d_sec / 86400      ))
-echo "There are $dt_d_day days between $dt_1 and $dt_2"
-code }
-
-  }
 
 }
 
 sa:
+
+  Calculate difference between two dates with → Linux/shell/commands/date/arithmetic[`date` arithmetic].
+
   → Linux/shell/commands/faketime[`faketime`] manipulates the system time for a given → Linux/shell/commands[command].
 
   → misc/UTC[UTC]
