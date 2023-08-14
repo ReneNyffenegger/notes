@@ -1,6 +1,6 @@
 $ Oracle: DBA_OPTSTAT_OPERATIONS
 
-History of → development/databases/Oracle/optimizer/statistics[statistic] related operations performed using the → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats` package].
+`dba_optstat_operations` stores the history of → development/databases/Oracle/optimizer/statistics[statistic] related operations performed using the → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats` package].
 
 This view selects from `sys.wri$_optstat_opr`.
 
@@ -37,5 +37,49 @@ order by
    start_time desc;
 code }
 
+{ Parsing the NOTES column
+
+  The `notes` columns stores an XML document which can be parsed with `→ development/databases/Oracle/SQL/functions/XML/Table`:
+code {
+select
+   to_char(op.start_time, 'yyyy-mm-dd hh24:mi') start_,
+   to_char(op.  end_time, 'yyyy-mm-dd hh24:mi') end_,
+   op.status,
+   op.target,
+   pr.*,
+   op.notes
+from
+   dba_optstat_operations op,
+   → development/databases/Oracle/SQL/functions/XML/Table(
+    '/params' passing → development/databases/Oracle/installed/types/XMLType(notes)
+      columns
+         block_sample        varchar2(  5)   path 'param[@name = "block_sample"    ]/@val',
+         cascade             varchar2(  5)   path 'param[@name = "cascade"         ]/@val',
+         concurrent          varchar2(  5)   path 'param[@name = "concurrent"      ]/@val',
+         degree              varchar2( 20)   path 'param[@name = "degree"          ]/@val', -- can be 'NULL', therefore varchar2
+         estimate_percent    varchar2(200)   path 'param[@name = "estimate_percent"]/@val', -- varchar2 because value might also be 'DBMS_STATS.AUTO_SAMPLE_SIZE'
+         force               varchar2(  5)   path 'param[@name = "force"           ]/@val',
+--       gather_fixed        varchar2(  5)   path 'param[@name = "gather_fixed"    ]/@val',
+--       gather_temp         varchar2(  5)   path 'param[@name = "gather_temp"     ]/@val',
+         granularity         varchar2(  5)   path 'param[@name = "granularity"     ]/@val',
+         method_opt          varchar2(200)   path 'param[@name = "method_opt"      ]/@val',
+         no_invalidate       varchar2(  5)   path 'param[@name = "no_invalidate"   ]/@val',
+         options             varchar2(  5)   path 'param[@name = "options"         ]/@val',
+         ownname             varchar2(128)   path 'param[@name = "ownname"         ]/@val',
+         reporting_mode      varchar2(  5)   path 'param[@name = "reporting_mode"  ]/@val',
+         statid              varchar2(  5)   path 'param[@name = "statid"          ]/@val',
+         statown             varchar2(  5)   path 'param[@name = "statown"         ]/@val',
+         stattab             varchar2(  5)   path 'param[@name = "stattab"         ]/@val',
+         stattype            varchar2(  5)   path 'param[@name = "stattype"        ]/@val'
+   ) pr
+where
+   op.status <> 'FAILED'         -- XML cannot be correctly parsed for status <> 'FAILED'
+order by
+   op.end_time desc;
+code }
+
+}
+
 sa:
-  → development/databases/Oracle/installed/data-dictionary/optstat/operation_tasks[`dba_operation_tasks`]
+
+ `→ development/databases/Oracle/installed/data-dictionary/optstat/operation_tasks`
