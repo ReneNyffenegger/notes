@@ -1,0 +1,101 @@
+$ Oracle: DBA_TAB_HISTOGRAMS: Columns ENDPOINT_VALUE and ENDPOINT_ACTUAL_VALUE
+
+code {
+create table tq84_ep (
+    c2 varchar2(2) not null,
+    c3 varchar2(3) not null
+);
+
+insert into tq84_ep
+select
+    chr( 65 + trunc(power(dbms_random.value(0, sqrt(  26)), 2))) ||
+    chr( 65 + trunc(power(dbms_random.value(0, sqrt(  26)), 2))) ,
+    --
+    chr( 65 + trunc(power(dbms_random.value(0, sqrt(  26)), 2))) ||
+    chr( 65 + trunc(power(dbms_random.value(0, sqrt(  26)), 2))) ||
+    chr( 65 + trunc(power(dbms_random.value(0, sqrt(  26)), 2)))
+from
+    dual connect by level <= 1e5;
+
+commit;
+code }
+
+Make sure, histograms are created (see → development/databases/Oracle/optimizer/statistics/types/column/histogram/col_usage[here]):
+code {
+select
+   count(*)
+from
+   tq84_ep
+where
+   c2 >= 'YY' or
+   c3 <= 'AB';
+code }
+
+Create the histograms:
+code {
+begin
+   dbms_stats.gather_table_stats(
+      user,
+     'tq84_ep',
+      method_opt => 'for all columns size auto'
+   );
+end;
+/
+code }
+
+Select some histogram data related to column `C2`. The values in `endpoint_actual_value` are `null`:
+code {
+→ development/databases/Oracle/SQL-Plus/column endpoint_actual_value → development/databases/Oracle/SQL-Plus/column/format[format] a10
+→ development/databases/Oracle/SQL-Plus/column endpoint_value        → development/databases/Oracle/SQL-Plus/column/format[format] 9999999999999999999999999999999999999
+
+select
+   hst.endpoint_number,
+   hst.endpoint_value,
+   hst.endpoint_actual_value
+from
+   user_tab_histograms       hst
+where
+   hst.table_name  = 'TQ84_EP' and
+   hst.column_name = 'C2'
+order by
+   hst.endpoint_value
+;
+--
+-- ENDPOINT_NUMBER                         ENDPOINT_VALUE ENDPOINT_A
+-- --------------- -------------------------------------- ----------
+--             197   338817652429001000000000000000000000           
+--             288   338837934838605000000000000000000000           
+--             367   338858217248209000000000000000000000           
+--             419   338878499657812000000000000000000000           
+--
+--   … etc …
+code }
+
+Select some histogram data related to column `C3`. The values in `endpoint_actual_value` are filled according to the original
+values in the table:
+code {
+select
+   hst.endpoint_number,
+   hst.endpoint_value,
+   hst.endpoint_actual_value
+from
+   user_tab_histograms       hst
+where
+   hst.table_name  = 'TQ84_EP' and
+   hst.column_name = 'C3'
+order by
+   hst.endpoint_value
+;
+--
+-- ENDPOINT_NUMBER                         ENDPOINT_VALUE ENDPOINT_A
+-- --------------- -------------------------------------- ----------
+--              34   338822802259565000000000000000000000 AAA       
+--              61   338822960715890000000000000000000000 AAC       
+--              90   338823277628540000000000000000000000 AAG       
+--             115   338823515313027000000000000000000000 AAJ      
+--
+--   … etc …
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/data-dictionary/tab/histograms`

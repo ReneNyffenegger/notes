@@ -7,6 +7,41 @@ This view comes in all four variants: `user_tab_histograms`, `all_tab_histograms
 
 gh|Oracle-patterns|/Installed/data-dictionary/tab/histograms/simple.sql||
 
+{ Columns
+
+  table { ll
+
+    `OWNER` ☰
+    `TABLE_NAME` ☰
+    `COLUMN_NAME` ☰
+    `ENDPOINT_NUMBER` ☰
+    → development/databases/Oracle/installed/data-dictionary/tab/histograms/endpoint_value-endpoint_actual_value[`ENDPOINT_VALUE`] ☰ The highest value in the bucket (in a «normalized» (and numerical) form).
+    → development/databases/Oracle/installed/data-dictionary/tab/histograms/endpoint_value-endpoint_actual_value[`ENDPOINT_ACTUAL_VALUE`] ☰
+    `ENDPOINT_ACTUAL_VALUE_RAW` ☰
+    `ENDPOINT_REPEAT_COUNT` ☰ This value is only relevant for *hybrid* histograms. For all other histogram types, the value is 0.
+    `SCOPE` ☰
+
+  table }
+
+  { ENDPOINT_REPEAT_COUNT
+
+    This query demonstrates that the value of `endpoint_repeat_count` is only meaningful for *hybrid* histograms:
+code {
+select
+   cst.histogram, 
+   max(hst.endpoint_repeat_count) max_ep_rep_cnt
+from
+   → development/databases/Oracle/installed/data-dictionary/tab/col_statistics  cst                                            join
+   dba_tab_histograms      hst on cst.owner       = hst.owner        and
+                                  cst.table_name  = hst.table_name   and
+                                  cst.column_name = hst.column_name
+group by
+   cst.histogram;
+code }
+  }
+
+}
+
 sa:
 
   `→ development/databases/Oracle/installed/data-dictionary/tab/col_statistics`
