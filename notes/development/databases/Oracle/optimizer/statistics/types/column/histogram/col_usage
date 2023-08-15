@@ -1,0 +1,140 @@
+$ Oracle: Column data histograms and the role of SYS.COL_USAGE$
+
+In order for Oracle to create histogram-table statistics, the column needs to have participated in certain
+`→ development/databases/Oracle/SQL/clauses/where` predicates. If and which kind of predicates were used on a given
+→ development/databases/Oracle/objects/tables/columns is recorded in → development/databases/Oracle/installed/data-dictionary/base-tables/col_usage[`sys.col_usage$`].
+
+This note attempts to demonstrate the interaction between `col_usage$` and the statistic gathering process.
+
+First, we create a table with 1 million records of skewed data:
+code {
+create table tq84_col_stats (
+   val_1    number(7,2),
+   val_2    number(7,2),
+   val_3    number(7,2)
+);
+
+insert into tq84_col_stats
+select
+   power(dbms_random.value(0, sqrt(10000)), 2),
+   power(dbms_random.value(0, sqrt(10000)), 2),
+   power(dbms_random.value(0, sqrt(10000)), 2)
+from
+   dual connect by level <= 1e6;
+
+commit;
+code }
+
+We then gather statistics on the table and its columns:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(
+     user,
+    'tq84_col_stats',
+     → development/databases/Oracle/installed/packages/dbms/stats/api/parameters/method_opt       => 'for all columns size auto'
+   );
+end;
+/
+code }
+
+When querying the → development/databases/Oracle/installed/data-dictionary regarding column statistics, it turns out that no histograms were created despite the skewed data:
+code {
+select
+   substr(c.column_name, 1, 10) col_name,
+     ----------------
+   c.sample_size                col_sample_size,
+   c.histogram,
+   c.num_buckets,
+   c.num_distinct
+from
+   → development/databases/Oracle/installed/data-dictionary/tab/col_statistics[user_tab_col_statistics] c
+where
+   c.table_name = 'TQ84_COL_STATS';
+-- 
+-- COL_NAME   COL_SAMPLE_SIZE HISTOGRAM       NUM_BUCKETS NUM_DISTINCT
+-- ---------- --------------- --------------- ----------- ------------
+-- VAL_1              1000000 NONE                      1       544192
+-- VAL_2              1000000 NONE                      1       556992
+-- VAL_3              1000000 NONE                      1       544832
+code }
+
+Querying → development/databases/Oracle/installed/data-dictionary/base-tables/col_usage[`sys.col_usage$`] reveals
+that no usages are recorded.
+-
+This is of course not surprising as no query took place on the table:
+code {
+select
+   substr(col.name, 1, 8)                col_name,
+   cou.equality_preds,
+   cou.equijoin_preds,
+   cou.nonequijoin_preds,
+   cou.range_preds,
+   cou.like_preds,
+   cou.null_preds,
+   cou.timestamp
+from
+   sys.obj$       obj                                    join
+   sys.col$       col  on obj.obj#   = col.obj#     left join
+   sys.col_usage$ cou  on col.obj#   = cou.obj# and
+                          col.col#   = cou.intcol#
+where
+   obj.owner# =  sys_context('userenv', 'current_userid') and
+   obj.name   = 'TQ84_COL_STATS';
+--
+-- COL_NAME EQUALITY_PREDS EQUIJOIN_PREDS NONEQUIJOIN_PREDS RANGE_PREDS LIKE_PREDS NULL_PREDS TIMESTAMP          
+-- -------- -------------- -------------- ----------------- ----------- ---------- ---------- -------------------
+-- VAL_1                                                                                                         
+-- VAL_2                                                                                                         
+-- VAL_3                                                                                                         
+code }
+
+We're now executing a select statment using an equality predicate on `val_2` and a range predicate on `val_3`:
+code {
+select
+   count(*)
+from
+   tq84_col_stats
+where
+   val_2 = 1    or
+   val_3 < 2;
+code }
+
+Gathering statistics again:
+code {
+begin
+   dbms_stats.gather_table_stats(
+     user,
+    'tq84_col_stats',
+     method_opt       => 'for all columns size auto' 
+   );
+end;
+/
+code }
+
+After gathering the statistics (which I presume to internally call
+`→ development/databases/Oracle/installed/packages/dbms/stats/api/nouns/database_monitoring_info/flush`),
+the data in `sys.col_usage$` now shows that the table was queried using an equality predicate on `val_2` and
+a range predicate on `val_3`:
+
+code {
+--
+-- COL_NAME EQUALITY_PREDS EQUIJOIN_PREDS NONEQUIJOIN_PREDS RANGE_PREDS LIKE_PREDS NULL_PREDS TIMESTAMP          
+-- -------- -------------- -------------- ----------------- ----------- ---------- ---------- -------------------
+-- VAL_1                                                                                                         
+-- VAL_2                 1              0                 0           0          0          0 2023-08-15 13:05:26
+-- VAL_3                 0              0                 0           1          0          0 2023-08-15 13:05:26
+code }
+
+The range predicate caused the creation of a (hybrid) histogram for `val_3` which is shown by querying `user_tab_col_statistics` again:
+code {
+-- COL_NAME   COL_SAMPLE_SIZE HISTOGRAM       NUM_BUCKETS NUM_DISTINCT
+-- ---------- --------------- --------------- ----------- ------------
+-- VAL_1              1000000 NONE                      1       543616
+-- VAL_2              1000000 NONE                      1       550208
+-- VAL_3                 5516 HYBRID                  254       551680
+code }
+
+Cleaning up:
+code {
+drop  table tq84_col_stats purge;
+code }
