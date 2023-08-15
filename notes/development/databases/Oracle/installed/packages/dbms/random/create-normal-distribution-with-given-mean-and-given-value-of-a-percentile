@@ -1,6 +1,12 @@
-$ Oracle: Create a normal distribution with a given mean and a given value of a percentile
+$ Oracle: Create a normal distribution with a given mean and k-th percentile value
 
-Create a normal distribution with a given mean and a given probability that a value is less than another given value:
+This note is intended to demonstrate how a normal distribution with a given mean (here: 5000) and a given
+→ https://en.wikipedia.org/wiki/Percentile[k-th percentile] value (here k=0.1 % and value = 10) can be created in Oracle using `→ development/databases/Oracle/installed/packages/dbms/random/api/normal`.
+
+For this purpose, we need to somehow obtain the → https://en.wikipedia.org/wiki/Standard_score[z-Score] for `k`, for example with
+→ https://www.socscistatistics.com/tests/ztest/zscorecalculator.aspx[this calculator]. It turns out, the sought value is *3.09023*.
+
+With these three values (z-Score, mean and k-th percentile value 10 (`x`), we create a table with one million records whose values for `val` follow this distribution:
 code {
 exec dbms_random.seed(2808)
 
@@ -23,7 +29,7 @@ connect by
    level <= 1000000;
 code }
 
-Verify created data:
+After creating the table, we check if the result corresponds to our criteria. It turns out that the mean *is* approximately 5000 and that indeed 0.1 % of `val` is smaller or equal to 10:
 code {
 → development/databases/Oracle/SQL/select
    → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](avg(val), 1)   mean,
