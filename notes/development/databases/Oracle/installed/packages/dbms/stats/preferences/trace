@@ -1,0 +1,35 @@
+$ DBMS_STATS: Preference TRACE
+@ trace
+
+The value of the `TRACE` preference is a bit field:
+table { rll
+
+      ☰ ☰ `dbms_stats_internal.…`
+    1 ☰ use `→ development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line` instead of writing into trace file ☰ `DSC_DBMS_OUTPUT_TRC`
+    2 ☰ enable dbms_stat trace only at session level ☰ `DSC_SESSION_TRC`
+    4 ☰ trace table stats ☰ `DSC_TAB_TRC`
+    8 ☰ trace index stats ☰ `DSC_IND_TRC`
+   16 ☰ trace column stats ☰ `DSC_COL_TRC`
+   32 ☰ trace auto stats - save session state log into `sys.stats_target_log$` (Create table with `create table sys.stats_target$_log as select t.*, rpad('X',30,'X') session_id, 1 state from sys.stats_target$ t where 1=0`) ☰ `DSC_AUTOST_TRC`
+   64 ☰ trace scaling ☰ `DSC_SCALING_TRC`
+  128 ☰ dump backtrace on error ☰ `DSC_ERROR_TRC`
+  256 ☰ dubious stats detection ☰ ``DSC_DUBIOUS_TRC`
+  512 ☰ auto stats job ☰ `DSC_AUTOJOB_TRC`
+ 1024 ☰ parallel execution tracing ☰ `DSC_PX_TRC`
+ 2048 ☰ print query before execution ☰ `DSC_Q_TRC`
+ 4096 ☰ partition prune tracing ☰ `DSC_CCT_TRC`
+ 8192 ☰ trace stat differences ☰ `DSC_DIFFST_TRC`
+16384 ☰ trace extended column stats gathering ☰ `DSC_USTATS_TRC`
+32768 ☰ trace approximate NDV (number distinct values) gathering ☰ `DSC_SYN_TRC`
+
+table }
+
+The third column shows the constants that are defined in `dbms_stats_internal`:
+code {
+SQL> → development/databases/Oracle/SQL-Plus/execute[exec] dbms_output.put_line (dbms_stats_internal.dsc_dubious_trc)
+256
+code }
+
+sa:
+  → https://github.com/jkstill/oracle-script-lib/blob/master/sql/stats_trace.sql[Apparently], the value of `→ development/databases/Oracle/installed/data-dictionary/base-tables/optstat/hist_constrol[optstat_hist_control$].spare1` will be set to `null` if the
+ *trace* preference was ever set.
