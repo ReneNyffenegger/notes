@@ -1,0 +1,76 @@
+$ Oracle PL/SQL Iteration control
+
+The iteration controls of the → development/databases/Oracle/PL-SQL/statements/loop[`LOOP`] statement include
+  • Stepped range
+  • Single expression
+  • Repeated expression
+  • VALUES OF
+  • INDICES OF
+  • PAIRS OF
+  • Cursor
+
+: FOR … IN [ VALUES | INDICES | PAIRS ] OF …
+
+
+{ [ VALUES | INDICES | PAIRS ] OF
+
+  { Syntax
+
+code {
+[ VALUES | INDICES | PAIRS ] OF
+     expr              |
+  (  cursor_object   ) |           -- An explicit PL/SQL cursor object  
+  (  sql_statement   ) |           -- An implict  PL/SQL cursor object
+     cursor_variable   |           -- A REF CURSOR
+  (  dynamic_sql     )
+code }
+
+    Oracle's documentation suggests that `indices of` and `pairs of` can be combined with cursor types, but I am not sure how this would be possible.
+
+  }
+  { Example: index-by collection variable
+
+code {
+→ development/databases/Oracle/PL-SQL/block[declare]
+   type  text_t    is table of varchar2(20) index by pls_integer;
+   items text_t;
+begin
+   items( 42 ) := 'Forty-two'  ;
+   items( 99 ) := 'Ninety-nine';
+   items(  5 ) := 'Five'       ;
+   items( 20 ) := 'TWenty'     ;
+   --
+   for item_text             IN VALUES  of items loop → development/databases/Oracle/installed/packages/dbms/output/api/put_line(                                           item_text  ); end loop;
+   for item_index            IN INDICES of items loop → development/databases/Oracle/installed/packages/dbms/output/api/put_line(→ development/databases/Oracle/SQL/functions/type-conversion/to/char(item_index, '99') || ': ' || items(item_index)); end loop;
+   for item_index, item_text IN PAIRS   of items loop → development/databases/Oracle/installed/packages/dbms/output/api/put_line(→ development/databases/Oracle/SQL/functions/type-conversion/to/char(item_index, '99') || ': ' ||       item_text  ); end loop;
+end;
+/
+code }
+  }
+  { Example: Dynamic SQL (EXECUTE IMMEDIATE)
+
+code {
+declare
+   table_name varchar2(30) := 'user_objects';
+   --
+   type obj_rec is record (
+      nam varchar2(128),
+      typ varchar2( 30)
+   );
+   --
+begin
+   for r obj_rec in values of (
+              execute immediate 'select object_name, object_type from ' || table_name || ' where object_name not like :1' using 'TQ84%'
+   ) loop
+      dbms_output.put_line(rpad(r.nam, 30) || r.typ);
+   end loop;
+end;
+/
+code }
+
+  }
+
+}
+
+sa:
+  → development/databases/Oracle/PL-SQL/statements/loop
