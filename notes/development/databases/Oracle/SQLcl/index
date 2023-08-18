@@ -14,9 +14,30 @@ SQLcl is a new Java-based command-line interface for Oracle Database. It support
 }
 { Download/Installing
 
-? The download file is less than 20 MB.
+  { Downloading the zip file
+  
+    The download link for SQLcl can be found from → https://oracle.com/sqlcl[oracle.com/sqlcl]:
+code {
+$ wget https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-23.2.0.178.1027.zip -O /tmp/sqlcl.zip
+code }
 
-  → http://www.oracle.com/technetwork/developer-tools/sqlcl/downloads/index.html[Download].
+    Extract the zip file to `~/bin/sqlcl` (all files in the zip file are located under `sqlcl`):
+code }
+$ unzip -d ~/bin /tmp/sqlcl.zip
+code }
+
+    Verify that `java` is installed (otherwise, it needs to be installed).
+code {
+$ java --version
+code }
+
+    Assuming, sqlcl is installed under `~/bin/sqlcl`, it can be started like so:
+code {
+$ ~/bin/sqlcl/bin/sql rene/rene@localhost/freepdb1
+code }
+
+  }
+  { Using an installer
 
   In an OCI environment, SQLcl can be installed with → Linux/package-managers/YUM:
 code {
@@ -27,6 +48,8 @@ code }
 code {
 brew install sqlcl
 code }
+
+  }
 
 }
 { Scripting
@@ -201,7 +224,7 @@ code }
   }
   { SQL Select hints #sqlcl-sqldev-select-hints
 
-  SQLcl and → development/Software/Oracle-SQL-Developer[SQL Developer] allow to specify *SQL select hints* which cause a result set to be returned in a specific format:
+    SQLcl and → development/Software/Oracle-SQL-Developer[SQL Developer] allow to specify *SQL select hints* which cause a result set to be returned in a specific format:
 code {
 select /*ansiconsole*/ * from …; -- Best appearance for ANSI terminal display
 select /*csv*/         * from …; -- → development/Data/exchange/formats/CSV[Comma-separated values]
@@ -215,11 +238,21 @@ select /*text*/        * from …; -- Plain text
 select /*xml*/         * from …; -- Tagged → development/XML
 code }
 
-  Note: these hints are not to be confused with → development/databases/Oracle/SQL/hints[Oracle Optimizer hints].
+    Note: these hints are not to be confused with → development/databases/Oracle/SQL/hints[Oracle Optimizer hints].
 
-  In → development/Software/Oracle-SQL-Developer[SQL Developer], such a select statement needs to be executed with `F5` for the «hint» to have an effect.
+    In → development/Software/Oracle-SQL-Developer[SQL Developer], such a select statement needs to be executed with `F5` for the «hint» to have an effect.
 
-   TODO: Compare with → development/Software/Oracle-SQL-Developer/SQL-extensions.
+    TODO: Compare with → development/Software/Oracle-SQL-Developer/SQL-extensions.
+
+  }
+  { Long input lines longer than 5000 characters #sqlcl-no-line-length-limit
+
+    The maximum line length limit of → development/databases/Oracle/SQL-Plus of 5000 characters before and 3000 characters after subustitution (error messages → development/databases/Oracle/SQL-Plus/_errors/SP2-0027_Input-is-too-long_4999-characters_line-ignored and
+    → development/databases/Oracle/SQL-Plus/_errors/SP2-0341_line-overflow-during-variable-substitution) does not apply with sqlcl:
+code {
+$ printf 'set verify off\ndefine num=42\n%-10000s;\nexit\n' 'select &num as num from dual' > /tmp/long-line.sql
+$ ~/bin/sqlcl/bin/sql rene/rene@localhost/freepdb1 @/tmp/long-line.sql
+code }
 
   }
 
