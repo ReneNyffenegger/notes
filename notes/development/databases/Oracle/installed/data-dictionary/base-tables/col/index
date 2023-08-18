@@ -26,11 +26,14 @@ select
 --       - ORA-00904: "SYS"."DBMS_METADATA_UTIL"."LONG2CLOB": invalid identifier     or
 --       - ORA-01031: insufficient privileges
 -- --------------------------------
-   col.intcol#,
+   col.intcol#,                                                           -- Internal column number
    col.property,
-   case when bitand(col.property,            16) >  0 then '16'        end "16",
-   case when bitand(col.property,            32) >  0 then 'invisible' end  invisible, -- aka hidden
-   case when bitand(col.property, 8796093022208) >  0 then 'sensitive' end  sensitive, -- KQLDCOP2_SEN
+   case when bitand(col.property,             1) >  0 then 'adt'        end  adt,
+   case when bitand(col.property,            16) >  0 then '16'         end "16",
+   case when bitand(col.property,            32) >  0 then 'invisible'  end  invisible, -- aka hidden
+   case when bitand(col.property,          1024) >  0 then 'ntab'       end  nested_table,
+   case when bitand(col.property,         32768) >  0 then 'unused'     end  → development/databases/Oracle/objects/tables/columns/unused[unused]   ,
+   case when bitand(col.property, 8796093022208) >  0 then 'sensitive'  end  sensitive, -- KQLDCOP2_SEN
    col.charsetid,
    col.charsetform,
    col.evaledition#,
@@ -52,5 +55,10 @@ sa:
  `→ development/databases/Oracle/installed/data-dictionary/base-tables/tab`
 
   → development/databases/Oracle/installed/data-dictionary/base-tables/col_usage[`col_usage$`]
+
+  `ecol$` is an extension to `col$` that is used to store the default value with which a column was added (see comment in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dcore_bsq[`dcore.bsq`]).
+
+  `domain_col$` and `col_domain$`
+  
 
   → development/databases/Oracle/objects/tables/columns[Columns]

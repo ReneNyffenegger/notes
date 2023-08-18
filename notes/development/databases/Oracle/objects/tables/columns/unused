@@ -1,0 +1,102 @@
+$ Oracle: Unused columns
+
+code {
+create table tq84_cols (
+   id      number,
+   col_1   varchar2(10),
+   col_2   varchar2(10),
+   col_3   varchar2(10),
+   col_4   varchar2(10)
+);
+code }
+
+code {
+insert into tq84_cols
+select
+   level,
+   dbms_random.string('l',   10),
+   dbms_random.string('l',   10),
+   dbms_random.string('l',   10),
+   dbms_random.string('l',   10)
+from
+   dual connect by level <= 1e5;
+code }
+
+code {
+create index tq84_cols_ix_3 on tq84_cols(col_3);
+code }
+
+code {
+create or replace function tq84_cols_func(i in number) return varchar2
+   authid definer
+is
+   ret varchar2(1000);
+begin
+   select col_3 into ret from tq84_cols where id = i;
+   return ret;
+end;
+/
+code }
+
+The function works as expected:
+code {
+begin
+   dbms_output.put_line(tq84_cols_func(400));
+end;
+/
+code }
+
+code {
+alter table tq84_cols set unused ( col_3 );
+code }
+
+The function does not work anymore, the following block throws *PLS-00905: object RENE.TQ84_COLS_FUNC is invalid*
+code {
+begin
+   dbms_output.put_line(tq84_cols_func(400));
+end;
+/
+code }
+
+Also, the index is gone, the following `select` statement returns no record:
+code {
+select * from user_indexes where index_name like 'TQ84_COLS_IX%';
+code }
+
+The column is unusable, but not really dropped:
+code {
+column column_name format a30
+column data_type   format a10
+select
+   column_name,
+   data_type,
+   column_id,
+   internal_column_id
+from
+   user_tab_cols
+where
+   table_name = 'TQ84_COLS'
+order by
+   internal_column_id;
+--
+-- COLUMN_NAME                    DATA_TYPE   COLUMN_ID INTERNAL_COLUMN_ID
+-- ------------------------------ ---------- ---------- ------------------
+-- ID                             NUMBER              1                  1
+-- COL_1                          VARCHAR2            2                  2
+-- COL_2                          VARCHAR2            3                  3
+-- SYS_C00004_23081811:19:35$     VARCHAR2                               4
+-- COL_4                          VARCHAR2            4                  5
+code }
+
+Unusable columns cannot be made usable again, the following attempt results in → development/databases/Oracle/errors/ORA-02000_missing_keyword[ORA-02000: missing UNUSED keyword]:
+code {
+alter table tq84_cols set used ( col_3 );
+code }
+
+Finally, dropping the column for good:
+code {
+alter table tq84_cols drop unused columns;
+code }
+
+sa:
+  Unused columns have the bit «32768» set in the `property` column of `→ development/databases/Oracle/installed/data-dictionary/base-tables/col` (but see also the ADT 
