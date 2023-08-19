@@ -38,6 +38,12 @@ code {
 \e[91m text \e[0m
 code }
 
+    Or, … in a shell with `echo`:
+code {
+$ echo -e "\e[91mred text\e[0m"
+$ echo -e "\e[103m\e[91mred text on yellow background\e[0m"
+code }
+
   }
   { Defining the RGB values for the 16 base colors
 
@@ -45,7 +51,7 @@ code }
     with `\e]4;c;rgb:RR/GG/BB\x7`. `RR`, `GG` and `BB` are the hex values for the RGB colors. `c` is the color number which is being defined. Note the closing bracket `]`.
 
     The following PowerShell script modifies the color palette according to *solarized light*:
-     gh|ANSI-escape-sequences|/define-16-basic-colors.ps1||
+    gh|ANSI-escape-sequences|/define-16-basic-colors.ps1||
 
   }
   { 216 6-bit colors + 16 basic colors + 24 gray scale colors
@@ -55,9 +61,36 @@ code }
       `n` ☰
       0-7 ☰ 8 colors
       8-15 ☰ 8 intense color
-      16 + 36*r + 6+g + b ☰ rgb value (each component having 6 values)
+      16 + 36*r + 6+g + b ☰ RGB value (each component having 6 values)
       232-255 ☰ 24 gray scale colors, black to white
     table }
+
+    The following shell snippet prints the color with R=5, G=2 and B=0:
+code {
+$ r=5
+$ g=2
+$ b=0
+$ color=$(( 16 + $r * 36 + $g * 3 + $b ))
+$ echo -e "\e[38;5;${color}mr=$r g=$g b=$b\e[0m"
+code }
+
+  { Demonstration: Emit all 6-bit RGB colors with a script.
+
+    The following shell script uses the `38;5` escape function to create 216 background colors (The red, green and blue components are each in the range 0 … 5)
+
+    gh|ANSI-escape-sequences|/bg-48-fg-38-5||
+
+    The output of the script is
+
+    gh|ANSI-escape-sequences|/img/bg-48-fg-38-5.png||
+  
+    Apparently, → https://github.com/segaleran/eran-dotfiles/blob/master/bin/terminalcolors.py[this python script] does more or less the same thing.
+    -
+    → https://gist.github.com/hSATAC/1095100[This is a perl script] does seems to do the same.
+    -
+    And then, there is also the shell command `msgcat --color=test`.
+
+  }
 
   }
   { 24-bit colors
@@ -65,7 +98,6 @@ code }
     With `\e[38;2;r;g;bm` and `\e[48;2;r;g;bm`, The color palette is extended to *true colors*, `r`, `g` and `b` being values between `0` and `255`.
 
   }
-  
 
 }
 { Positioning the cursor
@@ -81,23 +113,6 @@ code }
 { Clearing the screen
 
   gh|ANSI-escape-sequences|/clear-screen||
-
-}
-{ bg-48-fg-38-5
-
-  The following shell script uses the `38;5` escape function to create 216 background colors (The red, green and blue components are each in the range 0 … 5)
-
-  gh|ANSI-escape-sequences|/bg-48-fg-38-5||
-
-  The output of the script is
-
-  gh|ANSI-escape-sequences|/img/bg-48-fg-38-5.png||
-
-  Apparently, → https://github.com/segaleran/eran-dotfiles/blob/master/bin/terminalcolors.py[this python script] does more or less the same thing.
-  -
-  → https://gist.github.com/hSATAC/1095100[This is a perl script] does seems to do the same.
-  -
-  And then, there is also the shell command `msgcat --color=test`.
 
 }
 { Resetting all settings
