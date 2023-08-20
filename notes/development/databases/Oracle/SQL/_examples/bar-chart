@@ -1,0 +1,98 @@
+$ Oracle SQL example: Bar charts
+
+The following example uses the → development/Unicode characters → https://db.renenyffenegger.ch/IT/Unicode-Character-Database/cp/9608[FULL BLOCK],
+→ https://db.renenyffenegger.ch/IT/Unicode-Character-Database/cp/9609[LEFT SEVEN EIGHTHS BLOCK],
+→ https://db.renenyffenegger.ch/IT/Unicode-Character-Database/cp/9610[LEFT THREE QUARTERS BLOCK] etc., (found in the → https://db.renenyffenegger.ch/IT/Unicode-Character-Database/block/Block%20Elements[Block Elements] code block)
+to create a bar chart.
+
+The → development/databases/Oracle/SQL/clauses/with[`with`] clause defines a → development/databases/Oracle/SQL/clauses/with#ora-with-func[local function] (`bar`) that useses the mentioned Unicode
+characters to create a bar whose length corresonds to `val`.
+
+The «magic» value 14849680 is the → development/Unicode/UTF-8 value for the character that follows the 8 characters with which the bar is drawn.
+
+code {
+with
+   function bar(val number) return varchar2 is
+      val_8 pls_integer;
+      val_r pls_integer;
+   begin
+      val_8 := trunc(val/8);
+      val_r := val - 8*val_8;
+      return substr(
+         lpad(
+           chr(14849680-8), val_8 , chr(14849680-8)
+         ) || case when val_r > 0 then chr(14849680-val_r) end,
+         1, 150
+       );
+   end;
+rnd as (
+   select
+      100 + 100* sin(2*3.14156 / 48 * (level-13)) + dbms_random.value(0,40)  val
+   from
+      dual connect by level <= 48
+)
+select
+   to_char(val, '990.00') val,
+   bar(val)               bar
+from
+   rnd
+/
+code }
+
+The result of the statement, When executed in → development/databases/Oracle/SQLcl[SQLcl], is shown below. (I tried the same thing with → development/databases/Oracle/SQL-Plus and setting `NLS_LANG` to
+`American_America.UTF8`, but the output was not rendered as nicely).
+code {
+VAL        BAR
+__________ ________________________________
+  31.18    ███▉
+   6.06    ▊
+   4.75    ▋
+  10.98    █▍
+  34.38    ████▎
+  59.02    ███████▍
+  41.76    █████▎
+  42.29    █████▎
+  50.84    ██████▍
+  86.38    ██████████▊
+  83.95    ██████████▌
+ 111.44    █████████████▉
+ 124.83    ███████████████▋
+ 136.06    █████████████████
+ 148.99    ██████████████████▋
+ 177.17    ██████████████████████▏
+ 174.94    █████████████████████▉
+ 172.71    █████████████████████▋
+ 191.92    ████████████████████████
+ 213.27    ██████████████████████████▋
+ 209.67    ██████████████████████████▎
+ 195.00    ████████████████████████▍
+ 206.32    █████████████████████████▊
+ 219.79    ███████████████████████████▌
+ 227.47    ████████████████████████████▍
+ 211.36    ██████████████████████████▍
+ 213.41    ██████████████████████████▋
+ 231.41    ████████████████████████████▉
+ 222.73    ███████████████████████████▉
+ 208.22    ██████████████████████████
+ 192.60    ████████████████████████▏
+ 181.21    ██████████████████████▋
+ 186.41    ███████████████████████▎
+ 144.80    ██████████████████▏
+ 161.46    ████████████████████▏
+ 132.07    ████████████████▌
+ 125.61    ███████████████▊
+ 121.99    ███████████████▎
+ 101.18    ████████████▋
+  80.50    ██████████▏
+  76.96    █████████▋
+  73.22    █████████▏
+  58.43    ███████▎
+  51.89    ██████▌
+  31.72    ████
+  18.52    ██▍
+  42.23    █████▎
+  10.71    █▍
+code }
+
+sa:
+  The → development/databases/DuckDB#duckdb-bar[`bar()`] function in → development/databases/DuckDB.
