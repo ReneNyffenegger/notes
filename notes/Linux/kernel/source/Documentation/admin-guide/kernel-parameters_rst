@@ -2,6 +2,91 @@ $ Documentation/admin-guide/kernel-parameters.rst
 
 `Documentation/admin-guide/kernel-parameters.rst` describes the kernel's boot-time parameters.
 
+{ TODO
+
+
+  Unrecognized parameters that don't contain a `.` are passed to `init`.
+  -
+  Parameters with a `=` go into the environment of `init`.  Others are passed as command line argument to `init`.
+  -
+  The kernel parses the command line up to `--`. Everything after `--` is passed as an argument to `init`.
+
+  Module parameters can be specified:
+    • Via the kernel command line and a module name prefix (`usbcore.blinkenlights=1`)
+    • Vai `modprobe` (`modporobe usbcore blinkenlights=1`)
+
+  Parameters for modules which are built into the kernel need to be specified on the kernel command line
+
+  Hyphens/dashes and underscores are equivalent in parameter names, i. e. `log_buf_len=1M` and `log-buf-len=1M` have the same effect.
+
+  Spaces can be protected in double quotes (`param="foo bar baz"`).
+  
+
+  Macros  
+    • `__setup()`
+    • `early_param()`
+    • `core_param()`
+    • `module_param()`
+
+ `→ Linux/fhs/proc/cmdline`
+
+ `Documentation/arch/m68k/kernel-options.rst` states (somewhat contrary to the above):
+  -
+  The kernel knows three kinds of options on its command line
+    • Kernel options (Argument contains `=` and is known to the kernel)
+    • Environment settings (Argument contains `=`)
+    • Arguments for init (Argument does not contain `=`)
+
+  { Interesting parameters
+
+    Interesting, imho, parameters include:
+    table { ll
+      `apic` ☰ Output verbosity while booting
+      `ALSA` ☰
+      `boot` ☰
+      `boot_delay` ☰ Milliseconds to dealy each `printk` during boot. Requires `CONFIG_BOOT_PRINTK_DELAY` and possibly `lpj=`.
+      `bootconfig` ☰
+      `console` ☰ OUtput console device and options.
+      `console_msg_format` ☰
+      `earlycon` ☰ Output early console device and options
+      `earlyprintk` ☰ Useful when the kernel crashes before the normal console is initialized.
+      `ftrace` ☰ Set and start the specified tracer as early as possible
+      `ftrace_boot_snapshot` ☰ Take a snapshot of ftrace ringbuffer to `/sys/kernel/tracing/snapshot`
+      `init` ☰ Start specified binary instead of `→ Linux/fhs/sbin/init`
+      `initrd` ☰ Location of initial ramdisk.
+      `keep_bootcon` ☰
+      `kgdbwait` ☰ Enter kernel debugger at the earliest opportunity.
+      `lpj` ☰ Set `loops_per_jiffy` to avoid time-consuming boot-time autodetection of up to 250 ms per CPU.
+      `nospectre_*` ☰
+      `nr_cpus` ☰
+      `profile` ☰ Enable kernel profiling via `/proc/profile`.
+      `quiet` ☰ Disable most log messages
+      `retbleed` ☰
+      `ro`, `rw` ☰ Mount root device read-only, read-write
+      `root` ☰ root filesystem (See `early_lookup_bdev` comment in `block/early-lookup.c`)
+      `rootflags` ☰ Mount options for root filesystem
+      `S` ☰ Run init in single mode
+      `selinux` ☰ Disable or enable SELinux at boot time
+      `stacktrace` ☰ Enable the stack tracer on boot up
+      `stacktrace_filter` ☰
+      `sysrq_always_enabled` ☰
+      `tp_printk` ☰
+      `trace_buf_size` ☰ Set tracing bugger size on each CPU
+      `trace_options` ☰ Compare with `/sys/kernel/tracing/trace_options`
+      `vga` ☰ Video mode, actually a *boot loader* parameter passed to the kernel using a special protocol. See also `Documentation/admin-guide/svga.rst` and `Documentation/arch/x86/boot.rst`.
+
+    table }
+
+    See also `Documentation/admin-guide/kernel-parameters.txt`
+
+  }
+}
+
+sa:
+ `Documentation/arch/x86/x86_64/boot-options.rst`
+
+ The `linux` option in `→ Linux/fhs/boot/grub/grub_cfg`
+
 links:
 
   → https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/kernel-parameters.rst
