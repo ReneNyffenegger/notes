@@ -4,6 +4,46 @@ Some documentation about the kernel sources is found under `→ Linux/kernel/sou
 -
 This documentation is complemented in the source files itself as *kerneldoc comments* (i.e. comments that start with `/**`),
 
+{ Creating the documenation
+
+  { Sphinx and .rst files
+
+    Linux uses → https://www.sphinx-doc.org/en/master/[Sphinx] as tool to create the documentation from → https://docutils.sourceforge.io/rst.html[reStructuredText] (files whose suffix is `.rst`).
+
+    Most `.rst` files are found below `→ Linux/kernel/source/Documentation`, but some are also found below `tools/bpf/bpftool/Documentation`, `tools/testing/selftests/bpf` and
+   `drivers/staging/media/av7110`.
+
+  }
+  { Making the documentation
+
+    The documentation is *made* with one of the → Linux/kernel/compilation/make#linux-make-doc-targets[documenation targets], for example
+code {
+$ make htmldocs
+code }
+
+    The created documentation is put into `Documentation/output`.
+
+    Making documentation prints lot of warnings:
+code {
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'dispclk_khz' not described in 'dc_clocks'
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'actual_dispclk_khz' not described in 'dc_clocks'
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'dppclk_khz' not described in 'dc_clocks'
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'actual_dppclk_khz' not described in 'dc_clocks'
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'disp_dpp_voltage_level_khz' not described in 'dc_clocks'
+./drivers/gpu/drm/amd/display/dc/dc.h:558: warning: Function parameter or member 'dcfclk_khz' not described in 'dc_clocks'
+…
+… etc. .etc. etc.
+…
+code }
+
+    The variable `SPHINXOPTS` can be used to pass extra options to Sphinx, for example to obtain more verbose output:
+code {
+$ make SPHINXOPTS=-v htmldocs
+code }
+
+  }
+
+}
 { Kernel-doc comments #linux-kernel-doc
 
   Kernel-doc comments are C comments that start with `/**` (and thus are similar to javadoc, gtk-doc or Doxygen).
@@ -54,7 +94,7 @@ This documentation is complemented in the source files itself as *kerneldoc comm
 sa:
 
   The files under `→ Linux/kernel/source/Documentation`. The main table of content (TOC) file is
- `→ Linux/kernel/source/Documentation/index_rst`.
+ `→ Linux/kernel/source/Documentation/index_rst` (of which the latest generated output is found at → https://www.kernel.org/doc/html/latest/[www.kernel.org/doc/html/latest/]).
 
   → Linux/kernel/source/Documentation/doc-guide/contributing_rst lays out guidelines related to improving the kernel documentation.
 
