@@ -1,4 +1,28 @@
 
+code {
+$ → Linux/kernel/compilation/make …
+code }
+
+{ Version variables #linux-Makefile-version-vars
+
+  The → https://github.com/torvalds/linux/blob/master/Makefile#L2-L6[top of the `Makefile`] defines a few version related variables:
+code {
+VERSION = 6
+PATCHLEVEL = 5
+SUBLEVEL = 0
+EXTRAVERSION = -rc7
+NAME = Hurr durr I'ma ninja sloth
+code }
+
+code {
+$ → Linux/kernel/compilation/make -s kernelversion
+6.5.0-rc7
+code }
+
+  Compare with `include/config/kernel.release` (if it exists).
+
+}
+
 
 links:
   → https://0xax.gitbooks.io/linux-insides/content/Misc/linux-misc-2.html[Process of the Linux kernel building]
