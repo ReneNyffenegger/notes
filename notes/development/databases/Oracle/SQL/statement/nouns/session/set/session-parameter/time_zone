@@ -1,0 +1,68 @@
+$ Oracle: ALTER SESSION SET TIME_ZONE …
+
+Determine the → development/databases/Oracle/architecture/session[session's] current time zone:
+code {
+select
+   → development/databases/Oracle/SQL/functions/date/db-sessiontimezone[sessiontimezone]
+from
+   → development/databases/Oracle/SQL/dual;
+--
+-- SESSIONTIMEZONE                                                            
+-- ---------------------------------------------------------------------------
+-- Europe/Berlin
+code }
+
+Modify the session's time zone:
+code {
+alter session set time_zone ='America/New_York';
+--
+-- Session altered.
+
+select
+   → development/databases/Oracle/SQL/functions/date/db-sessiontimezone[sessiontimezone]
+from
+   → development/databases/Oracle/SQL/dual;
+--
+-- SESSIONTIMEZONE                                                            
+-- ---------------------------------------------------------------------------
+-- America/New_York
+code }
+
+Modify relative to GMT:
+code {
+alter session set time_zone = '-03:00';
+
+select
+   → development/databases/Oracle/SQL/functions/date/db-sessiontimezone[sessiontimezone]
+from
+   → development/databases/Oracle/SQL/dual;
+--
+-- SESSIONTIMEZONE                                                            
+-- ---------------------------------------------------------------------------
+-- -03:00
+code }
+
+Evaluate `→ development/databases/Oracle/SQL/functions/date/systimestamp` in session's time zone:
+code {
+select
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char(→ development/databases/Oracle/SQL/functions/date/systimestamp                             , 'yyyy-mm-dd hh24:mi:ss (tzr)') ts1,
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char(→ development/databases/Oracle/SQL/functions/date/systimestamp at time zone sessiontimezone, 'yyyy-mm-dd hh24:mi:ss (tzr)') ts2
+from
+   dual;
+--
+-- TS1                           TS2                         
+-- ----------------------------  ----------------------------
+-- 2023-08-22 08:17:31 (+00:00)  2023-08-22 05:17:31 (-03:00)
+code }
+
+Trying to set the session's time zone to an unrecognized value:
+code {
+alter session set time_zone = 'Europe/Berne';
+--
+-- ORA-01882: time zone region not found
+code }
+
+Find available time zone values:
+code {
+select * from v$timezone_names;
+code }

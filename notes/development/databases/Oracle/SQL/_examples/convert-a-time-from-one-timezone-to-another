@@ -1,0 +1,20 @@
+$ Oracle SQL: Convert a time from one timezone to another.
+
+If it is 11:49 AM in Zurich/Switzerland on August 22nd, what time is it in Denver?
+-
+What if the date is October 30th?
+
+Using a combination of → development/databases/Oracle/SQL/functions/timestamp#ora-from_tz[`from_tz`], `→ development/databases/Oracle/SQL/functions/type-conversion/to/char` and `at time zone` allows to convert time stamps from one time zone to another:
+code {
+select
+    → development/databases/Oracle/SQL/functions/type-conversion/to/char(→ development/databases/Oracle/SQL/functions/timestamp#ora-from_tz[from_tz](timestamp '2023-08-22 11:49:00', 'Europe/Zurich') at time zone 'America/Denver', 'hh24:mi') t1,
+    → development/databases/Oracle/SQL/functions/type-conversion/to/char(→ development/databases/Oracle/SQL/functions/timestamp#ora-from_tz[from_tz](timestamp '2023-10-30 11:49:00', 'Europe/Zurich') at time zone 'America/Denver', 'hh24:mi') t2
+from
+   dual;
+--
+-- T1      T2   
+-- -----   -----
+-- 03:49   04:49
+code }
+
+The result of `t1` is different from `t2` because on October 30th, there is no daylight saving time in effect anymore in Zurich, while Denver still enjoys it.
