@@ -1,8 +1,53 @@
 $ Oracle: DBMS_SPACE.UNUSED_SPACE
+@ dbms_space.unused_space
 
-`dbms_space.unused_space` returns the total amount of occupied space, the amount of unused space, the last block with data etc. in a table, index or cluster.
+`dbms_space.unused_space` returns the total amount of occupied space, the amount of unused space, the last block with data (→ development/databases/Oracle/architecture/database/logical-structures/segment/high-water-mark[hiwg water mark])
+etc. in a table, index or cluster.
 
-gh|Oracle-patterns|/Installed/dbms/space/unused_space.sql||
+{ Print a segment's total blocks, last used block etc.
+
+code {
+declare
+
+  total_blocks    number;
+  total_bytes     number;
+  unused_blocks   number;
+  unused_bytes    number;
+  last_extf       number;
+  last_extb       number;
+  last_used_block number;
+
+begin
+
+   dbms_space.unused_space(
+      segment_owner              => user,
+      segment_name               =>'XYZ',
+      segment_type               =>'TABLE',
+      total_blocks               => total_blocks,
+      total_bytes                => total_bytes,
+      unused_blocks              => unused_blocks,
+      unused_bytes               => unused_bytes,
+      last_used_extent_file_id   => last_extf,
+      last_used_extent_block_id  => last_extb,
+      last_used_block            => last_used_block,
+      partition_name             => null
+   );
+
+   dbms_output.put_line('Total blocks:    '   || to_char(total_blocks    , '999999'));
+   dbms_output.put_line('Unused blocks:   '   || to_char(unused_blocks   , '999999'));
+   dbms_output.put_line('Last used block:   ' || to_char(last_used_block , '9999'  ));
+-- dbms_output.put_line('Last ust ext file: ' || to_char(last_extf       , '9999'  ));
+
+end;
+/
+code }
+
+}
+{ Watch table grow
+
+  gh|Oracle-patterns|/Installed/dbms/space/unused_space.sql||
+ 
+}
 
 sa:
 
