@@ -1,10 +1,24 @@
 $ scripts/find-unused-docs.sh
 
-`scripts/find-unused-docs.sh` detects files with → Linux/kernel/source/_topics/documentation#linux-kernel-doc[kernel-doc comments] for exported functions that are not included in documentation.
-
+`scripts/find-unused-docs.sh` detects `*.c` files (in a specified directory) with → Linux/kernel/source/_topics/documentation#linux-kernel-doc[kernel-doc comments] for exported functions that are not referenced in RST files:
 code {
-$ scripts/find-unused-docs.sh <directory>
+$ scripts/find-unused-docs.sh sound/firewire
+The following files contain kerneldoc comments for exported functions that are not used in the formatted documentation
+sound/firewire/cmp.c
+sound/firewire/fcp.c
+sound/firewire/packets-buffer.c
+sound/firewire/amdtp-stream.c
+sound/firewire/amdtp-am824.c
+sound/firewire/iso-resources.c
+sound/firewire/lib.c
 code }
+
+The script first finds all source files referenced by a `.. kernel-doc` instruction under → Linux/kernel/source/Documentation[`Documentation/`] ( → https://github.com/torvalds/linux/blob/7d2f353b2682dcfe5f9bc71e5b61d5b61770d98e/scripts/find-unused-docs.sh#L40[`grep -rHR ".. kernel-doc" --include \*.rst | cut -d " " -f 3`]) and
+stores the file names in the array → https://github.com/torvalds/linux/blob/7d2f353b2682dcfe5f9bc71e5b61d5b61770d98e/scripts/find-unused-docs.sh#L42-L46[`FILES_INCLUDED`].
+-
+It then iterates over each `*.c` file under the specified directory (→ https://github.com/torvalds/linux/blob/7d2f353b2682dcfe5f9bc71e5b61d5b61770d98e/scripts/find-unused-docs.sh#L52[this line]) and checks if the file contains kernel-doc by
+calling → Linux/kernel/source/scripts/kernel-doc[`scripts/kernel-doc`]. If the file *does* contain kernel-doc but is not referenced in the set of `*.rst` files, the name of the file is printed to the console.
+
 
 sa:
   Other → Linux/kernel/source/scripts[scripts]

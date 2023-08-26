@@ -226,6 +226,7 @@ code }
   }
   { Structs
 
+    The special `struct` type allows to create nested (→ development/languages/JavaScript/objects/JSON[JSON]-like) objects:
 code {
 create table T(
     id    integer primary key,
@@ -240,8 +241,8 @@ create table T(
 );
 
 insert into T values
-  (  1, {num: 42, txt: 'hello world', dat: {val_1: 'abc', val_2: 17.23}}),
-  (  2, {num: 99, txt: 'ninety-nine', dat: {val_1: 'def', val_2: 91.18}});
+  (  1, { num: 42, txt: 'hello world', dat: {val_1: 'abc', val_2: 17.23 }} ),
+  (  2, { num: 99, txt: 'ninety-nine', dat: {val_1: 'def', val_2: 91.18 }} );
 
 
 select
@@ -258,6 +259,32 @@ from
    T
 where
    id = 2;
+code }
+
+    Selecting a table (i. e. the table name) from a table returns the table data as structs:
+code {
+create table T (
+   id   integer primary key,
+   num  numeric,
+   txt  varchar
+);
+
+insert into T values
+  ( 1, 42, 'forty-two'  ),
+  ( 2, 99, 'ninety-nine'),
+  ( 3, 17, 'seventeen'  );
+
+
+select T from T;
+--
+-- ┌────────────────────────────────────────────────────┐
+-- │                         T                          │
+-- │ struct(id integer, num decimal(18,3), txt varchar) │
+-- ├────────────────────────────────────────────────────┤
+-- │ {'id': 1, 'num': 42.000, 'txt': forty-two}         │
+-- │ {'id': 2, 'num': 99.000, 'txt': ninety-nine}       │
+-- │ {'id': 3, 'num': 17.000, 'txt': seventeen}         │
+-- └────────────────────────────────────────────────────┘
 code }
 
   }

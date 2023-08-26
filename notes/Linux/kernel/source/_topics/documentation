@@ -4,7 +4,7 @@ Some documentation about the kernel sources is found under `→ Linux/kernel/sou
 -
 This documentation is complemented in the source files itself as *kerneldoc comments* (i.e. comments that start with `/**`),
 
-{ Creating the documenation
+{ Creating the documentation
 
   { Sphinx and .rst files
 
@@ -16,7 +16,7 @@ This documentation is complemented in the source files itself as *kerneldoc comm
   }
   { Making the documentation
 
-    The documentation is *made* with one of the → Linux/kernel/compilation/make#linux-make-doc-targets[documenation targets], for example
+    The documentation is *made* with one of the → Linux/kernel/compilation/make#linux-make-doc-targets[documentation targets], for example
 code {
 $ make htmldocs
 code }
@@ -63,6 +63,46 @@ code }
 
   Syntax and more for kernel-doc is described in `→ Linux/kernel/source/Documentation/doc-guide/kernel-doc_rst`.
 
+  { .. kernel-doc ::
+
+   `.. kernel-doc ::` directives found in `*.rst` files.
+
+   For example, → https://github.com/torvalds/linux/blob/7d2f353b2682dcfe5f9bc71e5b61d5b61770d98e/Documentation/gpu/vga-switcheroo.rst?plain=1#L11-L17[`Documentation/gpu/vga-switcheroo.rst`] contains the following directive:
+code {
+Modes of Use
+============
+
+Manual switching and manual power control
+-----------------------------------------
+
+.. kernel-doc:: → https://github.com/torvalds/linux/blob/master/drivers/gpu/vga/vga_switcheroo.c[drivers/gpu/vga/vga_switcheroo.c]
+   :doc: Manual switching and manual power control
+code }
+
+     In → https://github.com/torvalds/linux/blob/master/drivers/gpu/vga/vga_switcheroo.c[`drivers/gpu/vga/vga_switcheroo.c`], there is a kernel doc where the referenced section
+     is found with → https://github.com/torvalds/linux/blob/7d2f353b2682dcfe5f9bc71e5b61d5b61770d98e/drivers/gpu/vga/vga_switcheroo.c#L610-L613[`DOC: Manual switching and manual power control`]:
+code {
+/**
+ * DOC: Manual switching and manual power control
+ *
+ * In this mode of use, the file /sys/kernel/debug/vgaswitcheroo/switch
+code }
+
+    This RST section is then rendered in the Linux documentation page → https://www.kernel.org/doc/html/latest/gpu/vga-switcheroo.html#modes-of-use[like so].
+
+    Other `.. kernel-doc::` directives I've encountered include:
+code {
+ .. kernel-doc:: kernel/livepatch/state.c
+    :export:
+code }
+
+code {
+ .. kernel-doc:: include/linux/livepatch.h
+    :identifiers: klp_patch klp_object klp_func klp_callbacks klp_state
+code }
+
+  }
+
 }
 { The documentation TODO list
 
@@ -74,6 +114,19 @@ code }
     ones. For this reason, eliminating warnings is one of the highest-priority
     tasks on the documentation TODO list.
   "
+
+}
+{ Books
+
+  Apparently, there is an attempt to create a → https://docs.kernel.org/doc-guide/contributing.html#documentation-coherency[set of coherent books] into which the scattered documentation should be merged:
+  table { ll
+     ☰ Located under → Linux/kernel/source/Documentation[`Documentation/`]…
+    → https://docs.kernel.org/admin-guide/index.html[The Linux kernel user's and administrator's guide] ☰ `admin-guide`
+    → https://docs.kernel.org/core-api/index.html[Core API Documentation] ☰ `core-api`
+    → https://docs.kernel.org/driver-api/index.html[Driver implementer's API guide] ☰ `driver-api`
+    → https://docs.kernel.org/userspace-api/index.html[The Linux kernel user-space API guide] ☰ `userspace-api`
+    → https://docs.kernel.org/doc-guide/index.html[How to write kernel documentation] ☰ `doc-guide`
+  table }
 
 }
 { Log files of patches
@@ -98,9 +151,11 @@ sa:
 
   → Linux/kernel/source/Documentation/doc-guide/contributing_rst lays out guidelines related to improving the kernel documentation.
 
+  The → https://www.kernel.org/doc/man-pages/[Linux man-pages] are maintained separately from the Linux documentation.
+
 links:
 
-  The mailing list to discuss documentation subjects is → http://vger.kernel.org/vger-lists.html#linux-doc[linux-doc] at → http://vger.kernel.org/vger-lists.html[vger.kernel.org].
+  The → Linux/kernel#linux-kernel-mailing-list[mailing list] to discuss documentation subjects is → http://vger.kernel.org/vger-lists.html#linux-doc[linux-doc] at → http://vger.kernel.org/vger-lists.html[vger.kernel.org].
 
   Documentation for specific groups of users:
     • → https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/index.rst

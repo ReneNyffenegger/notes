@@ -1,7 +1,10 @@
 $ Linux kernel compilation: make
+
 @ make
 
 { make targets #linux-make-targets
+
+ `make` or `make all` builds the targets: `vmlinux`, `bzImage` and `modules`, see also the `./README` file.
 
  `make help` prints a summary of make targets:
 
@@ -51,8 +54,8 @@ $ Linux kernel compilation: make
 { Other generic targets
 
   table { ll
-   `all`              ☰ Build `vmlinux`, `modules` and `bzImage`
-   `vmlinux`          ☰ Build the bare kernel
+   `all`              ☰ Build `vmlinux`, `modules` and `bzImage`. 
+   `vmlinux`          ☰ Build the bare kernel. Compare with target `bzImage`.
    `modules`          ☰ Build all modules
    `modules_install`  ☰ Install all modules to `INSTALL_MOD_PATH` (default: `/`)
    `dir/`             ☰ Build all files in dir and below
@@ -107,7 +110,7 @@ $ Linux kernel compilation: make
 { Rust targets
 
   table { ll
-   `rustavailable`    ☰ Checks whether the Rust toolchain is available and, if not, explains why.
+   `rustavailable`    ☰ Checks whether the Rust toolchain is available and, if not, explains why. (`make LLVM=1 rustavailable` triggers the same logic used by Kconfig to determine whter `RUST_IS_AVAILABLE` should be enabled).
    `rustfmt`          ☰ Reformat all the Rust code in the kernel
    `rustfmtcheck`     ☰ Checks if all the Rust code in the kernel is formatted, printing a diff otherwise.
    `rustdoc`          ☰ Generate Rust documentation (requires kernel .config)
@@ -183,7 +186,7 @@ $ Linux kernel compilation: make
 { Architecture specific targets (x86)
 
   table { ll
-   `bzImage`          ☰ Compressed kernel image (`arch/x86/boot/bzImage`)
+   `bzImage`          ☰ Compressed kernel image (`arch/x86/boot/bzImage`). Compare with `vmlinux`
    `→ Linux/kernel/compilation/make/install`          ☰ Install kernel using (your) `~/bin/installkernel` or (distribution) `→ Linux/fhs/sbin/installkernel` or install to `$(INSTALL_PATH)` and run → Linux/booting/LILO
    `fdimage`          ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
    `fdimage144`       ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
@@ -223,10 +226,14 @@ $ Linux kernel compilation: make
                • e: warnings are being treated as errors
  Multiple levels can be combined with W=12 or W=123
 
+ ? `make LLVM=1 …`: builds the kernel with a complete LLVM toolchain (which is currently (Aug. 2023)) the best supported setup.
+  -
+ ? For architectures that don't suppert a full LLVM toolchain, `make CC=clang …` should be used.
+
+ `make CLIPPY=1 …` runs `clippy` (a Rust linter).
+
 }
 
-  Execute "make" or "make all" to build all targets marked with [*]
-  For further info see the `./README` file
 }
 
 rem {
