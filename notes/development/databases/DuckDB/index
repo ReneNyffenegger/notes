@@ -5,8 +5,89 @@ All DuckDB needs to be compiled is a → development/languages/C-C-plus-plus/CPP
 
 Like → development/databases/SQLite, there is no server, rather DuckDB runs within the same → Linux/kernel/process as also the program using DuckDB.
 
+{ DuckDB shell: Usage and options
+
+Usage:
+code {
+duckdb [OPTIONS] [database-file [script.sql]]
+code }
+
+ `duckdb` enteres a shell to manipulate a DuckDB database stored in `database-file`. The DB is created if it does not exist.
+  -
+  The special value `:memory:` for `database-file` creates a *transient in-memory* database.
+  -
+  In the shell, a different database can be opened with `.open DBFILE`.
+
+
+  { Options
+
+    table { ll
+
+   `-append`              ☰ append the database to the end of the file
+   `-bail`                ☰ stop after hitting an error
+   `-batch`               ☰ force batch I/O
+   `-cmd COMMAND`         ☰ run `COMMAND` before reading stdin
+   `-c COMMAND`           ☰ run `COMMAND` and exit
+   `-echo`                ☰ print commands before execution
+   `-init FILENAME`       ☰ read/process named file
+   `-[no]header`          ☰ turn headers on or off
+   `-help`                ☰ show this message
+   `-interactive`         ☰ force interactive I/O
+   `-newline SEP`         ☰ Output row separator (default is `\n`).
+   `-nofollow`            ☰ refuse to open symbolic links to database files
+   `-no-stdin`            ☰ exit after processing options instead of reading → development/stdin-stdout-stderr[stdin].
+   `-nullvalue TEXT`      ☰ set text string for `NULL` values (default is empty string).
+   `-readonly`            ☰ open the database read-only
+   `-s COMMAND`           ☰ run `COMMAND` and exit
+   `-separator SEP`       ☰ set output column separator. Default: '|'
+   `-stats`               ☰ print memory stats before each finalize
+   `-unsigned`            ☰ allow loading of unsigned extensions
+   `-version`             ☰ show DuckDB version
+
+   table }
+
+  }
+  { Options to set output mode
+
+    Several (mutually excluding?) options set the *output mode*:
+      • `-ascii`
+      • `-box`
+      • `-column`
+      • `-csv`
+      • `-html`
+      • `-json`
+      • `-line`
+      • `-list`
+      • `-markdown`
+      • `-quote`
+      • `-table`
+
+  }
+}
+
 { Misc
 
+  { Compile from sources
+
+    Get the sources from Github, compile them and …
+code {
+$ → development/version-control-systems/git/commands/clone[git clone] https://github.com/duckdb/duckdb
+$ cd duckdb
+$ make
+code }
+
+… test the produced executable with an in-memory database:
+code {
+$ ./build/release/duckdb :memory: "select 'test'"
+┌─────────┐
+│ 'test'  │
+│ varchar │
+├─────────┤
+│ test    │
+└─────────┘
+code }
+
+  }
   { SELECT * FROM T
 
    `select * from t` can be abbreviated with:
@@ -15,7 +96,7 @@ from t;
 code }
 
   }
-  { Pivot
+  { PIVOT #duckdb-pivot
 
 code {
 create table p (
@@ -37,7 +118,16 @@ pivot p
 using
    sum  (val) as total,
    count(val) as cnt;
+--
+-- ┌───────────────┬───────┬───────────────┬───────┬───────────────┬───────┐
+-- │    A_total    │ A_cnt │    B_total    │ B_cnt │    C_total    │ C_cnt │
+-- │ decimal(38,2) │ int64 │ decimal(38,2) │ int64 │ decimal(38,2) │ int64 │
+-- ├───────────────┼───────┼───────────────┼───────┼───────────────┼───────┤
+-- │         10.21 │     3 │          8.17 │     2 │         14.39 │     2 │
+-- └───────────────┴───────┴───────────────┴───────┴───────────────┴───────┘
 code }
+
+    Note: Unlike → development/databases/Oracle/SQL/select/pivot[Oracle's (and possibly other vendors') implementation of `PIVOT`], DuckDB determines the number of columns at execution time.
 
   }
   { Specify selected columns
@@ -92,6 +182,8 @@ insert into t values (3,  [              ]);
 select elems.apply( elem -> elem * id) from t;
 code }
 
+   TODO: What is the difference between `.apply()` and `.list_transform()`?
+
 code {
 select id, elems.aggregate('sum') from t;
 code }
@@ -119,6 +211,53 @@ code }
    A list can be «rotated» 90 degress:
 code {
 select unnest(generate_series(1, 100));
+code }
+
+    { List comprehension #duckdb-list-comprehension
+
+      DuckDB borrows from → development/languages/Python/types/list/comprehension[Python's list comprehension].
+code {
+select 
+   [ num ** 2 for num in [ 7, -3,  5,  2] if num > 0 ] as squared;
+code }
+
+    }
+
+  }
+  { Structs
+
+code {
+create table T(
+    id    integer primary key,
+    json  struct (
+            num integer,
+            txt varchar,
+            dat struct (
+                  val_1   varchar,
+                  val_2   numeric
+            )
+          )
+);
+
+insert into T values
+  (  1, {num: 42, txt: 'hello world', dat: {val_1: 'abc', val_2: 17.23}}),
+  (  2, {num: 99, txt: 'ninety-nine', dat: {val_1: 'def', val_2: 91.18}});
+
+
+select
+   json.dat.val_1,
+   json.dat.val_2
+from
+   T
+where
+   id = 1;
+
+select
+   json.*
+from
+   T
+where
+   id = 2;
 code }
 
   }
