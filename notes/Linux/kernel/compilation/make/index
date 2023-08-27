@@ -1,5 +1,4 @@
 $ Linux kernel compilation: make
-
 @ make
 
 { make targets #linux-make-targets
@@ -39,7 +38,7 @@ $ Linux kernel compilation: make
    `yes2modconfig`    ☰ Change answers from yes to mod if possible
    `mod2yesconfig`    ☰ Change answers from mod to yes if possible
    `mod2noconfig`     ☰ Change answers from mod to no if possible
-   `listnewconfig`    ☰ List new options
+   `listnewconfig`    ☰ List new options (config symbols), each on its own line: `→ Linux/shell/commands/cp old.config .config`, `make listnewconfig`. Compare with `→ Linux/kernel/source/scripts/diffconfig`
    `helpnewconfig`    ☰ List new options and help text
    `tinyconfig`       ☰ Configure the tiniest possible kernel
    `testconfig`       ☰ Run Kconfig unit tests (requires `python3` and `pytest`)
@@ -70,7 +69,7 @@ $ Linux kernel compilation: make
    `kernelrelease`    ☰ Output the release version string (use with `make -s`)
    `kernelversion`    ☰ Output the → Linux/kernel/source/Makefile#linux-Makefile-version-vars[version] stored in `→ Linux/kernel/source/Makefile` (use with `make -s`)
    `image_name`       ☰ Output the image name (use with `make -s`)
-   `headers_install`  ☰ Install sanitised kernel headers to `INSTALL_HDR_PATH` (default: `./usr`)
+   `headers_install`  ☰ Installs kernel headers to `INSTALL_HDR_PATH` (default: `./usr`). The headers are sanitized to make them suitable for use by userspace programs. Requires `rsync`. See also `→ Linux/kernel/source/scripts/headers_install_sh` and `Documentation/kbuild/headers_install.rst`.
 
   table }
 
@@ -180,7 +179,9 @@ $ Linux kernel compilation: make
 
  `make DOCS_CSS={a .css file}`: adds a DOCS_CSS override file for html/epub output.
 
-  Default location for the generated documents is `Documentation/output`
+  The default location for the generated documents is `Documentation/output`
+
+  The generated (html) documentation can also be read online at → https://www.kernel.org/doc/html/latest/.
 
 }
 { Architecture specific targets (x86)
@@ -206,31 +207,80 @@ $ Linux kernel compilation: make
 } 
 { Variables
 
- `make V=n   [targets]`:
-   • 1: verbose build
-   • 2: give reason for rebuild of target
-  V=1 and V=2 can be combined with V=12
+ { V
 
- `make O=dir [targets]`: Locate all output files in `dir`, including `.config`
+   `make V=n [targets]`
 
- `make C=1   [targets]`: Check re-compiled c source with `$CHECK` (sparse by default)
+   table { ll
+     1 ☰ verbose build - echoes the whole command line
+     2 ☰ give reason why target is rebuilt
+   table }
 
- `make C=2   [targets]`: Force check of all c source with `$CHECK`
+  `V=1` and `V=2` can be combined with V=12
 
- `make RECORDMCOUNT_WARN=1 [targets]`: Warn about ignored mcount sections
+?  See also the `KBUILD_VERBOSE` variable in makefiles.
 
- `make W=n   [targets]`: Enable extra build checks, value of `n`:
-               • 1: warnings which may be relevant and do not occur too often
-               • 2: warnings which occur quite often but may still be relevant
-               • 3: more obscure warnings, can most likely be ignored
-               • e: warnings are being treated as errors
- Multiple levels can be combined with W=12 or W=123
+ }
+
+ { C
+
+    Call a source code checker (named `$CHECK`) as part of the C compilation.
+
+   `make C=1 [targets]`
+
+    table { ll
+      1 ☰ Check re-compiled c source with `$CHECK`
+      2 ☰ Force check of all c source with `$CHECK` (regardless of whether they're re-compiled or not)
+    table }
+
+    The default of `$CHECK` is `sparse`.
+
+   `Documentation/dev-tools/sparse.rst` has more details on `sparse`.
+
+ }
+ { M
+
+   `make M=…` (or the environment variable `KBUILD_EXTMOD`) specifies the directory of external modules to build.
+
+ }
+ { O
+
+   `make O=dir [targets]`: Locate all output files in `dir`, including `.config`
+
+   `O` (or the environment variable `KBUILD_OUTPUT` specifies the directory where output (= generated?) files will be saved.
+   -
+   By default, this directory is the current working directory.
+
+ }
+ { W
+
+  `make W=n [targets]` - Enable extra build checks, value of `n`:
+   table { ll
+     1 ☰ warnings which may be relevant and do not occur too often
+     2 ☰ warnings which occur quite often but may still be relevant
+     3 ☰ more obscure warnings, can most likely be ignored
+     e ☰ warnings are being treated as errors
+   table }
+
+   Multiple levels can be combined with `W=12` or `W=123`
+
+ }
+ { LLVM
 
  ? `make LLVM=1 …`: builds the kernel with a complete LLVM toolchain (which is currently (Aug. 2023)) the best supported setup.
-  -
+
  ? For architectures that don't suppert a full LLVM toolchain, `make CC=clang …` should be used.
 
- `make CLIPPY=1 …` runs `clippy` (a Rust linter).
+ }
+ { Others
+
+
+   `make RECORDMCOUNT_WARN=1 [targets]`: Warn about ignored mcount sections
+
+   `make CLIPPY=1 …` runs `clippy` (a Rust linter).
+
+
+ }
 
 }
 

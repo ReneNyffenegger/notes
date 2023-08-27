@@ -19,7 +19,8 @@ $ → Linux/kernel/compilation/make -s kernelversion
 6.5.0-rc7
 code }
 
-  Compare with `include/config/kernel.release` (if it exists).
+  Compare with `include/config/kernel.release` (if it exists) and
+  `include/generated/uapi/linux/version.h` (if it exists).
 
 }
 
