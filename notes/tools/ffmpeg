@@ -62,10 +62,21 @@ code {
 → development/Cygwin#apt-cyg install binutils, gcc-core, git, make, ming, mingw64-x86_64-runtime, yasm, texi2html, diffutils, dos2unix
 git clone git://source.ffmpeg.org/ffmpeg.git ffmpeg
 → Linux/shell/commands/dos2unix configure
-LDFLAGS=-L/usr/local/lib ./configure --enable-shared --disable-static --enable-libmp3lame
+LDFLAGS=-L→ Linux/fhs/usr/local/lib ./configure --enable-shared --disable-static --enable-libmp3lame
 make
 make install
 code }
+
+  { Update 2023-08-27
+
+    A → https://twitter.com/ursgehrig/status/1695369489083150390[tweet by `@ursgehrig`] suggests to add `--disable-indev=gdigrab` when configuring ffmpeg:
+code {
+…
+LDFLAGS=-L/usr/local/lib ./configure --enable-shared --disable-static --disable-indev=gdigrab --enable-libmp3lame
+…
+code }
+
+  }
 
 }
 
@@ -83,9 +94,9 @@ code {
 ffmpeg -y -f dshow -i audio="Mikrofon (High Definition Audio" -f gdigrab -video_size 1440x900 -i desktop -vcodec h264 foo.mkv
 code }
 
-Find ~name of audio~ with -list_devices (see above).
+  Find ~name of audio~ with `-list_devices` (see above).
 
-~dshow~ stands for *DirectShow caputure*, ~gdigrap~ for *GDI PI Windows frame grabber* (See `ffmpeg -formats`).
+  ~dshow~ stands for *DirectShow caputure*, ~gdigrap~ for *GDI PI Windows frame grabber* (See `ffmpeg -formats`).
 
 Recoding microphone and pc's audio (mixing both audio sources with `-filter_complex amerge`)
 code {
