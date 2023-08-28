@@ -1,9 +1,100 @@
 $ Shell command: numfmt
 @ numfmt
 
-`numfmt` converts numbers from and/or to human readable representations.
+`numfmt` converts numbers from and/or to human readable representations:
+code {
+numfmt [OPTION]… [NUMBER]…
+code }
 
-Report the size of the hibernation image:
+{ Options
+
+  table { llll
+
+    ☰ `--debug` ☰ ☰ print warnings about invalid input
+   `-d`  ☰ `--delimiter=` ☰ `X` ☰ use `X` instead of whitespace for field delimiter
+    ☰ → #numfmt-field[`--field=`] ☰ `FIELD` ☰ replace the numbers in these input fields (default=1).
+    ☰ `--format=FORMAT` ☰ ☰ use → development/languages/printf style floating-point `FORMAT`
+    ☰ → #numfmt-from[`--from=UNIT`] ☰ ☰ auto-scale input numbers to UNITs; `UNIT` is `auto`, `si`, `iec` or `iec-i` default is 'none'.
+    ☰ `--from-unit=N` ☰ ☰ specify the input unit size (instead of the default 1)
+    ☰ `--grouping` ☰ ☰ use locale-defined grouping of digits, e.g. 1,000,000 (which means it has no effect in the C/POSIX locale)
+    ☰ `--header[=]` ☰ `N` ☰ print (without converting) the first `N` header lines. `N` defaults to 1 if not specified
+    ☰ `--invalid=` ☰ `MODE` ☰ failure mode for invalid numbers. `MODE` is `abort` (default), `fail`, `warn` or `ignore`
+    ☰ `--padding=` ☰ `N` ☰ pad the output to `N` characters; positive `N` will right-align; negative `N` will left-align; padding is ignored if the output is wider than `N`. The default is to automatically pad if a whitespace is found
+    ☰ `--round=` ☰ `METHOD` ☰ use `METHOD` for rounding when scaling; METHOD is `up`, `down`, `from-zero` (default), `towards-zero` or `nearest`
+    ☰ `--suffix=` ☰ `SUFFIX` ☰ add `SUFFIX` to output numbers and accept optional `SUFFIX` in input numbers
+    ☰ → #numfmt-to[`--to=`] ☰ `UNIT` ☰ auto-scale output numbers to `UNIT`. `UNIT` is `none`, `si`, `iec` or `iec-i`
+    ☰ `--to-unit=` ☰ `N` ☰ the output unit size (instead of the default 1)
+   `-z` ☰ `--zero-terminated` ☰ ☰ line delimiter is `NUL` (not newline)
+    ☰ `--help` ☰ ☰
+    ☰ `--version` ☰ ☰
+
+  table }
+
+}
+
+{ Examples
+
+  { Specifying UNIT with --to #numfmt-to
+
+code {
+$ numfmt 1024 --to none
+1024
+
+$ numfmt 1024 --to si
+1.1 K
+
+$ numfmt 1024 --to iec
+1.0 K
+
+$ numfmt 1024 --to iec-i
+1.0 Ki
+code }
+
+  }
+  { Specifying UNIT with --from #numfmt-from
+
+code {
+$ numfmt  1K  --from auto
+1000
+
+$ numfmt  1K  --from si
+1000
+
+$ numfmt  1K  --from iec
+1024
+
+$ numfmt  1Ki --from iec-i
+1024
+code }
+
+  }
+  { Using fields #numfmt-field
+
+code {
+$ echo 'abc  12345  67890  def' | numfmt --to iec
+numfmt: invalid number: ‘abc’
+
+$ echo 'abc  12345  67890  def' | numfmt --to iec --field 2
+abc    13K  67890  def
+
+$ echo 'abc  12345  67890  def' | numfmt --to iec --field 2,3
+abc    13K  67K  def
+code }
+
+  }
+  { Specifying a format #numfmt-format
+
+code {
+$ numfmt 12345 --to iec
+13K
+
+$ numfmt 12345 --to iec --format %3.2f
+12.06K
+code }
+
+  }
+  { Report the size of the hibernation image:
+
 code {
 $ → Linux/shell/commands/cat → Linux/fhs/sys/power[/sys/power]/image_size
 26840137728
@@ -11,5 +102,12 @@ $ → Linux/shell/commands/cat → Linux/fhs/sys/power[/sys/power]/image_size | 
 25G
 code }
 
+  }
+
+}
+
 sa:
+
+ `→ Linux/shell/commands/ls` prints files sizes in a human readable format with the option `-h`.
+
   → Linux/shell/commands[Shell commands]
