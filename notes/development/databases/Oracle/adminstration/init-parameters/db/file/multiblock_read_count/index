@@ -2,12 +2,24 @@ $ Oracle: Init parameter DB_FILE_MULTIBLOCK_READ_COUNT
 @ db_file_multiblock_read_count
 
 Since Oracle 10g, the value of `db_file_multiblock_read_count` should not be set.
+-
+On most platforms, Oracle chooses the value of `db_file_multiblock_read_count` such that its value multiplied by the → development/databases/Oracle/architecture/database/logical-structures/data-block[block] size is 1MB.
+-
+The following statement is likely to return 1:
+code {
+select
+   value * (select value from v$parameter where name = 'db_file_multiblock_read_count') / 1024/1024   total_read_size_mb
+from
+  v$parameter where name = 'db_block_size';
+code }
 
 sa:
 
   The event `db file scattered read`.
 
-  → development/databases/Oracle/adminstration/init-parameters
+  → development/databases/Oracle/adminstration/init-parameters:
+ `→ development/databases/Oracle/adminstration/init-parameters/db/file/exec_read_count`,
+ `→ development/databases/Oracle/adminstration/init-parameters/db/file/optimizer_read_count`
 
   MOS Documents
     • 30712.1: *Init.ora Parameter "DB_FILE_MULTIBLOCK_READ_COUNT" Reference*

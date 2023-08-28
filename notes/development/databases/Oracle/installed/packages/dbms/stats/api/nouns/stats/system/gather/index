@@ -1,7 +1,49 @@
 $ DBMS_STATS.GATHER_SYSTEM_STATS
 @ dbms_stats.gather_system_stats
 
-sa:
-  → development/databases/Oracle/installed/data-dictionary/base-tables/aux_stats[`aux_stats$`]
+code {
+begin
+   dmbs_stats.gather_system_stats (
+      gathering_mode   => '…',  -- Default is 'NOWORKLOAD',
+      interval         =>  … ,  -- an integer whose default is 60
+      stattab          => '…',  -- default is null
+      statid           => '…',  -- default is null
+      statown          => '…'   -- default is null
+   );
+end;
+/
+code }
 
-  → development/databases/Oracle/installed/packages/dbms/stats[`dbms_stats`]
+{ Getting «no workload» stats
+
+code {
+set serveroutput on
+declare
+   t0 date;
+begin
+   t0 := sysdate;
+   dbms_stats.gather_system_stats;
+   dbms_output.put_line('gethering stats took ' || round((sysdate - t0) * 86400) || ' seconds.');
+end;
+/
+--
+-- gethering stats took 28 seconds.
+code }
+
+code {
+select
+   pname,
+   pval1
+from
+   → development/databases/Oracle/installed/data-dictionary/base-tables/aux_stats[sys.aux_stats$]
+where
+   sname =   'SYSSTATS_MAIN' and
+   pname in ('CPUSPEEDNW', 'IOSEEKTIM', 'IOTFRSPEED');
+code }
+
+}
+
+sa:
+ `→ development/databases/Oracle/installed/data-dictionary/base-tables/aux_stats`
+
+ `→ development/databases/Oracle/installed/packages/dbms/stats`

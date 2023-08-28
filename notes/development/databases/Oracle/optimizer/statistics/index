@@ -16,9 +16,9 @@ Optimizer statistics must not be confused with *performance statistics* which ar
   table { lll
      ☰ ☰ → development/databases/Oracle/installed/data-dictionary[Data dictionary view]
     → development/databases/Oracle/objects/tables[Table] statistics ☰ → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] (and how many empty ones), rows and avarage length (bytes) of rows ☰ → development/databases/Oracle/installed/data-dictionary/tab/statistics[`dba_tab_statistics`] etc.
-    → development/databases/Oracle/optimizer/statistics[Column statistics] ☰ Number of distinct values («NDV»), number of → development/databases/Oracle/SQL/null[nulls], distribution of data («histogram») and → development/databases/Oracle/optimizer/statistics/extended ☰ → development/databases/Oracle/installed/data-dictionary/tab/col_statistics[`dba_tab_col_statistics`], → development/databases/Oracle/installed/data-dictionary/tab/histograms[`dba_tab_histograms`]
+    → development/databases/Oracle/optimizer/statistics/types/column[Column statistics] ☰ Number of distinct values («NDV»), number of → development/databases/Oracle/SQL/null[nulls], distribution of data («histogram») and → development/databases/Oracle/optimizer/statistics/extended ☰ → development/databases/Oracle/installed/data-dictionary/tab/col_statistics[`dba_tab_col_statistics`], → development/databases/Oracle/installed/data-dictionary/tab/histograms[`dba_tab_histograms`]
     → development/databases/Oracle/objects/indexes[Index] statistics ☰ Number of leaf blocks and index levels; clustering factor ☰ → development/databases/Oracle/installed/data-dictionary/ind/statistics[`dba_ind_statistics`] etc.
-    System statistics ☰ I/O and CPU performance and utilization ☰ Time it takes to service a single → development/databases/Oracle/architecture/database/logical-structures/data-block and/or a multi-block read request.
+    → development/databases/Oracle/optimizer/statistics/types/system[System statistics] ☰ I/O and CPU performance and utilization ☰ Time it takes to service a single → development/databases/Oracle/architecture/database/logical-structures/data-block and/or a multi-block read request.
   table }
 
   { Column statistics
@@ -74,7 +74,7 @@ Optimizer statistics must not be confused with *performance statistics* which ar
      `cache_stats_0$` ☰
      `association$` ☰ User defined stats associations
      `ustats$` ☰ User defined stats
-     `stats_target$` ☰ Target list for automated stats collection 
+     `→ development/databases/Oracle/installed/data-dictionary/base-tables/stats/target` ☰ Target list for automated stats collection 
 
    table }
   
@@ -141,6 +141,41 @@ code }
 
   }
 
+  { Automatic gathering of statistics
+
+    By default, Oracle automatically gathers statistics for → development/databases/Oracle/objects[database objects] where statistics are missing or stale during a predefined maintance window (10 PM through 2 AM on weekdays and 6 AM through 2 AM on
+    weekends).
+
+    The maintainance window can be changed using
+      • `→ development/databases/Oracle/installed/packages/dbms/scheduler`
+      • `→ development/databases/Oracle/installed/packages/dbms/auto_task_admin`
+      • Enterprise Manager
+
+    Disable automatic statistics:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/auto_task_admin/api/enable-disable[dbms_auto_task_admin.disable](
+      client_name => 'auto optimizer stats collection',
+      operation   =>  null,
+      window_name =>  null
+   );
+end;
+/
+code }
+
+    Query some characteristics about the automatic gathering:
+code {
+select * from dba_autotask_task                where client_name       = 'auto optimizer stats collection';
+select * from → development/databases/Oracle/installed/data-dictionary/autotask/client              where client_name       = 'auto optimizer stats collection';
+select * from → development/databases/Oracle/installed/data-dictionary/scheduler/programs           where program_name      = 'GATHER_STATS_PROG';
+
+select * from → development/databases/Oracle/installed/data-dictionary/scheduler/window/groups      where window_group_name = 'MAINTENANCE_WINDOW_GROUP';
+select * from → development/databases/Oracle/installed/data-dictionary/scheduler/wingroup_members   where window_group_name = 'MAINTENANCE_WINDOW_GROUP';
+
+select * from → development/databases/Oracle/installed/data-dictionary/scheduler/windows            where resource_plan     = 'DEFAULT_MAINTENANCE_PLAN';
+code }
+
+  }
 }
 
 sa:

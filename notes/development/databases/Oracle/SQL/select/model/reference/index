@@ -1,0 +1,79 @@
+$ Oracle SQL: MODEL and REFERENCE clause
+
+In an → development/databases/Oracle/SQL/statement with a → development/databases/Oracle/SQL/select/model[`model` clause], *reference models* can be added. They serve as (read-only) lookup-tables in the
+*rules* section of the `model` clause.
+
+{ Syntax Demonstration
+
+  The purpose of the following statements is to demonstrate the `reference` clause syntax in a → development/databases/Oracle/SQL/select/model[`model` clause].
+  It is not meant to be meaningful in any way. In fact, the same result could be achieved with an ordinary → development/databases/Oracle/SQL/join.
+
+code {
+create table tq84_mdl_main (
+   D1     integer,
+   D2     varchar2(3),
+   V1     number(3)     not null,
+   V2     number(3)     not null,
+   --
+   primary key (D1, D2)
+);
+ 
+create table tq84_mdl_lookup (
+    D     varchar2(3) primary key,
+    V     varchar2(3) not null
+);
+ 
+begin
+   insert into tq84_mdl_main   values (1, 'abc', 17, 22);
+   insert into tq84_mdl_main   values (1, 'def', 25, 18);
+   insert into tq84_mdl_main   values (1, 'ghi', 42, 99);
+ 
+   insert into tq84_mdl_main   values (2, 'abc', 51, 81);
+   insert into tq84_mdl_main   values (2, 'def', 71, 37);
+   insert into tq84_mdl_main   values (2, 'ghi', 28, 13);
+ 
+   insert into tq84_mdl_main   values (3, 'abc', 52, 34);
+   insert into tq84_mdl_main   values (3, 'def', 94, 74);
+   insert into tq84_mdl_main   values (3, 'ghi', 52, 52);
+ 
+   insert into tq84_mdl_lookup values ('abc', 'XXX');
+   insert into tq84_mdl_lookup values ('def', 'YYY');
+   insert into tq84_mdl_lookup values ('ghi', 'ZZZ');
+ 
+   commit;
+end;
+/
+ 
+ 
+select
+   D1,
+   D2,
+   conc
+from
+   tq84_mdl_main
+→ development/databases/Oracle/SQL/select/model
+   reference
+      lkup on ( select * from tq84_mdl_lookup)
+      dimension by (D)
+      measures     (V)
+   dimension by (D1, D2)
+   measures     (cast(null as varchar2(20)) conc)
+(
+   conc[any, any] = cv(D1) || ' - ' || lkup.V[cv(D2)]
+)
+;
+--
+--         D1 D2  CONC                
+-- ---------- --- --------------------
+--          1 def 1 - YYY             
+--          2 def 2 - YYY             
+--          3 def 3 - YYY             
+--          1 ghi 1 - ZZZ             
+--          2 ghi 2 - ZZZ             
+--          3 ghi 3 - ZZZ             
+--          1 abc 1 - XXX             
+--          2 abc 2 - XXX             
+--          3 abc 3 - XXX  
+code }
+
+}
