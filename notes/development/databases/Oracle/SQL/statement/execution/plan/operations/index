@@ -11,7 +11,7 @@ table { llll
 
   ~Operation~ ☰ ~Option~ ☰ ~nof inputs~ ☰ ~Comment~
    ? AND-EQUAL ☰ ☰ ☰
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP AND] ☰  ☰ 2 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP AND] ☰  ☰ 2 ☰ Compare with `BITMAP OR`
    BITMAP CONSTRUCTION ☰ ☰ ☰
    BITMAP CONVERSION ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to[TO ROWIDS] ☰ 1 ☰
    BITMAP CONVERSION ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from[FROM ROWIDS] ☰ ? ☰
@@ -21,10 +21,11 @@ table { llll
    BITMAP INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap-index/single-value[SINGLE VALUE] ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/merge ☰ ☰ 1 ☰
    BITMAP KEY ITERATION ☰ ☰ ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP OR] ☰  ☰ 2 ☰ Compare with `BITMAP AND`
    BUFFER ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[SORT] ☰ 1 - 2 ☰ In spite of the `SORT` in the name, this operation does not necessarily sort its input, rather it only uses the buffering functionality of a «traditional» sort to store data in the → development/databases/Oracle/architecture/instance/PGA or → development/databases/Oracle/architecture/instance/UGA to reduce full table scans. Compare with `SORT (…)`. See also → http://sadique-sadiqulislam.blogspot.com/2011/01/buffer-sort-reason-and-problems.html[Sadique's blog]
    BUFFER ☰ SORT (REUSE) ☰  ☰
    COLLECTION ITERATOR ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/collection-iterator/pickler-fetch[PICKLER FETCH] ☰ 1 ☰ Column → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type[`object_type`] in → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[`plan_table`] often set to `PROCEDURE` and `object_owner` and `object_type` set to, for example, `dbms_xplan` and `display`.
-   CONCATENATION ☰  ☰ 3 - 3 (?) ☰ The `CONCATENATION` operator is functionally equivalent to the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/union-all` operator and was used in versions prior to 12c for → development/databases/Oracle/optimizer/query-transformations/or-expansion[or expansions].
+   CONCATENATION ☰  ☰ 3 - 3 (?) ☰ The `CONCATENATION` operator is functionally equivalent to the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/union-all` operator and was used in versions prior to 12c for → development/databases/Oracle/optimizer/query-transformations/or-expansion[or expansions]. See also the `→ development/databases/Oracle/SQL/hints/list/use_concat` hint.
    → development/databases/Oracle/SQL/statement/execution/plan/operations/connect-by[CONNECT BY] ☰ NO FILTERING WITH START-WITH ☰ 1 ☰
    CONNECT BY ☰ WITH FILTERING ☰ 2 ☰
    CONNECT BY ☰ WITH FILTERING (UNIQUE) ☰ 2 ☰
@@ -156,7 +157,7 @@ table { llll
    SQL MODEL ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sql-model/ordered/fast[ORDERED FAST] ☰  ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/statistics-collector ☰  ☰ 1 ☰ Used in conjunction with → development/databases/Oracle/optimizer/adaptive[adaptive query optimization] when the → development/databases/Oracle/optimizer creates an → development/databases/Oracle/SQL/statement/execution/plan/adaptive[adaptive plan]. Compare with `OPTIMIZER STATISTICS GATHERING`
    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access[TABLE ACCESS] ☰ BY GLOBAL INDEX ROWID BATCHED ☰ 1 ☰ 
-   TABLE ACCESS ☰ BY INDEX ROWID ☰ 1 - 2 ☰
+   TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[BY INDEX ROWID] ☰ 1 - 2 ☰
    TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[BY INDEX ROWID BATCHED] ☰ 1 - 2 ☰ *BATCHED* indicates that the step retrieves a few → development/databases/Oracle/SQL/data-types/rowid[rowids] from an → development/databases/Oracle/objects/indexes[index] and then tries to access the corresponding rows in order of the → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] so that the number of times that a block is read is minimized.
    TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index/global-local#local-batched[BY LOCAL INDEX ROWID BATCHED] ☰ 1 ☰
    TABLE ACCESS ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-user-rowid[BY USER ROWID] ☰ 1 ☰
@@ -279,7 +280,7 @@ order by
 ;
 code }
 
-  Find plans with a given operation
+  Find *entire* plans (including text of SQL statement) where a given operation is present:
 code {
 with s as (
    select distinct

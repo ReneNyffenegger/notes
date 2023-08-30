@@ -2,6 +2,48 @@ $ Oracle SQL Plan operation TABLE ACCESS BY INDEX ROWID [BATCHED]
 
 { TABLE ACCESS BY INDEX ROWID #ora-table-access-by-index
 
+code {
+create table tq84_tab(
+   id  integer,
+   tx  varchar2(200),
+   constraint tq84_tab_pk primary key (id)
+);
+
+
+insert into tq84_tab
+select
+   level,
+   rpad('x', 200)
+from
+   dual connect by level <= 100000
+;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats[dbms_stats.gather_table_stats](user, 'tq84_tab');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   tx
+from
+   tq84_tab
+where
+   id = 12345;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- ---------------------------------------------------
+-- | Id  | Operation                   | Name        |
+-- ---------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select            |             |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID| TQ84_TAB    |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan         | TQ84_TAB_PK |
+-- ---------------------------------------------------
+
+drop table tq84_tab;
+code }
+
 }
 { TABLE ACCESS BY INDEX ROWID BATCHED #ora-table-access-by-index-rowid-batched
 

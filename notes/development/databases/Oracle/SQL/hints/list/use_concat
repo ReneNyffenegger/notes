@@ -1,0 +1,86 @@
+$ Oracle hint: USE_CONCAT
+@ use_concat
+
+Create test data:
+code {
+create table tq84_xy (
+   id   integer primary key,
+   val  number  ( 7,2) not null,
+   x    varchar2(10  ) not null,
+   y    varchar2(10  ) not null
+);
+
+create index tq84_ix_x on tq84_xy(x);
+create index tq84_ix_y on tq84_xy(y);
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/random[dbms_random].seed(2808);
+
+   insert into tq84_xy
+   select
+      level,
+      dbms_random.value(100, 100000),
+      → development/databases/Oracle/installed/packages/dbms/random/api/string('a', 10),
+      → development/databases/Oracle/installed/packages/dbms/random/api/string('a', 10)
+   from
+      dual connect by level <= 10000;
+
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_xy');
+end;
+/
+code }
+
+Without using the hint:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   val
+from
+   tq84_xy
+where
+   x = 'hMZLVdpoub' or
+   y = 'xFOwpLURXi';
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation                           | Name      |
+-- ---------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                    |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_XY   |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to       |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP OR]                        |           |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from   |           |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan               | TQ84_IX_X |
+-- |   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/from   |           |
+-- |   7 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan               | TQ84_IX_Y |
+-- ---------------------------------------------------------
+code }
+
+
+Using the `use_concat` hint:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ use_concat */
+   val
+from
+   tq84_xy
+where
+   x = 'hMZLVdpoub' or
+   y = 'xFOwpLURXi';
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- ----------------------------------------------------------
+-- | Id  | Operation                            | Name      |
+-- ----------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                     |           |
+-- |   1 |  CONCATENATION                       |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_XY   |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                  | TQ84_IX_Y |
+-- |   4 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_XY   |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                  | TQ84_IX_X |
+-- ----------------------------------------------------------
+
+drop table tq84_xy;
+code }
