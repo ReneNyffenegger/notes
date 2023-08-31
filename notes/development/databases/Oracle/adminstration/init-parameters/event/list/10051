@@ -1,0 +1,41 @@
+$ Oracle Event 10051: Trace OPI calls
+@ 10051 
+
+code {
+alter session set events '10051 trace name context forever, level 1';
+
+alter session set cursor_sharing = exact;
+
+create table tq84_xyz (a number);
+insert into tq84_xyz values(42);
+drop t able tq84_xyz;
+
+alter session set events '10051 trace name context off';
+code }
+
+Read the produced → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file:
+code {
+select
+   trc.payload,
+   cal.top_level_call_name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/info                 inf                                                                              join
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents  trc on regexp_replace(inf.value, '.*[\\/]', '') = trc.trace_filename        left join
+   → development/databases/Oracle/installed/dynamic-performance-views/toplevelcall              cal on to_number( case when trc.payload like 'OPI CALL: %' then
+                                      regexp_replace(trc.payload, '.*type= *(\d+).*' || chr(10), '\1')
+                                      end )                                    = cal.top_level_call#
+where
+   inf.name = 'Default Trace File'
+order by
+   trc.line_number
+;
+code }
+
+The following three OPI calls are often seen:
+code {
+select * from v$toplevelcall where top_level_call# in (105, 147,94);
+--
+-- 94   V8 Bundled Exec
+-- 105  Cursor close all
+-- 147  PING
+code }

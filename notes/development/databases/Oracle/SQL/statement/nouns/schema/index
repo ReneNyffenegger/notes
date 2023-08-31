@@ -2,13 +2,49 @@ $ Oracle SQL noun: SCHEMA
 
 { CREATE SCHEMA #ora-create-schema
 
-  The `create schema` statement can be used to create multiple → development/databases/Oracle/objects/tables[tables] and
+  The `create schema` statement *does not* create a new schema in the database, rather, is statement can be used to create (that is: add) multiple → development/databases/Oracle/objects/tables[tables] and
   → development/databases/Oracle/objects/views[views] and/or → development/databases/Oracle/SQL/DCL/grant multiple → development/databases/Oracle/security/privileges[privileges]
   in a single → development/databases/Oracle/architecture/transaction (by default, a → development/databases/Oracle/SQL/DDL[DDL statement] such as `create table` or `create view`
   commits the current transaction).
 
-  It should be noted that `create schema` *adds* objects to an existing schema, the schema itself is created with the `create user` statement.
+code {
 
-  gh|Oracle-Patterns|/DatabaseObjects/create-schema.sql||
+create schema authorization tq84
+  create table tq84_schema_parent (
+    id         number        primary key,
+    col_1      varchar2(10)  not null,
+    col_2      varchar2(10)
+  )
+  create table tq84_schema_child (
+    id         number        primary key,
+    id_parent  number        references    tq84_schema_parent,
+    col_a      varchar2(10)  not null,
+    col_b      varchar2(10)
+  )
+  create view tq84_schema_view as
+    select
+       p.col_1,
+       p.col_2,
+       c.col_a,
+       c.col_b
+    from
+      tq84_schema_parent p left join
+      tq84_schema_child  c on p.id = c.id_parent
+;
+code }
+
+
+There is no `DROP SCHEMA` statement in Oracle:
+code {
+drop view  tq84_schema_view;
+drop table tq84_schema_child;
+drop table tq84_schema_parent;
+code }
+
+  If the schema (user) indicated after `authorization` is different from the currently logged on user, Oracle will throw *ORA-02421: missing or invalid schema authorization identifier*.
+
+  Unfortunately, it's not possible to also create → development/databases/Oracle/objects/indexes[indexes] in a `create schema` statement.
+
+  In order to create a (real) schema (i.e. to add a → development/databases/Oracle/users-roles/users), the `create user` statement must be used.
 
 }

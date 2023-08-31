@@ -1,0 +1,140 @@
+$ Oracle execution plan tests
+
+{ 2023-08-31
+
+code {
+create table tq84_A (
+   id      integer        not null,
+   cat     varchar2(  20) not null,
+   payload varchar2(1000) not null
+);
+
+create table tq84_B (
+id integer not null,
+    cat     varchar2(  20) not null,
+    payload varchar2(1100) not null
+);
+
+create index tq84_ix_A on  tq84_A (cat);
+create index tq84_ix_B on  tq84_B (cat);
+
+insert into tq84_A
+select
+   level id,
+   chr(ascii('a') + trunc(dbms_random.value(0, 13))) cat,
+   lpad('x', 1000, 'x') payload
+from
+    dual connect by level <=    100;
+
+insert into tq84_B
+select
+level id,
+    chr(ascii('a') + trunc(dbms_random.value(0, 13))) cat,
+    lpad('x', 1100, 'x') payload
+from
+   dual connect by level <= 1000;
+
+
+begin
+   dbms_stats.gather_table_stats(user, 'tq84_B');
+   dbms_stats.gather_table_stats(user, 'tq84_A');
+end;
+/
+
+-- delete plan_table;
+explain plan for
+select
+   *
+from
+   tq84_A
+where
+   id in ( select min(id) from tq84_B where cat = 'c' )
+   and
+      cat = 'this value does not exist'
+;
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation                           | Name      |
+-- ---------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |           |
+-- |*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_A    |
+-- |*  2 |   INDEX RANGE SCAN                  | TQ84_IX_A |
+-- |   3 |   SORT AGGREGATE                    |           |
+-- |*  4 |    TABLE ACCESS FULL                | TQ84_B    |
+-- ---------------------------------------------------------
+--  
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - filter("ID"= (SELECT MIN("ID") FROM "TQ84_B" "TQ84_B" WHERE 
+--               "CAT"='c'))
+--    2 - access("CAT"='this value does not exist')
+--    4 - filter("CAT"='c')
+
+
+
+-- select * from dbms_xplan.display(format => 'adaptive') ;
+-- select * from dbms_xplan.display(format => 'all') ;
+
+select * from dbms_xplan.display(format => 'basic predicate');
+
+set serveroutput off
+select --+ gather_plan_statistics SQL-ID-001
+   *
+from
+   tq84_A
+where
+   id in ( select min(id) from tq84_B where cat = 'c' )
+   and
+      cat = 'this value does not exist'
+;
+--
+-- -------------------------------------------------------------------------------------------------
+-- | Id  | Operation                           | Name      | Starts | E-Rows | A-Rows |   A-Time   |
+-- -------------------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |           |      1 |        |      0 |00:00:00.01 |
+-- |*  1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_A    |      1 |      1 |      0 |00:00:00.01 |
+-- |*  2 |   INDEX RANGE SCAN                  | TQ84_IX_A |      1 |      3 |      0 |00:00:00.01 |
+-- |   3 |   SORT AGGREGATE                    |           |      0 |      1 |      0 |00:00:00.01 |
+-- |*  4 |    TABLE ACCESS FULL                | TQ84_B    |      0 |     77 |      0 |00:00:00.01 |
+-- -------------------------------------------------------------------------------------------------
+
+
+select
+   plan_table_output
+from
+  (select sql_id, child_number from v$sql where sql_text like 'select --+ gather_plan_statistics SQL-ID-001%') x,
+    dbms_xplan.display_cursor(x.sql_id, x.child_number, format => 'allstats last') ;
+
+
+select --+ gather_plan_statistics SQL-ID-002
+   *
+from
+   tq84_A
+where
+   id in ( select min(id) from tq84_B where cat = 'c' )
+   and
+      cat = 'b'
+;
+
+
+select
+   plan_table_output
+from
+  (select sql_id, child_number from v$sql where sql_text like 'select --+ gather_plan_statistics SQL-ID-002%') x,
+    dbms_xplan.display_cursor(x.sql_id, x.child_number, format => 'allstats last') ;
+--
+-- ----------------------------------------------------------------------------------------
+-- | Id  | Operation           | Name   | Starts | E-Rows | A-Rows |   A-Time   | Buffers |
+-- ----------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT    |        |      1 |        |      0 |00:00:00.01 |     212 |
+-- |*  1 |  TABLE ACCESS FULL  | TQ84_A |      1 |      1 |      0 |00:00:00.01 |     212 |
+-- |   2 |   SORT AGGREGATE    |        |      1 |      1 |      1 |00:00:00.01 |     190 |
+-- |*  3 |    TABLE ACCESS FULL| TQ84_B |      1 |     77 |     95 |00:00:00.01 |     190 |
+-- ----------------------------------------------------------------------------------------
+
+drop   table tq84_B;
+drop   table tq84_A;
+code }
+
+}
