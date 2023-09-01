@@ -1,0 +1,155 @@
+$ include/linux/device.h
+
+{ struct device #linux-struct-device
+
+  Every device in a Linux system is represented by an instance of a `struct device`.
+  
+  Typically, the `struct device` is embedded into another `struct` that has more detailed information for the embedding
+  device (for example `struct pci_dev` or `→ Linux/kernel/source/include/linux/cpu_h#linux-struct-cpu`).
+
+code {
+struct device {
+   → Linux/kernel/source/include/linux/kobject_h#linux-kobject                      kobj;
+   struct device                      *parent;            /* If null: a top-level device (usually not interestting). Otherwise typically  a bus or host controller.
+
+   struct device_private              *p;                 /* The private data */
+
+   const char                         *init_name;         /* initial name of the device */
+   const struct device_type           *type;              /* type of the device */
+
+   const struct bus_type              *bus;               /* type of bus device is on */
+   struct device_driver               *driver;            /* The driver that has allocated the device */
+   void                               *platform_data;     /* Platform specific data, device core doesn't touch it */
+   void                               *driver_data;       /* Driver data. Use dev_set_drvdata()/dev_get_drvdata() */
+   struct mutex                        mutex;             /* mutex to synchronize calls to its driver. */
+
+   struct dev_links_info               links;             /* Linkx to suppliers and consumers of this device */
+   struct dev_pm_info                  power;             /* Device Power management (see Documentation/driver-api/pm/devices.rst)
+   struct dev_pm_domain               *pm_domain;         /* callbacks that are executed during system suspend, hibernation, system resume and during runtime PM transitions; along with subsystem-level and driver-level callbacks. */
+
+
+#ifdef CONFIG_ENERGY_MODEL
+    struct em_perf_domain             *em_pd;             /* energy model performance domain */
+#endif
+
+#ifdef CONFIG_PINCTRL
+   struct dev_pin_info                *pins;              /* See Documentation/driver-api/pin-control.rst */
+#endif
+
+   struct dev_msi_info                 msi;               /* Message Signaled Interruptions related data */
+
+#ifdef CONFIG_DMA_OPS
+   const struct dma_map_ops           *dma_ops;           /* DMA mapping operations for this device */
+#endif
+
+        u64                           *dma_mask;          /* dma mask (if dma'able device) */
+        u64                            coherent_dma_mask; /* Like dma_mask, but for alloc_coherent mappings as
+                                                             not all hardware supports 64 bit addresses for consistent
+                                                             allocations such descriptors. */
+
+        u64                            bus_dma_limit;     /* Limit of an upstream bridge or bus which imposes a smaller DMA limit than the device itself supports.
+        const struct bus_dma_region   *dma_range_map;     /* map for DMA memory ranges relative to that of RAM */
+        struct device_dma_parameters  *dma_parms;
+        struct list_head               dma_pools;         /* dma pools (if dma'ble) */
+
+#ifdef CONFIG_DMA_DECLARE_COHERENT
+        struct dma_coherent_mem       *dma_mem;           /* internal for coherent mem override */
+#endif
+
+#ifdef CONFIG_DMA_CMA
+        struct cma                    *cma_area;          /* contiguous memory area for dma allocations */
+#endif
+
+#ifdef CONFIG_SWIOTLB
+        struct io_tlb_mem             *dma_io_tlb_mem;    /* Software IO TLB allocator.  Not for driver use. */
+#endif
+
+#ifdef CONFIG_SWIOTLB_DYNAMIC
+        struct list_head               dma_io_tlb_pools;
+        spinlock_t                     dma_io_tlb_lock;
+        bool                           dma_uses_io_tlb;
+#endif
+
+        
+        struct dev_archdata            archdata;           /* arch specific additions */
+
+        struct device_node            *of_node;            /* associated device tree node */
+        struct fwnode_handle          *fwnode;             /* assocated deivce node supplied by platform firmware */
+
+#ifdef CONFIG_NUMA
+        int                            numa_node;          /* NUMA node this device is close to */
+#endif
+        dev_t                          devt;               /* To create the sysfs "dev" */
+        u32                            id;                 /* device instance */
+
+        spinlock_t                     devres_lock;        /* Spinlock to protect the resource of the device */
+        struct list_head               devres_head;        /* The resource list of the device */
+
+        const struct class            *class;              /* The device's class */
+        const struct attribute_group **groups;             /* optional attribute groups */
+
+        void    (*release)(struct device *dev);            /* Callback to free the device after all references have gone away - should be set by the allocateor of the device, i. e. the bus driver that discovered the device */
+
+        struct iommu_group            *iommu_group;        /* Input-output memory (IOMMU) group the device belongs to */
+        struct dev_iommu              *iommu;              /* Per device generic IOMMU runtime data */
+
+        struct device_physical_location  *physical_location;
+
+        enum device_removable          removable;
+
+        bool                           offline_disabled:1;
+        bool                           offline:1;
+        bool                           of_node_reused:1;
+        bool                           state_synced:1;
+        bool                           can_match:1;
+
+#if defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_DEVICE) || \
+    defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU)    || \
+    defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
+
+        bool                           dma_coherent:1;
+
+#endif
+
+#ifdef CONFIG_DMA_OPS_BYPASS
+        bool                           dma_ops_bypass : 1;
+#endif
+
+};
+code }
+
+  TODO:
+    • `struct device_node`
+    • `struct fwnode`
+    • `struct class`
+    • `dev_t`
+    • `devres_lock`, `devres_head`
+    • `→ Linux/kernel/source/include/linux/cpu_h`
+    • Apparently, devices are discovered by a bus driver
+    • → https://docs.kernel.org/driver-api/driver-model/overview.html
+
+
+
+}
+{ struct device_type
+
+  A *device type* carries type-specific information.
+
+ `struct device` has a pointer to `struct device_type`
+
+  Note the `uevent` function pointer.
+
+code {
+struct device_type {
+        const char *name;
+        const struct attribute_group **groups;
+        int (*uevent)(const struct device *dev, struct kobj_uevent_env *env);
+        char *(*devnode)(const struct device *dev, umode_t *mode,
+                         kuid_t *uid, kgid_t *gid);
+        void (*release)(struct device *dev);
+
+        const struct dev_pm_ops *pm;
+}
+code }
+
+}
