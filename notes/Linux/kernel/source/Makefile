@@ -1,4 +1,10 @@
 
+The `Makefile` in the root of the Linux kernel source tree is essentially used to build
+  • vmlinux (the resident kernel image), and
+  • module files
+  • documentation
+  • other development related stuff like tag files etc.
+
 code {
 $ → Linux/kernel/compilation/make …
 code }
@@ -20,12 +26,16 @@ $ → Linux/kernel/compilation/make -s kernelversion
 code }
 
   Compare with `include/config/kernel.release` (if it exists) and
-  `include/generated/uapi/linux/version.h` (if it exists).
+ `include/generated/uapi/linux/version.h` (if it exists).
 
 }
 
 sa:
+
  `Documentation/kbuild/makefiles.rst`
 
 links:
+  → https://docs.kernel.org/kbuild/makefiles.html[Linux Kernel Makefiles]
+
   → https://0xax.gitbooks.io/linux-insides/content/Misc/linux-misc-2.html[Process of the Linux kernel building]
+
