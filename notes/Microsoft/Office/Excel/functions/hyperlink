@@ -36,14 +36,16 @@ code }
 }
 { Calling a VBA function with a hyperlink
 
-  It is possible to call a → development/languages/VBA/functions[VBA function] with a hyperlink by prepending the name of the `target` with a hash symbol (`#`):
+  It is possible to call a → development/languages/VBA/functions[VBA function] (not a sub!) with a hyperlink by prepending the name of the `target` with a hash symbol (`#`).
+
 code {
 =hyperlink("#hyperlinkClick()"; "go")
 code }
 
-  The function must return a `→ Microsoft/Office/Excel/Object-Model/Range` object. Excel jumps to the range returned when the function returnes.
-  -
-  Such a function can be declared in a → development/languages/VBA/language/module[VBA module] like so:
+  The function's return value is a → Microsoft/Office/Excel/Object-Model/Range[`range` object] which specifies the cell to which the hyperlink jumps.
+
+  Such a function can be declared in a → development/languages/VBA/language/module[VBA module] like shown below.
+  Because this function returns the current selection, Excel jumps nowhere.
 code {
 function hyperlinkClick() as range
 
@@ -53,10 +55,13 @@ function hyperlinkClick() as range
 end function
 code }
 
-  Because this function returns the current selection, Excel jumps nowhere.
+  The function *must* return a `→ Microsoft/Office/Excel/Object-Model/Range` object. If no return value is assigned,
+  the function is invoked twice, then the VBA runtime throws the error message *Reference isn't valid*.
+  
+  In addition, it seems that the function must be placed in a VBA-module, not in a «worksheet file»: it possible to call the function with `=hyperlink("#sheet1.func()"; …`, but eventually, the *Reference isn't valid* would still
+  be thrown.
 
-  It is also possible to pass parameters (references, scalars…) to to the function
-
+  It is also possible to pass parameters (references, scalars…) to to the function:
 code {
 =hyperlink("#funcWithParam(  a1)"                ; "go")
 =hyperlink("#funcWithParam(""hard coded value"")"; "go")
