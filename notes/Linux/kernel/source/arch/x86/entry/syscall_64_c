@@ -1,0 +1,17 @@
+$ arch/x86/entry/syscall_64.c
+
+*System call table for x86-64*
+
+This file includes `→ Linux/kernel/source/arch/x86/include/generated/asm/syscalls_64_h` twice, with different definitions for `__SYSCALL`:
+code {
+#define __SYSCALL(nr, sym) extern long __x64_##sym(const struct pt_regs *);
+#include <asm/syscalls_64.h>
+#undef __SYSCALL
+code }
+
+code {
+#define __SYSCALL(nr, sym) __x64_##sym,
+asmlinkage const → Linux/kernel/source/arch/x86/include/asm/syscall_h#sys_call_ptr_t → Linux/kernel/source/arch/x86/include/asm/syscall_h#sys_call_table[sys_call_table][] = {
+#include <asm/syscalls_64.h>
+}
+code }
