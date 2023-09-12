@@ -1,10 +1,206 @@
 $ OpenStreetMap API
 
-→ development/OpenStreetMap/API/Overpass[Overpass API] and
-→ development/OpenStreetMap/API/SPARQL[SPARQL].
+{ Querying OpenStreetMap API with CURL
+
+  The following snippets try to demonstrate how the OSM API can be accessed with → tools/cURL[`curl`].
+
+  Set the value of the API endpoint (`$API`):
+code {
+URL=https://api.openstreetmap.org
+VERSION=0.6  
+API=$URL/api/$VERSION
+code }
+
+  Get the capabilities as → development/XML:
+code {
+curl -s -X GET $API/capabilities
+code }
+
+  Get the capabilities as → development/languages/JavaScript/JSON:
+code {
+curl -s -X GET $API/capabilities.json
+code }
+
+  Use `→ development/languages/JavaScript/JSON/tools/jq` to extract the status of the OpenStreetMap database (ideally, this query returns `"online"`):
+code {
+curl -s -X GET $API/capabilities.json  | jq .api.status.database
+code }
+
+  Get a → development/OpenStreetMap/nodes-ways-relations[way's] data in XML format:
+code {
+curl -s -X GET $API/way/1154969870
+code }
+
+  Get a way's data in JSON format:
+code {
+curl -s -X GET $API/way/1154969870.json
+code }
+
+  { Get elements in a given area
+
+    Specify values of bounding box (longitude and lattitude):
+code {
+left=8.6408537
+right=8.6532347
+top=47.5215385
+bottom=47.513771
+code }
+
+   Then get the bounding box's elements as XML …
+code {
+curl -s -X GET $API/map?bbox=$left,$bottom,$right,$top
+code }
+
+   … or JSON:
+code {
+curl -s -X GET $API/map.json?bbox=$left,$bottom,$right,$top
+code }
+
+  }
+  { Modifying data (changesets)
+
+    OSM data is modified in the context of a changeset.
+
+    A changeset that is idle for one hour or is open for 24 hours or exceeds a certain limit of number of edits will be closed automatically.
+
+    Modifications of changesets are visible to other users while they're not cloased.
+
+    Use the OSM test server (see below) when trying to modify data the first tame
+
+code {
+URL=https://master.apis.dev.openstreetmap.org
+VERSION=0.6  
+API=$URL/api/$VERSION
+code }
+
+    A user needs to be authenticated. We store the name of the OSM user and his password in environment variables:
+code { 
+OSMUSER=…
+OSMPASSWORD=…
+code }
+
+code {
+changeset_id=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/changeset/create -d '<osm><changeset>
+   <tag k="created_by" v="myself"             />
+   <tag k="comment"    v="testing changesets" />
+</changeset></osm>' )
+
+echo $changeset_id
+
+node_id_1=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
+<osm>
+   <node
+     changeset= "$changeset_id"
+     lon      = "22.00001"
+     lat      = "44.00001"
+  >
+       <tag k="name" v="test node one" />
+   </node>
+</osm>
+PAYLOAD
+)
+
+node_id_2=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
+<osm>
+   <node
+     changeset= "$changeset_id"
+     lon      = "22.00002"
+     lat      = "44.00001"
+  >
+       <tag k="name" v="test node two" />
+   </node>
+</osm>
+PAYLOAD
+)
+
+
+node_id_3=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
+<osm>
+   <node
+     changeset= "$changeset_id"
+     lon      = "22.00002"
+     lat      = "44.00002"
+  >
+       <tag k="name" v="test node three" />
+   </node>
+</osm>
+PAYLOAD
+)
+
+
+node_id_4=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
+<osm>
+   <node
+     changeset= "$changeset_id"
+     lon      = "22.00001"
+     lat      = "44.00002"
+  >
+       <tag k="name" v="test node four" />
+   </node>
+</osm>
+PAYLOAD
+)
+
+echo $node_id_{1..4}
+
+way_id=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/way/create -d @- <<PAYLOAD
+<osm>
+   <way
+     changeset= "$changeset_id"
+    >
+      <nd ref="$node_id_1" />
+      <nd ref="$node_id_2" />
+      <nd ref="$node_id_3" />
+      <nd ref="$node_id_4" />
+
+       <tag k="name" v="test way one" />
+   </way>
+</osm>
+PAYLOAD
+)
+
+echo $way_id
+
+curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT "$API/changeset/$changeset_id/close"
+code }
+
+code {
+curl -s -X GET $API/map?bbox=$22.00000,44.00000,22.00003,44.00003
+code }
+    
+   ~Modify a way~. First, we need another node:
+code {
+node_id_5=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
+<osm>
+   <node
+     changeset= "$changeset_id"
+     lon      = "22.000015"
+     lat      = "44.000015"
+  >
+       <tag k="name" v="test node one (v.2)" />
+   </node>
+</osm>
+PAYLOAD
+)
+
+code {
+way_xml=$( curl -s -X GET $API/way/$way_id )
+code }
+
+  }
+
+}
+{ Test server
+
+  The test server is located at → https://master.apis.dev.openstreetmap.org/.
+  -
+  Unfortunately, the map displayed at that URL does not seem to correspond to the test data!
+
+}
 
 sa:
-  → development/OpenStreetMap
+
+  Using → development/OpenStreetMap/API/Overpass[Overpass API] and → development/OpenStreetMap/API/SPARQL[SPARQL] to query → development/OpenStreetMap data.
 
 links:
   → http://wiki.openstreetmap.org/wiki/API_v0.6
