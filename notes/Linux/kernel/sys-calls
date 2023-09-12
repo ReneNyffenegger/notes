@@ -1,6 +1,9 @@
 
-A program requests the execution of a service provided by the → Linux/kernel[kernel] through *system calls* (aka «kernel calls»). These calls are identified by a number
+A program requests the execution of a service provided by the → Linux/kernel[kernel] through *system calls* (aka «kernel calls»).
+-
+-These calls are identified by a number
 (see  `→ Linux/kernel/source/arch/x86/entry/syscalls/syscall_64_tbl` and `→ Linux/kernel/source/arch/x86/include/generated/asm/syscalls_64_h`).
+
 
 { Executing syscalls and passing parameters
 
@@ -800,12 +803,43 @@ A program requests the execution of a service provided by the → Linux/kernel[k
 
 }
 
+{ Alternatives to system calls
+
+  Linux offers a few alternatives to system calls with which a userland program can interact with the kernel:
+    • Create a filesystem and/or device
+    • Use the `ioctl`, `fcntl` or `prctl` system call
+    • Use the `→ Linux/fhs/proc` filesystem (which might not be available in a namespaced, sandboxed or chrooted environment)
+
+}
 { TODO
 
-Syscall entry points seem to be indicated by the `SYSCALL_DEFINE1` .. `SYSCALL_DEFINE6` macros (defined in → Linux/kernel/source/include/linux/syscalls_h).
 
-Time related syscall interfaces are found in → Linux/kernel/source/kernel/time/time_c.
+  Time related syscall interfaces are found in `→ Linux/kernel/source/kernel/time/time_c`.
 
+  { Definition and implementation (source code)
+
+    Sys calls are defined in `→ Linux/kernel/source/include/linux/syscalls_h` with `asmlinkage` and a `sys_` prefix to their names:
+code {
+→ Linux/kernel/source/include/linux/linkage_h#linux-asmlinkage[asmlinkage] long sys_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg);
+code }
+
+    Sys calls are implemented in various C files using `SYSCALL_DEFINE1` … `SYSCALL_DEFINE6` macros (defined in `→ Linux/kernel/source/include/linux/syscalls_h`):
+code {
+SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg) {
+  …
+}
+code }
+
+  }
+  { Grepping sys calls
+
+    The following command seems to grep for syscalls in the kernel source tree:
+code {
+grep -r '^SYSCALL_DEFINE' --include='*.c'
+code }
+
+  }
+  
 }
 
 sa:

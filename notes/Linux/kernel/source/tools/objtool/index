@@ -1,0 +1,75 @@
+$ tools/objtool/
+
+
+objtool is an *ELF object analysis tool* which operates on object (`.o`) files at compile time.
+
+In order to enable objtool, `CONFIG_OBJTOOL` must be set.
+
+{ Usage
+
+code {
+objtool <actions> [<options>] file.o
+code }
+
+  { Actions
+
+    table { lll
+
+     `-h` ☰ `--hacks[=<jump_label,noinstr,skylake>]` ☰ patch toolchain bugs/limitations
+     `-i` ☰ `--ibt` ☰             validate and annotate IBT
+     `-l` ☰ `--sls` ☰             validate straight-line-speculation mitigations
+     `-m` ☰ `--mcount` ☰          annotate mcount/fentry calls for ftrace
+     `-n` ☰ `--noinstr` ☰         validate noinstr rules
+     `-o` ☰ `--orc` ☰             generate ORC metadata
+     `-r` ☰ `--retpoline` ☰       validate and annotate retpoline usage
+     `-s` ☰ `--stackval` ☰        validate frame pointer rules
+     `-t` ☰ `--static-call` ☰     annotate static calls
+     `-u` ☰ `--uaccess` ☰         validate uaccess rules for SMAP
+          ☰ `--cfi` ☰             annotate kernel control flow integrity (kCFI) function preambles
+          ☰ `--dump[=<orc>]` ☰    dump metadata
+          ☰ `--prefix <n>` ☰      generate prefix symbols
+          ☰ `--rethunk` ☰         validate and annotate rethunk usage
+          ☰ `--unret` ☰           validate entry unret placement
+
+   table }
+
+  }
+  { Options
+
+    table { lll
+
+   `-v` ☰ `--verbose` ☰         verbose warnings
+        ☰ `--backtrace` ☰       unwind on error
+        ☰ `--backup` ☰          create .orig files before modification
+        ☰ `--dry-run` ☰         don't write modifications
+        ☰ `--link` ☰            object is a linked object
+        ☰ `--mnop` ☰            nop out mcount call sites
+        ☰ `--module` ☰          object is part of a → Linux/kernel/module
+        ☰ `--no-unreachable` ☰  skip 'unreachable instruction' warnings
+        ☰ `--sec-address` ☰     print section addresses in warnings
+        ☰ `--stats` ☰           print statistics
+
+    table }
+
+  }
+
+}
+{ Misc
+
+  { ORC
+  
+    objtool creates (or can create?) ORC data.
+
+    ORC stands for *Oops Rewind Capability* and allows to unwind the stack (See also → https://github.com/torvalds/linux/blob/master/Documentation/arch/x86/orc-unwinder.rst)
+
+  }
+
+}
+
+sa:
+
+ `include/linux/objtool.h`, `→ Linux/kernel/source/include/linux/compiler_h`
+
+links:
+
+  → https://github.com/torvalds/linux/blob/master/tools/objtool/Documentation/objtool.txt

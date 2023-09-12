@@ -1,0 +1,57 @@
+$ include/linux/trace_events.h
+
+{ struct trace_entry
+
+  The `trace_entry` struct represents the *most basic unit of tracing*.
+
+code {
+struct trace_entry {
+   unsigned short type;
+   unsigned char  flags;
+   unsigned char  preempt_count;
+   int            pid;
+};
+code }
+
+}
+{ struct trace_event_call #linux-trace_event_call
+
+code {
+struct trace_event_call {
+        struct list_head          list;
+        struct trace_event_class *class;
+        union {
+                char                    *name;
+             /* Set TRACE_EVENT_FL_TRACEPOINT flag when using "tp" */
+                struct tracepoint       *tp;
+        };
+
+        struct trace_event      event;
+        char                    *print_fmt;
+        struct event_filter     *filter;
+
+        /*
+           Static events can disappear with modules,
+           where as dynamic ones need their own ref count.
+         */
+        union {
+                void                            *module;
+                atomic_t                        refcnt;
+        };
+        void                    *data;
+
+        int                     flags; /* static flags of different events, see TRACE_EVENT_FL_* 'above' */
+
+#ifdef CONFIG_PERF_EVENTS
+        int                              perf_refcount;
+        struct hlist_head __percpu      *perf_events;
+        struct bpf_prog_array __rcu     *prog_array;
+
+        int     (*perf_perm)(struct trace_event_call *, struct perf_event *);
+#endif
+};
+code }
+
+  A pointer to the `struct trace_event_call` is used as members `enter_event` and `exit_event` in `→ Linux/kernel/source/include/trace/syscall_h#linux-syscall_metadata`.
+
+}

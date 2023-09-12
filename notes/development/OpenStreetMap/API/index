@@ -80,6 +80,9 @@ OSMPASSWORD=…
 code }
 
 code {
+#
+# PUT seems to be required to create a changset
+#
 changeset_id=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/changeset/create -d '<osm><changeset>
    <tag k="created_by" v="myself"             />
    <tag k="comment"    v="testing changesets" />
@@ -166,25 +169,6 @@ code }
 
 code {
 curl -s -X GET $API/map?bbox=$22.00000,44.00000,22.00003,44.00003
-code }
-    
-   ~Modify a way~. First, we need another node:
-code {
-node_id_5=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
-<osm>
-   <node
-     changeset= "$changeset_id"
-     lon      = "22.000015"
-     lat      = "44.000015"
-  >
-       <tag k="name" v="test node one (v.2)" />
-   </node>
-</osm>
-PAYLOAD
-)
-
-code {
-way_xml=$( curl -s -X GET $API/way/$way_id )
 code }
 
   }
