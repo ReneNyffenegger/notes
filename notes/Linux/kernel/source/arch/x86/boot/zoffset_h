@@ -1,0 +1,27 @@
+$ arch/x86/boot/zoffset.h
+
+`arch/x86/boot/zoffset.h` is created when the kernel is → Linux/kernel/compilation/make[made] with the following command (Linux version 6.5):
+code {
+nm → Linux/kernel/source/arch/x86/boot/compressed/vmlinux | \
+  sed -n -e 's/^\([0-9a-fA-F]*\) [a-zA-Z] \(startup_32\|startup_64\|efi32_stub_entry\|efi64_stub_entry\|efi_pe_entry\|efi32_pe_entry\|input_data\|kernel_info\|_end\|_ehead\|_text\|z_.*\)$/#define ZO_ 0x/p' > \
+  arch/x86/boot/zoffset.h
+code }
+
+The content of `zoffset.h` looks like
+code {
+#define ZO__ehead 0x00000000000003a8
+#define ZO__end 0x0000000000c55000
+#define ZO__text 0x0000000000c186b0
+#define ZO_efi32_pe_entry 0x0000000000c1f6e0
+#define ZO_efi32_stub_entry 0x0000000000000190
+#define ZO_efi64_stub_entry 0x0000000000000390
+#define ZO_efi_pe_entry 0x0000000000c2079f
+#define ZO_input_data 0x00000000000003a8
+#define ZO_kernel_info 0x0000000000c26b30
+#define ZO_startup_32 0x0000000000000000
+#define ZO_startup_64 0x0000000000000200
+#define ZO_z_input_len 0x0000000000c182fc
+#define ZO_z_output_len 0x0000000002975b40
+code }
+
+`zoffset.h` is a requisite for `arch/x86/boot/tools/build` (see `→ Linux/kernel/source/arch/x86/boot/tools/build_c`).
