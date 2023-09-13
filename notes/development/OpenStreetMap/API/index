@@ -1,10 +1,10 @@
 $ OpenStreetMap API
 
-{ Querying OpenStreetMap API with CURL
+{ Querying OpenStreetMap API with CURL in a shell
 
-  The following snippets try to demonstrate how the OSM API can be accessed with → tools/cURL[`curl`].
+  The following snippets try to demonstrate how the OSM API can be accessed with → tools/cURL[`curl`] in a → Linux/shell.
 
-  Set the value of the API endpoint (`$API`):
+  Define an development/environment-variable[envioronment variable] with the value of the API endpoint (`$API`):
 code {
 URL=https://api.openstreetmap.org
 VERSION=0.6  
@@ -65,8 +65,7 @@ code }
 
     Modifications of changesets are visible to other users while they're not cloased.
 
-    Use the OSM test server (see below) when trying to modify data the first tame
-
+    Use the → #osm-api-test-server[OSM test server] when trying to modify data the first tame
 code {
 URL=https://master.apis.dev.openstreetmap.org
 VERSION=0.6  
@@ -79,17 +78,22 @@ OSMUSER=…
 OSMPASSWORD=…
 code }
 
+     A changeset is opened and its id assigned to the variable `changeset_id`.
+     -
+     This request apparently requires a `PUT` (rather than a `GET`) method!
 code {
-#
-# PUT seems to be required to create a changset
-#
 changeset_id=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/changeset/create -d '<osm><changeset>
    <tag k="created_by" v="myself"             />
    <tag k="comment"    v="testing changesets" />
 </changeset></osm>' )
 
 echo $changeset_id
+code }
 
+    We create four nodes and assign their ids to the environment variables `node_id_1` through `node_id_4`.
+    -
+    Note the `changeset` attribut in the `<node…>` tag of the request.
+code {
 node_id_1=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
 <osm>
    <node
@@ -102,6 +106,7 @@ node_id_1=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<
 </osm>
 PAYLOAD
 )
+
 
 node_id_2=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/node/create -d @- <<PAYLOAD
 <osm>
@@ -145,7 +150,10 @@ PAYLOAD
 )
 
 echo $node_id_{1..4}
+code }
 
+    We're now able to create a way that connects the four nodes:
+code {
 way_id=$( curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT $API/way/create -d @- <<PAYLOAD
 <osm>
    <way
@@ -163,10 +171,14 @@ PAYLOAD
 )
 
 echo $way_id
+code }
 
+    Finally, we close the changeset and thus persist our changes to the database:
+code {
 curl -s -u "$OSMUSER:$OSMPASSWORD" -X PUT "$API/changeset/$changeset_id/close"
 code }
 
+    Get the data for the region with our way:
 code {
 curl -s -X GET $API/map?bbox=$22.00000,44.00000,22.00003,44.00003
 code }
@@ -174,7 +186,7 @@ code }
   }
 
 }
-{ Test server
+{ Test server #osm-api-test-server
 
   The test server is located at → https://master.apis.dev.openstreetmap.org/.
   -
