@@ -34,6 +34,8 @@ sa:
 
  `Documentation/kbuild/makefiles.rst`
 
+  → Linux/kernel/source
+
 links:
   → https://docs.kernel.org/kbuild/makefiles.html[Linux Kernel Makefiles]
 

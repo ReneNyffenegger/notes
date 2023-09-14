@@ -1,0 +1,30 @@
+$ arch/x86/boot/compressed/piggy.S
+
+`arch/x86/boot/compressed/piggy.S` is created when the kernel is made.
+
+`piggy.S` is used to create `arch/x86/boot/compressed/piggy.o` which in turn is a requisite to create `→ Linux/kernel/source/arch/x86/boot/compressed/vmlinux`.
+
+`piggy.S` is created with the `mkpiggy` command (See also → Linux/kernel/source/arch/x86/boot/compressed/mkpiggy_c[`mkpiggy.c`]):
+code {
+arch/x86/boot/compressed/mkpiggy arch/x86/boot/compressed/vmlinux.bin.gz > arch/x86/boot/compressed/piggy.S
+code }
+
+The content of `piggy.S` might be something like
+code {
+.section ".rodata..compressed","a",@progbits
+.globl z_input_len
+z_input_len = 12681980
+.globl z_output_len
+z_output_len = 43473728
+.globl input_data, input_data_end
+input_data:
+.incbin "arch/x86/boot/compressed/vmlinux.bin.gz"
+input_data_end:
+.section ".rodata","a",@progbits
+.globl input_len
+input_len:
+	.long 12681980
+.globl output_len
+output_len:
+	.long 43473728
+code }
