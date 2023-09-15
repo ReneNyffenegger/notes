@@ -1,10 +1,29 @@
 $ Oracle SQL: NULL
 @ null
 
+{ NULL is not equal to any other value #ora-null-cmp
+
+  When comparing two expressions and at least one of these expressions is `null`, Oracle considers the expressions to be different.
+ (The only *exception* to this rule I can think of is the `→ development/databases/Oracle/SQL/functions/decode` statement).
+
+  Because a comparison that involves `null` is always false, the following statement returns 0:
+code {
+select count(*) from → development/databases/Oracle/SQL/dual where null = null;
+code }
+
+  The undocumented function `→ development/databases/Oracle/SQL/functions/null-related/sys_op_map_nonnull` allows to mitigiate this nuisance: the following query returns 1:
+code {
+select count(*) from → development/databases/Oracle/SQL/dual where sys_op_map_nonnull(null) = sys_op_map_nonnull(null);
+code }
+
+}
 { Zero length strings are NULL
 
-  A speciality of → development/databases/Oracle is that it considers a zero length → development/databases/Oracle/SQL/data-types/varchar2#varchar2-null[`varchar2` to be `null`].
-  -
+  A speciality of → development/databases/Oracle is that it considers a zero length → development/databases/Oracle/SQL/data-types/varchar2#varchar2-null[`varchar2` to be `null`], the following query returns 1:
+code {
+select count(*) from dual where '' is null;
+code }
+  
   Unlike in → development/databases/SQL-Server however, a string can be concatenated with the null value without the entire expression becoming null.
 
   Because empty strings are equivalent to `null`, it's impossible to create empty → development/databases/Oracle/SQL/JSON[JSON] strings.
@@ -25,8 +44,6 @@ sa:
 
   The → development/databases/Oracle/objects/tables/constraints/not-null[`not null` constraint].
 
-  → Companies-Products/SAS/programming/proc/sql/oracle/null
-
   → development/databases/SQL/data-types/null
 
   → development/Software/Oracle-SQL-Developer allows to configure how `null` values are
@@ -38,3 +55,5 @@ sa:
   The influence of `null` values in → development/databases/Oracle/SQL/select/aggregate/null-values[aggregate functions]
 
   → development/databases/Oracle/errors/ORA-01723_zero-length-columns-are-not-allowed
+
+  → Companies-Products/SAS/programming/proc/sql/oracle/null
