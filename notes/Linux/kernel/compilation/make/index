@@ -208,6 +208,7 @@ $ Linux kernel compilation: make
 
   Other, undocumented(?) targets include:
   table { ll
+    `prepare` ☰ `→ Linux/kernel/source/scripts/setlocalversion` → https://github.com/torvalds/linux/blob/master/scripts/setlocalversion#L163-L166[suggests] to run `make prepare` if `→ Linux/kernel/source/include/config/auto_conf` does not exist.
     `syncconfig` ☰ This target seems to eventually result in calling `→ Linux/kernel/source/scripts/kconfig[scripts/kconfig]/conf --syncconfig Kconfig`. (`scripts/kconfig/Makefile` notes that *syncconfig has become an internal implementation detail and is deprecated for external use*). TODO: Does `syncconfig` create `include/config/auto.conf`, `include/config/tristate.conf`, `include/generated/autoconf.h` and some (empty?) `include/config/*.h` files?
   table }
 
@@ -228,10 +229,9 @@ $ Linux kernel compilation: make
 
    Using `make V=1` can be used to → Linux/kernel/source#linux-src-determine-gcc-options[determine the GCC options with which a file is compiled].
 
-?  See also the `KBUILD_VERBOSE` variable in makefiles.
+   The value that was passed with `V=` is assigned to the `KBUILD_VERBOSE` variable in makefiles.
 
  }
-
  { C
 
     Call a source code checker (named `$CHECK`) as part of the C compilation.
@@ -247,10 +247,14 @@ $ Linux kernel compilation: make
 
    `Documentation/dev-tools/sparse.rst` has more details on `sparse`.
 
+    The value that was passed with `C=` is assigned to the `KBUILD_CHECKSRC` variable in makefiles.
+
  }
  { M
 
    `make M=…` (or the environment variable `KBUILD_EXTMOD`) specifies the directory of external modules to build.
+
+    The value that was passed with `V=` is assigned to the `KBUILD_EXTMOD` variable in makefiles.
 
  }
  { O
@@ -259,7 +263,9 @@ $ Linux kernel compilation: make
 
    `O` (or the environment variable `KBUILD_OUTPUT` specifies the directory where output (= generated?) files will be saved.
    -
-   By default, this directory is the current working directory.
+    By default, this directory is the current working directory.
+
+    The value that was passed with `V=` is assigned to the `KBUILD_OUTPUT` variable in makefiles.
 
  }
  { W
@@ -294,6 +300,13 @@ code }
  ? `make LLVM=1 …`: builds the kernel with a complete LLVM toolchain (which is currently (Aug. 2023)) the best supported setup.
 
  ? For architectures that don't suppert a full LLVM toolchain, `make CC=clang …` should be used.
+
+ }
+ { CLIPPY
+
+  `make CLIPPY=1` enables `clippy` (a linter) as part of the Rust compilation.
+
+   The value that was passed with `C=` is assigned to the `KBUILD_CLIPPY` variable in makefiles.
 
  }
  { Others
@@ -364,6 +377,18 @@ code }
   Not all compiler warnings are enabled by default. To enable the full set, use
 code {
 $ make KCFLAGS=-W
+code }
+
+}
+{ Kbuild output format
+
+  The Kbuild output has two components and is written with the following printf format: `"  %-7s %s\n"`, for example:
+code {
+  CC      drivers/gpu/drm/virtio/virtgpu_ioctl.o
+  CC      drivers/gpu/drm/virtio/virtgpu_prime.o
+  CC      drivers/gpu/drm/virtio/virtgpu_trace_points.o
+  CC      drivers/gpu/drm/virtio/virtgpu_submit.o
+  AR      drivers/gpu/drm/virtio/built-in.a
 code }
 
 }
