@@ -4,6 +4,27 @@
 `vmlinux.a` contains objects that are linked unconditionally.
 -
 `$KBUILD_VMLINUX_LIBS` are archives whiach are linked conditionally (not within `--whole-archive`) and don't require symbol indexes added.
+-
+The (or one of the possible) command(s) to link `vmlinux` (version 6.5) is
+code {
+ld         \
+   -m elf_x86_64 \
+   -z noexecstack \
+   --emit-relocs \
+   --discard-none \
+   -z max-page-size=0x200000 \
+   --build-id=sha1 \
+   --orphan-handling=error \
+   --script=./arch/x86/kernel/vmlinux.lds \
+   -o vmlinux \
+   --whole-archive \
+   → Linux/kernel/source/vmlinux_o .vmlinux.export.o init/version-timestamp.o \
+   --no-whole-archive \
+   --start-group --end-group \
+   .tmp_vmlinux.kallsyms2.o
+code }
+
+This command is executed from the script `→ Linux/kernel/source/scripts/link-vmlinux_sh` (function `vmlinux_link`).
 
 sa:
 
