@@ -16,25 +16,25 @@ $ Linux kernel compilation: make
   table }
 
 }
-{ Configuration targets
+{ Configuration targets #linux-make-config-targets
 
   table { ll
-   `config`           ☰ Update current config utilising a line-oriented program
+   `config`           ☰ Update current config utilising a line-oriented («plain-text») program
    `nconfig`          ☰ Update current config utilising a ncurses menu based program (requires *ncurses*)
    `menuconfig`       ☰ Update current config utilising a menu based program (menus, radiolists, dialogs, also requiring *ncurses*)
    `xconfig`          ☰ Update current config utilising a Qt based front-end
    `gconfig`          ☰ Update current config utilising a GTK+ based front-end
-   `oldconfig`        ☰ Update current config utilising a provided `.config` as base (Default all questions based on the contents of your existing `./.config` file and asking about new config symbols.)
+   `oldconfig`        ☰ Update current config utilising a provided `→ Linux/kernel/source/_config` as base (Default all questions based on the contents of your existing `./.config` file and asking about new config symbols.)
    `olddefconfig`     ☰ Same as `oldconfig` but sets new symbols to their default value without prompting
-   `defconfig`        ☰ New config with default from `ARCH` supplied defconfig
-   `localmodconfig`   ☰ Update current config disabling modules not loaded except those preserved by `LMC_KEEP` environment variable
+   `defconfig`        ☰ New config with default from `arch/$ARCH/defconfig` or `arch/$ARCH/configs/${PLATFORM}_defconfig`, depending on the architecture.
+   `localmodconfig`   ☰ Update current config disabling modules not loaded (`→ Linux/shell/commands/lsmod`) except those preserved by `LMC_KEEP` environment variable. Disables any module option that is not needed for the loaded modules.
    `localyesconfig`   ☰ Update current config converting local mods to core except those preserved by `LMC_KEEP` environment variable
    `savedefconfig`    ☰ Save current config as `./defconfig` (minimal config)
-   `allnoconfig`      ☰ New config (`.config`?) where all options are answered with no
-   `allyesconfig`     ☰ New config where all options are accepted with yes
-   `allmodconfig`     ☰ New config selecting modules when possible
+   `allnoconfig`      ☰ New config  where all options are answered with no (`n`)
+   `allyesconfig`     ☰ New config where all options are accepted with yes (`y`)
+   `allmodconfig`     ☰ New config selecting modules (answering with `m`) when possible
    `alldefconfig`     ☰ New config with all symbols set to default
-   `randconfig`       ☰ New config with random answer to all options
+   `randconfig`       ☰ New config with random answers to all options
    `yes2modconfig`    ☰ Change answers from yes to mod if possible
    `mod2yesconfig`    ☰ Change answers from mod to yes if possible
    `mod2noconfig`     ☰ Change answers from mod to no if possible
@@ -44,17 +44,28 @@ $ Linux kernel compilation: make
    `testconfig`       ☰ Run Kconfig unit tests (requires `python3` and `pytest`)
   table }
 
+rem {
+    table { ll
+
+   ~Target~ ☰
+    `xen.config` ☰  Enable additional options for xen dom0 guest kernel support.
+
+  table }
+
+rem }
 
 ? `${PLATFORM}_defconfig` creates a `./.config` file by using the default symbol values from `arch/$ARCH/configs/${PLATFORM}_defconfig`. Use `make help` to get a list of all available platforms of your architecture.
 
-  `→ Linux/kernel/source/scripts/config` (Kernel source tree) allows to manipulate options in a `.config` file from the command line.
+  Most (if not all) of the configuration targets are defined in `→ Linux/kernel/source/scripts/kconfig/Makefile`.
+  -
+  When executing `make` with one of these targets, the executable `→ Linux/kernel/source/scripts/kconfig/conf` is called with the corresponding command line option.
 
 }
 { Other generic targets
 
   table { ll
-   `all`              ☰ Build `vmlinux`, `modules` and `bzImage`. 
-   `vmlinux`          ☰ Build the bare kernel. Compare with target `bzImage`.
+   `all`              ☰ Build `vmlinux`, `modules` and `bzImage`.
+   `vmlinux`          ☰ Build the bare kernel (i. e. `→ Linux/kernel/source/vmlinux`). Compare with target `bzImage`.
    `modules`          ☰ Build all modules
    `modules_install`  ☰ Install all modules to `INSTALL_MOD_PATH` (default: `/`)
    `dir/`             ☰ Build all files in dir and below
@@ -187,7 +198,7 @@ $ Linux kernel compilation: make
 { Architecture specific targets (x86)
 
   table { ll
-   `bzImage`          ☰ Compressed kernel image (`arch/x86/boot/bzImage`). Compare with `vmlinux`
+   `bzImage`          ☰ Compressed kernel image (`→ Linux/kernel/source/arch/x86/boot/bzImage`). Compare with `vmlinux`
    `→ Linux/kernel/compilation/make/install`          ☰ Install kernel using (your) `~/bin/installkernel` or (distribution) `→ Linux/fhs/sbin/installkernel` or install to `$(INSTALL_PATH)` and run → Linux/booting/LILO
    `fdimage`          ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
    `fdimage144`       ☰ Create 1.4MB boot floppy image (`arch/x86/boot/fdimage`)
@@ -203,33 +214,41 @@ $ Linux kernel compilation: make
 
   Targets `bzdisk`, `fdimage*`, `hdimage` and `isoimage` also accept: `FDARGS="…"` arguments and `FDINITRD=file` for the booted kernel
 
-} 
+}
 { Others
 
   Other, undocumented(?) targets include:
   table { ll
     `prepare` ☰ `→ Linux/kernel/source/scripts/setlocalversion` → https://github.com/torvalds/linux/blob/master/scripts/setlocalversion#L163-L166[suggests] to run `make prepare` if `→ Linux/kernel/source/include/config/auto_conf` does not exist.
-    `syncconfig` ☰ This target seems to eventually result in calling `→ Linux/kernel/source/scripts/kconfig[scripts/kconfig]/conf --syncconfig Kconfig`. (`scripts/kconfig/Makefile` notes that *syncconfig has become an internal implementation detail and is deprecated for external use*). TODO: Does `syncconfig` create `include/config/auto.conf`, `include/config/tristate.conf`, `include/generated/autoconf.h` and some (empty?) `include/config/*.h` files?
+    `→ Linux/kernel/compilation/make/syncconfig` ☰ This target seems to eventually result in calling `→ Linux/kernel/source/scripts/kconfig[scripts/kconfig]/conf --syncconfig Kconfig`. (`scripts/kconfig/Makefile` notes that *syncconfig has become an internal implementation detail and is deprecated for external use*). TODO: Does `syncconfig` create `include/config/auto.conf`, `include/config/tristate.conf`, `include/generated/autoconf.h` and some (empty?) `include/config/*.h` files?
   table }
 
 }
 }
 { Variables
 
- { V #linux-make-V
+  { KCONFIG_CONFIG
 
-  `make V=n [targets]`
+   `KCONFIG_CONFIG` allows to specify a non-default config file (the default being `→ Linux/kernel/source/_config`):
+code {
+make KCONFIG_CONFIG=config-lean
+code }
 
-   table { ll
-     1 ☰ verbose build - echoes the whole command line
-     2 ☰ give reason why target is rebuilt
-   table }
+  }
+  { V #linux-make-V
 
-  `V=1` and `V=2` can be combined with V=12
+   `make V=n [targets]`
 
-   Using `make V=1` can be used to → Linux/kernel/source#linux-src-determine-gcc-options[determine the GCC options with which a file is compiled].
+    table { ll
+      1 ☰ verbose build - echoes the whole command line
+      2 ☰ give reason why target is rebuilt
+    table }
 
-   The value that was passed with `V=` is assigned to the `KBUILD_VERBOSE` variable in makefiles.
+   `V=1` and `V=2` can be combined with V=12
+
+    Using `make V=1` can be used to → Linux/kernel/source#linux-src-determine-gcc-options[determine the GCC options with which a file is compiled].
+
+    The value that was passed with `V=` is assigned to the `KBUILD_VERBOSE` variable in makefiles.
 
  }
  { C
@@ -329,31 +348,6 @@ code }
 }
 
 
-rem {
-    table { ll
-
-   ~Target~ ☰
-    `config` ☰ Plain text interface.
-    `menuconfig` ☰ Text based color menus, radiolists & dialogs.
-    `nconfig` ☰ Enhanced text based color menus.
-    `xconfig` ☰ Qt based configuration tool.
-    `gconfig` ☰ GTK+ based configuration tool.
-    `oldconfig` ☰  Default all questions based on the contents of your existing `./.config` file and asking about new config symbols.
-    `olddefconfig` ☰ Like above, but sets new symbols to their default values without prompting.
-    `defconfig` ☰  Create a `./.config` file by using the default symbol values from either `arch/$ARCH/defconfig` or `arch/$ARCH/configs/${PLATFORM}_defconfig`, depending on the architecture.
-    `allyesconfig` ☰ Create a `./.config` file by setting symbol values to `y` as much as possible.
-    `allmodconfig` ☰ Create a `./.config` file by setting symbol values to `m` as much as possible.
-    `allnoconfig` ☰ Create a `./.config` file by setting symbol values to `n` as much as possible.
-    `randconfig` ☰ Create a `./.config` file by setting symbol values to random values.
-    `localmodconfig` ☰ Create a config based on current config and loaded modules (`→ Linux/shell/commands/lsmod`). Disables any module option that is not needed for the loaded modules.
-    `localyesconfig` ☰ Similar to localmodconfig, except it will convert all module options to built in (=y) options. You can also preserve modules by LMC_KEEP.
-    `kvm_guest.config` ☰  Enable additional options for kvm guest kernel support.
-    `xen.config` ☰  Enable additional options for xen dom0 guest kernel support.
-    `tinyconfig` ☰ Configure the tiniest possible kernel.
-
-  table }
-
-rem }
 
 { Creating a localmodconfig for another machine
 
