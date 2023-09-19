@@ -54,6 +54,7 @@ $ Linux kernel source tree
       `→ Linux/kernel/source/vmlinux` ☰ Created when the kernel is made
       → Linux/kernel/source/vmlinux_a[`vmlinux.a`] ☰ Created when the kernel is made
       → Linux/kernel/source/vmlinux_o[`vmlinux.o`] ☰ Created when the kernel is made
+      → Linux/kernel/source/_vmlinux_export_c[`.vmlinux.export.c`] ☰
       → Linux/kernel/source/_version[`.version`] ☰
  
     table }
@@ -75,6 +76,38 @@ $ Linux kernel source tree
 code {
 → Linux/shell/commands/grep -rl → Linux/shell/commands/grep#grep-P[-P] '^struct task_struct {(→ development/languages/Perl/regular-expressions/negative-lookahead[?!]})' --include='*.h'
 code }
+
+  }
+  { kallsyms #linux-kallsyms
+   
+    With `CONFIG_KALLSYMS` enabled, the kernel is built with the symbols of functions (`text` and `inittext` sections) in order to print out stack backtraces and crash information with these symbols
+    -
+   `CONFIG_KALLSYMS_ALL` includes all symbols (i. e. names of variables from the `data` section)
+    -
+    These features comes with the cost of an increased kernel size because it contains the symbols.
+
+ ? `kallsyms_lookup_name` is used by the in-kernel kprobe address resolution code.
+
+ ?  Wih enabled kallsyms, the `s` and `S` format specifies in `printk` print the symbol names rather than their address.
+
+    See also
+      • The → https://www.kernel.org/pub/linux/utils/kernel/ksymoops[ksysmoops] tool which helps in case kernel without kallsyms crashes.
+      • `→ Linux/kernel/source/scripts/kallsyms`
+      • The functions `kallsyms` and `kallsyms_step` in `→ Linux/kernel/source/scripts/link-vmlinux_sh`
+      • `kernel/kallsyms.c`
+      • `→ Linux/kernel/source/kernel/module/kallsyms_c`
+      • `include/linux/kallsyms.h`
+      • `→ Linux/fhs/proc/kallsyms`
+      • `kernel/kallsyms_selftest.{c,h}`
+      • `kernel/kallsyms_internal.h`
+      • The struct `mod_kallsyms` in `include/linux/module.h`
+
+  }
+  { Kprobes
+
+    Kprobes allows to dynamically break into (non-blacklisted) kernel function and collect debugging and performance information non-disruptively.
+
+    See also `Documentation/trace/kprobes.rst`
 
   }
   { Determine the GCC options with which a source file is compiled #linux-src-determine-gcc-options
@@ -99,9 +132,15 @@ code }
 
     With `CONFIG_DEBUG_INFO_BTF` enabled, building the Kernel also generates BTF (BPF type format) from DWARF in `→ Linux/kernel/source/vmlinux` and from kernel modules.
 
-    This feature requires *pahole*.
+    This feature requires *pahole* or *llvm*.
+    -
+    pahole acts as a *dwarf2btf* converter.
 
-    See also `Documentation/bpf/btf.rst` and the function `gen_btf()` in `→ Linux/kernel/source/scripts/link-vmlinux_sh`.
+    See also
+      • `include/uapi/linux/btf.h`
+      • `Documentation/bpf/btf.rst`
+      • The function `gen_btf()` in `→ Linux/kernel/source/scripts/link-vmlinux_sh`.
+      • The `resolve_btfids` tool (`tools/bpf/resolve_btfids`) scanes ELF objects for `.BTF_ids` sections and resolves its symbols with BTF ID values.
 
   }
   { Most frequent first line
