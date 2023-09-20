@@ -2,7 +2,44 @@ $ arch/$SRCARCH/kernel/vmlinux.lds
 
 `arch/$SRCARCH/kernel/vmlinux.lds` is the linker script that is used when `vmlinux` is built.
 
-This linker script is the preprocessed output (`gcc -E`) from `arch/$SRCARCH/kernel/vmlinux.lds.S`.
+This linker script is the preprocessed output (→ development/languages/C-C-plus-plus/GCC/options/E[`gcc -E`]) from `arch/$SRCARCH/kernel/vmlinux.lds.S`.
+
+{ x86
+
+  In my x86/64 environment, the head of the created file (i. e. `arch/x86/kernel/vmlinux.lds`) looks like
+code {
+OUTPUT_FORMAT("elf64-x86-64")
+OUTPUT_ARCH(i386:x86-64)
+ENTRY(phys_startup_64)
+jiffies = jiffies_64;
+PHDRS {
+ text PT_LOAD FLAGS(5);
+ data PT_LOAD FLAGS(6);
+ percpu PT_LOAD FLAGS(6);
+ init PT_LOAD FLAGS(7);
+ note PT_NOTE FLAGS(0);
+}
+SECTIONS
+ . = (0xffffffff80000000 + ALIGN(0x1000000, 0x200000));
+ phys_startup_64 = ABSOLUTE(startup_64 - 0xffffffff80000000);
+code }
+
+  The → https://sourceware.org/binutils/docs-2.41/ld.html#index-ENTRY_0028symbol_0029[`ENTRY(…)`] command specifies `phys_startup_64` as the *first instruction to be executed* in the output file with this linker script.
+  -
+  Note that `phys_startup_64` is defined to be `ABSOLUTE(startup_64 - 0xffffffff80000000`).
+  -
+  The symbol (or «function») → Linux/kernel/source/arch/x86/kernel/head_64_S#linux-axk-startup_64[`startup_64`] is defined in
+ `→ Linux/kernel/source/arch/x86/kernel/head_64_S`.
+
+  The → https://sourceware.org/binutils/docs-2.41/ld.html#PHDRS[`PHDRS`] command specifies the *program headers* (which can be printed with `objdump -p`).
+
+  The dot in `. = ` is the → https://sourceware.org/binutils/docs-2.41/ld.html#Location-Counter[location counter].
+ 
+
+}
 
 sa:
+
+  `arch/$SRCARCH/boot/compressed/vmlinux.lds`
+
   `#include <asm-generic/vmlinux.lds.h>`
