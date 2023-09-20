@@ -39,11 +39,11 @@ code }
   table { ll
 
     `.` ☰ Identity (output is equal to input) (for example `echo 11 | jq '(. + 10) * 2'` produces `42`.
-    `..` ☰ Recirsive descent (similar to XPath `//` operator)
+    `..` ☰ Recursive descent (similar to XPath `//` operator)
     `.keyName`, `.["keyName"]` ☰ Value JSON object's element whose name is `keyName`. If followed by question mark (`.keyName?`, `.["keyName"]?`), then value evaluates to `null` if `keyName` does not exist (rather than outputting an error)
     `.[n]` ☰ nth element of array. `n` can be negative to count from the other end (`.[-1]` is last element)
     `.[n:m]` ☰ Slice. Can be applied on array or string.
-    `.[]` ☰ All elements (`.[]?` prevents errors)
+     `→ development/languages/JavaScript/JSON/tools/jq/filters/dot-square-bracket` ☰ All elements (`.[]?` prevents errors)
     `… , …` ☰ Comma operator: input is fed to the filter on the left and on the right, output values are concatenated.
     `… | …` ☰ Pipe operator (similar to the pipe of shells)
     `[ elem1, elem2, … ]` ☰ Array construction
@@ -234,6 +234,21 @@ code }
     ☰ `--run-tests [filename]` ☰
 
   table }
+
+}
+{ TODO
+
+code {
+$ json='[ {"id": 7, "name": "ABC"}, {"id": 22, "name": "XYZ"}]'
+$ echo "$json" | jq -r '.[] | select(.name == "XYZ") | "id = \(.id), name = \(.name)"'
+id = 22, name = XYZ
+
+$ read -r id name < <(echo "$json" | jq -r '.[] | select(.name == "XYZ") | "\(.id) \(.name)"' )
+$ echo $id
+22
+$ echo $name
+XYZ
+code }
 
 }
 

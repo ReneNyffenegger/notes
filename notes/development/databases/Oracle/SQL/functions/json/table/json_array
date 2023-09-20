@@ -1,0 +1,37 @@
+$ Oracle SQL: Combining JSON_TABLE with JSON_ARRAY
+
+code {
+→ development/databases/Oracle/SQL-Plus/column num → development/databases/Oracle/SQL-Plus/column/format[format] 999
+→ development/databases/Oracle/SQL-Plus/column txt → development/databases/Oracle/SQL-Plus/column/format[format] a11
+→ development/databases/Oracle/SQL-Plus/column tim → development/databases/Oracle/SQL-Plus/column/format[format] a29
+ 
+select *
+from
+   → development/databases/Oracle/SQL/functions/json/table( → development/databases/Oracle/SQL/functions/json/array( 42, 'Hello world', → development/databases/Oracle/SQL/functions/date/systimestamp ),
+     '$' columns (
+           num  number   ( 3) path '$[0]',
+           txt  varchar2 (20) path '$[1]',
+           tim  timestamp     path '$[2]'
+       )
+   );
+--  
+--  NUM TXT         TIM                         
+-- ---- ----------- -----------------------------
+--   42 Hello world 2023-09-20 09:07:57.933246000
+code }
+
+code {
+select *
+from
+   json_table( json_array( 42, 'Hello world', systimestamp ),
+     '$[*]' columns (
+           col  varchar2(50) path '$[0]'
+       )
+   );
+--  
+-- COL                                              
+-- --------------------------------------------------
+-- 42
+-- Hello world
+-- 2023-09-20T11:20:45.011805Z
+code }
