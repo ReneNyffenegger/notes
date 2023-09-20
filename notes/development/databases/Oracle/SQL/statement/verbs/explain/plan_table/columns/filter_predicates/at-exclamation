@@ -1,9 +1,9 @@
 $ AT sign followed by an exclamation point (@!) in column FILTER_PREDICATES of PLAN_TABLE
 
-When a query is exectued over a database link, it's possible to add an at sign and exclamation point to the functions `user` and `sysdate` to tell Oracle to evaluate these functions locally,
-not on the remote datebase.
--
-If a query is executed locally (i.e. without using a database link), it's still possible to explicitely state to evaluate these two functions locally:
+When a query is executed over a database link, it's possible to add an at sign and exclamation point to the functions `user` and `→ development/databases/Oracle/SQL/functions/date/sysdate` (`user@!` and → development/databases/Oracle/SQL/functions/date/sysdate#sysdate-at-excl[`sysdate@!`])
+to tell Oracle to evaluate these functions locally rather than on the remote datebase.
+
+This syntax can also be used if a query is executed locally (i.e. without using a database link) to explicitely state to evaluate these two functions locally (which of course does not really make sense):
 code {
 select
    user       a,
@@ -14,7 +14,7 @@ from
    → development/databases/Oracle/SQL/dual;
 code }
 
-If a query predicate (`where` condiation) uses  `→ development/databases/Oracle/SQL/functions/date/sysdate` or `user` for comparison purposes, the
+If a query predicate (`where` condition) uses  `→ development/databases/Oracle/SQL/functions/date/sysdate` or `user` for comparison purposes, the
 `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` column `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates` lists these functions as `user@!` and `sysdate@!`.
 
 Create a demonstration → development/databases/Oracle/objects/tables …
@@ -53,7 +53,7 @@ where
    r = 1;
 code }
  
-Explain the execution plan for `select * from tq84_my_current_value`:
+Explain the → development/databases/Oracle/SQL/statement/execution/plan[execution plan] for `select * from tq84_my_current_value`:
 code {
 → development/databases/Oracle/SQL/statement/verbs/explain
    → development/databases/Oracle/SQL/statement/verbs/explain/statement-id[set statement_id] = '@!'
@@ -64,17 +64,18 @@ from
    tq84_my_current_value;
 code }
 
-We find the values `USER@!` and `SYSDATE@!` in `filter_predicates`:
+We find the values `USER@!` and `SYSDATE@!` in the column `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates` of the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table`:
 code {
-column op                 format a30
-column object_name        format a20
-column filter_predicates  format a70
+→ development/databases/Oracle/SQL-Plus/column op                 → development/databases/Oracle/SQL-Plus/column/format[format] a30
+→ development/databases/Oracle/SQL-Plus/column object_name        → development/databases/Oracle/SQL-Plus/column/format[format] a20
+→ development/databases/Oracle/SQL-Plus/column filter_predicates  → development/databases/Oracle/SQL-Plus/column/format[format] a70
+
 select
    rpad(' ', 2*depth) || operation || ' ' || options op,
    object_name,
    filter_predicates
 from
-   plan_table
+   → development/databases/Oracle/SQL/statement/verbs/explain/plan_table
 where
    statement_id = '@!';
 --
@@ -86,7 +87,7 @@ where
 --       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full        TQ84_USER_VALUES     "USER_NAME"=USER@! AND "VALID_FROM"<=SYSDATE@!   
 code }
 
-When using the `→ development/databases/Oracle/installed/packages/dbms/xplan`, `@!` shows up in the *Predicate Information* section:
+When using `→ development/databases/Oracle/installed/packages/dbms/xplan` to display the execution plan, `@!` shows up in the *Predicate Information* section:
 code {
 select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(statement_id => '@!');
 --
@@ -106,13 +107,6 @@ select * from → development/databases/Oracle/installed/packages/dbms/xplan/api
 --    2 - filter(ROW_NUMBER() OVER ( ORDER BY "VALID_FROM" DESC )<=1)
 --    3 - filter("USER_NAME"=USER@! AND "VALID_FROM"<=SYSDATE@!)
 code }
-
-
-{ Remote queries from a database link
-
-  The `@!` token also shows up for 
-
-}
 
 sa:
 
