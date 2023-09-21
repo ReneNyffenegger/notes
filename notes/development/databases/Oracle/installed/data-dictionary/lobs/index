@@ -1,8 +1,60 @@
 $ Oracle: DBA_LOBS
+@ dba_lobs
 
-`DBA_LOBS` describes → development/databases/Oracle/SQL/data-types/lob[LOBs] stored in → development/databases/Oracle/objects/tables[tables]
+`DBA_LOBS` describes → development/databases/Oracle/SQL/data-types/lob[LOBs] stored in → development/databases/Oracle/objects/tables[tables].
 
-gh|Oracle-patterns|/Installed/data-dictionary/lobs/table-with-lobs.sql||
+code {
+→ development/databases/Oracle/SQL-Plus/column index_name   → development/databases/Oracle/SQL-Plus/column/format[format] a25
+→ development/databases/Oracle/SQL-Plus/column index_type   → development/databases/Oracle/SQL-Plus/column/format[format] a10
+→ development/databases/Oracle/SQL-Plus/column segment_name → development/databases/Oracle/SQL-Plus/column/format[format] a25
+
+select
+   ind.index_name,
+   ind.index_type,
+   lob.segment_name
+from
+   → development/databases/Oracle/installed/data-dictionary/indexes[user_indexes]  ind                                              join
+   user_lobs     lob on ind.index_name   = lob.index_name
+where
+   ind.table_name = 'TQ84_LOB_INDEX' ;                                
+--
+-- INDEX_NAME                INDEX_TYPE SEGMENT_NAME            
+-- ------------------------- ---------- -------------------------
+-- SYS_IL0003416770C00002$$  LOB        SYS_LOB0003416770C00002$$  
+code }
+
+{ Select interesting columns
+
+code {
+select
+-- lob.table_name,
+   lob.column_name,
+   lob.in_row,
+   lob.deduplication,
+   lob.format,
+   lob.chunk,
+   lob.segment_name,
+   lob.tablespace_name,
+   lob.index_name,
+   lob.pctversion,
+   lob.retention,
+   lob.freepools,
+   lob.cache,
+   lob.logging,
+   lob.encrypt,
+   lob.compression,
+   lob.partitioned,
+   lob.securefile,
+   lob.segment_created,
+   lob.retention_type,
+   lob.retention_value
+from
+   user_lobs lob
+where
+   lob.table_name = '…';
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/data-dictionary
