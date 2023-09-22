@@ -3,15 +3,26 @@ $ vmlinux.a
 `vmlinux.a` is created when the kernel is → Linux/kernel/compilation/make[made] and contains objects that are undconditionally linked into `vmlinux`. (Contrast these objects with those which referred in `$KBUILD_VMLINUX_LIBS` and
 are conditionally linked).
 
-In an x64 architecture, the commands to create `vmlinux.a` is a variation of
-code {
-→ development/GNU/toolchain/binutils/ar cDPrST vmlinux.a ./built-in.a  lib/lib.a  arch/x86/lib/lib.a
-→ development/GNU/toolchain/binutils/ar mPiT $(ar t vmlinux.a | sed -n 1p) vmlinux.a $(ar t vmlinux.a | grep -F -f → Linux/kernel/source/scripts/head-object-list_txt[./scripts/head-object-list.txt])
-code }
-
 `vmlinux.a` is used to produce `→ Linux/kernel/source/vmlinux_o`.
 
-`vmlinux.a` is not a binary file, its content looks like
+{ Creating vmlinux.a
+
+  At least in an x64 architecture, `vmlinux.a` is created in two steps.
+
+  In the first step, `vmlinux.a` is created with the objects found `./built-in.a`, `lib/lib.a` and `arch/x86/lib/lib.a`:
+code {
+→ development/GNU/toolchain/binutils/ar cDPrST vmlinux.a ./built-in.a  lib/lib.a  arch/x86/lib/lib.a
+code }
+
+  In the second step, the objects referenced in `→ Linux/kernel/source/scripts/head-object-list_txt` are moved *before* the first object found in the newly created `vmlinux.a` file (`ar t vmlinux.a | → development/languages/sed -n 1p`). On my current machine, this first object is `init/main.o`.
+code {
+→ development/GNU/toolchain/binutils/ar mPiT $(ar t vmlinux.a | → development/languages/sed -n 1p) vmlinux.a $(ar t vmlinux.a | grep -F -f → Linux/kernel/source/scripts/head-object-list_txt[./scripts/head-object-list.txt])
+code }
+
+}
+{ Content of vmlinux.a
+
+  `vmlinux.a` is a *thin archive* (created with the → development/GNU/toolchain/binutils/ar#ar-generic-modifier[`T` modifier]). It's content looks like so:
 code {
 !<thin>
 //                                              73742     `
@@ -30,6 +41,10 @@ arch/x86/lib/usercopy_64.o/
 /29             0           0     0     644     15000     `
 …
 code }
+
+  Because `→ Linux/kernel/source/scripts/head-object-list_txt` does not contain any x86 related objects, `init/main.o` is the first object in an x86/64 environment.
+
+}
 
 sa:
 
