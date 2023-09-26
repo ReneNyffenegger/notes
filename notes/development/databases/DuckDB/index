@@ -9,7 +9,7 @@ Like → development/databases/SQLite, there is no server, rather DuckDB runs wi
 
 Usage:
 code {
-duckdb [OPTIONS] [database-file [script.sql]]
+duckdb [OPTIONS] [database-file [sql statements]]
 code }
 
  `duckdb` enteres a shell to manipulate a DuckDB database stored in `database-file`. The DB is created if it does not exist.
@@ -18,6 +18,15 @@ code }
   -
   In the shell, a different database can be opened with `.open DBFILE`.
 
+  The optional argument `sql statements` allows to pass multiple statements separated by a semicolon:
+code {
+$ duckdb :memory: "select 42; select 'hello world'"
+code }
+
+  An SQL script can be run from the command line like so:
+code {
+$ duckdb xyz.db  '.read  /opt/proj/sql-scripts/exec-01.sql'
+code }
 
   { Options
 
@@ -412,6 +421,13 @@ qualify
 -- └─────────┴───────┴─────────┘
 code }
 
+code {
+create table T(S struct(num int, txt text));
+
+insert into T values (row(42, 'hello world'));
+
+select * from T;
+code }
 
   }
   { ILIKE
