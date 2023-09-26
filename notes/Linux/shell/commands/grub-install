@@ -13,17 +13,96 @@ code }
 
 { Options
 
-  table { ll
 
-   `--root-directory=DIR` ☰ Install GRUB images under the directory `DIR` instead of the root directory
-   `--grub-shell=FILE` ☰ Use `FILE` as the grub shell
-   `--no-floppy` ☰ Do not probe any floppy drive
-   `--force-lba` ☰ Force GRUB to use LBA mode even for a buggy BIOS
-   `--recheck` ☰ Probe a device map even if it already exists
-   `-h`,` `--help ☰ 
-   `-v`,` `--version ☰ Print the version information and exit
+    table { llll
+
+
+      ☰ `--compress=` ☰ `no|xz|gz|lzo` ☰ compress GRUB files [optional]
+      ☰ `--disable-shim-lock` ☰ ☰  disable shim_lock verifier
+      ☰ `--dtb=` ☰ `FILE`  ☰ embed a specific DTB
+ `-d` ☰ `--directory=` ☰ `DIR` ☰ use images and modules under DIR [default=`/usr/local/lib/grub/<platform>`]
+      ☰ `--fonts=FONTS` ☰ ☰ install FONTS [default=unicode]
+      ☰ `--install-modules=` ☰ `MODULES` ☰   install only `MODULES` and their dependencies [default=`all`]
+ `-k` ☰ `--pubkey=FILE` ☰ ☰ embed FILE as public key for signature checking
+      ☰ `--locale-directory=` ☰ `DIR` ☰ use translations under DIR [default=`/usr/local/share/locale`]
+      ☰ `--locales=LOCALES` ☰ ☰      install only LOCALES [default=`all`]
+      ☰ `--modules=MODULES` ☰ ☰ pre-load specified modules `MODULES`
+      ☰ `--sbat=` ☰ `FILE` ☰            SBAT metadata
+      ☰ `--themes=` ☰ `THEMES` ☰ install `THEMES` [default=`starfield`]
+ `-v` ☰ `--verbose` ☰ ☰ print verbose messages.
+      ☰ `--allow-floppy` ☰ ☰ make the drive also bootable as floppy (default for fdX devices). May break on some BIOSes.
+      ☰ `--boot-directory=` ☰ `DIR` ☰   install GRUB images under the directory `DIR/grub` instead of the `boot/grub` directory
+      ☰ `--bootloader-id=` ☰ `ID`  ☰ the ID of bootloader. This option is only available on EFI and Macs.
+      ☰ `--core-compress=` ☰ `xz|none|auto` ☰ choose the compression to use for core image
+      ☰ `--disk-module=` ☰ `MODULE` ☰   disk module to use (biosdisk or native). This option is only available on BIOS target.
+      ☰ `--efi-directory=` ☰ `DIR` ☰    use DIR as the EFI System Partition root.
+      ☰ `--force` ☰  ☰ install even if problems are detected
+      ☰ `--force-lba` ☰ ☰ Force GRUB to use LBA mode even for a buggy BIOS. *Is this option still supported*?
+      ☰ `--force-file-id` ☰ ☰ use identifier file even if UUID is available
+      ☰ `--grub-shell=FILE` ☰ ☰ Use `FILE` as the grub shell. *Is this option still supported?*
+      ☰ `--label-bgcolor=` ☰ `COLOR` ☰  use `COLOR` for label background
+      ☰ `--label-color=` ☰ `COLOR`  ☰ use `COLOR` for label
+      ☰ `--label-font=` ☰ `FILE` ☰ use `FILE` as font for label
+      ☰ `--macppc-directory=` ☰ `DIR` ☰ use `DIR` for PPC MAC install.
+      ☰ `--no-floppy` ☰ ☰ Do not probe any floppy drive. *Is this option still supported?*
+      ☰ `--no-bootsector` ☰  ☰ do not install bootsector
+      ☰ `--no-nvram` ☰  ☰ don't update the boot-device and or Boot* NVRAM variables. This option is only available on EFI and IEEE1275 targets.
+      ☰ `--no-rs-codes` ☰  ☰          Do not apply any reed-solomon codes when embedding core.img. This option is only available on x86 BIOS targets.
+      ☰ `--product-version=` ☰ `STRING` ☰  use `STRING` as product version
+      ☰ `--recheck` ☰ ☰ delete (probe?) device map (`/boot/grub/device.map`) if it already exists 
+      ☰ `--removable` ☰  ☰ the installation device is removable. This option is only available on EFI.
+ `-s` ☰ `--skip-fs-probe` ☰ ☰ do not probe for filesystems in DEVICE
+      ☰ `--target=` ☰ `TARGET` ☰ install GRUB for `TARGET` platform (see below)
+ `-?` ☰ `--help` ☰ ☰
+      ☰ `--usage` ☰ ☰ give a short usage message
+ `-V` ☰ `--version` ☰ ☰ print program version
 
   table }
+
+
+   { TARGET
+
+     The value of `TARGET` (option `--target`) can be one of
+       • arm-coreboot
+       • arm-efi
+       • arm-uboot
+       • arm64-efi
+       • i386-coreboot
+       • i386-efi
+       • i386-ieee1275
+       • i386-multiboot
+       • i386-pc
+       • i386-qemu
+       • i386-xen
+       • i386-xen_pvh
+       • ia64-efi
+       • loongarch64-efi
+       • mips-arc
+       • mips-qemu_mips
+       • mipsel-arc
+       • mipsel-loongson
+       • mipsel-qemu_mips
+       • powerpc-ieee1275
+       • riscv32-efi
+       • riscv64-efi
+       • sparc64-ieee1275
+       • x86_64-efi
+       • x86_64-xen
+
+     The default is *i386-pc*.
+
+   }
+
+}
+{ Misc
+
+ `grub-install` creates the directory `${ROOTDIR}/boot/grub`. This directory is referred to as «grub directory».
+  -
+  By default `${ROOTDIR}` is `/`. This value can be overwritten with the `--root-directory` option.
+
+  Files that are indstalled under the grub directory include: 
+    • `device.map`
+
 
 }
 
