@@ -1,13 +1,55 @@
 $ arch/x86/boot/bzImage
 
-? `arch/x86/boot/bzImage` is a *disk image*.
-
+`arch/x86/boot/bzImage` is a *disk-image* file that is built with the following command:
 code {
-arch/x86/boot/tools/build → Linux/kernel/source/arch/x86/boot/setup_bin → Linux/kernel/source/arch/x86/boot/vmlinux_bin → Linux/kernel/source/arch/x86/boot/zoffset_h arch/x86/boot/bzImage 
+→ Linux/kernel/source/arch/x86/boot/tools/build → Linux/kernel/source/arch/x86/boot/setup_bin → Linux/kernel/source/arch/x86/boot/vmlinux_bin → Linux/kernel/source/arch/x86/boot/zoffset_h → Linux/kernel/source/arch/x86/boot/bzImage 
 code }
 
+`bzImage` is a (partly) compressed version of the kernel image. The `bz` of `bzImage` stands for *big zimage*. The content of `bzImage` can be extracted with `→ Linux/kernel/source/scripts/extract-vmlinux`.
+
+{ Masquerading as a PE/COFF image
+
+  A kernel `zImage` or `bzImage` can masquerade as a PE/COFF image on order to convince EFI firmware loaders to load it as an EFI executable.
+
+  A PE/COFF image starts with `MZ`. The following command verifies that this is the case with `bzImage`:
+  code {
+  $ echo $(→ Linux/shell/commands/head -c 2 arch/x86/boot/bzImage)
+  MZ
+  code }
+
+  At position 0x38 (=56 in decimal), we find the value of the macro `LINUX_PE_MAGIC`:
+  code {
+  $ → Linux/shell/commands/xxd -s 56 -l 4 -p  arch/x86/boot/bzImage
+  cd238281
+  code }
+
+  TODO: It seems that `CONFIG_EFI_STUB` must be enabled in order for `bzImage` to be a PE/COFF file.
+
+}
+{ Copying bzImage to the ESP
+
+ `arch/x86/boot/bzImage` is intended to be copied to the EFI System Partition (ESP) and renamed `.efi`. (Without this extension, the EFI firmware loader refuses to execute it).
+
+  { Pasing arguments to bzImage.efi
+
+  In the EFI shell, it's possible to pass arguments to the kernel via `bzImage.efi` like so:
+code {
+fs0:> bzImage.efi console=ttyS0 root=/dev/sda4
+code }
+
+    The only argument that is consumed by `bzImage.efi` (and not passed to the kernel) is `initrd`.
+
+  }
+
+}
+
+
 sa:
+
+  → https://github.com/torvalds/linux/blob/0e945134b680040b8613e962f586d91b6d40292d/Documentation/admin-guide/efi-stub.rst[`Documentation/admin-guide/efi-stub.rst`] says that 
 
  `→ Linux/kernel/compilation/make bzImage`
 
  `→ Linux/kernel/source/arch/x86/boot/tools/build_c`
+
+  The config option `CONFIG_EFI_STUB` allows a bzImage to be loaded directly by EFI firmware without the use of a bootloader.
