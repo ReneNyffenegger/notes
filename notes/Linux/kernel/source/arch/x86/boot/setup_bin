@@ -7,4 +7,22 @@ code }
 
 `setup.bin` is a requisite for `→ Linux/kernel/source/arch/x86/boot/tools/build` to create `→ Linux/kernel/source/arch/x86/boot/bzImage`.
 
+{ Extracting the values of some fields in setup.bin
 
+ `setup.bin` contains the structure defined in `→ Linux/kernel/source/arch/x86/boot/header_S`. Some values of these structure can be read with the following shell script:
+code {
+file=arch/x86/boot/setup.bin
+# file=arch/x86/boot/bzImage
+
+echo "setup_sects:        $(→ Linux/shell/commands/od --skip-bytes=497 --read-bytes=1 --format=x1  --address-radix=n $file)"
+echo "syssize:            $(→ Linux/shell/commands/od --skip-bytes=500 --read-bytes=4 --format=d   --address-radix=n $file)"
+echo "rootdev:            $(→ Linux/shell/commands/od --skip-bytes=508 --read-bytes=2 --format=d   --address-radix=n $file)"
+echo "boot_flag:          $(→ Linux/shell/commands/od --skip-bytes=510 --read-bytes=2 --format=x2  --address-radix=n $file)" # expected aa55
+echo "jump:               $(→ Linux/shell/commands/od --skip-bytes=512 --read-bytes=1 --format=x1  --address-radix=n $file)" # expected eb    (Assembler JMP instruction)
+echo "header:             $(→ Linux/shell/commands/dd if=$file bs=1 skip=514 count=5 2>/dev/null                          )" # expected HdRS
+echo "version:            $(→ Linux/shell/commands/od --skip-bytes=518 --read-bytes=2 --format=x2  --address-radix=n $file)"
+echo "handover_offset:    $(→ Linux/shell/commands/od --skip-bytes=612 --read-bytes=4 --format=x4  --address-radix=n $file)"
+echo "kernel_invo_offset: $(→ Linux/shell/commands/od --skip-bytes=616 --read-bytes=4 --format=x4  --address-radix=n $file)"
+code }
+
+}

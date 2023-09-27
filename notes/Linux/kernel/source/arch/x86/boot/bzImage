@@ -12,16 +12,16 @@ code }
   A kernel `zImage` or `bzImage` can masquerade as a PE/COFF image on order to convince EFI firmware loaders to load it as an EFI executable.
 
   A PE/COFF image starts with `MZ`. The following command verifies that this is the case with `bzImage`:
-  code {
-  $ echo $(→ Linux/shell/commands/head -c 2 arch/x86/boot/bzImage)
-  MZ
-  code }
+code {
+$ echo $(→ Linux/shell/commands/head -c 2 arch/x86/boot/bzImage)
+MZ
+code }
 
-  At position 0x38 (=56 in decimal), we find the value of the macro `LINUX_PE_MAGIC`:
-  code {
-  $ → Linux/shell/commands/xxd -s 56 -l 4 -p  arch/x86/boot/bzImage
-  cd238281
-  code }
+  At position 0x38 (=56 in decimal), we find the value of the macro → https://github.com/torvalds/linux/blob/633b47cb009d09dc8f4ba9cdb3a0ca138809c7c7/include/linux/pe.h#L35-L40[`LINUX_PE_MAGIC`]:
+code {
+$ → Linux/shell/commands/xxd -s 56 -l 4 -p  arch/x86/boot/bzImage
+cd238281
+code }
 
   TODO: It seems that `CONFIG_EFI_STUB` must be enabled in order for `bzImage` to be a PE/COFF file.
 
@@ -40,6 +40,60 @@ code }
     The only argument that is consumed by `bzImage.efi` (and not passed to the kernel) is `initrd`.
 
   }
+
+}
+{ TODO
+
+code {
+# file=arch/x86/boot/setup.bin
+file=arch/x86/boot/bzImage
+
+echo "LINUX_PE_MAGIC:              $(od --skip-bytes=$(( 16#38 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected 818223cd
+echo "pe_header:                   $(od --skip-bytes=$(( 16#3b )) --read-bytes=4 --format=x4  --address-radix=n $file)" # ???? 
+echo "PE_MAGIC:                    $(od --skip-bytes=$(( 16#80 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected PE\0\0 (see include/linux/pe.h)
+echo "coff_header:                 $(od --skip-bytes=$(( 16#84 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected IMAGE_FILE_MACHINE_AMD64 (= 8664) or IMAGE_FILE_MACHINE_I386
+echo "section_count:               $(od --skip-bytes=$(( 16#88 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # nr of sections
+# echo "TimeDateStamp:               $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
+# echo "PointerToSymbolTable:        $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
+# echo "NumberOfSymbols:             $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
+echo "pe_opt_magic:                $(od --skip-bytes=$(( 16#9a )) --read-bytes=2 --format=x2  --address-radix=n $file)" # expected PE_OPT_MAGIC_PE32PLUS (0x020b)
+echo "MajorLinkerVersion:          $(od --skip-bytes=$(( 16#9c )) --read-bytes=1 --format=x1  --address-radix=n $file)" # expected 0x02
+echo "MinorLinkerVersion:          $(od --skip-bytes=$(( 16#9d )) --read-bytes=1 --format=x1  --address-radix=n $file)" # expected 0x14
+# echo "SizeOfCode:                  $(od --skip-bytes=$(( 16#9e )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "SizeOfUninitializedData:     $(od --skip-bytes=$(( 16#ac )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "SizeOfInitializedData:       $(od --skip-bytes=$(( 16#b0 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "AddressOfEntryPoint:         $(od --skip-bytes=$(( 16#b4 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "BaseOfCode:                  $(od --skip-bytes=$(( 16#b8 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "image_base:                  $(od --skip-bytes=$(( 16#bc )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
+# echo "SectionAlignment:            $(od --skip-bytes=$(( 16#c4 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "FileAlignment:               $(od --skip-bytes=$(( 16#c8 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "MajorOperatingSystemVersion: $(od --skip-bytes=$(( 16#cc )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+# echo "MinorOperatingSystemVersion: $(od --skip-bytes=$(( 16#d0 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "MajorImageVersion:           $(od --skip-bytes=$(( 16#c6 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected: 3 (LINUX_EFISTUB_MAJOR_VERSION)
+echo "MinorImageVersion:           $(od --skip-bytes=$(( 16#ca )) --read-bytes=4 --format=x4  --address-radix=n $file)" # LINUX_EFISTUB_MINOR_VERSION
+echo ".setup:                      $(od --skip-bytes=$(( 16#13a)) --read-bytes=6 --format=a   --address-radix=n $file)" #
+echo "startup_{32,64}:             $(od --skip-bytes=$(( 16#146 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "size init data on disk:      $(od --skip-bytes=$(( 16#14a )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "startup_{32,64}:             $(od --skip-bytes=$(( 16#14e )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "PointerToRelocations:        $(od --skip-bytes=$(( 16#152 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "PointerToLineNumbers:        $(od --skip-bytes=$(( 16#156 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
+echo "NumberOfRelocations:         $(od --skip-bytes=$(( 16#15a )) --read-bytes=2 --format=x2  --address-radix=n $file)" #
+echo "NumberOfLines:               $(od --skip-bytes=$(( 16#15c )) --read-bytes=2 --format=x2  --address-radix=n $file)" #
+echo "Characteristics:             $(od --skip-bytes=$(( 16#15e )) --read-bytes=4 --format=x4  --address-radix=n $file)" # IMAGE_SCN_CNT_CODE	| IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_EXECUTE	| IMAGE_SCN_ALIGN_16BYTE
+echo ".reloc:                      $(od --skip-bytes=$(( 16#162 )) --read-bytes=6 --format=a   --address-radix=n $file)" #
+echo ".text:                       $(od --skip-bytes=$(( 16#1b2 )) --read-bytes=5 --format=a   --address-radix=n $file)" #
+
+
+echo "setup_sects:             $(od --skip-bytes=497          --read-bytes=1 --format=x1  --address-radix=n $file)"
+echo "syssize:                 $(od --skip-bytes=500          --read-bytes=4 --format=d   --address-radix=n $file)"
+echo "rootdev:                 $(od --skip-bytes=508          --read-bytes=2 --format=d   --address-radix=n $file)"
+echo "boot_flag:               $(od --skip-bytes=510          --read-bytes=2 --format=x2  --address-radix=n $file)" # expected aa55
+echo "jump:                    $(od --skip-bytes=512          --read-bytes=1 --format=x1  --address-radix=n $file)" # expected eb    (Assembler JMP instruction)
+echo "header:                  $(dd if=$file bs=1 skip=514 count=5 2>/dev/null                                   )" # expected HdRS
+echo "version:                 $(od --skip-bytes=518          --read-bytes=2 --format=x2  --address-radix=n $file)"
+echo "handover_offset:         $(od --skip-bytes=612          --read-bytes=4 --format=x4  --address-radix=n $file)"
+echo "kernel_invo_offset:      $(od --skip-bytes=616          --read-bytes=4 --format=x4  --address-radix=n $file)"
+code }
 
 }
 
