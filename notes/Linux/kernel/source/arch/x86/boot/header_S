@@ -4,6 +4,57 @@ $ arch/x86/boot/header.S
 -
 Does a bootloader like GRUB jump to this location when it has loaded the kernel image?
 
+{ Global symbol hdr
+
+  Fields defined under → https://github.com/torvalds/linux/blob/0e945134b680040b8613e962f586d91b6d40292d/arch/x86/boot/header.S#L287[`.globl hdr`] are:
+  table { lrl
+    ~Name~ ☰ ~Bytes~ ☰ 
+    `setup_sects` ☰ 1 ☰ Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`.
+    `root_flags` ☰ 2 ☰ ? Value of `ROOT_RDONLY` (default = `1`)?
+    `syssize` ☰ 4 ☰ Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`.
+    `ram_size` ☰ 2 ☰ *Obsolete*
+    `vid_mode` ☰ 2 ☰ Value of `SVGA_MODE`
+    `root_dev` ☰ 2 ☰ Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`.
+    `boot_flag` ☰ 2 ☰ `0xAA55`
+    `jump` ☰ 2 ☰ Machine code jump instruction: `0xeb` followed by `start_of_setup - 1f`. This jump seems to be aligned with the `_start` symbol in the object file?
+    `header` ☰ 4 ☰ `HDrS`
+    `version` ☰ 2 ☰ The header version number: `0x020f`
+    `realmode_swtch` ☰ 4 ☰ `0x00000000`
+    `start_sys_seg` ☰ 2 ☰ Obsolete (and even meaningless). Value `SYSSEG` (= `0x1000` which is the *historical load address `>> 4`).
+    `kernel_version` ☰ 2 ☰ `kernel_version-512`. This value points to the *kernel version string* above the section of header (or so).
+    `type_of_loader` ☰ 1 ☰ `0` = ancient bootloader. Newer bootloaders know to change this. See `Documentation/arch/x86/boot/rst`.
+    `loadflags` ☰ 1 ☰ Value of `LOADED_HIGH`. Indicates if kernel needs to be loaded high?
+    `setup_move_size` ☰ 2 ☰ `0x8000` size to move, when setup is not loaded at `0x90000`. We will move setup to 0x90000 then just before jumping into the kernel. However, only the loader knows how much data behind us also needs to be loaded.
+    `code32_start` ☰ 4 ☰ Default for big kernel: `0x100000`. Loaders can put a different start address for 32-bit code here.
+    `ramdisk_image` ☰ 4 ☰ Address of the loaded ramdisk image. The loader puts this address.
+    `ramdisk_size` ☰ 4 ☰ Size of the ramdisk.
+    `bootsect_kludge` ☰ 4 ☰ *Obsolete*
+    `heap_end_ptr` ☰ 2 ☰ `_end+STACK_SIZE-512`
+    `ext_loader_ver` ☰ 1 ☰ `0`. Extended boot loader version
+    `ext_loader_type` ☰ 1 ☰ `0`. Extended boot loader type
+    `cmd_line_ptr` ☰ 4 ☰ In header version `0x0202` or later: If nonzero, this value is a pointer to the *kernel command line*. This command line should be located between the start of setup and the end of low memory (`0xA0000`). Otherwise, it may get overwritten before it is readhj
+    `initrd_addr_max` ☰ 4 ☰ In header version `0x0203` or later: The highest safe address for the contents of an initrd The current kernel allows up to 4 GB, but leave it at 2 GB to avoid possible bootloader bugs.
+    `kernel_alignment` ☰ 4 ☰ Value of `CONFIG_PHYSICAL_ALIGN`, the *phyisical address alignment*. This is reaquired for protected mode.
+    `relocatable_kernel` ☰ 1 ☰ `1` if `CONFIG_RELOCTABLE` is defined, `0` otherwise.
+    `min_alignment` ☰ 1 ☰ Value of `MIN_KERNEL_ALIGN_LG2` (minimum alignment)
+    `xloadflags` ☰ 2 ☰
+    `cmdline_size` ☰ 4 ☰ Length of the command line (`COMMAND_LINE_SIZE - 1`)
+    `hardware_subarch` ☰ 4 ☰ Subarchitecture. For normal x86 PCs, the default is `0`
+    `hardware_subarch_data` ☰ 8 ☰ `0`
+    `payload_offset` ☰ 4 ☰ Value of `ZO_input_data` (defined in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`)
+    `payload_length` ☰ 4 ☰ Value of `ZO_z_input_len` (defined in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`)
+    `setup_data` ☰ 8 ☰ (Physical) pointer to single linked list of `setup_data`
+    `pref_address` ☰ 8 ☰  The *preferred load address* (value of `LOAD_PHYSICAL_ADDR`)
+    `init_size` ☰ 4 ☰ Kernel initialization size. Value of `INIT_SIZE`
+    `handover_offset` ☰ 4 ☰ → Linux/kernel/source/arch/x86/boot/tools/build
+    `kernel_info_offset` ☰ 4 ☰ → Linux/kernel/source/arch/x86/boot/tools/build
+
+  table }
+
+  These fields are exposed in `struct setup_header` whose definition is found in `→ Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h` (and copied to `usr/include/asm/bootparam.h`).
+
+}
+
 { TODO
 
   The file contains the following comments
@@ -30,6 +81,8 @@ code }
 
 
  `CONFIG_EFI_STUB`
+
+ `header.S` includes `→ Linux/kernel/source/arch/x86/boot/zoffset_h`.
 
 }
 
