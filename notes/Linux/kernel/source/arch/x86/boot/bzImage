@@ -42,58 +42,125 @@ code }
   }
 
 }
+{ Decompressing the kernel #bzImage-decompress
+
+  If the kernel is not relocatable (`CONFIG_RELOCATABLE=n`) then
+ `bzImage` will decompress itself to above the address specified with → Linux/kernel/source/arch/x86/include/asm/boot_h#linux-LOAD_PHYSICAL_ADDR[`LOAD_PHYSICAL_ADDR`],
+  otherwise, it will be be run from the address where it has been loaded by the boot loader.
+
+}
 { TODO
 
+  { Extract some fields from bzImage
+
 code {
+
 # file=arch/x86/boot/setup.bin
 file=arch/x86/boot/bzImage
 
-echo "LINUX_PE_MAGIC:              $(od --skip-bytes=$(( 16#38 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected 818223cd
-echo "pe_header:                   $(od --skip-bytes=$(( 16#3b )) --read-bytes=4 --format=x4  --address-radix=n $file)" # ???? 
-echo "PE_MAGIC:                    $(od --skip-bytes=$(( 16#80 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected PE\0\0 (see include/linux/pe.h)
-echo "coff_header:                 $(od --skip-bytes=$(( 16#84 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected IMAGE_FILE_MACHINE_AMD64 (= 8664) or IMAGE_FILE_MACHINE_I386
-echo "section_count:               $(od --skip-bytes=$(( 16#88 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # nr of sections
-# echo "TimeDateStamp:               $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
-# echo "PointerToSymbolTable:        $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
-# echo "NumberOfSymbols:             $(od --skip-bytes=$(( 16#?? )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
-echo "pe_opt_magic:                $(od --skip-bytes=$(( 16#9a )) --read-bytes=2 --format=x2  --address-radix=n $file)" # expected PE_OPT_MAGIC_PE32PLUS (0x020b)
-echo "MajorLinkerVersion:          $(od --skip-bytes=$(( 16#9c )) --read-bytes=1 --format=x1  --address-radix=n $file)" # expected 0x02
-echo "MinorLinkerVersion:          $(od --skip-bytes=$(( 16#9d )) --read-bytes=1 --format=x1  --address-radix=n $file)" # expected 0x14
-# echo "SizeOfCode:                  $(od --skip-bytes=$(( 16#9e )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "SizeOfUninitializedData:     $(od --skip-bytes=$(( 16#ac )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "SizeOfInitializedData:       $(od --skip-bytes=$(( 16#b0 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "AddressOfEntryPoint:         $(od --skip-bytes=$(( 16#b4 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "BaseOfCode:                  $(od --skip-bytes=$(( 16#b8 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "image_base:                  $(od --skip-bytes=$(( 16#bc )) --read-bytes=8 --format=x8  --address-radix=n $file)" #
-# echo "SectionAlignment:            $(od --skip-bytes=$(( 16#c4 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "FileAlignment:               $(od --skip-bytes=$(( 16#c8 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "MajorOperatingSystemVersion: $(od --skip-bytes=$(( 16#cc )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-# echo "MinorOperatingSystemVersion: $(od --skip-bytes=$(( 16#d0 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "MajorImageVersion:           $(od --skip-bytes=$(( 16#c6 )) --read-bytes=4 --format=x4  --address-radix=n $file)" # expected: 3 (LINUX_EFISTUB_MAJOR_VERSION)
-echo "MinorImageVersion:           $(od --skip-bytes=$(( 16#ca )) --read-bytes=4 --format=x4  --address-radix=n $file)" # LINUX_EFISTUB_MINOR_VERSION
-echo ".setup:                      $(od --skip-bytes=$(( 16#13a)) --read-bytes=6 --format=a   --address-radix=n $file)" #
-echo "startup_{32,64}:             $(od --skip-bytes=$(( 16#146 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "size init data on disk:      $(od --skip-bytes=$(( 16#14a )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "startup_{32,64}:             $(od --skip-bytes=$(( 16#14e )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "PointerToRelocations:        $(od --skip-bytes=$(( 16#152 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "PointerToLineNumbers:        $(od --skip-bytes=$(( 16#156 )) --read-bytes=4 --format=x4  --address-radix=n $file)" #
-echo "NumberOfRelocations:         $(od --skip-bytes=$(( 16#15a )) --read-bytes=2 --format=x2  --address-radix=n $file)" #
-echo "NumberOfLines:               $(od --skip-bytes=$(( 16#15c )) --read-bytes=2 --format=x2  --address-radix=n $file)" #
-echo "Characteristics:             $(od --skip-bytes=$(( 16#15e )) --read-bytes=4 --format=x4  --address-radix=n $file)" # IMAGE_SCN_CNT_CODE	| IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_EXECUTE	| IMAGE_SCN_ALIGN_16BYTE
-echo ".reloc:                      $(od --skip-bytes=$(( 16#162 )) --read-bytes=6 --format=a   --address-radix=n $file)" #
-echo ".text:                       $(od --skip-bytes=$(( 16#1b2 )) --read-bytes=5 --format=a   --address-radix=n $file)" #
+read_chars() {
+   pos=$1
+   len=$2
+   echo $(dd if=$file bs=1 skip=$(( 16#$pos )) count=$len 2>/dev/null) # expected HdRS
+
+}
+
+read_hex_bytes() {
+   pos=$1
+   len=$2
+
+   echo $(od --skip-bytes=$(( 16#$pos )) --read-bytes=$len --format=x$len  --address-radix=n $file)
+}
+
+echo "MS Dos Header":w
+echo "  MZ:                        $(read_chars     000 2)"
 
 
-echo "setup_sects:             $(od --skip-bytes=497          --read-bytes=1 --format=x1  --address-radix=n $file)"
-echo "syssize:                 $(od --skip-bytes=500          --read-bytes=4 --format=d   --address-radix=n $file)"
-echo "rootdev:                 $(od --skip-bytes=508          --read-bytes=2 --format=d   --address-radix=n $file)"
-echo "boot_flag:               $(od --skip-bytes=510          --read-bytes=2 --format=x2  --address-radix=n $file)" # expected aa55
-echo "jump:                    $(od --skip-bytes=512          --read-bytes=1 --format=x1  --address-radix=n $file)" # expected eb    (Assembler JMP instruction)
-echo "header:                  $(dd if=$file bs=1 skip=514 count=5 2>/dev/null                                   )" # expected HdRS
-echo "version:                 $(od --skip-bytes=518          --read-bytes=2 --format=x2  --address-radix=n $file)"
+
+# include/linux/pe.h: 
+#   LINUX_PE_MAGIC appears at offset 0x38 into the MS-DOS header of EFI bootable
+#   Linux kernel images that target the architecture as specified by the PE/COFF
+#   header machine type field.
+#
+echo "  LINUX_PE_MAGIC:              $(read_hex_bytes 38 4 )" # expected 818223cd
+
+echo "  Address PE Header:           $(read_hex_bytes 3c 4)"        # Likely to be 80.
+echo "  PE_MAGIC:                    $(read_hex_bytes 82 4)" # expected PE\0\0 (see include/linux/pe.h)
+
+echo
+echo "PE File Header (coff_header)"  
+echo "  Machine:                     $(read_hex_bytes 84 4)" # expected IMAGE_FILE_MACHINE_AMD64 (= 8664) or IMAGE_FILE_MACHINE_I386
+
+echo "  NumberOfSections:            $(read_hex_bytes 88 4)" 
+echo
+echo "  TimeDateStamp:               $(read_hex_bytes 8a 4)"
+echo "  PointerToSymbolTable:        $(read_hex_bytes 8e 4)"
+echo "  NumberOfSymbols:             $(read_hex_bytes 92 4)"
+echo "  SizeOfOptionalHeader         $(read_hex_bytes 96 2)"
+echo "  Characteristics              $(read_hex_bytes 98 2)"  # 0206 = IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DEBUG_STRIPPED | IMAGE_FILE_LINE_NUMS_STRIPPED
+echo
+
+echo "PE Optional Header"
+echo "  Magic:                       $(read_hex_bytes 9a 2)" # 0x020b = PE_OPT_MAGIC_PE32PLUS
+echo "  MajorLinkerVersion:          $(read_hex_bytes 9c 1)" # expected 0x02
+echo "  MinorLinkerVersion:          $(read_hex_bytes 9d 1)" # expected 0x14
+
+echo
+echo "  SizeOfCode:                  $(read_hex_bytes 9e 4)" # ?
+echo "  SizeOfUninitializedData:     $(read_hex_bytes a2 4)"
+echo "  SizeOfInitializedData:       $(read_hex_bytes a6 4)"
+
+echo
+echo "  AddressOfEntryPoint:         $(read_hex_bytes aa 4)"
+echo "  BaseOfCode:                  $(read_hex_bytes ae 4)" # Expected 0x0200 See header.S
+
+echo "  ImageBase:                   $(read_hex_bytes b2 8)" # Expected 1000000 = LOAD_PHYSICAL_ADDR + 0xffff) & ~0xffff  ( See arch/x86/include/asm/boot.h )
+
+echo
+echo "  SectionAlignment:            $(read_hex_bytes ba 4)" # Expected 20
+echo "  FileAlignment:               $(read_hex_bytes be 4)" # Expected 20
+
+echo
+echo "  MajorOperatingSystemVersion: $(read_hex_bytes c2 2)" #
+echo "  MinorOperatingSystemVersion: $(read_hex_bytes c4 2)" #
+
+echo
+echo "  MajorImageVersion:           $(read_hex_bytes c6 2)" # expected: 3 = LINUX_EFISTUB_MAJOR_VERSION
+echo "  MinorImageVersion:           $(read_hex_bytes c8 2)" # expected: 0 = LINUX_EFISTUB_MINOR_VERSION
+
+echo
+echo ".setup:                        $(read_chars     13a 6)"
+echo "  startup_{32,64}:             $(read_hex_bytes 146 4)"
+
+echo "  size init data on disk       $(read_hex_bytes 14a 4)"
+echo "  startup_{32,64}:             $(read_hex_bytes 14c 4)" # ????
+
+echo "  PointerToRelocations:        $(read_hex_bytes 150 4)"
+echo "  PointerToLineNumbers:        $(read_hex_bytes 154 4)"
+echo "  NumberOfRelocations:         $(read_hex_bytes 158 2)"
+echo "  NumberOfLines:               $(read_hex_bytes 15a 2)"
+
+echo
+echo "  Characteristics              $(read_hex_bytes 15e 4)" # IMAGE_SCN_CNT_CODE	| IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_EXECUTE	| IMAGE_SCN_ALIGN_16BYTE
+
+echo
+echo ".reloc                         $(read_chars     162 6)"
+echo ".text:                         $(read_chars     1b2 5)"
+
+echo "  setup_sects                  $(read_hex_bytes 1f5 1)"
+echo "  root_flags:                  $(read_hex_bytes 1f6 2)"
+echo "  syssize:                     $(read_hex_bytes 1f8 4)"
+echo "  rootdev:                     $(read_hex_bytes 1fc 2)"
+echo "  boot_flag:                   $(read_hex_bytes 1fe 2)" # expected aa55
+
+echo "  jump:                        $(read_hex_bytes 200 1)" # expected eb (Assembler JMP instruction)
+echo "  header:                      $(read_chars     202 4)" # expected HdRS
+echo "  version:                     $(read_hex_bytes 206 4)" # 20f (or so)
 echo "handover_offset:         $(od --skip-bytes=612          --read-bytes=4 --format=x4  --address-radix=n $file)"
-echo "kernel_invo_offset:      $(od --skip-bytes=616          --read-bytes=4 --format=x4  --address-radix=n $file)"
+echo "kernel_info_offset:      $(od --skip-bytes=616          --read-bytes=4 --format=x4  --address-radix=n $file)"
 code }
+
+  }
 
 }
 
