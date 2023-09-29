@@ -1,0 +1,20 @@
+$ arch/x86/boot/voffset.h
+
+`arch/x86/boot/zoffset.h` is created when the kernel is → Linux/kernel/compilation/make[made] with the following command (Linux version 6.5):
+code {
+nm → Linux/kernel/source/vmlinux | sed -n -e 's/^\([0-9a-fA-F]*\) [ABCDGRSTVW] \(_text\|__bss_start\|_end\)$/#define VO_ _AC(0x,UL)/p' > arch/x86/boot/compressed/../voffset.h
+code }
+
+The prefix `VO_` apparently refers to the *uncompressed kernel* (see → https://github.com/torvalds/linux/blob/9ed22ae6be817d7a3f5c15ca22cbc9d3963b481d/arch/x86/boot/compressed/misc.c#L362C54-L363C14[here] and → https://github.com/torvalds/linux/blob/9ed22ae6be817d7a3f5c15ca22cbc9d3963b481d/arch/x86/boot/compressed/kaslr.c#L324C67-L325C32[here]).
+
+The content of `voffset.h` looks like:
+code {
+#define VO___bss_start _AC(0xffffffff834b2000,UL)
+#define VO__end _AC(0xffffffff83830000,UL)
+#define VO__text _AC(0xffffffff81000000,UL)
+code }
+
+`voffset.h` is included from `→ Linux/kernel/source/arch/x86/boot/header_S` and `→ Linux/kernel/source/arch/x86/boot/compressed/misc_c`.
+
+sa:
+ `→ Linux/kernel/source/arch/x86/boot/zoffset_h`
