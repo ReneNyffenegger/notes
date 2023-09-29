@@ -3,3 +3,22 @@ $ drivers/firmware/efi/libstub/x86-stub.c
 → https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/efi-stub.rst[`Documentation/admin-guide/efi-stub.rst`] says that
 `drivers/firmware/efi/libstub/x86-stub.c` and `→ Linux/kernel/source/arch/x86/boot/header_S` are collectively known as the *EFI boot stub*, which is the code
 that modifies the `bzImage` header along with the EFI-specific entry point which the firmware loader jumps to.
+
+{ efi_pe_entry #linux-x86-efi_pe_entry
+
+  The address of `efi_pe_entry` is assigned to the → Linux/kernel/source/arch/x86/boot/header_S#header_S-AddressOfEntryPoint[`AddressOfEntryPoint`] field
+ (defined in `→ Linux/kernel/source/arch/x86/boot/header_S`) and will thus be the function that UEFI calls when it has loaded
+ `→ Linux/kernel/source/arch/x86/boot/bzImage` (provided the kernel is started via UEFI, I believe `CONFIG_EFI_STUB` must be enabled).
+
+  The signature of efi_pe_entry is
+code {
+efi_status_t __efiapi efi_pe_entry(
+    efi_handle_t        handle,
+    efi_system_table_t *sys_table_arg
+)
+code }
+
+  Among others, `efi_pe_entry` creates a → Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h#linux-boot_param[`boot_param`] struct because this is expected
+  to be passed in the x86 boot code.
+
+}

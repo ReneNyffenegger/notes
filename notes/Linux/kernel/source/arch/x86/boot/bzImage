@@ -42,6 +42,15 @@ code }
   }
 
 }
+{ Calling efi_pe_entry
+
+  When UEFI has loaded `bzImage`, it calls the function whose address is stored in
+  → Linux/kernel/source/arch/x86/boot/header_S#header_S-AddressOfEntryPoint[`AddressOfEntryPoint`] which, in a x86 architecture, is
+  → Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c#linux-x86-efi_pe_entry[`efi_pe_entry`] (defined in
+ `→ Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c`).
+
+
+}
 { Decompressing the kernel #bzImage-decompress
 
   If the kernel is not relocatable (`CONFIG_RELOCATABLE=n`) then
@@ -54,110 +63,181 @@ code }
   { Extract some fields from bzImage
 
 code {
-
 # file=arch/x86/boot/setup.bin
 file=arch/x86/boot/bzImage
+
 
 read_chars() {
    pos=$1
    len=$2
-   echo $(dd if=$file bs=1 skip=$(( 16#$pos )) count=$len 2>/dev/null) # expected HdRS
-
+   echo $(dd if=$file bs=1 skip=$(( $pos )) count=$len 2>/dev/null) # expected HdRS
 }
 
 read_hex_bytes() {
    pos=$1
    len=$2
 
-   echo $(od --skip-bytes=$(( 16#$pos )) --read-bytes=$len --format=x$len  --address-radix=n $file)
+   echo $(od --skip-bytes=$(( $pos )) --read-bytes=$len --format=x$len  --address-radix=n $file)
 }
 
 echo "MS Dos Header"
-echo "  MZ:                        $(read_chars     000 2)"
-
-
+echo "  MZ:                        $(read_chars      16#000 2)"
 
 # include/linux/pe.h: 
 #   LINUX_PE_MAGIC appears at offset 0x38 into the MS-DOS header of EFI bootable
 #   Linux kernel images that target the architecture as specified by the PE/COFF
 #   header machine type field.
 #
-echo "  LINUX_PE_MAGIC:              $(read_hex_bytes 38 4 )" # expected 818223cd
+echo "  LINUX_PE_MAGIC:              $(read_hex_bytes 16#38 4 )" # expected 818223cd
 
-echo "  Address PE Header:           $(read_hex_bytes 3c 4)"        # Likely to be 82.
-echo "  PE_MAGIC:                    $(read_hex_bytes 82 4)" # expected PE\0\0 (see include/linux/pe.h)
+addr_pe_header=$(read_hex_bytes 16#3c 4)
+echo "  Addr of PE Header (e_lfanew) $addr_pe_header" # Likely to be 82.
 
 echo
 echo "PE File Header (coff_header)"  
-echo "  Machine:                     $(read_hex_bytes 84 4)" # expected IMAGE_FILE_MACHINE_AMD64 (= 8664) or IMAGE_FILE_MACHINE_I386
+echo "  Signature (PE_MAGIC)         $(read_hex_bytes 16#$addr_pe_header 4)" # expected PE\0\0 (see include/linux/pe.h)
 
-echo "  NumberOfSections:            $(read_hex_bytes 88 4)" 
 echo
-echo "  TimeDateStamp:               $(read_hex_bytes 8a 4)"
-echo "  PointerToSymbolTable:        $(read_hex_bytes 8e 4)"
-echo "  NumberOfSymbols:             $(read_hex_bytes 92 4)"
-echo "  SizeOfOptionalHeader         $(read_hex_bytes 96 2)"
-echo "  Characteristics              $(read_hex_bytes 98 2)"  # 0206 = IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DEBUG_STRIPPED | IMAGE_FILE_LINE_NUMS_STRIPPED
+echo "  Machine:                     $(read_hex_bytes $(( 16#$addr_pe_header + 16#04 )) 2)" # expected IMAGE_FILE_MACHINE_AMD64 (= 8664) or IMAGE_FILE_MACHINE_I386
+echo "  NumberOfSections:            $(read_hex_bytes $(( 16#$addr_pe_header + 16#06 )) 2)" # 4 sections: .setup, .reloc, .compat (if CONFIG_EFI_MIXED) and .text and ?
 echo
+echo "  TimeDateStamp:               $(read_hex_bytes $(( 16#$addr_pe_header + 16#08 )) 4)" 
+echo "  PointerToSymbolTable:        $(read_hex_bytes $(( 16#$addr_pe_header + 16#0c )) 4)" 
+echo "  NumberOfSymbols:             $(read_hex_bytes $(( 16#$addr_pe_header + 16#10 )) 4)" 
 
+size_opt_hdr=$(read_hex_bytes $(( 16#$addr_pe_header + 16#14 )) 2)
+echo "  SizeOfOptionalHeader:        $size_opt_hdr"
+
+echo "  Characteristics:             $(read_hex_bytes $(( 16#$addr_pe_header + 16#16 )) 2)" # 0206 = IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DEBUG_STRIPPED | IMAGE_FILE_LINE_NUMS_STRIPPED
+
+echo
+addr_opt_hdr=$(( 16#$addr_pe_header + 16#18 ))
+echo "addr_opt_hdr = $addr_opt_hdr"
 echo "PE Optional Header"
-echo "  Magic:                       $(read_hex_bytes 9a 2)" # 0x020b = PE_OPT_MAGIC_PE32PLUS
-echo "  MajorLinkerVersion:          $(read_hex_bytes 9c 1)" # expected 0x02
-echo "  MinorLinkerVersion:          $(read_hex_bytes 9d 1)" # expected 0x14
+echo "  Magic:                       $(read_hex_bytes     $addr_opt_hdr            2)" # 0x020b = PE_OPT_MAGIC_PE32PLUS
+echo "  MajorLinkerVersion:          $(read_hex_bytes $(( $addr_opt_hdr + 16#02 )) 1)" # expected 0x02
+
+echo "  MajorLinkerVersion:          $(read_hex_bytes $(( $addr_opt_hdr + 16#03 )) 1)" # expected 0x14
 
 echo
-echo "  SizeOfCode:                  $(read_hex_bytes 9e 4)" # ?
-echo "  SizeOfUninitializedData:     $(read_hex_bytes a2 4)"
-echo "  SizeOfInitializedData:       $(read_hex_bytes a6 4)"
+echo "  SizeOfCode:                  $(read_hex_bytes $(( $addr_opt_hdr + 16#04 )) 4)" # ?
+echo "  SizeOfUninitializedData:     $(read_hex_bytes $(( $addr_opt_hdr + 16#08 )) 4)" # ?
+echo "  SizeOfinitializedData:       $(read_hex_bytes $(( $addr_opt_hdr + 16#0c )) 4)" # ?
 
 echo
-echo "  AddressOfEntryPoint:         $(read_hex_bytes aa 4)"
-echo "  BaseOfCode:                  $(read_hex_bytes ae 4)" # Expected 0x0200 See header.S
-
-echo "  ImageBase:                   $(read_hex_bytes b2 8)" # Expected 1000000 = LOAD_PHYSICAL_ADDR + 0xffff) & ~0xffff  ( See arch/x86/include/asm/boot.h )
-
-echo
-echo "  SectionAlignment:            $(read_hex_bytes ba 4)" # Expected 20
-echo "  FileAlignment:               $(read_hex_bytes be 4)" # Expected 20
+echo "  AddressOfEntryPoint:         $(read_hex_bytes $(( $addr_opt_hdr + 16#10 )) 4)" # Relative to ImageBase ?
+echo "  BaseOfCode:                  $(read_hex_bytes $(( $addr_opt_hdr + 16#14 )) 4)" # Expected 0x0200 See header.S
+echo "  ImageBase:                   $(read_hex_bytes $(( $addr_opt_hdr + 16#18 )) 8)" # Expected 1000000 = LOAD_PHYSICAL_ADDR + 0xffff) & ~0xffff  ( See arch/x86/include/asm/boot.h ) -- The decompression buffer will start at ImageBase
 
 echo
-echo "  MajorOperatingSystemVersion: $(read_hex_bytes c2 2)" #
-echo "  MinorOperatingSystemVersion: $(read_hex_bytes c4 2)" #
+echo "  SectionAlignment:            $(read_hex_bytes $(( $addr_opt_hdr + 16#20 )) 4)" # Expected 20
+echo "  FileAlignment:               $(read_hex_bytes $(( $addr_opt_hdr + 16#24 )) 4)" # Expected 20
 
 echo
-echo "  MajorImageVersion:           $(read_hex_bytes c6 2)" # expected: 3 = LINUX_EFISTUB_MAJOR_VERSION
-echo "  MinorImageVersion:           $(read_hex_bytes c8 2)" # expected: 0 = LINUX_EFISTUB_MINOR_VERSION
+echo "  MajorOperatingSystemVersion: $(read_hex_bytes $(( $addr_opt_hdr + 16#28 )) 2)"
+echo "  MinorOperatingSystemVersion: $(read_hex_bytes $(( $addr_opt_hdr + 16#2a )) 2)"
 
 echo
-echo ".setup:                        $(read_chars     13a 6)"
-echo "  startup_{32,64}:             $(read_hex_bytes 146 4)"
-
-echo "  size init data on disk       $(read_hex_bytes 14a 4)"
-echo "  startup_{32,64}:             $(read_hex_bytes 14c 4)" # ????
-
-echo "  PointerToRelocations:        $(read_hex_bytes 150 4)"
-echo "  PointerToLineNumbers:        $(read_hex_bytes 154 4)"
-echo "  NumberOfRelocations:         $(read_hex_bytes 158 2)"
-echo "  NumberOfLines:               $(read_hex_bytes 15a 2)"
+echo "  MinorOperatingSystemVersion: $(read_hex_bytes $(( $addr_opt_hdr + 16#2c )) 2)" # expected: 3 = LINUX_EFISTUB_MAJOR_VERSION
+echo "  MinorOperatingSystemVersion: $(read_hex_bytes $(( $addr_opt_hdr + 16#2e )) 2)" # expected: 0 = LINUX_EFISTUB_MINOR_VERSION
 
 echo
-echo "  Characteristics              $(read_hex_bytes 15e 4)" # IMAGE_SCN_CNT_CODE	| IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_EXECUTE	| IMAGE_SCN_ALIGN_16BYTE
+
+start_section=$(( $addr_opt_hdr+ 16#$size_opt_hdr ))
+echo "START_SECTION = $start_section"
+
+echo ".setup                         $(read_chars     $start_section  6)"
+
+echo "  size:                        $(read_hex_bytes $(( $start_section + 16#08 )) 4)"
+echo "  startup_{32,64} (vma)        $(read_hex_bytes $(( $start_section + 16#0c )) 4)" # Physical address?
+echo "  size init data on disk       $(read_hex_bytes $(( $start_section + 16#10 )) 4)"
+echo "  startup_{32,64}: (file off.) $(read_hex_bytes $(( $start_section + 16#14 )) 4)" # Virtual address?
+echo
+echo "  PointerToRelocations         $(read_hex_bytes $(( $start_section + 16#18 )) 4)"
+echo "  PointerToLineNumbers:        $(read_hex_bytes $(( $start_section + 16#1c )) 4)"
+echo "  NumberOfRelocations:         $(read_hex_bytes $(( $start_section + 16#20 )) 2)"
+echo "  NumberOfLines:               $(read_hex_bytes $(( $start_section + 16#22 )) 2)"
+echo
+echo "  Characteristics:             $(read_hex_bytes $(( $start_section + 16#24 )) 4)" # IMAGE_SCN_CNT_CODE	| IMAGE_SCN_MEM_READ| IMAGE_SCN_MEM_EXECUTE	| IMAGE_SCN_ALIGN_16BYTE
 
 echo
-echo ".reloc                         $(read_chars     162 6)"
-echo ".text:                         $(read_chars     1b2 5)"
+start_section=$(( $start_section + 16#28 ))
 
-echo "  setup_sects                  $(read_hex_bytes 1f5 1)"
-echo "  root_flags:                  $(read_hex_bytes 1f6 2)"
-echo "  syssize:                     $(read_hex_bytes 1f8 4)"
-echo "  rootdev:                     $(read_hex_bytes 1fc 2)"
-echo "  boot_flag:                   $(read_hex_bytes 1fe 2)" # expected aa55
+echo ".reloc                         $(read_chars     $start_section  6)"
+echo "  startup_{32,64} (vma)        $(read_hex_bytes $(( $start_section + 16#0c )) 4)" # Physical address?
+echo "  size init data on disk       $(read_hex_bytes $(( $start_section + 16#10 )) 4)"
+echo "  startup_{32,64}:             $(read_hex_bytes $(( $start_section + 16#14 )) 4)" # Virtual address?
+echo
+echo "  PointerToRelocations         $(read_hex_bytes $(( $start_section + 16#18 )) 4)"
+echo "  PointerToLineNumbers:        $(read_hex_bytes $(( $start_section + 16#1c )) 4)"
+echo "  NumberOfRelocations:         $(read_hex_bytes $(( $start_section + 16#20 )) 2)"
+echo "  NumberOfLines:               $(read_hex_bytes $(( $start_section + 16#22 )) 2)"
+echo
+echo "  Characteristics:             $(read_hex_bytes $(( $start_section + 16#24 )) 4)"
 
-echo "  jump:                        $(read_hex_bytes 200 1)" # expected eb (Assembler JMP instruction)
-echo "  header:                      $(read_chars     202 4)" # expected HdRS
-echo "  version:                     $(read_hex_bytes 206 4)" # 20f (or so)
-echo "handover_offset:         $(od --skip-bytes=612          --read-bytes=4 --format=x4  --address-radix=n $file)"
-echo "kernel_info_offset:      $(od --skip-bytes=616          --read-bytes=4 --format=x4  --address-radix=n $file)"
+
+echo
+start_section=$(( $start_section + 16#28 ))
+echo ".compat                        $(read_chars     $start_section  7)"
+
+echo "  size:                        $(read_hex_bytes $(( $start_section + 16#08 )) 4)"
+echo "  startup_{32,64} (vma)        $(read_hex_bytes $(( $start_section + 16#0c )) 4)" # Physical address?
+echo "  size init data on disk       $(read_hex_bytes $(( $start_section + 16#10 )) 4)"
+echo "  startup_{32,64}:             $(read_hex_bytes $(( $start_section + 16#14 )) 4)" # Virtual address?
+echo
+echo "  PointerToRelocations         $(read_hex_bytes $(( $start_section + 16#18 )) 4)"
+echo "  PointerToLineNumbers:        $(read_hex_bytes $(( $start_section + 16#1c )) 4)"
+echo "  NumberOfRelocations:         $(read_hex_bytes $(( $start_section + 16#20 )) 2)"
+echo "  NumberOfLines:               $(read_hex_bytes $(( $start_section + 16#22 )) 2)"
+echo
+echo "  Characteristics:             $(read_hex_bytes $(( $start_section + 16#24 )) 4)"
+
+echo
+start_section=$(( $start_section + 16#28 ))
+echo ".text                          $(read_chars     $start_section  5)"
+
+echo "  size:                        $(read_hex_bytes $(( $start_section + 16#08 )) 4)"
+echo "  text start:                  $(read_hex_bytes $(( $start_section + 16#0c )) 4)" # Text start Physical address?
+echo "  size init data on disk       $(read_hex_bytes $(( $start_section + 16#10 )) 4)"
+echo "  startup_{32,64}:             $(read_hex_bytes $(( $start_section + 16#14 )) 4)" # Virtual address?
+echo
+echo "  PointerToRelocations         $(read_hex_bytes $(( $start_section + 16#18 )) 4)"
+echo "  PointerToLineNumbers:        $(read_hex_bytes $(( $start_section + 16#1c )) 4)"
+echo "  NumberOfRelocations:         $(read_hex_bytes $(( $start_section + 16#20 )) 2)"
+echo "  NumberOfLines:               $(read_hex_bytes $(( $start_section + 16#22 )) 2)"
+echo
+echo "  Characteristics:             $(read_hex_bytes $(( $start_section + 16#24 )) 4)"
+
+echo
+echo "----"
+echo
+echo "  syssize:                     $(read_hex_bytes 16#1f4 4)" # see build.c            Size of kernel (arch/x86/boot/vmlinux.bin) + 4 bytes for crc), up-aligned to 32 bytes (CONFIG_EFI_STUB) in paragraph units (16 bytes) |  put_unaligned_le32(sys_size, &buf[0x1f4]);
+echo "  rootdev:                     $(read_hex_bytes 16#1fc 2)" # see build. 0 = DEFAULT_ROOT_DEV =  (DEFAULT_MAJOR_ROOT << 8 | DEFAULT_MINOR_ROOT) = 0<<8 | 0
+
+echo
+echo ".reloc                         $(read_chars     16#162 6)"
+echo ".text:                         $(read_chars     16#1b2 5)"
+
+echo "  setup_sects (-1)             $(read_hex_bytes 16#1f1 1)"  # see build.c            buf[0x1f1] = setup_sectors-1;
+# echo "  setup_sects                $(read_hex_bytes 16#1f5 1)"
+# echo "  root_flags:                  $(read_hex_bytes 16#1f6 2)"
+echo "  rootdev:                     $(read_hex_bytes 16#1fc 2)"
+
+echo "  boot_flag:                   $(read_hex_bytes 16#1fe 2)" # expected aa55 (See «Boot block hasn't got boot flag» in arch/x86/boot/tools/build.c)
+
+echo "  jump:                        $(read_hex_bytes 16#200 1)" # expected eb (Assembler JMP instruction)
+echo "  header:                      $(read_chars     16#202 4)" # expected HdRS
+echo "  version:                     $(read_hex_bytes 16#206 4)" # 20f (or so)
+
+echo
+echo "  init_sz:                     $(read_hex_bytes 16#260 4)" # Kernel initialization size (the larger value of the size of the uncompressed or compressed kernel, see INIT_SIZE in arxch/x86/boot/header.S)
+echo "  handover_offset:             $(read_hex_bytes 16#264 4)" #
+echo "  kernel_info_offset:          $(read_hex_bytes 16#268 4)" #
+
+
+size_setup_bin=$(stat -c%s arch/x86/boot/setup.bin)
+echo "  .compat:                     $(read_hex_bytes      $size_setup_bin 4)" #
+#echo "  .compat:                     $(read_chars      14748  4)" #
 code }
 
   }

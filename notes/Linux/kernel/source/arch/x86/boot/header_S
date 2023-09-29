@@ -4,6 +4,18 @@ $ arch/x86/boot/header.S
 -
 Does a bootloader like GRUB jump to this location when it has loaded the kernel image?
 
+{ Optional Header
+
+  { AddressOfEntryPoint #header_S-AddressOfEntryPoint
+
+    The value of `AddressOfEntryPoint` is filled by `→ Linux/kernel/source/arch/x86/boot/tools/build` so that it points to
+    → Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c#linux-x86-efi_pe_entry[`efi_pe_entry`] (defined in
+   `→ Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c` and located in the `.text`
+    section), see → https://github.com/torvalds/linux/blob/1c84724ccb1a9f6eaf727ded49dd7e22ac62cc5b/arch/x86/boot/tools/build.c#L262-L265[source code].
+
+  }
+
+}
 { Global symbol hdr
 
   The linker script `arch/x86/boot/setup.ld` puts the  
@@ -54,7 +66,7 @@ Does a bootloader like GRUB jump to this location when it has loaded the kernel 
     `payload_length` ☰ 588 ☰ 4 ☰ Value of `ZO_z_input_len` (defined in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`)
     `setup_data` ☰ 596 ☰ 8 ☰ (Physical) pointer to single linked list of `setup_data`
     `pref_address` ☰ 604 ☰ 8 ☰  The *preferred load address* (value of `LOAD_PHYSICAL_ADDR`)
-    `init_size` ☰ 608 ☰ 4 ☰ Kernel initialization size. Value of `INIT_SIZE`
+    `init_size` ☰ 608 ☰ 4 ☰ Kernel initialization size = Value of → https://github.com/torvalds/linux/blob/71e58659bfc02e4171345f80b13d6485e9cdf687/arch/x86/boot/header.S#L573-L582[`INIT_SIZE`] (which is set to the greater size of the uncompressed or compressed kernel)
     `handover_offset` ☰ 612 ☰ 4 ☰ Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
     `kernel_info_offset` ☰ 616 ☰ 4 ☰ Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
   table }
