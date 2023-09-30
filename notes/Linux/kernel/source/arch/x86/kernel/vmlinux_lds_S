@@ -1,0 +1,35 @@
+$ arch/x86/kernel/vmlinux.lds.S
+
+`arch/x86/kernel/vmlinux.lds.S` is preprocessed to the linker script → Linux/kernel/source/arch/SRCARCH/kernel/vmlinux_lds[`arch/x86/kernel/vmlinux.lds`].
+
+{ ENTRY symbol #linux-axk-ENTRY
+
+  Depending on the value of `CONFIG_X86_32`, `phys_startup_32` or `phys_startup_64` is → https://github.com/torvalds/linux/blob/9f3ebbef746f89f860a90ced99a359202ea86fde/arch/x86/kernel/vmlinux.lds.S#L40-L46[defined] as `ENTRY` symbol:
+code {
+#ifdef CONFIG_X86_32
+OUTPUT_ARCH(i386)
+ENTRY(phys_startup_32)
+#else
+OUTPUT_ARCH(i386:x86-64)
+ENTRY(phys_startup_64)
+#endif
+code }
+
+}
+{ phys_startup_xx
+
+  The value of `CONFIG_X86_32` → https://github.com/torvalds/linux/blob/9f3ebbef746f89f860a90ced99a359202ea86fde/arch/x86/kernel/vmlinux.lds.S#L116C1-L122C7[defines] either `phys_startup_32` or `phys_startup_64`:
+code {
+#ifdef CONFIG_X86_32
+	. = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
+	phys_startup_32 = ABSOLUTE(startup_32 - LOAD_OFFSET);
+#else
+	. = __START_KERNEL;
+	phys_startup_64 = ABSOLUTE(startup_64 - LOAD_OFFSET);
+#endif
+code }
+
+  → Linux/kernel/source/arch/x86/kernel/head_32_S#linux-axk-startup_32[`startup_32`] is defined in `→ Linux/kernel/source/arch/x86/kernel/head_32_S`,
+  → Linux/kernel/source/arch/x86/kernel/head_64_S#linux-axk-startup_64[`startup_64`] in `→ Linux/kernel/source/arch/x86/kernel/head_64_S`.
+
+}

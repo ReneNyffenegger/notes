@@ -57,10 +57,10 @@ $ Linux kernel source tree
       → Linux/kernel/source/_vmlinux_export_c[`.vmlinux.export.c`] ☰
       → Linux/kernel/source/_tmp_vmlinux_kallsymsN[`.tmp_vmlinux.kallsyms1`] ☰
       → Linux/kernel/source/_tmp_vmlinux_kallsymsN[`.tmp_vmlinux.kallsyms2`] ☰
-      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_syms[`.tmp_vmlinux.kallsyms1.syms` ☰
-      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_syms[`.tmp_vmlinux.kallsyms2.syms` ☰
-      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_S[`.tmp_vmlinux.kallsyms1.S` ☰
-      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_S[`.tmp_vmlinux.kallsyms2.S` ☰
+      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_syms[`.tmp_vmlinux.kallsyms1.syms`] ☰
+      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_syms[`.tmp_vmlinux.kallsyms2.syms`] ☰
+      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_S[`.tmp_vmlinux.kallsyms1.S`] ☰
+      → Linux/kernel/source/_tmp_vmlinux_kallsymsN_S[`.tmp_vmlinux.kallsyms2.S`] ☰
       → Linux/kernel/source/_version[`.version`] ☰
  
     table }
@@ -76,6 +76,66 @@ $ Linux kernel source tree
 }
 { TODO
 
+  { Memory
+
+    { Page tables #linux-src-page-tables
+
+      A page table page can be thought of an array like
+code {
+pXd_t levelY_kernel_pgt[PTRS_PER_PxD]
+pXd_t levelY_ident_pgt [PTRS_PER_PxD]
+code }
+
+    `X` is one of `4`, `u`, `m`, `t`; `Y` is `4`, `3`, `2`, `1`
+     -
+     There is also a top level tree: `init_top_pgt`.
+
+     These variables are externally declared in `→ Linux/kernel/source/arch/x86/include/asm/pgtable_64_h`.
+
+    `pXx_index()` returns the index of the entry in the page table page which would control the given virtual address.
+    
+
+     On x86, → https://github.com/torvalds/linux/blob/9f3ebbef746f89f860a90ced99a359202ea86fde/arch/x86/Kconfig#L404-L409[`CONFIG_PGTABLE_LEVELS`] is an integer that is set to
+       • `5` if `X86_5LEVEL` is enabled,
+       • `4` if `x86_64` is enabled,
+       • `3` if `X86_PAE` is enable,
+       • `2` otherwise
+
+
+     `include/linux/pgtable.h`
+
+     `__PAGETABLE_P4D_FOLDED`, `__PAGETABLE_PUD_FOLDED`, `__PAGETABLE_PMD_FOLDED`
+
+       See also → hardware/memory#mem-page-table[page tables (memory)].
+
+    }
+    { 5-level page tables
+
+       5-level page tables allow to access up to 128 PiB of virtual and 4 PiB of physical address space.
+     
+       On x86_X64, the config option `X86_5LEVEL` must be enabled to use 5-level page tables.
+     
+       An x86 CPU supports 5-level pages tables if the `la57` flag is present which can be queried from the → Linux/fhs/proc/cpuinfo#proc-cpuinfo-flags[`flags`] lines in `→ Linux/fhs/proc/cpuinfo`:
+code {
+$ → Linux/shell/commands/grep '^flags.*la57' → Linux/fhs/proc/cpuinfo && echo 'la57 is enabled'
+code }
+
+     See also → https://github.com/torvalds/linux/blob/master/Documentation/arch/x86/x86_64/5level-paging.rst[`Documentation/arch/x86/x86_64/5level-paging.rst`].
+
+    }
+
+  }
+  { __KERNEL__ and __MODULE__
+
+    The macro `__KERNEL__` is defined (`gcc … -D__KERNEL__` …`) when compiling a source file for the kernel.
+    -
+    This allows for example to include the same header file for both the kernel and a user space program.
+    -
+    See for example → https://github.com/torvalds/linux/blob/9f3ebbef746f89f860a90ced99a359202ea86fde/include/linux/raid/pq.h#L11-L68[`include/linux/raid/pq.h`].
+    
+?  `__MODULE__` is defined if a driver is selected to be compiled as a module (rather than be built-in the kernel).
+
+  }
   { Find definition of a given struct
 
   Find the definition of a given struct (here: `struct task_struct`):
@@ -297,5 +357,4 @@ code }
     See also the → Linux/kernel/source/scripts[scripts] `spdxcheck.py`, `spdxcheck-test.sh` and `spdxexclude`.
 
   }
-
 }

@@ -1,0 +1,87 @@
+$ include/linux/mm_types.h
+
+{ struct mm_struct #linux-mm_struct
+
+  table { lll
+    `____cacheline_aligned_in_smp` ☰ ☰
+    `mm_mt` ☰ `struct maple_tree` ☰
+    `get_unmapped_area` ☰ function pointer ☰ requires `CONFIG_MMU`
+    `mmap_base` ☰ `unsigned long` ☰ base of mmap area
+    `mmap_legacy_base` ☰ `unsigned long` ☰ base of mmap area in bottom-up allocations
+    `mmap_compat_base` ☰ `unsigned long` ☰ Base addresss for compatible `mmap()`. Requires `CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES`
+    `mmap_compat_legacy_base` ☰ `unsigned long` ☰ Base addresss for compatible `mmap()`. Requires `CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES`
+    `task_size` ☰ `unsigned long` ☰ Size of task vm space
+    `pgd` ☰ `pgd_t*` ☰
+    `membarrier_state` ☰ `atomic_t` ☰ Flags controlling membarrier behavior. This field is close to `pgd` to hopefully fit in the same cache-line, which needs to be touched by `switch_mm()`.
+    `mm_users` ☰ `atomic_t` ☰ Number of users (including userspace). Memory can be freed if value goes to `0`. Value is modified with `mmget()`, `mmget_not_zero()` and `mmput()`.
+    `pcpu_cid`` ☰ `struct mm_cid*` ☰ Per-cpu current cid. Requires `CONFIG_SCHED_MM_CID`
+    `mm_cid_next_scan`` ☰ `unsigned long` ☰ Per-cpu current cid. Requires `CONFIG_SCHED_MM_CID`
+    `pgtables_bytes` ☰ `atomic_long_t` ☰ Size of all page tables. Requires `CONFIG_MMU`.
+    `map_count` ☰ `int` ☰ Number of VMAs.
+    `page_table_lock` ☰ `spinlock_t` ☰ Protection for page tables and some counters.
+    `mmap_lock` ☰ `struct rw_semaphore` ☰
+    `mmlist` ☰ `struct list_head` ☰ List of maybe swapped mm's.
+    `mm_lock_seq` ☰ `int` ☰ Requires `CONFIG_PER_VMA_LOCK`
+    `hiwater_rss` ☰ `unsigned long` ☰ High-watermark of RSS usage
+    `hiwater_vm` ☰ `unsigned long` ☰ High-water virtual memory usage
+    `total_vm` ☰ `unsigned long` ☰ Total pages mapped
+    `locked_vm` ☰ `unsiged long` ☰ Pages that have PG_mlocked set
+    `pinned_vm` ☰ `atomic_t` ☰ Refcount permanently increased
+    `data_vm` ☰ `unsigned long` ☰ `VM_WRITE & ~VM_SHARED & ~VM_STACK`
+    `exec_vm` ☰ `unsigned long` ☰ `VM_EXEC & ~VM_WRITE & ~VM_STACK`
+    `stack_vm` ☰ `unsigned long` ☰ `VM_STACK`
+    `def_flags`` ☰ `unsigned long` ☰
+    `seqcount_t` ☰ `write_protect_seq` ☰ Locked when any thread is write protecting pages mapped by this mm to enforce a later COW, for instance during page table copying for `fork()`.
+    `arg_lock` ☰ `spinlock_t` ☰ Protect the fields below (`start_code`, `end_code` through `env_end`?)
+
+    `start_code` ☰ `unsigned long` ☰
+    `end_code` ☰ `unsigned long` ☰
+    `start_data` ☰ `unsigned long` ☰
+    `end_data` ☰ `unsigned long` ☰
+    `start_brk` ☰ `unsigned long` ☰
+    `brk` ☰ `unsigned long` ☰
+    `start_stack` ☰ `unsigned long` ☰
+    `start` ☰ `unsigned long` ☰
+    `arg_end` ☰ `unsigned long` ☰
+    `env_start` ☰ `unsigned long` ☰
+    `env_end` ☰ `unsigned long` ☰
+
+    `saved_auxv` ☰ `unsigned long[AT_VECTOR_SIZE]` ☰ For `→ Linux/fhs/proc/pid[/proc/$pid]/auxv`.
+    `rss_stat` ☰ `struct percpu_counter[NR_MM_COUNTERS]` ☰
+    `binfmt` ☰ `struct linux_binfmt*` ☰
+    `context`` ☰ `mm_context_t` ☰ Architecture-specific context
+    `flags` ☰ `unsigned long` ☰
+    `ioctx_lock` ☰ `spinlock_t` ☰ Requires `CONFIG_AIO`
+    `ioctx_table` ☰ `struct kioctx_table*` ☰ Requires `CONFIG_AIO`
+    `owner` ☰ → Linux/kernel/source/include/linux/sched_h#linux-task_struct[`struct task_struct*`] ☰ Points to a task that is regarded as the «canonical» user/owner of this struct. Requires `CONFIG_MEMCG`
+    `user_ns` ☰ `struct user_namespace*` ☰
+    `exe` ☰ `struct file*` ☰ Reference to `→ Linux/fhs/proc/pid[/proc/$pid]/exe`.
+    `notifier_subscriptions` ☰ `struct mmu_notifier_subscriptions*` ☰ Requires `CONFIG_MMU_NOTIFIER`
+    `pmd_huge_pte` ☰ `pgtable_t` ☰ Requires `CONFIG_TRANSPARENT_HUGEPAGE` to be defined and `USE_SPLIT_PMD_PTLOCKS` to be not defined.
+
+    `numa_next_scan` ☰ `unsigned long` ☰ is the next time that PTEs will be remapped. Requires `CONFIG_NUMA_BALANCING`
+    `numa_scan_offset` ☰ `unsigned long` ☰ Restart point for scanning and remapping PTEs. Requires `CONFIG_NUMA_BALANCING`
+    `numa_scan_seq` ☰ `int` ☰ prevent two threads remapping PTEs. Requires `CONFIG_NUMA_BALANCING`
+
+    `tlb_flush_pending` ☰ `atomic_t` ☰ Flag indicateing thab batched TLB flushing is going on?
+    `tlb_flush_batched` ☰ `atomic_t` ☰ See `flush_tlb_batched_pending()`. Requires `CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH`
+    `uprobes_state` ☰ `struct uprobes_state` ☰
+    `delayed_drop` ☰ `struct rcu_head` ☰ Requires `CONFIG_PREEMPT_RT`
+    `hugetlb_usage` ☰ `atomic_long_t` ☰ Requires `CONFIG_HUGETLB_PAGE`
+    `async_put_work` ☰ `struct work_struct` ☰
+    `pasid` ☰ `u32` ☰ Requires `CONFIG_IOMMU_SVA`
+    `ksm_mering_pages` ☰ `unsigned long` ☰ Number of pages of this process are involved in KSM merging. Requires `CONFIG_KSM`
+    `ksm_rmap_items` ☰ `unsigned long` ☰ Number of pages that are checked for KSM merging, including merged and not merged. Requires `CONFIG_KSM`
+    `lru_gen` ☰ A «sub struct» ? ☰ Requires `CONFIG_LRU_GEN`
+    `lru_gen.memcg` ☰ `struct mem_cgroup` ☰ Requires `CONFIG_MEMCG`
+  table }
+
+code {
+extern struct mm_struct init_mm;
+code }
+
+   The fields `mm` and `active_mm` in → Linux/kernel/source/include/linux/sched_h#linux-task_struct[`task_struct`] are pointers to `struct mm_struct`.
+
+}
+
+

@@ -2,8 +2,60 @@ $ arch/$SRCARCH/kernel/vmlinux.lds
 
 `arch/$SRCARCH/kernel/vmlinux.lds` is the linker script that is used when `vmlinux` is built.
 
-This linker script is the preprocessed output (→ development/languages/C-C-plus-plus/GCC/options/E[`gcc -E`]) from `arch/$SRCARCH/kernel/vmlinux.lds.S`.
+This linker script is the preprocessed output (→ development/languages/C-C-plus-plus/GCC/options/E[`gcc -E`]) from `arch/$SRCARCH/kernel/vmlinux.lds.S` (in a x86
+environment from `→ Linux/kernel/source/arch/x86/kernel/vmlinux_lds_S`).
 
+
+{ Minimal linker script
+
+  As per a comment in `→ Linux/kernel/source/include/asm-generic/vmlinux_lds_h`, a *minimal* linker script has the following (sample) content (different architectures might have special requirements, however):
+code {
+OUTPUT_FORMAT(...)
+OUTPUT_ARCH(...)
+ENTRY(...)
+SECTIONS
+{
+     . = START;
+
+     __init_begin = .;
+     HEAD_TEXT_SECTION
+     INIT_TEXT_SECTION(PAGE_SIZE)
+     INIT_DATA_SECTION(...)
+     PERCPU_SECTION(CACHELINE_SIZE)
+     __init_end = .;
+
+     _stext = .;
+     TEXT_SECTION = 0
+     _etext = .;
+
+     _sdata = .;
+     RO_DATA(PAGE_SIZE)
+     RW_DATA(...)
+     _edata = .;
+
+     EXCEPTION_TABLE(...)
+
+     BSS_SECTION(0, 0, 0)
+     _end = .;
+
+     STABS_DEBUG
+     DWARF_DEBUG
+     ELF_DETAILS
+
+     DISCARDS           // must be the last
+}
+code }
+
+
+ `[__init_begin, __init_end]` is the *init section*. It may be freed after init.
+  -
+ `__init_begin` and `__init_end` should be page aligned, so that the whole `.init` memory can be freed.
+
+ `[_stext, _etext]` is the *text section*.
+
+ `[_sdata, _edata]` is the *data section*.
+
+}
 { x86
 
   In my x86/64 environment, the head of the created file (i. e. `arch/x86/kernel/vmlinux.lds`) looks like
