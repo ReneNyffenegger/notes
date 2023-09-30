@@ -10,6 +10,11 @@ that modifies the `bzImage` header along with the EFI-specific entry point which
  (defined in `→ Linux/kernel/source/arch/x86/boot/header_S`) and will thus be the function that UEFI calls when it has loaded
  `→ Linux/kernel/source/arch/x86/boot/bzImage` (provided the kernel is started via UEFI, I believe `CONFIG_EFI_STUB` must be enabled).
 
+  In order to be able to add this address to `bzImage`, it is recorded in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`.
+
+  If the kernel is booted in 64-bit mode on a 32-bit EFI firmware, `efi_pe_entry` is called from `startup_64_mixed_mode`.
+
+
   The signature of efi_pe_entry is
 code {
 efi_status_t __efiapi efi_pe_entry(
@@ -18,7 +23,28 @@ efi_status_t __efiapi efi_pe_entry(
 )
 code }
 
-  Among others, `efi_pe_entry` creates a → Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h#linux-boot_param[`boot_param`] struct because this is expected
-  to be passed in the x86 boot code.
+  Among others, `efi_pe_entry` creates a → Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h#linux-boot_param[`boot_params`] struct (because this is expected
+  to be passed in the x86 boot code) and copies the fields of `jump` and above of the setup header from the «second sector» (of `bzImage`) to this `boot_params` and
+  fills a few other values in the struct:
+    • `root_flags = ``
+    • `vid_mode = 0xffff`
+    • `boot_flag = 0xAA55`
+    • `type_of_laoder = 0x21`
+    • `cmd_line_ptr`
+    • `ramdisk_image = 0`
+    • `ramdisk_size = 0`
+    • `setup_data = 0`
+
+
+  When the struct is set up, it calls `efi_stub_entry` and passes the struct to it.
+
+
+  Note: `drivers/firmware/libstub/efi-stub-entry.c` defines an `efi_pe_entry` function to be used for ARM, arm64, RISC-v and LoongArch.
+
+}
+
+{ efi_main
+
+  On success, `efi_main` returns the address of `startup_32` which has potentially been rlocated by `efi_relocate_kernel`.
 
 }

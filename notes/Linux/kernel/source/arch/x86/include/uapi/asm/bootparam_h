@@ -1,162 +1,113 @@
 $ arch/x86/include/uapi/asm/bootparam.h
 
-Defines `struct boot_params` (the so called → Linux/kernel/zeropage).
+{ struct boot_params #linux-boot_param
 
-{ TODO
+  The `struct boot_params` is also referred to as → Linux/kernel/zeropage.
 
-  { struct boot_param #linux-boot_param
+  The x86 boot code expects to be passed a `struct boot_param`.
 
-    The x86 boot code expects to be passed a `struct boot_param`.
+  This `struct` is either created by the boot loader or in
+  → Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c#linux-x86-efi_pe_entry[`efi_pe_entry`].
 
-    This `struct` is either created by the boot loader or in
-    → Linux/kernel/source/drivers/firmware/efi/libstub/x86-stub_c#linux-x86-efi_pe_entry[`efi_pe_entry`].
+  table { llll
 
-code {
-boot_params.alt_mem_k                            arch/x86/boot/memory.c
+     `screen_info` ☰ `struct screen_info` ☰ 0x000 ☰
+     `apm_bios_info` ☰ `struct apm_bios_info` ☰ 0x040 ☰
+     `_pad2[4]` ☰ `__u8` ☰     0x054 ☰
+     `tboot_addr` ☰ `__u64` ☰    0x058 ☰
+     `ist_info` ☰ `struct ist_info` ☰   0x060 ☰
+     `acpi_rsdp_addr` ☰ `__u64` ☰    0x070 ☰
+     `_pad3[8]` ☰ `__u8` ☰ 0x078 ☰
+     `hd0_info[16]` ☰ `__u8` ☰ 0x080 ☰ Obsolete
+     `hd1_info[16]` ☰ `__u8` ☰ 0x090 ☰ Obsolete
+     `sys_desc_table` ☰ `struct sys_desc_table` ☰ 0x0a0 ☰ Obsolete
+     `olpc_ofw_header` ☰ `struct olpc_ofw_header` ☰  0x0b0 ☰
+     `ext_ramdisk_image` ☰ `__u32` ☰   0x0c0 ☰
+     `ext_ramdisk_size` ☰ `__u32` ☰    0x0c4 ☰
+     `ext_cmd_line_ptr` ☰ `__u32` ☰    0x0c8 ☰
+     `_pad4[112]` ☰ `__u8` ☰    0x0cc ☰
+     `cc_blob_address` ☰ `__u32` ☰    0x13c ☰
+     `edid_info` ☰ `struct edid_info` ☰   0x140 ☰
+     `efi_info` ☰ `struct efi_info` ☰   0x1c0 ☰
+     `alt_mem_k` ☰ `__u32` ☰    0x1e0 ☰
+     `scratch` ☰ `__u32` ☰  0x1e4 ☰ Scratch field
+     `e820_entries` ☰ `__u8` ☰  0x1e8 ☰
+     `eddbuf_entries` ☰ `__u8` ☰   0x1e9 ☰
+     `edd_mbr_sig_buf_entries` ☰ `__u8` ☰ 0x1ea ☰
+     `kbd_status` ☰ `__u8` ☰ 0x1eb ☰
+     `secure_boot` ☰ `__u8` ☰ 0x1ec ☰
+     `_pad5[2]` ☰ `__u8` ☰  0x1ed ☰
 
-boot_params.apm_bios_info.cseg_16   
-boot_params.apm_bios_info.cseg_16_len 
-boot_params.apm_bios_info.cseg                   arch/x86/boot/apm.c
-boot_params.apm_bios_info.cseg_len    
-boot_params.apm_bios_info.dseg       
-boot_params.apm_bios_info.dseg_len    
-boot_params.apm_bios_info.flags  
-boot_params.apm_bios_info.offset      
-boot_params.apm_bios_info.version 
+     `sentinel` ☰ `__u8` ☰  0x1ef ☰ Set to a nonzero value (`0xff`) in `→ Linux/kernel/source/arch/x86/boot/header_S`
+     `_pad6[1]` ☰ `__u8` ☰   0x1f0 ☰
+     `hdr` ☰ → #linux-setup_header[`struct setup_header`] ☰ 0x1f1 ☰ setup header, see global symbol → Linux/kernel/source/arch/x86/boot/header_S#header_S-hdr[`hdr`] in `→ Linux/kernel/source/arch/x86/boot/header_S`.
+     `_pad7[0x290-0x1f1-sizeof(struct setup_header)]` ☰ `__u8` ☰  ☰
+     `edd_mbr_sig_buffer[EDD_MBR_SIG_MAX]` ☰ `__u32` ☰ 0x290 ☰
+     `e820_table[E820_MAX_ENTRIES_ZEROPAGE]` ☰ `struct boot_e820_entry` ☰ 0x2d0 ☰
+     `_pad8[48]` ☰ `__u8` ☰    0xcd0 ☰
+     `edd_info[EDDMAXNR]` ☰ `struct edd_info` ☰ 0xd00 ☰
+     `_pad9[276]` ☰ `__u8` ☰    0xeec ☰
 
-boot_params.e820_entries
 
-boot_params.e820_map                             arch/x86/boot/memory.c
+  table }
+  
+   A bootloader is supposed to only take setup_header and put it into a clean
+   boot_params buffer. If it turns out that it is clumsy or too generous with
+   the buffer, it most probably will pick up the sentinel variable too. The
+   fact that this variable then is still 0xff will let kernel know that some
+   variables in boot_params are invalid and kernel should zero out certain
+   portions of boot_params.
 
-boot_params.eddbuf
 
-boot_params.eddbuf_entries                       arch/x86/xen/enlighten.c
+}
+{ struct setup_header #linux-setup_header
 
-boot_params.edd_mbr_sig_buf_entries              arch/x86/xen/enlighten.c:
+  table { lr
 
-boot_params.edd_mbr_sig_buffer
+  `setup_sects` ☰ `__u8`
+  `root_flags` ☰ `__u16`
+  `syssize` ☰ `__u32`
+  `ram_size` ☰ `__u16`
+  `vid_mode` ☰ `__u16`
+  `root_dev` ☰ `__u16`
+  `boot_flag` ☰ `__u16`
+  `jump` ☰ `__u16`
+  `header` ☰ `__u32`
+  `version` ☰ `__u16`
+  `realmode_swtch` ☰ `__u32`
+  `start_sys_seg` ☰ `__u16`
+  `kernel_version` ☰ `__u16`
+  `type_of_loader` ☰ `__u8`
+  `loadflags` ☰ `__u8`
+  `setup_move_size` ☰ `__u16`
+  `code32_start` ☰ `__u32`
+  `ramdisk_image` ☰ `__u32`
+  `ramdisk_size` ☰ `__u32`
+  `bootsect_kludge` ☰ `__u32`
+  `heap_end_ptr` ☰ `__u16`
+  `ext_loader_ver` ☰ `__u8`
+  `ext_loader_type` ☰ `__u8`
+  `cmd_line_ptr` ☰ `__u32`
+  `initrd_addr_max` ☰ `__u32`
+  `kernel_alignment` ☰ `__u32`
+  `relocatable_kernel` ☰ `__u8`
+  `min_alignment` ☰ `__u8`
+  `xloadflags` ☰ `__u16`
+  `cmdline_size` ☰ `__u32`
+  `hardware_subarch` ☰ `__u32`
+  `hardware_subarch_data` ☰ `__u64`
+  `payload_offset` ☰ `__u32`
+  `payload_length` ☰ `__u32`
+  `setup_data` ☰ `__u64`
+  `pref_address` ☰ `__u64`
+  `init_size` ☰ `__u32`
+  `handover_offset` ☰ `__u32`
+  `kernel_info_offset` ☰ `__u32`
 
-boot_params.edid_info
-
-boot_params.efi_info.efi_loader_signature
-boot_params.efi_info.efi_memmap_hi
-boot_params.efi_info.efi_systab
-boot_params.efi_info.efi_systab_hi
-
-boot_params.ext_cmd_line_ptr
-
-boot_params.hdr.cmd_line_ptr
-boot_params.hdr.code32_start
-boot_params.hdr.ext_loader_type   
-boot_params.hdr.ext_loader_ver
-boot_params.hdr.ext_ramdisk_image
-boot_params.hdr.hardware_subarch
-boot_params.hdr.heap_end_ptr
-boot_params.hdr.loadflags
-boot_params.hdr.ramdisk_image  
-boot_params.hdr.ramdisk_size
-boot_params.hdr.ram_size
-boot_params.hdr.realmode_swtch
-boot_params.hdr.root_dev      
-boot_params.hdr.root_flags
-boot_params.hdr.setup_data          
-boot_params.hdr.setup_move_size
-boot_params.hdr.type_of_loader 
-boot_params.hdr.version
-boot_params.hdr.vid_mode                         arch/x86/boot/video-mode.c
-
-boot_params.ist_info.command                     arch/x86/boot/main.c
-boot_params.ist_info.event                       arch/x86/boot/main.c
-boot_params.ist_info.perf_level                  arch/x86/boot/main.c
-boot_params.ist_info.signature                   arch/x86/boot/main.c
-
-boot_params.kbd_status
-
-boot_params.olpc_ofw_header
-
-boot_params.scratch
-
-boot_params.screen_info.blue_pos                 arch/x86/boot/video-vesa.c	
-boot_params.screen_info.blue_size                arch/x86/boot/video-vesa.c	
-boot_params.screen_info.ext_mem_k
-boot_params.screen_info.flags
-boot_params.screen_info.green_pos                arch/x86/boot/video-vesa.c	
-boot_params.screen_info.green_size               arch/x86/boot/video-vesa.c	
-boot_params.screen_info.lfb_base                 arch/x86/boot/video-vesa.c	
-boot_params.screen_info.lfb_depth                arch/x86/boot/video-vesa.c	
-boot_params.screen_info.lfb_height               arch/x86/boot/video-vesa.c	
-boot_params.screen_info.lfb_linelength           arch/x86/boot/video-vesa.c	    
-boot_params.screen_info.lfb_size                 arch/x86/boot/video-vesa.c	          
-boot_params.screen_info.lfb_width                arch/x86/boot/video-vesa.c	
-boot_params.screen_info.orig_video_cols          arch/x86/boot/video.c
-boot_params.screen_info.orig_video_ega_bx        arch/x86/boot/video-vga.c
-boot_params.screen_info.orig_video_isVGA         arch/s86/boot/video-vga.c  arch/x86/boot/video-vesa.c
-boot_params.screen_info.orig_video_lines         arch/x86/boot/video.c
-boot_params.screen_info.orig_video_mode
-boot_params.screen_info.orig_video_points        arch/x86/boot/video.c
-boot_params.screen_info.orig_x 
-boot_params.screen_info.pages                    arch/x86/boot/video-vesa.c	
-boot_params.screen_info.red_pos                  arch/x86/boot/video-vesa.c	
-boot_params.screen_info.red_size                 arch/x86/boot/video-vesa.c	
-boot_params.screen_info.rsvd_pos                 arch/x86/boot/video-vesa.c	
-boot_params.screen_info.rsvd_size                arch/x86/boot/video-vesa.c	
-boot_params.screen_info.vesa_attributes          arch/x86/boot/video-vesa.c	     
-boot_params.screen_info.vesapm_off               arch/x86/boot/video-vesa.c	
-boot_params.screen_info.vesapm_seg               arch/x86/boot/video-vesa.c	
-
-boot_params.tboot_addr
-code }
-
-  }
-  { struct setup_header
-
-code {
-struct setup_header {
-        __u8    setup_sects;
-        __u16   root_flags;
-        __u32   syssize;
-        __u16   ram_size;
-        __u16   vid_mode;
-        __u16   root_dev;
-        __u16   boot_flag;
-        __u16   jump;
-        __u32   header;
-        __u16   version;
-        __u32   realmode_swtch;
-        __u16   start_sys_seg;
-        __u16   kernel_version;
-        __u8    type_of_loader;
-        __u8    loadflags;
-        __u16   setup_move_size;
-        __u32   code32_start;
-        __u32   ramdisk_image;
-        __u32   ramdisk_size;
-        __u32   bootsect_kludge;
-        __u16   heap_end_ptr;
-        __u8    ext_loader_ver;
-        __u8    ext_loader_type;
-        __u32   cmd_line_ptr;
-        __u32   initrd_addr_max;
-        __u32   kernel_alignment;
-        __u8    relocatable_kernel;
-        __u8    min_alignment;
-        __u16   xloadflags;
-        __u32   cmdline_size;
-        __u32   hardware_subarch;
-        __u64   hardware_subarch_data;
-        __u32   payload_offset;
-        __u32   payload_length;
-        __u64   setup_data;
-        __u64   pref_address;
-        __u32   init_size;
-        __u32   handover_offset;
-        __u32   kernel_info_offset;
-} __attribute__((packed));
-code }
-
-  }
+ table }
 
 }
 
 sa:
+
  `→ Linux/kernel/source/arch/x86/boot/header_S`
