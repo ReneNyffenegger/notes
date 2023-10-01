@@ -2,11 +2,39 @@ $ /dev/null
 
 → Linux/POSIX requires `/dev/null` to be «an empty data source and infinite data sink».
 -
-Thus, → development/Data sent to `/dev/null` is discarded. If read from `/dev/null`, it returns *EOF*.
+Thus,
+  • → development/Data sent to `/dev/null` is discarded.
+  • reading from `/dev/null` returns *EOF* (end of file)
 
-Apparently, `/dev/null` is created in → Linux/kernel/source/drivers/char/mem_c.
+
+{ Recreating /dev/null
+
+  The following `→ Linux/shell/commands/mv` command overwrites `/dev/null`:
+code {
+$ sudo mv a-file /dev/null
+code }
+
+  Now, `/dev/null` is not the special device file anymore.
+
+  It can be recreated again by first deleting the ordinary file whose name now is `/dev/null` …
+code {
+$ → Linux/shell/commands/sudo rm /dev/null
+code }
+
+  … and then recreating it like so:
+code {
+$ sudo mknod -m 0666 /dev/null c 1 3
+code }
+  
+
+}
 
 sa:
+
+ `→ Linux/shell/commands/man 4 null`
+
  `→ Linux/fhs/dev/zero`
   -
  `→ Linux/fhs/dev`
+
+Apparently, `/dev/null` is created in `→ Linux/kernel/source/drivers/char/mem_c`.

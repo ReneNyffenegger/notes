@@ -1,23 +1,35 @@
 $ include/linux/linkage.h
 
+{ Assembler annotations (SYM_…)
 
-{ Assembler annotations
+ { SYM_FUNC_*
 
- `SYM_FUNC_*` macros annotate functions with standard C calling conventions.
-  -
- `objtool` can then ensure that such marked functions conform to the expected rules and annotate these functions with
-  debugging information like *ORC data* automatically.
+  `SYM_FUNC_*` macros annotate functions with standard C calling conventions.
 
- `SYM_CODE_*` annotes functions with a special stack, for example
-   • interrupt handlers,
-   • trampolines
-   • startup functions
+  `objtool` can then ensure that such marked functions conform to the expected rules and annotate these functions with
+   debugging information like *ORC data* automatically.
 
- `SYM_DATA_*` marks data in `.data` (not `.text`) sections so that the tools don't treat the bytes as instructions or assign debugging information
-  to them.
+  `SYM_FUNC_ALIAS` defines a global alias for an exiting function
 
-  See also `Documentation/core-api/asm-annotations.rst`.
+ }
+ { SYM_CODE_*
+ 
+  `SYM_CODE_*` annotes functions with a special stack, for example
+    • interrupt handlers,
+    • trampolines
+    • startup functions
 
+ }
+ { SYM_DATA_*
+
+  `SYM_DATA_*` marks data in `.data` (not `.text`) sections so that the tools don't treat the bytes as instructions or assign debugging information
+   to them.
+
+ }
+ { See also
+
+   `Documentation/core-api/asm-annotations.rst`.
+  }
 }
 { asmlinkage #linux-asmlinkage
 
@@ -40,5 +52,56 @@ code }
   I am really not sure if C++ is ever used when compiling the Kernel?
 
   See also `→ Linux/kernel/source/arch/x86/include/asm/linkage_h`
+
+}
+{ Show how macros are resolved
+
+  The following shell command shows how uses of certain macros in `linkage.h` are resolved:
+code {
+echo '
+#include <linux/linkage.h>
+
+SYM_FUNC_START(sym_func_start)
+SYM_FUNC_START_NOALIGN(sym_func_start_noalign)
+SYM_FUNC_START_LOCAL(sym_func_start_local)
+SYM_FUNC_START_LOCAL_NOALIGN(sym_func_start_local_noalign)
+SYM_FUNC_START_WEAK(sym_func_start_weak)
+SYM_FUNC_START_WEAK_NOALIGN(sym_func_start_weak_noalign)
+
+SYM_FUNC_ALIAS(sym_func_alias_alias, sym_func_alias_name)
+SYM_FUNC_ALIAS_LOCAL(sym_func_alias_local_alias, sym_func_alias_local_name)
+
+SYM_FUNC_END(sym_func_end)
+
+--
+
+SYM_CODE_START(sym_code_start)
+SYM_CODE_START_LOCAL(sym_code_start_local)
+SYM_CODE_END(sym_code_end)
+
+--
+
+SYM_DATA_START(sym_data_start)
+SYM_DATA_END(sym_data_end)
+
+--
+SYM_INNER_LABEL(sym_inner_label, SYM_L_GLOBAL)
+
+' | gcc -E -P -x c -                           \
+    -nostdinc                                  \
+   -I./arch/x86/include                        \
+   -I./arch/x86/include/generated              \
+   -I./include                                 \
+   -I./arch/x86/include/uapi                   \
+   -I./arch/x86/include/generated/uapi         \
+   -I./include/uapi                            \
+   -I./include/generated/uapi                  \
+   -include ./include/linux/compiler-version.h \
+   -include ./include/linux/kconfig.h          \
+   -include ./include/linux/hidden.h           \
+   -D__KERNEL__                                \
+   -D__DISABLE_EXPORTS                         \
+   -D__ASSEMBLY__   
+code }
 
 }
