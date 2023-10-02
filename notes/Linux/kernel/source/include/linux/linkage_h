@@ -104,4 +104,27 @@ SYM_INNER_LABEL(sym_inner_label, SYM_L_GLOBAL)
    -D__ASSEMBLY__   
 code }
 
+  When run, it prints
+code {
+#pragma GCC visibility push(hidden)
+.globl sym_func_start ; .balign 16, 0x90; ; sym_func_start:
+.globl sym_func_start_noalign ; ; sym_func_start_noalign:
+ ; .balign 16, 0x90; ; sym_func_start_local:
+ ; ; sym_func_start_local_noalign:
+.weak sym_func_start_weak ; .balign 16, 0x90; ; sym_func_start_weak:
+.weak sym_func_start_weak_noalign ; ; sym_func_start_weak_noalign:
+.globl sym_func_alias_alias ; .set sym_func_alias_alias, sym_func_alias_name ;
+ ; .set sym_func_alias_local_alias, sym_func_alias_local_name ;
+.type sym_func_end STT_FUNC ; .set .L__sym_size_sym_func_end, .-sym_func_end ; .size sym_func_end, .L__sym_size_sym_func_end
+--
+.globl sym_code_start ; .balign 16, 0x90; ; sym_code_start:
+ ; .balign 16, 0x90; ; sym_code_start_local:
+.type sym_code_end STT_NOTYPE ; .set .L__sym_size_sym_code_end, .-sym_code_end ; .size sym_code_end, .L__sym_size_sym_code_end
+--
+.globl sym_data_start ; ; sym_data_start:
+.type sym_data_end STT_OBJECT ; .set .L__sym_size_sym_data_end, .-sym_data_end ; .size sym_data_end, .L__sym_size_sym_data_end
+--
+.type sym_inner_label STT_NOTYPE ; .globl sym_inner_label ; ; sym_inner_label:
+code }
+
 }
