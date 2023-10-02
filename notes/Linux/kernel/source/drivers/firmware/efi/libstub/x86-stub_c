@@ -14,7 +14,6 @@ that modifies the `bzImage` header along with the EFI-specific entry point which
 
   If the kernel is booted in 64-bit mode on a 32-bit EFI firmware, `efi_pe_entry` is called from `startup_64_mixed_mode`.
 
-
   The signature of efi_pe_entry is
 code {
 efi_status_t __efiapi efi_pe_entry(
@@ -35,18 +34,30 @@ code }
     • `ramdisk_size = 0`
     • `setup_data = 0`
 
-
   When the struct is set up, it calls `efi_stub_entry` and passes the struct to it.
-  -
- `efi_stub_entry` is defined as `SYM_FUNC_ALIAS` for
-    • `efi64_stub_entry` in `→ Linux/kernel/source/arch/x86/boot/compressed/head_64_S`, and for
+  
+  In earlier releases (when did it change), `efi_stub_entry` was defined as → Linux/kernel/source/include/linux/linkage_h#SYM_FUNC_ALIAS[`SYM_FUNC_ALIAS`] for
+    • → Linux/kernel/source/arch/x86/boot/compressed/head_64_S#linux-axbc-efi64_stub_entry[`efi64_stub_entry`] in `→ Linux/kernel/source/arch/x86/boot/compressed/head_64_S`, and for
     • `efi32_stub_entry` in `→ Linux/kernel/source/arch/x86/boot/compressed/head_32_S`.
 
+
+  In a mixed enviornment, `efi_pe_entry` is called from `startup_64_mixed_mode`.
 
   Note: `drivers/firmware/libstub/efi-stub-entry.c` defines an `efi_pe_entry` function to be used for ARM, arm64, RISC-v and LoongArch.
 
 }
+{ efi_stub_entry
 
+  If successful, the last statement of `efi_stub_entry` is to call `enter_kernel` (passing a kernel address and the so called boot parameters) which does not return (hence, also `efi_stub_entry is annotated with `__noreturn`).
+
+}
+{ efi_handover_entry
+
+ `efi_handover_entry` is compiled if `CONFIG_EFI_HANDOVER_PROTOCOL` is enabled.
+ 
+  This function calls `efi_stub_entry`.
+
+}
 { efi_main
 
   On success, `efi_main` returns the address of `startup_32` which has potentially been rlocated by `efi_relocate_kernel`.
