@@ -1,0 +1,37 @@
+$ Registry: Sorting of items
+
+
+code {
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/item/new         -path HKCU:\Software\tq84-reg-sort-test
+
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "xDEF"  -value  test
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "x-abc" -value  test
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "x.mno" -value  test
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "x-PQR" -value  test
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "xghi"  -value  test
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path HKCU:\Software\tq84-reg-sort-test -name "x JKL" -value  test
+code }
+
+In `→ Windows/dirs/Windows/System32/cmd_exe`, → Windows/dirs/Windows/System32/reg_exe/query[`reg query`] shows the entries in the order in which they were created:
+code {
+C:\> reg query HKCU\Software\tq84-reg-sort-test\
+code }
+
+PowerShell shows the same order:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/item/get HKCU:\Software\tq84-reg-sort-test | → Windows/PowerShell/command-inventory/noun/object/forEach { $_.property }
+xDEF
+x-abc
+x.mno
+x-PQR
+xghi
+x JKL
+code }
+
+However, `→ Windows/dirs/Windows/regedit_exe` shows the entries sorted. Especially interesting is that *hyphens* are not considered for sorting:
+gh|about-Windows-Registry|/sorting/regedit.png||
+
+Cleaning up
+code {
+remove-item         -path HKCU:\Software\tq84-reg-sort-test  -recurse
+code }
