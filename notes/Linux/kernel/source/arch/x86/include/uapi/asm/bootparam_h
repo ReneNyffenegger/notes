@@ -44,68 +44,70 @@ $ arch/x86/include/uapi/asm/bootparam.h
      `_pad7[0x290-0x1f1-sizeof(struct setup_header)]` ☰ `__u8` ☰  ☰
      `edd_mbr_sig_buffer[EDD_MBR_SIG_MAX]` ☰ `__u32` ☰ 0x290 ☰
      `e820_table[E820_MAX_ENTRIES_ZEROPAGE]` ☰ `struct boot_e820_entry` ☰ 0x2d0 ☰
-     `_pad8[48]` ☰ `__u8` ☰    0xcd0 ☰
+     `_pad8[48]` ☰ `__u8` ☰  0xcd0 ☰
      `edd_info[EDDMAXNR]` ☰ `struct edd_info` ☰ 0xd00 ☰
-     `_pad9[276]` ☰ `__u8` ☰    0xeec ☰
-
+     `_pad9[276]` ☰ `__u8` ☰ 0xeec ☰
 
   table }
   
-   A bootloader is supposed to only take setup_header and put it into a clean
-   boot_params buffer. If it turns out that it is clumsy or too generous with
-   the buffer, it most probably will pick up the sentinel variable too. The
-   fact that this variable then is still 0xff will let kernel know that some
-   variables in boot_params are invalid and kernel should zero out certain
-   portions of boot_params.
+  A bootloader is supposed to only take `setup_header` and put it into a clean `boot_params` buffer. If it turns out that it is clumsy or too generous with
+  the buffer, it most probably will pick up the sentinel variable too. The fact that this variable then is still 0xff will let kernel know that some
+  variables in boot_params are invalid and kernel should zero out certain portions of boot_params.
 
 
 }
 { struct setup_header #linux-setup_header
 
-  table { lrl
+  The value of the  column *rwm* indicates if the value is read by the bootloader (r), written by the bootloader (w) or read and written (m = modified) by the bootloader.
 
-  `setup_sects` ☰ `__u8` ☰
-  `root_flags` ☰ `__u16` ☰
-  `syssize` ☰ `__u32` ☰
-  `ram_size` ☰ `__u16` ☰
-  `vid_mode` ☰ `__u16` ☰
-  `root_dev` ☰ `__u16` ☰
-  `boot_flag` ☰ `__u16` ☰
-  `jump` ☰ `__u16` ☰
-  `header` ☰ `__u32` ☰
-  `version` ☰ `__u16` ☰
-  `realmode_swtch` ☰ `__u32` ☰
-  `start_sys_seg` ☰ `__u16` ☰
-  `kernel_version` ☰ `__u16` ☰
-  `type_of_loader` ☰ `__u8` ☰
-  `loadflags` ☰ `__u8` ☰
-  `setup_move_size` ☰ `__u16` ☰
-  `code32_start` ☰ `__u32` ☰
-  `ramdisk_image` ☰ `__u32` ☰
-  `ramdisk_size` ☰ `__u32` ☰
-  `bootsect_kludge` ☰ `__u32` ☰
-  `heap_end_ptr` ☰ `__u16` ☰
-  `ext_loader_ver` ☰ `__u8` ☰
-  `ext_loader_type` ☰ `__u8` ☰
-  `cmd_line_ptr` ☰ `__u32` ☰ Compare with `ext_cmd_line_ptr` (→ #linux-boot_params[`struct boot_params`]) and `CONFIG_CMDLINE`.
-  `initrd_addr_max` ☰ `__u32` ☰
-  `kernel_alignment` ☰ `__u32` ☰
-  `relocatable_kernel` ☰ `__u8` ☰
-  `min_alignment` ☰ `__u8` ☰
-  `xloadflags` ☰ `__u16` ☰
-  `cmdline_size` ☰ `__u32` ☰
-  `hardware_subarch` ☰ `__u32` ☰
-  `hardware_subarch_data` ☰ `__u64` ☰
-  `payload_offset` ☰ `__u32` ☰
-  `payload_length` ☰ `__u32` ☰
-  `setup_data` ☰ `__u64` ☰
-  `pref_address` ☰ `__u64` ☰
-  `init_size` ☰ `__u32` ☰
-  `handover_offset` ☰ `__u32` ☰
-  `kernel_info_offset` ☰ `__u32` ☰
+  table { lrlll
+  ☰ ☰ ~Offset~ ☰ ~rwm~ ☰ ~Notes~
+
+  `setup_sects` ☰ `__u8` ☰ 497 ☰ r ☰ Size of the setup in (512 byte) sectors. The *real-mode code* consists of the boot sector (512 bytes) plus the setup code. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`.
+  `root_flags` ☰ `__u16` ☰ 498 ☰ m ☰ If set (!= 0), the root is mounted read only. This value corresponds to `ROOT_RDONLY` (default = `1`). Using `root_flags` is *deprecated* in favor of the command line options `ro` or `rw`.
+  `syssize` ☰ `__u32` ☰ 500 ☰ r ☰ The size of the (protected mode (or 32-bit)) code in 16-byte paragraphs. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`.
+  `ram_size` ☰ `__u16` ☰ 504 ☰ ☰  *Obsolete*? was used for `bootsect.S` (which seems to be deleted)
+  `vid_mode` ☰ `__u16` ☰ 506 ☰ m ☰ Video mode control. Corresponds to value of `SVGA_MODE`
+  `root_dev` ☰ `__u16` ☰ 508 ☰ m ☰ Default root device number. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`. Using `root_dev` is *deprecated* in favor of using the `root=` command line option.
+  `boot_flag` ☰ `__u16` ☰ 510 ☰ r ☰ `0xAA55` (magic number for the final two bytes of the first sector of an MBR).
+  `jump` ☰ `__u16` ☰ 512 ☰ r ☰ Machine code jump instruction: `0xeb` followed by `start_of_setup - 1f` (i. e. a signed offset relative to byte `0x202` = 514). This jump seems to be aligned with the `_start` symbol in the object file? This value can be used to determine the size of the header. This jump instruction limits the maximum size of `setup_header` to 144 bytes (as of Linux version 6.6, the size is 123 bytes).
+  `header` ☰ `__u32` ☰ 514 ☰ r ☰ Magic string `HDrS` (`0x53726448`)
+  `version` ☰ `__u16` ☰ 518 ☰ r ☰ The header/boot protocol version number (for example `0x020f` for 2.15).
+  `realmode_swtch` ☰ `__u32` ☰ 520 ☰ m ☰ Boot loader hook (`0x00000000`?)
+  `start_sys_seg` ☰ `__u16` ☰ 524 ☰ r ☰ The had-low segment, correpsonding to the value`SYSSEG` (= `0x1000` which is the *historical load address* `>> 4`). (*Obsolete* and even meaningless). 
+  `kernel_version` ☰ `__u16` ☰ 526 ☰ r ☰  Pointer to the *kernel version string* above the section of header (or so). Value possibly is `kernel_version-512`.
+  `type_of_loader` ☰ `__u8` ☰ 528 ☰ w ☰ Identification of *boot loader*. `0` = ancient bootloader. Newer bootloaders know to change this. See `Documentation/arch/x86/boot/rst`. (7 is GRUB)
+  `loadflags` ☰ `__u8` ☰ 529 ☰ m ☰ Boot protocol option flags (bitmap).
+  `setup_move_size` ☰ `__u16` ☰ 530 ☰ m ☰ `0x8000` size to move, when setup is not loaded at `0x90000`. We will move setup to `0x90000` then just before jumping into the kernel. However, only the loader knows how much data behind us also needs to be loaded.
+  `code32_start` ☰ `__u32` ☰ 532 ☰ m ☰ Boot loader hook: the address to mump to in protected mode. Default for big kernel: `0x100000`. Loaders can put a different start address for 32-bit code here.
+  `ramdisk_image` ☰ `__u32` ☰ 536 ☰ w ☰ Linear address of the loaded ramdisk (initrd) image. The loader puts this address.
+  `ramdisk_size` ☰ `__u32` ☰ 540 ☰ w ☰ Size of the initial ramdisk (initrd)
+  `bootsect_kludge` ☰ `__u32` ☰ 544 ☰ ☰  *Obsolete*. Was used for `bootsect.S` (which seems to be deleted).
+  `heap_end_ptr` ☰ `__u16` ☰ 548 ☰ w ☰ Free memory after setup end. `_end+STACK_SIZE-512`
+  `ext_loader_ver` ☰ `__u8` ☰ 550 ☰ w ☰ `0`. Extended boot loader version
+  `ext_loader_type` ☰ `__u8` ☰ 551 ☰ w ☰ `0`. Extended boot loader type (ID).
+  `cmd_line_ptr` ☰ `__u32` ☰ 552 ☰ w ☰ 32-bit pointer to *kernel command line*. Compare with `ext_cmd_line_ptr` (→ #linux-boot_params[`struct boot_params`]) and `CONFIG_CMDLINE`. In header version `0x0202` or later: If nonzero, this value is a pointer to the *kernel command line*. This command line should be located between the start of setup and the end of low memory (`0xA0000`). Otherwise, it may get overwritten before it is readhj
+  `initrd_addr_max` ☰ `__u32` ☰ 556 ☰ r ☰ In header version `0x0203` or later: The highest safe («legal») address for the contents of an initrd. The current kernel allows up to 4 GB, but leave it at 2 GB to avoid possible bootloader bugs.
+  `kernel_alignment` ☰ `__u32` ☰ 560 ☰ m ☰  Value of `CONFIG_PHYSICAL_ALIGN`, the *phyisical address alignment* (if `relocatable_kernel` is set). This is reaquired for protected mode.
+  `relocatable_kernel` ☰ `__u8` ☰ 564 ☰ r ☰ `1` if `CONFIG_RELOCTABLE` is defined, `0` otherwise.
+  `min_alignment` ☰ `__u8` ☰ 565 ☰ r ☰ Value of `MIN_KERNEL_ALIGN_LG2` (minimum alignment) 
+  `xloadflags` ☰ `__u16` ☰ 566 ☰ r ☰ Boot protocol option flags
+  `cmdline_size` ☰ `__u32` ☰ 568 ☰ r ☰ Maximum length of the command line (`COMMAND_LINE_SIZE - 1`)
+  `hardware_subarch` ☰ `__u32` ☰ 572 ☰ w ☰ Hardware subarchitecture. For normal x86 PCs, the default is `0`
+  `hardware_subarch_data` ☰ `__u64` ☰ 580 ☰ w ☰ `0`. Subarchitecture specific data.
+  `payload_offset` ☰ `__u32` ☰ 584 ☰ r ☰ Offset of *kernel payload*, corresponds to value of `ZO_input_data` (defined in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`)
+  `payload_length` ☰ `__u32` ☰ 588 ☰ r ☰ Length of *kernel pyaload*, correpsonding to value of `ZO_z_input_len` (defined in `→ Linux/kernel/source/arch/x86/boot/zoffset_h`)
+  `setup_data` ☰ `__u64` ☰ 596 ☰ w ☰ (Physical) pointer to single linked list of `setup_data`
+  `pref_address` ☰ `__u64` ☰ 604 ☰ r ☰ The *preferred loading address* (value of `LOAD_PHYSICAL_ADDR`)
+  `init_size` ☰ `__u32` ☰ 608 ☰ r ☰ Required Kernel initialization size (aka «linear size») = Value of → https://github.com/torvalds/linux/blob/71e58659bfc02e4171345f80b13d6485e9cdf687/arch/x86/boot/header.S#L573-L582[`INIT_SIZE`] (which is set to the greater size of the uncompressed or compressed kernel). 
+  `handover_offset` ☰ `__u32` ☰ 612 ☰ r ☰ Offset of handover entry point. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
+  `kernel_info_offset` ☰ `__u32` ☰ 616 ☰ r ☰ Offset of the `kernel_info`. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
 
  table }
 
+ `struct setup_header` corresponds to the «global symbol» → Linux/kernel/source/arch/x86/boot/header_S#header_S-hdr[`hdr`] in
+ `→ Linux/kernel/source/arch/x86/boot/header_S`.
+  
 }
 
 sa:

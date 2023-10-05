@@ -25,7 +25,7 @@ code }
   Among others, `efi_pe_entry` creates a → Linux/kernel/source/arch/x86/include/uapi/asm/bootparam_h#linux-boot_param[`boot_params`] struct (because this is expected
   to be passed in the x86 boot code) and copies the fields of `jump` and above of the setup header from the «second sector» (of `bzImage`) to this `boot_params` and
   fills a few other values in the struct:
-    • `root_flags = ``
+    • `root_flags = 1`
     • `vid_mode = 0xffff`
     • `boot_flag = 0xAA55`
     • `type_of_laoder = 0x21`
@@ -34,19 +34,19 @@ code }
     • `ramdisk_size = 0`
     • `setup_data = 0`
 
-  When the struct is set up, it calls `efi_stub_entry` and passes the struct to it.
+  When the struct is set up, it calls → #linux-x86-efi_stub_entry[`efi_stub_entry`] and passes the struct to it.
   
-  In earlier releases (when did it change), `efi_stub_entry` was defined as → Linux/kernel/source/include/linux/linkage_h#SYM_FUNC_ALIAS[`SYM_FUNC_ALIAS`] for
+  In earlier releases (when exactly did it change?), `efi_stub_entry` was defined as → Linux/kernel/source/include/linux/linkage_h#SYM_FUNC_ALIAS[`SYM_FUNC_ALIAS`] for
     • → Linux/kernel/source/arch/x86/boot/compressed/head_64_S#linux-axbc-efi64_stub_entry[`efi64_stub_entry`] in `→ Linux/kernel/source/arch/x86/boot/compressed/head_64_S`, and for
     • `efi32_stub_entry` in `→ Linux/kernel/source/arch/x86/boot/compressed/head_32_S`.
-
 
   In a mixed enviornment, `efi_pe_entry` is called from `startup_64_mixed_mode`.
 
   Note: `drivers/firmware/libstub/efi-stub-entry.c` defines an `efi_pe_entry` function to be used for ARM, arm64, RISC-v and LoongArch.
 
 }
-{ efi_stub_entry
+{ efi_stub_entry #linux-x86-efi_stub_entry
+
 
   If successful, the last statement of `efi_stub_entry` is to call `enter_kernel` (passing a kernel address and the so called boot parameters) which does not return (hence, also `efi_stub_entry is annotated with `__noreturn`).
 
