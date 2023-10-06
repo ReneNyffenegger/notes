@@ -1,10 +1,64 @@
 $ /proc/sys/kernel/randomize_va_space
 
-The value of `/proc/sys/kernel/randomize_va_space` controls ASLR (Address Space Layout Randomisation). It should be one of
+The value of `/proc/sys/kernel/randomize_va_space` controls ASLR (Address Space Layout Randomization). It should be one of
   • 0: disabled
   • 1: Conservative: Shared libraries and  PIE binaries are randomized.
   • 2: Conservative and start of *brk* area is randomized, too
 
+{ Demonstration
+
+  The following program is compiled with` gcc -Wall ASLR.c -o ASLR`:
+code {
+#include <stdio.h>
+
+int main() {
+    printf("Address of main is %p\n", main);
+}
+code }
+
+  The program is then executed 10 times. Each time, the address of `main` is reported to be at a different location in memory:
+code {
+$ for i in {1..10}; do ./ASLR; done
+Address of main is 0x555d08b00135
+Address of main is 0x56469ffe6135
+Address of main is 0x56214a129135
+Address of main is 0x558ebecef135
+Address of main is 0x555c43d0d135
+Address of main is 0x559a4be99135
+Address of main is 0x55b914784135
+Address of main is 0x5610c9c50135
+Address of main is 0x561585df7135
+Address of main is 0x557ab9eb5135
+code }
+  Note that the last three 16 bits are always the same.
+
+  Disable randomization
+code {
+$ sudo 'sh -c "echo 0 > /proc/sys/kernel/randomize_va_space"'
+code }
+  
+  Execute the same loop again:
+code {
+$ for i in {1..10}; do ./ASLR; done
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+Address of main is 0x555555555135
+code }
+
+  Restore address randomization:
+code {
+$ sudo sh -c "echo 2 > /proc/sys/kernel/randomize_va_space"
+code }
+
+
+}
 { TODO
 
   Position independent executables (PIE): → development/languages/C-C-plus-plus/GCC/options[GCC option] `-fPIE` and → development/languages/C-C-plus-plus/GCC/options/f/pie[`-fpie`].
