@@ -5,7 +5,60 @@ Create  → development/languages/C-C-plus-plus/GCC/as[assembler] code (`*.s`).
 
 With `-S`, the → development/languages/C-C-plus-plus/GCC/linker is not run.
 
-In order to create *intel dialect* notation, the → development/languages/C-C-plus-plus/GCC/options/masm option.
+*Intel dialect* notation can be specified with the `→ development/languages/C-C-plus-plus/GCC/options/masm` option.
+
+{ Example: Create the assembler code for a simple hello world proram
+
+  Here's a simple hello world program, written in C:
+code {
+#include <stdio.h>
+
+char buf[] = "Hello world";
+
+int main() {
+   puts(buf);
+}
+code }
+
+  
+  The following command creates the assembler code for the the program:
+code {
+$ gcc -S -fno-asynchronous-unwind-tables  -masm=intel /tmp/hello-world.c -o /tmp/hello-world.S
+code }
+
+  Show the produced file:
+code {
+$ cat /tm/hello-world.S
+        .file   "hello-world.c"
+        .intel_syntax noprefix
+        .text
+        .globl  buf
+        .data
+        .align 8
+        .type   buf, @object
+        .size   buf, 12
+buf:
+        .string "Hello world"
+        .text
+        .globl  main
+        .type   main, @function
+main:
+        push    rbp
+        mov     rbp, rsp
+        lea     rdi, buf[rip]
+        call    puts@PLT
+        mov     eax, 0
+        pop     rbp
+        ret
+        .size   main, .-main
+        .ident  "GCC: (Debian 10.2.1-6) 10.2.1 20210110"
+        .section        .note.GNU-stack,"",@progbits
+code }
+ 
+  I've used `-fno-asynchronous-unwind-tables` so that the `.cfi_startproc`, `.cfi_def_cfa_offset`, `.cfi_def_cfa_register`, `.cfi_def_cfa` and `.cfi_endproc` directives and the `.LFB0` and `.LFE0` labels won't be produced.
+
+
+}
 
 sa:
 
@@ -16,4 +69,3 @@ sa:
   → development/languages/C-C-plus-plus/GCC/options/s[gcc -s] (lowercase s)
 
   → development/languages/C-C-plus-plus/GCC/options
-

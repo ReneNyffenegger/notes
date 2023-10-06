@@ -1,13 +1,12 @@
 
 A program requests the execution of a service provided by the → Linux/kernel[kernel] through *system calls* (aka «kernel calls»).
 -
--These calls are identified by a number
-(see  `→ Linux/kernel/source/arch/x86/entry/syscalls/syscall_64_tbl` and `→ Linux/kernel/source/arch/x86/include/generated/asm/syscalls_64_h`).
+These calls are identified by a number (see  `→ Linux/kernel/source/arch/x86/entry/syscalls/syscall_64_tbl` and `→ Linux/kernel/source/arch/x86/include/generated/asm/syscalls_64_h`).
 
 
 { Executing syscalls and passing parameters
 
-  For 64 bit x86 applications, → Linux/kernel/source/arch/x86/entry/entry_64_S contains the following useful comment:
+  For 64 bit x86 applications, `→ Linux/kernel/source/arch/x86/entry/entry_64_S` contains the following useful comment:
   "
   64-bit SYSCALL instruction entry. Up to 6 arguments in registers.
  
@@ -43,6 +42,41 @@ A program requests the execution of a service provided by the → Linux/kernel[k
   "
 
   See also the note about → development/languages/assembler/x86/dialects[x64 assembler dialects] where the `exit` syscall is used to demonstrate some dialects.
+
+}
+{ Assembler code to call a syscall #linux-syscall-assembler
+
+code {
+.intel_syntax noprefix
+
+.data
+
+string_to_print:
+.ascii "Hello, World\n"
+
+.text
+.globl _start
+
+_start:
+  # syscall write(int fd, const void *buf, size_t count)
+    mov rax, 1                       # 1 is the syscall number for write. Store in in register RAX.
+    mov rdi, 1                       # The first parameter of a syscall is stored in RDI. For write, this is the file descriptor 91 is stdout)
+    lea rsi, string_to_print[rip]    # Load the address of string_to_print relative to the instruction pointer (position independent code) into the second paramter (RSI)
+    mov rdx, 13                      # The length of the string is stored in the third parameter (RDX).
+    syscall                          # Invoke syscall
+
+  # syscall exit(int status)
+    mov rax, 60        # syscall number for exit
+    xor rdi, rdi       # return code 0            # exit with code 0
+    syscall            # invoke kernel
+code }
+
+  This code can be compiled into an executable with
+code {
+$ gcc -nostdlib -o /tmp/hello /tmp/hello.S
+code }
+
+  See also → development/languages/assembler/x86/dialects[demonstration of X64 assembler dialects]
 
 }
 

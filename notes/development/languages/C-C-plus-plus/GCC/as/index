@@ -1,5 +1,9 @@
 $ GNU assembler
 
+The executable name for the GNU assembler is `as`.
+
+The main purpose of `as` is to assemble the output of the compiler (`gcc`) as object file which is then fed to the linker (`ld`).
+
 { Turning on intel syntax or AT&T syntax #gnu-as-intel-syntax
 
 code {
@@ -14,6 +18,38 @@ code }
      • The → development/GNU/toolchain/binutils/objdump#objdump-M[`-M`] option of `→ development/GNU/toolchain/binutils/objdump` chooses the assembly dialect.
      • `set disassemly-flavor intel` in → development/tools/gdb.
      • → development/languages/assembler/x86/dialects#x64-gnu-as-dialects[Assembler dialects (GNU/x64)]
+
+}
+{ Some interesting directives
+
+  Some interesting directives are:
+  table { ll
+    `.ascii "some text" …` ☰ Adds text without trailing zero byte
+    `.asciz "some text" …` ☰ Adds text with trailing zero byte. When concatenating multiple strings (separated by commas), only the final string will be zero terminated.
+    `.bss [n]` ☰ Assemble the following statements to the end of the *bss* section. ELF targets allow to add an optional subsection `n` which is a positive number. 
+    `.data [n]` ☰ Assemble the following statements to the end of the *data* section. The optional `n` specifies the subsection and default to 0 if omitted.
+    `.def NAM`, `.endef` ☰ Define deubging information for the symbol `NAM`. The definition extends until `.endef`
+    `.end` ☰ End of source to be compiled
+    `.func NAM[, LBL]`, `.endfunc` ☰ If source is assembled with enabled debugging, `.func` emits the function name as debugging information. `LBL` is entry point for the function and resolves to `NAM` prepended with the *leading char* (which typically is an underscore or nothing, depending on the architecture).
+    `.global SYM`☰ Makes *symbol* visible to `ld`. `.global` and `.globl` are equivalent.
+    `.hidden`, `.internal`, `protected` ☰ ELF visiblity directives.
+    `.if`, `.else` etc. ☰ Conditional compilation
+    `.incbin "file"[, skip[, count]]` ☰ Include `file` verbatim at current location.
+    `.include "file"` ☰ 
+    `.byte`, `.word`, `.long`, `.quad`, `.octa` ☰ `.quat` is a 8-byte integer, `.octa` is a 16-byte integer. `.short` is equivalent to `.word`, `.int` is equivalent to `.long`.
+    `.loc fileno lineno [column] …` ☰ Emit DWARF2 line number information
+    .`macro …` ☰ Startof a macro definition
+    `.offset loc` ☰ Set the location counter to loc in the absolute section. `loc` must be an absolute expression. Do not confuse with `.org`
+    `.org new-lc , fill` ☰
+    `.reloc offset, reloc_name[, expression`] ☰
+    `.section NAM` ☰ Specify the name of the section into which the following code is assembled.
+    `.text [n]` ☰ Assemble the following statements to the end of the *text* section. The optional `n` specifies the subsection and default to 0 if omitted.
+    `.weak NAMes` ☰
+    `.zero n` ☰ Emit `n` bytes whose value is 0.
+  table }
+
+
+
 
 }
 { TODO

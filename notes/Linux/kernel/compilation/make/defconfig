@@ -2,6 +2,8 @@ $ make defconfig
 
 `→ Linux/kernel/compilation/make defconfig` creates a new configuration file (typically `→ Linux/kernel/source/_config`) with default from `→ Linux/kernel/source/arch/SRCARCH/configs[arch/$SRCARCH/configs]/defconfig` or `→ Linux/kernel/source/arch/SRCARCH/configs[arch/$SRCARCH/configs]/${PLATFORM}_defconfig`, depending on the architecture.
 
+The `.config` file is created by the makefile calling `→ Linux/kernel/source/scripts/kconfig/conf` with the `--defconfig` option.
+
 code {
 $ git clone --depth 1 -b master https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git ~/linux-defconfig-test
 $ cd ~/linux-defconfig-test
@@ -15,5 +17,46 @@ $ make V=1 defconfig
 #
 code }
 
+{ Fix two incompatible options
+
+  The config symbols `X86_32` and `X86_64` cannot both be enabled because they're mutually exclusive. `make defconfig` detects and fixes this, which is demonstrated in the following.
+
+  Get the most recent Linux sources:
+code {
+$ git clone --depth 1 -b master https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git linux
+$ cd linux
+code }
+
+  Enable the two incompatible config symbols:
+code {
+$ → Linux/kernel/source/scripts/config --enable X86_32
+$ → Linux/kernel/source/scripts/config --enable X86_64
+code }
+
+  Verify that both options are set in `.config`:
+code {
+$ grep -P '^CONFIG_X86_(32|64)=' .config
+CONFIG_X86_64=y
+CONFIG_X86_32=y
+code }
+
+  Fix the incompatiblity:
+code {
+$ make defconfig
+*** Default configuration is based on 'x86_64_defconfig'
+#
+# configuration written to .config
+#
+code }
+
+  The wrong option `X86_32` is now gone:
+code {
+$ grep -P '^CONFIG_X86_(32|64)=' .config
+CONFIG_X86_64=y
+code }
+
+}
+
 sa:
+
   The variable → Linux/kernel/source/arch/SRCARCH/Makefile#linux-KBUILD_DEFCONFIG[`KBUILD_DEFCONFIG`] (defined in `→ Linux/kernel/source/arch/SRCARCH/Makefile`).
