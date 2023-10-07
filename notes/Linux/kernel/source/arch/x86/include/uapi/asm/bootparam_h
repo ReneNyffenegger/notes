@@ -54,6 +54,7 @@ $ arch/x86/include/uapi/asm/bootparam.h
   the buffer, it most probably will pick up the sentinel variable too. The fact that this variable then is still 0xff will let kernel know that some
   variables in boot_params are invalid and kernel should zero out certain portions of boot_params.
 
+  Setting the config option `DEBUG_BOOT_PARAMS` causes the struct `boot_param` to be exported via debugfs.
 
 }
 { struct setup_header #linux-setup_header
@@ -100,8 +101,8 @@ $ arch/x86/include/uapi/asm/bootparam.h
   `setup_data` ☰ `__u64` ☰ 596 ☰ w ☰ (Physical) pointer to single linked list of `setup_data`
   `pref_address` ☰ `__u64` ☰ 604 ☰ r ☰ The *preferred loading address* (value of `LOAD_PHYSICAL_ADDR`)
   `init_size` ☰ `__u32` ☰ 608 ☰ r ☰ Required Kernel initialization size (aka «linear size») = Value of → https://github.com/torvalds/linux/blob/71e58659bfc02e4171345f80b13d6485e9cdf687/arch/x86/boot/header.S#L573-L582[`INIT_SIZE`] (which is set to the greater size of the uncompressed or compressed kernel). 
-  `handover_offset` ☰ `__u32` ☰ 612 ☰ r ☰ Offset of handover entry point. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
-  `kernel_info_offset` ☰ `__u32` ☰ 616 ☰ r ☰ Offset of the `kernel_info`. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
+  `handover_offset` ☰ `__u32` ☰ 612 ☰ r ☰ Offset of handover entry point. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`. With `CONFIG_X86_64` *and* (the deprecated) `CONFIG_EFI_HANDOVER_PROTOCOL`, the value is `efi64_stub_entry - 0x200`, (→ https://github.com/torvalds/linux/blob/82714078aee4ccbd6ee7579d5a21f8a72155d0fb/arch/x86/boot/tools/build.c#L295C5-L295C45[yes, this is really how it is defined]), otherwise, the value is `efi32_stub_entry`.
+  `kernel_info_offset` ☰ `__u32` ☰ 616 ☰ r ☰ Offset of the → Linux/kernel/source/arch/x86/boot/compressed/kernel_info_S[`kernel_info`]. Filled by `→ Linux/kernel/source/arch/x86/boot/tools/build`
 
  table }
 
