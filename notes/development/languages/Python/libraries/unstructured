@@ -1,0 +1,28 @@
+$ Python library: unstructured
+
+code {
+from unstructured.partition.auto import partition
+
+import requests
+import os
+
+if not os.path.exists('LLM.html'):
+
+   res = requests.get('https://en.wikipedia.org/wiki/Large_language_model')
+
+   if res.status_code != 200:
+       print(f'Failed to download the HTML file. Status Code: {res.status_code}')
+       os.exit(1)
+
+
+   with open('LLM.html', 'w', encoding='utf-8') as f:
+        f.write(res.text)
+
+
+elems = partition(filename='LLM.html')
+
+print(f'Text has {len(elems)} elements')
+
+for i, elem in enumerate(elems):
+    print(f'{i:>4} {elem}')
+code }
