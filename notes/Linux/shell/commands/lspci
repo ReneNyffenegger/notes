@@ -1,9 +1,89 @@
-$ lspci: list connected PCI devices
+$ Shell command: lspci (list connect PCI devices)
 @ lspci
 
 `lspci` is a Linux → Linux/shell command that lists all connected → hardware/PCI (and AGP) devices regardless whether the respective driver is installed or not.
 
 In normal output, the first three hexadecimal numbers (separated by a colon and a dot) specify the → hardware/device[device's] → hardware/PCI#pci-bdf[B/D/F] (Bus, Device, Function).
+
+{ Options
+
+  { Basic display modes
+
+    table { ll
+
+       `-m` ☰  Dump PCI device data in a backward-compatible *machine readable* form.
+       `-mm` ☰ Dump PCI device data in a *machine readable* form for easy parsing by scripts.
+       `-t` ☰  Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+
+    table }
+
+  }
+  { Display options
+
+    table { ll
+
+      `-v` ☰    Be verbose and display detailed information about all devices.
+      `-vv` ☰   Be very verbose and display more details. This level includes everything deemed useful.
+      `-vvv` ☰  Be even more verbose and display everything we are able to parse, even if it doesn't look interesting at all (e.g., undefined memory regions).
+      `-k` ☰  Show kernel drivers handling each device and also kernel modules capable of handling it. Turned on by default when `-v` is given in the normal mode of output.
+      `-x` ☰ Show hexadecimal dump of the standard part of the configuration space (the first 64 bytes or 128 bytes for CardBus bridges).
+      `-xxx` ☰  Show hexadecimal dump of the whole PCI configuration space. It is available only to root as several PCI devices crash when you try to read some parts of the config space (this behavior probably doesn't violate the PCI standard, but it's at least very stupid). However, such devices are rare, so you needn't worry much.
+      `-xxxx` ☰ Show hexadecimal dump of the extended (4096-byte) PCI configuration space available on PCI-X 2.0 and PCI Express buses.
+      `-b` ☰    Bus-centric view. Show all IRQ numbers and addresses as seen by the cards on the PCI bus instead of as seen by the kernel.
+      `-D` ☰    Always show PCI domain numbers. By default, lspci suppresses them on machines which have only domain 0.
+      `-P` ☰    Identify PCI devices by path through each bridge, instead of by bus number.
+      `-PP` ☰   Identify PCI devices by path through each bridge, showing the bus number as well as the device number.
+      `-t` ☰    Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+    table }
+
+  }
+  { Options to control resolving ID's to names
+
+    table { ll
+      `-n` ☰ Show PCI vendor and device codes as numbers instead of looking them up in the PCI ID list.
+      `-nn` ☰ Show PCI vendor and device codes as both numbers and names.
+      `-q` ☰ Use DNS to query the central PCI ID database if a device is not found in the local pci.ids file. If the DNS query succeeds, the result is cached in ~/.pciids-cache and it is recognized in subsequent runs even if -q is not given any more. Please use this switch  inside  automated  scripts  only with caution to avoid overloading the database servers.
+      `-qq` ☰ Same as -q, but the local cache is reset.
+      `-Q` ☰ Query the central database even for entries which are recognized locally.  Use this if you suspect that the displayed entry is wrong.
+      `-t` ☰ Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+    table }
+  }
+  { Options for selection of devices
+
+    table { lll
+     `-s` ☰ `[[[[<domain>]:]<bus>]:][<device>][.[<func>]]` ☰  Show only devices in the specified domain (in case your machine has several host bridges, they can either share a common bus number space or each of them can address a PCI domain of its own; domains are numbered from 0 to ffff), bus (0 to ff), device (0 to 1f) and function (0 to 7).  Each com‐ ponent of the device address can be omitted or set to "*", both meaning "any value". All numbers are hexadecimal.  E.g., "0:" means all devices on bus 0, "0" means all functions of device 0 on any bus, "0.3" selects third function of device 0 on all buses and ".4" shows only the  fourth  func‐ tion of each device.
+     `-d` ☰ `[<vendor>]:[<device>][:<class>]` ☰  Show only devices with specified vendor, device and class ID. The ID's are given in hexadecimal and may be omitted or given as "*", both meaning "any value".
+     `-t` ☰ ☰ Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+    table }
+  }
+  { Other options
+
+    table { lll
+       `-i` ☰ `<file>` ☰  Use `<file>` as the PCI ID list instead of `→ Linux/fhs/usr/share/misc/pci_ids`
+       `-p` ☰ `<file>` ☰  Use `<file>` as the map of PCI ID's handled by kernel modules. By default, lspci uses /lib/modules/kernel_version/modules.pcimap.  Applies only to Linux systems with recent enough module tools.
+       `-M` ☰ ☰ Invoke  bus  mapping  mode which performs a thorough scan of all PCI devices, including those behind misconfigured bridges, etc. This option gives meaningful results only with a direct hardware access mode, which usually requires root privileges.  Please note that the bus mapper only scans PCI domain 0.
+       `--version` ☰ ☰ Shows lspci version. This option should be used stand-alone.
+       `-t` ☰ ☰ Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+    table }
+   }
+   { PCI access options
+
+     The PCI utilities use the PCI library to talk to PCI devices (see `pcilib(7)` for details).
+
+     You can use the following options to influence its behavior:
+
+     table { lll
+       `-A` ☰ `<method>` ☰ The library supports a variety of methods to access the PCI hardware.  By default, it uses the first access method available, but you can use this option to override this decision. See -A help for a list of available methods and their descriptions.
+       `-O` ☰ `<param>=<value>` ☰ The behavior of the library is controlled by several named parameters.  This option allows one to set the value of any of the parameters. Use -O help for a list of known parameters and their default values.
+       `-H1` ☰ ☰    Use direct hardware access via Intel configuration mechanism 1.  (This is a shorthand for -A intel-conf1.)
+       `-H2` ☰ ☰    Use direct hardware access via Intel configuration mechanism 2.  (This is a shorthand for -A intel-conf2.)
+       `-F` ☰ `<file>` ☰ Instead of accessing real hardware, read the list of devices and values of their configuration registers from the given file produced by an earlier run of lspci -x.  This is very useful for analysis of user-supplied bug reports, because you can display the hardware configuration in any way you want without disturbing the user with requests for more dumps.
+       `-G` ☰ ☰     Increase debug level of the library.
+       `-t` ☰ ☰     Show a tree-like diagram containing all buses, bridges, devices and connections between them.
+     table }
+
+  }
+}
 
 { Show device tree
 
@@ -15,7 +95,7 @@ code }
 }
 { Showing kernel drivers etc.
 
-  `lspci -k` shows the kernel driver that is being used to handle the respective PCI device.
+ `lspci -k` shows the kernel driver that is being used to handle the respective PCI device.
 
 }
 { Installing lspci in Debian/Ubuntu
@@ -33,4 +113,6 @@ sa:
 
   → Linux/fhs/usr/share/hwdata[`/usr/share/hwdata/pci.ids`]
 
-  → Linux/shell/commands/index[Shell commands]
+  `/usr/include/linux/pci.h`
+
+  → Linux/shell/commands[Shell commands]
