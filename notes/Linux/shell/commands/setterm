@@ -1,0 +1,91 @@
+$ Shell command: setterm
+@ setterm
+
+
+`setterm` sets terminal attributes by writing a character string to → development/stdin-stdout-stderr[stdout] that invokes the specified terminal capabilities (see als → Linux/shell/ANSI-escape-sequences).
+-
+When possible, `setterm` consults `terminfo` to find the string to use.
+
+code {
+setterm [options]
+code }
+
+{ Options
+
+  table { lll
+       `--appcursorkeys` ☰ `on|off` ☰ Sets Cursor Key Application Mode on or off. When on, `ESC O A`, `ESC O B`, etc. will be sent for the cursor keys instead of `ESC [ A`, `ESC [ B`, etc. See the vi and Cursor-Keys section of the Text-Terminal-HOWTO for how this can cause problems for vi users. Virtual consoles only.
+       `--append` ☰ `console_number` ☰ Like `--dump`f, but appends to the snapshot file instead of overwriting it. Only works if no `--dump` options are given.
+       `--background` ☰ `8-color|default` ☰ Sets the background text color.
+       `--blank` ☰ `[=0-60|force|poke]` ☰ Sets the interval of inactivity, in minutes, after which the screen will be automatically blanked (using APM if available). Without an argument, it gets the blank status (returns which vt was blanked, or zero for an unblanked vt). Virtual consoles only. The force argument keeps the screen blank even if a key is pressed. The poke argument unblanks the screen.
+       `--bfreq` ☰ `[=number]` ☰ Sets the bell frequency in Hertz. Without an argument, it defaults to 0. Virtual consoles only.
+       `--blength` ☰ `[=0-2000]` ☰ Sets the bell duration in milliseconds. Without an argument, it defaults to 0. Virtual consoles only. (See also → Linux/turn-off-annoying-beep[turning off the annoying beep]).
+       `--blink` ☰ `on|off` ☰ Turns blink mode on or off. Except on a virtual console, `--blink off` turns off all attributes (bold, half-brightness, blink, reverse).
+       `--bold` ☰ `on|off` ☰ turns bold (extra bright) mode on or off. Except on a virtual console, `--bold off turns off all attributes (bold, half-brightness, blink, reverse).
+       `--clear` ☰ `[=all|rest]` ☰ Without an argument or with the argument all, the entire screen is cleared and the cursor is set to the home position, just like clear(1) does. With the argument rest, the screen is cleared from the current cursor position to the end.
+       `--clrtabs` ☰ `[=tab1 tab2 tab3 …]` ☰ Clears tab stops from the given horizontal cursor positions, in the range 1-160. Without arguments, it clears all tab stops. Virtual consoles only.
+       `--cursor` ☰ `on|off` ☰ Turns the terminal's cursor on or off.
+       `--default` ☰ ☰ Sets the terminal's rendering options to the default values.
+       `--dump` ☰ `[=console_number]` ☰ Writes a snapshot of the virtual console with the given number to the file specified with the `--file` option, overwriting its contents; the default is `screen.dump`. Without an argument, it dumps the current virtual console. This overrides `--append`. `setterm --dump` seems to access → Linux/fhs/dev/vcsa[`/dev/vcsaN`] (`N` being the console number).
+       `--file` ☰ `filename` ☰ Sets the snapshot file name for any `--dump` or `--append` options on the same command line. If this option is not present, the default is screen.dump in the current directory. A path name that exceeds the system maximum will be truncated, see `PATH_MAX` from `linux/limits.h` for the value.
+       `--foreground` ☰ `8-color|default` ☰ Sets the foreground text color.
+       `--half-bright` ☰ `on|off` ☰ Turns dim (half-brightness) mode on or off. Except on a virtual console, `--half-bright` off turns off all attributes (bold, half-brightness, blink, reverse).
+       `--hbcolor` ☰ `[bright] 16-color` ☰ Sets the color for half-bright characters.
+       `--initialize` ☰ ☰ Displays the terminal initialization string, which typically sets the terminal's rendering options, and other attributes to the default values.
+       `--inversescreen` ☰ `on|off` ☰ Swaps foreground and background colors for the whole screen.
+       `--linewrap` ☰ `on|off` ☰ Makes the terminal continue on a new line when a line is full.
+       `--msg` ☰ `on|off` ☰ Enables or disables the sending of kernel printk() messages to the console. Virtual consoles only.
+       `--msglevel` ☰ `0-8` ☰ Sets the console logging level for kernel printk() messages. All messages strictly more important than this will be printed, so a logging level of 0 has the same effect as `--msg` on and a logging level of 8 will print all kernel messages. `klogd(8)` may be a more convenient interface to the logging of kernel messages. Virtual consoles only.
+       `--powerdown` ☰ `[=0-60]` ☰ Sets the VESA powerdown interval in minutes. Without an argument, it defaults to 0 (disable powerdown). If the console is blanked or the monitor is in suspend mode, then the monitor will go into vsync suspend mode or powerdown mode respectively after this period of time has elapsed.
+       `--powersave` ☰ `mode` ☰ Valid values for `mode` are: `vsync|on Puts the monitor into VESA vsync suspend mode; `hsync` puts the monitor into VESA hsync suspend mode; `powerdown` puts the monitor into VESA powerdown mode; `off` turns monitor VESA powersaving features.
+       `--regtabs` ☰ `[=1-160]` ☰ Clears all tab stops, then sets a regular tab stop pattern, with one tab every specified number of positions. Without an argument, it defaults to 8. Virtual consoles only.
+       `--repeat` ☰ `on|off` ☰ Turns keyboard repeat on or off. Virtual consoles only.
+       `--reset` ☰ ☰ Displays the terminal reset string, which typically resets the terminal to its power-on state.
+       `--resize` ☰ ☰ Reset terminal size by assessing maximum row and column. This is useful when actual geometry and kernel terminal driver are not in sync. Most notable use case is with serial consoles, that do not use `ioctl(3p)` but just byte streams and breaks.
+       `--reverse` ☰ `on|off` ☰ Turns reverse video mode on or off. Except on a virtual console, `--reverse` off turns off all attributes (bold, half-brightness, blink, reverse).
+       `--store` ☰ ☰ Stores the terminal's current rendering options (foreground and background colors) as the values to be used at reset-to-default. Virtual consoles only.
+       `--tabs` ☰ `[=tab1 tab2 tab3 ...]` ☰ Sets tab stops at the given horizontal cursor positions, in the range 1-160. Without arguments, it shows the current tab stop settings.
+       `--term` ☰ `terminal_name` ☰ Overrides the `TERM` environment variable.
+       `--ulcolor` ☰ `[bright] 16-color` ☰ Sets the color for underlined characters. Virtual consoles only.
+       `--underline` ☰ `on|off` ☰ Turns underline mode on or off.
+       `--version` ☰ ☰ Displays version information and exits.
+       `--help Displays a help text and exits.` ☰ ☰
+  table }
+
+  The default for `on`/`off` options is `on`.
+       
+ `8-color` is one of `black`, ` red`, ` green`, ` yellow`, ` blue`, ` magenta`, ` cyan` or `white`.
+
+ `16-color` is an `8-color`, or `grey` or `bright` followed by an `8-color`.
+
+  The various color options may be set independently, at least on virtual consoles, though the results of setting multiple modes (for example `--underline` and `--half-bright`) are hardware-dependent.
+
+  The optional arguments require `=` (equals sign) and not space between the option and the argument (`--option=argument`).
+
+}
+{ Writing some text in a given color
+
+  The following command writes the word *Warning:* in red:
+code {
+$ echo $(setterm --foreground red)Warning:$(setterm --default) do not write too much text in red
+code }
+
+}
+{ Revealing written character string
+
+  The output of `setterm` can be piped into `→ Linux/shell/commands/xxd` to reveal the bytes that were produced:
+code {
+$ setterm --foreground red | → Linux/shell/commands/xxd
+00000000: 1b5b 3331 6d                             .[31m
+
+$ setterm --initialize | → Linux/shell/commands/xxd
+00000000: 1b5b 2170 1b5b 3f33 3b34 6c1b 5b34 6c1b  .[!p.[?3;4l.[4l.
+00000010: 3e                                       >
+code }
+
+}
+
+sa:
+
+  `stty(1)`, `tput(1)`, `tty(4)`, `terminfo(5)`
+
+  → Linux/shell/commands
