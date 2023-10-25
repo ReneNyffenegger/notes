@@ -1,7 +1,7 @@
 
 { Profile #portage-profile
 
-  A *profile* is a set of configuration files stored in `/var/db/repos/gentoo/profiles` that
+  A *profile* is a set of configuration files stored in `→ Linux/fhs/var/db/repos/gentoo/profiles` that
     • specifies the default state of USE flags,
     • sets default values for most variables found in `→ Linux/fhs/etc/portage/make_conf`,
     • defines a set of system packages, and
@@ -13,15 +13,112 @@
 
   A profile is set with `eselect`.
   -
-  A list of profiles is produced with the command `eselect profil e list`.
+  A list of profiles is produced with the command `eselect profile list`:
+code {
+# eselect profile list
+Available profile symlink targets:
+  [1]   default/linux/amd64/17.1 (stable)
+  [2]   default/linux/amd64/17.1/selinux (stable)
+  [3]   default/linux/amd64/17.1/hardened (stable)
+  [4]   default/linux/amd64/17.1/hardened/selinux (stable)
+  [5]   default/linux/amd64/17.1/desktop (stable) *
+  [6]   default/linux/amd64/17.1/desktop/gnome (stable)
+  [7]   default/linux/amd64/17.1/desktop/gnome/systemd (stable)
+  [8]   default/linux/amd64/17.1/desktop/gnome/systemd/merged-usr (stable)
+  [9]   default/linux/amd64/17.1/desktop/plasma (stable)
+  [10]  default/linux/amd64/17.1/desktop/plasma/systemd (stable)
+  [11]  default/linux/amd64/17.1/desktop/plasma/systemd/merged-usr (stable)
+  [12]  default/linux/amd64/17.1/desktop/systemd (stable)
+  [13]  default/linux/amd64/17.1/desktop/systemd/merged-usr (stable)
+  [14]  default/linux/amd64/17.1/developer (exp)
+  [15]  default/linux/amd64/17.1/no-multilib (stable)
+  [16]  default/linux/amd64/17.1/no-multilib/hardened (stable)
+  [17]  default/linux/amd64/17.1/no-multilib/hardened/selinux (stable)
+  [18]  default/linux/amd64/17.1/no-multilib/systemd (dev)
+  [19]  default/linux/amd64/17.1/no-multilib/systemd/merged-usr (dev)
+  [20]  default/linux/amd64/17.1/no-multilib/systemd/selinux (exp)
+  [21]  default/linux/amd64/17.1/no-multilib/systemd/selinux/merged-usr (exp)
+  [22]  default/linux/amd64/17.1/systemd (stable)
+  [23]  default/linux/amd64/17.1/systemd/merged-usr (stable)
+  [24]  default/linux/amd64/17.1/systemd/selinux (exp)
+  [25]  default/linux/amd64/17.1/systemd/selinux/merged-usr (exp)
+  [26]  default/linux/amd64/17.1/clang (exp)
+  [27]  default/linux/amd64/17.1/systemd/clang (exp)
+  [28]  default/linux/amd64/17.1/systemd/clang/merged-usr (exp)
+  [29]  default/linux/amd64/17.0/x32 (dev)
+  [30]  default/linux/amd64/17.0/x32/systemd (exp)
+  [31]  default/linux/amd64/17.0/x32/systemd/merged-usr (exp)
+  [32]  default/linux/amd64/17.0/musl (dev)
+  [33]  default/linux/amd64/17.0/musl/clang (exp)
+  [34]  default/linux/amd64/17.0/musl/hardened (exp)
+  [35]  default/linux/amd64/17.0/musl/hardened/selinux (exp)
+code }
 
   See also → https://wiki.gentoo.org/wiki/Profile_(Portage)[Portage wiki]
 
 }
 { eselect
 
+ `eselect` is a utility that allows for a common management interface for system administration
+
   Without arguments, `eselect` lists all currently installed modules.
-  
+
+}
+{ Ebuild repositories #ebuild-repo
+
+  An *ebuild repository* provides packages which can be installed on a Gentoo system.
+
+  The most important ebuild repository is the *Gentoo ebuild directory* which is hosted at → https://gitweb.gentoo.org/repo/gentoo.git/tree[gitweb.gentoo.org].
+  -
+  The locally synchronized copy of the Gentoo ebuild directory is located in `→ Linux/fhs/var/db/repos/gentoo`.
+
+  Other well known repositories include
+    • → https://wiki.gentoo.org/wiki/Project:GURU[GURU]
+    • → https://repos.gentoo.org/[repos.gentoo.org]
+    • → https://gpo.zugaina.org/[gpo.zugaina.org] (third-party list of ebuild repositories)
+
+  An ebuild repository stores *ebuild files* which contain the instructions on how to build and install a package.
+
+  Local mirrors of ebuild repositories can be synchronized with one of the following commans
+code {
+emaint sync --auto
+emaint sync --repo my-private-repo
+emaint sync --allrepos
+code }
+
+}
+{ News items
+
+  News items contain messages for users. These are synchronized(?) along with the synchronization of the Gentoo ebuild repository.
+
+  News items can be shown and read with
+code {
+eselect news list
+eselect news read
+code }
+
+  Such news items seem to be relatively rare (14 items in 4 years):
+code {
+# eselect news list
+News items:
+  [1]      2018-08-07  Migration required for OpenSSH with LDAP
+  [2]      2019-05-23  Change of ACCEPT_LICENSE default
+  [3]      2020-06-23  sys-libs/pam-1.4.0 upgrade
+  [4]      2021-01-30  New OpenRC Display Manager Initializer Scripts
+  [5]      2021-07-20  Perl 5.34 upgrade now stable
+  [6]      2021-09-29  Possible failure to preserve libraries
+  [7]      2021-10-08  OpenSSH RSA SHA-1 signatures
+  [8]      2021-10-18  migrating from glibc[crypt] to libxcrypt in stable
+  [9]      2021-10-24  netifrc DHCP client
+  [10]     2022-03-30  Qt 5.15.3 version bump with binary path changes
+  [11]     2022-04-19  Migration to sys-apps/systemd-utils
+  [12]     2022-11-21  systemd-tmpfiles --clean enabled by default
+  [13]     2022-12-27  Introduction of app-alternatives ebuilds
+  [14]     2023-05-11  OpenSSH directory configuration changes
+code }
+
+
+  See also `man news.eselect`.
 
 }
 { Kernel configuration
@@ -52,4 +149,8 @@
 
  `/etc/env.d/`
 
+ `/var/db/repos/gentoo/profiles/use.desc` describes USE flags.
+
 }
+sa:
+  The → Linux/package-managers for Gentoo is → Linux/package-managers/Portage.
