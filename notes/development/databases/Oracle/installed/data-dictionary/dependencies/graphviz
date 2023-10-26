@@ -1,0 +1,58 @@
+$ Oracle: Creating a Graphviz file showing object depenendencies
+
+The following SQL statement queries `→ development/databases/Oracle/installed/data-dictionary/dependencies` and creates a → tools/Graphviz[Graphviz/dot] file that depects some dependencies among
+→ development/databases/Oracle/objects[database objects].
+
+code {
+with cur(owner_a, name_a, type_a,
+         owner_b, name_b, type_b,
+         lvl) as (
+  select
+     owner,
+     object_name,
+     object_type,
+    cast(null as varchar2(128)),
+    cast(null as varchar2(128)),
+    cast(null as varchar2(  5)),
+     0            lvl
+  from
+     dba_objects
+  where
+     owner       =     user             and
+     object_type =    'TABLE'           and
+     object_name like 'XYZ%'
+                                  union all
+  select
+     nxt.owner  , nxt.name  , nxt.type  ,
+     cur.owner_a, cur.name_a, cur.type_a,
+     cur.lvl +1
+  from
+     cur                                                            join
+     dba_dependencies nxt on nxt.referenced_owner = cur.owner_a and
+                             nxt.referenced_name  = cur.name_a  and
+                             nxt.referenced_type  = cur.type_a
+     where
+        nxt.type = 'VIEW'
+)
+search depth first by owner_a, name_a, type_a set order_by
+select 'digraph D { node [ shape=box ]' x from dual
+UNION ALL
+select * from
+(select distinct owner_a || '_' || name_a || ' [label="' || owner_a || '\n' || name_a || '\n' || type_a || '"]' x from cur union
+ select distinct owner_b || '_' || name_b || ' [label="' || owner_b || '\n' || name_b || '\n' || type_b || '"]' x from cur where owner_b is not null
+)
+UNION ALL
+select distinct x from (
+select
+   owner_b || '_' || name_b || ' -> ' ||
+   owner_a || '_' || name_a                  x
+from
+   cur
+where
+   lvl > 0
+)
+UNION ALL
+select '}' x from dual
+;
+code }
+
