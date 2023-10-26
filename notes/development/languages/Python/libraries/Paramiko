@@ -1,0 +1,38 @@
+
+Paramiko is a pure-Python (3.6+) implementation of the SSHv2 protocol 
+
+code {
+sudo pip3 install paramiko
+code }
+
+code {
+import paramiko
+
+local_file      = 'path/to/file'
+remote_host     = 'foo.bar.baz'
+remote_path     = 'remote/path/to/file'
+remote_user     = '…'
+remote_password = '…'
+
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+try:
+    ssh.connect(remote_host, username=remote_user, password=remote_password)
+    sftp = ssh.open_sftp()
+    sftp.put(local_file, remote_path)
+    sftp.close()
+    print(f'File {local_file} uploaded successfully.')
+
+except Exception as e:
+    print(f'Error uploading {local_file}. Reason: {str(e)}')
+
+finally:
+    ssh.close()
+code }
+
+sa:
+
+  → development/security/SSH
+
+  *Fabric* is the high-level SSH library recommended for common client use-cases such as running remote shell commands or transferring files.
