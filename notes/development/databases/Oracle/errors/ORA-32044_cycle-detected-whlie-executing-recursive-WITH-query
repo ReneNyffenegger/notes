@@ -1,0 +1,128 @@
+$ ORA-32044: cycle detected while executing recursive WITH query
+
+Creating two tables and fill them with some test data:
+code {
+create table tq84_elem (
+   id   char  (1) not null primary key,
+   data number(2) not null
+);
+
+create table tq84_link (
+   prev_elem  not null references tq84_elem,
+   next_elem  not null references tq84_elem,
+   primary key (prev_elem, next_elem)
+);
+
+begin
+
+   insert into tq84_elem values ('A', 7);
+   insert into tq84_elem values ('B', 2);
+   insert into tq84_elem values ('C',13);
+   insert into tq84_elem values ('D', 6);
+   insert into tq84_elem values ('E', 9);
+
+   insert into tq84_link values('B', 'D');
+   insert into tq84_link values('B', 'A');
+   insert into tq84_link values('A', 'C');
+   insert into tq84_link values('C', 'D');
+
+   commit;
+end;
+/
+code }
+
+Recursively querying the data:
+code {
+with rec(prev_elem, next_elem, prev_data, next_data, lvl) as (
+   select
+      lnk.prev_elem,
+      lnk.next_elem,
+      elp.data,
+      eln.data,
+      0
+   from
+      tq84_link lnk                             join
+      tq84_elem elp on lnk.prev_elem = elp.id   join
+      tq84_elem eln on lnk.next_elem = eln.id
+   where
+      prev_elem = 'B'
+union all
+   select
+      lnk.prev_elem,
+      lnk.next_elem,
+      rec.next_data,
+      eln.data,
+      lvl + 1
+   from
+      rec                                             join
+      tq84_link lnk on rec.next_elem = lnk.prev_elem  join
+      tq84_elem eln on lnk.next_elem = eln.id
+)
+search depth first by prev_elem set ord
+select
+   rpad(' ', lvl * 5) ||
+        prev_elem || ' (' || to_char(prev_data, 'fm99') || ') -> ' ||
+        next_elem || ' (' || to_char(next_data, 'fm99') || ')' x
+from
+   rec
+order by
+   ord;
+code }
+
+Adding the following record causes the error *ORA-32044: cycle detected while executing recursive WITH query* with the previous query.
+code {
+insert into tq84_link values ('D', 'A');
+commit;
+code }
+
+The `cycle` clause prevents the error:
+code {
+with rec(prev_elem, next_elem, prev_data, next_data, lvl) as (
+   select
+      lnk.prev_elem,
+      lnk.next_elem,
+      elp.data,
+      eln.data,
+      0
+   from
+      tq84_link lnk                             join
+      tq84_elem elp on lnk.prev_elem = elp.id   join
+      tq84_elem eln on lnk.next_elem = eln.id
+   where
+      prev_elem = 'B'
+union all
+   select
+      lnk.prev_elem,
+      lnk.next_elem,
+      rec.next_data,
+      eln.data,
+      lvl + 1
+   from
+      rec                                             join
+      tq84_link lnk on rec.next_elem = lnk.prev_elem  join
+      tq84_elem eln on lnk.next_elem = eln.id
+)
+search depth first by prev_elem set ord
+cycle prev_elem set cyl to 1 default 0                              -- <<=== Use cycle clause to prevent error
+select
+   rpad(' ', lvl * 5) ||
+        prev_elem || ' (' || to_char(prev_data, 'fm99') || ') -> ' ||
+        next_elem || ' (' || to_char(next_data, 'fm99') || ')' x
+from
+   rec
+order by
+   ord;
+code }
+
+Cleaning up:
+code {
+drop table tq84_link;
+drop table tq84_elem;
+code }
+
+
+sa:
+
+  → development/databases/Oracle/SQL/clauses/with[`with`] clause.
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
