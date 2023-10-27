@@ -38,14 +38,14 @@ search depth first by owner_a, name_a, type_a set order_by
 select 'digraph D { node [ shape=box ]' x from dual
 UNION ALL
 select * from
-(select distinct owner_a || '_' || name_a || ' [label="' || owner_a || '\n' || name_a || '\n' || type_a || '"]' x from cur union
- select distinct owner_b || '_' || name_b || ' [label="' || owner_b || '\n' || name_b || '\n' || type_b || '"]' x from cur where owner_b is not null
+(select distinct owner_a || '_' || replace(name_a, '$', 's') || ' [label="' || owner_a || '\n' || name_a || '\n' || type_a || '"]' x from cur union
+ select distinct owner_b || '_' || replace(name_b, '$', 's') || ' [label="' || owner_b || '\n' || name_b || '\n' || type_b || '"]' x from cur where owner_b is not null
 )
 UNION ALL
 select distinct x from (
 select
-   owner_b || '_' || name_b || ' -> ' ||
-   owner_a || '_' || name_a                  x
+   owner_b || '_' || replace(name_b, '$', 's') || ' -> ' ||
+   owner_a || '_' || replace(name_a, '$', 's')                  x
 from
    cur
 where
