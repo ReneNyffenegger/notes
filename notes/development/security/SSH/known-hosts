@@ -1,0 +1,43 @@
+$ SSH known hosts
+
+*Known hosts* file are stored globally in `/etc/ssh/ssh_known_hosts` and per user in `→ Linux/fhs/home/username/_ssh/known_hosts`.
+
+{ Format
+
+ `sshd(8)` documents the known hosts file format.
+
+  { Un-hashed format
+
+    Each line contains the following fields which are  separated by spaces
+    table { ll
+      hostnames ☰
+      bits ☰
+      exponent ☰
+      modulus ☰
+      comment ☰ optional, not used
+    table }
+
+    *Hostnames* is a comma-separated list of patterns (`*` and `?` being wildcards). Each pattern in turn is matched against the canonical host name (when authenticating a client) or against the user-supplied name (when authenticating a server). A pattern may also be preceded by `!` to indicate negation: if the host name matches a negated pattern, it is not accepted (by that line) even if it matched another pattern on the line. A hostname or address may optionally be enclosed within `[ … ]` brackets then followed by `:` and a non-standard port number.
+
+    *Bits*, *exponent* and `modulus* are taken directly from the RSA host key; they can be obtained, for example, from /etc/ssh/ssh_host_key.pub.
+
+  }
+  { Hashed format #ssh-known-hosts-hashed
+
+    The information might also be stored in a (SHA-1?) hashed format.
+    -
+    This format is indicated if a line starts with `|` (or `|1|` ?)
+
+    Because the format is hashed, the hostnames cannot be extracted from a hashed format.
+    -
+    However, it is possible to query the existence of a given hostname:
+code {
+$ → development/security/SSH/commands/keygen -H -F inexisting-host
+$ → development/security/SSH/commands/keygen -H -F existing-host
+# Host existing-host found: line 4
+|1|…
+code }
+
+  }
+
+}

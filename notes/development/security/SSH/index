@@ -1,6 +1,13 @@
 
-SSH stands for *Secure Shell*
+SSH stands for *Secure Shell*. The SSH protocol provides secure remote login and other secure network services over an insecure network (typically on top of → development/web/TCP-IP).
 -
+Features of SSH include
+  • strong encryption
+  • server authentication
+  • integrity protection
+  • optional compression (zlib)
+
+
 ? SSH replaces *r-commands* such as `rlogin`, `rsh` and `rcp`.
 
 code {
@@ -21,13 +28,13 @@ code }
   `-a` ☰  Disables forwarding of the authentication agent connection
   `-C` ☰ Request → development/compression of → development/Data (same algorithm as also `→ Linux/shell/commands/gzip` ueses)
   `-f` ☰ Go to background just before command execution. Useful if ssh is going to ask for passwords or passphrases, but the user wants it in the background.  The recommended way to start X11 programs at a remote site is with something like `ssh -f host xterm`. `-f` implies `-n`.
-  `-G` ☰ Print its configuration
+  `-G` ☰ Print its → development/security/SSH/configuration[configuration] after evaluating *Host* and *Match* blocks and exit.
   `-g` ☰ Allows remote hosts to connect to local forwarded ports.
   `-K` ☰ Enables GSSAPI-based authentication and forwarding (delegation) of GSSAPI credentials to the server.
   `-k` ☰
   `-M` ☰ Places the ssh client into “master” mode for connection sharing.
   `-N` ☰ Do not execute a remote command, useful for just forwarding ports.
-  `-n` ☰ Redirects stdin from `→ Linux/fhs/dev/null` (preventing reading from stdin). `-n` must be used when ssh is run in the background.  A common trick is to use this to run X11 programs on a remote machine: `ssh -n shadows.cs.hut.fi emacs &` will start an emacs on `shadows.cs.hut.f`i, and the X11 connection will be automatically forwarded over an encrypted channel. The ssh program will be put in the background. (This does not work if ssh needs to ask for a password or passphrase; see also the `-f` option.)
+  `-n` ☰ Redirects → development/stdin-stdout-stderr[stdin] from `→ Linux/fhs/dev/null` (preventing reading from stdin). `-n` must be used when ssh is run in the background.  A common trick is to use this to run X11 programs on a remote machine: `ssh -n shadows.cs.hut.fi emacs &` will start an emacs on `shadows.cs.hut.f`i, and the X11 connection will be automatically forwarded over an encrypted channel. The ssh program will be put in the background. (This does not work if ssh needs to ask for a password or passphrase; see also the `-f` option.)
   `-q` ☰ Quiet mode, compare with `-v`
   `-s` ☰
   `-T` ☰ Disable pseudo-terminal allocation.
@@ -44,7 +51,7 @@ code }
   `-D [bind_address:]port` ☰
   `-E log_file` ☰ 
   `-e escape_char` ☰  Specifies the escape character for sessions with a pty, default is `~`.
-  `-F configfile` ☰ 
+  `-F → development/security/SSH/configuration#ssh-config-file[configfile]` ☰ 
   `-I pkcs11` ☰ Specify the PKCS#11 shared library ssh should use to communicate with a PKCS#11 token providing keys for user authentication.
   `-i identity_file` ☰  Speficies itentity file having the private key used for authentication. Default is `~/.ssh/id_*`.
   `-J [user@]host[:port]` ☰
@@ -57,7 +64,7 @@ code }
   `-Q query_option` ☰ 
   `-R address` ☰ 
   `-S ctl_path` ☰ 
-  `-W host:port` ☰ Requests that standard input and output on the client be forwarded to host on port over the secure channel. Implies `-N`,` -T`, `ExitOnForwardFailure` and `ClearAllForwardings` (overwritable in configuration file or using `-o`)
+  `-W host:port` ☰ Requests that standard input and output on the client be forwarded to host on port over the secure channel. Implies `-N`,` -T`, `ExitOnForwardFailure` and `ClearAllForwardings` (overwritable in → development/security/SSH/configuration#ssh-config-file[configuration file] or using `-o`)
   `-w local_tun:remote_tun` ☰
 
   table }
@@ -80,6 +87,22 @@ code }
 }
 { TODO
 
+  { SSH Protocol
+
+    In order to use ~public key authentication~ in the SSH protocol, public keys must first be exchanged between client and server.
+    -
+    In the context of SSH, public keys are exchanged using public key exchange formats («key files», as described in → development/web/RFC#rfc-4716[RFC 4716]).
+
+    The SSH protocol also uses public/private key pairs to authenticate the server.
+
+    The security of the SSH protocol relies on the verification of public host keys.
+    -
+    So-called *fingerprints* makes it easier to compare such keys.
+    -
+    A fingerprint is obtained using the MD5 hash on the public key.j
+
+
+  }
   { Warning: Permanently added … (ECDSA) to the list of known hosts.
 
     What is the meaning and/or purpose of the warning *Permanently added … (→ development/security/cryptography/ECDSA) to the list of known hosts*?
@@ -152,9 +175,17 @@ sa:
  `→ Linux/sshd`
 
  `→ development/security/SSH/commands/keygen` generates, manages and converts authentication keys for SSH.
+ -
+ `→ development/security/SSH/commands/ssh-copy-id`
+ -
+ `→ development/security/SSH/commands/add` adds private key identities to the OpenSSH authentication agent.
 
  `→ Linux/fhs/home/username/_ssh`
 
-  → Windows/dirs/Windows/System32/OpenSSH
+ `→ Windows/dirs/Windows/System32/OpenSSH`
 
   The Python library → development/languages/Python/libraries/Paramiko
+
+  RFCs:
+    • → development/web/RFC#rfc-4253[4253]
+    • → development/web/RFC#rfc-4716[4716]

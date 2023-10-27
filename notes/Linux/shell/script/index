@@ -1,5 +1,60 @@
 $ shell script
 
+{ getopt
+
+code {
+while getopts fx:h OPTION; do
+
+  case $OPTION in
+    f)
+       echo f was specfied
+       ;;
+    x)
+       echo x was specified with value $OPTARG
+       ;;
+    h)
+       echo $0 [-f] [-x value] [-h]
+       ;;
+    esac
+
+done
+
+echo OPTIND=$OPTIND
+code }
+
+code {
+$ ./script
+OPTIND=1
+
+$ ./script -h
+./script [-f] [-x value] [-h]
+OPTIND=2
+
+$ ./script -x
+./script: option requires an argument -- x
+OPTIND=2
+
+$ ./script -x foo
+x was specified with value foo
+OPTIND=3
+
+$ ./script -xbar
+x was specified with value bar
+OPTIND=2
+
+$ ./script -f -x baz
+f was specfied
+x was specified with value baz
+OPTIND=4
+code }
+
+  The value of `OPTIND` can be used to «shift away» the option arguments so that the required arguments can be processed:
+code {
+shift $((OPTIND-1))
+code }
+
+}
+
 sa:
   → Linux/shell/script/shebang
 
