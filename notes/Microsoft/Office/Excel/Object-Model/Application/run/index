@@ -1,15 +1,56 @@
 $ Excel Object Model: Application.Run
 
-`Application.run` can be used to dynamically run a → development/languages/VBA/language/subs-and-functions[sub] by a name stored in a variable.
+`Application.run` can be used to dynamically run a → development/languages/VBA/language/subs-and-functions[sub or function] by a name stored in a variable.
+-
+The optional parameters of `run()` are passed to the sub/function being called.
+-
+In case of a function, the return value of the function is returned also from `run()`
 
-gh|about-MS-Office-object-model|/Excel/Application/run.bas||
+code {
+→ development/languages/VBA/language/statements/option/explicit
+
+sub main()
+
+    application.run "runSub", "subTwo"
+
+    debug.print application.run("funcOne",     19 ,     23 )
+    debug.print application.run("funcTwo", "Hello", "World")
+
+end sub
+
+sub runSub(subName as string)
+    debug.print "runSub tries to run " & subName
+    application.run subName
+end sub
+
+sub subOne()
+    debug.print "subOne was called"
+end sub
+
+sub subTwo()
+    debug.print "subTwo was called"
+end sub
+
+function funcOne(a as long, b as long) as long
+    funcOne = a + b
+end function
+
+function funcTwo(a as string, b as string) as string
+    funcTwo = a & " " & b
+end function
+code }
 
 sa:
+
   The → development/languages/VBA[Visual Basic for Application] function
   → development/languages/VBA/functions/callByName[`callByName`] and
   → Microsoft/Office/Excel/Object-Model/Application/onTime[`application.onTime`].
+
+  The `run()` method of the → Microsoft/Office/Excel/Object-Model/Range[`range`] object.
 
   → Microsoft/Office/Visual-Basic-Editor/Object-Model/CodeModule/create-VBA-module-while-executing[This example] demonstrates how it is possible to create a dynamic
   → development/languages/VBA/language/module[VBA module], place a `sub` into it and then call it using `application.run`.
   
   Excel's → Microsoft/Office/Excel/Object-Model/Application[`application` object].
+
+  The comparable → Microsoft/Office/Access/Object-Model/Application/run[`application.run()` of Access].
