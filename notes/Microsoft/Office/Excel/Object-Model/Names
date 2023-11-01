@@ -1,0 +1,80 @@
+$ Excel Object Model: Names
+
+{ Methods and properties
+
+  table { ll
+
+   → Microsoft/Office/Excel/Object-Model/Name#excel-name-create-and-use-in-function[`add()`] ☰
+   `application` ☰
+   `count` ☰
+   `creator` ☰
+   `item()` ☰
+   `parent` ☰
+
+  table }
+
+}
+{ Add #xls-names-add
+
+  { Parameters
+
+    table { ll
+  
+      `Name` ☰ English name (used if `nameLocal` is not specified).
+      `RefersTo` ☰	Describes what the name refers to, in English, using A1-style notation, if the RefersToLocal, RefersToR1C1, and RefersToR1C1Local parameters are not specified.
+      `ShortcutKey` ☰	Specifies the macro shortcut key. Must be a single letter, such as "z" or "Z". Applies only for command macros.
+      `Category` ☰	The category of the macro or function if the MacroType argument equals 1 or 2. The category is used in the Function Wizard. Existing categories can be referred to either by number, starting at 1, or by name, in English. Excel creates a new category if the specified category does not exist.
+      `CategoryLocal` ☰ The localized text that identifies the category of a custom function. Used if `category` is not specified
+      `NameLocal` ☰	Localized name. Compare with `name`.
+      `MacroType` ☰ 1: User-defined function; 2: Macro (`sub`); 3: neither function nor macro
+      `RefersToLocal` ☰ what `name` refers to, in localized text using A1-style notation. Used if `refersTo`, `refersToR1C1` and `refersToR1C1Local` are not specified.
+      `RefersToR1C1` ☰ What the name refers to, in English using R1C1-style notation, if the RefersTo, RefersToLocal, and RefersToR1C1Local parameters are not specified.
+      `RefersToR1C1Local` ☰	What the name refers to, in localized text using R1C1-style notation. Used if `refersTo`, `refersToLocal` and `refersToR1C1` are not specified.
+      `Visible` ☰ Hidden names to not appear in the *Define Name*, *Paste Name* or *Goto* dialog box. (Default: true)
+  
+    table }
+
+    All parameters have `→ development/languages/VBA/language/datatypes/variant` data types and are optional.
+:
+    Names (`name` and `nameLocal` cannot include spaces and cannot be formatted as cell references.
+  }
+
+  { Adding a named range to worksheet (rather than a workbook)
+
+    The following example uses the `refersTo` parameter to add a named range to a worksheet. If the commented code were used instead, the named ranges would be added to the workbook instead (causing the second assignment to overwrite the first one).
+
+code {
+option explicit
+
+sub main() ' {
+
+   if worksheets.
+application.displayAlerts = false
+   worksheets("WS 1").delete
+   worksheets("WS 2").delete
+application.displayAlerts = true
+
+    dim ws_1 as worksheet
+    dim ws_2 as worksheet
+
+    set ws_1 = worksheets.add : ws_1.name = "WS 1"
+    set ws_2 = worksheets.add : ws_2.name = "WS 2"
+
+'   ws_1.range("b2:c4").name = "randomNumbers"
+'   ws_2.range("e3:f6").name = "randomNumbers"
+    ws_1.names.add "randomNumbers", ws_1.range("b2:c4")
+    ws_2.names.add "randomNumbers", ws_2.range("e3:f6")
+
+    ws_1.range("randomNumbers").formula = "=rand()"
+    ws_2.range("randomNumbers").formula = "=rand()"
+
+end sub ' }
+code }
+
+  }
+
+}
+
+
+sa:
+  The → Microsoft/Office/Excel/Object-Model/Name[`name`] object
