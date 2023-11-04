@@ -1,0 +1,44 @@
+$ PL/SQL: Nested conditional compilation
+
+→ development/databases/Oracle/PL-SQL/compilation/conditional[Preprocessor conditional compilation] blocks can be nested:
+
+code {
+alter session set plsql_ccflags = 'flag_xyz:true';
+
+create or replace procedure tq84_test_nested_preproc authid definer as
+begin
+
+   $if true $then 
+
+      $if $$flag_xyz $then
+          dbms_output.put_line('This line is printed if flag xyz is set');
+      $else
+          dbms_output.put_line('This line is printed if flag xyz is not set');
+      $end
+
+   $else
+
+      $if $$flag_xyz $then
+          dbms_output.put_line('This line is not printed');
+      $else
+          dbms_output.put_line('This line is not printed');
+      $end
+
+   $end
+
+end tq84_test_nested_preproc;
+/
+
+begin
+   tq84_test_nested_preproc;
+end;
+/
+
+alter session set plsql_ccflags = 'flag_xyz:false';
+alter procedure tq84_test_nested_preproc compile;
+
+begin
+   tq84_test_nested_preproc;
+end;
+/
+code }
