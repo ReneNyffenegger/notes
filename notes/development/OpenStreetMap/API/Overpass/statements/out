@@ -12,14 +12,15 @@ rel
 out        //     <relation id="1682188">
 //  meta   //     <relation id="1682188" version="5" timestamp="2016-12-07T02:43:55Z" changeset="44224658" uid="339581" user="nyuriks">
 
-//  bb     //     Bounding box for each selected element?
+//  → #out-bb[bb]     //     Bounding box for each selected element?
 //         //     <relation id="1682188">
 //         //        <bounds minlat="47.4974379" minlon="8.6176417" maxlat="47.5218535" maxlon="8.6611408"/>
 
 //  center //     <relation id="1682188">
            //        <center lat="47.5096457" lon="8.6393912"/>
 
-//  geom   //     include <nd …> in ways
+//  geom   //     include coordinates in <nd …> tags.
+           //     Seems to be required to draw ways on the map.
 
 //  skel   //     Don't emit <tag k="…" v="…"> nodes.
 
@@ -27,7 +28,7 @@ out        //     <relation id="1682188">
 
 //  tags   //     Output IDs and tags
 
-    count  //     get number of nodes, ways, relations and their total.
+    → #out-count[count]  //     get number of nodes, ways, relations and their total.
 
 //  qt     //     Sort by quadtile index
 //                This is roughly geographical and significantly faster than order by ids.
@@ -58,7 +59,22 @@ code {
 code }
 
 }
-{ count
+{ bb #out-bb
+
+ `out bb` reports the bounding box of relations in a `<bounds>` tag with `minlat`, `minlon`, `maxlat` and `maxlon` attributes, for example:
+code {
+…
+  <relation id="1682188">
+    <bounds minlat="47.4974379" minlon="8.6176417" maxlat="47.5218535" maxlon="8.6611408"/>
+    …
+  </relation>
+…
+code }
+
+  See also the `→ development/OpenStreetMap/API/Overpass/settings/bbox` setting.
+
+}
+{ count #out-count
 
  `out count;` prints the total number of elements in the input set, broken down to type (i. e. nodes, ways, relations, areas).
 
@@ -82,7 +98,7 @@ code {
 </count>
 code }
 
-  { Count the number of `amenity=drinking_water` nodes, ways and relations in each canton of Switzerland #overpass-out-cnt-drinking_water
+  { Count the number of amenity=drinking_water nodes, ways and relations in each canton of Switzerland #overpass-out-cnt-drinking_water
 
 code {
 [out:csv(

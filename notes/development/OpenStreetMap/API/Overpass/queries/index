@@ -24,10 +24,10 @@ code {
 [→ development/OpenStreetMap/API/Overpass/settings/bbox[bbox]: → development/OpenStreetMap/API/Overpass/extensions/bbox ];
 
 (
-   nw[shop    ~'^(convenience|supermarket)'] ; 
+   nw[shop    ~'^(convenience|supermarket)'] ;
    nw[amenity ='shop'                      ] ;
 );
-  
+
 out geom;
 code }
 
@@ -103,6 +103,41 @@ nw['historic:civilization'     ] -> .res;
 code }
 
 }
+{ Tourism
+
+  The following query finds nodes and ways having the `tourism` tag-keys and filters out undesired tag-values.
+  -
+  This query is a variant of the two queries above in that it doesn't use the minus operator, but rather combines *not equal* predicates in *one* query:
+code {
+[bbox: {{bbox}}];
+
+nw [tourism                ]
+   [tourism != alpine_hut    ] // <--
+   [tourism != artwork       ]
+   [tourism != apartment     ]
+// [tourism != attraction    ] // <--
+   [tourism != camp_site     ]
+   [tourism != caravan_site  ]
+   [tourism != chalet        ]
+   [tourism != gallery       ]
+   [tourism != guest_house   ]
+   [tourism != hotel         ]
+   [tourism != hostel        ]
+   [tourism != information   ]
+   [tourism != motel         ]
+   [tourism != museum        ]
+   [tourism != picnic_site   ] // <--
+   [tourism != resort        ]
+   [tourism != viewpoint     ] // <--
+   [tourism != wilderness_hut]
+   [tourism != yes           ]
+   [tourism != zoo           ] // <--
+;
+
+out geom;
+code }
+
+}
 { Megaliths
 
 code {
@@ -124,7 +159,7 @@ code {
     false;  // No header
    '|'      // Seperator
 )];
-  
+
 relation
    [admin_level='2']
    ["ISO3166-1"~"^..$"];

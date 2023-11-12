@@ -26,14 +26,14 @@ The parent directory of the directory into which Robocopy is supposed to copy a 
       `/ZB` ☰ use restartable mode; if access denied use Backup mode.
       `/J` ☰ copy using unbuffered I/O (recommended for large files).
       `/EFSRAW` ☰ copy all encrypted files in EFS RAW mode.
-      `/COPY:copyflag[s]` ☰ what to COPY for files (default is /COPY:DAT).  (copyflags : D=Data, A=Attributes, T=Timestamps, X=Skip alt data streams).  (S=Security=NTFS ACLs, O=Owner info, U=aUditing info).
-      `/SEC` ☰ copy files with SECurity (equivalent to /COPY:DATS).
-      `/COPYALL` ☰ COPY ALL file info (equivalent to /COPY:DATSOU).
-      `/NOCOPY` ☰ COPY NO file info (useful with /PURGE).
+      `/COPY:copyflag[s]` ☰ what to COPY for files (default is `/COPY:DAT`).  (copyflags : D=Data, A=Attributes, T=Timestamps, X=Skip alt data streams).  (S=Security=NTFS ACLs, O=Owner info, U=aUditing info).
+      `/SEC` ☰ copy files with SECurity (equivalent to `/COPY:DATS`).
+      `/COPYALL` ☰ COPY ALL file info (equivalent to `/COPY:DATSOU`).
+      `/NOCOPY` ☰ COPY NO file info (useful with `/PURGE`).
       `/SECFIX` ☰ FIX file SECurity on all files, even skipped files.
       `/TIMFIX` ☰ FIX file TIMes on all files, even skipped files.
       `/PURGE` ☰ delete dest files/dirs that no longer exist in source.
-      `/MIR` ☰ MIRror a directory tree (equivalent to /E plus /PURGE).
+      `/MIR` ☰ MIRror a directory tree (equivalent to `/E` plus `/PURGE`).
       `/MOV` ☰ MOVe files (delete from source after copying).
       `/MOVE` ☰ MOVE files AND dirs (delete from source after copying).
       `/A+:[RASHCNET]` ☰ add the given Attributes to copied files.
@@ -48,9 +48,9 @@ The parent directory of the directory into which Robocopy is supposed to copy a 
       `/IPG:n` ☰ Inter-Packet Gap (ms), to free bandwidth on slow lines.
       `/SJ` ☰ copy Junctions as junctions instead of as the junction targets.
       `/SL` ☰ copy Symbolic Links as links instead of as the link targets.
-      `/MT[:n]` ☰ Do multi-threaded copies with n threads (default 8).  n must be at least 1 and not greater than 128.  This option is incompatible with the /IPG and /EFSRAW options.  Redirect output using /LOG option for better performance.
-      `/DCOPY:copyflag[s]` ☰ what to COPY for directories (default is /DCOPY:DA).  (copyflags : D=Data, A=Attributes, T=Timestamps, E=EAs, X=Skip alt data streams).
-      `/NODCOPY` ☰ COPY NO directory info (by default /DCOPY:DA is done).
+      `/MT[:n]` ☰ Do multi-threaded copies with n threads (default 8).  n must be at least 1 and not greater than 128.  This option is incompatible with the /IPG and /EFSRAW options. Redirect output using `/LOG` option for better performance.
+      `/DCOPY:copyflag[s]` ☰ what to COPY for directories (default is `/DCOPY:DA`). (copyflags : D=Data, A=Attributes, T=Timestamps, E=EAs, X=Skip alt data streams).
+      `/NODCOPY` ☰ COPY NO directory info (by default `/DCOPY:DA` is done).
       `/NOOFFLOAD` ☰ copy files without using the Windows Copy Offload mechanism.
       `/COMPRESS` ☰ Request network compression during file transfer, if applicable.
     table }
@@ -99,13 +99,13 @@ The parent directory of the directory into which Robocopy is supposed to copy a 
       `/R:n` ☰ number of Retries on failed copies: default 1 million.
       `/W:n` ☰ Wait time between retries: default is 30 seconds.
 
-      `/REG` ☰ Save /R:n and /W:n in the Registry as default settings.
+      `/REG` ☰ Save `/R:n` and `/W:n` in the → Windows/registry registry as default settings.
 
       `/TBD` ☰ Wait for sharenames To Be Defined (retry error 67).
 
       `/LFSM` ☰ Operate in low free space mode, enabling copy pause and resume (see Remarks).
 
-      `/LFSM:n[KMG]` ☰ /LFSM, specifying the floor size in n [K:kilo,M:mega,G:giga] bytes.
+      `/LFSM:n[KMG]` ☰ `/LFSM`, specifying the floor size in n [K:kilo,M:mega,G:giga] bytes.
 
     table }
   }
@@ -158,10 +158,71 @@ The parent directory of the directory into which Robocopy is supposed to copy a 
   }
 }
 
+{ Syncing two directories
+
+code {
+robocopy /mir    S:\ource\dir D:\estination\dir
+code }
+
+  Copy only files with the archive bit set, and then reset it:
+code {
+robocopy /mir /m S:\ource\dir D:\estination\dir
+code }
+
+  { Test
+
+code {
+→ Windows/dirs/Windows/System32/cmd_exe/commands/rmdir /s /q robocopy-test
+→ Windows/dirs/Windows/System32/cmd_exe/commands/mkdir robocopy-test
+
+mkdir robocopy-test\src
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/cd robocopy-test
+
+mkdir src\dir-one
+mkdir src\dir-two
+mkdir src\dir-two\a
+mkdir src\dir-two\b
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/echo x > src\dir-one\x
+echo p > src\dir-two\a\p
+echo q > src\dir-two\a\q
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/rem --------------------
+
+mkdir dst
+mkdir dst\dir-two
+mkdir dst\dir-two\a
+mkdir dst\dir-two\to-be-deleted
+
+echo d > dst\dir-two\to-be-deleted\d
+
+rem
+rem    Following file is expected to contain x after syncing
+rem
+echo y > dst\dir-one\x
+
+rem --------------------
+
+robocopy /mir .\src .\dst
+
+rem
+rem Compare directory structures
+rem 
+
+→ Windows/dirs/Windows/System32/tree_com[tree] /f .\scr
+tree /f .\dst
+
+→ Windows/dirs/Windows/System32/cmd_exe/commands/type dst\dir-one\x
+code }
+
+  }
+
+}
 { Copy directory structure, but only certain file types
 
 code {
-robocopy S:\ource\dir  D:\estination\dir *.docx *.xlsx /s
+robocopy S:\ource\dir D:\estination\dir *.docx *.xlsx /s
 code }
 
 }
@@ -177,5 +238,7 @@ code }
 sa:
   The → Windows/dirs/Windows/System32/cmd_exe/commands/copy[`cmd.exe` built-in command `copy`] and
   → Windows/dirs/Windows/System32/xcopy_exe[`xcopy.exe`]
+
+  The Linux shell command `→ Linux/shell/commands/rsync`
 
   Apparently, `robocopy.exe` also comes with the *Windows Server 2003 Resource Kit Tools*, see → Windows/dirs/Program-Files-x86/Windows-Resource-Kits/Tools.
