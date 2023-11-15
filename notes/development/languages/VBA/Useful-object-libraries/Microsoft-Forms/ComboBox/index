@@ -1,0 +1,163 @@
+@ MS Forms 2.0 Object Library: ComboBox
+
+{ Methods, properties and events
+
+  table { ll
+    `addItem()` ☰
+    `autoSize` ☰
+    `autoTab` ☰
+    `autoWordSelect` ☰
+    `backColor` ☰
+    `backStyle` ☰
+    `borderColor` ☰
+    `borderStyle` ☰
+    `boundColumn` ☰
+    `canPaste` ☰
+    `clear()` ☰
+    `click()` ☰ An event which is triggered when the user selects a value.
+    `column` ☰
+    `columnCount` ☰
+    `columnHeads` ☰
+    `columnWidths` ☰
+    `copy()` ☰
+    `curTargetX` ☰
+    `curX` ☰
+    `cut()` ☰
+    `dragBehavior` ☰
+    `dropButtonStyle` ☰
+    `dropDown()` ☰
+    `enabled` ☰
+    `enterFieldBehavior` ☰
+    `foreColor` ☰
+    `hideSelection` ☰
+    `iMEMode` ☰
+    `lineCount` ☰
+    `list` ☰
+    `listCount` ☰
+    `listIndex` ☰
+    `listRows` ☰
+    `listStyle` ☰
+    `listWidth` ☰
+    `locked` ☰
+    `matchEntry` ☰
+    `matchFound` ☰
+    `matchRequired` ☰
+    `maxLength` ☰
+    `mouseIcon` ☰
+    `mousePointer` ☰
+    `paste()` ☰
+    `removeItem()` ☰
+    `selectionMargin` ☰
+    `selLength` ☰
+    `selStart` ☰
+    `selText` ☰
+    `showDropButtonWhen` ☰
+    `specialEffect` ☰
+    `style` ☰
+    `text` ☰
+    `textAlign` ☰
+    `textColumn` ☰
+    `textLength` ☰
+    `topIndex` ☰
+    `value` ☰
+
+  table }
+
+}
+{ Example
+
+  The following example demonstrates how a combobox xan be added to a page (`initCombobox.vb`) and how events fired by the combobox can be caught (`demoContainer.vb`).
+
+  Note, the values filled into the combobox with `addItem` will be lost when the workbook is closed.
+
+  { initCombobox.vb
+
+code {
+option explicit
+
+sub createCombobox() ' {
+
+   dim rng as range
+   set rng = democontainer.range(democontainer.cells(2,2), democontainer.cells(2, 4))
+
+   rng.entireRow.rowHeight = 17
+
+   dim obj as oleObject
+   set obj = democontainer.OLEObjects.add( _
+      classType       := "Forms.Combobox.1"  , _
+      link            :=  false             , _
+      displayAsIcon   :=  false             , _
+      left            :=  rng.left          , _
+      top             :=  rng.top           , _
+      width           :=  rng.width         , _
+      height          :=  rng.height          _
+   )
+
+   dim cb as msForms.comboBox
+   set cb = obj.object
+
+   with cb ' {
+     .name              ="cb"
+     .columnCount       = 3
+     .borderStyle       = fmBorderStyleSingle
+     .columnWidths      ="60;30;30"
+
+     .addItem : .list(0,0) = "Apple"  : .list(0,1) = 17 : .list(0,2) = "abc"
+     .addItem : .list(1,0) = "Banana" : .list(1,1) = 12 : .list(1,2) = "def ghi"
+     .addItem : .list(2,0) = "Cherry" : .list(2,1) = 21 : .list(2,2) = "xyz"
+
+   end with ' }
+
+   obj.linkedCell = rng.resize(1,1).offset(3).address
+
+end sub ' }
+code }
+
+  }
+  { demoContainer.vb
+
+code {
+option explicit
+
+private sub cb_change()
+    dim id as long
+    id = me.db.list(me.db.listIndex, 1)
+    debug.print "value = " & me.db.value & ", id = " & id
+end sub
+code }
+
+  }
+  { create.ps1
+
+code {
+set-strictMode -version latest
+ 
+$dir           = split-path $myInvocation.myCommand.path
+$wbFile = "$dir\combobox-text.xlsm"
+ 
+$xls = get-msOfficeComObject excel
+$wb = $xls.workbooks.add()
+ 
+add-msVBEditorReference         $xls '{0D452EE1-E08F-101A-852E-02608C4D0BB4}'  2 0 # Microsoft Forms 2.0
+add-msVBEditorModule            $xls "$dir/initCombobox.vb" 'initCombobox' 1
+ 
+$null =
+add-msVBEditorSheetWithModule   $wb  'demoContainer' "$dir/demoContainer.vb"
+ 
+$displayAlerts = $xls.displayAlerts
+$xls.displayAlerts = $false
+$wb.sheets("Sheet1").delete()
+$xls.displayAlerts = $displayAlerts
+ 
+$xls.run('createCombobox')
+ 
+$wb.SaveAs($wbFile, 52) # 52 = xlsm
+code }
+
+  }
+
+}
+
+
+sa:
+  → development/languages/VBA/Useful-object-libraries/Microsoft-Forms
