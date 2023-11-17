@@ -47,6 +47,35 @@
   X is usually started with → Linux/X/xinit.
 
 }
+{ VcXsrv
+
+  I don't like installers, therefore, I want to extract the content of the VcXsrv installer. First, the installer is downloaded to `~/Downloads`. Then:
+code {
+$ mkdir  /mnt/c/Users/Rene/vcxsrv
+$ 7z x -o/mnt/c/Users/Rene/vcxsrv vcxsrv-64.1.20.14.0.installer.exe
+code }
+
+  Adding the address of the connecting client to `C:\Users\Rene\vcxsrv\X0.hosts` (in order to prevent the *Authorization required, but no authorization protocol specified* error message
+  when starting an X client.
+
+  Then: start the server
+code {
+C:\users\rene\vcxsrv\vcxsrv.exe" :0 -multiwindow -clipboard -wgl
+code }
+ 
+  Unblock the firewall to allow x-clients to connect to VcXsrv:
+code {
+PS C:\> get-netFirewallRule -displayName vcxsrv.exe
+PS C:\> set-netFirewallRule -displayName vcxsrv.exe -action allow
+code }
+
+  Now, on the Linux side (192.168.0.89 is the Address of the Windows Machine whre VcXsrv is running):
+code {
+$ export DISPLAY=192.168.0.89:0
+$ xterm
+code }
+
+}
 
 sa:
  `→ Linux/fhs/etc/X11`,
