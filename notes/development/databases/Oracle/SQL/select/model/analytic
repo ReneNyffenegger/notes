@@ -1,0 +1,47 @@
+$ Oracle SQL MODEL: Using analytic clauses
+
+code {
+create table tq84_model_analytic(
+   id   integer primary key,
+   txt  varchar2(10)
+);
+ 
+begin
+   insert into tq84_model_analytic values (1, 'one'  );
+   insert into tq84_model_analytic values (2, 'two'  );
+   insert into tq84_model_analytic values (3, 'three');
+   insert into tq84_model_analytic values (6, 'six'  );
+   insert into tq84_model_analytic values (9, 'nine' );
+   commit;
+end;
+/
+ 
+select
+   *
+from
+   tq84_model_analytic
+→ development/databases/Oracle/SQL/select/model
+   dimension by (
+      id
+   )
+   measures (
+      txt,
+      cast(null as number(4)      )  pos,
+      cast(null as varchar2(20)   )  prev_txt
+   )
+   rules (
+     pos     [any] = row_number(   ) over (order by id),
+     prev_txt[any] = lag       (txt) over (order by id)
+   );
+--
+--         ID TXT               POS PREV_TXT           
+-- ---------- ---------- ---------- --------------------
+--          1 one                 1                    
+--          2 two                 2 one                
+--          3 three               3 two                
+--          6 six                 4 three              
+--          9 nine                5 six    
+code }
+
+sa:
+  An example that demonstrates the combination of analytic clauses with the `model` clause is → development/databases/Oracle/SQL/select/model/examples/incremental-string-concatenation[incremental string concatenation].

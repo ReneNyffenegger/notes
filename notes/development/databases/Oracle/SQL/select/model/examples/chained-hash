@@ -1,0 +1,56 @@
+$ Oracle SQL MODEL clause example: Chained hash
+
+code {
+create table tq84_model_chained_hash (
+   id   integer primary key,
+   txt  varchar2(10)
+);
+
+begin
+   insert into tq84_model_chained_hash values (1, 'one'  );
+   insert into tq84_model_chained_hash values (2, 'two'  );
+   insert into tq84_model_chained_hash values (3, 'three');
+   insert into tq84_model_chained_hash values (6, 'six'  );
+   insert into tq84_model_chained_hash values (9, 'nine' );
+   commit;
+end;
+/
+
+select
+   *
+from
+   tq84_model_chained_hash
+→ development/databases/Oracle/SQL/select/model
+   dimension by (id)
+   measures (
+      txt,
+      cast(null as raw(32)) chained_hash
+   )
+   rules update automatic order (
+     chained_hash[any] = standard_hash(lag(chained_hash) over (order by id) || txt[cv()], 'SHA256')
+   )
+;
+--         ID TXT        CHAINED_HASH
+-- ---------- ---------- ----------------------------------------------------------------
+--          1 one        7692C3AD3540BB803C020B3AEE66CD8887123234EA0C6E7143C0ADD73FF431ED
+--          2 two        8667564FDF8445FA8CDB81E5CDAA994EDB7B47B7D13D70ADA78C31F8DF346022
+--          3 three      E37D8E76CAD77336E991A201F7F9381E4C41535F72131482F02CA8364DB07C09
+--          6 six        AFF7C303C041ECC427799BAB97BBA9E2EAC187560F8DF5B822F98B1758CF114A
+--          9 nine       2E98D6228D4FDDB0924ED418533E74E89FFE01F7FA3DB0CD5F55F75CB6D76BBE
+code }
+
+More explicit calculation:
+code {
+select
+    standard_hash(                                                                      'one'  , 'SHA256') h1,
+    standard_hash('7692C3AD3540BB803C020B3AEE66CD8887123234EA0C6E7143C0ADD73FF431ED' || 'two'  , 'SHA256') h2,
+    standard_hash('8667564FDF8445FA8CDB81E5CDAA994EDB7B47B7D13D70ADA78C31F8DF346022' || 'three', 'SHA256') h3,
+    standard_hash('8667564FDF8445FA8CDB81E5CDAA994EDB7B47B7D13D70ADA78C31F8DF346022' || 'six'  , 'SHA256') h4,
+    standard_hash('AFF7C303C041ECC427799BAB97BBA9E2EAC187560F8DF5B822F98B1758CF114A' || 'nine' , 'SHA256') h5
+from
+    dual;
+
+H1                                                               H2                                                               H3                                                               H4                                                               H5
+---------------------------------------------------------------- ---------------------------------------------------------------- ---------------------------------------------------------------- ---------------------------------------------------------------- ----------------------------------------------------------------
+7692C3AD3540BB803C020B3AEE66CD8887123234EA0C6E7143C0ADD73FF431ED 8667564FDF8445FA8CDB81E5CDAA994EDB7B47B7D13D70ADA78C31F8DF346022 E37D8E76CAD77336E991A201F7F9381E4C41535F72131482F02CA8364DB07C09 92605404B9A30ED90D2069A53C48936E819109C12E2D759944A8E82E78B6EFF0 2E98D6228D4FDDB0924ED418533E74E89FFE01F7FA3DB0CD5F55F75CB6D76BBE
+code }
