@@ -1,0 +1,34 @@
+$ Python standard library: netrc
+@ netrc
+
+`netrc` reads and parses files adhering to the *netrc format* (like `→ Linux/fhs/home/username/_netrc`)
+
+code {
+→ development/languages/Python/statements/import netrc
+→ development/languages/Python/statements/import → development/languages/Python/standard-library/os
+→ development/languages/Python/statements/import → development/languages/Python/libraries/Paramiko[paramiko]
+
+server_name='milky.way'
+
+netrc_file = os.path.join(os.path.expanduser('~'), '.netrc')
+authenticators = netrc.netrc(netrc_file).authenticators(server_name)
+
+if authenticators:
+    username, _, password = authenticators
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    ssh.connect(server_name, port=2121, username=username, password=password)
+
+  # do stuff
+
+    ssh.close()
+else:
+    print(f'Credentials for {server_name} not found in {netrc_file}')
+code }
+
+sa:
+
+  → development/languages/Python/standard-library
+
