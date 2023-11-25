@@ -1,21 +1,30 @@
 $ Cloud Shell (Azure)
+@ Cloud Shell
 
 *Azure Cloud Shell* provides a → Linux/shell/bash[Bash] or a → Windows/PowerShell[PowerShell] *shell* in a → development/web/browser.
 
-A user can change the default shell to be used for the next session anytime via the environment selector in the *Cloud Shell toolbar*
-
 The → development/web/URI-URL-URN-IRI-URC#url[URL] of the *Azure portal* is → https://shell.azure.com/[shell.azure.com]
 
-Azure Cloud Shell requires an Azure file share to persist files across sessions.
--
-The storage is mounted onto `~/clouddrive`.
--
-`~` is is persisted as an `.img` in the Azure File share.
--
-Files outside of `~` (as well as the machine state) are not persisted across sessions.
+Cloud Shell requires
+  • the → Microsoft/Azure#az-resource-provider[resource provider] *Microsoft.CloudShell* to be enabled.
+  • an Azure file share to persist files across sessions. (The storage is mounted onto `~/clouddrive`, `~` is is persisted as an `.img` in the Azure File share. Files outside of `~` (as well as the machine state) are not persisted across sessions.)
+
+A user can change the default shell to be used for the next session anytime via the environment selector in the *Cloud Shell toolbar*
 
 All functionality that is provided through the *Azure Cloud Shell* is also available on the → Microsoft/Azure/products/Portal[Portal] within 180 days after the initial release (on the Shell?)
 
+{ First use
+
+  When Cloud Shell is used the first time, it asks to assign *storage*:
+  gh|about-Azure|/Cloud-Shell/required-storage/01.png||
+
+  Clicking *advanced options* allows to enter the name for a *resource group*  , *storage account* and *file share*.
+ (Note that there are some restrictions for the names: For example, the resource name can only consist of → https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftresources[letters, digits, underscores, hyphens, parantheses] or
+  the storage account only of numbers and lowercase letters).
+  gh|about-Azure|/Cloud-Shell/required-storage/02.png||
+
+
+}
 { Copy Paste
 
   Text can be copied from the shell with `ctrl+v` and inserted into the shell with `shift+insert`.
@@ -137,8 +146,20 @@ code }
 
 }
 
-{ Misc
+{ az init
 
+  → https://techcommunity.microsoft.com/t5/azure-tools-blog/streamline-configuring-azure-cli-with-az-init/ba-p/3051810[The init extension] is intended to quickly set up global configurations for an enverionment.
+code {
+$ az extension add --upgrade --name init
+The installed extension 'init' is in preview.
+
+$ az init
+…
+code }
+
+
+}
+{ Misc
 
   { az commands
 
@@ -182,6 +203,37 @@ code }
   }
 
 }
+{ TODO
+
+code {
+$ az provider list -o table
+$ az vm list -g $RESOURCE_GROUP_NAME --query "[].id" -o tsv
+$ az config get
+$ ls ~/.azure
+$ az login
+$ az feedback
+code }
+
+code {
+$ az configure --list-defaults
+…
+
+$ az configure
+Welcome to the Azure CLI! This command will guide you through logging in and setting some default values.
+
+Your settings can be found at /home/rene/.azure/config
+Your current configuration is as follows:
+…
+code }
+
+code {
+$ az init
+code }
+
+}
 
 sa:
+
+  → Microsoft/Azure/CLI
+
   → Microsoft/Azure/products/Portal

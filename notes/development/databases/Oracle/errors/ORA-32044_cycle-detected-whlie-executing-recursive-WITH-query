@@ -1,6 +1,6 @@
 $ ORA-32044: cycle detected while executing recursive WITH query
 
-Creating two tables and fill them with some test data:
+Creating two tables and fill them with some test data.
 code {
 create table tq84_elem (
    id   char  (1) not null primary key,
@@ -15,25 +15,25 @@ create table tq84_link (
 
 begin
 
-   insert into tq84_elem values ('A', 7);
-   insert into tq84_elem values ('B', 2);
-   insert into tq84_elem values ('C',13);
-   insert into tq84_elem values ('D', 6);
-   insert into tq84_elem values ('E', 9);
+   insert into tq84_elem values('A',  7 );
+   insert into tq84_elem values('B',  2 );
+   insert into tq84_elem values('C', 13 );
+   insert into tq84_elem values('D',  6 );
+   insert into tq84_elem values('E',  9 );
 
    insert into tq84_link values('B', 'D');
    insert into tq84_link values('B', 'A');
    insert into tq84_link values('A', 'C');
    insert into tq84_link values('C', 'D');
 
-   commit;
+   → development/databases/Oracle/SQL/TCL/commit;
 end;
 /
 code }
 
 Recursively querying the data:
 code {
-with rec(prev_elem, next_elem, prev_data, next_data, lvl) as (
+→ development/databases/Oracle/SQL/clauses/with[with] rec(prev_elem, next_elem, prev_data, next_data, lvl) as (
    select
       lnk.prev_elem,
       lnk.next_elem,
@@ -68,14 +68,29 @@ from
 order by
    ord;
 code }
-
-Adding the following record causes the error *ORA-32044: cycle detected while executing recursive WITH query* with the previous query.
+ 
+The insert data essentially represents a → https://en.wikipedia.org/wiki/Directed_graph[directed graph] with the values in `tq84_elem` being the nodes and the values in `tq84_link` the edges. The previous query's result is:
 code {
-insert into tq84_link values ('D', 'A');
-commit;
+B (2) -> A (7)
+     A (7) -> C (13)
+          C (13) -> D (6)
+B (2) -> D (6)
 code }
 
-The `cycle` clause prevents the error:
+The current data does not have cycles in the directed graph, it thus is an → https://en.wikipedia.org/wiki/Directed_acyclic_graph[directed acyclic graph].
+
+Adding the following record creates a cycle in the graph (`D -> A -> C -> D`).
+code {
+begin
+   insert into tq84_link values ('D', 'A');
+   commit;
+end;
+/
+code }
+
+Because the data is now cyclic, the above recursive query causes the error *ORA-32044: cycle detected while executing recursive WITH query* with the previous query.
+
+Using the `cycle` clause prevents the error:
 code {
 with rec(prev_elem, next_elem, prev_data, next_data, lvl) as (
    select
@@ -114,6 +129,20 @@ order by
    ord;
 code }
 
+Preventing the error comes with the cost that the result set is now blown up because some links (such as `D -> A`) are reported multiple times, the result set is:
+code {
+B (2) -> A (7)
+     A (7) -> C (13)
+          C (13) -> D (6)
+               D (6) -> A (7)
+                    A (7) -> C (13)
+B (2) -> D (6)
+     D (6) -> A (7)
+          A (7) -> C (13)
+               C (13) -> D (6)
+                    D (6) -> A (7)
+code }
+
 Cleaning up:
 code {
 drop table tq84_link;
@@ -123,6 +152,8 @@ code }
 
 sa:
 
-  → development/databases/Oracle/SQL/clauses/with[`with`] clause.
+  → development/databases/Oracle/SQL/select/hierarchical-queries/common-table-expressions[Hierachical queries with Common Table Expressions (CTEs)].
+
+  The → development/databases/Oracle/SQL/clauses/with[`with`] clause.
 
   → development/databases/Oracle/errors[Other Oracle error messages]
