@@ -1,0 +1,56 @@
+$ PEP 3333 - Python Web Server Gateway Interface v1.0.1 (WSGI)
+
+PEP 3333 proposes a *simple and universal interface* between → web/webserver[webservers] and → development/languages/Python#py-web-app-frameworks[Python web applications or frameworks], similar to the Java servlet API.
+
+The goal of WSGI is to facilitate easy interconnection of existing servers and applications or frameworks, not to create a new web framework.
+
+{ Callables
+
+  WSGI specifies a few callable interfaces. Their arguments are always positional and must not be called with argument names.
+
+}
+{ The two sides of WSGI
+
+  The WSGI interface has two sides:
+    • the *server* or *gateway* side, and
+    • the *application* or *framework* side.
+
+  The server side invokes a → development/languages/Python/objects/callable[callable object] that is provided by the application side.
+  
+  { Callable object of the application
+
+    The application's callable object has two arguments:
+    table { ll
+      `environ` ☰ A `dict` whose key/value pairs correspond to (CGI style) enviornment variables and, additionally, with the following keys: `wsgi.input`, `wsgi.errors`, `wsgi.version`, `wsgi.multithread`, `wsgi.multiprocess`, `wsgi.run_once`
+      `start_response` ☰ A callable that accepts three parameters which is called by the callable objet provided by the application side. The three parameters are `status`, `response_headers` and (default) `exc_info`. `start_response` returns a `write(body_data)` callable (but this callable should not be used as it exists for historical reasons only).
+    table }
+
+    The arguments are positional, hence they're not required to be named exactly as listed above.
+
+  }
+  { Callable object passed as start_response
+
+    table { ll
+      `status` ☰ Used to set the HTTP response's → development/web/HTTP/status-code[status code] (such as `200 OK` or `404 Not Found`).
+      `response_headers` ☰ A list of tuples, each of which has two elements: the → development/web/HTTP/header[header's] name and value.
+    table }
+
+  }
+
+}
+{ Strings
+
+  WSGI defines two types of strings:
+    • Native strings (The `→ development/languages/Python/types/string` object)
+    • Byte strings (The `→ development/languages/Python/types/bytes` object
+
+}
+
+sa:
+  A small list of → development/languages/Python/PEP[other interesting PEPs]
+
+  ASGI (Asynchronous Server Gateway Interface) is the successor to WSGI. Unlike WSGI, ASGI provides a standard for *asynchronous* apps (but is backwards compatible to WSGI).
+
+links:
+  → https://peps.python.org/pep-0249/
+
