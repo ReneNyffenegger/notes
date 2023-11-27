@@ -1,7 +1,99 @@
-@ az option: --query
+$ az option: --query
 @ --query
 
-The `→ Microsoft/Azure/CLI/az` option `--query` applies → development/languages/JavaScript/JSON/querying/JMESPath expressions on the result.
+The `→ Microsoft/Azure/CLI/az` option `--query` applies → development/languages/JavaScript/JSON/querying/JMESPath expressions on the `az` commands returned JSON objects.
+
+code {
+$ az vm image list
+[
+  {
+    "architecture": "x64",
+    "offer": "CentOS",
+    "publisher": "OpenLogic",
+    "sku": "8_5-gen2",
+    "urn": "OpenLogic:CentOS:8_5-gen2:latest",
+    "urnAlias": "CentOS85Gen2",
+    "version": "latest"
+  },
+  {
+    "architecture": "x64",
+    "offer": "debian-11",
+    "publisher": "Debian",
+    "sku": "11-backports-gen2",
+    "urn": "Debian:debian-11:11-backports-gen2:latest",
+    "urnAlias": "Debian11",
+    "version": "latest"
+  },
+  …
+]
+code }
+
+Get a specific value:
+code {
+$ az vm image list --query [].offer
+[
+  "CentOS",
+  "debian-11",
+  "flatcar-container-linux-free",
+  "openSUSE-leap-15-4",
+  "RHEL",
+  "sles-15-sp3",
+  "0001-com-ubuntu-server-jammy",
+  "WindowsServer",
+  "WindowsServer",
+   …
+]
+code }
+
+code {
+$ az vm image list --query '[][ offer, publisher ]'
+[
+  [
+    "CentOS",
+    "OpenLogic"
+  ],
+  [
+    "debian-11",
+    "Debian"
+  ],
+  …
+]
+code }
+
+Using the `-o` (or `--output`) option to format the result more nicely:
+code {
+$ az vm image list --query '[][ offer, publisher ]' -o table
+Column1                       Column2
+----------------------------  ----------------------
+CentOS                        OpenLogic
+debian-11                     Debian
+flatcar-container-linux-free  kinvolk
+…
+code }
+
+Rename the column headings. Note the dot after `[]`:
+code {
+$ az vm image list --query '[].{ Offer: offer, Publisher: publisher }' -o table
+Offer                         Publisher
+----------------------------  ----------------------
+CentOS                        OpenLogic
+debian-11                     Debian
+flatcar-container-linux-free  kinvolk
+code }
+
+Filter the result set. Note that the filtered value (here: `WindowsServer`) must be placed in single quotes:
+code {
+$ az vm image list --query "[?offer != 'WindowsServer' ].offer" -o table
+Result
+----------------------------
+CentOS
+debian-11
+flatcar-container-linux-free
+openSUSE-leap-15-4
+RHEL
+sles-15-sp3
+0001-com-ubuntu-server-jammy
+code }
 
 links:
   → https://learn.microsoft.com/en-us/cli/azure/query-azure-cli?tabs=concepts%2Cbash[How to query Azure CLI command output using a JMESPath query]
