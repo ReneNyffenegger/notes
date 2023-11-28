@@ -1,0 +1,33 @@
+$ ORA-02429: cannot drop index used for enforcement of unique/primary key
+
+code {
+create table tq84_p (
+    id   integer,
+    txt  varchar2(10),
+    constraint tq84_p_pk primary key (id)
+);
+ 
+create table tq84_c (
+    id_p   integer,
+    val    number(5,2),
+    constraint tq84_c_fk foreign key (id_p) references tq84_p
+);
+ 
+drop index tq84_p_pk;
+-- ORA-02429: cannot drop index used for enforcement of unique/primary key
+ 
+alter table tq84_p disable primary key cascade;
+ 
+drop index tq84_p_pk;
+-- ORA-01418: specified index does not exist
+ 
+drop table tq84_c;
+drop table tq84_p;
+code }
+
+sa:
+
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity[Referential integrity]: → development/databases/Oracle/objects/tables/constraints/primary-key[primary] and
+  → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys].
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
