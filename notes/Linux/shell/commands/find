@@ -332,6 +332,24 @@ code }
   }
 
 }
+{ Recursively find files containing a regular pattern #find-grep-rec
+
+  The following command recursively finds files that contain a → development/regular-expressions.
+  -
+  In order to prevent *Permission denied* error messages, the command prunes
+  unreadable directories and then limits the `grep` command to files that are readable.
+  -
+  Because files in the `.git` directory usually not interesting, the command also prunes it:
+code {
+$ find .                                                      \
+       -path ./.git        -prune                          -o \
+       -type d ! -readable -prune                          -o \
+       -type f   -readable -exec → Linux/shell/commands/grep -i 'find me if.*can' {} \;
+code }
+
+  Unfortunately, the *Permission denied* error message might still occur for directories that are not readable.
+
+}
 { Find executables #find-executable
 
  `-execute` finds executable files and directories. In order to just find executables (such as binaries or shell scripts), the search must be further restricted to files (`-type f`):
