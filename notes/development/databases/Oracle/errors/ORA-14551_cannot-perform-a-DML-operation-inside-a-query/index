@@ -1,5 +1,11 @@
-$ ORA-14551: cannot perform a DML operation inside a query 
+$ ORA-14551: cannot perform a DML operation inside a query
 
+A select statement cannot have an ordinary → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL function] which executes a → development/databases/Oracle/SQL/DML[DML statement] in the selected columns.
+When trying to do so, the error *ORA-14551: cannot perform a DML operation inside a query* is thrown.
+-
+The following snippets first demonstrate how the error is caused and then proposes a way around it.
+
+First, we need a function which executes a DML:
 code {
 create or replace function exec_immediate(stmt clob) return number as
 begin
@@ -11,6 +17,7 @@ end exec_immediate;
 /
 code }
 
+We also need a table which we try to populate with the function:
 code {
 create table tq84_test(a number);
 code }
@@ -23,7 +30,7 @@ from
    dual;
 code }
 
-Compile the function with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`] …
+In order to prevent the error, we compile the function with → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[`pragma autonomous_transaction`] …
 code {
 create or replace function exec_immediate(stmt clob) return number as
     PRAGMA AUTONOMOUS_TRANSACTION;
@@ -44,13 +51,14 @@ from
    dual;
 code }
 
+So, we also commit the autonomous transaction within the function:
 code {
 create or replace function exec_immediate(stmt clob) return number as
     PRAGMA AUTONOMOUS_TRANSACTION;
 begin
 
     execute immediate stmt;
-    commit;
+    COMMIT;                   -- important.
     return sql%rowcount;
 
 end exec_immediate;

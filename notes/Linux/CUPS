@@ -10,7 +10,7 @@ to describe the capabilites of printers.
 }
 { Configuration
 
-  → Linux/fhs/etc/cups/cupsd_conf is the main(?) configuration file for CUPS.
+  `→ Linux/fhs/etc/cups/cupsd_conf` is the main(?) configuration file for CUPS.
 
 }
 { Printer drivers
@@ -22,7 +22,7 @@ to describe the capabilites of printers.
 { Shell commands
 
 
-  → Linux/shell/commands/lpadmin[`lpadmin`] configures CUPS printers and classes. For example, a printer might be added with
+ `→ Linux/shell/commands/lpadmin` configures CUPS printers and classes. For example, a printer might be added with
 code {
 printer_name=ep901a
 device_uri=usb:/EPSON/EP-901A
@@ -81,37 +81,56 @@ code {
 code }
 
 }
+{ Installing Epson ET-4800
+
+  I somehow managed to install and configure Epson ET-4800 like so:
+    • Found the module (driver?) on → https://download.ebz.epson.net/dsc/search/01/search/searchModule[Epson's module search page].
+    • Downloaded *Epson Inkjet Printer Driver (ESC/P-R) for Linux*
+    • Extracted the downloaded .deb file: `sudo dpkg -i epson-injket-printer-escpr-amd64.deb`
+    • Installed CUPs `sudo apt -y install cups` and `sudo apt -y install cups-pdf`
+    • Executed `sudo lpadmin -p ET-4800-tq84 -v socket://192.168.0.45/ -P /opt/epson-inkjet-printer-escpr/ppds/Epson/Epson-ET-4800_Series-epson-inkjet-printer-escpr.ppd.gz -E`
+
+  When trying to print, I got *Stopped, Filter failure* error message.
+
+  In the log file `→ Linux/fhs/var/log/cups/error_log`, I found *ET-4800-tq84: error while loading shared libraries: libcupsimage.so.2: cannot open shared object file: No such file or directory*.
+  -
+  I also got the same error message by trying to manually execute `/opt/epson-inkjet-printer-escpr/cups/lib/filter/epson-escpr-wrapper`.
+
+  I am not sure anymore if I changed the log level from `warn` to `debug` in `→ Linux/fhs/etc/cups/cupsd_conf` order to see this helpful error message. Anyway, I then installed the missing library as well: `sudo apt -y install libcupsimage2`.
+
+}
 { TODO
 
   → http://localhost:631/help
-  -
+   -
   → http://localhost:631/documentation.html
 
 }
 
 sa:
 
-  → Linux/fhs/etc/cups
+ `→ Linux/fhs/etc/cups`
   -
-  → Linux/fhs/etc/cups/printers_conf[`/etc/cups/printers.conf`]: the printer configuration file for → Linux/CUPS[CUPS].
+ `→ Linux/fhs/etc/cups/printers_conf`: the printer configuration file for CUPS.
   -
-  → Linux/fhs/etc/cups/cups-files_conf: T/he file and directory configuration file.
+ `→ Linux/fhs/etc/cups/cups-files_conf`: The file and directory configuration file.
   -
-  → Linux/fhs/var/log/cups
+ `→ Linux/fhs/var/log/cups`
   -
-  → Linux/fhs/var/log/cups/error_log: the general log file
+ `→ Linux/fhs/var/log/cups/error_log`: the general log file
   -
-  → Linux/fhs/var/log/cups/access_log: the log file for all `cupsd` HTTP server activity.
+ `→ Linux/fhs/var/log/cups/access_log`: the log file for all `cupsd` HTTP server activity.
   -
-  → Linux/fhs/usr/share/cups
+ `→ Linux/fhs/usr/share/cups`
   -
-  → Linux/fhs/usr/lib/cups/filter: the filter directory.
+ `→ Linux/fhs/usr/lib/cups/filter`: the filter directory.
   -
-  → Linux/fhs/var/spool/cups-pdf/USER: the default directory into which pdfs are stored. 
+ `→ Linux/fhs/var/spool/cups-pdf/USER`: the default directory into which pdfs are stored. 
 
-  → Linux/networking/Avahi scans for printers on the local network.
+ `→ Linux/networking/Avahi` scans for printers on the local network.
 
 links:
+
   → http://www.openprinting.org[openprinting.org] has resources to help with printing under → Linux.
   -
   For example, it has the → http://www.openprinting.org/printers[printer database] which allows to search for
