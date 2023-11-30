@@ -1,12 +1,46 @@
 $ SQL*Plus: SET ROWPREFETCH
 @ set rowprefetch
 
+The value of `rowprefetch` specifies the number of records that are returned as part of a fetch call from the database.
+-
+After fetching the records, they still undergo the value of → development/databases/Oracle/SQL-Plus/set/arraysize[`arraysize`].
+
+code {
+set pages        5000
+set arraysize       3
+set rowprefetch     7
+ 
+→ development/databases/Oracle/SQL/clauses/with[with]
+   function onesec(n number) return varchar is
+      roundtrips number;
+   begin
+      select
+         mys.value into roundtrips
+      From
+         → development/databases/Oracle/installed/dynamic-performance-views/mystat   mys   join
+         → development/databases/Oracle/installed/dynamic-performance-views/statname nam on mys.statistic# = nam.statistic#
+      Where
+         nam.name = '→ development/databases/Oracle/installed/dynamic-performance-views/statname/names/SQL-Net-roundtrips-to-from-client[SQL*Net roundtrips to/from client]';
+ 
+      → development/databases/Oracle/installed/packages/dbms/session/api/sleep[dbms_session.sleep](1);
+      return to_char(n, '99') || to_char(roundtrips, '999');
+   end onesec;
+select
+   onesec(level) x
+from
+   dual connect by level <= 40
+/
+code }
+
+Starting the script from the shell:
+code {
+$ → development/databases/Oracle/SQL-Plus#sql-plus-start[sqlplus] rene/rene@ora19 @arraysize-prefetch.sql
+code }
+
 sa:
 
-  The default value of `rowprefetch` is changed when using SQL*Plus's `-fast` → development/databases/Oracle/SQL-Plus#sql-plus-start-options[command line option].
+  The default value of `rowprefetch` is changed to 2 when using SQL*Plus's → development/databases/Oracle/SQL-Plus/_command-line/options/fast[command line option `-fast`].
 
-  → development/databases/Oracle/SQL-Plus/set[`set`]
+  SQL*Plus' `→ development/databases/Oracle/SQL-Plus/set` commands such as `→ development/databases/Oracle/SQL-Plus/set/arraysize`
 
   → development/databases/Oracle/SQL-Plus
-
-
