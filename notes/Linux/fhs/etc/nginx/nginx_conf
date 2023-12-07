@@ -4,6 +4,13 @@ code {
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
+
+#
+# The *.conf files included from /etc/nginx/modules-enabled
+# typically contain a → https://nginx.org/en/docs/ngx_core_module.html#load_module[load_module] statement which
+# loads a → development/languages/C-C-plus-plus/GCC/libraries/shared[shared library].
+# These shared libraries are usually found in /usr/share/nginx/modules.
+#
 include /etc/nginx/modules-enabled/*.conf;
 
 events {
@@ -13,51 +20,69 @@ events {
 
 http {
 
-        ##
-        # Basic Settings
-        ##
-
+      #
+      # Enable → https://man7.org/linux/man-pages/man2/sendfile.2.html[sendfile()]
+      # which is required when enabling tcp_nopush
+      #
         sendfile on;
+
+      #
+      # Set the socket option TCP_CORK (or TCP_NOPUSH in BSD).
+      # Requires sendfile to be set when enabled. 
+      #
         tcp_nopush on;
-        types_hash_max_size 2048;
-        # server_tokens off;
 
-        # server_names_hash_bucket_size 64;
-        # server_name_in_redirect off;
+      #
+      # See → https://nginx.org/en/docs/hash.html[this link].
+      #
+      # server_names_hash_bucket_size   64;
+        types_hash_max_size           2048;
 
+      # server_tokens off;
+
+      # server_name_in_redirect off;
+
+      #
+      # Specify → development/web/Multipurpose-Internet-Mail-Extensions[MIME types] (default and depending on file suffix)
+      #
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
 
-        ##
-        # SSL Settings
-        ##
+      #
+      # → development/security/cryptography/SSL-TLS[SSL] settings
+      #
+      # Enable the specified protocols (do not add SSLv3 because of → https://www.cisa.gov/news-events/alerts/2014/10/17/ssl-30-protocol-vulnerability-and-poodle-attack[Poodle attack])
+      #
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
 
-        ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE
         ssl_prefer_server_ciphers on;
 
-        ##
-        # Logging Settings
-        ##
-
+      #
+      # Specify location of → development/log-files.
+      #
         access_log /var/log/nginx/access.log;
-        error_log /var/log/nginx/error.log;
+        error_log  /var/log/nginx/error.log;
 
-        ##
-        # Gzip Settings
-        ##
-
+      #
+      # Enable compression
+      #
         gzip on;
 
-        # gzip_vary on;
-        # gzip_proxied any;
-        # gzip_comp_level 6;
-        # gzip_buffers 16 8k;
-        # gzip_http_version 1.1;
-        # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+      #
+      # Specify the MIME types which will be compressed.
+      #
+      # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+        gzip_tyoes *;
 
-        ##
-        # Virtual Host Configs
-        ##
+      # gzip_vary on;
+      # gzip_proxied any;
+      # gzip_comp_level 6;
+      # gzip_buffers 16 8k;
+      # gzip_http_version 1.1;
+
+      #
+      # Virtual Host Configs
+      #
 
         include /etc/nginx/conf.d/*.conf;
         include /etc/nginx/sites-enabled/*;
@@ -85,3 +110,14 @@ http {
 #       }
 #}
 code }
+
+sa:
+ → web/webserver/nginx
+
+ `/usr/share/doc/nginx-doc/examples/`
+
+links:
+ 
+ → https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/[Configuration pitfalls and common mistakes].
+
+ → https://wiki.debian.org/Nginx/DirectoryStructure
