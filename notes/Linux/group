@@ -8,6 +8,36 @@ A group is identified by an id: the *gid* (group id).
 
 { Some groups
 
+  I found this list in a → Linux/distributions/Debian installation in `/usr/share/doc/base-passwd/users-and-groups.txt.gz`.
+
+  table { ll
+
+   `adm` ☰ Group adm is used for system monitoring tasks. Members of this group can read many log files in /var/log, and can use xconsole. Historically, /var/log was /usr/adm (and later /var/adm), thus the name of the group. HELP: Perhaps policy should state the purpose of this group so users may be safely added to it, in certainty that all they'll be able to do is read logs. Wouldn't hurt to rename it 'log' either ...
+   `tty` ☰ Tty devices and /dev/vcs* are owned by this group. This is used by write and wall to enable them to write to other people's ttys.
+   `disk` ☰ Raw access to disks. Mostly equivalent to root access. HELP: Well, I have some disk devices in /dev owned by the group, but I can't see the point. On another system, I noticed that some of the files lilo puts in /boot are also owned by disk. I can imagine local uses for such a group, like if you want to give some users in the group direct access to some hard disk. But these uses I've found on my systems seem to preclude doing that easily; if I put a user in group disk here, they'd have write access to the root filesystem.
+   `kmem` ☰ /dev/kmem and similar files are readable by this group.  This is mostly a BSD relic, but any programs that need direct read access to the system's memory can thus be made setgid kmem.
+   `dialout` ☰ Full and direct access to serial ports. Members of this group can reconfigure the modem, dial anywhere, etc.
+   `dip` ☰ The group's name stands for "Dialup IP". Being in group dip allows you to use tools such as pppd, pon, and poff to make dialup connections to other systems using predefined configuration file(s) in the /etc/ppp/peers directory.
+   `fax` ☰ Allows members to use fax software to send or receive faxes.
+   `voice` ☰ Voicemail, useful for systems that use modems as answering machines.
+   `cdrom` ☰ This group can be used locally to give a set of users access to a CD-ROM drive.
+   `floppy` ☰ This group can be used locally to give a set of users access to a floppy drive.
+   `tape` ☰ This group can be used locally to give a set of users access to a tape drive.
+   `sudo` ☰ Members of this group may run any command as any user when using sudo or pkexec (from the policykit-1 package, independently of whether the sudo package is installed).
+   `audio` ☰ This group can be used locally to give a set of users access to an audio device.
+   `src` ☰ This group owns source code, including files in /usr/src. It can be used locally to give a user the ability to manage system source code. HELP: /usr/src is owned by group src and is setgid. This doesn't make files put there by foo-src packages necessarily be owned by group src though. If the intent is to make group src be able to manage source code, perhaps policy should say that foo-src packages make files in /usr/src owned and writable by the group (and files in tarballs dropped there likewise)?
+   `shadow` ☰ /etc/shadow is readable by this group. Some programs that need to be able to access the file are setgid shadow.
+   `utmp` ☰ This group can write to /run/utmp, /var/log/wtmp, /var/log/lastlog, and similar files. Programs that need to be able to write to them (such as X terminal emulators) are setgid utmp.
+   `video` ☰ This group can be used locally to give a set of users access to a video device.
+   `plugdev` ☰ Members of this group can access removable devices in limited ways without explicit configuration in /etc/fstab. This is useful for local users who expect to be able to insert and use CDs, USB drives, and so on. Since pmount (the original implementor of group plugdev) always mounts with the nodev and nosuid options and applies other checks, this group is not intended to be root-equivalent in the ways that the ability to mount filesystems might ordinarily allow. Implementors of semantics involving this group should be careful not to allow root-equivalence.
+   `staff` ☰ Allows users to add local modifications to the system (/usr/local, /home) without needing root privileges.  Compare with group 'adm', which is more related to monitoring/security. Note that the ability to modify /usr/local is effectively equivalent to root access (since /usr/local is intentionally on search paths ahead of /usr), and so you should only add trusted users to this group. Be careful in environments using NFS since acquiring another non-root user's privileges is often easier in such environments.
+   `users` ☰ While Debian systems use the user-group system by default (each user has their own group), some prefer to use a more traditional group system. In that system, each user is a member of the 'users' group.
+   `lpadmin` ☰ Allows a user to add, modify, and remove printers from foomatic, cups, and possibly other printer databases.
+   `sasl` ☰ Users in this group have read/write access to /etc/sasldb and/or /etc/sasldb2, wich are used to authentication with sasl. This is commonly used by IMAP, POP, and SMTP servers for authentication.
+   `scanner` ☰ Users in this group can use scanner(s).
+   `ssh` ☰ ssh-agent is setgid to ssh in order to prevent ptrace attacks.
+  table }
+
   { audio #group-audio
 
     Apparently, a user must belong to the *audio* group to access → Linux/sound/ALSA devices.

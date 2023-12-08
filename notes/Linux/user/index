@@ -30,10 +30,58 @@ Adding users: `→ Linux/shell/commands/adduser`, `→ Linux/shell/commands/user
 }
 { Some users
 
+  I found this list in a → Linux/distributions/Debian installation in `/usr/share/doc/base-passwd/users-and-groups.txt.gz`.
+
+  table { ll
+
+   `→ Linux/user/root` ☰ Root is (typically) the superuser.
+   `daemon` ☰ Some unprivileged daemons that need to be able to write to some files on disk (such as `portmap`, `atd`, `lambdamoo`, `mon` etc). Daemons that don't need to own any files sometimes run as `nobody` (group: `nogroup` instead). `daemon` is listed as *legacy* by → Linux/LSB 1.3 as it is generally better practice to use a dedicated user,
+   `bin` ☰ Historically, `bin` was probably the owner of binaries in `→ Linux/fhs/bin`. This user is not mentioned in the FHS, Debian Policy or the changelogs of base-passwd or base-files and listed as legacy by LSB.
+   `sys` ☰ Historically, the `sys` user and group owned the → Linux/kernel/source[kernel sources] and some related items like the include files, but this was obsoleted long ago in favour of `bin` (now itself legacy, see above).
+   `sync` ☰ The shell of user sync is → Linux/shell/commands/sync[`/bin/sync`]. Thus, if its → development/security/password is set to something easy to guess (such as an empty password), anyone can sync the system at the console even if they have no account on the system.
+   `games` ☰ Many games are sgid to games so they can write their high score files. This is explained in Debian Policy.
+   `man` ☰ The `→ Linux/shell/commands/man` program (sometimes) runs as user `man`, so it can write cat pages to `→ Linux/fhs/var/cache/man` and update its databases there.
+   `lp` ☰ The lp* devices are writable by this group so that users in it can access the parallel ports directly. Traditionally this job is taken by a printer daemon instead which will only need to run in this group. The lpr system keeps its spool directories owned by lp/lp. Its daemon and frontend tools (through setuid) run as user root.
+   `mail` ☰ Mailboxes in `/var/mail` are owned and writable by group mail, as is explained in Debian Policy. The user and group is used for other purposes as well by various MTAs and MUAs.
+   `news` ☰ Various news servers and other associated programs (such as `suck`) use user and group news in various ways. Files in the news spool are often owned by user and group news. Programs such as inews that can be used to post news are typically sgid news.
+   `uucp` ☰ The `uucp` user and group is used by the UUCP subsystem. It owns spool and configuration files. Users in the uucp group may run uucico.
+   `proxy` ☰ Like `daemon`, this user and group is used by some daemons (specifically, proxy daemons) that don't have dedicated user ids and that need to own files. For example, group `proxy` is used by `pdnsd` and `squid` runs as user `proxy`.
+   `majordom` ☰ Majordomo has a statically allocated uid on Debian systems for historical reasons. It is not installed on new systems.
+   `postgres` ☰ → development/databases/PostgreSQL[Postgresql databases] are owned by this user and group.
+   → #user-www-data[`www-data`] ☰ Some → web/webserver[web servers] run as `www-data`.
+   `backup` ☰ Presumably so backup/restore responsibilities can be locally delegated to someone without full root permissions? HELP: Is that right? Amanda reportedly uses this, details?
+   `operator` ☰ Historically, the `operator` user account was used by system operators with low privilege to dump filesystem backups to tape and was in the root group so that it could do this. In Debian, the use of a utility such as sudo to gain privilege is preferred over such highly-special-purpose accounts and the operator user is no longer created by default. It had uid 37. The operator group is used by `dump -n` to notify logged-in operators via `wall` when it requires operator attention. This is a historical use, and new applications should not behave this way.
+   `list` ☰ Mailing list archives and data are owned by this user and group. Some mailing list programs may run as this user as well.
+   `irc` ☰ Used by IRC daemons. A statically allocated user is needed only because of a bug in `ircd`: it setuid()s itself to a compiled-in user id on startup.
+   `gnats` ☰ Used by gnats. This has a statically allocated user and group for purely historical reasons (it could equally well use a dynamic system user and group), but it's cumbersome to change now.
+   `nobody`, `nogroup` ☰ Daemons that need not own any files sometimes run as user nobody and group nogroup, although using a dedicated user is far preferable. Thus, no files on a system should be owned by this user or group. (Technically speaking, it does no harm for a file to be owned by group nogroup as long as the ownership confers no additional privileges, that is if the group and other permission bits are equal. However, this is sloppy practice and should be avoided.) If root-squashing is in use over NFS, root access from the client is performed as user nobody on the server.
+   `messagebus` ☰ The dbus daemon (dbus-daemon-1) runs as this user and group.
+   `postfix` ☰ Used by the postfix MTA.
+   `gdm` ☰ GDM (GNOME Display Manager) runs as this user/group.
+   `saned` ☰ Added by sane-utils, but appear to be unused.
+   `klog` ☰ Used by `→ Linux/logging/klogd`.
+   `syslog` ☰ Used by syslog, the general purpose logger.
+  table }
+
   { ahavi
 
     For the ahavi service.
 
+  }
+  { www-data #user-www-data
+
+    Some → web/webserver[web servers] run as `www-data`.
+
+    Web content should not be owned by this user, or a compromised web server would be able to rewrite a web site. Data written out by web servers will be owned by `www-data`.
+
+  }
+  { Users without group
+
+    table { ll
+   `sshd` ☰ Unprivileged user used by the privilege-separated sshd when communicating with the network before successful authentication.
+   `fetchmail` ☰ Used by the fetchmail program.
+   `cupsys` ☰ CUPS (Common Un*x Printing System) runs as this user. It is in group lp, so it can access printer devices.
+   table }
   }
 }
 
