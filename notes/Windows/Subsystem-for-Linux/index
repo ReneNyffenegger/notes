@@ -258,9 +258,49 @@ code }
 
 }
 { Accessing the «other» filesystem
+
+  { DrvFS
+
+    → https://learn.microsoft.com/en-us/archive/blogs/wsl/wsl-file-system-support#drvfs[DrvFs] is a filesystem that allows WSL to mount NTFS and ReFS volumes.
+
+    DrvFS provides the following → Linux/shell/commands/mount#mount-options[mount options]:
+    table { ll
+      `uid` ☰ User ID of the owner of the mounted files.
+      `gid` ☰ Group ID of the group-owner of the mounted files. 
+      `umask` ☰ 
+      `fmask` ☰
+      `dmask` ☰
+      `metadata` ☰ If set, Linux file permissions are stored in metadata of mounted files
+      `case` ☰ Case sensitivity of directory(?) names
+    table }
+
+  }
+  { Accessing the Windows Filesystem from WSL
+
+    With DrvFS, a Windows drive is (typically) mounted to `/mnt/<drive>` (the root of the default mount path can be changed with the `root` setting under `[automount]` in `→ Linux/fhs/etc/wsl_conf`):
+code {
+$ ls → Linux/fhs/mnt[/mnt]/c
+$ ls → Linux/fhs/mnt[/mnt]/d
+…
+code }
+
+    A newly plugged in external harddisk can be mounted within WSL like so. The following example assumes that the mounted files need to be accessible by the user whose id is 1000 and corresponding group id is also 1000:
+code {
+$ → Linux/shell/commands/sudo mkdir /mnt/e
+$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t drvfs E: /mnt/e -o uid=1000,gid=1000,fmask=133,dmask=022
+code }
+
+    TODO: Should the → Linux/shell/commands/mount#mount-options[mount options] (specified with `-o`) be
+code {
+$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t drvfs E: /mnt/e -o uid=1000,gid=1000,fmask=177,dmask=077
+code }
+
+  }
   { Accessing WSL Filesystem from Windows
 
-    It's possible to map a network drive to a running WSL instance:
+    In the explorer, the installed WSL filesystem can be accessed via `\\wsl$\…` or `\\wsl.localhost\…`.
+
+    It's thus possible to map a network drive to a running WSL instance:
 code {
 C:\> → Windows/dirs/Windows/System32/net_exe/use L: \\wsl$\Debian
 The command completed successfully.
@@ -281,27 +321,6 @@ code }
    `→ Linux/shell/commands/dmesg | → Linux/shell/commands/grep 9p`).
     -
     The communication between WSL and Windows runs over AF_UNIX sockets.
-
-  }
-  { Accessing the Windows Filesystem from WSL
-
-    A Windows drive is mounted to `/mnt/<drive>`:
-code {
-$ ls → Linux/fhs/mnt[/mnt]/c
-$ ls → Linux/fhs/mnt[/mnt]/d
-…
-code }
-
-    A newly plugged in external harddisk can be mounted within WSL like so. The following example assumes that the mounted files need to be accessible by the user whose id is 1000 and corresponding group id is also 1000:
-code {
-$ → Linux/shell/commands/sudo mkdir /mnt/e
-$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t drvfs E: /mnt/e -o uid=1000,gid=1000,fmask=133,dmask=022
-code }
-
-    TODO: Should the → Linux/shell/commands/mount#mount-options[mount options] (specified with `-o`) be
-code {
-$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t drvfs E: /mnt/e -o uid=1000,gid=1000,fmask=177,dmask=077
-code }
 
   }
 }
