@@ -1,9 +1,8 @@
-Linux kernel CONFIGs
+$ Linux kernel CONFIG symbols
 
-The variouls `CONFIG_*` symbols are defined in the `Kconfig` files within Linux' source tree. The actual values are stored in
-the → Linux/kernel/source/_config[`.config`] file.
-
-
+The `CONFIG_*` symbols are *defined* in the various `Kconfig` files spread within Linux' source tree.
+-
+The *actual values* are stored in the `→ Linux/kernel/source/_config` file.
 
 { CONFIG_DEBUG_INFO
 
@@ -35,7 +34,7 @@ the → Linux/kernel/source/_config[`.config`] file.
 
   Advanced Linux sound architecture
 
-  See also  → #config_sound, → #config_sound_prime
+  See also → #config_sound, → #config_sound_prime
 
 }
 { CONFIG_SND_HDA_CODEC_REALTEK #config_snd_hda_codec_realtek
@@ -75,18 +74,35 @@ the → Linux/kernel/source/_config[`.config`] file.
       `EFI_MIXED` ☰ allows a 64-bit kernel to be booted on a 32-bit firmware (if CPU supported 64-bit mode). A mixed-mode enalbed kernal cannot be booted via the EFI boot stub, though - a bootloader that supports the EFI handover protocol must be used. See also `EFI_HANDOVER_PROTOCOL`
       `EFI_STUB` ☰ allows `bzImage` to be loaded directly be EFI firmware without a bootloader. See `Documentation/admin-guide/efi-stub.rst`.
       `FB` ☰  Frame buffer device (see also `→ Linux/fhs/dev/fbN`)
+      `HZ`, `HZ_100` etc. ☰ → https://github.com/torvalds/linux/blob/master/include/asm-generic/param.h[`include/asm-generic/param.h`] defines `HZ` to the value of `CONFIG_HZ` and has the comment *Internal kernel timer frequency*. See also `kernel/Kconfig.hz`
       `INPUT_EVDEV` ☰ Required for input device events to be accessible in `→ Linux/fhs/dev/input/eventX` (which seems to be necessary for X Server ?)
       `PACKET` ☰ The packet protocol allows applications (such as `tcpdump`) to communicate directly with network devices withou an intermediate network protocol. Apparently, `PACKET` needs to be enabled for `wpa_supplicant`.
       `X86`, `X86_32`, `X86_64` ☰
     table }
    
   }
+  { Modification of CONFIG symbols #linux-config-modification
 
+    As the Kernel is developed, `CONFIG` symbols are deleted, added or renamed with the potential consequence that → Linux/kernel/compilation/make/oldconfig[`make oldconfig`] won't necessarily produce a working Kernel anymore.
+
+    A list of new config symbols can be produced with
+code {
+$ → Linux/shell/commands/cp /path/to/old.config → Linux/kernel/source/_config
+$ → Linux/kernel/compilation/make → Linux/kernel/compilation/make/listnewconfig
+code }
+
+    The alternative brute force method is:
+code {
+$ → Linux/kernel/compilation/make → Linux/kernel/compilation/make/oldconfig
+$ Linux/kernel/source/scripts/diffconfig old.config .config
+code }
+
+  }
 }
 
 sa:
 
-  → Linux/kernel/source/init/Kconfig
+ `→ Linux/kernel/source/init/Kconfig`
 
   → Linux/kernel/configuration-database
 

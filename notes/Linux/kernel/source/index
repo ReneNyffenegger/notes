@@ -50,6 +50,7 @@ $ Linux kernel source tree
       `modules.order` ☰ Created when the kernel is made
       `Module.symvers` ☰ Created when the kernel is made
       `README` ☰
+      → Linux/kernel/source/_config[`.config`] ☰ Values of → Linux/kernel/CONFIG[config symboles] used when → Linux/kernel/compilation[compiling the Kernel].
       → Linux/kernel/source/System_map[`System.map`] ☰ Created when the kernel is made
      `→ Linux/kernel/source/vmlinux` ☰ Created when the kernel is made
       → Linux/kernel/source/vmlinux_a[`vmlinux.a`] ☰ Created when the kernel is made
@@ -83,6 +84,46 @@ code {
 $ git clone --depth 1 -b master https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git ~/linux-src
 code }
     
+
+  }
+  { KCONFIG variables
+
+    The KCONFIG variables found in the source tree can be found with
+code {
+$ → Linux/shell/commands/grep -r -h → Linux/shell/commands/grep#grep-o[-o] → Linux/shell/commands/grep#grep-P[-P] '\bKCONFIG_\w+' | → Linux/shell/commands/sort | → Linux/shell/commands/uniq
+code }
+
+    table { ll
+      `KCONFIG_ALLCONFIG` ☰ Specifies the location of a file that contains preset config symbols. If set to `""` or `1`, `make *config` tries to find such config symbols in a file named `all{yes/mod/no/def/random}.config`
+      `KCONFIG_CONFIG` ☰ Specifies the path to the kernel config file (Default is `→ Linux/kernel/source/_config`)
+      `KCONFIG_DEFCONFIG_LIST` ☰ A (white space separated) list of base config files, the first existing of which is used in case a `→ Linux/kernel/source/_config` is not present.
+      `KCONFIG_OVERWRITECONFIG` ☰ If set, Kconfig will not break symlinks when `.config` is symlinked to another file.
+      `KCONFIG_PATH` ☰ Only used as script variable in `tools/testing/kunit/kunit_kernel.py`
+      `KCONFIG_REL_PATHS` ☰ Only used as script variable in `tools/testing/selftests/bpf/vmtest.sh`
+      `KCONFIG_WARN_UNKNOWN_SYMBOLS` ☰ If set, Kconfig will warn about all unrecognized symbols in the config input
+      `KCONFIG_WERROR` ☰ If set, Kconfig will treat warnings as errors.
+    table }
+
+    Variables used in conjunction with `randconfig`:
+    table { ll
+      `KCONFIG_SEED` ☰ Sets the seed for the random number generator (default: current time)
+      `KCONFIG_PROBABILITY` ☰ Used to skew probabilities.
+    table }
+
+    Variables used in conjunction with `syncconfig`:
+    table { ll
+      `KCONFIG_AUTOCONFIG` ☰ Specifies the path of the `auto.conf` file (default: `→ Linux/kernel/source/include/config/auto_conf`)
+      `KCONFIG_AUTOHEADER` ☰ Specifies the path of the `autoconf.h` header file (default: `→ Linux/kernel/source/include/generated/autoconf_h`)
+      `KCONFIG_NOSILENTUPDATE` ☰ If value is non-blank, silent kernel config updates are prevented (i. e. explicit updates are required)
+    table }
+
+    Others
+    table { ll
+      `KCONFIG_ARG` ☰ Only used as shell script variable in `tools/testing/selftests/rcutorture/bin/kvm.sh`
+      `KCONFIG_ARGS` ☰ Only used as shell script variable in `scripts/tags.sh`
+      `KCONFIG_RUSTCCFG` ☰ Found only in `scripts/kconfig/confdata.c`
+      `KCONFIG_SEC` ☰ Found only in `tools/lib/bpf/libbpf.c` where it is #defined to `.kconfig`
+    table }
 
   }
   { Memory
