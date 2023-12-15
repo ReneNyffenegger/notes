@@ -450,33 +450,48 @@ code }
 }
 { Compile a new Kernel #wsl-compile-kernel
 
+
 code {
-$ → development/version-control-systems/git/commands/clone[git clone] → https://github.com/microsoft/WSL2-Linux-Kernel
-$ cd WSL2-Linux-Kernel/
+$ → development/version-control-systems/git/commands/clone[git clone] → development/version-control-systems/git/commands/clone#git-shallow-clone[--depth 1] → https://github.com/microsoft/WSL2-Linux-Kernel
+$ cd WSL2-Linux-Kernel
 $ cp → https://github.com/microsoft/WSL2-Linux-Kernel/blob/master/Microsoft/config-wsl[Microsoft/config-wsl] → Linux/kernel/source/_config
 code }
 
   When I tried to build the Kernel (version WSL 5.15) with the copied `.config` file, → https://github.com/microsoft/WSL/issues/10299[I encountered] the error message: *FAILED: load BTF from vmlinux: No such file or directory*.
   -
   I could solve this by commenting the config option `CONFIG_DEBUG_INFO_BTF` in the `.config` file.
+  -
+ *Update 2023-12-15* (WSL 5.15.133): This step did not seem to be necessary anymore.
 
-  In order to be able to → #wsl-usb[mount an USB device], the config option `CONFIG_USB_STORAGE` must be set to `y`.
-
-  With at least the `CONFIG_DEBUG_INFO_BTF` change in the `.config` file, the Kernel can be built with
+  Playing Youtube movies in Chrome resulted in choppy audio on a ThinkPad notebook.
+  -
+  → https://github.com/microsoft/wslg/issues/684#issuecomment-1069636509[This comment] suggested to set the → Linux/kernel/CONFIG[config symbol] `CONFIG_HZ_1000` to `y` and then recompile the Kernel to solve the issue:
 code {
-$ → development/make -j4
+$ → Linux/kernel/ scripts/config --enable HZ_1000
+code }
+
+  Similarly, in order to be able to → #wsl-usb[mount an USB device], the config option `CONFIG_USB_STORAGE` must be set to `y`.
+
+code {
+$ → Linux/kernel/compilation/make/oldconfig[make oldconfig]
+code }
+
+   Building the Kernel:
+code {
+$ → development/make -j$(→ Linux/shell/commands/nproc)
 code }
 
   The new Kernel can then be copied to the WSL host:
 code {
 $ WINUSER=Rene
-$ cp arch/x86_64/boot/bzImage /mnt/c/Users/$WINUSER/
+$ bzImageName=bzImage-chopy-audio
+$ cp arch/x86_64/boot/bzImage /mnt/c/Users/$WINUSER/$bzImageName
 code }
 
   It's necessary to tell the host where the new Kernel is located:
 code {
 $ echo "[wsl2]
-kernel=C:\\\\Users\\\\$WINUSER\\\\bzImage
+kernel=C:\\\\Users\\\\$WINUSER\\\\$bzImageName
 " > → Windows/dirs/Users/username/_wslconfig[/mnt/c/Users/$WINUSER/.wslconfig]
 code }
 
