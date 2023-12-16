@@ -1,8 +1,8 @@
 $ /etc/apt/sources.list
 
-The file contains the locations of → Linux/package-managers/APT#apt-repositories[apt repositories] to fetch packages from.
+`sources.list` specifies the locations which are used to resynchronize the *package index files* with `→ Linux/package-managers/APT/commands/apt-get update`,
+i. e. it contains the locations of → Linux/package-managers/APT#apt-repositories[apt repositories] to fetch packages from.
 
-Such repositories are added or removed with `→ Linux/APT/commands/add-apt-repository`.
 
 The content of `sources.list` looks like
 code {
@@ -11,14 +11,38 @@ deb http://deb.debian.org/debian bullseye-updates main
 deb http://security.debian.org/debian-security bullseye-security main
 deb http://ftp.debian.org/debian bullseye-backports main
 code }
+
+{ Editing /etc/apt/sources.list
+
+  In order to add or remove repostiories, `/etc/apt/sources.list` or files in the directory `/etc/apt/sources.list.d` need to be edited.
+
+  { apt edit-sources
+
+    `→ Linux/package-managers/APT/commands/apt edit-sources` edits `/etc/apt/sources.list` in the preferred → development/editors[editor].
+
+  }
+  { APT package software-properties-common
+
+     The apt package software-properties-common installs Python scripts for adding and removing PPAs: 
+code {
+$  → Linux/package-managers/APT/commands/apt-file#apt-file-show[apt-file show] software-properties-common | → Linux/shell/commands/grep → Linux/shell/commands/grep#grep-P[-P] → Linux/shell/commands/grep#grep-o[-o] '\S+/bin/\S+'
+→ Linux/APT/commands/add-apt-repository[/usr/bin/add-apt-repository]
+/usr/bin/apt-add-repository
+code }
+
+     These scripts can be installed with
+code {
+$ → Linux/shell/commands/sudo apt install -y software-properties-common
+code }
+
+  }
+}
   
 sa:
 
   The `/etc/apt/sources.list.d` and `→ Linux/fhs/etc/apt` directories.
 
  `→ Linux/package-managers/APT/commands/apt upgrade`
-
- `→ Linux/package-managers/APT/commands/apt edit-sources` edits `/etc/apt/sources.list` in the preferred → development/editors[editor].
 
  `→ Linux/shell/commands/man 5 sources.list`
 
@@ -27,10 +51,3 @@ sa:
 code {
 → Linux/package-managers/APT/commands/apt-config dump | grep Dir::Etc::source
 code }
-
-  `sources.list` specifies the locations which are used to resynchronize the *package index files* with `→ Linux/package-managers/APT/commands/apt-get update`.
-
-  `add-apt-repository` is a Python script with which an APT repository can be added to or removed from `/etc/apt/sources.list` or a file under the `/etc/apt/sources.list.d` directory.
-   -
-   This script can be added with `sudo apt install -y software-properties-common`
-  
