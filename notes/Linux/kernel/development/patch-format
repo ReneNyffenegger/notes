@@ -2,21 +2,61 @@ $ The canonical format for Linux kernel patches
 
 This format is defined in `→ Linux/kernel/source/Documentation/process/submitting-patches_rst`.
 
-A patch consists of its *changelog* and from which the *patch* itself is separated by `---`:
-table { ll
-  `from` line ☰ Optional, names the author of the patch if different from the person sending the patch.
-  One-line description ☰
-  A blank line ☰
-  Detail description ☰
-  One or more tag lines ☰ Of which at least the `Signed-off-by:` is required. Other possible tags include `Fixes:` (commit id where problem was introduced), `Link:` (URL plus description), `Closes:`  (URL of bug report plus description), `tag:`, `Co-developed-by:`, `Acked-by:`, `Tested-by:`, `Reviewed-by:`, `Reported-by:`, `Cc:`
-  `---` ☰ The separator between the *changelog* and the *patch* itself.
-  The patch itself ☰ In unified (= `→ Linux/shell/commands/diff -u`) format. Adding `-p` (associated function names with changes) makes it easier for reviewers to read.
-table }
+A patch consists of
+  • its *changelog* and
+  • a marker line consisting of three hyphens (`---`)
+  • optional comments (if used followed by an empty line)
+  • the *patch* itself (in unified diff format)
+
+These two parts are separated by `---` line.
 
 
-The patch is sent to the corresponding → Linux/kernel/source/MAINTAINERS[maintainers] with such a *Subject* format: `[PATCH] subsystem: summarizing phrase`.
+{ Change log
 
-The message body looks like
+  The format of the change log is
+    • `from` line (optional, names the author of the patch if different from the person sending the patch)
+    • One-line summary
+    • A blank line
+    • Detailed description
+    • One or more tag lines
+
+  Possible tag lines include:
+    • `Signed-off-by:` (required)
+    • `Fixes:` (First 12 characters of the commit id where problem was introduced plus its one-line summary in `("…")` format)
+    • `Link:` (URL plus description)
+    • `Closes:` (URL of bug report plus description)
+    • `tag:`
+    • `Co-developed-by:`
+    • `Acked-by:`
+    • `Tested-by:`
+    • `Reviewed-by:`
+    • `Reported-by:`
+    • `Cc:`
+
+
+}
+{ Optional comments
+
+  The optional comments don't go into the changelog.
+  -
+  Such comments might be used to describe the changes from the previous patch if an unaccepted
+  patch is amended and resubmitted with a new version number (`[PATCH v2]…`).
+
+  The optional comments might also include the output as produced by `diffstat -p 1 -w 70`.
+
+}
+{ Patch
+
+  The patch itself comes in unified (= `→ Linux/shell/commands/diff -u`) format.
+  -
+  Adding `-p` (associated function names with changes) makes it easier for reviewers to read.
+
+}
+
+
+{ Message body
+
+  The message body looks like
 code {
 from: John Doe <jd@somewhere.xyz>
 
@@ -28,13 +68,13 @@ The from line is only needed if the person sending the patch is different
 from the sender's email address. This person will be credited as the
 author of the patch.
 
-The message is followed by one or more "signed off" lines which then
-is followed by a line containing three hyphens.
+The message is followed by one or more "signed off" lines and possibly other
+tag lines which then is followed by a line containing three hyphens.
 
 Signed-off-by: Donald Duck <dd@disneyland.com>
 ---
 The optional text after the three hyphens won't go into the changelog.
-It can be used for additional comments etc.
+It can be used for additional comments, diffstat etc.
 It is followed by the actual diff output:
 
   arch/arm/boot/dts/keystone.dtsi | 8 ++++++++
@@ -51,14 +91,18 @@ index 3f272826f537..007648971744 100644
 2.1.0
 code }
 
+  The *summarizing phrase* from the *Subject* becomes a globally-unique
+  identitifier for that patch. It should not be longer than 75 characters.
 
-The *summarizing phrase* from the *Subject* becomes a globally-unique
-identitifier for that patch. It should not be longer than 75 characters.
+}
+{ Sending the patch
 
+  The patch is sent to the corresponding → Linux/kernel/source/MAINTAINERS[maintainers] with such a *Subject* format: `[PATCH] subsystem: summarizing phrase`.
+
+}
 sa:
 
-
-  → Linux/kernel/source/Documentation/email-clients_txt
+ `→ Linux/kernel/source/Documentation/email-clients_txt`
 
   The → Linux/kernel/source/scripts[scripts]:
    • `→ Linux/kernel/source/scripts/get_maintainer_pl`
