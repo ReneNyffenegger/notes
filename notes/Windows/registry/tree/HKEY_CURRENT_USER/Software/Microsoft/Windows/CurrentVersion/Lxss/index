@@ -1,15 +1,24 @@
 $ Registry: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss
 @ HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss
 
-Each subkey hof `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss` contains the information about a → Windows/Subsystem-for-Linux[WSL] distribution.
--
-The name of the subkeys are → development/UUID-GUID[GUIDs].
+`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss` stores some values related to a → Windows/Subsystem-for-Linux installation:
+table { ll
+  `DefaultDistribution` ☰ A → development/UUID-GUID[GUID] whose value is refers to the subkey (see below) of the default WSL distribution (i. e. the distribution that is started by executing `→ Windows/dirs/Windows/System32/wsl_exe` without `-d`).
+  `NatIpAddress` ☰ The IP address with which the host can access WSL (for example when a WSL distribution is running a web server). Because the same IP address is used for all distributions, it implies that different distributions cannot share the same listening IP port.
+table }
+
+
+{ Subkeys
+
+  Each → Windows/registry/tree-structure/key[subkey] of `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss` contains the information about a → Windows/Subsystem-for-Linux[WSL] distribution.
+
+  The name of the subkeys are → development/UUID-GUID[GUIDs].
 
 ? It's possible to change the name of a WSL distribution by assigning the new name to the value of `DistributionName` in the respective subkey.
 
-{ Showing currently installed distributions
+  { Showing currently installed distributions
 
-  The following → Windows/PowerShell script iterates over the installed WSL distributions and prints the associated information stored in the registry.
+    The following → Windows/PowerShell script iterates over the installed WSL distributions and prints the associated information stored in the registry.
 
 code {
 $wsl_user = → Windows/PowerShell/command-inventory/noun/item/get 'hkcu:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
@@ -78,6 +87,7 @@ Debian
     TERM       = xterm-256color
 code }
 
+  }
 }
 
 sa: 
