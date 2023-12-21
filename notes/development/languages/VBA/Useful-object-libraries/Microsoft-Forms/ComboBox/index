@@ -1,4 +1,6 @@
-@ MS Forms 2.0 Object Library: ComboBox
+$ MS Forms 2.0 Object Library: ComboBox
+@ ComboBox
+
 
 { Methods, properties and events
 
@@ -11,7 +13,7 @@
     `backStyle` ☰
     `borderColor` ☰
     `borderStyle` ☰
-    `boundColumn` ☰
+    `boundColumn` ☰ The index of the column whose selected value is displayed in `linkedCell`.
     `canPaste` ☰
     `clear()` ☰
     `click()` ☰ An event which is triggered when the user selects a value.
@@ -121,8 +123,8 @@ option explicit
 
 private sub cb_change()
     dim id as long
-    id = me.db.list(me.db.listIndex, 1)
-    debug.print "value = " & me.db.value & ", id = " & id
+    id = me.cb.list(me.cb.listIndex, 1)
+    debug.print "value = " & me.cb.value & ", id = " & id
 end sub
 code }
 
@@ -131,26 +133,26 @@ code }
 
 code {
 set-strictMode -version latest
- 
+
 $dir           = split-path $myInvocation.myCommand.path
 $wbFile = "$dir\combobox-text.xlsm"
- 
+
 $xls = get-msOfficeComObject excel
 $wb = $xls.workbooks.add()
- 
+
 add-msVBEditorReference         $xls '{0D452EE1-E08F-101A-852E-02608C4D0BB4}'  2 0 # Microsoft Forms 2.0
 add-msVBEditorModule            $xls "$dir/initCombobox.vb" 'initCombobox' 1
- 
+
 $null =
 add-msVBEditorSheetWithModule   $wb  'demoContainer' "$dir/demoContainer.vb"
- 
+
 $displayAlerts = $xls.displayAlerts
 $xls.displayAlerts = $false
 $wb.sheets("Sheet1").delete()
 $xls.displayAlerts = $displayAlerts
- 
+
 $xls.run('createCombobox')
- 
+
 $wb.SaveAs($wbFile, 52) # 52 = xlsm
 code }
 
