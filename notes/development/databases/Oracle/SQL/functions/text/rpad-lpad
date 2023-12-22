@@ -5,11 +5,13 @@ LPAD ('string', n [, 'string_pad')
 RPAD ('string', n [, 'string_pad')
 code }
 
-`'string'` is left/riight padded to length `n` using `'string_pad'`.
+`'string'` is left/right padded to length `n` using `'string_pad'`.
 -
-If string_pad is ommited, a space will be used as default.
+If `string_pad` is omitted, a space will be used as default.
+-
+The returned string is → #ora-rpad-lpad-max-length[never longer than 4000 characters] if `→ development/databases/Oracle/adminstration/init-parameters/max/string_size` is set to `standard` or 32767 characters if set to `extended`.
 
-The second parameter (`n`) to lpad or rpad determines the resulting length. If it is longer than `n`, string will be truncated:
+The second parameter (`n`) to `lpad` or `rpad` determines the resulting length. If it is longer than `n`, string will be truncated:
 code {
 select 
   lpad('string with 25 characters', 20) lpad,
@@ -163,7 +165,19 @@ lemon      - watermelon
 code }
 
 }
+{ Maximum returned length #ora-rpad-lpad-max-length
 
+  The maximum length returned by `rpad` or `lpad` is determined by the value of `→ development/databases/Oracle/adminstration/init-parameters/max/string_size`. If the value is `standard`, this length is `4000` otherwise `32767`.
+
+  The following query returns 4000 (or 32767), rather than throwing an error:
+code {
+select
+   length(rpad('*', 1234567890, '*')) len
+from
+   dual;
+code }
+
+}
 { Side effects of empty strings
 
   Oracle treats an empty string as `→ development/databases/Oracle/SQL/null`. And nulls are always a bit special within Oracle.
