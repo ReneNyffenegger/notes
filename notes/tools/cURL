@@ -30,7 +30,57 @@ code }
   }
   { -T #curl-T
   
-    When used with → development/web/HTTP, `-T` (or `--upload-file`) initates a → development/web/HTTP/request-methods[`PUT` request] to upload a file to the web server.
+    When used with → development/web/HTTP, `-T` (or `--upload-file`) initiates a → development/web/HTTP/request-methods[`PUT` request] to upload a file to the web server.
+
+  }
+  { --data-urlencode
+
+   `--data-urlencode` can be combined with `-G` to create a `GET` request rather than a `POST` request.
+    -
+    The following example displays the resulting request URL by using `-v` and then grepping for `GET`:
+code {
+$ curl -G -v                                             \
+  https://nominatim.openstreetmap.org/search             \
+  --data-urlencode "q=White House, Washington"           \
+  --data-urlencode  format=jsonv2                        \
+   2>&1 > /dev/null                              |       \
+  grep GET
+code }
+
+    When executed, the command prints
+code {
+GET /search?q=White%20House%2C%20Washington&format=jsonv2 HTTP/2
+code }
+
+  }
+  { -v
+
+    Show verbose output of how the HTTP connection is established, for example TLS and certificate related information:
+code {
+$ curl -X HEAD -v   https://letsencrypt.org/
+…
+* successfully set certificate verify locations:
+*  CAfile: /etc/ssl/certs/ca-certificates.crt
+*  CApath: /etc/ssl/certs
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: CN=lencr.org
+*  start date: Nov 28 21:20:24 2023 GMT
+*  expire date: Feb 26 21:20:23 2024 GMT
+*  subjectAltName: host "letsencrypt.org" matched cert's "letsencrypt.org"
+*  issuer: C=US; O=Let's Encrypt; CN=R3
+*  SSL certificate verify ok.
+…
+code }
 
   }
 
@@ -93,7 +143,7 @@ table { llll
     ☰ `--ftp-ssl-ccc` ☰ ☰   Send CCC after authenticating
     ☰ `--ftp-ssl-ccc-mode` ☰ `<active/passive>` ☰ Set CCC mode
     ☰ `--ftp-ssl-control` ☰ ☰ Require SSL/TLS for FTP login, clear for transfer
- `-G` ☰ `--get` ☰ ☰           Put the post data in the URL and use GET
+ `-G` ☰ `--get` ☰ ☰ Put the post data in the URL and use GET
  `-g` ☰ `--globoff` ☰ ☰       Disable URL sequences and ranges using {} and []
  `-I` ☰ `--head` ☰ ☰          Show document info only
  `-H` ☰ `--header` ☰ `<header/@file>` ☰ Pass custom header(s) to server
