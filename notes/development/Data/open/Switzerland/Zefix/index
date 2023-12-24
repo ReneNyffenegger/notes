@@ -1,0 +1,71 @@
+$ Open Data: Zefix
+
+{ Accessing the Zefix API on a shell with CURL
+
+  { Variables
+
+    First, we set the variable `zefix_rest_url_api` to the URL of the endpoint root:
+code {
+zefix_rest_url=https://www.zefix.admin.ch/ZefixREST
+zefix_rest_url_api=$zefix_rest_url/api/v1
+code }
+
+  }
+  { List of municipalites and BFS IDs
+
+    Among others, the `/community` endpoint produces a list of political communities, the BFS id which identifies each community and the id of the registry office that is responsible for the the municipality:
+code {
+curl -s $zefix_rest_url_api/community
+code }
+
+   In order to view the result more nicely, we use → development/languages/JavaScript/JSON/tools/jq/at/csv[jq's `@csv`' instruction] to turn the returned → development/languages/JavaScript/JSON[JSON objects]
+   into → development/Data/exchange/formats/CSV format and then further pipe it to `→ development/Data/structures/tabular/tools/pspg` for user-friendly viewing:
+code {
+→ tools/cURL[curl] -s $zefix_rest_url_api/community | → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[-r] '→ development/languages/JavaScript/JSON/tools/jq/filters/dot-square-bracket | [.name, .bfsId, .registryOfficeId] | → development/languages/JavaScript/JSON/tools/jq/at/csv[@csv]' | → development/Data/structures/tabular/tools/pspg --csv
+code }
+
+  }
+  { Find the BFS ID of a given municipality
+
+    We want to determine the BFS ID of a given municipality, here: Pfungen
+
+code {
+municipality_id=$( curl -s  $zefix_rest_url_api/community | jq -r '.[] | select(.name == "Pfungen") | (.id)' )
+code }
+
+  }
+  { List companies in a municipality
+
+    We use `-d @- <<DATA … DATA` to specify a → tools/cURL#curl-here-doc[here document] that contains the data for the POST body:
+code {
+curl -s -X POST $zefix_rest_url_api/firm/search.json \
+-H '→ development/web/HTTP/header/Content/Type: application/json' \
+-d @- <<DATA
+{
+  "languageKey": "de",
+  "maxEntries" : 999,
+  "offset"     : 0,
+  "legalSeats" : [ $municipality_id ]
+}
+DATA
+code }
+
+   Again, we want to view the result in neatly aligned with `pspg`:
+code {
+curl -s -X POST $zefix_rest_url_api/firm/search.json \
+-H 'Content-Type: application/json' \
+-d @- <<DATA | jq -r '.list | .[] | [.name, .status, .uidFormatted, .shabDate, .deleteDate]  | @csv ' | pspg --csv --csv-separator ,
+{
+  "languageKey": "de",
+  "maxEntries" : 999,
+  "offset"     : 0,
+  "legalSeats" : [ $municipality_id ]
+}
+DATA
+code }
+
+  }
+}
+
+SA:
+  → development/Data/open/Switzerland

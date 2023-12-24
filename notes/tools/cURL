@@ -33,6 +33,45 @@ code }
     When used with → development/web/HTTP, `-T` (or `--upload-file`) initiates a → development/web/HTTP/request-methods[`PUT` request] to upload a file to the web server.
 
   }
+  { -d / --data
+
+    `d` specifies the data for the body of a POST request (unless `-G` is also specified)
+
+    { Data from a file
+
+      `-d` can be followed by `@path/to/file` which specifies the name of a file that contains the data for the body.
+
+    }
+    { Using a here document to create the data #curl-here-doc
+
+      With `@-`, curl is instructed to read the data from stdin. The following here document then provides the data that will be read
+      from stdin:
+code {
+curl -s $url   \
+  -H …         \
+  -d @- <<DATA
+
+   Insert the data of the body here.
+   It's possible to use shell variables.
+
+DATA
+code }
+
+      In order to pipe the result of the server down a pipeline, the pipe symbol must appear after the here document delimiter (here: `DATA`):
+code {
+curl -s $url   \
+  -H …         \
+  -d @- <<DATA     | … pipeline …
+
+   Insert the data of the body here.
+   It's possible to use shell variables.
+
+DATA
+code }
+
+    }
+
+  }
   { --data-urlencode
 
    `--data-urlencode` can be combined with `-G` to create a `GET` request rather than a `POST` request.
@@ -109,14 +148,14 @@ table { llll
     ☰ `--create-dirs` ☰ ☰ Create necessary local directory hierarchy
     ☰ `--crlf` ☰ ☰ Convert LF to CRLF in upload
     ☰ `--crlfile` ☰ `<file>` ☰ Get a CRL list in PEM format from the given file
- `-d` ☰ `--data` ☰ `<data>` ☰   HTTP POST data
+ `-d` ☰ `--data` ☰ `<data>` ☰ HTTP POST data
     ☰ `--data-ascii` ☰ `<data>` ☰ HTTP POST ASCII data
     ☰ `--data-binary` ☰ `<data>` ☰ HTTP POST binary data
     ☰ `--data-raw` ☰ `<data>` ☰ HTTP POST data, '@' allowed
     ☰ `--data-urlencode` ☰ `<data>` ☰ HTTP POST data url encoded
     ☰ `--delegation` ☰ `<LEVEL>` ☰ GSS-API delegation permission
-    ☰ `--digest` ☰ ☰        Use HTTP Digest Authentication
- `-q` ☰ `--disable` ☰ ☰       Disable .curlrc
+    ☰ `--digest` ☰ ☰ Use HTTP Digest Authentication
+ `-q` ☰ `--disable` ☰ ☰ Disable `.curlrc`
     ☰ `--disable-eprt` ☰ ☰  Inhibit using EPRT or LPRT
     ☰ `--disable-epsv` ☰ ☰  Inhibit using EPSV
     ☰ `--dns-interface` ☰ `<interface>` ☰ Interface to use for DNS requests
@@ -200,12 +239,12 @@ table { llll
     ☰ `--post301` ☰ ☰       Do not switch to GET after following a 301
     ☰ `--post302` ☰ ☰       Do not switch to GET after following a 302
     ☰ `--post303` ☰ ☰       Do not switch to GET after following a 303
-    ☰ `--preproxy` [protocol://]host[:port] ☰ ☰ Use this proxy first
+    ☰ `--preproxy` ☰ `[protocol://]host[:port]` ☰ Use this proxy first
  -# ☰ `--progress-bar` ☰ ☰  Display transfer progress as a bar
     ☰ `--proto` ☰ `<protocols>` ☰ Enable/disable PROTOCOLS
     ☰ `--proto-default` ☰ `<protocol>` ☰ Use PROTOCOL for any URL missing a scheme
     ☰ `--proto-redir` ☰ `<protocols>` ☰ Enable/disable PROTOCOLS on redirect
- `-x` ☰ `--proxy` [protocol://]host[:port] ☰ ☰ Use this proxy
+ `-x` ☰ `--proxy` ☰ `[protocol://]host[:port]` ☰ Use this proxy
     ☰ `--proxy-anyauth` ☰ ☰ Pick any proxy authentication method
     ☰ `--proxy-basic` ☰ ☰   Use Basic authentication on the proxy
     ☰ `--proxy-cacert` ☰ `<file>` ☰ CA certificate to verify peer against for proxy

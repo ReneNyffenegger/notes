@@ -1,0 +1,56 @@
+$ Nominatim API
+
+{ Using CURL to query the Nominatim API
+
+  Some ideas how the Nominatim API can be queried with → tools/cURL[`curl`].
+
+code {
+street='Bahnhofstrasse 14'
+postalcode=8422
+city=Pfungen
+country=CH
+format=jsonv2
+
+curl -G -s                                    \
+  https://nominatim.openstreetmap.org/search  \
+  --data-urlencode "street=$street"           \
+  --data-urlencode "postalcode=$postalcode"   \
+  --data-urlencode "city=$city"               \
+  --data-urlencode "country=$country"         \
+  --data-urlencode "format=$format"
+code }
+
+  Pipe the output into `→ development/languages/JavaScript/JSON/tools/jq` for pretty printing the returned → development/languages/JavaScript/JSON#json-object[JSON objects]:
+code {
+curl -G -s                                    \
+  https://nominatim.openstreetmap.org/search  \
+  --data-urlencode "street=$street"           \
+  --data-urlencode "postalcode=$postalcode"   \
+  --data-urlencode "city=$city"               \
+  --data-urlencode "country=$country"         \
+  --data-urlencode "format=$format"    |      \
+  jq
+code }
+
+  Use `→ development/languages/JavaScript/JSON/tools/jq` to turn the returned JSON objects into → development/Data/exchange/formats/CSV and view it the with `→ development/Data/structures/tabular/tools/pspg`:
+code {
+curl -G -s                                    \
+  https://nominatim.openstreetmap.org/search  \
+  --data-urlencode "street=$street"           \
+  --data-urlencode "postalcode=$postalcode"   \
+  --data-urlencode "city=$city"               \
+  --data-urlencode "country=$country"         \
+  --data-urlencode "format=$format"         |
+  jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[-r] '
+    → development/languages/JavaScript/JSON/tools/jq/filters/dot-square-bracket                      |
+   [
+    .category, .type,
+    .osm_type, .osm_id,
+    .lat, .lon,
+    .name, .display_name
+   ]                         |
+     → development/languages/JavaScript/JSON/tools/jq/at/csv '                                 |  \
+  pspg --csv --csv-separator ','
+code }
+
+}
