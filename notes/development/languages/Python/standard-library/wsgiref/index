@@ -1,0 +1,47 @@
+$ Python standard library: wsgiref
+@ wsgiref
+
+*wsgiref* is the reference implementation for → development/languages/Python/PEP/3333[WSGI]
+
+{ simple_server
+
+  Among others, `wsgiref.simple_server` exports `WSGIServer` and `WSGIRequestHandler` which allow to test a WSGI appliction.
+
+  In the following example, the WSGI application is implemented with the callable (function) `app`. The application simply writes the `Hello World!` followed by a line that reveals the value of the environment variable `PATH_INFO`:
+code {
+#!/usr/bin/env python3
+
+from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
+
+def app(environ, start_response):
+
+    start_response(
+       '200 OK',
+       [('→ development/web/HTTP/header/Content/Type[Content-Type]', 'text/plain; charset=utf-8')]
+    )
+
+  #
+  #  The application callable returns an iterable yielding zero or more bytestrings:
+  #
+    return [
+       'Hello world!\n'                .encode('utf-8'),
+      f'Serving {environ["PATH_INFO"]}'.encode('utf-8')
+    ]
+
+
+host = ''   # Localhost?
+port = 1234
+
+wsgiServer = WSGIServer( (host,port) , WSGIRequestHandler )
+wsgiServer.set_app(app)
+wsgiServer.serve_forever()
+code }
+
+}
+
+sa:
+
+  → development/languages/Python/standard-library
+
+links:
+  → https://docs.python.org/3/library/wsgiref.html[wsgiref] is the reference implementation for WSGI.
