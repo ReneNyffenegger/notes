@@ -1,0 +1,38 @@
+
+Gunicorn is a Python → development/languages/Python/PEP/3333[WSGI] HTTP server running on Unix.
+
+code {
+$ sudo apt install -y gunicorn
+code }
+
+{ Simple application
+
+  { appModule.py
+
+code {
+def appCallable(environ, start_response):
+
+    start_response(
+       '200 OK',
+       [('Content-Type', 'text/plain; charset=utf-8')]
+    )
+
+    return [
+       'Hello world!\n\n'                .encode('utf-8'),
+      f'Serving {environ["PATH_INFO"]}\n'.encode('utf-8')
+    ]
+code }
+
+  }
+  { Starting the app
+
+    When starting a → development/languages/Python/PEP/3333[WSGI] application, the name of the WSGI callable (here: `appCallable`) and the module (Python script, here: `appModule`) must be specifed:
+code {
+$ gunicorn appModule:appCallable
+code }
+
+    After starting it, the  webserver listens on port 8000 (if the default is not changed).
+
+  }
+
+}
