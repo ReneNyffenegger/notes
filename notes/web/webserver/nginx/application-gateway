@@ -1,0 +1,90 @@
+$ Configuring nginx as an application gateway for a WSGI server
+
+{ Application server
+
+  We use → web/webserver/Gunicorn to implement the WSGI application server.
+
+  { appModule.py
+
+code {
+def appCallable(environ, start_response):
+
+    start_response(
+       '200 OK',
+       [('Content-Type', 'text/plain; charset=utf-8')]
+    )
+
+    return [
+      f'Hello world!\n\n'                              .encode('utf-8'),
+      f'PATH_INFO      = {environ["PATH_INFO"     ]}\n'.encode('utf-8'),
+      f'RAW_URI        = {environ["RAW_URI"       ]}\n'.encode('utf-8'),
+      f'HTTP_HOST      = {environ["HTTP_HOST"     ]}\n'.encode('utf-8'),
+      f'REMOTE_ADD     = {environ["REMOTE_ADDR"   ]}\n'.encode('utf-8'),
+      f'HTTP_X_REAL_IP = {environ["HTTP_X_REAL_IP"]}\n'.encode('utf-8'),
+      f'REMOTE_PORT    = {environ["REMOTE_PORT"   ]}\n'.encode('utf-8')
+    ]
+code }
+  }
+  { Starting the WSGI webserver
+
+    We start the WSGI webserver. The Gunicorn command line option `-b` allows to specify the IP address and port where the server listens:
+code {
+$ gunicorn -b 127.0.0.1:1234 appModule:appCallable
+code }
+
+  }
+
+}
+{ nginx.conf
+
+  The following *minimal* nginx configuration file (`→ Linux/fhs/etc/nginx/nginx_conf`) routes requests of `/app/` URLs to the WSGI webserver:
+code {
+events {
+    worker_connections 1024;
+}
+
+http {
+
+    sendfile on;
+
+  #
+  # Specify IP address and port of (WSGI) application server.
+  # These values correspond to those specified with -b when
+  # the Gunicorn webserver was started:
+  #
+    upstream gunicorn_srv {
+        server 127.0.0.1:1234;
+    }
+
+    server {
+    
+      #
+      # Port 80 is default. It cannot hurt to
+      # explicitely state it:
+      #
+        listen 80;
+
+      #
+      # Forward requests to /app/ and beneath
+      # to upstream server gunicorn_srv
+      #
+        location /app/ {
+        
+            proxy_pass         http://gunicorn_srv;
+            proxy_redirect     off;
+
+          # Without setting Host to $host, its value will be gunicorn_srv.
+            proxy_set_header   Host             $host;
+            proxy_set_header   X-Real-IP        $remote_addr;
+            proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+        
+        }
+    }
+}
+code }
+
+}
+
+links:
+  → https://docs.nginx.com/nginx/admin-guide/web-server/app-gateway-uwsgi-django/[Using NGINX and NGINX Plus as an Application Gateway with uWSGI and Django]
