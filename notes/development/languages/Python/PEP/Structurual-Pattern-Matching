@@ -1,0 +1,94 @@
+$ PEPs related to Structural Pattern Matching
+
+{ Motivation
+
+  { No explicit call to isinstance and len
+
+  The following code …
+code {
+if isinstance(x, tuple) and len(x) == 2:
+    host, port = x
+    mode = "http"
+elif isinstance(x, tuple) and len(x) == 3:
+    host, port, mode = x
+code }
+ 
+  … is likely more readable with a `match` statement:
+code {
+match x:
+    case host, port:
+        mode = "http"
+    case host, port, mode:
+        pass
+code }
+
+  }
+  { Match JSON objects
+
+code {
+match json_pet:
+    case {"type": "cat", "name": name, "pattern": pattern}:
+        return Cat(name, pattern)
+    case {"type": "dog", "name": name, "breed": breed}:
+        return Dog(name, breed)
+    case _:
+        raise ValueError("Not a suitable pet")
+code }
+
+  }
+
+}
+
+{ Patterns
+
+  The pattern *syntax* builds on → development/languages/Python/iterable/sequence#py-sequence-unpacking[sequence unpacking] aka → development/languages/Python/iterable/unpacking (which can be seen as a prototype for pattern matching).
+
+  A pattern looks like a subset of expressions such as
+    • `[first, second, *rest]`
+    • `Point2d(x, 0)`
+    • `{"name": "Bruce", "age": age}`
+    • `42`
+
+  { Purpose
+
+    Patterns fulfill two purposes:
+      • they impose (structural) constraints on the subject and
+      • they specify which data values should be extracted from the subject and bound to variables. 
+
+  }
+  { Types of patterns
+
+    table { lll
+      ☰ ~Looks like~ ☰
+     literal pattern ☰ a literal (incl. `True`, `False` and `None`) ☰ Useful to filter constant values in a structure. It only matches objects equal to the literal, and never binds.
+     capture pattern ☰ `x` ☰ Equivalent to an identical assignment target: it always matches and binds the variable with the given (simple) name
+     wildcard pattern ☰ `_` (a single underscore) ☰ Matches always, but does not capture any variable (which prevents interference with other uses for _ and allows for some optimizations).
+     constant value pattern ☰ `COLOR.red` ☰ Works like the literal but for certain named constants. Note that it must be a qualified (dotted) name, given the possible ambiguity with a capture pattern. Only matches values equal to the corresponding value. It never binds.
+     sequence pattern ☰ `[a, *rest, b]` ☰ Similar to a list unpacking. An important difference is that the elements nested within it can be any kind of patterns, not just names or sequences. It matches only sequences of appropriate length, as long as all the sub-patterns also match. It makes all the bindings of its sub-patterns.
+     mapping pattern ☰ `{"user": u, "emails": [*es]}` ☰ Matches mappings with at least the set of provided keys, and if all the sub-patterns match their corresponding values. It binds whatever the sub-patterns bind while matching with the values corresponding to the keys. Adding **rest at the end of the pattern to capture extra items is allowed.
+     class pattern ☰ `datetime.date(year=y, day=d)` ☰ is similar to the above but matches attributes instead of keys.  It matches instances of the given type, having at least the specified attributes, as long as the attributes match with the corresponding sub-patterns. It binds whatever the sub-patterns bind when matching with the values of the given attributes. An optional protocol also allows matching positional arguments.
+     OR pattern ☰ `[*x] | {"elems": [*x]}` ☰­Matches if any of its sub-patterns match. It uses the binding for the leftmost pattern that matched. Note that there is → https://peps.python.org/pep-0622/#and-patterns[no AND pattern].
+     walrus pattern ☰ `d := datetime(year=2020, month=m)` ☰ Matches only if its sub-pattern also matches. It binds whatever the sub-pattern match does, and also binds the named variable to the entire object.
+    table }
+
+    There is → https://peps.python.org/pep-0622/#range-matching-pattern[no range matching pattern] (like `1..10`).
+
+  }
+
+}
+{ @sealed
+
+ `@sealed` (added to the `typing` module) is a no-op → development/languages/Python/functions/decorators used to indicate to static type checkers that all subclassed of the decorated class should be defined in the same module.  
+
+}
+{ Misc
+
+  Within a `match` statement, no new meaning is assigned to `break` and `continue` (so that a `match` statement can be refactored into a looping statement).
+
+}
+
+
+
+sa:
+
+  A small list of → development/languages/Python/PEP[other interesting PEPs]
