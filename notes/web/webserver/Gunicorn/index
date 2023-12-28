@@ -36,6 +36,70 @@ code }
   }
 
 }
+{ Concurrency
+
+  { app.py
+
+code {
+import time
+import threading
+import os
+
+def application(environ, start_response):
+
+    start_response( '200 OK', [('Content-Type', 'text/plain; charset=utf-8') ])
+
+    yield f'os.get_pid                    : {os.getpid()}\n'              .encode('utf-8')
+    yield f'threading.get_native_id native: {threading.get_native_id()}\n'.encode('utf-8')
+    yield f'threading.get_ident           : {threading.get_ident()}\n'    .encode('utf-8')
+    for i in range(10):
+        time.sleep(1)
+        yield f'{i}\n'.encode('utf-8')
+code }
+
+  }
+  { Starting Gunicorn
+
+    Play with option values of `--threads` and `--worker-connections`:
+code {
+$ gunicorn --threads 3 --worker-connections 2 app
+code }
+
+  }
+  { Check number of simultaneous requests
+
+    Use `tmux` and the `start-tmux.sh` shell script below to execute a `curl` command to check how many requests are executed in parallel:
+code {
+$ ./start-tmux.sh
+code }
+
+    Use `ctrl-b` followed by `:kill-session` to exit the tmux session.
+
+    { start-tmux.sh
+
+code {
+#!/bin/bash
+
+tmux                                \
+set-option -g remain-on-exit on \;  \
+new-session                         \
+"$CMD"                           \; \
+split-window -h                     \
+"$CMD"                           \; \
+split-window -h                     \
+"$CMD"                           \; \
+split-window -h                     \
+"$CMD"                           \; \
+split-window -h                     \
+"$CMD"                           \; \
+select-layout even-horizontal
+code }
+
+      → https://superuser.com/a/1684555/16610[This Superuser answer] was helpful when I wrote the script.
+
+    }
+  }
+}
 
 sa:
 
