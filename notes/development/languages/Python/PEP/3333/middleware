@@ -1,0 +1,102 @@
+$ WSGI Middleware
+@ middleware
+
+{ Modify response body and add Content-Length header
+
+  This is an example of a → development/languages/Python/PEP/3333[WSGI] middleware that modifies a WSGI application's body and adds the `Content-Length` → development/web/HTTP/header#http-respsonse-header[response header].
+  -
+  Much of the code is inspired by and copied from → https://stackoverflow.com/a/62024432/180275[this Stackoverflow answer].
+  
+  { textWithUmlauts.py
+
+   `textWithUmlauts.py` represents the application. Because the middleware will set the `Content-Length`, I have added the three character Ä, Ö and Ü to test if the content length value will be set correctly.
+code {
+def application(environ, start_response):
+
+    start_response(
+         '200 OK',
+        [('Content-Type', 'text/plain; charset=utf-8')
+    ])
+
+    return ['The total length, in bytes, of this text, '     .encode('utf-8'),
+            'when encoded in UTF-8, with the three letters ' .encode('utf-8'),
+            'Ä, Ö and Ü is 108'                              .encode('utf-8') ]
+code }
+
+  }
+  { middleware.py
+
+   `middleware.py` is called from WSGI and calls `textWithUmlauts.application`. It then adds additional text to the body and calculates `Content-Length`:
+code {
+import textWithUmlauts
+
+class addContentLength:
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+
+        appStatus  = None
+        appHeaders = []
+        appExcInfo = None
+
+        def start_response_callback(status, headers, exc_info=None):
+
+            nonlocal appStatus, appHeaders, appExcInfo
+
+            appStatus  = status
+            appHeaders = headers
+            appExcInfo = exc_info
+
+        appBody = self.app(environ, start_response_callback)
+
+        body  = (b''.join(appBody)).decode('utf-8')
+        body += '\nThis line was added by the middleware "addContentLength"'  # 57 bytes (+108 = 165)
+
+        bodyBytes = body.encode('utf-8')
+
+      # Remove the Content-Length header if provided by the wrapped application 
+        headers = [ (k, v) for k, v in appHeaders if k.lower() != 'content-length' ]
+
+      # Calculate and add Content-Length
+        headers.append( ('Content-Length', str(len(bodyBytes)) ) )
+
+        start_response(appStatus, headers, appExcInfo)
+        return [bodyBytes]
+
+application = addContentLength(textWithUmlauts.application)
+code }
+
+  }
+  { Testing
+
+    First, we run the middleware (and by extension the application) with → web/webserver/Gunicorn
+code {
+$ gunicorn middleware
+code }
+
+    This starts a web server that listens on port 8000.
+
+    We now use → tools/cURL[`curl`] to inspect the returned HTTP response header and body:
+code {
+$ curl -i localhost:8000
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Thu, 28 Dec 2023 19:14:12 GMT
+Connection: close
+Content-Type: text/plain; charset=utf-8
+Content-Length: 165
+
+The total length, in bytes, of this text, when encoded in UTF-8, with the three letters Ä, Ö and Ü is 108
+This line was added by the middleware "addContentLength"
+code }
+
+    It turns out that the `Content-Length` is calculated correctly.
+
+  }
+
+}
+
+sa:
+  → development/languages/Python/PEP/3333[WSGI]
