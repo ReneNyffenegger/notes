@@ -1,0 +1,148 @@
+$ Oracle: LOB storage in/out of row
+
+Depending on the size of a → development/databases/Oracle/SQL/data-types/lob[LOB] and its column's configuration (especially the `enable/disable storage in row` clause), LOB data is stored in the same
+→ development/databases/Oracle/architecture/database/logical-structures/data-block as the record/row to which it belongs (in row storage) or in a special LOB segment.
+-
+This note tries to investigate some aspects of this clause.
+
+code {
+create table tq84_lob_storage_in_row (
+   lob_len      integer,
+   lob_def      clob,
+   lob_in_def   clob,
+   lob_in_8000  clob,
+   lob_ext      clob
+)
+lob(lob_in_def ) store as (enable  storage in row     )
+lob(lob_in_8000) store as (enable  storage in row 8000)
+lob(lob_ext    ) store as (disable storage in row     )
+;
+ 
+ 
+declare
+ 
+   tx  clob;
+ 
+   procedure ins(len integer) as
+      lb            clob;
+      remaining_len integer := len;
+   begin
+ 
+      lb := lpad('*', least(remaining_len, 4000), '*');
+      remaining_len := remaining_len - 4000;
+ 
+      while remaining_len > 0 loop
+         dbms_lob.writeappend(lb, least(remaining_len, 4000), lpad('*', 4000, '*'));
+         remaining_len := remaining_len - 4000;
+      end loop;
+ 
+      insert into tq84_lob_storage_in_row values (len, lb, lb, lb, lb);
+      dbms_stats.gather_table_stats(user, 'tq84_lob_storage_in_row');
+ 
+      for r in ( -- {
+          select -- {
+             *
+          from (
+             select
+                column_name  colnam,
+                avg_col_len  avglen
+             from
+                user_tab_cols
+             where
+                table_name = 'TQ84_LOB_STORAGE_IN_ROW'
+          )
+          pivot (
+             any_value(avglen) for
+             colnam in ('LOB_DEF' as lob_def, 'LOB_IN_DEF' as lob_in_def, 'LOB_IN_8000' as lob_in_8000, 'LOB_EXT' as lob_ext)
+          ) -- }
+      ) loop
+ 
+        dbms_output.put_line(
+                    to_char(r.lob_def    , '9999') || '  ' ||
+                    to_char(r.lob_in_def , '9999') || '  ' ||
+                    to_char(r.lob_in_8000, '9999') || '  ' ||
+                    to_char(r.lob_ext    , '9999')
+        );
+ 
+      end loop; -- }
+   end ins;
+begin
+ 
+   ins(     1);
+   ins(  1000);
+   ins(  3000);
+   ins(  6000);
+   ins(100000);
+   ins(    0 );
+   ins( null );
+end;
+/
+code }
+
+The PL/SQL block prints
+code {
+   33     33     33    132
+ 1033   1033   1033    133
+  733    733   2699    133
+  583    583   2058    133
+  496    496   1676    136
+  413    413   1397    113
+  355    355   1197     97
+code }
+ 
+code {
+select
+   lob_len,
+   length(lob_def)              length_,
+   dbms_lob.getlength(lob_def)  getlength
+from
+   tq84_lob_storage_in_row
+order by
+   lob_len nulls last;
+--
+--    LOB_LEN    LENGTH_  GETLENGTH
+-- ---------- ---------- ----------
+--          0                      
+--          1          1          1
+--       1000       1000       1000
+--       3000       3000       3000
+--       6000       6000       6000
+--     100000     100000     100000
+code }
+ 
+ 
+code {
+column column_name  format a11
+column data_type    format a4
+column segment_name format a25
+select
+   col.column_name,
+   col.data_type,
+   col.data_length,
+   col.avg_col_len,
+   lob.in_row,
+   lob.segment_name,
+   lob.tablespace_name
+from
+   user_tab_cols col                                                 join
+   user_lobs     lob on col.table_name  = lob.table_name  and
+                        col.column_name = lob.column_name
+where
+   col.table_name = 'TQ84_LOB_STORAGE_IN_ROW'
+order by
+   col.column_id;
+--
+-- COLUMN_NAME DATA DATA_LENGTH AVG_COL_LEN IN_ SEGMENT_NAME              TABLESPACE_NAME               
+-- ----------- ---- ----------- ----------- --- ------------------------- ------------------------------
+-- LOB_DEF     CLOB        4000         355 YES SYS_LOB0000128476C00002$$ USERS                         
+-- LOB_IN_DEF  CLOB        4000         355 YES SYS_LOB0000128476C00003$$ USERS                         
+-- LOB_IN_8000 CLOB        8200        1197 YES SYS_LOB0000128476C00004$$ USERS                         
+-- LOB_EXT     CLOB         466          97 NO  SYS_LOB0000128476C00005$$ USERS                         
+code }
+
+code {
+drop   table tq84_lob_storage_in_row;
+code }
+
+sa:
+  The → development/databases/Oracle/errors[error message] *ORA-65514: invalid ENABLE STORAGE IN ROW value*.

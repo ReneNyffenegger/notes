@@ -26,6 +26,27 @@ end;
 /
 code }
 }
+{ Execution plans
+
+  If a statement can be run completely on the remote database, `dbms_xplan.display()` adds the note *fully remote statement*.
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select count(*) from xyz@db_far_away;
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display();
+----------------------------------------------------------------------------------------
+| Id  | Operation              | Name         | Rows  | Cost (%CPU)| Time     | Inst   |
+----------------------------------------------------------------------------------------
+|   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select/remote[SELECT STATEMENT REMOTE]|              |     1 | 12034  (14)| 00:00:01 |        |
+|   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate        |              |     1 |            |          |        |
+|   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/full-scan/fast | XYZ_IX       |    33M| 12034  (14)| 00:00:01 | XINST~ |
+----------------------------------------------------------------------------------------
+Note
+-----
+   - fully remote statement
+code }
+
+}
 
 sa:
 
@@ -45,6 +66,7 @@ sa:
     • → development/databases/Oracle/errors/ORA-02063_preceding_from
     • → development/databases/Oracle/errors/ORA-02021_DDL-operations-are-not-allowed-on-a-remote-database
     • → development/databases/Oracle/errors/ORA-22992_cannot-use-LOB-locators-selected-from-remote-tables
+    • → development/databases/Oracle/errors/ORA-65503_cannot-send-or-receive-temporary-LOB-locators-over-a-database-link
 
   The → development/databases/Oracle/adminstration/init-parameters[init parameter] `open_links`
 
