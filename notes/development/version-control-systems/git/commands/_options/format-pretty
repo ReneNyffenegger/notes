@@ -9,16 +9,17 @@ code }
 
 { Built-in formats
 
-  table { ll
-    oneline ☰
-    short ☰
-    medium ☰
-    full ☰
-    fuller ☰
-    reference ☰
-    email ☰
-    mboxrd ☰ Like email, but `From:` lines are quoted with one `>`, regardless of the amounts of `>`
-    raw ☰  Compare with `git log --raw`
+  table { lll
+    ☰ ~Equivalent to~ ☰
+    `oneline` ☰ `%H %s` ☰ Full (40 character) hash and subject (aka title) - Intended to be as compact as possible
+    `short` ☰ ☰
+    `medium` ☰ ☰
+    `full` ☰ ☰
+    `fuller` ☰ ☰
+    `reference` ☰ `format:%C(auto)%h (%s, %as)` ☰ For example `4b2ee6d2b33d (Merge tag 'usb-6.7-rc7' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb, 2023-12-23)`
+    `email` ☰ ☰
+    `mboxrd` ☰ ☰ Like `email`, but `From:` lines are quoted with one `>`, regardless of the amounts of `>`
+    `raw` ☰ ☰ Compare with `git log --raw`
   table }
 
 code {
@@ -42,39 +43,36 @@ In the following tables, the percent sign is not shown for readability.
 
   { Hash related placeholders
 
-    table { ll
+    table { lll
 
-     `H` ☰ Commit hash
-     `h` ☰ Abbreviated commit hash
-     `T` ☰ Tree hash
-     `t` ☰ Abbreviated tree hash
-     `P` ☰ Parent hash
-     `p` ☰ Abbreviated parent hash
-
+      ~long~ ☰ ~abbreviated~ ☰
+       `H` ☰ `h` ☰ → development/version-control-systems/git/objects/commit[commit] hash
+       `T` ☰ `t` ☰ → development/version-control-systems/git/objects/tree[tree] hash
+       `P` ☰ `p` ☰ parent hash
     table }
 
+    The *long* hash is represented with 40 characters, the abbreviated hash with 7 characters.
+
   }
-  { Related to author
+  { Related to author (%a…, %c…)
 
     Placeholders that are related to a commit's author start with `%a`, those related to a committer with `%c`.
     -
     So, `%an` is the name of the author, `%cn` the name of the committer.
 
-    table { ll
-      `n` ☰ Name
-      `N` ☰ Name, respecting `.mailmap`
-      `e` ☰ eMail
-      `E` ☰ eMail, respecting `.mailmap`
-      `l` ☰ The email's portion left of the at (`@`) sign (local part)
-      `L` ☰ As `%al` or `%cl, but respecting `.mailmap`
+    table { lll
+      ☰ ~Respecting → Linux/kernel/source/_mailmap[`.mailmap`]~ ☰
+      `n` ☰ `N` ☰ Name
+      `e` ☰ `E` ☰ eMail
+      `l` ☰ `L` ☰ The email's portion left of the at (`@`) sign (local part)
     table }
 
     The following formats relate to the commit dates. Again, they're prefixed with `%a` or `%c`.
     table { lll
 
       ☰ ☰ ~Example~
-      `d` ☰ respects `--date=` option ☰
-      `D` ☰ In RFC → development/misc/Datumsformate#datumsformat-rfc-2822[2822 format] ☰ `Mon, 25 Apr 2022 23:53:09 +0200`
+      `d` ☰ Date, respects `--date=` option ☰
+      `D` ☰ Date in RFC → development/misc/Datumsformate#datumsformat-rfc-2822[2822 format] ☰ `Mon, 25 Apr 2022 23:53:09 +0200`
       `r` ☰ Relative format ☰ `15 hours ago`, `9 days ago` or `3 weeks ago` etc.
       `t` ☰ In → development/date-time/Unix-time  ☰ `1653998153` (seconds since 1970-01-01)
       `i` ☰ In → misc/ISO/8601 format   ☰ `2022-05-02 15:49:11 +0200`
@@ -102,11 +100,11 @@ code }
   { ... 
 
     table { ll
-      `s` ☰ subject
+      `s` ☰ subject (aka title). → #git-pretty-s-vs-f[Compare with `%f`\
       `b` ☰ body
       `B` ☰ raw body  (unwrapped subject and body)
       `N` ☰ commit notes
-      `f` ☰ sanitized subject line
+      `f` ☰ sanitized subject line, → #git-pretty-s-vs-f[compare with `%s`]
       `e` ☰ encoding
     table }
 
@@ -206,5 +204,17 @@ code }
 code {
 git log --pretty='%(trailers[:options])'
 code }
+
+
+  { %s vs %f #git-pretty-s-vs-f
+
+   `%f` sees to replace adjacent spaces, colons, apostrophes, slashes etc. with one hyphen:
+code {
+$ ~/linux git log -1 --format=%s ; git log -1 --format=%f
+Merge tag 'gpio-fixes-for-v6.7-rc8' of git://git.kernel.org/pub/scm/linux/kernel/git/brgl/linux
+Merge-tag-gpio-fixes-for-v6.7-rc8-of-git-git.kernel.org-pub-scm-linux-kernel-git-brgl-linux
+code }
+
+  }
 
 }

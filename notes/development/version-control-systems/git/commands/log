@@ -16,6 +16,163 @@ code {
 git show --pretty=%gd --stat --name-only 37c97d9
 code }
 
+{ Command line options
+
+  table { lll
+    ☰ `--follow` ☰ Continue listing the history of a file beyond renames (works only for a single file).
+    ☰ `--no-decorate`, `--decorate[=short|full|auto|no]` ☰ Print out the ref names of any commits that are shown. If short is specified, the ref name prefixes `refs/heads/`, `refs/tags/` and `refs/remotes/` will not be printed. If `full` is specified, the full ref name (including prefix) will be printed. If auto is specified, then if the output is going to a terminal, the ref names are shown as if short were given, otherwise no ref names are shown. The option `--decorate` is short-hand for `--decorate=short`. Default to configuration value of log.decorate if configured, otherwise, `auto`.
+    ☰ `--decorate-refs=<pattern>`, `--decorate-refs-exclude=<pattern>` ☰ For each candidate reference, do not use it for decoration if it matches any patterns given to --decorate-refs-exclude or if it doesn’t match any of the patterns given to --decorate-refs. The log.excludeDecoration config option allows excluding refs from the decorations, but an explicit --decorate-refs pattern will override a match in log.excludeDecoration.  If none of these options or config settings are given, then references are used as decoration if they match HEAD, refs/heads/, refs/remotes/, refs/stash/, or refs/tags/.
+    ☰ `--clear-decorations` ☰ When specified, this option clears all previous --decorate-refs or --decorate-refs-exclude options and relaxes the default decoration filter to include all references. This option is assumed if the config value log.initialDecorationSet is set to all.
+    ☰ `--source` ☰ Print out the ref name given on the command line by which each commit was reached.
+    ☰ `--[no-]mailmap`, `--[no-]use-mailmap` ☰ Use mailmap file to map author and committer names and email addresses to canonical real names and email addresses. See git-shortlog[1].
+    ☰ `--full-diff` ☰ Without this flag, `git log -p <path>…` shows commits that touch the specified paths, and diffs about the same specified paths. With this, the full diff is shown for commits that touch the specified paths; this means that `<path>…` limits only commits, and doesn’t limit diff for those commits.  Note that this affects all diff-based output types, e.g. those produced by `--stat`, etc.
+    ☰ `--log-size` ☰ Include a line “log size <number>” in the output for each commit, where <number> is the length of that commit’s message in bytes. Intended to speed up tools that read log messages from git log output by allowing them to allocate space in advance.
+    ☰ `-L<start>,<end>:<file>`, `-L:<funcname>:<file>` ☰ Trace the evolution of the line range given by `<start>,<end>`, or by the function name regex `<funcname>`, within the `<file>`. You may not give any pathspec limiters. This is currently limited to a walk starting from a single revision, i.e., you may only give zero or one positive revision arguments, and `<start>` and `<end>` (or `<funcname>`) must exist in the starting revision. You can specify this option more than once. Implies `--patch`. Patch output can be suppressed using --no-patch, but other diff formats (namely `--raw`, `--numstat`, `--shortstat`, `--dirstat`, `--summary`, `--name-only`, `--name-status`, `--check`) are not currently implemented.
+    ☰ `<revision-range>` ☰ Show only commits in the specified revision range. When no <revision-range> is specified, it defaults to HEAD (i.e. the whole history leading to the current commit). origin..HEAD specifies all the commits reachable from the current commit (i.e. HEAD), but not from origin. For a complete list of ways to spell <revision-range>, see the Specifying Ranges section of gitrevisions[7].
+    ☰ `[--] <path>…` ☰ Show only commits that are enough to explain how the files that match the specified paths came to be. *See History Simplification below for details and other simplification modes.* Paths may need to be prefixed with `--` to separate them from options or the revision range, when confusion arises.
+  table }
+
+  { Commit Limiting
+
+    Besides specifying a range of commits that should be listed using the special notations explained in the description, additional commit limiting may be applied.
+
+    Using more options generally further limits the output (e.g. `--since=<date1>` limits to commits newer than `<date1>`, and using it with `--grep=<pattern>` further limits to commits whose log message has a line that matches <pattern>), unless otherwise noted.
+
+    Note that these are applied before commit ordering and formatting options, such as `--reverse`.
+
+    table { lll
+      ☰ `-<number>`, `-n <number>`, `--max-count=<number>` ☰ Limit the number of commits to output.
+      ☰ `--skip=<number>` ☰ Skip number commits before starting to show the commit output.
+      ☰ `--since=<date>`, `--after=<date>` ☰ Show commits more recent than a specific date.
+      ☰ `--since-as-filter=<date>` ☰ Show all commits more recent than a specific date. This visits all commits in the range, rather than stopping at the first commit which is older than a specific date.
+      ☰ `--until=<date>`, `--before=<date>` ☰ Show commits older than a specific date.
+      ☰ `--author=<pattern>`, `--committer=<pattern>` ☰ Limit the commits output to ones with author/committer header lines that match the specified pattern (regular expression). With more than one --author=<pattern>, commits whose author matches any of the given patterns are chosen (similarly for multiple --committer=<pattern>).
+      ☰ `--grep-reflog=<pattern>` ☰ Limit the commits output to ones with reflog entries that match the specified pattern (regular expression). With more than one --grep-reflog, commits whose reflog message matches any of the given patterns are chosen. It is an error to use this option unless --walk-reflogs is in use.
+      ☰ `--grep=<pattern>` ☰ Limit the commits output to ones with a log message that matches the specified pattern (regular expression). With more than one --grep=<pattern>, commits whose message matches any of the given patterns are chosen (but see --all-match).  When `--notes` is in effect, the message from the notes is matched as if it were part of the log message.
+      ☰ `--all-match` ☰ Limit the commits output to ones that match all given --grep, instead of ones that match at least one.
+      ☰ `--invert-grep` ☰ Limit the commits output to ones with a log message that do not match the pattern specified with --grep=<pattern>.
+     `-i` ☰ `--regexp-ignore-case` ☰ Match the regular expression limiting patterns without regard to letter case.
+      ☰ `--basic-regexp` ☰ Consider the limiting patterns to be basic regular expressions; this is the default.
+     `-E` ☰ `--extended-regexp` ☰ Consider the limiting patterns to be extended regular expressions instead of the default basic regular expressions.
+     `-F` ☰ `--fixed-strings` ☰ Consider the limiting patterns to be fixed strings (don’t interpret pattern as a regular expression).
+     `-P` ☰ `--perl-regexp` ☰ Consider the limiting patterns to be Perl-compatible regular expressions.  Support for these types of regular expressions is an optional compile-time dependency. If Git wasn’t compiled with support for them providing this option will cause it to die.
+     ☰ `--remove-empty` ☰ Stop when a given path disappears from the tree.
+     ☰ `--merges` ☰ Print only merge commits. This is exactly the same as `--min-parents=2`.
+     ☰ `--no-merges` ☰ Do not print commits with more than one parent. This is exactly the same as --max-parents=1.
+     ☰ `--min-parents=<number>`, `--max-parents=<number>`, `--no-min-parents`, `--no-max-parents` ☰  Show only commits which have at least (or at most) that many parent commits. In particular, --max-parents=1 is the same as --no-merges, --min-parents=2 is the same as --merges. --max-parents=0 gives all root commits and --min-parents=3 all octopus merges. `--no-min-parents` and `--no-max-parents` reset these limits (to no limit) again. Equivalent forms are `--min-parents=0` (any commit has 0 or more parents) and `--max-parents=-1` (negative numbers denote no upper limit).
+     ☰ `--first-parent` ☰ When finding commits to include, follow only the first parent commit upon seeing a merge commit. This option can give a better overview when viewing the evolution of a particular topic branch, because merges into a topic branch tend to be only about adjusting to updated upstream from time to time, and this option allows you to ignore the individual commits brought in to your history by such a merge. This option also changes default diff format for merge commits to first-parent, see --diff-merges=first-parent for details.
+     ☰ `--exclude-first-parent-only` ☰ When finding commits to exclude (with a `^`), follow only the first parent commit upon seeing a merge commit. This can be used to find the set of changes in a topic branch from the point where it diverged from the remote branch, given that arbitrary merges can be valid topic branch changes.
+     ☰ `--not` ☰ Reverses the meaning of the ^ prefix (or lack thereof) for all following revision specifiers, up to the next --not. When used on the command line before --stdin, the revisions passed through stdin will not be affected by it. Conversely, when passed via standard input, the revisions passed on the command line will not be affected by it.
+     ☰ `--all` ☰ Pretend as if all the refs in refs/, along with HEAD, are listed on the command line as `<commit>`.
+     ☰ `--branches[=<pattern>]` ☰ Pretend as if all the refs in refs/heads are listed on the command line as <commit>. If <pattern> is given, limit branches to ones matching given shell glob. If pattern lacks ?, *, or [, /* at the end is implied.
+     ☰ `--tags[=<pattern>]` ☰ Pretend as if all the refs in `refs/tags` are listed on the command line as <commit>. If <pattern> is given, limit tags to ones matching given shell glob. If pattern lacks ?, *, or [, /* at the end is implied.
+     ☰ `--remotes[=<pattern>]` ☰ Pretend as if all the refs in refs/remotes are listed on the command line as <commit>. If <pattern> is given, limit remote-tracking branches to ones matching given shell glob. If pattern lacks ?, *, or [, /* at the end is implied.
+     ☰ `--glob=<glob-pattern>` ☰ Pretend as if all the refs matching shell glob <glob-pattern> are listed on the command line as <commit>. Leading refs/, is automatically prepended if missing. If pattern lacks ?, *, or [, /* at the end is implied.
+     ☰ `--exclude=<glob-pattern>` ☰ Do not include refs matching <glob-pattern> that the next --all, --branches, --tags, --remotes, or --glob would otherwise consider. Repetitions of this option accumulate exclusion patterns up to the next --all, --branches, --tags, --remotes, or --glob option (other options or arguments do not clear accumulated patterns). The patterns given should not begin with refs/heads, refs/tags, or refs/remotes when applied to --branches, --tags, or --remotes, respectively, and they must begin with refs/ when applied to --glob or --all. If a trailing /* is intended, it must be given explicitly.
+     ☰ `--exclude-hidden=[fetch|receive|uploadpack]` ☰ Do not include refs that would be hidden by git-fetch, git-receive-pack or git-upload-pack by consulting the appropriate fetch.hideRefs, receive.hideRefs or uploadpack.hideRefs configuration along with transfer.hideRefs (see git-config[1]). This option affects the next pseudo-ref option --all or --glob and is cleared after processing them.
+     ☰ `--reflog` ☰ Pretend as if all objects mentioned by reflogs are listed on the command line as <commit>.
+     ☰ `--alternate-refs` ☰ Pretend as if all objects mentioned as ref tips of alternate repositories were listed on the command line. An alternate repository is any repository whose object directory is specified in objects/info/alternates. The set of included objects may be modified by core.alternateRefsCommand, etc. See git-config[1].
+     ☰ `--single-worktree` ☰ By default, all working trees will be examined by the following options when there are more than one (see git-worktree[1]): --all, --reflog and --indexed-objects. This option forces them to examine the current working tree only.
+     ☰ `--ignore-missing` ☰ Upon seeing an invalid object name in the input, pretend as if the bad input was not given.
+     ☰ `--bisect` ☰ Pretend as if the bad bisection ref refs/bisect/bad was listed and as if it was followed by --not and the good bisection refs refs/bisect/good-* on the command line.
+     ☰ `--stdin` ☰ In addition to getting arguments from the command line, read them from standard input as well. This accepts commits and pseudo-options like --all and --glob=. When a -- separator is seen, the following input is treated as paths and used to limit the result. Flags like --not which are read via standard input are only respected for arguments passed in the same way and will not influence any subsequent command line arguments.
+     ☰ `--cherry-mark` ☰ Like --cherry-pick (see below) but mark equivalent commits with = rather than omitting them, and inequivalent ones with +.
+     ☰ `--cherry-pick` ☰ Omit any commit that introduces the same change as another commit on the “other side” when the set of commits are limited with symmetric difference.  For example, if you have two branches, A and B, a usual way to list all commits on only one side of them is with --left-right (see the example below in the description of the --left-right option). However, it shows the commits that were cherry-picked from the other branch (for example, “3rd on b” may be cherry-picked from branch A). With this option, such pairs of commits are excluded from the output.
+     ☰ `--left-only`, `--right-only` ☰ List only commits on the respective side of a symmetric difference, i.e. only those which would be marked < resp. > by --left-right.  For example, --cherry-pick --right-only A...B omits those commits from B which are in A or are patch-equivalent to a commit in A. In other words, this lists the + commits from git cherry A B. More precisely, --cherry-pick --right-only --no-merges gives the exact list.
+     ☰ `--cherry` ☰ A synonym for --right-only --cherry-mark --no-merges; useful to limit the output to the commits on our side and mark those that have been applied to the other side of a forked history with git log --cherry upstream...mybranch, similar to git cherry upstream mybranch.
+    `-g` ☰ `--walk-reflogs` ☰ Instead of walking the commit ancestry chain, walk reflog entries from the most recent one to older ones. When this option is used you cannot specify commits to exclude (that is, ^commit, commit1..commit2, and commit1...commit2 notations cannot be used).  With --pretty format other than oneline and reference (for obvious reasons), this causes the output to have two extra lines of information taken from the reflog. The reflog designator in the output may be shown as ref@{Nth} (where Nth is the reverse-chronological index in the reflog) or as ref@{timestamp} (with the timestamp for that entry), depending on a few rules: If the starting point is specified as ref@{Nth}, show the index format.  If the starting point was specified as ref@{now}, show the timestamp format.  If neither was used, but --date was given on the command line, show the timestamp in the format requested by --date.  Otherwise, show the index format.  Under --pretty=oneline, the commit message is prefixed with this information on the same line. This option cannot be combined with --reverse. See also git-reflog[1].  Under --pretty=reference, this information will not be shown at all.
+     ☰ `--merge` ☰ After a failed merge, show refs that touch files having a conflict and don’t exist on all heads to merge.
+     ☰ `--boundary` ☰ Output excluded boundary commits. Boundary commits are prefixed with -.
+    table }
+
+  }
+  { History simplification
+
+    table { ll
+     `<path>` ☰
+     `--simplify-by-decoration` ☰ Commits that are referred by some branch or tag are selected.
+    table }
+
+    Options affecting history simplification:
+    table { ll
+      `--show-pulls` ☰ Include all commits from the default mode, but also any merge commits that are not TREESAME to the first parent but are TREESAME to a later parent. This mode is helpful for showing the merge commits that "first introduced" a change to a branch.
+      `--full-history` ☰ Same as the default mode, but does not prune some history.
+      `--dense` ☰ Only the selected commits are shown, plus some to have a meaningful history.
+      `--sparse` ☰ All commits in the simplified history are shown.
+      `--simplify-merges` ☰ Additional option to `--full-history` to remove some needless merges from the resulting history, as there are no selected commits contributing to this merge.
+      `--ancestry-path[=<commit>]` ☰ When given a range of commits to display (e.g. commit1..commit2 or commit2 ^commit1), only display commits in that range that are ancestors of <commit>, descendants of <commit>, or <commit> itself. If no commit is specified, use commit1 (the excluded part of the range) as <commit>. Can be passed multiple times; if so, a commit is included if it is any of the commits given or if it is an ancestor or descendant of one of them.
+    table }
+  }
+  { Commit ordering
+
+    By default, the commits are shown in reverse chronological order.
+
+    table { ll
+      `--date-order` ☰ Show no parents before all of its children are shown, but otherwise show commits in the commit timestamp order.
+      `--author-date-order` ☰ Show no parents before all of its children are shown, but otherwise show commits in the author timestamp order.
+      `--topo-order` ☰ Show no parents before all of its children are shown, and avoid showing commits on multiple lines of history intermixed.
+      `--reverse` ☰
+    table }
+
+  }
+  { Object traversal
+
+    table { ll
+      `--no-walk[=(sorted|unsorted)]` ☰
+      `--do-walk` ☰
+    table }
+
+  }
+  { Commit formatting
+
+    table { ll
+      `--pretty[=<format>]`, `--format=<format>` ☰
+      `--abbrev-commit` ☰
+      `--no-abbrev-commit` ☰
+      `--oneline` ☰
+      `--encoding=<encoding>` ☰
+      `--expand-tabs=<n>` ☰
+      `--expand-tabs` ☰
+      `--no-expand-tabs` ☰
+      `--notes[=<ref>]`, `--no-notes` ☰
+      `--show-notes-by-default` ☰
+      `--show-notes[=<ref>]` ☰
+      `--[no-]standard-notes` ☰
+      `--show-signature` ☰
+      `--relative-date` ☰
+      `--date=<format>` ☰
+      `--date=iso-strict` ☰
+      `--date=rfc` ☰
+      `--date=short` ☰
+      `--date=raw` ☰
+      `--date=human` ☰
+      `--date=unix` ☰
+      `--date=format:…` ☰
+      `--date=default` ☰
+      `--parents` ☰
+      `--children` ☰
+      `--left-right` ☰
+    table }
+
+  }
+  { -L 
+
+    `<start>` and `<end>` can take one of these forms:
+    table { ll
+      `number` ☰ If <start> or <end> is a number, it specifies an absolute line number (lines count from 1).
+      `/regex/` ☰ This form will use the first line matching the given POSIX regex. If <start> is a regex, it will search from the end of the previous -L range, if any, otherwise from the start of file. If <start> is ^/regex/, it will search from the start of file. If <end> is a regex, it will search starting at the line given by <start>.
+       `+offset` or `-offset` ☰  This is only valid for <end> and will specify a number of lines before or after the line given by <start>.
+    table }
+
+    If `:<funcname>` is given in place of `<start>` and `<end>`, it is a regular expression that denotes the range from the first funcname line that matches <funcname>, up to the next funcname line.
+    -
+   `:<funcname>` searches from the end of the previous `-L` range, if any, otherwise from the start of file.
+    -
+    `^:<funcname>` searches from the start of file. The function names are determined in the same way as git diff works out patch hunk headers (see Defining a custom hunk-header in `gitattributes[5]`).
+
+  }
+
+}
 { Show all commits where a given file was involved #git-log-commit-with-involved-file
 
   The following command shows all → development/version-control-systems/git/objects/commit[commits] where a given file was involved, even if the file was deleted:
