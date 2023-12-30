@@ -1,0 +1,45 @@
+$ Oracle: Calculate free space in tablespaces
+
+The following query calculates the used and available space in → development/databases/Oracle/architecture/database/logical-structures/tablespace[tablespaces]:
+code {
+select
+   tablespace_name,
+   round(total_space_gb, 1)  total_gb,
+   round(free_space_gb , 1)  free_gb,
+   to_char(100 * free_space_gb / total_space_gb, '990.0' ) || ' %' free_pct
+from
+(
+    select
+      ts.tablespace_name,
+      ts.total_space_gb,
+      ts.total_space_gb - df.used_space_gb  free_space_gb
+   from
+      (
+        select
+           tablespace_name,
+           sum(bytes) / 1024/1024/1024 as total_space_gb
+        from
+           → development/databases/Oracle/installed/data-dictionary/data_files
+        group by
+           tablespace_name
+      )                                                     ts left join
+      (
+        select
+           tablespace_name,
+           sum(bytes) / 1024/1024/1024 as used_space_gb
+        from
+           → development/databases/Oracle/installed/data-dictionary/segments
+        group by
+           tablespace_name
+      )                                                      df on df.tablespace_name = ts.tablespace_name
+)
+-- where
+--     tablespace_name = 'TS_XYZ'
+;
+code }
+
+{ TODO
+
+  Should the statement query from `dba_free_space` rather than from `dba_segments`?
+
+}
