@@ -15,7 +15,7 @@ $ Oracle: Partitioned tables
 
     With *composite partioning*, two partition techniques are combined so that there are two levels: partition and sub-partition.
 
-    The top level allows all four paritioning types. The second level does not allow interval partitioning. Thus, the total combinations
+    The top level allows all four partitioning types. The second level does not allow interval partitioning. Thus, the total combinations
     of composite partitions is 12 (=4*3), for example:
       • → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-range-list[range - list],
       • → development/databases/Oracle/objects/tables/partitions/distribution-techniques/composite#ora-comp-part-range-range[range - range] or
@@ -89,7 +89,7 @@ order by
    subpar.subpartition_position;
 code }
 
-  { Partition column
+  { Partitioning columns
 
     The → development/databases/Oracle/objects/tables/columns[columns] on whose values a table is partitioned:
 code {
@@ -113,6 +113,42 @@ from
 where
    owner = 'RENE' and
    name  = 'HIST_ABC';
+code }
+
+    Combining the two queries:
+code {
+select
+   tab.owner,
+   tab.table_name,
+   tab.num_rows,
+   tap.partitioning_type,
+   tap.subpartitioning_type,
+   pkc.column_name              col_part_nam,
+   pkc.column_position          col_part_pos,
+   tap.interval,
+   psc.column_name              col_subpart_nam,
+   psc.column_position          col_subpart_pos,
+   tap.interval_subpartition,
+   tap.autolist,
+   tap.autolist_subpartition,
+   tap.partitioning_key_count,
+   tap.subpartitioning_key_count,
+   tap.partition_count,
+   tap.def_subpartition_count
+from
+   dba_tables                tab                                                 left join
+   dba_part_tables           tap on tab.owner           = tap.owner       and
+                                    tab.table_name      = tap.table_name         left join
+   dba_part_key_columns      pkc on tab.owner           = pkc.owner       and
+                                    tab.table_name      = pkc.name               left join
+   dba_subpart_key_columns   psc on tab.owner           = psc.owner       and
+                                    tab.table_name      = psc.name          
+where
+-- tab.owner not in ('SYS', 'SYSTEM', 'OUTLN', 'DBSNMP', 'CTXSYS', 'APPQOSSYS', 'WMSYS', 'XDB')
+   tab.owner = user
+order by
+   tap.def_subpartition_count desc nulls last
+;
 code }
 
   }

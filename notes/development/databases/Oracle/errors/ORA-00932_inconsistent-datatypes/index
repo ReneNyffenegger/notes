@@ -58,22 +58,34 @@ code }
 }
 { ORA-00932: inconsistent datatypes: expected - got CLOB #ora-00932-exp-got-clob
 
-  It's not possible to execute a `→ development/databases/Oracle/SQL/select/group-by` on a → development/databases/Oracle/SQL/data-types/lob#ora-lob-group-by[`clob` (or `blob`)] value. The following `select` statement raises a *ORA-00932: inconsistent datatypes: expected - got CLOB* error:
+  It's not possible to execute a `→ development/databases/Oracle/SQL/select/group-by` on a → development/databases/Oracle/SQL/data-types/lob#ora-lob-group-by[`clob` (or `blob`)] value.
+  The following `select` statement raises a *ORA-00932: inconsistent datatypes: expected - got CLOB* error:
 code {
-create table tq84_ora_00932_group_by (
+create table tq84_ora_00932_clob (
     val number,
     txt clob
 );
-
+ 
 select
    txt,
    max(val) max_val
 from
-   tq84_ora_00932_group_by
+   tq84_ora_00932_clob
 group by
    txt;
-   
-drop table tq84_ora_00932_group_by;
+code }
+  
+    Similarly, it's not possible to use → development/databases/Oracle/SQL/select/aggregate[aggregate functions] on LOB values, the following statment raises the same error:
+code {
+select
+   count(txt)
+from
+   tq84_ora_00932_clob;
+code }
+  
+  Cleaning up:
+code {
+drop table tq84_ora_00932_clob;
 code }
 
 }
