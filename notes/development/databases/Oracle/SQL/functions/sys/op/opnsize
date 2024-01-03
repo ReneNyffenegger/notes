@@ -1,0 +1,50 @@
+$ Oracle: SYS_OP_OPNSIZE
+@ sys_op_opnsize
+
+`sys_op_opnsize` reports the number of bytes the value of column occupies in a row (but → https://jonathanlewis.wordpress.com/2023/02/01/lob-space-redux/[Jonathan Lewis points out] that the number is possibly wrong
+for → development/databases/Oracle/SQL/data-types/lob[LOB types]).
+
+code {
+create table tq84_sz(
+   id   number,
+   txt  varchar2(111),
+   dt   date
+);
+ 
+begin
+   insert into tq84_sz values (1   , 'one'        , sysdate     );
+   insert into tq84_sz values (2.2 , 'two dot two', sysdate-1000);
+   insert into tq84_sz values (null,  null        , null        );
+   commit;
+end;
+/
+
+
+column  txt     format  a11
+column  dmp_id  format  a30
+column  dmp_txt format  a56
+column  dmp_dt  format  a34
+
+select
+   id , sys_op_opnsize(id ) opn_id , → development/databases/Oracle/SQL/functions/misc/dump[dump](id ) dmp_id ,
+   txt, sys_op_opnsize(txt) opn_txt, → development/databases/Oracle/SQL/functions/misc/dump[dump](txt) dmp_txt,
+   dt , sys_op_opnsize(dt ) opn_dt , → development/databases/Oracle/SQL/functions/misc/dump[dump](dt ) dmp_dt
+from
+   tq84_sz;
+select
+   id ,  sys_op_opnsize(id )   opn_id ,
+   txt,  sys_op_opnsize(txt)   opn_txt,
+   dt ,  sys_op_opnsize(dt )   opn_dt
+from
+   tq84_sz;
+--
+--         ID     OPN_ID DMP_ID                         TXT            OPN_TXT DMP_TXT                                                  DT                      OPN_DT DMP_DT
+-- ---------- ---------- ------------------------------ ----------- ---------- -------------------------------------------------------- ------------------- ---------- ----------------------------------
+--          1          2 Typ=2 Len=2: 193,2             one                  3 Typ=1 Len=3: 111,110,101                                 2024-01-03 14:47:28          7 Typ=12 Len=7: 120,124,1,3,15,48,29
+--        2.2          3 Typ=2 Len=3: 193,3,21          two dot two         11 Typ=1 Len=11: 116,119,111,32,100,111,116,32,116,119,111  2021-04-08 14:47:28          7 Typ=12 Len=7: 120,121,4,8,15,48,29
+--                       NULL                                                  NULL                                                                                    NULL
+code }
+
+
+sa:
+  → development/databases/Oracle/SQL/functions/sys/op[`sys_op_*` functions]

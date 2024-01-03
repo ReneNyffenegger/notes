@@ -1,0 +1,33 @@
+$ Python: asyncio.create_subprocess_shell
+
+code {
+import asyncio
+
+async def run_command(cmd):
+
+    print(f'Running {cmd}')
+
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
+
+    STDOUT, STDERR = await proc.communicate()
+
+    print(f'[{cmd!r} exited with {proc.returncode}]')
+
+    if STDOUT:
+       print(f'{cmd} returned {STDOUT.decode()}')
+
+    if STDERR:
+       print(f'Error: {STDERR.decode()}')
+
+async def run_commands_in_parallel():
+    await asyncio.gather(
+       run_command("find ~ -type f -name '*.txt' | wc -l"),
+       run_command("find ~ -type f -name '*.py'  | wc -l"),
+       run_command("ps -ef | grep find")
+    )
+      
+asyncio.run(run_commands_in_parallel())
+code }

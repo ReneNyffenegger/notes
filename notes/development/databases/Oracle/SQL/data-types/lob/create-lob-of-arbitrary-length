@@ -9,25 +9,25 @@ as
    lob           clob;
    remaining_len integer := len;
 begin
- 
+
    lob := lpad('*', least(remaining_len, 4000), '*');
    remaining_len := remaining_len - 4000;
- 
+
    while remaining_len > 0 loop
       dbms_lob.writeappend(lob, least(remaining_len, 4000), lpad('*', 4000, '*'));
       remaining_len := remaining_len - 4000;
    end loop;
- 
+
    return lob;
 end tq84_create_clob;
 /
- 
+
 create table tq84_lob_len (
    len       integer,
    lob       clob
 );
- 
- 
+
+
 begin
    insert into tq84_lob_len values (  1234, tq84_create_clob(  1234));
    insert into tq84_lob_len values (999999, tq84_create_clob(999999));
@@ -36,14 +36,14 @@ begin
    commit;
 end;
 /
- 
+
 select
    len,
    length(lob),
    dbms_lob.getlength(lob)
 from
    tq84_lob_len;
- 
+
 drop table tq84_lob_len;
 code }
 
