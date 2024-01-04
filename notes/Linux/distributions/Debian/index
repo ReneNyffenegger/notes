@@ -2,6 +2,157 @@ $ Debian
 
 → Linux/distributions/Ubuntu builds on Debian's architecture.
 
+{ Debian Policy Manual #debian-policy-manual
+
+  The → https://www.debian.org/doc/debian-policy/index.html[Debian Policy Manual] describes the policy requirements for the Debian distribution, including
+    • Contents of the Debian archive
+    • Design issues of the operating system
+    • Technical requirements each package must satisfy to be included in the distribution
+
+}
+{ Debian Archive
+
+  The *Debian Archive* contains the *packages* which constitute the Debian system (but see the → #deb-main-area[main area] below)
+
+  The *Debian Archive* is described in → https://www.debian.org/doc/debian-policy/ch-archive.html[Section 2] of the → Linux/distributions/Debian#debian-policy-manual.
+
+  { Areas
+
+    Packages of the Debian Archive are located in different *areas* such as
+      • main
+      • contrib
+      • non-free
+      • non-free-firmware (?)
+
+    { Main area #deb-main-area
+
+      The *main* area consitutes a *Debian distribution* (as opposed to the Debian system, see above).
+
+      No package in the main area is dependent on any software that is not also found in the main area.
+
+    }
+    { Contrib area
+
+      The *contrib* area contains supplemental packages that are dependent on software outside of the distribution to either build or execute.
+
+    }
+  }
+}
+{ Packages
+
+  { Package name
+
+    Packages are identified by their names (which must therfore be unique in the Debian Archive).
+ 
+    This name is also found as part of the `.deb` file's name.
+
+  }
+
+}
+{ Package sections
+
+  Packages in the main, contrib and non-free areas are grouped into *sections*
+
+  The area and section name of a package is stored in the *Section* control record. If the area is main, this value is omitted. Thus, possible values are
+    • `xyz` (section xyz in main)
+    • `contrib/abc` (section abc in contrib)
+
+  Some sections (for main?) include
+  table { ll
+   `admin` ☰
+   `cli-mono` ☰
+   `comm` ☰
+   `database` ☰
+   `debian-installer` ☰ pecial packages used by the installer, not used for normal Debian packages
+   `debug` ☰
+   `devel` ☰
+   `doc` ☰
+   `editors` ☰
+   `education` ☰
+   `electronics` ☰
+   `embedded` ☰
+   `fonts` ☰
+   `games` ☰
+   `gnome` ☰
+   `gnu-r` ☰
+   `gnustep` ☰
+   `graphics` ☰
+   `hamradio` ☰
+   `haskell` ☰
+   `httpd` ☰
+   `interpreters` ☰
+   `introspection` ☰
+   `java` ☰
+   `javascript` ☰
+   `kde` ☰
+   `kernel` ☰
+   `libdevel` ☰
+   `libs` ☰
+   `lisp` ☰
+   `localization` ☰
+   `mail` ☰
+   `math` ☰
+   `metapackages` ☰
+   `misc` ☰
+   `net` ☰
+   `news` ☰
+   `ocaml` ☰
+   `oldlibs` ☰
+   `otherosfs` ☰
+   `perl` ☰
+   `php` ☰
+   `python` ☰
+   `ruby` ☰
+   `rust` ☰
+   `science` ☰
+   `shells` ☰
+   `sound` ☰
+   `tasks` ☰
+   `tex` ☰
+   `text` ☰
+   `utils` ☰
+   `vcs` ☰
+   `video` ☰
+   `web` ☰
+   `x11` ☰
+   `xfce` ☰
+   `zope` ☰
+  table }
+
+}
+{ Package priority #deb-pkg-prio
+
+  Each package is associated with a priority level.
+
+  This value is set in the → development/Data/metadata for the Debian archive and is included in the package's control file.
+
+  The list of recognized priority levels is
+  table { ll
+    `required` ☰ Necessary for the proper functioning of the system (usually, this means that `→ Linux/distributions/Debian/dpkg` depends on these packages). Systems with only the required packages installed have at least enough functionality for the sysadmin to boot the system and install more software. Packages with this level include `base-files`, `base-passwd`, `bash`, `libc-bin`, `passwd`, `debianutils`, `mount` etc.
+    `important` ☰ Programs which one would expect to find on any Unix-like system (for example `adduser`, `debconf`, `nano` `vim-tiny`, `apt` and `apt-utils`)
+    `standard` ☰ These packages provide a reasonably small but not too limited character-mode system. This is what will be installed by default if the user doesn’t select anything else. Packages with this level include `bc`, `perl`, `wget`, `dbus`, `media-types` etc.
+    `optional` ☰ The vast rest of packages (if not `extra`).
+    `extra` ☰ *Deprecated* in favor of `optional`.
+  table }
+
+  The union of the packages with level required and important form the *base system*.
+
+  Two packages that both have a priority of `standard` or higher must not conflict with each other.
+  -
+  Packages with a priority of `optional` may conflict with each other.
+
+ `→ Linux/package-managers/dpkg/commands/dpkg-query` in combination with `→ Linux/shell/commands/grep` allows to → Linux/package-managers/dpkg/commands/dpkg-query#dpkg-find-pkg-prio[search for packages with a given priority]:
+code {
+$ → Linux/package-managers/dpkg/commands/dpkg-query -W -f='${Package} ${Priority}\n' | → Linux/shell/commands/grep important | → Linux/shell/commands/cut -f 1 -d' '
+code }
+
+}
+{ Package format
+
+  All packages must be provided in → Linux/deb-rpm[`.deb`] format so that they can be installed and managed with `→ Linux/distributions/Debian/dpkg`.
+
+}
+
 sa:
 
  `→ Linux/distributions/Debian/dpkg` is Debian's package manager.
