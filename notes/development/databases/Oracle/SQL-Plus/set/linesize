@@ -1,6 +1,70 @@
-$ SQL*Plus: set linesize
--
+$ SQL*Plus: SET LINESIZE
 @ set linesize
 
+The value of `linesize` specifies the number of characters that are displayed in result row. Lines that are longer than this value are wrapped. `linesize` can be abbreviated with `lines`.
+code {
+SQL> set lines 200
+code }
+
+It's possible to set the value of `linesize` to the width of the terminal. Resizing the terminal then dynamically adjusts the linesize.
+code {
+SQL> set linesize window
+SQL> show linesize
+linesize 236 WINDOW
+code }
+
+The default value of `linesize` is 80.
+
+{ Demonstration
+
+  Select a record whose length is less than 80 characters:
+code {
+SQL> select
+   rpad('*', 39, '*') stars,
+   rpad('.', 39, '.') dots
+from
+   dual;
+
+STARS                                   DOTS
+--------------------------------------- ---------------------------------------
+*************************************** .......................................
+code }
+
+  Select a row that is 81 characters (2*40 + 1 character between the selected columns) causes the result to be wrapped:
+code {
+SQL> select
+   rpad('*', 40, '*') stars,
+   rpad('.', 40, '.') dots
+from
+   dual;
+
+STARS
+----------------------------------------
+DOTS
+----------------------------------------
+****************************************
+........................................
+code }
+
+  Increase the linesize:
+code {
+SQL> set lines 200
+
+SQL> select
+   rpad('*', 40, '*') stars,
+   rpad('.', 40, '.') dots,
+   rpad('^', 40, '^') carets
+from
+   dual;
+
+STARS                                    DOTS                                     CARETS
+---------------------------------------- ---------------------------------------- ----------------------------------------
+**************************************** ........................................ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+code }
+
+}
+
 sa:
+  → development/databases/Oracle/SQL/data-types/lob/SQL-Plus[Displaying LOB values (such as CLOBs)] in → development/databases/Oracle/SQL-Plus
+
   → development/databases/Oracle/SQL-Plus
