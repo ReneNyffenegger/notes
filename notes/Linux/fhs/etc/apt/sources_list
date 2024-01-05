@@ -3,14 +3,45 @@ $ /etc/apt/sources.list
 `sources.list` specifies the locations which are used to resynchronize the *package index files* with `→ Linux/package-managers/APT/commands/apt-get update`,
 i. e. it contains the locations of → Linux/package-managers/APT#apt-repositories[apt repositories] to fetch packages from.
 
+{ Format
 
-The content of `sources.list` looks like
+  There are two formats for `/etc/apt/sources/list`
+    • One-line format
+    • Deb822 format
+
+  { One-line format
+
+    Each line defines *one* data source and contains at least 4 fields:
+      • Package format: The pacakge format is either `deb` (binary package) or `deb-src` (source package)
+      • Root URL of the archive
+      • Distribution name (either the suite name or code name)
+      • The 4th and remaining fields is a list of valid archive → Linux/distributions/Debian#deb-arch-area[area names] in the archive
+  
+    Thus, the *one-line* format for `sources.list` looks like
 code {
 deb http://deb.debian.org/debian bullseye main
 deb http://deb.debian.org/debian bullseye-updates main
 deb http://security.debian.org/debian-security bullseye-security main
 deb http://ftp.debian.org/debian bullseye-backports main
 code }
+
+  }
+  { Deb822 format
+
+    In the Deb822 format specifies data sources in blocks which are separated by a blank line. The first line of the one-line format above would look like this in the Deb822 format:
+code {
+Types: deb
+URIs: http://deb.debian.org/debian
+Suites: bullseye
+Components: main
+code }
+
+    More information is in the → https://manpages.debian.org/bookworm/dpkg-dev/deb822.5.en.html[deb822 man page].
+
+  }
+
+
+}
 
 { Editing /etc/apt/sources.list
 
@@ -40,7 +71,8 @@ code }
   
 sa:
 
-  The `/etc/apt/sources.list.d` and `→ Linux/fhs/etc/apt` directories.
+
+  The `→ Linux/fhs/etc/apt` directory
 
  `→ Linux/package-managers/APT/commands/apt upgrade`
 

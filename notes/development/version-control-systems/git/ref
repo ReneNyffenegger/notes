@@ -61,9 +61,47 @@ git → development/version-control-systems/git/commands/push :V1.1
 code }
 
 }
+{ ref namespaces #git-refs-namespaces
+
+  `refs.c` fills the struct → https://github.com/git/git/blob/a26002b62827b89a19b1084bd75d9371d565d03c/refs.c#L68-L139[`ref_namespace_info ref_namespace`] (whose indices correspond to the → development/version-control-systems/git/source/refs_h#git-refs_h-ref_namespace[`enum ref_namespace`]) like so
+  table { lllll
+    ☰ ☰ ☰ ~exact~ ☰
+	`NAMESPACE_HEAD` ☰ `HEAD` ☰ `DECORATION_REF_HEAD` ☰ ✓ ☰
+	`NAMESPACE_BRANCHES` ☰ `refs/heads/` ☰ `DECORATION_REF_LOCAL` ☰ ✗ ☰
+	`NAMESPACE_TAGS` ☰ `refs/tags/` ☰ `DECORATION_REF_TAG` ☰ ✗ ☰
+	`NAMESPACE_REMOTE_REFS` ☰ `refs/remotes/` ☰ `DECORATION_REF_REMOTE` ☰ ✗ ☰ The default refspec for new remotes copies refs from `refs/heads/` on the remote into `refs/remotes/<remote>/`. As such, `refs/remotes/` has special handling.
+	`NAMESPACE_STASH` ☰ `refs/stash` ☰ `DECORATION_REF_STASH` ☰ ✓ ☰ The single ref `refs/stash` stores the latest stash. Older stashes can be found in the reflog.
+	`NAMESPACE_REPLACE` ☰ `refs/replace/` ☰ `DECORATION_GRAFTED` ☰ ✗ ☰ This namespace allows Git to act as if one object ID points to the content of another. Unlike the other ref namespaces, this one can be changed by the GIT_REPLACE_REF_BASE environment variable. This `.namespace` value will be overwritten in `setup_git_env()`.
+	`NAMESPACE_NOTES` ☰ `refs/notes/commit` ☰ n/a ☰ ✓ ☰ The `refs/notes/commit` ref points to the tip of a parallel commit history that adds metadata to commits in the normal history. This ref can be overwritten by the core.notesRef config variable or the `GIT_NOTES_REFS` environment variable.
+	`NAMESPACE_PREFETCH` ☰ `refs/prefetch/` ☰ n/a ☰ ✗ ☰ Prefetch refs are written by the background `fetch` maintenance task. It allows faster foreground fetches by advertising these previously-downloaded tips without updating refs/remotes/ without user intervention.
+	`NAMESPACE_REWRITTEN` ☰ `refs/rewritten/` ☰ n/a ☰ ✗ ☰ Rewritten refs are used by the 'label' command in the sequencer. These are particularly useful during an interactive rebase that uses the 'merge' command.
+ table }
+
+}
+{ TODO
+
+code {
+$ git clone https://github.com/git/git
+$ cd git
+$ git config --get-regexp branch.master
+branch.master.remote origin
+branch.master.merge refs/heads/master
+$ cd .git
+$ find -name origin
+./refs/remotes/origin
+./logs/refs/remotes/origin
+$ cat refs/remotes/origin/HEAD
+ref: refs/remotes/origin/master
+$ cat logs/refs/remotes/origin/HEAD
+…
+code }
+
+}
 
 sa:
 
   `→ development/version-control-systems/git/commands/for-each-ref`
 
   → development/version-control-systems/git/commands/update-ref[`git update-ref`]
+
+  `→ development/version-control-systems/git/source/refs_h`
