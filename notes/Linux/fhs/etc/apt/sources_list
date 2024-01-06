@@ -5,16 +5,16 @@ i. e. it contains the locations of → Linux/package-managers/APT#apt-repositori
 
 { Format
 
-  There are two formats for `/etc/apt/sources/list`
+  There are two formats for `/etc/apt/sources.list` and `/etc/apt/sources.list.d/`:
     • One-line format
     • Deb822 format
 
-  { One-line format
+  { One-line format #apt-esl-one-line
 
     Each line defines *one* data source and contains at least 4 fields:
       • Package format: The pacakge format is either `deb` (binary package) or `deb-src` (source package)
       • Root URL of the archive
-      • Distribution name (either the suite name or code name)
+      • Distribution name (either the suite name (`stable`, `testing` …)  or code name `bullseye`, `bookworm` …j)
       • The 4th and remaining fields is a list of valid archive → Linux/distributions/Debian#deb-arch-area[area names] in the archive
   
     Thus, the *one-line* format for `sources.list` looks like
@@ -25,16 +25,31 @@ deb http://security.debian.org/debian-security bullseye-security main
 deb http://ftp.debian.org/debian bullseye-backports main
 code }
 
-  }
-  { Deb822 format
+    The → development/filename-extensions[extentsion] for files in this format must be → development/filename-extensions#list[`.list`].
 
-    In the Deb822 format specifies data sources in blocks which are separated by a blank line. The first line of the one-line format above would look like this in the Deb822 format:
+  }
+  { Deb822 format #apt-esl-deb822
+
+    In the Deb822 format, data sources are specified in blocks which are separated by a blank line. The first line of the one-line format above would be represented in the following four lines in the Deb822 format:
 code {
 Types: deb
 URIs: http://deb.debian.org/debian
 Suites: bullseye
 Components: main
 code }
+
+    The `#` character at the start of a line comments it out.
+    -
+    An entire entry can be disable by adding adding `Enabled: no`.
+   
+    The → development/filename-extensions[extentsion] for files in this format must be → development/filename-extensions#sources[`.sources`].
+    -
+    Additionally, only the following characters are allowed in the filename:
+      • Letters (`a` - `z`, `A` - `Z`)
+      • Digits (`0` - `9`)
+      • Period (`.`)
+      • Underscore (`_`)
+      • Hyphen (`-`)
 
     More information is in the → https://manpages.debian.org/bookworm/dpkg-dev/deb822.5.en.html[deb822 man page].
 
