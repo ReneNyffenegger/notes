@@ -1,11 +1,47 @@
 $ PowerShell cmdLet ConvertFrom-Json
 @ convertFrom-json
 
-`convertFrom-json` converts a → development/languages/JavaScript/JSON document to a → Windows/PowerShell/language/object[PowerShell object].
+`convertFrom-json` converts a → development/languages/JavaScript/JSON document (a `→ Microsoft/dot-net/namespaces-classes/System/String` object) to a → Windows/PowerShell/language/object[PowerShell object].
 
 gh|about-PowerShell|/cmdlets/json/convertFrom/basic.ps1||
 
+{ Error message: Cannot process argument because the value of argument "name" is not valid. Change the value of the "name" argument and run the operation again.
+
+  If a JSON object contains a key whose value is the empty string, `convertFrom-json` will throw
+ *Cannot process argument because the value of argument "name" is not valid. Change the value of the "name" argument and run the operation again.*, as demonstrated with the
+  following snippet:
+code {
+$json = @'
+{
+  "": "emptyKey"
+}
+'@
+
+convertFrom-json $json
+code }
+
+  → Windows/PowerShell#ps-core-7[PowerShell 7] added the option `-asHashTable` which will happily create an object with an empty key:
+code {
+PS C:\> convertFrom-json -asHashTable $json
+Name                           Value
+----                           -----
+                               emptyKey
+code }
+
+  As the `-asHashTable` option indicates, the type of the returned object is `→ Microsoft/dot-net/namespaces-classes/System/Management/Automation/OrderedHashtable`.
+code {
+PS C:\>(convertFrom-Json $json -asHashtable).getType()
+System.Management.Automation.OrderedHashtable
+code }
+
+  See also the → https://github.com/PowerShell/PowerShell/issues/1755[PowerShell issue 1755].
+
+}
+
 sa:
+
+ `→ Windows/PowerShell/command-inventory/noun/json/convertTo` conversts a PowerShell object to a JSON document.
+
   → Windows/PowerShell/command-inventory/noun/json
 
   → Windows/PowerShell/language/object[Object creation in PowerShell]
