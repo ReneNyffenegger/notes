@@ -20,7 +20,7 @@ root@tq84host [ ~ ]# cat /mnt/wsl/resolv.conf
 # generateResolvConf = false
 nameserver 172.31.16.1
 
-root@tq84host [ ~ ]# cat /etc/wsl.conf
+root@tq84host [ ~ ]# → Linux/shell/commands/cat /etc/wsl.conf
 command=/usr/bin/WSLGd
 [user]
 
@@ -40,7 +40,23 @@ chrony       184       1 /sbin/chronyd
 root         187       1 localhost --port-tracker-fd 7 --bpf-fd -1 --netlink-fd
 root         189       1 /init
 
-root@tq84host [ ~ ]# cat → Linux/fhs/etc/os-release
+root@tq84host [ ~ ]# ps  -o cmd:10,comm:10,exe:10,args 1
+CMD        COMMAND    EXE        COMMAND
+/init      mini_init  /init      /init
+
+root@tq84host [ ~ ]# grep mini_init /init
+grep: /init: binary file matches
+
+root@tq84host [ ~ ]# ps -p 1 -o cmd  eh | tr ' ' '\n'
+/init
+HOME=/
+TERM=linux
+WSL_ROOT_INIT=1
+
+root@tq84host [ ~ ]# grep WSL_ROOT_INIT /init
+grep: /init: binary file matches
+
+root@tq84host [ ~ ]# → Linux/shell/commands/cat → Linux/fhs/etc/os-release
 NAME="Common Base Linux Mariner"
 VERSION="2.0.20230630"
 ID=mariner
@@ -56,4 +72,41 @@ root@tq84host [ ~ ]# ps -opid,ppid,cmd -u wslg w
 
 root@tq84host [ ~ ]# ps -opid,ppid,cmd -u wslg ww | grep msrdc.exe
 …
+code }
+
+The following command prints, at least surpsingly to me, the same as when executed in the «real» WSL VM:
+code {
+root@tq84host [ ~ ]# → Linux/shell/commands/dmesg
+[    0.000000] Linux version 5.15.133.1-microsoft-standard-WSL2 (root@1c602f52c2e4) (gcc (GCC) 11.2.0, GNU ld (GNU Binutils) 2.37) #1 SMP Thu Oct 5 21:02:42 UTC 2023
+[    0.000000] Command line: initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=12 bonding.max_bonds=0 dummy.numdummies=0 fb_tunnels=none swiotlb=force console=hvc0 debug pty.legacy_count=0
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Centaur CentaurHauls
+…
+[    0.000000] Hypervisor detected: Microsoft Hyper-V
+[    0.000000] Hyper-V: privilege flags low 0x2e7f, high 0x3b8030, hints 0x24c2c, misc 0xe4bed7b6
+[    0.000000] Hyper-V Host Build:22621-10.0-2-0.2861
+[    0.000000] Hyper-V: Nested features: 0x3e0101
+[    0.000000] Hyper-V: LAPIC Timer Frequency: 0x1e8480
+[    0.000000] Hyper-V: Using hypercall for remote TLB flush
+…
+[    0.011475] Booting paravirtualized kernel on Hyper-V
+…
+[    0.118062] ACPI: Added _OSI(Linux-Dell-Video)
+[    0.118063] ACPI: Added _OSI(Linux-Lenovo-NV-HDMI-Audio)
+[    0.118064] ACPI: Added _OSI(Linux-HPI-Hybrid-Graphics)
+…
+[    0.803343] Run /init as init process
+[    0.803695]   with arguments:
+[    0.804039]     /init
+[    0.804243]   with environment:
+[    0.804553]     HOME=/
+[    0.804769]     TERM=linux
+[    0.805004]     WSL_ROOT_INIT=1
+…
+[   24.613652] /sbin/ldconfig:
+[   24.613655] /usr/lib/wsl/lib/libcuda.so.1 is not a symbolic link
+…
+[   24.770684] WSL (1) WARNING: mount: waiting for virtio device drvfs
 code }
