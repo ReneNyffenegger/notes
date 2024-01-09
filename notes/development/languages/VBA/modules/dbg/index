@@ -1,27 +1,32 @@
-$ VBA classes for hierarchical debugging
+$ VBA classes for hierarchical logging
 
 { dbg.cls
 
- `dbg` is a class that can be used for *hierarchical debugging*.
+ `dbg` is a class that can be used for *hierarchical logging*.
 
   Calling `indent` increases the indent-level, `dedent` decreases it.
 
   The method `text` actually writes the passed → development/languages/VBA/language/datatypes/string to the destination. The string is prepended with twice the amount of current indent levels of spaces.
 
-  When the class is initialiezed with the method `init`, a derived class of `dbgWriter` needs to be given. Currently, there are to derived classes: `dbgFileWriter` which writes the debug-text to a
-  file and `dbgWordWriter` which writes the debug-text into a → Microsoft/Office/Word[Word] document
+  When the class is initialized with the method `init`, a derived class of `dbgWriter` needs to be given. Currently, there are four derived classes:
+    • `→ development/languages/VBA/modules/dbg/dbgFileWriter` which writes the debug-text to a file
+    • `→ development/languages/VBA/modules/dbg/dbgWordWriter` which writes the debug-text into a → Microsoft/Office/Word[Word] document
+    • `→ development/languages/VBA/modules/dbg/dbgExcelWriter` which write the debug-text into a → Microsoft/Office/Excel/Object-Model/Worksheet[Excel worksheet]
+    • `→ development/languages/VBA/modules/dbg/dbgNullWriter` which provides the interface, but discards the text (think `→ Linux/fhs/dev/null`).
 
-  table { ll
+  { Interface
 
-    `init` ☰ 
-    `indent` / `dedent` ☰ indent or dedent the level by one. `indent` can optionally be passed a string.
-    `text` ☰ write the text with current indent level
-    `text_` ☰ private method that calls the instance referred to by `dbgWriter` to write some text to the respective output destination
-    `undhandledError` ☰ write `→ development/languages/VBA/objects/err[err].description`, call `dedent` and pass error to calling function
-    `removeSpecialCharacters` ☰ private function to remove new lines and curly braces from the string passed to `text`
+    table { ll
 
-  table }
+      `init` ☰ 
+      `indent` / `dedent` ☰ Indent or dedent the level by one. `indent` can optionally be passed a string.
+      `text` ☰ Write the text with current indent level
+      `text_` ☰ *Private* method that calls the instance referred to by `dbgWriter` to write some text to the respective output destination
+      `undhandledError` ☰ write `→ development/languages/VBA/objects/err[err].description`, call `dedent` and pass error to calling function
+      `removeSpecialCharacters` ☰ *Private* function to remove new lines and curly braces from the string passed to `text`
 
+    table }
+  }
   { Source code for the dbg object
 
     gh|VBAModules|/dbg/dbg.cls||
@@ -34,33 +39,16 @@ $ VBA classes for hierarchical debugging
 
  `dbgWriter` is an → development/languages/VBA/language/interfaces[interface] that is used by `dbg` to actually write debug text to a destination.
 
-  Classes that implement `dbgWriter` include
-    • → development/languages/VBA/modules/dbg/dbgFileWriter[`dbgFileWriter`]
-    • `dbgWordWriter`
-    • `dbgExcelWriter`
-
   gh|VBAModules|/dbg/dbgWriter.cls||
 
+  Classes that implement `dbgWriter` include
+    • `→ development/languages/VBA/modules/dbg/dbgFileWriter`
+    • `→ development/languages/VBA/modules/dbg/dbgWordWriter`
+    • `→ development/languages/VBA/modules/dbg/dbgExcelWriter`
+    • `→ development/languages/VBA/modules/dbg/dbgNullWriter`
 }
-{ dbgFileWriter.cls #vba-dbgFileWriter
 
- → development/languages/VBA/modules/dbg/dbgFileWriter[`dbgFileWriter`] is a → development/languages/VBA/language/classes[class] that implements `dbgWriter` and writes debug text to files.
 
-  The `dbgFileWriter` class might be tested with → development/languages/VBA/modules/dbg/tests/dbgFileWriter[this test script].
-
-}
-{ dbgWordWriter.cls
-
- `dbgWordWriter` writes into a → Microsoft/Office/Word/Object-Model/Document[Word document].
-
-  gh|VBAModules|/dbg/dbgWordWriter.cls||
-
-}
-{ dbgExcelWriter
-
-  → development/languages/VBA/modules/dbg/dbgExcelWriter[`dbgExcelWriter`] is a similar class that writes to an → Microsoft/Office/Excel/Object-Model/Worksheet[Excel worksheet].
-
-}
 sa:
 
   → development/languages/VBA/language/classes/built-in/debug
