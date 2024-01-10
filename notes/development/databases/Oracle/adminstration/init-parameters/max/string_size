@@ -2,9 +2,9 @@ $ Oracle: Init parameter MAX_STRING_SIZE
 @ max_string_size
 
 The value of `max_string_size` specifies the maximum size of → development/databases/Oracle/SQL/data-types/varchar2[`VARCHAR2`],
-`NVARCHAR2` and → development/databases/Oracle/SQL/data-types/raw[`RAW`] types in SQL.
-
-`max_string_size` is either `standard` (in which case the maximum size of `varchar2` strings is 4000 bytes) or `extended` (which allows for 32767 bytes).
+`NVARCHAR2` and → development/databases/Oracle/SQL/data-types/raw[`RAW`] types in SQL and → development/databases/Oracle/objects/tables/columns[table columns].
+-
+This value is either `STANDARD` (in which case the maximum size of `varchar2` strings is 4000 bytes) or `EXTENDED` (which allows for 32767 bytes).
 
 The value of `max_string_size` needs to be `extended` in order to use the *collate clause* when creating tables or PL/SQL objects (otherwise, the error
 → development/databases/Oracle/errors/ORA-43929_Collation-cannot-be-specified-if-parameter-MAX_STRING_SIZE_STANDARD-is-set is thrown).
@@ -13,6 +13,64 @@ In order to set `max_string_size` to `exended`, the script → Linux/fhs/u01/app
 in a CDB an all PDBs in this CDB).
 
 Once set to `extended`, the value cannot be reverted back to `standard`.
+
+{ Demonstration
+
+  { Database where value is STANDARD
+
+code {
+select value from → development/databases/Oracle/installed/dynamic-performance-views/parameter where name = 'max_string_size';
+--
+-- STANDARD
+--
+ 
+create table tq84_max_string_size(txt   varchar2(4001));
+-- → development/databases/Oracle/errors/ORA-00910_specified-length-too-long-for-its-datatype
+ 
+create table tq84_max_string_size(txt   varchar2(4000));
+-- Table TQ84_MAX_STRING_SIZE created.
+code }
+
+  }
+  { Database where value is EXTENDED
+
+code {
+select value from → development/databases/Oracle/installed/dynamic-performance-views/parameter where name = 'max_string_size';
+--
+-- EXTENDED
+--
+create table tq84_max_string_size(txt   varchar2(32768));
+-- → development/databases/Oracle/errors/ORA-00910_specified-length-too-long-for-its-datatype
+xf 
+create table tq84_max_string_size(txt   varchar2(32767));
+-- Table TQ84_MAX_STRING_SIZE created.
+code } 
+
+  }
+  { PL/SQL
+
+    In → development/databases/Oracle/PL-SQL, the maximum length of a `→ development/databases/Oracle/SQL/data-types/varchar2` is 32767, irrespective of the value of `max_string_size`:
+code {
+declare
+   txt varchar2(32768);
+begin
+   null;
+end;
+/
+-- → development/databases/Oracle/PL-SQL/errors-warnings/PLS-00215_String-length-constraints-must-be-in-range-1-32767
+ 
+declare
+   txt varchar2(32767);
+begin
+   null;
+end;
+/
+-- PL/SQL procedure successfully completed.
+code }
+
+  }
+
+}
 
 sa:
 
