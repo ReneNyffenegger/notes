@@ -4,6 +4,8 @@ $ ORA-24344: success with compilation errors
 `create or replace view`, `create procedure`, `alter procedure` etc. and the → development/databases/Oracle/objects[object] that is being modified or created
 (i.e.  the → development/databases/Oracle/objects/views[view], procedure etc.) have an error, for example because they reference a table that does not exist etc.
 
+In → development/databases/Oracle/Releases-and-versions/23c, the error message text → development/databases/Oracle/Releases-and-versions/23c#ora-23c-err[has changed to] *A compilation error occurred while creating an object*.
+
 { CREATE OR REPLACE VIEW
 
 This error is for example thrown when creating a view with the *force* option on a table that is inexistant, as is demonstrated in
@@ -45,6 +47,55 @@ ORA-24344: success with compilation error
 ORA-06512: at line 2
 code }
 
+}
+{ Interesting behavior in combination with EXECUTE IMMEDATE in 19c #ora-24344-exec-imm
+
+  Tomaš S. has notified me of an interesting behavior if an ORA-24344 error is thrown in a `create or replace view force` statement being executed in `→ development/databases/Oracle/PL-SQL/execute-immediate` in an Oracle 19c database:
+code {
+begin
+ 
+    dbms_output.put_line('-- start --');
+    execute immediate 'create or replace force view tq84_view_1 as select * from inexisting_table';
+
+    dbms_output.put_line('-- not reached --');
+    execute immediate 'create or replace force view tq84_view_2 as select * from inexisting_table';
+ 
+end;
+/
+-- start --
+code }
+
+code {
+select
+   object_name,
+   status,
+   created,
+   last_ddl_time,
+   timestamp
+from
+   user_objects
+where
+   object_name like 'TQ84_VIEW_%';
+code }
+
+code {
+begin
+ 
+    dbms_output.put_line('-- start --');
+    begin
+    execute immediate 'create or replace force view tq84_view_1 as select * from inexisting_table';
+    exception when others then dbms_output.put_line(sqlerrm); end;
+   
+    dbms_output.put_line('-- reached --');
+    begin
+    execute immediate 'create or replace force view tq84_view_2 as select * from inexisting_table';
+    exception when others then dbms_output.put_line(sqlerrm); end;
+   
+    dbms_output.put_line('-- reached as well --');
+ 
+end;
+/
+code }
 
 }
 
