@@ -50,7 +50,9 @@ code }
 }
 { Interesting behavior in combination with EXECUTE IMMEDATE in 19c #ora-24344-exec-imm
 
-  Tomaš S. has notified me of an interesting behavior if an ORA-24344 error is thrown in a `create or replace view force` statement being executed in `→ development/databases/Oracle/PL-SQL/execute-immediate` in an Oracle 19c database:
+  Tomáš Š. has notified me of an interesting behavior if an ORA-24344 error is thrown in a `create or replace view force` statement being executed in `→ development/databases/Oracle/PL-SQL/execute-immediate` in an Oracle 19c (tested with oracle 19.21) database.
+
+  The following → development/databases/Oracle/PL-SQL/block[PL/SQL block] creates the view `tq84_view_1` and then stops executing. The interesting thing is that Oracle reports *PL/SQL procedure successfully completed*:
 code {
 begin
  
@@ -65,6 +67,7 @@ end;
 -- start --
 code }
 
+    The following query confirms that only the first view is created (with status being invalid):
 code {
 select
    object_name,
@@ -78,7 +81,10 @@ where
    object_name like 'TQ84_VIEW_%';
 code }
 
+   If the `execute immediate` statements are placed within → development/databases/Oracle/PL-SQL/block/exception-handler[exception handlers], it shows that there is indeed the ORA-24344 exception thrown and handled such that both
+   views are created:
 code {
+drop view tq84_view_1;
 begin
  
     dbms_output.put_line('-- start --');
