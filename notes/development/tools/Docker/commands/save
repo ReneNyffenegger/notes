@@ -1,0 +1,122 @@
+$ docker save
+
+`dockers ave` saves the content of images to a tar → development/archive-files[archive].
+
+code {
+docker save [-o|--output filename] IMAGE [IMAGE…]
+code }
+
+By default, the content of the tar files are streamed to → development/stdin-stdout-stderr[stdout].
+-
+The `-o` or `--output` option allows to specify the filename of the tar file that is to be produced.
+
+{ Demonstration
+
+code {
+$ docker save hello-world -o /tmp/hello-world.tar
+Error response from daemon: No such image: hello-world
+
+$ → development/tools/Docker/commands/pull hello-world
+…
+
+$ docker save hello-world
+cowardly refusing to save to a terminal. Use the -o flag or redirect
+
+$ docker save hello-world -o /tmp/hello-world.tar
+
+$ → Linux/shell/commands/tar tf /tmp/hello-world.tar
+d2c94e258dcb3c5ac2798d32e1249e42ef01cba4841c2234249495f87264ac5a.json
+df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/
+df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/VERSION
+df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/json
+df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/layer.tar
+manifest.json
+repositories
+code }
+
+Create directory `/tmp/hello-world-image-content` and extract tar content into this directory:
+code {
+$ mkdir /tmp/hello-world-image-content
+$ tar xf /tmp/hello-world.tar -C /tmp/hello-world-image-content
+code }
+
+Files in directory
+code {
+$ ls /tmp/hello-world-image-content/
+d2c94e258dcb3c5ac2798d32e1249e42ef01cba4841c2234249495f87264ac5a.json  df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c  manifest.json  repositories
+code }
+
+`manifest.json` lists filesystem layers and the name of the json file that has the Container properties.
+-
+`→ development/languages/JavaScript/JSON/tools/jq` makes the content of this JSON file more human readable:
+code {
+$ → development/languages/JavaScript/JSON/tools/jq . /tmp/hello-world-image-content/manifest.json
+[
+  {
+    "Config": "d2c94e258dcb3c5ac2798d32e1249e42ef01cba4841c2234249495f87264ac5a.json",
+    "RepoTags": [
+      "hello-world:latest"
+    ],
+    "Layers": [
+      "df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/layer.tar"
+    ]
+  }
+]
+code }
+
+code {
+$ → development/languages/JavaScript/JSON/tools/jq . /tmp/hello-world-image-content/d2c94e258dcb3c5ac2798d32e1249e42ef01cba4841c2234249495f87264ac5a.json
+{
+  "architecture": "amd64",
+  "config": {
+    "Env": [
+      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ],
+    "Cmd": [
+      "/hello"
+    ],
+    "WorkingDir": "/",
+    "ArgsEscaped": true,
+    "OnBuild": null
+  },
+  "created": "2023-05-02T16:49:27Z",
+  "history": [
+    {
+      "created": "2023-05-02T16:49:27Z",
+      "created_by": "COPY hello / # buildkit",
+      "comment": "buildkit.dockerfile.v0"
+    },
+    {
+      "created": "2023-05-02T16:49:27Z",
+      "created_by": "CMD [\"/hello\"]",
+      "comment": "buildkit.dockerfile.v0",
+      "empty_layer": true
+    }
+  ],
+  "os": "linux",
+  "rootfs": {
+    "type": "layers",
+    "diff_ids": [
+      "sha256:ac28800ec8bb38d5c35b49d45a6ac4777544941199075dff8c4eb63e093aa81e"
+    ]
+  }
+}
+code }
+
+code {
+$ → Linux/shell/commands/cat /tmp/hello-world-image-content/df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/VERSION ; echo
+1.0
+code }
+
+code {
+$ jq . /tmp/hello-world-image-content/df1c22f7c9ab11ff627ce477eae827d0eb29e637b95bffe1c5fd3f414ace672c/json
+…
+code }
+
+}
+
+sa:
+
+  → development/tools/Docker/image/content/view
+
+  → development/tools/Docker/commands such as `→ development/tools/Docker/commands/inspect`
