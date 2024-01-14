@@ -1,0 +1,118 @@
+$ Docker networking
+
+Tests to demonstrate some features and characteristics when using networks in → development/tools/Docker.
+
+{ Prerequisites
+
+  We need a → development/languages/Python and → development/misc/busybox → development/tools/Docker/image:
+code {
+$ → development/tools/Docker/commands/pull python:alpine
+$ → development/tools/Docker/commands/pull busybox
+code }
+
+}
+
+{ Opening a port, but not listening on it
+
+  The following command creates a → development/tools/Docker/container. The `-p` parameter forwards → development/web/TCP-IP/port 8001 to the container:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name no-listener -p 8001:8001 busybox /bin/sh
+code }
+
+  Because there is no → Linux/kernel/process in the container that listens on port 8001, trying to connect to this port from the host with → tools/cURL[`curl`] results in the error message *Recv failure: Connection reset by peer*:
+code {
+$ → tools/cURL[curl] localhost:8001
+curl: (56) Recv failure: Connection reset by peer
+code }
+
+}
+{ Opening a port and listening it
+
+  The next command creates a a container with a → web/webserver listening on port 8001:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name listener -p 8001:8001 python:alpine python → development/languages/Python/import-system/minus-m → development/languages/Python/standard-library/http/server --directory → Linux/fhs/etc 8001
+code }
+
+  Because `-p 8001:8001` forwards the host's port 8001 to the container's port 8001, we can make a request to the webserver from the host:
+code {
+$ → tools/cURL[curl] localhost:8001/hostname
+7d7872083d8c
+code }
+
+}
+{ Forwarding a port to a different port number
+
+  The following command uses `-p` to forward port 7777 on the host to 8001 in the container:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name listener -p 7777:8001 python:alpine python → development/languages/Python/import-system/minus-m → development/languages/Python/standard-library/http/server --directory → Linux/fhs/etc 8001
+code }
+
+  With this forwarding, the webserver can be accessed from the host on port 7777:
+code {
+$ → tools/cURL[curl] localhost:7777/hostname
+6d05678cc3b0
+code }
+
+}
+{ Accessing the host from the container
+
+  On the host, we determine the host's IP address used for Docker:
+code {
+$ ip -br a | grep docker0
+docker0          UP             172.17.0.1/16 fe80::42:36ff:fed5:1b8f/64
+code }
+
+  Then, still on the host, we start a web server:
+code {
+$ python3  -m http.server --directory /etc 8001
+code }
+
+  Now, we create a container that accesses the web server running on the host:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name client busybox → tools/wget -O- -q 172.17.0.1:8001/hostname 
+code }
+
+}
+{ Creating a network
+
+  We create a dedicated network for the client and server containers:
+code {
+$ → development/tools/Docker/commands/network/create -d bridge client-server-network
+code }
+ 
+  The server is started with the `--network` command line option:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name http-server --network client-server-network --hostname srv python:alpine python → development/languages/Python/import-system/minus-m → development/languages/Python/standard-library/http/server --directory → Linux/fhs/etc 8001
+code }
+
+  The client is also started with the `--network` command line option. Note how the client can specify the server by its hostname (`srv`) which was specified with `--hostname` when the server was started:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name htt-client  --network client-server-network busybox → tools/wget -O- -q srv:8001/hostname 
+code }
+
+}
+{ TODO
+
+  { DNS Server
+
+    { Containers attached to the default bridge network
+
+      The host's `→ Linux/fhs/etc/hosts` and `→ Linux/fhs/etc/resolv_conf` files are copied from the host to containers that attach to the default bridge network.
+
+    }
+    { Containers attached to a custom network
+
+      Containers that are attached to a custom network use a DNS server that is embedded with Docker which forwards external DNS lookups to the host's configured DNS servers.
+
+    }
+    { Command line options for «docker run»
+
+      Command line options for `→ development/tools/Docker/commands/run` which allow to change this default behavior include:
+        • `--dns`
+        • `--dns-option`
+        • `--dns-search`
+        • `--hostname`
+
+    }
+  }
+}
