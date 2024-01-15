@@ -1,0 +1,82 @@
+$ jq: to_entries
+@ to_entries
+
+{ Passing JSON Objects to to_entries
+
+  If a → development/languages/JavaScript/JSON#json-object[JSON object] is passed to `to_entries`, it creates an array of JSON object each of which has the two keys `key` and `value`.
+  
+code {
+$ echo '{
+  "txt":  "Hello world",
+  "num":   42
+}'                           | → development/languages/JavaScript/JSON/tools/jq to_entries
+[
+  {
+    "key": "txt",
+    "value": "Hello world"
+  },
+  {
+    "key": "num",
+    "value": 42
+  }
+]
+code }
+
+  If the input is an array of objects, it should probably be passed to the `→ development/languages/JavaScript/JSON/tools/jq/filters/dot-square-bracket` filter:
+code {
+$ echo '
+[
+  {
+    "txt":  "Hello world",
+    "num":   42
+  },
+  {
+    "key-one":  "val 1",
+    "key-two":  "val 2"
+  }
+]'                           | → development/languages/JavaScript/JSON/tools/jq ' → development/languages/JavaScript/JSON/tools/jq/filters/dot-square-bracket | to_entries'
+[
+  {
+    "key": "txt",
+    "value": "Hello world"
+  },
+  {
+    "key": "num",
+    "value": 42
+  }
+]
+[
+  {
+    "key": "key-one",
+    "value": "val 1"
+  },
+  {
+    "key": "key-two",
+    "value": "val 2"
+  }
+]
+code }
+
+}
+{ Passing an array to to_entries
+
+  If an → development/languages/JavaScript/JSON#json-array[array] is passed to `to_entries`, the values for the `key` correspond to the indices in the array:
+code {
+$ echo '[ "foo", "bar", "baz" ]' | jq to_entries
+[
+  {
+    "key": 0,
+    "value": "foo"
+  },
+  {
+    "key": 1,
+    "value": "bar"
+  },
+  {
+    "key": 2,
+    "value": "baz"
+  }
+]
+code }
+
+}
