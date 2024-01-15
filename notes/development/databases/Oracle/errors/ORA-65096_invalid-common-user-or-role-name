@@ -1,5 +1,63 @@
 $ ORA-65096: invalid common user or role name
--
+
+
+code {
+$ → development/databases/Oracle/SQL-Plus[sqlplus] / as sysdba
+
+SQL> create user tq84_ora_65096_demo identified by aWeakPassword;
+--
+-- ORA-65096: invalid common user or role name
+--
+code }
+
+Check to which container we're connected:
+code {
+SQL> select
+   ses.con_id,
+   case when con.con_id = ses.con_id then 'X' end cur_con, -- current container
+   con.name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session    ses   cross join
+   → development/databases/Oracle/installed/dynamic-performance-views/containers con
+where
+   ses.sid = → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'sid') -- → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identify own session]
+; 
+--
+-- CON_ID C NAME
+-- ------ - ------------
+--      1 X CDB$ROOT
+--          PDB$SEED
+--          PDBTQ84
+code }
+We're connected to the root container (`CDB$ROOT`).
+
+Trying again to create a user (without `c##` prefix) on a PDB:
+code {
+SQL> → development/databases/Oracle/SQL-Plus/connect sys/elCarosSecret4@pdbtq84 as sysdba
+code }
+
+code {
+SQL> select
+   ses.con_id,
+   case when con.con_id = ses.con_id then 'X' end cur_con, -- current container
+   con.name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session    ses   cross join
+   → development/databases/Oracle/installed/dynamic-performance-views/containers con
+where
+   ses.sid = → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'sid');
+--
+-- CON_ID C NAME
+-- ------ - ----------------
+--      3 X PDBTQ84
+code }
+
+We're on a PDB (which is the only visible container now) and ii's now possible to create the user:
+code {
+SQL> create user tq84_ora_65096_demo identified by aWeakPassword;
+--
+-- User created.
+code }
 
 sa:
   → development/databases/Oracle/errors[Other Oracle error messages]

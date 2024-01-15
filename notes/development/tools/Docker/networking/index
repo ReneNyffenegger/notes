@@ -87,10 +87,41 @@ code }
 
   The client is also started with the `--network` command line option. Note how the client can specify the server by its hostname (`srv`) which was specified with `--hostname` when the server was started:
 code {
-$ → development/tools/Docker/commands/run --rm -it --name htt-client  --network client-server-network busybox → tools/wget -O- -q srv:8001/hostname 
+$ → development/tools/Docker/commands/run --rm -it --name http-client  --network client-server-network busybox → tools/wget -O- -q srv:8001/hostname 
 code }
 
+  { Connect from the host to a container in the network
+
+    First, we need to determine the IP number of the container running the web server:
+code {
+$ docker inspect  client-server-network | → development/languages/JavaScript/JSON/tools/jq -r '.[] | .Containers | → development/languages/JavaScript/JSON/tools/jq/functions/to_entries | .[] | .value | select(.Name == "http-server") | .IPv4Address'
+172.18.0.2/16
+code }
+
+    We're now ready to establish a TCP/IP connection to the container from the host:
+code {
+$ wget -O- -q 172.18.0.2:8001/hostname
+srv
+code }
+
+  }
+  { Exposing a container's port to the host
+
+    Again, we use the `-p` option of `docker run` to specify that a port on `localhost` is forwared to a container:
+code {
+$ → development/tools/Docker/commands/run --rm -it --name http-server-2 --network client-server-network --hostname srv-2 -p 8888:8002 python:alpine python → development/languages/Python/import-system/minus-m → development/languages/Python/standard-library/http/server --directory → Linux/fhs/etc 8002
+code }
+
+    We can now access the container on port 8888 (which is forawrded to port 8002):
+code {
+$ wget -O- -q localhost:8888/hostname
+srv-2
+code }
+
+  }
+
 }
+
 { TODO
 
   { DNS Server
