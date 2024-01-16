@@ -39,6 +39,54 @@ from
    SYS.user$ usr;
 code }
 
+{ spare4 - Hash values of password
+
+  { Digest
+
+code {
+column digest_enabled format a3
+column digest_value   format a32
+
+select
+   case when instr(spare4, 'H:') > 0 then 'Yes' else 'No' end digest_enabled
+from
+   sys.user$ where name ='RENE';
+--
+-- Dig
+-- ---
+-- No
+--
+   
+alter user rene digest enable;  
+
+select
+   case when instr(spare4, 'H:') > 0 then 'Yes' end digest_enabled,
+   regexp_replace(spare4, '.*H:(.{32}).*', '\1')    digest_value
+from
+   sys.user$ where name ='RENE';
+--
+-- DIG DIGEST_VALUE                    
+-- --- --------------------------------
+-- Yes 00000000000000000000000000000000   
+   
+alter user rene identified by rene;   
+
+
+select
+   case when instr(spare4, 'H:') > 0 then 'Yes' end digest_enabled,
+   regexp_replace(spare4, '.*H:(.{32}).*', '\1')    digest_value
+from
+   sys.user$ where name ='RENE';
+--
+-- DIG DIGEST_VALUE                    
+-- --- --------------------------------
+-- Yes D52D963CF546B9AFF1878A99107DA061
+code }
+
+  }
+
+}
+
 sa:
 
   This table is created in `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/dcore_bsq`.
