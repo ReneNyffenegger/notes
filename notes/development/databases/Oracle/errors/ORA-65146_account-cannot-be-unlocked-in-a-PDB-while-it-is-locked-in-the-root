@@ -1,0 +1,69 @@
+$ ORA-65146: account cannot be unlocked in a PDB while it is locked in the root
+
+code {
+$ sqlplus  sys/elCarosSecret4@pdbtq84 as sysdba
+ …
+SQL> alter user xdb account unlock;
+--
+-- ORA-65146: account cannot be unlocked in a PDB while it is locked in the root
+code }
+
+Check to which container we're connected:
+code {
+SQL> select
+   ses.con_id,
+   case when con.con_id = ses.con_id then 'X' end cur_con, -- current container
+   con.name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session    ses   cross join
+   → development/databases/Oracle/installed/dynamic-performance-views/containers con
+where
+   ses.sid = → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'sid') -- → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identify own session]
+; 
+-- 
+--     CON_ID C NAME
+-- ---------- - ------------
+--          3 X PDBTQ84
+code }
+
+Not connected to the root! Change this:
+code {
+SQL> → development/databases/Oracle/SQL-Plus/connect / as sysdba
+code }
+
+Check current container again:
+code {
+SQL> select
+   ses.con_id,
+   case when con.con_id = ses.con_id then 'X' end cur_con, -- current container
+   con.name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session    ses   cross join
+   → development/databases/Oracle/installed/dynamic-performance-views/containers con
+where
+   ses.sid = → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'sid') -- → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identify own session]
+; 
+--     CON_ID C NAME
+-- ---------- - -----------------
+--          1 X CDB$ROOT
+--          1   PDB$SEED
+--          1   PDBTQ84
+code }
+
+Try again:
+code {
+SQL> alter user xdb account unlock;
+--
+-- User altered
+code }
+
+Go back to PDB:
+code {
+SQL> → development/databases/Oracle/SQL-Plus/connect sys/elCarosSecret4@PDBTQ84 as sysdba
+SQL> select → development/databases/Oracle/installed/data-dictionary/users#dba_users-account_status[account_status] from → development/databases/Oracle/installed/data-dictionary/users where username = 'XDB';
+code }
+
+The account status trickled from the root to the PDB.
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
