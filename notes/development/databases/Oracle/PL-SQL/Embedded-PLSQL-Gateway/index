@@ -2,6 +2,67 @@ $ Oracle: Embedded PL/SQL Gateway
 
 The *Embedded → development/databases/Oracle/PL-SQL Gateway* (EPG) adds basic → web/webserver functionality to an Oralce instance. No separate HTTP Server is required as EPG uses the internal XMLDB HTTP listener.
 
+{ Data Access Descriptors (DADs) #ora-epg-dad
+
+  *Data Access Descriptors* is a set of configuration values that allow to configure database access using HTTP.
+
+  The following values can be configured:
+  table { lllll
+
+   ~EPG Name~ ☰ ~mod_plsql Name~ ☰ mult. occ. ☰ ~ORDS Setting~ ☰
+
+     `after-procedure` ☰ `PlsqlAfterProcedure` ☰ ☰ `procedure.postProcess` ☰ Name of procedure to be called after calling the requested procedure. Used for debugging/hooking purposes.
+     `always-describe-procedure` ☰ `PlsqlAlwaysDescribeProcedure` ☰ ☰ ☰ If procedures a described at first access only and then cached, or if they're described at each access.
+     `authentication-mode` ☰ `PlsqlAuthenticationMode` ☰ ☰  ☰ `Basic`, `SingleSignOn`, `GlobalOwa`, `CustomOwa` or `PerPackageOwa`.
+     `before-procedure` ☰ `PlsqlBeforeProcedure` ☰ ☰ `procedure.preProcess` ☰ Name of procedure to be called before calling the requested procedure. Used for debugging/hooking purposes.
+     `bind-bucket-lengths` ☰ `PlsqlBindBucketLengths` ☰ ✓ ☰ ☰
+     `bind-bucket-widths` ☰ `PlsqlBindBucketWidths` ☰ ✓ ☰ ☰ The rounding size to use while binding the number of elements in a collection bind (only relevant if also using procedures with array parameters)
+     `cgi-environment-list` ☰ `PlsqlCGIEnvironmentList` ☰ ✓ ☰ ☰
+     `compatibility-mode` ☰ `PlsqlCompatibilityMode` ☰ ☰ ☰
+     `database-username` ☰ `PlsqlDatabaseUsername` ☰ ☰ `db.username` ☰ Is there no `database-password` config corresponding to mod_plsql's `PlsqlDatabasePassword`?
+     `default-page` ☰ `PlsqlDefaultPage` ☰ ☰ `misc.defaultPage` ☰ The procedure («page») to be called/shown if only the DAD Path is requested.
+     `document-path` ☰ `PlsqlDocumentPath` ☰ ☰ ☰ A virtual path. Requesting a document from this path (for example `http://epgserver/dad-path/DOCPATH/spreadsheet.xls`) will download the document from the configured document table (`document-table-name`).
+     `document-procedure` ☰ `PlsqlDocumentProcedure` ☰ ☰ ☰ Name of the procedure to be called when document download is initiated. Used to generate a response after the file is uploaded. Default seems to be `wpg_testdoc.process_download`.
+     `document-table-name` ☰ `PlsqlDocumentTablename` ☰ ☰ `owa.docTable` (or `apex.docTable`?) ☰ Name of table into which documents are uploaded. It seems that this table is filled when a `POST` request is made. Default value seems to be `wpg_document`.
+     `error-style` ☰ `PlsqlErrorStyle` ☰ ☰ `debug.printDebugToScreen` ☰
+     `exclusion-list` ☰ `PlsqlExclusionList` ☰ ✓ ☰ `security.exclusionList` ☰
+     `fetch-buffer-size` ☰ `PlsqlFetchBufferSize` ☰ ☰ ☰
+     `info-logging` ☰ `PlsqlInfoLogging` ☰ ☰ ☰
+     `owa-debug-enable` ☰ `PlsqlOWADebugEnable` ☰ ☰ ☰
+     `max-requests-per-session` ☰ `PlsqlMaxRequestsPerSession` ☰ ☰ `dbc.MaxConnectionReuseCount` ☰
+     `nls-language` ☰ `PlsqlNLSLanguage` ☰ ☰ ☰ Overrides/sets the value of `nls_language`. If different from value in database, an `alter session set nls_language=<LANG> nls_territory=<TERR>` will be executed every time a new database connection is created for the DAD. The value of this setting influcences 1) the character set of the content coming back from the database, 2) The character set used when binding arguments passed via OCI 3) the IANA character set used in the `Content-Type` header of an HTTP response 
+     `path-alias` ☰ `PlsqlPathAlias` ☰ ☰ ☰ See `path-alias-procedure`. The default values seems to be: `sys.*, dbms_*", utl_*, owa_*, owa.*, htp.*, htf.*`.  Will setting this directive to `#NONE#` disable all protection?
+     `path-alias-procedure` ☰ `PlsqlPathAliasProcedure` ☰ ☰ ☰ The name of the procedure to call when the virtual path in the URL matches `path-alias`.
+     `request-validation-function` ☰ `PlsqlRequestValidationFunction` ☰ ☰ `security.requestValidationFunction` ☰
+     `session-cookie-name` ☰ `PlsqlSessionCookieName` ☰ ☰ ☰ The name of the → development/web/HTTP/cookie to identify sessions.
+     `session-state-management` ☰ `PlsqlSessionStateManagement` ☰ ☰ ☰
+     `transfer-mode` ☰ `PlsqlTransferMode` ☰ ☰ ☰ `Char` or `Raw`
+     `upload-as-long-raw` ☰ `PlsqlUploadAsLongRaw` ☰ ☰ ☰ Files with this extensions are uploaded as → development/databases/Oracle/SQL/data-types/raw[`long raw`] rather then the default → development/databases/Oracle/SQL/data-types/lob[`blob`].
+  table }
+
+
+  DADs are created and dropped with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.create_dad]` and → development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.drop_dad]`.
+  -
+  Values for DAD attributes can be set with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.set_dad_attribute]`
+
+  The `dads.README` of MOS Note 295535.1 (*How To Create a DAD using OHS Standalone or From Oracle Database 10g Companion CD*) was helpful to me when assembling the above table.
+
+  A DAD is represented as a servlet in XML DB HTTP Server.
+
+}
+{ Invoking EPG
+
+  mod_plsql is invoked like
+code {
+protocol://hostname[:port]/DAD_location/[[!][schema.][package.]proc_name[?query_string]]
+code }
+
+  I assume that EPG is similarly invoked.
+
+  The optional `!` indicates to use the flexible parameter passing scheme. 
+
+}
+
 sa:
 
  `→ development/databases/Oracle/installed/packages/dbms/epg`

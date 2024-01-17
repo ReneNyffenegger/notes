@@ -22,13 +22,15 @@ code {
 begin
    for r in (
       select
-        'alter system kill session ''' || sid || ',' || serial# || ''' force'  stmt
+        'alter system kill session ''' || sid || ',' || serial# ||
+           case when → development/databases/Oracle/installed/packages/dbms/db_version#dbms_version-version-release[dbms_db_version.version] >= 23 then ' force' end ||
+        ''''   stmt
       from
-         gv$session
+         → development/databases/Oracle/installed/dynamic-performance-views/session[gv$session]
       where
          username ='GTFS_ZURICH') loop
 
-         execute immediate r.stmt;
+         → development/databases/Oracle/PL-SQL/execute-immediate r.stmt;
     end loop;
 end;
 /

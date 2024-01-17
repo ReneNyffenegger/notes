@@ -1,5 +1,34 @@
 
 `loadjava` stores → development/languages/Java classes in the database by using the `create java source` SQL statement.
 
+{ Error while creating CREATE$JAVA$LOB$TABLE
+
+code {
+$ loadjava -d -verbose -user rene@db -password littleSecret -jarsasdbobjects -fileout loadjava.log lib/xyz.jar
+exiting  : Failures occurred during processing
+
+
+$ → Linux/shell/commands/head loadjava.log
+…
+Error while creating CREATE$JAVA$LOB$TABLE
+    → development/databases/Oracle/errors/ORA-01031_insufficient-privileges
+
+Error while getLoadLOB null
+    → development/databases/Oracle/errors/ORA-00942_table-or-view-does-not-exist
+…
+code }
+
+  Does the user have the right to create tables:
+code {
+grant create table to rene;
+code }
+
+  Does the user have enought quota on the default tablespace:
+code {
+alter user rene quota unlimited on users;
+code }
+
+}
+
 sa:
   → development/databases/Oracle/installed/packages/dbms/java#dbms_java-loadjava[`dbms_java.loadjava`]
