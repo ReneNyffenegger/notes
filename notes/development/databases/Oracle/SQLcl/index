@@ -18,12 +18,12 @@ SQLcl is a new Java-based command-line interface for Oracle Database. It support
   
     The download link for SQLcl can be found from → https://oracle.com/sqlcl[oracle.com/sqlcl]:
 code {
-$ wget https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-23.2.0.178.1027.zip -O /tmp/sqlcl.zip
+$ → tools/wget https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-latest.zip -O /tmp/sqlcl.zip
 code }
 
     Extract the zip file to `~/bin/sqlcl` (all files in the zip file are located under `sqlcl`):
 code {
-$ unzip -d ~/bin /tmp/sqlcl.zip
+$ → Linux/shell/commands/unzip -d ~/bin /tmp/sqlcl.zip
 code }
 
     Verify that `java` is installed (otherwise, it needs to be installed).
@@ -104,40 +104,6 @@ sqlcl.run();
 code }
 
   }
-
-}
-{ SQLcl not showing error messages
-
-  SQLcl does not automatically show error messages. (As per → https://ogobrecht.github.io/posts/2020-01-02-why-i-like-sqlplus-for-deployment-scripts[Ottmar Gobrecht's Blog], this problem only occurs in
-  versions prior to 19.4 or on Windows).
-
-code {
-rene@SYS$USERS> create or replace procedure drop_me as
-  2  begin
-  3     no_such_procedure;
-  4  end;
-  5  /
-code }
-
-  No error message shown, although `no_such_procedure` does not exist.
-
-code {
-rene@SYS$USERS> show errors
-
-Errors for PROCEDURE RENE.DROP_ME:
-
-LINE/COL ERROR
--------- -----------------------------------------------------------------
-3/4      PL/SQL: Statement ignored
-3/4      → development/databases/Oracle/PL-SQL/errors-warnings/PLS-00201_identifier_must-be-declared[PLS-00201: identifier 'NO_SUCH_PROCEDURE' must be declared]
-code }
-
-  Ottmar Gobrecht proposes to use the following setings until a fix is released
-code {
-set define off verify off feedback on
-code }
-
-  With these settings, the errors are now displayed.
 
 }
 { Starting sqlcl / Command line options
@@ -261,7 +227,39 @@ $ ~/bin/sqlcl/bin/sql rene/rene@localhost/freepdb1 @/tmp/long-line.sql
 code }
 
   }
+  { SQLcl not showing error messages
 
+    SQLcl does not automatically show → development/databases/Oracle/errors[error messages]. (As per → https://ogobrecht.github.io/posts/2020-01-02-why-i-like-sqlplus-for-deployment-scripts[Ottmar Gobrecht's Blog], this problem only occurs in
+    versions prior to 19.4 or on Windows).
+
+code {
+rene@SYS$USERS> create or replace procedure drop_me as
+  2  begin
+  3     no_such_procedure;
+  4  end;
+  5  /
+code }
+
+    No error message shown, although `no_such_procedure` does not exist.
+
+code {
+rene@SYS$USERS> show errors
+
+Errors for PROCEDURE RENE.DROP_ME:
+
+LINE/COL ERROR
+-------- -----------------------------------------------------------------
+3/4      PL/SQL: Statement ignored
+3/4      → development/databases/Oracle/PL-SQL/errors-warnings/PLS-00201_identifier_must-be-declared[PLS-00201: identifier 'NO_SUCH_PROCEDURE' must be declared]
+code }
+
+    Ottmar Gobrecht proposes to use the following setings until a fix is released
+code {
+set define off verify off feedback on
+code }
+
+    With these settings, the errors are now displayed.
+  }
 }
 { TODO
 
