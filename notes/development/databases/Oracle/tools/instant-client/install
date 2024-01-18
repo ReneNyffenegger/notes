@@ -38,6 +38,12 @@ code {
 export LD_LIBRARY_PATH=$DESTDIR/instantclient_21_13:$LD_LIBRARY_PATH
 code }
 
+  Alternatively, the library path can be more permanently be configured like so:
+code {
+→ Linux/shell/commands/sudo sh -c "echo $DESTDIR/instantclient_21_13 > → Linux/fhs/etc/ld_so_conf_d[/etc/ld.so.conf.d]/oracle-instantclient.conf"
+sudo → Linux/shell/commands/ldconfig
+code }
+
   Then, the binaries can be executed:
 code {
 $DESTDIR/instantclient_21_13/sqlplus …
@@ -48,19 +54,24 @@ code {
 PATH=$PATH:$DESTDIR/instantclient_21_10:$LD_LIBRARY_PATH
 code }
 
-}
-{ Copying files
+  Alternatively, symbolic links can be created from a directory that is pointed at by the `$PATH` variable to the executables of the instant client.
+code {
+→ Linux/shell/commands/find $DESTDIR/instantclient_21_13 -type f -executable -exec → Linux/shell/commands/ln -s {} ~/bin \;
+code }
 
-  In order not to modify `PATH` and `LD_LIBRARY_PATH`, shared objects (i. e. executables which match the regular expression `.so(\.\d)?`) must be copied to `→ Linux/fhs/usr/lib` and
-  other executables to `→ Linux/fhs/usr/bin`.
-  -
-  This can be achieved with the following `→ Linux/shell/commands/find` command:
+  { Copying files
+
+    Even another alternative to modifying `PATH` and `LD_LIBRARY_PATH` is to copy  shared objects (i. e. executables which match the regular expression `.so(\.\d)?`) to `→ Linux/fhs/usr/lib` and
+    other executables to `→ Linux/fhs/usr/bin`.
+ 
+    This can be achieved with the following `→ Linux/shell/commands/find` command:
 code {
 → Linux/shell/commands/sudo find $DESTDIR -executable -type f  \
   \(     -regex '.*\.so\(\.\d\)?.*' -exec cp -i {} /usr/lib \;   -o \
                                     -exec cp -i {} /usr/bin \; \)
 code }
 
+  }
 }
 { Missing libaio.so.1
 
