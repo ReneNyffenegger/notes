@@ -3,23 +3,55 @@ $ ORA-00060: deadlock detected while waiting for resource
 The error *ORA-00060: deadlock detected while waiting for resource* is thrown if two sessions (or possibly more accurately: two transactions) wait for a resource that the
 other session (transaction) has already aquired.
 
-Jonathan Lewis → https://books.google.ch/books?id=hmYpj1OI0DoC&pg=PA82[has found, that the session that waited the longest] gets the ORA-00060.
+Jonathan Lewis → https://books.google.ch/books?id=hmYpj1OI0DoC&pg=PA82[has found that the session that waited the longest] gets the ORA-00060.
 
-{ Force a deadlock
+{ Demonstration
 
-  The following two SQL scripts force a deadlock. They must be run in two separate → development/databases/Oracle/SQL-Plus sessions.
+  Create some demonstration values:
+code {
+create table tq84_00600_deadlock (
+   id   integer  primary key,
+   val  varchar2(20)
+);
 
-  { First session
+begin
+   insert into tq84_00600_deadlock values (42, 'A');
+   insert into tq84_00600_deadlock values (99, 'B');
+   commit;
+end;
+/
+code }
 
-    gh|Oracle-Patterns|/misc/DeadLock/ex_01/session_01.sql||
+~Session 1~ updates a record but does not commit the transaction:
+code {
+update tq84_00600_deadlock set val = 'C' where id = 42;
+code }
 
-  }
-  { Second session
+~Session 2~ updates another record, also without commiting the transaction:
+code {
+update tq84_00600_deadlock set val = 'X' where id = 99;
+code }
 
-    gh|Oracle-Patterns|/misc/DeadLock/ex_01/session_02.sql||
+~Session 2~ tries to update the record which is already updated by another session (i. e. *session 1*). Because the other session locks the records,
+session 2 is blocked with the following update statement:
+code {
+update tq84_00600_deadlock set val = 'Y' where id = 42;
+code }
 
-  }
+~Sesion 1~ tries to update the record which is already updated by *session 2*:
+code {
+update tq84_00600_deadlock set val = 'D' where id = 99;
+code }
+
+  This update staement leads to a situation where both would be blocked. Oracle handles this by raising *ORA-00060: deadlock detected while waiting for resource* in one of the two sessions.
+
+  Cleaning up:
+code {
+drop   table tq84_00600_deadlock;
+code }
+
 }
+
 
 sa:
 
