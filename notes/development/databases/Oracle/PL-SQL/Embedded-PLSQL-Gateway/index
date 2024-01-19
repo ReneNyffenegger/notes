@@ -1,6 +1,7 @@
 $ Oracle: Embedded PL/SQL Gateway
+@ Embedded PL/SQL Gateway
 
-The *Embedded → development/databases/Oracle/PL-SQL Gateway* (EPG) adds basic → web/webserver functionality to an Oracle instance that allows to invoke → development/databases/Oracle/PL-SQL functioniality on the database.
+The *Embedded → development/databases/Oracle/PL-SQL Gateway* (EPG) adds basic → web/webserver functionality to an Oracle instance through which → development/databases/Oracle/PL-SQL functionality in a database can be invoked, similar to mod_plsqql.
 -
 No separate HTTP Server is required as EPG uses the internal XMLDB HTTP listener.
 
@@ -8,8 +9,19 @@ No separate HTTP Server is required as EPG uses the internal XMLDB HTTP listener
 
   *Data Access Descriptors* is a set of configuration values that allow to configure database access using HTTP.
 
-  The following values can be configured:
-  table { lllll
+
+  DADs are created and dropped with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.create_dad]` and → development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.drop_dad]`.
+  -
+  Values for DAD attributes can be set with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.set_dad_attribute]`
+
+  The `dads.README` of MOS Note 295535.1 (*How To Create a DAD using OHS Standalone or From Oracle Database 10g Companion CD*) was helpful to me when assembling the above table.
+
+  A DAD is represented as a servlet in XML DB HTTP Server.
+
+  { Configuration values
+
+    The following values can be configured:
+    table { lllll
 
    ~EPG Name~ ☰ ~mod_plsql Name~ ☰ mult. occ. ☰ ~ORDS Setting~ ☰
 
@@ -21,7 +33,7 @@ No separate HTTP Server is required as EPG uses the internal XMLDB HTTP listener
      `bind-bucket-widths` ☰ `PlsqlBindBucketWidths` ☰ ✓ ☰ ☰ The rounding size to use while binding the number of elements in a collection bind (only relevant if also using procedures with array parameters)
      `cgi-environment-list` ☰ `PlsqlCGIEnvironmentList` ☰ ✓ ☰ ☰
      `compatibility-mode` ☰ `PlsqlCompatibilityMode` ☰ ☰ ☰
-     `database-username` ☰ `PlsqlDatabaseUsername` ☰ ☰ `db.username` ☰ Is there no `database-password` config corresponding to mod_plsql's `PlsqlDatabasePassword`?
+     `database-username` ☰ `PlsqlDatabaseUsername` ☰ ☰ `db.username` ☰ There is no `database-password` config corresponding to mod_plsql's `PlsqlDatabasePassword` because DADs do not store passwords.
      `default-page` ☰ `PlsqlDefaultPage` ☰ ☰ `misc.defaultPage` ☰ The procedure («page») to be called/shown if only the DAD Path is requested.
      `document-path` ☰ `PlsqlDocumentPath` ☰ ☰ ☰ A virtual path. Requesting a document from this path (for example `http://epgserver/dad-path/DOCPATH/spreadsheet.xls`) will download the document from the configured document table (`document-table-name`).
      `document-procedure` ☰ `PlsqlDocumentProcedure` ☰ ☰ ☰ Name of the procedure to be called when document download is initiated. Used to generate a response after the file is uploaded. Default seems to be `wpg_testdoc.process_download`.
@@ -42,14 +54,42 @@ No separate HTTP Server is required as EPG uses the internal XMLDB HTTP listener
      `upload-as-long-raw` ☰ `PlsqlUploadAsLongRaw` ☰ ☰ ☰ Files with this extensions are uploaded as → development/databases/Oracle/SQL/data-types/raw[`long raw`] rather then the default → development/databases/Oracle/SQL/data-types/lob[`blob`].
   table }
 
-  DADs are created and dropped with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.create_dad]` and → development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.drop_dad]`.
-  -
-  Values for DAD attributes can be set with `→ development/databases/Oracle/installed/packages/dbms/epg[dbms_epg.set_dad_attribute]`
+    Because EPG runs on a database (and does not connect to another database), there is no equivalent to the `PlSqlDatabaseConnectString`
 
-  The `dads.README` of MOS Note 295535.1 (*How To Create a DAD using OHS Standalone or From Oracle Database 10g Companion CD*) was helpful to me when assembling the above table.
+  }
+  { Authentication schemes
 
-  A DAD is represented as a servlet in XML DB HTTP Server.
+    How a user of a DAD is authenticated depends on the value of the DAD's `database-username` setting and if `dbms_epg.authorize_dad` is invoked.
+code {
+If 'database-username' is set:
 
+    
+    If 'database-username' = ANONYMOUS:
+
+        Authentication mode := anonymous
+
+    Else If UserAuthorized:
+    
+        Authentication mode := static
+
+    Else:
+
+        Authentication mode := dynamic restricted
+
+Else:
+
+        Authentication mode := dynamic
+       
+
+code }
+
+   `→ development/databases/Oracle/installed/data-dictionary/epg_dad_authorization` shows which users have authorized use of a DAD.
+
+   *Static* authentication requires the database account `ANONYMOUS` to be unlocked, otherwise EPG will answer a request with the HTTP status *401 Unauthorized*.
+
+    See also MOS Note 2687096.1
+  
+  }
 }
 { Invoking EPG
 
@@ -64,6 +104,7 @@ code }
 
 }
 
+
 sa:
 
  `→ development/databases/Oracle/installed/packages/dbms/epg`
@@ -73,3 +114,7 @@ sa:
   EPG is also used by → development/databases/Oracle/Application-Express.
 
   MOS Note 743563.1, 1112237.1
+
+links:
+  The chapter → https://docs.oracle.com/en/database/oracle/oracle-database/23/adfns/web-applications.html#GUID-B7C7170E-69AC-42D2-9597-451B1053209E[Developing PL/SQL Web Applications]
+  in the → https://docs.oracle.com/en/database/oracle/oracle-database/23/adfns[Database Developer Guide]
