@@ -5,16 +5,17 @@ $ Scripting SQLcl
 { Global objecs
 
   The scripting environment of SQLcl has some global objects ( members of `this`):
-  table { ll
-    `args` ☰ `java.lang.String[]`
-    `commands` ☰
-    `conn` ☰ `oracle.jdbc.driver.T4CConnection`
-    `ctx` ☰ `oracle.dbtools.raptor.newscriptrunner.ScriptRunnerContext`
-    `engine` ☰ `jdk.nashorn.api.scripting.NashornScriptEngine`
-    `out` ☰ `oracle.dbtools.raptor.newscriptrunner.WrapListenBufferOutputStream`
-    → #sqlcl-script-sqlcl[`sqlcl`] ☰ `oracle.dbtools.raptor.newscriptrunner.ScriptExecutor`
-    `util` ☰ `oracle.dbtools.db.OracleUtil`
-     … ? ☰
+  table { lll
+   ~Object~ ☰ ~Type~ ☰ ~JAR file~
+    `args` ☰ `java.lang.String[]` ☰
+    `commands` ☰ ☰
+    → #sqlcl-script-conn[`conn`] ☰ `oracle.jdbc.driver.T4CConnection` ☰
+    `ctx` ☰ `oracle.dbtools.raptor.newscriptrunner.ScriptRunnerContext` ☰ `oracle.dbtools-common.jar`
+    `engine` ☰ `jdk.nashorn.api.scripting.NashornScriptEngine` ☰
+    `out` ☰ `oracle.dbtools.raptor.newscriptrunner.WrapListenBufferOutputStream` ☰
+    → #sqlcl-script-sqlcl[`sqlcl`] ☰ `oracle.dbtools.raptor.newscriptrunner.ScriptExecutor` ☰ `oracle.dbtools-common.jar`
+    `util` ☰ `oracle.dbtools.db.OracleUtil` ☰ `oracle.dbtools-common.jar`
+     … ? ☰ ☰
   table }
 
   { args
@@ -93,7 +94,7 @@ code }
   }
   { conn #sqlcl-script-conn
 
- `conn` is the connection object.
+  `conn` is the connection object.
 
 code {
 script
@@ -112,16 +113,27 @@ print(conn.getUserName())
 RENE
 code }
 
+    Show connection URL:
+code {
+connUrl = conn.getMetaData().getURL()
+print(connUrl)
+code }
+
   }
-  { sqlcl
+  { sqlcl #sqlcl-script-sqlcl
 
- `sqlcl` seems to be a class that represents → development/databases/Oracle/SQLcl itself.
-
+ `sqlcl` seems to be a class that represents → development/databases/Oracle/SQLcl itself: 
 code {
 script
 print(sqlcl.getClass())
 /
 class oracle.dbtools.raptor.newscriptrunner.ScriptExecutor
+code }
+
+    Execute an arbitrary SQL statement:
+code {
+sqlcl.setStmt('select username, created from dba_users order by created')
+sqlcl.run()
 code }
 
   }
@@ -142,6 +154,15 @@ ctx.setPrompt(conn.getUserName() + '> ');
 /
 code }
 
+  However, executing → development/databases/Oracle/tools/oradebug[`oradebug`] is not supported:
+code {
+script
+sqlcl.setStmt('→ development/databases/Oracle/tools/oradebug/help[oradebug help]')
+sqlcl.run()
+/
+not supported.
+code }
+
   There are also a handful of properties (that also could be set):
 code {
 script
@@ -149,6 +170,12 @@ print(ctx.getProperty('script.runner.serveroutformat'));
 print(ctx.getProperty('script.runner.setnumwidth'));
 print(ctx.getProperty('script.runner.autocommit.setting'));
 /
+code }
+
+  Request data (input) from the user:
+code {
+var x = ctx.getPromptedFieldProvider().getPromptedField(ctx, 'What? ', false);
+print('x = ' + x);
 code }
 
   }
@@ -181,6 +208,37 @@ code }
  `load(url|filename)` loads and executes another script.
 
 }
+{ Command handlers
+
+code {
+Java.type("oracle.dbtools.raptor.newscriptrunner.CommandRegistry").addForAllStmtsListener( 
+   Java.extend(Java.type("oracle.dbtools.raptor.newscriptrunner.CommandListener"),
+   {
+      handleEvent: function(conn, ctx, cmd) {
+   
+         if ( cmd.getSql().trim().equals('sysdt') ) {
+             sqlcl.setStmt('select sysdate from dual');
+             sqlcl.run()
+   
+             return true; // cmd was handled
+         }
+         return false;    // cmd was not handled
+      },
+   
+      beginEvent: function(conn, ctx, cmd) {
+         ctx.writeln('begin handler, cmd.getSql = ' + cmd.getSql())
+      // ctx.write('type: ' + cmd.getClass() + '\n'); // class oracle.dbtools.raptor.newscriptrunner.SQLCommand
+      },
+   
+      endEvent:   function (conn, ctx, cmd) {
+         ctx.writeln('end handler, cmd.getSql = ' + cmd.getSql())
+      }
+   
+   }).class
+);
+code }
+
+
 { TODO
 
   The *global object* seems to be referencable with `this`:
@@ -199,6 +257,10 @@ print(engine);
 /
 Oracle Nashorn
 jdk.nashorn.api.scripting.NashornScriptEngine@1e7a35c
+code }
+
+code {
+print(ctx.getDate('xyz'))
 code }
 
 
