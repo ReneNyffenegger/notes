@@ -25,5 +25,70 @@ __________
        481
 code }
 
+{ Persisting aliases
+
+  Alias definitions are persisted in `~/.sqlcl/aliases.xml` (In Windows under `→ Windows/dirs/Users/username/AppData/Roaming[%APPDATA%]\sqlcl\aliases.xml`).
+
+}
+{ Storing and loading aliases
+
+  Note, the shell shortcut `~` for the home directory is not understood by the `alias save|load` command.
+  
+code {
+SQL> alias save ~/project/sqlcl/aliases
+2024-01-20 12:33:48.899 SEVERE oracle.dbtools.raptor.newscriptrunner.commands.alias.Aliases save No such file or directory
+ALIAS-007 - Aliases saved to ~/project/sqlcl/aliases.xml
+
+SQL> host mkdir -p ~/project/sqlcl
+
+SQL> alias save ~/project/sqlcl/aliases
+024-01-20 12:34:35.718 SEVERE oracle.dbtools.raptor.newscriptrunner.commands.alias.Aliases save No such file or directory
+ALIAS-007 - Aliases saved to ~/project/sqlcl/aliases.xml
+
+SQL> alias save /home/rene/project/aliases
+ALIAS-007 - Aliases saved to /home/rene/project/aliases.xml
+code }
+
+code {
+SQL> alias load /home/rene/project/aliases
+Aliases loaded
+code }
+
+}
+{ Multi-line aliases
+
+code {
+
+SQL> alias multiline
+ALIAS-001: Alias command not found
+
+SQL> alias multiline=
+  2  select
+  3  *
+  4  from
+  5* dual;
+SQL> multiline
+
+DUMMY
+________
+X
+code }
+
+}
+{ Executing JS scripts with an alias
+
+code {
+SQL> alias whoAmI=
+  2  script
+  3  print('Going to select USER from DUAL:')
+  4  print('You are: ' + util.executeReturnOneCol('select user from dual'))
+  5* /
+SQL> whoAmI
+Going to select USER from DUAL:
+You are: RENE
+code }
+
+}
+
 sa:
   → development/databases/Oracle/SQLcl/commands
