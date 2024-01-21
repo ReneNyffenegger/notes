@@ -1,0 +1,30 @@
+$ Oracle: Stopping the  execution of (a long running) SQL statement
+
+The following session executes an `insert` statement whose execution should be stopped (yet without → development/databases/Oracle/architecture/session/terminate-kill[killing the session]):
+code {
+SQL> create table tq84_long_running(id integer, txt varchar2(4000));
+SQL> insert into tq84_long_running select level, dbms_random.string('a', 4000) from dual connect by level <= 1000000;
+code }
+
+The execution of this statement can be stoppped like so (in another session):
+code {
+select
+  'alter system cancel sql ''' || ses.sid || ',' || ses.serial# || ',' || ses.sql_id || ''';' stmt,
+   ses.sid,
+   ses.serial#,
+   ses.sql_id,
+   txt.*
+from
+   v$session  ses                                          join
+   v$sqlarea  txt on ses.sql_id = txt.sql_id
+where
+   txt.sql_text = q'[insert into tq84_long_running select level, dbms_random.string('a', 4000) from dual connect by level <= 1000000]';
+--
+-- → development/databases/Oracle/SQL/statement/nouns/system/alter/cancel-sql '130,49016,31a172bxt53dr';
+--
+alter system cancel sql '130,49016,31a172bxt53dr';
+--
+-- System CANCEL altered.
+code }
+
+The the modifications of the statement are rolled back, the user gets the error message → development/databases/Oracle/errors/ORA-01013_user-requested-cancel-of-current-operation.

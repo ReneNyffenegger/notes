@@ -24,6 +24,49 @@ code }
   → development/databases/Oracle/architecture/processes/server[server processes] (aka foreground processes) do the work for clients (such as executing → development/databases/Oracle/SQL[SQL statements]).
 
 }
+{ Processes with multiple threads
+
+
+code {
+select
+   count(*) over (partition by prc.spid) cnt_same_spid,
+   prc.spid,
+   prc.stid,
+   prc.pname,
+   prc.sosid,
+   prc.execution_type
+from
+   v$process prc
+order by
+   cnt_same_spid desc;
+--
+-- CNT_SAME_SPID SPID                     STID                     PNAME SOSID                    EXECUTION_TYPE      
+-- ------------- ------------------------ ------------------------ ----- ------------------------ --------------------
+--             4 127                      127                      SCMN  127_127                  THREAD              
+--             4 127                      135                      BG00  127_135                  THREAD              
+--             4 127                      138                      BG00  127_138                  THREAD              
+--             4 127                      140                      BG00  127_140                  THREAD              
+--             4 139                      139                      SCMN  139_139                  THREAD              
+--             4 139                      142                      BG01  139_142                  THREAD              
+--             4 139                      143                      BG01  139_143                  THREAD              
+--             4 139                      141                      BG01  139_141                  THREAD              
+--             … …                        …                        …     …                        …
+code }
+
+  OS process 127 has 4 threads.
+
+  In a shell:
+code {
+$ → Linux/shell/commands/ps p 127 H o uid,pid,lwp,cmd
+  UID     PID     LWP CMD
+54321     127     127 ora_bg00_O21DB1
+54321     127     135 ora_bg00_O21DB1
+54321     127     138 ora_bg00_O21DB1
+54321     127     140 ora_bg00_O21DB1
+code }
+
+}
+
 sa:
 
   A → development/databases/Oracle/architecture/instance/PGA[Program Global Area] (PGA) is created for each

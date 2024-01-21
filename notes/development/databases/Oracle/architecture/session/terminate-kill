@@ -1,0 +1,96 @@
+$ Oracle: Terminating (killing) sessions
+
+Create a «demonstration» → development/databases/Oracle/architecture/session (which will be killed) and → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[identify its SID and SERIAL#]:
+code {
+$ sqlplus …
+SQL> select sid, serial# from v$session where sid = sys_context('userenv', 'sid');
+--
+--        SID    SERIAL#
+-- ---------- ----------
+--        130       1684
+code }
+
+In another session, select some values related to the session and its associated process:
+code {
+select
+   ses.status,
+   ses.paddr,
+   prc.pid,
+   prc.spid
+from
+   v$session ses                                        left join
+   v$process prc on ses.paddr           = prc.addr
+where
+   ses.sid     =   130 and
+   ses.serial# =  1684;
+--
+-- STATUS   PADDR                   PID SPID                    
+-- -------- ---------------- ---------- ------------------------
+-- INACTIVE 00000000945DC598         85 5156                    
+code }
+
+Still in the same session: kill the demonstration session:
+code {
+alter system kill session '130,1684';
+--
+-- System KILL altered
+code }
+
+Check the session data again:
+code {
+select
+   ses.status,
+   ses.paddr,
+   prc.pid,
+   prc.spid
+from
+   v$session ses                                        left join
+   v$process prc on ses.paddr           = prc.addr
+where
+   ses.sid     =   130 and
+   ses.serial# =  1684;
+--
+-- STATUS   PADDR                   PID SPID                    
+-- -------- ---------------- ---------- ------------------------
+-- KILLED   00000000945DC598                                    
+code }
+
+The session is still here and marked as `KILLED`, but the process is gone (i. e. `select * from v$process where addr = '00000000945DC598'` returns nothing).
+
+The demonstration session remains as `KILLED` until another statement is executed in it which gives Oracle an occasion to notify the user that the session is killed:
+code {
+SQL> select * from dual;
+--
+-- …
+-- ERROR at line 1:
+-- → development/databases/Oracle/errors/ORA-00028_your-session-has-been-killed
+code }
+
+After delivering this notification, the session record is also gone in `v$session`, i. e. `select * from v$session where sid = 130 and serial# = 1684` returns nothing.
+
+{ ALTER SYSTEM KILL SESSION … FORCE #ora-kill-ses-force
+
+  Similar to above, this time, a session is killed with the `FORCE` attribute:
+code {
+alter system kill session '130,4712' FORCE;
+--
+-- System KILL altered.
+code }
+
+  With this approach, the entry in `v$session` disappears without delivering ORA-00028 to the user.
+
+  The nex statement entered in the «demonstration» session is answered like so:
+code {
+SQ>> select * from dual;
+…
+ERROR at line 1:
+→ development/databases/Oracle/errors/ORA-03113_end-of-file-on-communication-channel
+Process ID: 5602
+Session ID: 130 Serial number: 4712
+
+
+ERROR:
+→ development/databases/Oracle/errors/ORA-03114_not-connected-to-ORACLE
+code }
+
+}
