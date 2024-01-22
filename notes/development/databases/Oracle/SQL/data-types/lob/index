@@ -109,6 +109,42 @@ code }
 
   → development/databases/Oracle/SQLcl/script/lob[This SQLcl example] puts an image (png) into a BLOB and then gets it again and stores it locally.
 }
+{ Query to determine LOB segment sizes
+
+code {
+select
+   tab.owner,
+   tab.table_name,
+   col.column_name,
+   col.data_type,
+   to_char(los.bytes / 1024/1024, '999,999,990') lob_seg_mb,
+   to_char(ixs.bytes / 1024/1024, '999,999,990') ind_seg_mb,
+   col.avg_col_len,
+   to_char(tab.num_rows          ,'999,999,990') num_rows,
+   col.last_analyzed                             col_last_analyzed,
+   col.last_analyzed                             col_last_analyzed,
+   col.sample_size,
+   lob.segment_name   lob_seg_nam,
+   lob.index_name     lob_ind_nam
+from
+   dba_tables           tab                                                     left join
+   dba_tab_columns      col on tab.table_name            = col.table_name   and
+                               tab.owner                 = col.owner            left join
+   dba_lobs             lob on col.table_name            = lob.table_name   and
+                               col.column_name           = lob.column_name  and
+                               col.owner                 = lob.owner            left join
+   dba_segments         los on lob.segment_name          = los.segment_name and
+                               lob.owner                 = los.owner            left join
+   dba_segments         ixs on lob.index_name            = ixs.segment_name and
+                               lob.owner                 = ixs.owner
+where
+-- tab.owner      = user                                   and
+   col.data_type like '%LOB%'
+order by
+   los.bytes desc  nulls last
+code }
+
+}
 
 sa:
 
