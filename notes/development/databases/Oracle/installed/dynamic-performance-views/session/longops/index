@@ -1,8 +1,34 @@
-$ v$session_longops
+$ Oracle: V$SESSION_LONGOPS
+@ v$session_longops
 
 `v$session_longops` gives feedback on long running queries.
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/session/longops/show.sql||
+code {
+select
+ -- lop.sid,
+ -- lop.serial#,
+    ses.osuser,
+    lop.username,
+    lop.opname,
+    lop.target,
+    lop.target_desc,
+    lop.sofar,
+    lop.totalwork,
+    lop.time_remaining    estimated_time_remaining_sec,
+    round( (sysdate - lop.start_time      ) * 24*60*60) started_s_ago,
+    round( (sysdate - lop.last_update_time) * 24*60*60) updated_s_ago,
+    lop.elapsed_seconds,
+    lop.message,
+    sql.sql_text
+from
+   v$session_longops lop                                      left join
+   v$session         ses on lop.sid     = ses.sid      and
+                            lop.serial# = ses.serial#         left join
+   v$sqlarea         sql on lop.sql_id  = sql.sql_id
+-- where sid = …
+order by
+   lop.start_time desc;
+code }
 
 { procedure long_proc
 
@@ -74,7 +100,9 @@ code }
 
 sa:
 
-  → development/databases/Oracle/installed/dynamic-performance-views/statistics_level[`v$statistics_level`]
+ `→ development/databases/Oracle/installed/dynamic-performance-views/session`
+
+ `→ development/databases/Oracle/installed/dynamic-performance-views/statistics_level`
 
   → development/databases/Oracle/installed/dynamic-performance-views/_common-columns/plan_hash_value-full_plan_hash_value[Columns `plan_hash_value` and `full_plan_hash_value`]
 

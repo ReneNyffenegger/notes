@@ -1,0 +1,41 @@
+$ ORA-14761: MAXVALUE [sub]partition cannot be specified for INTERVAL [sub]partitioned objects.
+
+The following `create table` statement raises *ORA-14761: MAXVALUE [sub]partition cannot be specified for INTERVAL [sub]partitioned objects.*:
+code {
+create table tq84_ora_14761 (
+    dt    date,
+    val   number
+)
+partition by range (dt) interval (numtoyminterval(1, 'year')) (
+   partition lt_2021    values less than (date '2021-01-01'),
+   partition lt_2022    values less than (date '2022-01-01'),
+   partition lt_2023    values less than (date '2023-01-01'),
+   partition lt_2024    values less than (date '2024-01-01'),
+   partition lt_2025    values less than (date '2025-01-01'),
+   partition lt_2026    values less than (date '2026-01-01'),
+   partition the_end    values less than (maxvalue         )
+);
+code }
+ 
+This statement does not use the `maxvalue` keyword, the error is not raised:
+code {
+create table tq84_ora_no_14761 (
+    dt    date,
+    val   number
+)
+partition by range (dt) interval (numtoyminterval(1, 'year')) (
+   partition lt_2021    values less than (date '2021-01-01'),
+   partition lt_2022    values less than (date '2022-01-01'),
+   partition lt_2023    values less than (date '2023-01-01'),
+   partition lt_2024    values less than (date '2024-01-01'),
+   partition lt_2025    values less than (date '2025-01-01'),
+   partition lt_2026    values less than (date '2026-01-01'),
+   partition the_end    values less than (date '9999-12-31')
+);
+code }
+
+sa:
+
+  → development/databases/Oracle/objects/tables/partitions/distribution-techniques/range/interval[Interval partitioned tables]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

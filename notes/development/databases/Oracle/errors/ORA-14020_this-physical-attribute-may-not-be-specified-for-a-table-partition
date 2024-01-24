@@ -1,0 +1,37 @@
+$ ORA-14020: this physical attribute may not be specified for a table partition
+
+The following `create table` statement throws a *ORA-14020: this physical attribute may not be specified for a table partition* error message:
+code {
+drop table tq84_14020;
+create table tq84_ora_14020 (
+    flg   varchar2(1) not null check (flg in ('x', 'y', 'z')),
+    val   number
+)
+partition by list (flg) (
+   partition flg_x      values ('x') pctfree 10 disable row movement,
+   partition flg_y      values ('y') pctfree 20 enable  row movement,
+   partition flg_z      values ('z') pctfree 30 enable  row movement
+)
+;
+code }
+ 
+This one does not: 
+code {
+create table tq84_no_ora_14020 (
+    flg   varchar2(1) not null check (flg in ('x', 'y', 'z')),
+    val   number
+)
+partition by list (flg) (
+   partition flg_x      values ('x') pctfree 10,
+   partition flg_y      values ('y') pctfree 20,
+   partition flg_z      values ('z') pctfree 30
+)
+enable row movement
+;
+code }
+
+sa:
+
+  → development/databases/Oracle/objects/tables/partitions
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

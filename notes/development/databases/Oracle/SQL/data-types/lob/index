@@ -1,7 +1,8 @@
 $ Oracle data types BLOB, CLOB and NCLOB
 @ clob and blobs
 
-Clobs and blobs (commonly referred to as LOBs) are a set of → development/databases/Oracle/SQL/data-types[data types] that are designed to hold large amounts of data.
+Clobs and blobs (commonly referred to as LOBs) are a set of → development/databases/Oracle/SQL/data-types[data types] that are designed to hold large amounts of
+(typically semi-structured or → development/Data#un_structured-data[unstructured]) data.
 
 `CLOB` stands for *character lob*, `BLOB` for *binary lob*, LOB stands for *large object*.
 -
@@ -143,6 +144,57 @@ where
 order by
    los.bytes desc  nulls last
 code }
+
+}
+{ TODO
+
+  { Securefile
+
+    Use the shell to create a file on the server's filesystem:
+code {
+$ mkdir /home/oracle/bfiles
+$ echo 'Hello world' > /home/oracle/bfiles/test.txt
+code }
+
+    In the database:
+code {
+create directory tq84_bfile_dir as '/home/oracle/bfiles';
+
+create table tq84_bfiles (
+   filename varchar2(255) primary key,
+   data     blob
+)
+lob (data) store as securefile;
+
+insert into tq84_bfiles values ('test.txt', bfilename('TQ84_BFILE_DIR', 'test.txt'));
+select
+   to_clob(utl_raw.cast_to_varchar2(data))
+from
+   tq84_bfiles
+where
+   filename = 'test.txt';
+code }
+
+rem {
+code {
+declare
+   blb blob ; -- := empty_blob();
+begin
+   dbms_lob.createTemporary(blb, false);
+
+   dbms_lob.append(blb, utl_raw.cast_to_raw('This text was cast to raw'    || chr(10)));
+   dbms_lob.append(blb, utl_raw.cast_to_raw('and then appended to a blob.' || chr(10)));
+
+   insert into tq84_bfiles values ('blob', bfilename('TQ84_BFILE_DIR', blb));
+   dbms_lob.freeTemporary(blb);
+   commit;
+end;
+/
+code }
+rem }
+
+
+  }
 
 }
 
