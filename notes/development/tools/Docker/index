@@ -112,7 +112,57 @@ Error response from daemon: 'scratch' is a reserved name
 code }
 
   }
-  
+  { Processes
+
+    { Start a container with a couple of processes:
+
+      Run a new docker container (with the first process `/bin/sh`):
+code {
+$ docker run --rm -it --name alpine-ps-test alpine /bin/sh
+code }
+
+      Start a second process (in the background so that …
+code {
+/ # sleep 101 &
+code }
+
+     … the third process can be started in parallel):
+code {
+/ # sleep 102
+/ #
+code }
+
+   }
+   { Find processes in the host
+
+    In a shell on the host: find the processes that contain `sleep 10\d` in their arguments, and print their parent process id:
+code {
+$ ps a -o pid,ppid,tty,args | grep -P 'sleep 10\d'
+  13804   13697 pts/0    sleep 101
+  13805   13697 pts/0    sleep 102
+code }
+
+    The parent process is `/bin/sh` that started the `sleep` commands. Its parent process is 13678:
+code {
+$ ps p 13697 -o pid,ppid,tty,args
+    PID    PPID TT       COMMAND
+  13697   13678 pts/0    /bin/sh
+code }
+
+    Find the parent process again:
+code {
+$ ps p 13678 -o pid,ppid,tty,args
+    PID    PPID TT       COMMAND
+  13678       1 ?        /usr/bin/containerd-shim-runc-v2 -namespace moby -id f2789b4f06090dc6a4cbea3d3d9ca1c70a2700bf4ca23c02bbc64843a690a9b8 -address /run/containerd/containerd.sock
+code }
+
+    The mapping between of the «host» PID and the container PID is found in
+code {
+$ cat /proc/13804/status | grep NSpid
+code }
+
+    }
+  } 
 }
 
 sa:
