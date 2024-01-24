@@ -148,7 +148,7 @@ code }
 }
 { TODO
 
-  { Securefile
+  { BFILENAME
 
     Use the shell to create a file on the server's filesystem:
 code {
@@ -167,31 +167,29 @@ create table tq84_bfiles (
 lob (data) store as securefile;
 
 insert into tq84_bfiles values ('test.txt', bfilename('TQ84_BFILE_DIR', 'test.txt'));
+
 select
-   to_clob(utl_raw.cast_to_varchar2(data))
+   to_clob(utl_raw.cast_to_varchar2(data)) data
 from
    tq84_bfiles
 where
    filename = 'test.txt';
+--
+-- select
+--    to_clob(utl_raw.cast_to_varchar2(data)) data
+-- from
+--    tq84_bfiles
+-- where
+--    filename = 'test.txt';
 code }
 
-rem {
+
+   Then, on the shell:
 code {
-declare
-   blb blob ; -- := empty_blob();
-begin
-   dbms_lob.createTemporary(blb, false);
-
-   dbms_lob.append(blb, utl_raw.cast_to_raw('This text was cast to raw'    || chr(10)));
-   dbms_lob.append(blb, utl_raw.cast_to_raw('and then appended to a blob.' || chr(10)));
-
-   insert into tq84_bfiles values ('blob', bfilename('TQ84_BFILE_DIR', blb));
-   dbms_lob.freeTemporary(blb);
-   commit;
-end;
-/
+$ echo 'good by' > /home/oracle/bfiles/test.txt
 code }
-rem }
+
+   This has no effect to the table, the BLOB is stored and is not modified by the modifcation in the filesystem.
 
 
   }
