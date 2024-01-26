@@ -1,0 +1,62 @@
+$ Dockerfile: Shell vs exec form
+
+{ CMD
+
+  One of the differences between using the *shell form* and using the *exec form* in a → development/tools/Docker/Dockerfile[Dockerfile's] → development/tools/Docker/Dockerfile#dockerfile-CMD[`CMD`] instruction is the expansion or non-expansion of
+  environment variables.
+
+  { Shell form #dockerfile-cmd-exec-vs-shell
+
+    A → development/tools/Docker/Dockerfile with a `CMD` instruction using the *shell form*:
+code {
+→ development/tools/Docker/Dockerfile#dockerfile-FROM[FROM] busybox
+
+→ development/tools/Docker/Dockerfile#dockerfile-ENV[ENV] txt="Hello world"
+→ development/tools/Docker/Dockerfile#dockerfile-ENV[ENV] num=42
+
+→ development/tools/Docker/Dockerfile#dockerfile-CMD[CMD] echo -e "txt=$txt\nnum=$num"
+code }
+
+code {
+docker build -q -t cmd-shell-form .
+docker run --rm    cmd-shell-form 
+docker rmi         cmd-shell-form
+code }
+
+    With the *shell form*, the `→ development/tools/Docker/commands/run` command prints
+code {
+txt=Hello world
+num=42
+code }
+
+  }
+  { Exec form
+
+    A → development/tools/Docker/Dockerfile with a `CMD` instruction using the *exec form*:
+code {
+→ development/tools/Docker/Dockerfile#dockerfile-FROM[FROM] busybox
+
+→ development/tools/Docker/Dockerfile#dockerfile-ENV[ENV] txt="Hello world"
+→ development/tools/Docker/Dockerfile#dockerfile-ENV[ENV] num=42
+
+→ development/tools/Docker/Dockerfile#dockerfile-CMD[CMD] ["echo", "-e", "txt=$txt\nnum=$num"]
+code }
+
+code {
+docker build -q -t cmd-exec-form .
+docker run --rm    cmd-exec-form 
+docker rmi         cmd-exec-form
+code }
+
+    With the *exec form*, the `→ development/tools/Docker/commands/run` command prints
+code {
+txt=$txt
+num=$num
+code }
+
+
+
+  }
+
+
+}
