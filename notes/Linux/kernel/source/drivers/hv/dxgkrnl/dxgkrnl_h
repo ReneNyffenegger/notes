@@ -1,0 +1,33 @@
+$ drivers/hv/dxgkrnl/dxgkrnl.h
+
+{ struct dxgsyncobject
+
+ `struct dxgsyncobject` is the GPU synchronization object which is used to synchronize execution between GPU contextx/hardware queues or for tracking GPU execution progress.
+
+ A dxgsyncobject is created when somebody creates a syncobject or opens a shared syncobject.
+
+ A syncobject belongs to an adapter, unless it is a cross-adapter object.
+ -
+ Cross adapter syncobjects are currently not implemented.
+ 
+`D3DDDI_MONITORED_FENCE` and `D3DDDI_PERIODIC_MONITORED_FENCE` are called "device" syncobject, because the belong to a device (dxgdevice).
+ Device syncobjects are inserted to a list in dxgdevice.
+ 
+ A syncobject can be «shared», meaning that it could be opened by many
+ processes.
+ 
+ Shared syncobjects are inserted to a list in its owner (`dxgsharedsyncobject`).
+
+ A syncobject can be shared by using a global handle or by using *NT security handle*.
+
+ When global handle sharing is used, the handle is created durinig object creation.
+ -
+ When "NT security" is used, the handle for sharing is create be calling
+ dxgk_share_objects. On Linux "NT handle" is represented by a file
+ descriptor. FD points to dxgsharedsyncobject.
+
+}
+
+
+sa:
+ `→ Linux/kernel/source/drivers/hv/dxgkrnl`

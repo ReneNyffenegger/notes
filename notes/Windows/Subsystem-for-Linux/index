@@ -323,19 +323,30 @@ code }
 
   }
 }
-{ Accessing a TCP/IP port of the WSL guest from the host
+{ TCP/IP connections between the WSL guest and the host
 
-  The IP address of the WSL guest can be obtained from within WSL in a shell like so:
+  { From the host or network to the guest
+
+    The IP address(es) of the WSL guest can be obtained from within WSL in a shell like so:
+code {
+$ → Linux/shell/commands/hostname -I
+172.31.17.20 172.18.0.1 172.17.0.1 172.19.0.1 172.20.0.1
+code }
+
+    These IP addresses  can be accessed from the host, for example by accessing a webserver with `https://172.31.17.20:8080/`.
+
+  }
+  { From the guest to the host
+
 code {
 $ → Linux/shell/commands/ip route show | → Linux/shell/commands/grep -i default | → development/languages/awk '{ print $3}'
 172.31.16.1
 code }
 
-  This is the IP address under which the guest can be accessed from the host, for example by accessing a webserver with `https://172.31.16.1:8080/`.
+  }
 
 }
 { Accessing an USB device #wsl-usb
-
 
   WSL → https://learn.microsoft.com/en-us/windows/wsl/connect-usb[cannot natively access a USB device], but (with WSL 2 only?), it's possible with → https://github.com/dorssel/usbipd-win[usbipd-win].
 
@@ -406,16 +417,23 @@ code }
 
     Now, in WSL:
 code {
-$ lsusb
+$ → Linux/shell/commands/lsusb
 Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
 Bus 001 Device 002: ID abcd:1234 LogiLink UDisk flash drive                         <<<< this one was added
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 code }
 
+    The inserted USB device can finally be mounted:
+code {
+$ sudo mkdir → Linux/fhs/mnt[/mnt]/usb
+$ sudo mount → Linux/fhs/dev/sdX[/dev/sdd1] /mnt/usb
+$ → Linux/shell/commands/ls /mnt/usb
+…
+code }
+
   }
 
 }
-
 { Interoperability #wsl-interoperability
 
   Interoperability allows to execute Windows and Linux binaries from both, a Windows command terminal or a Linux shell.
@@ -681,6 +699,11 @@ code }
     See also → https://github.com/microsoft/WSL/issues/10709[WSL Networking Broken in 2.0.7].
 
   }
+  { Kernel modifications
+
+    One of the kernel modifications in the sources is the addition of the `→ Linux/kernel/source/drivers/hv/dxgkrnl` directory.
+
+  }
 }
 { TODO
 
@@ -728,12 +751,20 @@ code }
     }
 
   }
-  { GPU
+  { GPU #wsl-gpu
+
+    The `KConfig` file in `→ Linux/kernel/source/drivers/hv` has an interesting → https://github.com/microsoft/WSL2-Linux-Kernel/blob/f53bd0a62a32304fb24820768bb80de25589e838/drivers/hv/dxgkrnl/Kconfig#L18C21-L28C75[note]:
+    -
+    When WSL is instantiated, the Windows host assigns compatible host GPU adapters to the container.
+    -
+    The corresponding virtual GPU devices appear on the PCI bus in the container. These devices are enumerated and accessed by this driver.
+    -
+	  Communications with the driver are done by using the Microsoft *libdxcore* library, which translates the  → https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk[D3DKMT interface] to the driver IOCTLs (apparently exposed via `→ Linux/fhs/dev/dxg`).
+    The virtual GPU devices are paravirtualized, which means that access to the hardware is done in the host. The driver communicates with the host using → https://docs.kernel.org/virt/hyperv/vmbus.html[Hyper-V VM bus] communication channels.
 
     MS Devblogs:
       • → https://devblogs.microsoft.com/directx/directx-heart-linux/[DirectX is coming to the Windows Subsystem for Linux]
       • → https://devblogs.microsoft.com/commandline/wslg-architecture/#hardware-accelerated-opengl[Hardware accelerated OpenGL]
-
 
     → https://developer.nvidia.com/cuda/wsl[CUDA on Windows Subsystem for Linux] where a link leads to → https://www.nvidia.com/Download/index.aspx?lang=en-us[NVIDIA driver downloads].
     -
@@ -741,6 +772,21 @@ code }
     -
     AMD drivers can be downloaded from → https://community.amd.com/t5/radeon-pro-graphics/announcing-amd-support-for-gpu-accelerated-machine-learning/ba-p/414185[here].
  
+    Does the existence of `→ Linux/fhs/usr/lib/wsl/lib/libcuda_so_1` indicate that the GPU driver was installed on the host?
+    -
+    And what about `→ Linux/fhs/usr/lib/wsl/lib[/usr/lib/wsl/lib]/nvidia-smi`?
+
+    { Diagnosis of problems
+
+code {
+$ glxinfo -B
+$ glxinfo -B | grep -P 'OpenGL renderer string|Device:'
+$ nvidia-smi
+$ nvidia-smi -L
+$ dmesg | grep dxg
+code }
+
+    }
 
   }
   { Developer mode
