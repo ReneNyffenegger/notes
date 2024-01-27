@@ -17,6 +17,46 @@ optional arguments:
                         Specify alternative directory [default:current directory]
 code }
 
+{ Adding headers to HTTP response #py-http-server-add-header
+
+  In order to use the `SharedArrayBuffer` object, the two → development/web/HTTP/header#http-respsonse-header[HTTP response headers] `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` must be set
+  to `same-origin` and `require-corp`.
+  -
+  If these header are not set or set to a different value, the following simple HTML page alerts the user that `SharedArrayBuffer is not supported*:
+code {
+<script>
+   if (typeof(SharedArrayBuffer) === 'undefined') {
+      alert('SharedArrayBuffer is not supported');
+   }
+   else {
+      alert('SharedArrayBuffer IS supported');
+   }
+</script>
+code }
+
+  The following script sets the two required headers so that the browser does support `SharedArrayBuffer`:
+code {
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+class serveWithHeaders(SimpleHTTPRequestHandler):
+
+    def end_headers(self):
+        self.addHeaders()
+
+        SimpleHTTPRequestHandler.end_headers(self)
+
+    def addHeaders(self):
+        self.send_header('Cross-Origin-Opener-Policy',   'same-origin' )
+        self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
+
+httpd = ThreadingHTTPServer( ('', 8000), serveWithHeaders)
+
+httpd.serve_forever()
+code }
+
+  See also → web/webserver/CORS
+
+}
 { TODO
 
   Is Python 2 `SimpleHTTPServer` merged into `http.server` in Python 3?

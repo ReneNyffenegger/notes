@@ -336,39 +336,75 @@ code }
 }
 { Accessing an USB device #wsl-usb
 
-  WSL → https://learn.microsoft.com/en-us/windows/wsl/connect-usb[cannot natively access a USB device], but (with WSL 2 only?), it's possible with → https://github.com/dorssel/usbipd-win[usbipd-win].
-  
-  In order to be able to mount an USB device, the kernel must be → #wsl-compile-kernel[compiled] with *Mass USB* enabled (by setting config optition `CONFIG_USB_STORAGE` to `y`)
-  because → https://youtu.be/I2jOuLU4o8E[the default WSL kernel also does not have support for USB storage device].
 
-  usbipd-win can be installed with the following command line (which requires elevated privileges at one point)
+  WSL → https://learn.microsoft.com/en-us/windows/wsl/connect-usb[cannot natively access a USB device], but (with WSL 2 only?), it's possible with → https://github.com/dorssel/usbipd-win[usbipd-win].
+
+  { Prepare Kernel
+  
+    In order to be able to mount an USB device, the kernel must be → #wsl-compile-kernel[compiled] with *Mass USB* enabled (by setting config optition `CONFIG_USB_STORAGE` to `y`)
+    because → https://youtu.be/I2jOuLU4o8E[the default WSL kernel also does not have support for USB storage device].
+
 code {
-C:\> → Windows/dirs/Users/username/AppData/Local/Microsoft/WindowsApps/winget_exe[winget] install usbipd
+$ → Linux/kernel/source/scripts/config --enable USB_STORAGE
 code }
 
-  usbipd comes with
-    • A → Windows/services called *usbipd* (display name: *USBIP Device Host*).
-    • A command line tool, also named → Windows/dirs/Program-Files/usbipd-win#usbipd-exe[`usbipd`]. The location of this tool (`→ Windows/dirs/Program-Files/usbipd-win`) will be added to the `→ Windows/development/environment-variables/PATH` environment variable.
-    • A firewall rule, again called usbipd, to allow all local subnets to connect to the service. This firewall rule can be modified to fine tune access control.  (If using a third-party firewall, you may have to reconfigure it to allow incoming connections on TCP port 3240.)
+  }
+  { Install usbip on the WSL guest
 
-  On the WSL guest, `→ Linux/shell/commands/usbip` must be installed (for example when running Debian or Ubuntu):
+    On the WSL guest, `→ Linux/shell/commands/usbip` must be installed (for example when running Debian or Ubuntu):
 code {
 $ sudo apt install -y usbip usbutils hwdata
 code }
 
-  Then, list the USB devices attached to the host:
+  }
+  { Install usbipd on the Host 
+
+    On Windows (the host), usbipd (usbip-daemon) must be installed. This tools comes with
+      • A → Windows/services called *usbipd* (display name: *USBIP Device Host*).
+      • A command line tool, also named → Windows/dirs/Program-Files/usbipd-win#usbipd-exe[`usbipd`]. The location of this tool (`→ Windows/dirs/Program-Files/usbipd-win`) will be added to the `→ Windows/development/environment-variables/PATH` environment variable.
+      • A firewall rule, again called *usbipd*, to allow all local subnets to connect to the service. This firewall rule can be modified to fine tune access control.  (If using a third-party firewall, you may have to reconfigure it to allow incoming connections on TCP port 3240.)
+
+    usbipd-win can be installed with the following command line (which requires elevated privileges at one point)
 code {
-C:\> usbipd wsl list
+C:\> → Windows/dirs/Users/username/AppData/Local/Microsoft/WindowsApps/winget_exe[winget] install dorssel.usbipd-win
+code }
+
+    Winget tells to in reboot Windows, but as far as I can tell this is only to make sure that `PATH` is updated so that it contains `usbipd.exe`.
+ 
+    The result of the following commands indicate that the installation is ok:
+code {
+PS C:\> (get-service usbipd).status
+Running
+
+PS C:\> → Windows/dirs/Windows/System32/netsh_exe/advfirewall/firewall/show rule name=usbipd | select-string Enabled
+Enabled:                              Yes
+
+PS C:\> & "C:\Program Files\usbipd-win\usbipd.exe" list
+…
+code }
+
+
+    Then, list the USB devices attached to the host:
+code {
+C:\> usbipd list
 BUSID  VID:PID    DEVICE                                                        STATE
 1-3    abcd:1234  USB-Massenspeichergerät                                       Not attached
 1-8    04f2:b67c  Integrated Camera, Integrated IR Camera                       Not attached
 
-C:> usbipd wsl attach --busid=1-3
+C:\> usbipd bind --busid=1-3
+C:\> usbipd attach --wsl --busid=1-3
+usbipd: info: Using WSL distribution 'Debian' to attach; the device will be available in all WSL 2 distributions.
+usbipd: info: Using IP address 172.31.16.1 to reach the host.
 code }
 
-  Note: `usbipd wsl attach` requires elevated privileges.
-  
-  Now, in WSL:
+    Note: `usbipd attach` requires elevated privileges.
+
+    An attached USB device can be detached with `usbipd detach …`.
+
+  }
+  { Again in WSL
+
+    Now, in WSL:
 code {
 $ lsusb
 Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
@@ -376,7 +412,10 @@ Bus 001 Device 002: ID abcd:1234 LogiLink UDisk flash drive                     
 Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 code }
 
+  }
+
 }
+
 { Interoperability #wsl-interoperability
 
   Interoperability allows to execute Windows and Linux binaries from both, a Windows command terminal or a Linux shell.

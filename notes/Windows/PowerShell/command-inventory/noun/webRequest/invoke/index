@@ -26,7 +26,6 @@ code }
   See also → Windows/PowerShell/command-inventory/noun/webRequest/invoke/desktop-vs-core[`invoke-webRequest`, PowerShell Desktop vs PowerShell Core].
 
 }
-
 { Download a file
 
  When `invoke-webRequest` is invoked with the `-outFile` parameter, it can be used to download a file:
@@ -108,6 +107,49 @@ code }
 code {
 $res.parsedHtml.title
 $res.ParsedHtml.body.childNodes.item(3).innerHtml
+code }
+
+}
+{ Proxies #ps-invoke-webRequest-proxy
+
+code {
+PS C:\> invoke-webRequest   https://somewhere.xy/file.txt -outFile file.txt
+Invoke-WebRequest :
+Firewall Authentication
+You must authenticate to use this service.
+…
+code }
+ 
+  Determine address/URL of → development/web/Proxy:
+code {
+PS C:\> → Windows/dirs/Windows/System32/netsh_exe/winhttp show proxy
+ 
+Current WinHTTP proxy settings:
+ 
+    Proxy Server(s) :  proxy.foobarbaz.xy:8080
+    Bypass List     :  *.foobarbaz.xy;intra.net
+code }
+
+  Determine my domain and username:
+code {
+PS C:\> → Windows/dirs/Windows/System32/whoami_exe[whoami]
+theWindowsDomain\rene
+code }
+ 
+  Create a secure string:
+code { 
+PS C:\> $pw = → Windows/PowerShell/command-inventory/noun/secureString/convertTo 'theSecretPassword' -asPlainText –force
+code }
+
+  Create a PSCredential object:
+code {
+PS C:\> $cred = → Windows/PowerShell/command-inventory/noun/object/new → Microsoft/dot-net/namespaces-classes/System/Management/Automation/PSCredential -argumentList "theWindowsDomain\Rene", $pw
+code }
+ 
+  Execute the webrequest using the `-proxy` option. Make sure to prefix the proxy URL obtained using `winhttp show…` with `http://`
+code { 
+PS C:\> invoke-webRequest –proxy http://proxy.foobarbaz.xy –proxyCredential $cred https://somewhere.xy/file.txt -outFile file.txt
+…
 code }
 
 }
