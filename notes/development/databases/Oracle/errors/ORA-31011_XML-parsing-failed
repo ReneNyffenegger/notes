@@ -1,0 +1,31 @@
+$ ORA-31011: XML parsing failed
+
+code {
+create table tq84_ora_31011 (
+   lpx integer,
+   dat clob
+);
+code }
+
+code {
+insert into tq84_ora_31011 values (245, '<x><y>foo</y><z>bar</z></x>EXTRA DATA');
+commit;
+code }
+
+code {
+select
+   → development/databases/Oracle/installed/types/XMLType[xmlType](dat)
+from
+   tq84_ora_31011
+where
+   lpx = 245;
+--
+-- ORA-31011: XML parsing failed
+-- ORA-19213: error occurred in XML processing at lines 3
+-- LPX-00245: extra data after end of document
+-- ORA-06512: at "SYS.XMLTYPE", line 272
+-- ORA-06512: at line 1
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

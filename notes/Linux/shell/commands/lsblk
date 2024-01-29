@@ -3,9 +3,102 @@ $ Shell command: lsblk
 
 `lsblk` lists → Linux/devices#block-devices[block devices].
 
-{ -f
 
-  `lsblk -f` reports information about the file system, such as its → Linux/filesystem#determine-fs-type[type].
+{ Options
+
+  table { lll
+
+      `-a` ☰ `--all` ☰ Also list empty devices and RAM disk devices.
+      `-b` ☰ `--bytes` ☰ Print the `SIZE` column in bytes rather than in a human-readable format.
+      `-D` ☰ `--discard` ☰ Print information about the discarding capabilities (TRIM, UNMAP) for each device.
+      `-d` ☰ `--nodeps` ☰ Do not print holder devices or slaves. For example, `lsblk --nodeps → Linux/fhs/dev/sdX[/dev/sda]` prints information about the sda device only.
+      `-E` ☰ `--dedup column` ☰ Use column as a de-duplication key to de-duplicate output tree. If the key is not available for the device, or the device is a partition and parental whole-disk device provides the same key than the device is always printed. The usual use case is to de-duplicate output on system multi-path devices, for example by -E WWN.
+      `-e` ☰ `--exclude list` ☰ Exclude  the  devices specified by the comma-separated list of major device numbers. Note that RAM disks (major=1) are excluded by default if` --all` is not specified. The filter is applied to the top-level devices only. This may be confusing for `--list` output format where hierarchy of the devices is not obvious.
+      `-f` ☰ `--fs` ☰ Output info about filesystems such as its → Linux/filesystem#determine-fs-type[type]. This option is equivalent to `-o NAME,FSTYPE,LABEL,UUID,FSAVAIL,FSUSE%,MOUNTPOINT`. The authoritative information about filesystems and raids is provided by the `blkid` command.
+      `-I` ☰ `--include` ☰ list Include devices specified by the comma-separated list of major device numbers. The filter is applied to the top-level devices only. This may be confusing for `--list` output format where hierarchy of the devices is not obvious.
+      `-i` ☰ `--ascii` ☰ Use ASCII characters for tree formatting.
+      `-J` ☰ `--json` ☰ Use JSON output format. It's strongly recommended to use `--output` and also `--tree` if necessary.
+      `-l` ☰ `--list` ☰ Produce output in the form of a list. The output does not provide information about relationships between devices and since version 2.34 every device is printed only once if `--pairs` or `--raw` not specified (the parsable outputs are maintained in backwardly compatible way).
+      `-M` ☰ `--merge` ☰ Group parents of sub-trees to provide more readable output for RAIDs and Multi-path devices. The tree-like output is required.
+      `-m` ☰ `--perms` ☰ Output info about device owner, group and mode. This option is equivalent to `-o NAME,SIZE,OWNER,GROUP,MODE`.
+      `-n` ☰ `--noheadings` ☰ Do not print a header line.
+      `-o` ☰ `--output` ☰ list Specify which → #lsblk-avail-cols[output columns] to print. The columns may affect tree-like output. The default is to use tree for the column `NAME` (see also `--tree`). The default list of columns may be extended if list is specified in the format `+list` (e.g., `lsblk -o +UUID`).
+      `-O` ☰ `--output-all` ☰ Output all available columns.
+      `-P` ☰ `--pairs` ☰ Produce output in the form of key="value" pairs. The output lines are still ordered by dependencies. All potentially unsafe characters are hex-escaped (\x<code>).
+      `-p` ☰ `--paths` ☰ Print full device paths.
+      `-r` ☰ `--raw` ☰ Produce output in raw format. The output lines are still ordered by dependencies. All potentially unsafe characters are hex-escaped (\x<code>) in the NAME, KNAME, LABEL, PARTLABEL and MOUNTPOINT columns.
+      `-S` ☰ `--scsi` ☰ Output info about SCSI devices only. All partitions, slaves and holder devices are ignored.
+      `-s` ☰ `--inverse` ☰ Print dependencies in inverse order. If the `--list` output is requested then the lines are still ordered by dependencies.
+      `-T` ☰ `--tree[=column]` ☰ Force tree-like output format. If column is specified, then a tree is printed in the column. The default is `NAME` column.
+      `-t` ☰ `--topology` ☰ Output info about block-device topology. This option is equivalent to `-o NAME,ALIGNMENT,MIN-IO,OPT-IO,PHY-SEC,LOG-SEC,ROTA,SCHED,RQ-SIZE,RA,WSAME`.
+      `-V` ☰ `--version` ☰ Display version information and exit.
+      `-x` ☰ `--sort` ☰ column Sort output lines by column. This option enables `--list` output format by default. It is possible to use the option `--tree` to force tree-like output and than the tree branches are sorted by the column.
+      `-z` ☰ `--zoned` ☰ Print the zone model for each device.
+           ☰ `--sysroot directory` ☰ Gather data for a Linux instance other than the instance from which the `lsblk` command is issued. The specified directory is the system root of the Linux instance to be inspected. The real device nodes in the target directory can be replaced by text files with udev attributes.
+      `-h` ☰ `--help` ☰ Display help text and exit.
+
+  table }
+
+}
+{ Available output columns #lsblk-avail-cols
+
+  table { ll
+    `NAME` ☰ device name
+    `KNAME` ☰ internal kernel device name
+    `PATH` ☰ path to the device node
+    `MAJ:MIN` ☰ major:minor device number
+    `FSAVAIL` ☰ filesystem size available
+    `FSSIZE` ☰ filesystem size
+    `FSTYPE` ☰ filesystem type
+    `FSUSED` ☰ filesystem size used
+    `FSUSE%` ☰ filesystem use percentage
+    `FSVER` ☰ filesystem version
+    `MOUNTPOINT` ☰ where the device is mounted
+    `LABEL` ☰ filesystem LABEL
+    `UUID` ☰ filesystem UUID
+    `PTUUID` ☰ partition table identifier (usually UUID)
+    `PTTYPE` ☰ partition table type
+    `PARTTYPE` ☰ partition type code or UUID
+    `PARTTYPENAME` ☰ partition type name
+    `PARTLABEL` ☰ partition LABEL
+    `PARTUUID` ☰ partition UUID
+    `PARTFLAGS` ☰ partition flags
+    `RA` ☰ read-ahead of the device
+    `RO` ☰ read-only device
+    `RM` ☰ removable device
+    `HOTPLUG` ☰ removable or hotplug device (usb, pcmcia, ...)
+    `MODEL` ☰ device identifier
+    `SERIAL` ☰ disk serial number
+    `SIZE` ☰ size of the device
+    `STATE` ☰ state of the device
+    `OWNER` ☰ user name
+    `GROUP` ☰ group name
+    `MODE` ☰ device node permissions
+    `ALIGNMENT` ☰ alignment offset
+    `MIN-IO` ☰ minimum I/O size
+    `OPT-IO` ☰ optimal I/O size
+    `PHY-SEC` ☰ physical sector size
+    `LOG-SEC` ☰ logical sector size
+    `ROTA` ☰ rotational device
+    `SCHED` ☰ I/O scheduler name
+    `RQ-SIZE` ☰ request queue size
+    `TYPE` ☰ device type
+    `DISC-ALN` ☰ discard alignment offset
+    `DISC-GRAN` ☰ discard granularity
+    `DISC-MAX` ☰ discard max bytes
+    `DISC-ZERO` ☰ discard zeroes data
+    `WSAME` ☰ write same max bytes
+    `WWN` ☰ unique storage identifier
+    `RAND` ☰ adds randomness
+    `PKNAME` ☰ internal parent kernel device name
+    `HCTL` ☰ Host:Channel:Target:Lun for SCSI
+    `TRAN` ☰ device transport type
+    `SUBSYSTEMS` ☰ de-duplicated chain of subsystems
+    `REV` ☰ device revision
+    `VENDOR` ☰ device vendor
+    `ZONED` ☰ zone model
+    `DAX` ☰ dax-capable device
+  table }
 
 }
 
