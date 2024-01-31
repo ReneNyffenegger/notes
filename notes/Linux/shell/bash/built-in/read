@@ -1,20 +1,67 @@
 $ Bash built-in read: read one line from stdin and assign words to variables
 @ read
 
-By default, `read` reads a line from → development/stdin-stdout-stderr[stdin] and assigns the read words to → Linux/shell/bash/variables[variables].
+By default, `read` reads a line from → development/stdin-stdout-stderr[stdin] and assigns the read words to → Linux/shell/bash/variables[variables] (but see also the `-p` option).
+code {
+echo Enter your name:
+read name
+echo Your name is $name
+code }
 
-{ Reading from stdin
+The read input is by default split (but see `$IFS` below):
+code {
+echo Enter two integers
+read a b
+echo $a + $b = $(( $a + $b ))
+code }
 
-  Reading from stdin and assigning to → Linux/shell/bash/variables[variables].
-  
-  gh|about-Bash|/built-in/read/stdin||
+The following example reads and assigns a value to the variable `$greeting`. Because the `read` command runs in a new process which is terminated when the pipeline ends, the assigned value will be lost:
+code {
+echo hello | read greeting
+echo $greeting
+code }
 
-}
-{ echo'ing into read vs using a here string #bash-read-here-string
+This «problem» can be avoided by using `<<<` (a so called here string):
+code {
+read greeting <<<hello
+echo $greeting
+code }
 
-  With a → Linux/shell/bash/redirection#bash-here-string[here string], it's possible to assign values to variables *and* retain the values because no new subshell is started:
+The following command assings assigns `-` to `$IFS` (the input field separator) and assigns the current year, month and day from → misc/ISO/8601 format. Note that month and day will be 2 characters (possibly with a leading zero):
+code {
+IFS=- read year month day <<<$( → Linux/shell/commands/date → Linux/shell/commands/date#I[-I] )
+echo "The year is $year, the month is $month and the day is $day."
+code }
 
-  gh|about-Bash|/built-in/read/echo-vs-here-string||
+Iterate over each line in a file and assign fields to variables:
+code {
+
+while IFS=: read username password uid gid fullname home shell; do
+   echo "Username      : $username"
+   echo "User/Group ID : $uid/$gid"
+#  echo "Full Name     : $fullname"
+   echo "Home Directory: $home"
+   echo "Shell         : $shell"
+   echo "--------------------------"
+done < → Linux/fhs/etc/passwd
+code }
+
+{ Options
+
+  table { ll
+    `-a array` ☰ assign the words read to sequential indices of the array variable `array`, starting at zero
+    `-d delim` ☰ continue until the first character of `delim` is read, rather than newline
+    `-e` ☰ use *readline* to obtain the line
+    `-i text` ☰ use `text` as the initial text for Readline
+    `-n nchars` ☰ return after reading `nchars` characters rather than waiting for a newline, but honor a delimiter if fewer than `nchars` characters are read before the delimiter
+    `-N nchars` ☰ return only after reading exactly `nchars` characters, unless EOF is encountered or read times out, ignoring any delimiter
+    `-p prompt` ☰ output the string `prompt` without a trailing newline before attempting to read
+    `-r` ☰ do not allow backslashes to escape any characters
+    `-s` ☰ do not echo input coming from a terminal
+    `-t timeout` ☰ time out and return failure if a complete line of input is not read within `timeout` seconds. The value of the `TMOUT` variable is the default timeout. `timeout` may be a fractional number. If `timeout` is 0, read returns immediately, without trying to read any data, returning success only if input is available on the specified file descriptor. The exit status is greater than 128 if the timeout is exceeded
+    `-u fd` ☰ read from file descriptor FD instead of the standard input
+
+  table }
 
 }
 { Press any key to continue
