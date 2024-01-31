@@ -1,0 +1,37 @@
+$ wsl --import
+
+{ Importing a Debian distro
+
+  We need a *root filesystem* (rootfs) to be imported. Links to such root fs can be found in → https://github.com/debuerreotype/docker-debian-artifacts[this github repository].
+  -
+  The rootfs must be chosen according to the architecture which are modelled as
+  → development/version-control-systems/git/commands/branch[branches] in this repository, for example → https://github.com/debuerreotype/docker-debian-artifacts/tree/dist-amd64[dist-amd64].
+
+  In this branch, we find directories for debian releases (bookworm, bullseye, buster etc.). We want to import a bookworm release, so we go to the corresponding directory.
+  -
+  The directory has a link to the wanted → https://github.com/debuerreotype/docker-debian-artifacts/blob/dist-amd64/bookworm/rootfs.tar.xz[`rootfs.tar.xz`] file. We're interested
+  in the → https://github.com/debuerreotype/docker-debian-artifacts/blob/dist-amd64/bookworm/rootfs.tar.xz[raw link]. This raw link is what we're interested in downloading. We use → Windows/PowerShell:
+code {
+PS:> → Windows/PowerShell/language/variable/preference/progressPreference = 'SilentlyContinue'
+PS:> → Windows/PowerShell/command-inventory/noun/webRequest/invoke https://github.com/debuerreotype/docker-debian-artifacts/blob/dist-amd64/bookworm/rootfs.tar.xz -out $env:temp/rootfs.tar.xz
+code }
+
+  The root file system is now ready to be imported. We choose the name debian-imported for the distro:
+code {
+PS:> → Windows/dirs/Windows/System32/wsl_exe[wsl] --import debian-imported d:\wsl\debian-imported $env:temp/rootfs.tar.xz --version 2
+Import in progress, this may take a few minutes.
+The operation completed successfully.
+code }
+
+  Starting the distro:
+code {
+PS:> → Windows/dirs/Windows/System32/wsl_exe[wsl] -d debian-imported
+code }
+
+  When not used anymore, we dispose of the distro:
+code {
+PS:> → Windows/dirs/Windows/System32/wsl_exe[wsl] --unregister debian-imported
+PS:> → Windows/PowerShell/command-inventory/noun/item/remove -rec -fo D:\wsl\debian-imported\
+code }
+
+}
