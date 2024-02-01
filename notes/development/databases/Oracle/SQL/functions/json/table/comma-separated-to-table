@@ -1,13 +1,51 @@
-$ Oracle SQL: Comma separated values to a table (using JSON_TABLE)
+$ Oracle SQL: Turn a comma separated values into a table (using JSON_TABLE)
 
-{ Select a vertical table
+`→ development/databases/Oracle/SQL/functions/json/table` can be used to turn a (horizontal) comma separated list of values into a (vertical) list or rows.
 
-  Using → development/databases/Oracle/SQL/functions/json/table[`json_table`], a comma-separated list can be turned into a vertical result set like so:
+{ Numbers
+
 code {
-select * from json_table('["' || replace('foo,bar,baz', ',', '","') || '"]' ,
+select
+   *
+from
+   → development/databases/Oracle/SQL/functions/json/table[json_table]('[1,1,2,3,5,8,13,21]', '$[*]' columns (
+      num number(2)  path '$[*]'
+   ))
+;
+--
+--        NUM
+-- ----------
+--          1
+--          1
+--          2
+--          3
+--          5
+--          8
+--         13
+--         21
+code }
+
+}
+{ Strings
+
+  Using → development/databases/Oracle/SQL/functions/json/table[`json_table`], a comma-separated list (here: `'foo,bar,baz'`) can be turned into a vertical result set like so:
+code {
+select * from → development/databases/Oracle/SQL/functions/json/table[json_table]('["' || replace('foo,bar,baz', ',', '","') || '"]' ,
   '$[*]'
   columns nam varchar2(42) path '$[0]'
 );
+--
+-- NAM
+------
+-- foo
+-- bar
+-- baz
 code }
 
 } 
+
+sa:
+
+  → development/databases/Oracle/PL-SQL/collection-types/predefined
+
+  → development/Data/exchange/formats/CSV
