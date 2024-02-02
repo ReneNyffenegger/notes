@@ -323,28 +323,33 @@ code }
 
   }
 }
-{ TCP/IP connections between the WSL guest and the host
+{ Networking
 
-  { From the host or network to the guest
+  Starting from Windows 11 22H2 and WSL 2.0.9 or later, Windows firewall rules will by default apply to WSL (but see
+  also → https://learn.microsoft.com/en-us/windows/security/operating-system-security/network-security/windows-firewall/hyper-v-firewall[configuring Hyper-V firewalls]).
 
-    The IP address(es) of the WSL guest can be obtained from within WSL in a shell like so:
+  { TCP/IP connections between the WSL guest and the host
+
+    { From the host or network to the guest
+
+      The IP address(es) of the WSL guest can be obtained from within WSL in a shell like so:
 code {
 $ → Linux/shell/commands/hostname -I
 172.31.17.20 172.18.0.1 172.17.0.1 172.19.0.1 172.20.0.1
 code }
 
-    These IP addresses  can be accessed from the host, for example by accessing a webserver with `https://172.31.17.20:8080/`.
+      These IP addresses  can be accessed from the host, for example by accessing a webserver with `https://172.31.17.20:8080/`.
 
-  }
-  { From the guest to the host
+    }
+    { From the guest to the host
 
 code {
 $ → Linux/shell/commands/ip route show | → Linux/shell/commands/grep -i default | → development/languages/awk '{ print $3}'
 172.31.16.1
 code }
 
+    }
   }
-
 }
 { Accessing an USB device #wsl-usb
 
@@ -482,6 +487,8 @@ echo 0 > → Linux/fhs/proc/sys/fs/binfmt_misc/WSLInterop
 …
 echo 1 > → Linux/fhs/proc/sys/fs/binfmt_misc/WSLInterop
 code }
+
+  A Windows executable that is started from WSL runs with the permissions of the user that ran `→ Windows/dirs/Windows/System32/wsl_exe`.
 
   DriveFS is a → #wsl-file-system[file system] that makes interoperability possible.
 
