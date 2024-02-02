@@ -1,4 +1,50 @@
 
+The name *btrfs* relates to the fact that all *metadata* (except for superblocks) is stored in B-trees on the disk.
+
+The *keys* of B-trees is a fixed size structure consisting of the three parts:
+   • objectid
+   • type (which indicates how the other two parts should be used and what data the tree's leaves (*items*) contain)
+   • offset
+
+btrfs refers to the leaves in its B-trees as *items*. They are variable size
+
+A *transaction* contains a *consistent* set of data modifications.
+-
+At most one transaction is active on a file system at a given time.
+-
+Transactions can be held in memory for up to 30 seconds.
+
+A *log tree* is a B-tree that temporarily tracks ongoing metadata updates until a full *transaction commit* is done. They're used
+  • if the filesystem is not unmounted cleanly to replay these transactions.
+  • to optimize `fsync`.
+
+? A *block* is smallest unit that can be allocated on the disk.
+-
+? A *chunk* is 1 GiB for data and 256 MiB for metadata.
+-
+? A *block group* consists of one or more chunk. It is laid out on the disk by the btrfs *allocator*.
+
+An *extent* is a contiguous sequence of bytes storing file data.
+
+Superblocks are blocks that contain pointers to blocks that store the *metadata*.
+-
+Superblocks are stored at locations with fixed offsets at 64 KiB, 256 GiB, 1 TiB and 1 PiB.
+
+? A btrfs filesystem can spawn multiple devices.
+
+? btrfs doesn't keep record about free (unallocated) space, only about allocated space. Finding free space is therefore I/O intensive. However, A *free space cache* stores a condensed representation of what is free. This cache is updated on every *transaction commit*.
+
+The *generation* is a counter that is updated with each *transaction*.
+
+btrfs modifies data in a *copy-on-write* (aka COW) way: data is not overwritten but rather the modified data is written to a free location, *then* the *metadata* is updated, also using the COW approach.
+-
+Writing a metadata block (if? using COW), the current transaction is stored in the block (so that too recent blocks can be identified)
+-
+If the underlying hardware supports *barriers*, a COW filesystem is (at least theoretically) always consistent.
+-
+COW is used for *snapshots* and *reflink copies*.
+
+
 { Subvolumes
 
   A *subvolume* has its own independnt
@@ -13,9 +59,13 @@ $ → Linux/shell/commands/cat → Linux/fhs/proc/cmdline
 BOOT_IMAGE=/@rootfs/boot/vmlinuz-6.1.0-17-amd64 root=UUID=748c91ba-39f3-47ed-902d-4109bb0db688 ro rootflags=subvol=@rootfs quiet
 code }
 
+  All subvolumes share the same pool of free space in the filesystem.
+
   A subvolume can be accessed
     • «normally»
     • or by mounting it.
+
+  The *default subvolume* is the one which is mounted if the `subvol=` mount option is not specified.
 
   The inode number of a (proper) subvolume is always 256 (the implication of which is that an inode number is not unique within the entire filesystem)
 
@@ -27,9 +77,29 @@ code }
 
   }
 }
+{ Misc
+
+  { cp --reflink
+
+  The parameter → Linux/shell/commands/cp#cp-reflink[--reflink] of the `→ Linux/shell/commands/cp` command takes advantage of the COW capabilities
+code {
+$ → Linux/shell/commands/dd if=→ Linux/fhs/dev/urandom of=/tmp/src bs=1M count=1 
+$ → Linux/shell/commands/cp → Linux/shell/commands/cp#cp-reflink[--reflink] /tmp/src /tmp/dest
+code }
+
+    A file copied with `--reflink` may be consideres as a *snapshot* of a single file rather than a subvolume. 
+
+  }
+
+}
 
 sa:
 
  `→ development/file-systems/btrfs/commands/btrfs`
 
  `→ Linux/fhs/sys/fs/btrfs`
+
+? Apparently, `→ Linux/shell/commands/df` does not report accurate figures for the amount of used and free space in a btrfs filesystem.
+
+
+ `mkfs.btrfs` is the tool to create a btrfs filesystem.
