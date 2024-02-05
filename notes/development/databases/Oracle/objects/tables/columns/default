@@ -50,5 +50,29 @@ where
 -- table_name like '%' and
    data_default is not null;
 code }
-}
 
+}
+{ Combining default columns with check constraints
+
+  If a column combines a → development/databases/Oracle/objects/tables/constraints/check with a default expression, the check constraint must follow the default expression:
+code {
+create table tq84_tab (
+   id integer,
+   dt date        check (dt = trunc(dt)) default trunc(→ development/databases/Oracle/SQL/functions/date/sysdate[sysdate]) → development/databases/Oracle/objects/tables/constraints/not-null
+);
+--
+-- → development/databases/Oracle/errors/ORA-00907_missing-right-paranthesis
+--
+ 
+create table tq84_tab (
+   id integer,
+   dt date        default trunc(→ development/databases/Oracle/SQL/functions/date/sysdate[sysdate]) check (dt = trunc(dt)) → development/databases/Oracle/objects/tables/constraints/not-null
+);
+--
+-- Table TQ84_TAB created.
+--
+ 
+drop table tq84_tab;
+code }
+
+}
