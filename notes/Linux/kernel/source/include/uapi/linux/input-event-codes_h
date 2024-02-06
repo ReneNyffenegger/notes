@@ -1,4 +1,375 @@
 $ include/uapi/linux/input-event-codes.h
 
-
 Input event codes and event types.
+
+{ Device properties (and quirks)
+
+  The following device properties (and per comment also quirks) are #defined:
+  table { lll
+    `INPUT_PROP_POINTER` ☰ `0x00` ☰ needs a pointer
+    `INPUT_PROP_DIRECT` ☰ `0x01` ☰ direct input devices
+    `INPUT_PROP_BUTTONPAD` ☰ `0x02` ☰ has button(s) under pad
+    `INPUT_PROP_SEMI_MT` ☰ `0x03` ☰ touch rectangle only
+    `INPUT_PROP_TOPBUTTONPAD` ☰ `0x04` ☰ softbuttons at top of pad
+    `INPUT_PROP_POINTING_STICK` ☰ `0x05` ☰ is a pointing stick
+    `INPUT_PROP_ACCELEROMETER` ☰ `0x06` ☰ has accelerometer
+  table }
+
+}
+{ Event types
+
+  table { lll
+    `EV_SYN` ☰ `0x00` ☰
+    `EV_KEY` ☰ `0x01` ☰ The most simple event type. Despite its name, it is used for keys *and* buttons
+    `EV_REL`, `EV_ABS` ☰ `0x02`, `0x03` ☰ Also basic event types. These are used for relative and absolute values supplied by the device. Typical relative values are mouse movements. Typical absolute values are those reported by joysticks and digitizers.
+    `EV_MSC` ☰ `0x04` ☰
+    `EV_SW` ☰ `0x05` ☰
+    `EV_LED` ☰ `0x11` ☰ Keyboard LEDs
+    `EV_SND` ☰ `0x12` ☰ Keyboard beeps
+    `EV_REP` ☰ `0x14` ☰ used to enable autorepead for a device
+    `EV_FF` ☰ `0x15` ☰
+    `EV_PWR` ☰ `0x16` ☰
+    `EV_FF_STATUS` ☰ `0x17` ☰
+    `EV_MAX` ☰ `0x1f` ☰
+    `EV_CNT` ☰ `(EV_MAX+1)` ☰
+  table }
+
+}
+{ Synchronization events
+
+  table { ll
+     `SYN_REPORT` ☰ `0`
+     `SYN_CONFIG` ☰ `1`
+     `SYN_MT_REPORT` ☰ `2`
+     `SYN_DROPPED` ☰ `3`
+     `SYN_MAX` ☰ `0xf`
+     `SYN_CNT` ☰ `(SYN_MAX+1)`
+   table }
+
+}
+{ Keys and buttons
+
+  Most the keys and buttons are modeled after → https://www.usb.org/developers/hidpage[USB HUT 1.12].
+
+  Abbreviations used below:
+   • AC: Application Control
+   • AL: Application Launch Button
+   • SC: System Control
+
+
+  { Keys
+
+  table { lrl
+
+     `KEY_RESERVED` ☰ 0 ☰ 
+     `KEY_ESC` ☰ 1 ☰ 
+     `KEY_1` … `KEY_0` ☰ 2 … 11 ☰ 
+
+     `KEY_MINUS` ☰ 12 ☰ 
+     `KEY_EQUAL` ☰ 13 ☰ 
+     `KEY_BACKSPACE` ☰ 14 ☰ 
+     `KEY_TAB` ☰ 15 ☰ 
+
+     `KEY_Q` … `KEY_P` ☰ 16 … 25 ☰ 
+     `KEY_LEFTBRACE` ☰ 26 ☰ 
+     `KEY_RIGHTBRACE` ☰ 27 ☰ 
+     `KEY_ENTER` ☰ 28 ☰ 
+     `KEY_LEFTCTRL` ☰ 29 ☰ 
+
+     `KEY_A` … `KEY_L` ☰ 30 … 38 ☰ 
+
+     `KEY_SEMICOLON` ☰ 39 ☰ 
+     `KEY_APOSTROPHE` ☰ 40 ☰ 
+     `KEY_GRAVE` ☰ 41 ☰ 
+     `KEY_LEFTSHIFT` ☰ 42 ☰ 
+     `KEY_BACKSLASH` ☰ 43 ☰ 
+     `KEY_Z` … `KEY_M` ☰ 44 … 50 ☰ 
+     `KEY_COMMA` ☰ 51 ☰ 
+     `KEY_DOT` ☰ 52 ☰ 
+     `KEY_SLASH` ☰ 53 ☰ 
+     `KEY_RIGHTSHIFT` ☰ 54 ☰ 
+     `KEY_KPASTERISK` ☰ 55 ☰ 
+     `KEY_LEFTALT` ☰ 56 ☰ 
+     `KEY_SPACE` ☰ 57 ☰ 
+     `KEY_CAPSLOCK` ☰ 58 ☰ 
+     `KEY_F1` … `KEY_F10` ☰ 59 … 68 ☰ 
+     `KEY_NUMLOCK` ☰ 69 ☰ 
+     `KEY_SCROLLLOCK` ☰ 70 ☰ 
+     `KEY_KP7` ☰ 71 ☰ 
+     `KEY_KP8` ☰ 72 ☰ 
+     `KEY_KP9` ☰ 73 ☰ 
+     `KEY_KPMINUS` ☰ 74 ☰ 
+     `KEY_KP4` ☰ 75 ☰ 
+     `KEY_KP5` ☰ 76 ☰ 
+     `KEY_KP6` ☰ 77 ☰ 
+     `KEY_KPPLUS` ☰ 78 ☰ 
+     `KEY_KP1` ☰ 79 ☰ 
+     `KEY_KP2` ☰ 80 ☰ 
+     `KEY_KP3` ☰ 81 ☰ 
+     `KEY_KP0` ☰ 82 ☰ 
+     `KEY_KPDOT` ☰ 83 ☰ 
+
+     `KEY_ZENKAKUHANKAKU` ☰ 85 ☰ 
+     `KEY_102ND` ☰ 86 ☰ 
+     `KEY_F11` ☰ 87 ☰ 
+     `KEY_F12` ☰ 88 ☰ 
+     `KEY_RO` ☰ 89 ☰ 
+     `KEY_KATAKANA` ☰ 90 ☰ 
+     `KEY_HIRAGANA` ☰ 91 ☰ 
+     `KEY_HENKAN` ☰ 92 ☰ 
+     `KEY_KATAKANAHIRAGANA` ☰ 93 ☰ 
+     `KEY_MUHENKAN` ☰ 94 ☰ 
+     `KEY_KPJPCOMMA` ☰ 95 ☰ 
+     `KEY_KPENTER` ☰ 96 ☰ 
+     `KEY_RIGHTCTRL` ☰ 97 ☰ 
+     `KEY_KPSLASH` ☰ 98 ☰ 
+     `KEY_SYSRQ` ☰ 99 ☰ 
+     `KEY_RIGHTALT` ☰ 100 ☰ 
+     `KEY_LINEFEED` ☰ 101 ☰ 
+     `KEY_HOME` ☰ 102 ☰ 
+     `KEY_UP` ☰ 103 ☰ 
+     `KEY_PAGEUP` ☰ 104 ☰ 
+     `KEY_LEFT` ☰ 105 ☰ 
+     `KEY_RIGHT` ☰ 106 ☰ 
+     `KEY_END` ☰ 107 ☰ 
+     `KEY_DOWN` ☰ 108 ☰ 
+     `KEY_PAGEDOWN` ☰ 109 ☰ 
+     `KEY_INSERT` ☰ 110 ☰ 
+     `KEY_DELETE` ☰ 111 ☰ 
+     `KEY_MACRO` ☰ 112 ☰ 
+     `KEY_MUTE` ☰ 113 ☰ 
+     `KEY_VOLUMEDOWN` ☰ 114 ☰ 
+     `KEY_VOLUMEUP` ☰ 115 ☰ 
+     `KEY_POWER` ☰ 116  ☰ SC System Power Down
+     `KEY_KPEQUAL` ☰ 117 ☰ 
+     `KEY_KPPLUSMINUS` ☰ 118 ☰ 
+     `KEY_PAUSE` ☰ 119 ☰ 
+     `KEY_SCALE` ☰ 120  ☰ AL Compiz Scale (Expose)
+
+     `KEY_KPCOMMA` ☰ 121 ☰ 
+     `KEY_HANGEUL` ☰ 122 ☰ 
+     `KEY_HANGUEL` ☰ `KEY_HANGEUL` ☰ 
+     `KEY_HANJA` ☰ 123 ☰ 
+     `KEY_YEN` ☰ 124 ☰ 
+     `KEY_LEFTMETA` ☰ 125 ☰ 
+     `KEY_RIGHTMETA` ☰ 126 ☰ 
+     `KEY_COMPOSE` ☰ 127 ☰ 
+
+     `KEY_STOP` ☰ 128  ☰ AC Stop
+     `KEY_AGAIN` ☰ 129 ☰ 
+     `KEY_PROPS` ☰ 130  ☰ AC Properties
+     `KEY_UNDO` ☰ 131  ☰ AC Undo
+     `KEY_FRONT` ☰ 132 ☰ 
+     `KEY_COPY` ☰ 133  ☰ AC Copy
+     `KEY_OPEN` ☰ 134  ☰ AC Open
+     `KEY_PASTE` ☰ 135  ☰ AC Paste
+     `KEY_FIND` ☰ 136  ☰ AC Search
+     `KEY_CUT` ☰ 137  ☰ AC Cut
+     `KEY_HELP` ☰ 138  ☰ AL Integrated Help Center
+     `KEY_MENU` ☰ 139  ☰ Menu (show menu)
+     `KEY_CALC` ☰ 140  ☰ AL Calculator
+     `KEY_SETUP` ☰ 141 ☰ 
+     `KEY_SLEEP` ☰ 142  ☰ SC System Sleep
+     `KEY_WAKEUP` ☰ 143  ☰ System Wake Up
+     `KEY_FILE` ☰ 144  ☰ AL Local Machine Browser
+     `KEY_SENDFILE` ☰ 145 ☰ 
+     `KEY_DELETEFILE` ☰ 146 ☰ 
+     `KEY_XFER` ☰ 147 ☰ 
+     `KEY_PROG1` ☰ 148 ☰ 
+     `KEY_PROG2` ☰ 149 ☰ 
+     `KEY_WWW` ☰ 150  ☰ AL Internet Browser
+     `KEY_MSDOS` ☰ 151 ☰ 
+     `KEY_COFFEE` ☰ 152  ☰ AL Terminal Lock/Screensaver
+     `KEY_SCREENLOCK` ☰ `KEY_COFFEE` ☰ 
+     `KEY_ROTATE_DISPLAY` ☰ 153  ☰ Display orientation for e.g. tablets
+     `KEY_DIRECTION` ☰ `KEY_ROTATE_DISPLAY` ☰ 
+     `KEY_CYCLEWINDOWS` ☰ 154 ☰ 
+     `KEY_MAIL` ☰ 155 ☰ 
+     `KEY_BOOKMARKS` ☰ 156  ☰ AC Bookmarks
+     `KEY_COMPUTER` ☰ 157 ☰ 
+     `KEY_BACK` ☰ 158  ☰ AC Back
+     `KEY_FORWARD` ☰ 159  ☰ AC Forward
+     `KEY_CLOSECD` ☰ 160 ☰ 
+     `KEY_EJECTCD` ☰ 161 ☰ 
+     `KEY_EJECTCLOSECD` ☰ 162 ☰ 
+     `KEY_NEXTSONG` ☰ 163 ☰ 
+     `KEY_PLAYPAUSE` ☰ 164 ☰ 
+     `KEY_PREVIOUSSONG` ☰ 165 ☰ 
+     `KEY_STOPCD` ☰ 166 ☰ 
+     `KEY_RECORD` ☰ 167 ☰ 
+     `KEY_REWIND` ☰ 168 ☰ 
+     `KEY_PHONE` ☰ 169  ☰ Media Select Telephone
+     `KEY_ISO` ☰ 170 ☰ 
+     `KEY_CONFIG` ☰ 171  ☰ AL Consumer Control Configuration
+     `KEY_HOMEPAGE` ☰ 172  ☰ AC Home
+     `KEY_REFRESH` ☰ 173  ☰ AC Refresh
+     `KEY_EXIT` ☰ 174  ☰ AC Exit
+     `KEY_MOVE` ☰ 175 ☰ 
+     `KEY_EDIT` ☰ 176 ☰ 
+     `KEY_SCROLLUP` ☰ 177 ☰ 
+     `KEY_SCROLLDOWN` ☰ 178 ☰ 
+     `KEY_KPLEFTPAREN` ☰ 179 ☰ 
+     `KEY_KPRIGHTPAREN` ☰ 180 ☰ 
+     `KEY_NEW` ☰ 181  ☰ AC New
+     `KEY_REDO` ☰ 182  ☰ AC Redo/Repeat
+
+     `KEY_F13` … `KEY_F24` ☰ 183 … 194 ☰ 
+
+     `KEY_PLAYCD` ☰ 200 ☰ 
+     `KEY_PAUSECD` ☰ 201 ☰ 
+     `KEY_PROG3` ☰ 202 ☰ 
+     `KEY_PROG4` ☰ 203 ☰ 
+     `KEY_ALL_APPLICATIONS` ☰ 204  ☰ AC Desktop Show All Applications
+     `KEY_DASHBOARD` ☰ `KEY_ALL_APPLICATIONS` ☰ 
+     `KEY_SUSPEND` ☰ 205 ☰ 
+     `KEY_CLOSE` ☰ 206  ☰ AC Close
+     `KEY_PLAY` ☰ 207 ☰ 
+     `KEY_FASTFORWARD` ☰ 208 ☰ 
+     `KEY_BASSBOOST` ☰ 209 ☰ 
+     `KEY_PRINT` ☰ 210  ☰ AC Print
+     `KEY_HP` ☰ 211 ☰ 
+     `KEY_CAMERA` ☰ 212 ☰ 
+     `KEY_SOUND` ☰ 213 ☰ 
+     `KEY_QUESTION` ☰ 214 ☰ 
+     `KEY_EMAIL` ☰ 215 ☰ 
+     `KEY_CHAT` ☰ 216 ☰ 
+     `KEY_SEARCH` ☰ 217 ☰ 
+     `KEY_CONNECT` ☰ 218 ☰ 
+     `KEY_FINANCE` ☰ 219  ☰ AL Checkbook/Finance
+     `KEY_SPORT` ☰ 220 ☰ 
+     `KEY_SHOP` ☰ 221 ☰ 
+     `KEY_ALTERASE` ☰ 222 ☰ 
+     `KEY_CANCEL` ☰ 223  ☰ AC Cancel
+     `KEY_BRIGHTNESSDOWN` ☰ 224 ☰ 
+     `KEY_BRIGHTNESSUP` ☰ 225 ☰ 
+     `KEY_MEDIA` ☰ 226 ☰ 
+
+     `KEY_SWITCHVIDEOMODE` ☰ 227  ☰ Cycle between available video outputs (Monitor/LCD/TV-out/etc)
+     `KEY_KBDILLUMTOGGLE` ☰ 228 ☰ 
+     `KEY_KBDILLUMDOWN` ☰ 229 ☰ 
+     `KEY_KBDILLUMUP` ☰ 230 ☰ 
+
+     `KEY_SEND` ☰ 231 ☰ AC Send
+     `KEY_REPLY` ☰ 232 ☰ AC Reply
+     `KEY_FORWARDMAIL` ☰ 233 ☰ AC Forward Msg
+     `KEY_SAVE` ☰ 234 ☰ AC Save
+     `KEY_DOCUMENTS` ☰ 235 ☰ 
+
+     `KEY_BATTERY` ☰ 236 ☰ 
+
+     `KEY_BLUETOOTH` ☰ 237 ☰ 
+     `KEY_WLAN` ☰ 238 ☰ 
+     `KEY_UWB` ☰ 239 ☰ 
+
+     `KEY_UNKNOWN` ☰ 240 ☰ 
+
+     `KEY_VIDEO_NEXT` ☰ 241  ☰ drive next video source
+     `KEY_VIDEO_PREV` ☰ 242  ☰ drive previous video source
+     `KEY_BRIGHTNESS_CYCLE` ☰ 243  ☰ brightness up, after max is min
+     `KEY_BRIGHTNESS_AUTO` ☰ 244  ☰ Set Auto Brightness: manual brightness control is off rely on ambient
+     `KEY_BRIGHTNESS_ZERO` ☰ `KEY_BRIGHTNESS_AUTO` ☰ 
+     `KEY_DISPLAY_OFF` ☰ 245  ☰ display device to off state
+
+     `KEY_WWAN` ☰ 246 ☰ Wireless WAN (LTE, UMTS, GSM, etc.)
+     `KEY_WIMAX` ☰ `KEY_WWAN` ☰ 
+     `KEY_RFKILL` ☰ 247 ☰ Key that controls all radios
+
+     `KEY_MICMUTE` ☰ 248  ☰ Mute / unmute the microphone
+
+    table }
+
+    Note: code 255 is reserved for special nees of the AT keyboard driver.
+
+  }
+  { Buttons
+
+    table { lll
+
+`BTN_MISC` ☰ `0x100` ☰
+`BTN_0` ☰ `0x100` ☰
+`BTN_1` ☰ `0x101` ☰
+`BTN_2` ☰ `0x102` ☰
+`BTN_3` ☰ `0x103` ☰
+`BTN_4` ☰ `0x104` ☰
+`BTN_5` ☰ `0x105` ☰
+`BTN_6` ☰ `0x106` ☰
+`BTN_7` ☰ `0x107` ☰
+`BTN_8` ☰ `0x108` ☰
+`BTN_9` ☰ `0x109` ☰
+
+`BTN_MOUSE` ☰ `0x110` ☰
+`BTN_LEFT` ☰ `0x110` ☰
+`BTN_RIGHT` ☰ `0x111` ☰
+`BTN_MIDDLE` ☰ `0x112` ☰
+`BTN_SIDE` ☰ `0x113` ☰
+`BTN_EXTRA` ☰ `0x114` ☰
+`BTN_FORWARD` ☰ `0x115` ☰
+`BTN_BACK` ☰ `0x116` ☰
+`BTN_TASK` ☰ `0x117` ☰
+
+`BTN_JOYSTICK` ☰ `0x120` ☰
+`BTN_TRIGGER` ☰ `0x120` ☰
+`BTN_THUMB` ☰ `0x121` ☰
+`BTN_THUMB2` ☰ `0x122` ☰
+`BTN_TOP` ☰ `0x123` ☰
+`BTN_TOP2` ☰ `0x124` ☰
+`BTN_PINKIE` ☰ `0x125` ☰
+`BTN_BASE` ☰ `0x126` ☰
+`BTN_BASE2` ☰ `0x127` ☰
+`BTN_BASE3` ☰ `0x128` ☰
+`BTN_BASE4` ☰ `0x129` ☰
+`BTN_BASE5` ☰ `0x12a` ☰
+`BTN_BASE6` ☰ `0x12b` ☰
+`BTN_DEAD` ☰ `0x12f` ☰
+
+`BTN_GAMEPAD` ☰ `0x130` ☰
+`BTN_SOUTH` ☰ `0x130` ☰
+`BTN_A` ☰ `BTN_SOUTH` ☰
+`BTN_EAST` ☰ `0x131` ☰
+`BTN_B` ☰ `BTN_EAST` ☰
+`BTN_C` ☰ `0x132` ☰
+`BTN_NORTH` ☰ `0x133` ☰
+`BTN_X` ☰ `BTN_NORTH` ☰
+`BTN_WEST` ☰ `0x134` ☰
+`BTN_Y` ☰ `BTN_WEST` ☰
+`BTN_Z` ☰ `0x135` ☰
+`BTN_TL` ☰ `0x136` ☰
+`BTN_TR` ☰ `0x137` ☰
+`BTN_TL2` ☰ `0x138` ☰
+`BTN_TR2` ☰ `0x139` ☰
+`BTN_SELECT` ☰ `0x13a` ☰
+`BTN_START` ☰ `0x13b` ☰
+`BTN_MODE` ☰ `0x13c` ☰
+`BTN_THUMBL` ☰ `0x13d` ☰
+`BTN_THUMBR` ☰ `0x13e` ☰
+
+`BTN_DIGI` ☰ `0x140` ☰
+`BTN_TOOL_PEN` ☰ `0x140` ☰
+`BTN_TOOL_RUBBER` ☰ `0x141` ☰
+`BTN_TOOL_BRUSH` ☰ `0x142` ☰
+`BTN_TOOL_PENCIL` ☰ `0x143` ☰
+`BTN_TOOL_AIRBRUSH` ☰ `0x144` ☰
+`BTN_TOOL_FINGER` ☰ `0x145` ☰
+`BTN_TOOL_MOUSE` ☰ `0x146` ☰
+`BTN_TOOL_LENS` ☰ `0x147` ☰
+`BTN_TOOL_QUINTTAP` ☰ `0x148` ☰ Five fingers on trackpad
+`BTN_STYLUS3` ☰ `0x149` ☰
+`BTN_TOUCH` ☰ `0x14a` ☰
+`BTN_STYLUS` ☰ `0x14b` ☰
+`BTN_STYLUS2` ☰ `0x14c` ☰
+`BTN_TOOL_DOUBLETAP` ☰ `0x14d` ☰
+`BTN_TOOL_TRIPLETAP` ☰ `0x14e` ☰
+`BTN_TOOL_QUADTAP` ☰ `0x14f` ☰ Four fingers on trackpad
+
+`BTN_WHEEL` ☰ `0x150` ☰
+`BTN_GEAR_DOWN` ☰ `0x150` ☰
+`BTN_GEAR_UP` ☰ `0x151` ☰
+
+  table }
+
+  }
+
+}
+
+sa:
+  → Linux/kernel/input
