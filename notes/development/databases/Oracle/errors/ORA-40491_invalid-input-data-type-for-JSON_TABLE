@@ -1,0 +1,60 @@
+$ ORA-40491: invalid input data type for JSON_TABLE
+
+This statement runs without error:
+code {
+select
+   x
+from
+  → development/databases/Oracle/SQL/functions/json/table('[1,2,3]', '$[*]'
+  columns (
+    x number path '$[*]'
+  )
+);
+code }
+ 
+ The following statement concatenates two strings and produces *ORA-40491: invalid input data type for JSON_TABLE* in Oracle → development/databases/Oracle/Releases-and-versions/19c - but runs fine in → development/databases/Oracle/Releases-and-versions/23c:
+code {
+select
+   x
+from
+  → development/databases/Oracle/SQL/functions/json/table('[1,2' || ',3]', '$[*]'
+  columns (
+     x number path '$[*]'
+  )
+);
+code }
+ 
+Casting the concatenated string to a `→ development/databases/Oracle/SQL/data-types/varchar2` allows to execute the statement in 19c also:
+code {
+select
+   x
+from
+  → development/databases/Oracle/SQL/functions/json/table(cast('[1,2' || ',3]' as varchar2(4000)), '$[*]'
+  columns (
+     x number path '$[*]'
+  )
+);
+code }
+ 
+Interestingly, when the concatenation takes place in a subquery, the error is not thrown in 19c: 
+code {
+create table tq84_j (j varchar2(4000), k varchar2(4000));
+
+insert into tq84_j values('1,2,3', '4,5,6');
+
+select
+   x
+from
+     → development/databases/Oracle/SQL/functions/json/table(
+       (select '[' || j || ',' || k || ']' from tq84_j), '$[*]'
+     columns (
+        x number path '$[*]'
+     )
+);
+ 
+drop   table tq84_j;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
