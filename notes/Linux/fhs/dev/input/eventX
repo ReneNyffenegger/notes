@@ -26,12 +26,72 @@ $ → Linux/shell/commands/sudo libinput list-kernel-devices
 code }
 
 
-
 Show events fired by mouse actions:
 code {
 $ sudo libinput record /dev/input/event8
 code }
 
+{ Device capabilities
+
+  The Python library `→ development/languages/Python/libraries/evdev` can be used to query an input device's capabilities:
+code {
+import evdev
+
+dev = evdev.InputDevice('/dev/input/event7')
+
+caps = dev.capabilities(verbose=True)
+
+for ev in caps:
+    print(ev)
+    for cap in caps[ev]: 
+        print('  ' + str(cap))
+#
+# ('EV_SYN', 0)
+#   ('SYN_REPORT', 0)
+#   ('SYN_CONFIG', 1)
+#     …
+# ('EV_KEY', 1)
+#   ('KEY_ESC', 1)
+#   ('KEY_1', 2)
+#   ('KEY_2', 3)
+#    …
+#   ('KEY_BACKSPACE', 14)
+#   ('KEY_TAB', 15)
+#   ('KEY_Q', 16)
+#   ('KEY_W', 17)
+#   ('KEY_E', 18)
+#   ('KEY_R', 19)
+#   ('KEY_T', 20)
+#    …
+# ('EV_MSC', 4)
+#   ('MSC_SCAN', 4)
+# ('EV_LED', 17)
+#   ('LED_NUML', 0)
+#   ('LED_CAPSL', 1)
+#   ('LED_SCROLLL', 2)
+code }
+
+}
+{ Blinkenlights
+
+  The device capabilites for the keyboard reported the three LEDs to indicate *Num Lock*, *Caps Lock* and *Scroll Lock*).
+  -
+  The following Python script randomly turns them on and off:
+code {
+import evdev
+import → development/languages/Python/standard-library/time
+import → development/languages/Python/standard-library/random
+
+dev = evdev.InputDevice('/dev/input/event7')
+
+for i in range(20):
+    dev.set_led(evdev.ecodes.LED_NUML   , → development/languages/Python/standard-library/random#py-random-choice[random.choice]([0, 1])) 
+    dev.set_led(evdev.ecodes.LED_CAPSL  , → development/languages/Python/standard-library/random#py-random-choice[random.choice]([0, 1])) 
+    dev.set_led(evdev.ecodes.LED_SCROLLL, → development/languages/Python/standard-library/random#py-random-choice[random.choice]([0, 1])) 
+    time.sleep(0.6)
+code }
+
+}
 { TODO
 
   { evemu-…
