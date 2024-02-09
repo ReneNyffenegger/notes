@@ -14,7 +14,6 @@ A → development/databases/Oracle/users-roles/users can be assigned a *default 
 -
 For each tablespace, a quote can be defined for a user (see also `→ development/databases/Oracle/installed/data-dictionary/ts_quotas`)
 
-
 There are three types of tablespaces:
   • permanent tablespaces,
   • → development/databases/Oracle/architecture/database/logical-structures/tablespace/undo[undo tablepspaces] and
@@ -30,10 +29,14 @@ There are three types of tablespaces:
 { Space management (locally vs dictionary managed tablespaces) #ora-ts-space-management
 
   There are two methods to manage available space (that is its → development/databases/Oracle/architecture/database/logical-structures/extent[extents]) within a tablespace:
-    • Locally managed tablespaces, and
-    • Dictionary managed tablespaces
+    • Locally managed tablespaces (LMT) with either automatical (ASSM) or manual segment space management (MSSM), and
+    • Dictionary managed tablespaces (DMT)
 
   A *locally managed tablespaces* is the more modern and usually preferred variant.
+  -
+  Oracle recommends LMTs with ASSM.
+
+  Dictionary managed tablespaces can only be created if the SYSTEM tablespace is also dictionary managed (error message → development/databases/Oracle/errors/ORA-12913_cannot-create-dictionary-managed-tablespace)
 
   Which variant is used for a tablespace can be queried with the following select statement:
 code {
@@ -44,30 +47,41 @@ from
    → development/databases/Oracle/installed/data-dictionary/tablespaces[dba_tablespaces];
 code }
 
-  { Space management for locally managed tablespace
+  { Segment space management for locally managed tablespace
 
     For a locally managed tablespace, there are again two different methods to manage space:
       • Automatic segment space management (ASSM), the default for locally managed tablespace
       • Manual segment space management (MSSM), which is considered legacy
 
-    With ~automatic segment space management~, space in a tablespace is managed using bitmaps. There is only one parameter that controls space allocation:
-      • `pctfree`
+    { Automatic segment space management
 
-    With ~manual segment space management~, free space is managed using a linked list by the name of *free list*. This list records free
-    → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a segment's *high water mark*.
-    -
-    Parameters that control space management are:
-      • `pctfree`
-      • `pctused`
-      • `freelists`
-      • `freelist groups`
+      With *ASSM*, space in a tablespace is managed using bitmaps. There is only one parameter that controls space allocation:
+        • `pctfree`
 
-    The space management type (for locally managed tablespace) can be queried in the column `segment_space_management` in → development/databases/Oracle/architecture/database/logical-structures/tablespace[`dba_tablespaces`].
+    }
+    { Manual segment space management
+
+      With *MSSM*, free space is managed using a linked list by the name of *free list*. This list records free
+      → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a segment's *high water mark*.
+
+      Parameters that control space management are:
+        • `pctfree`
+        • `pctused`
+        • `freelists`
+        • `freelist groups`
+
+    }
+    { Querying space management type from the data dictionary
+
+      The space management type (for locally managed tablespace) can be queried in the column `segment_space_management` in `→ development/databases/Oracle/architecture/database/logical-structures/tablespace`.
+      -
+      But compare with the value of `segment_subtype` (which can be `ASSM`, `MSSM`, `SECUREFILE` and `→ development/databases/Oracle/SQL/null`) in `→ development/databases/Oracle/installed/data-dictionary/segments`.
+
+    }
 
   }
 
 }
-
 
 sa:
 

@@ -1,0 +1,40 @@
+$ Oracle: DBA_FREE_SPACE_COALESCED
+@ dba_free_space_coalesced
+
+`dba_free_space_coalesced` shows free space in a → development/databases/Oracle/architecture/database/logical-structures/tablespace.
+-
+Unlike `→ development/databases/Oracle/installed/data-dictionary/free_space`, `dba_free_space_coalesced` shows one record per tablespace.
+
+code {
+select
+   fsc.tablespace_name,
+   tsp.contents       ,          -- PERMANENT, TEMPORARY, UNDO
+   fsc.total_extents                                         num_free_extents,
+   fsc.extents_coalesced                                     num_free_extents_coalesced,
+   fsc.percent_extents_coalesced                             pct_extents_coalesced,
+   to_char(fsc.total_bytes     /1024/1024/1024, '99,990.00') free_gib,
+  (select
+      to_char(sum(seg.bytes)/1024/1024/1024, '99,990.00')
+   from
+      → development/databases/Oracle/installed/data-dictionary/segments seg
+   where
+      seg.tablespace_name = fsc.tablespace_name            ) used_gib,
+   to_char(fsc.bytes_coalesced /1024/1024/1024, '99,990.00') free_coalesced_gib,
+   to_char(fsc.total_blocks    /1000          , '99,999'   ) kblocks,
+   to_char(fsc.blocks_coalesced/1000          , '99,999'   ) kblocks_coalesced
+from
+   dba_free_space_coalesced  fsc                                               join
+   → development/databases/Oracle/installed/data-dictionary/tablespaces           tsp on fsc.tablespace_name = tsp.tablespace_name
+order by
+   case tsp.contents
+        when 'PERMANENT' then 0
+        when 'TEMPORARY' then 1
+        when 'UNDO'      then 2
+   end,
+   tablespace_name;
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/data-dictionary/free_space`
+
+  → development/databases/Oracle/installed/data-dictionary

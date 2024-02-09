@@ -84,6 +84,34 @@ A database can be designed as a multitenant container database (CDB) or a non-co
   See also → development/databases/Oracle/architecture/multitenant[multitenant architecture].
 
 }
+{ Space management
+
+? Starting with 9i, bitmaps (which then superseded free lists) are used to track free and used blocks in segments. b
+
+  `→ development/databases/Oracle/installed/data-dictionary/free_space`, `dba_free_space_coalesced`.
+
+  `→ development/databases/Oracle/installed/packages/dbms/space`
+
+   View free and used/occupied space in a tablespace:
+code {
+select
+   file_id,
+   block_id block,
+   block_id + blocks next_block,  
+   blocks,
+   segment_name,
+   partition_name,
+   segment_type
+from (
+   select file_id, block_id, blocks, segment_name, partition_name, segment_type from dba_extents      where tablespace_name = '...' union all
+   select file_id, block_id, blocks, null        , null          , null         from dba_free_space   where tablespace_name = '...'
+)
+order by
+   file_id,
+   block_id desc;
+code }
+
+}
 { Misc
 
   A database maintains a list of → development/databases/Oracle/users-roles[database users].

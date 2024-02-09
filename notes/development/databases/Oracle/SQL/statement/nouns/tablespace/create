@@ -1,0 +1,68 @@
+$ Oracle SQL: CREATE TABLESPACE
+@ create tablespace
+
+{ Testing extent and segment managment methods
+
+code {
+define db_files_path=/opt/oracle/oradata/FREE/FREEPDB1
+
+create smallfile tablespace tq84_sf_perm
+   datafile '&db_files_path/tq84_sf_perm.dbf'                   size 1M autoextend off
+
+create smallfile tablespace tq84_sf_perm_auto
+   datafile '&db_files_path/tq84_sf_perm_auto.dbf'              size 1M autoextend off
+   segment space management auto;
+
+create smallfile tablespace tq84_sf_perm_lmt_auto
+   datafile '&db_files_path/tq84_sf_perm_lmt_auto.dbf'          size 1M autoextend off
+   extent        management local
+   segment space management auto;
+
+create smallfile tablespace tq84_sf_perm_lmt_uni_auto
+   datafile '&db_files_path/tq84_sf_perm_lmt_uni_auto.dbf'      size 4M autoextend off  -- Use 4M to prevent ORA-03214
+   extent        management local uniform
+   segment space management auto;
+   
+create smallfile tablespace tq84_sf_perm_lmt_uni40_auto
+   datafile '&db_files_path/tq84_sf_perm_lmt_uni32_auto.dbf'    size 4M autoextend off
+   extent        management local uniform size 40K                                      -- 5 blocks of 8kb (ORA-03249)
+   segment space management auto;
+    
+create smallfile tablespace tq84_sf_perm_lmt_autalloc_auto
+   datafile '&db_files_path/tq84_sf_perm_lmt_autalloc_auto.dbf' size 1M autoextend off
+   extent        management local autoallocate
+   segment space management auto;
+   
+create smallfile tablespace tq84_sf_perm_lmt_manu
+   datafile '&db_files_path/tq84_sf_perm_lmt_manu.dbf'          size 1M autoextend off
+   extent        management local
+   segment space management manual;  
+
+create smallfile tablespace tq84_sf_perm_lmt_manu_uni_auto
+   datafile '&db_files_path/tq84_sf_perm_lmt_manu_uni_auto.dbf' size 4M autoextend off
+   extent        management local uniform
+   segment space management manual;
+code }
+
+code {
+select
+   tablespace_name              ts,
+   extent_management            ext_mgmt,
+   allocation_type              ext_alloc_type,
+   segment_space_management     seg_mgmt,
+   initial_extent / block_size  init_ext_bl,
+   next_extent    / block_size  next_ext_bl,
+   min_extlen     / block_size  minext_bl,
+   pct_increase
+from
+   dba_tablespaces
+where
+   tablespace_name like 'TQ84%';
+code }
+
+}
+
+
+sa:
+  
+  The SQL noun → development/databases/Oracle/SQL/statement/nouns/tablespace[`tablespace`].
