@@ -5,32 +5,122 @@ $ Oracle: DBMS_SPACE
 -
 The package can be used to analyze → development/databases/Oracle/architecture/database/logical-structures/segment growth and space requirements.
 
+code {
+drop   table tq84_unused_space;
+create table tq84_unused_space(
+   segment_owner      varchar2(128),
+   segment_name       varchar2(128),
+   segment_type       varchar2( 18),
+   partition_name     varchar2(128),
+   --
+   total_blocks      number,  total_bytes number,
+   unused_blocks      number, unused_bytes number,
+   --
+   last_used_extent_file_id  number,
+   last_used_extent_block_id number,
+   last_used_block           number,
+
+   unformatted_blocks      number, unformatted_bytes number,
+   fs1_blocks              number, fs1_bytes         number,
+   fs2_blocks              number, fs2_bytes         number,
+   fs3_blocks              number, fs3_bytes         number,
+   fs4_blocks              number, fs4_bytes         number,
+   full_blocks             number, full_bytes        number
+
+-- non_admin_blocks        number;
+-- cnt_blocks              number;
+);
+
+declare
+
+  rec tq84_unused_space%rowtype;
+
+begin
+
+   rec.segment_owner :=  user;
+   rec.segment_name  := 'xxx';
+
+   for r in (
+      select
+         seg.partition_name,
+         seg.segment_type
+      from
+         dba_segments seg
+      where
+         seg.segment_name = rec.segment_name   and
+      -- seg.segment_type ='TABLE PARTITION'   and
+         seg.owner        = rec.segment_owner
+   ) loop
+
+      rec.partition_name := r.partition_name;
+      rec.segment_type   := r.segment_type;
+
+       dbms_space.unused_space(
+          segment_owner              => rec.segment_owner,
+          segment_name               => rec.segment_name,
+          segment_type               => rec.segment_type,
+          partition_name             => rec.partition_name,
+          --
+          total_blocks               => rec.total_blocks,
+          total_bytes                => rec.total_bytes,
+          unused_blocks              => rec.unused_blocks,
+          unused_bytes               => rec.unused_bytes,
+          last_used_extent_file_id   => rec.last_used_extent_file_id,
+          last_used_extent_block_id  => rec.last_used_extent_block_id,
+          last_used_block            => rec.last_used_block
+       );
+
+
+       dbms_space.space_usage(
+          segment_owner           => rec.segment_owner,
+          segment_name            => rec.segment_name,
+          segment_type            => rec.segment_type,
+          partition_name          => rec.partition_name,
+          --
+          unformatted_blocks      => rec.unformatted_blocks, unformatted_bytes => rec.unformatted_bytes,
+          fs1_blocks              => rec.fs1_blocks        , fs1_bytes         => rec.fs1_bytes        ,
+          fs2_blocks              => rec.fs2_blocks        , fs2_bytes         => rec.fs2_bytes        ,
+          fs3_blocks              => rec.fs3_blocks        , fs3_bytes         => rec.fs3_bytes        ,
+          fs4_blocks              => rec.fs4_blocks        , fs4_bytes         => rec.fs4_bytes        ,
+          full_blocks             => rec.full_blocks       , full_bytes        => rec.full_bytes
+
+       );
+
+       insert into tq84_unused_space values rec;
+
+   end loop;
+
+   commit;
+end;
+/
+code }
+
 { Procedures and functions
 
   table { ll
 
    `asa_recommendations` ☰ Query results of *auto segment advisor*.
-   `auto_space_advisor_job_proc` ☰ 
+   `auto_space_advisor_job_proc` ☰
    `create_index_cost` ☰ Estimate («determine») cost of creating an → development/databases/Oracle/objects/indexes.
    `create_table_cost` ☰ Estimate («determine») the required size of a → development/databases/Oracle/objects/tables to be created, given its storage attributes
-   `dbfs_df` ☰ 
+   `dbfs_df` ☰
    → development/databases/Oracle/installed/packages/dbms/space/api/free_blocks[`free_blocks`] ☰ Return the number of free → development/databases/Oracle/architecture/database/logical-structures/data-block[blocks] in tables, indexes or → development/databases/Oracle/objects/clusters[clusters].
-   `get_compression_ratio` ☰ 
+   `get_compression_ratio` ☰
    `isdatafiledroppable_name` ☰ Checks if a → development/databases/Oracle/architecture/database/files/data can be dropped.
    `object_dependent_segments` ☰ Returns the segments on which a → development/databases/Oracle/objects[database object] depends.
    `object_growth_trend` ☰ Report space usage of an object at a given time
-   `object_growth_trend_cur` ☰ 
-   `object_growth_trend_curtab` ☰ 
-   `object_growth_trend_i_to_s` ☰ 
-   `object_growth_trend_swrf` ☰ 
-   `object_growth_trend_s_to_i` ☰ 
-   `object_space_usage` ☰ 
-   `object_space_usage_tbf` ☰ 
-   `parse_space_adv_info` ☰ 
+   `object_growth_trend_cur` ☰
+   `object_growth_trend_curtab` ☰
+   `object_growth_trend_i_to_s` ☰
+   `object_growth_trend_swrf` ☰
+   `object_growth_trend_s_to_i` ☰
+   `object_space_usage` ☰
+   `object_space_usage_tbf` ☰
+   `parse_space_adv_info` ☰
    → development/databases/Oracle/installed/packages/dbms/space/api/space_usage[`space_usage`] ☰ Reports space usage of → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a → development/databases/Oracle/architecture/database/logical-structures/segment[segment's] → development/databases/Oracle/architecture/database/logical-structures/segment/high-water-mark *or* information about *securefile lob* space usage.
    → development/databases/Oracle/installed/packages/dbms/space/api/unused_space[`unused_space`] ☰ Returns the total amount of occupied space, the amount of unused space, the last block with data etc. in a table, index or cluster.
-   `verify_shrink_candidate` ☰ 
-   `verify_shrink_candidate_tbf` ☰ 
+   `verify_shrink_candidate` ☰
+   `verify_shrink_candidate_tbf` ☰
 
   table }
 
