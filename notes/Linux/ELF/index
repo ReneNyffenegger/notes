@@ -1,9 +1,65 @@
 
+
+{ ELF Interpreter #elf-interpreter
+
+  The source file → https://repo.or.cz/tinycc.git/blob/7b9f19eaab7e568a7c7a42725da812377a588f50:/tcc.h#l298[`tcc.h`] of the → http://savannah.nongnu.org/projects/tinycc[TinyCC] compiler suggests that there are different *ELF interpreters* depending on the environment:
+code {
+/* name of ELF interpreter */
+#ifndef CONFIG_TCC_ELFINTERP
+# if TARGETOS_FreeBSD
+#  define CONFIG_TCC_ELFINTERP "/libexec/ld-elf.so.1"
+# elif TARGETOS_FreeBSD_kernel
+#  if defined(TCC_TARGET_X86_64)
+#   define CONFIG_TCC_ELFINTERP "/lib/ld-kfreebsd-x86-64.so.1"
+#  else
+#   define CONFIG_TCC_ELFINTERP "/lib/ld.so.1"
+#  endif
+# elif TARGETOS_DragonFly
+#  define CONFIG_TCC_ELFINTERP "/usr/libexec/ld-elf.so.2"
+# elif TARGETOS_NetBSD
+#  define CONFIG_TCC_ELFINTERP "/usr/libexec/ld.elf_so"
+# elif TARGETOS_OpenBSD
+#  define CONFIG_TCC_ELFINTERP "/usr/libexec/ld.so"
+# elif defined __GNU__
+#  define CONFIG_TCC_ELFINTERP "/lib/ld.so"
+# elif defined(TCC_TARGET_PE)
+#  define CONFIG_TCC_ELFINTERP "-"
+# elif defined(TCC_UCLIBC)
+#  define CONFIG_TCC_ELFINTERP "/lib/ld-uClibc.so.0" /* is there a uClibc for x86_64 ? */
+# elif defined TCC_TARGET_ARM64
+#  if defined(TCC_MUSL)
+#   define CONFIG_TCC_ELFINTERP "/lib/ld-musl-aarch64.so.1"
+#  else
+#   define CONFIG_TCC_ELFINTERP "/lib/ld-linux-aarch64.so.1"
+#  endif
+# elif defined(TCC_TARGET_X86_64)
+#  if defined(TCC_MUSL)
+#   define CONFIG_TCC_ELFINTERP "/lib/ld-musl-x86_64.so.1"
+#  else
+#   define CONFIG_TCC_ELFINTERP "→ Linux/fhs/lib64/ld-linux-x86-64_so_2[/lib64/ld-linux-x86-64.so.2]"
+#  endif
+# elif defined(TCC_TARGET_RISCV64)
+#  define CONFIG_TCC_ELFINTERP "/lib/ld-linux-riscv64-lp64d.so.1"
+# elif !defined(TCC_ARM_EABI)
+#  if defined(TCC_MUSL)
+#   if defined(TCC_TARGET_I386)
+#     define CONFIG_TCC_ELFINTERP "/lib/ld-musl-i386.so.1"
+#    else
+#     define CONFIG_TCC_ELFINTERP "/lib/ld-musl-arm.so.1"
+#    endif
+#  else
+#   define CONFIG_TCC_ELFINTERP "/lib/ld-linux.so.2"
+#  endif
+# endif
+code }
+
+}
+
 sa:
 
-  Linux → Linux/kernel/source[kernel source] file → Linux/kernel/source/fs/binfmt_elf_c with functions to load ELF format executables as used on SVr4 machines.
+  Linux → Linux/kernel/source[kernel source] file `→ Linux/kernel/source/fs/binfmt_elf_c` with functions to load ELF format executables as used on SVr4 machines.
 
-  → Linux/fhs/usr/include/elf_h defines standard ELF types, structures and → development/languages/C-C-plus-plus/preprocessor/macros[macros].
+ `→ Linux/fhs/usr/include/elf_h` defines standard ELF types, structures and → development/languages/C-C-plus-plus/preprocessor/macros[macros].
 
   → development/languages/C-C-plus-plus/C/libc/src/sysdeps/x86_64/elf/start_S contains x86-64 ABI compliant startup code.
 

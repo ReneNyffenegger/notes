@@ -1,0 +1,31 @@
+$ /usr/bin/ld.so
+
+On my current system (Debian), `/usr/bin/ld.so` is a symbolic link to `/lib64/ld-linux-x86-64.so.2` which in turn is a symbolic link to
+`/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`.
+code {
+$ p=/usr/bin/ld.so
+$ while [ -L $p ]; do p=$(readlink $p); echo $p; done
+/lib64/ld-linux-x86-64.so.2
+/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+code }
+
+… but it's even a bit more complicated than that:
+code {
+$ → Linux/shell/commands/namei /usr/bin/ld.so
+f: /usr/bin/ld.so
+ d /
+ d usr
+ d bin
+ l ld.so -> /lib64/ld-linux-x86-64.so.2
+   d /
+   l lib64 -> usr/lib64
+     d usr
+     d lib64
+   l ld-linux-x86-64.so.2 -> /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+     d /
+     l lib -> usr/lib
+       d usr
+       d lib
+     d x86_64-linux-gnu
+     - ld-linux-x86-64.so.2
+code }
