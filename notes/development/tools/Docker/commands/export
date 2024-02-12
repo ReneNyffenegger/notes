@@ -1,0 +1,51 @@
+$ docker export
+
+`docker export` exports a → development/tools/Docker/container[container's] filesystem as a tar archive.
+
+By default, the content of the tar archive is written to → development/stdin-stdout-stderr[stdout].
+-
+The command line option `-o` (or `--output`) can be used to specify the name of a tar file.
+
+{ Simple example
+
+  Create a container (named `hello-world-container`) from the  image `hello-world`:
+code {
+$ → development/tools/Docker/commands/create --name hello-world-container hello-world
+…
+code }
+
+  Use `docker export` on the container name and pipe the result to `tar tv` which verbosely (i. e. with file size etc.) lists the content of the «tar file»:
+code {
+$ docker export hello-world-container | → Linux/shell/commands/tar tv
+-rwxr-xr-x root/0            0 2024-02-12 21:20 .env
+drwxr-xr-x root/0            0 2024-02-12 21:20 dev/
+-rwxr-xr-x root/0            0 2024-02-12 21:20 dev/console
+drwxr-xr-x root/0            0 2024-02-12 21:20 dev/pts/
+drwxr-xr-x root/0            0 2024-02-12 21:20 dev/shm/
+drwxr-xr-x root/0            0 2024-02-12 21:20 etc/
+-rwxr-xr-x root/0            0 2024-02-12 21:20 etc/hostname
+-rwxr-xr-x root/0            0 2024-02-12 21:20 etc/hosts
+lrwxrwxrwx root/0            0 2024-02-12 21:20 etc/mtab -> /proc/mounts
+-rwxr-xr-x root/0            0 2024-02-12 21:20 etc/resolv.conf
+-rwxr-xr-x root/0        13256 2023-12-15 23:04 hello
+drwxr-xr-x root/0            0 2024-02-12 21:20 proc/
+drwxr-xr-x root/0            0 2024-02-12 21:20 sys/
+code }
+
+  In this container, `hello` is the only file with non-zero bytes. Extract it from the container:
+code {
+$ docker hello-world-container | → Linux/shell/commands/tar x hello
+code }
+
+  We can now execute `hello` locally rather than in the container: 
+code {
+$ ./hello
+
+Hello from Docker!
+  …
+code }
+
+}
+
+sa:
+  → development/tools/Docker/commands
