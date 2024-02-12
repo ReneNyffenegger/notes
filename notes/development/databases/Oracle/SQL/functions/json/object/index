@@ -1,35 +1,75 @@
 $ Oracle: JSON_OBJECT
 
 code {
-select
+→ development/databases/Oracle/SQL/select
    json_object (
       'num'  value  42,
       'txt'  value 'Hello world',
-      'dat'  value  sysdate
-  )
+      'dat'  value  → development/databases/Oracle/SQL/functions/date/sysdate
+  ) json_obj
 from
-   dual;
+   → development/databases/Oracle/SQL/dual;
 --
--- {"num":0.42,"txt":"Hello world","dat":"2021-08-09T12:51:54"}
+-- JSON_OBJ
+-- ----------------------------------------------------------
+-- {"num":42,"txt":"Hello world","dat":"2024-02-12T16:42:20"}
 code }
 
 { Hierarchical JSON documents
 
  `json_object` and `→ development/databases/Oracle/SQL/functions/json/array` can be used to created nested (hierarchical) JSON documents:
 code {
-select
+→ development/databases/Oracle/SQL/select
    json_object(
-     'nums' value json_array(1, 2, 3, 4, 5),
+     'nums' value → development/databases/Oracle/SQL/functions/json/array[json_array](1, 2, 3, 4, 5),
      'obj'  value json_object
       (
          'id'   value  42,
          'txt'  value 'hello world'
       )
-   )
-from 
-   dual;
+   ) json_obj
+from
+   → development/databases/Oracle/SQL/dual;
 --
+-- JSON_OBJ
+-- --------------------------------------------------------
 -- {"nums":[1,2,3,4,5],"obj":{"id":42,"txt":"hello world"}}
+code }
+
+}
+{ Pretty printing result
+
+  The keyword `pretty` can be placed in front of the closing paranthesis which causes the result to be arguably prettier:
+code {
+→ development/databases/Oracle/SQL/select
+   json_object(
+     'nums' value → development/databases/Oracle/SQL/functions/json/array[json_array](1, 2, 3, 4, 5),
+     'obj'  value json_object
+      (
+         'id'   value  42,
+         'txt'  value 'hello world'
+      )
+      PRETTY
+   ) json_obj
+from
+   → development/databases/Oracle/SQL/dual;
+-- JSON_OBJ
+-----------
+-- {
+--   "nums" :
+--   [
+--     1,
+--     2,
+--     3,
+--     4,
+--     5
+--   ],
+--   "obj" :
+--   {
+--     "id" : 42,
+--     "txt" : "hello world"
+--   }
+-- }
 code }
 
 }

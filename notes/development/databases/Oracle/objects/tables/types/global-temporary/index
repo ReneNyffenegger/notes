@@ -1,10 +1,73 @@
 $ Oracle: Global Temporary Table (GTT)
 
+code {
+create global temporary table tq84_temp (a number);
+insert into tq84_temp values (42);
+
+-- One record in → development/databases/Oracle/installed/data-dictionary/objects[user_objects]:
+select * from user_objects  where  object_name = 'TQ84_TEMP';
+
+-- One record also in → development/databases/Oracle/installed/data-dictionary/tables[user_tables] (with the value of TEMPORARY = Y):
+select
+   temporary,
+   tablespace_name,
+   duration
+from
+   user_tables
+where
+   table_name = 'TQ84_TEMP';
+
+-- No record in → development/databases/Oracle/installed/data-dictionary/segments[user_segments]:
+select * from user_segments where segment_name = 'TQ84_TEMP';
+code }
+
 { rowid #ora-gtt-rowid
 
-  An experiment with → development/databases/Oracle/SQL/data-types/rowid[rowids] of GTTs.
+  Global temporary tables have  → development/databases/Oracle/SQL/data-types/rowid[rowids] which is demonstrated below.
 
-  gh|Oracle-Patterns|/DatabaseObjects/Tables/GlobalTables/rowid.sql||
+  WE need a GTT with some data…
+code {
+create global temporary table tq84_gtt (
+   num number,
+   txt varchar2(10)
+);
+
+begin
+   insert into tq84_gtt values (1, 'one'  );
+   insert into tq84_gtt values (2, 'two'  );
+   insert into tq84_gtt values (3, 'three');
+   insert into tq84_gtt values (4, 'four' );
+end;
+/
+code }
+
+  The data is updated…
+code {
+begin
+
+  for r in (select rowid, txt from tq84_gtt) loop
+      update tq84_gtt set txt = upper(r.txt) where rowid = r.rowid;
+  end loop;
+
+end;
+/
+code }
+
+  Show the updated values:
+code {
+select * from tq84_gtt;
+       NUM TXT       
+---------- ----------
+         1 ONE       
+         2 TWO       
+         3 THREE     
+         4 FOUR   
+code }
+
+  Cleaning up:
+code {
+drop table tq84_gtt purge;
+code }
 
 }
 
