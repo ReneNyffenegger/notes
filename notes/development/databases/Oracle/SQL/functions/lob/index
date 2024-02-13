@@ -13,4 +13,36 @@ Some → development/databases/Oracle/SQL/functions[Oracle SQL functions] that a
 
   Compare with → development/databases/Oracle/installed/packages/dbms/lob#dbms_lob-createTemporary[`dbms_lob.createTemporary()`].
 
+  { Example #to_clob-ex
+
+    A zero sized `→ development/databases/Oracle/SQL/data-types/varchar2` is → development/databases/Oracle/SQL/null#empty-string-null[not distinguishable] from `→ development/databases/Oracle/SQL/null` in Oracle, a `clob`
+    with an empty string is different from `null`:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_c (id integer, c clob);
+
+begin
+   insert into tq84_c values (1, null        );
+   insert into tq84_c values (2, ''          );
+   insert into tq84_c values (3, empty_clob());
+   commit;
+end;
+/
+
+→ development/databases/Oracle/SQL/select
+   id,
+   length(c) len
+→ development/databases/Oracle/SQL/select/from
+   tq84_c;
+-- 
+--   ID   LEN
+-- ----  ----
+--    1      
+--    2      
+--    3     0
+
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_c;
+code }
+
+  }
+
 }

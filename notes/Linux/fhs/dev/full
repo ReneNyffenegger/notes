@@ -1,6 +1,15 @@
 $ /dev/full
 
-`/dev/full` returns *ENOSPC* on write.
+`/dev/full` returns *ENOSPC* when written to and returns a stream of zeroes (similar to `→ Linux/fhs/dev/zero`) when read.
+
+code {
+$ echo x > /dev/full
+-bash: echo: write error: No space left on device
+
+$ → Linux/shell/commands/dd if=/dev/full bs=20 count=1 2>→ Linux/fhs/dev/null | → Linux/shell/commands/xxd → Linux/shell/commands/xxd#xxd-i[-i]
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+code }
 
 Apparently, `/dev/full` is created in `→ Linux/kernel/source/drivers/char/mem_c`.
 

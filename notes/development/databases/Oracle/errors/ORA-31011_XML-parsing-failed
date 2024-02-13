@@ -1,29 +1,93 @@
 $ ORA-31011: XML parsing failed
 
-code {
-create table tq84_ora_31011 (
-   lpx integer,
-   dat clob
-);
-code }
+
 
 code {
-insert into tq84_ora_31011 values (245, '<x><y>foo</y><z>bar</z></x>EXTRA DATA');
-commit;
-code }
+create table tq84_x(lpx number, c clob);
 
+set define off
+begin
+   delete from tq84_x;
+  
+   insert into tq84_x values (   7.1, '<a>'         );
+   insert into tq84_x values (   7.2, ' '           );
+   insert into tq84_x values ( 210.1, 'x'           );
+   insert into tq84_x values ( 225.1, '<a></b>'     );
+   insert into tq84_x values ( 229.1,  empty_clob() );
+   insert into tq84_x values ( 242.1, '<a>&</a>'    );
+   insert into tq84_x values ( 243.1, '<a id=42/>'  );
+   insert into tq84_x values ( 245.1, '<a></a>e'    );
+  
+   insert into tq84_x values (   0.0,  null         );
+end;
+/
+code }
+ 
+ 
 code {
-select
-   → development/databases/Oracle/installed/types/XMLType[xmlType](dat)
-from
-   tq84_ora_31011
-where
-   lpx = 245;
---
+select xmltype(c) from tq84_x where lpx =    7.1;
 -- ORA-31011: XML parsing failed
--- ORA-19213: error occurred in XML processing at lines 3
+-- → development/databases/Oracle/errors/ORA-19202_error-in-XML-processing
+-- LPX-00007: unexpected end-of-file encountered
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =    7.2;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19202_error-in-XML-processing
+-- LPX-00007: unexpected end-of-file encountered
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =  210.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
+-- LPX-00210: expected '<' instead of 'x'
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =  225.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
+-- LPX-00225: end-element tag "b" does not match start-element tag "a"
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =  229.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19202_error-in-XML-processing
+-- LPX-00229: input source is empty
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =  242.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
+-- LPX-00242: invalid use of ampersand ('&') character (use &amp;)
+code }
+ 
+code {
+select xmltype(c) from tq84_x where lpx =  243.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
+-- LPX-00243: element attribute value must be enclosed in quotes
+code }
+
+code {
+select xmltype(c) from tq84_x where lpx =  245.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
 -- LPX-00245: extra data after end of document
--- ORA-06512: at "SYS.XMLTYPE", line 272
+code }
+
+code {
+drop table tq84_x;
+code }
+
+code {
+select xmltype('') from dual;
+-- ORA-19032: Expected XML tag , got no content
+-- ORA-06512: at "SYS.XMLTYPE", line 310
 -- ORA-06512: at line 1
 code }
 
