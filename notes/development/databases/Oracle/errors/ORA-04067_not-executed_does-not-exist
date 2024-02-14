@@ -1,5 +1,6 @@
 $ ORA-04067: … not executed, … does not exist
 
+Create a package without package body:
 code {
 create or replace package tq84_ora_04067_pkg
    authid definer
@@ -7,13 +8,20 @@ as
    function f return number;
 end tq84_ora_04067_pkg;
 /
+code }
  
+Create a → development/databases/Oracle/objects/views that uses the function in the package. The view compiles because the function `tq84_ora_04067_view.f` *is*
+declared *even though* the package body does not exist:
+code {
 create or replace view tq84_ora_04067_view as
 select
    tq84_ora_04067_pkg.f
 from
-   dual;
+   → development/databases/Oracle/SQL/dual;
+code }
   
+However, when the view is used, it will report the missing package body:
+code {
 select * from tq84_ora_04067_view;
 -- ORA-04067: not executed, package body "RENE.TQ84_ORA_0406._PKG" does not exist
 -- → development/databases/Oracle/errors/ORA-06508_PL-SQL_could-not-find-program-unit-being-called[ORA-06508: PL/SQL: could not find program unit being called: "RENE.TQ84_ORA_04067_PKG"]
