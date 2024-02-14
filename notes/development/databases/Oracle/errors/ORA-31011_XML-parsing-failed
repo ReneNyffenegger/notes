@@ -1,31 +1,36 @@
 $ ORA-31011: XML parsing failed
 
-
-
 code {
 create table tq84_x(lpx number, c clob);
 
-set define off
+--
+-- We have an ampersand in the insert statements…
+-- … setting → development/databases/Oracle/SQL-Plus/set/define[define] off makes sure that this is not
+-- interpreted as a → development/databases/Oracle/SQL-Plus/_variables[variable].
+--
+→ development/databases/Oracle/SQL-Plus/set/define off
+
 begin
    delete from tq84_x;
   
-   insert into tq84_x values (   7.1, '<a>'         );
-   insert into tq84_x values (   7.2, ' '           );
-   insert into tq84_x values ( 210.1, 'x'           );
-   insert into tq84_x values ( 225.1, '<a></b>'     );
-   insert into tq84_x values ( 229.1,  empty_clob() );
-   insert into tq84_x values ( 242.1, '<a>&</a>'    );
-   insert into tq84_x values ( 243.1, '<a id=42/>'  );
-   insert into tq84_x values ( 245.1, '<a></a>e'    );
+   insert into tq84_x values (   7.1, '<a>'                     );
+   insert into tq84_x values (   7.2, ' '                       );
+   insert into tq84_x values ( 210.1, 'x'                       );
+   insert into tq84_x values ( 225.1, '<a></b>'                 );
+   insert into tq84_x values ( 229.1,  empty_clob()             );
+   insert into tq84_x values ( 242.1, '<a>&</a>'                );
+   insert into tq84_x values ( 243.1, '<a id=42/>'              );
+   insert into tq84_x values ( 245.1, '<a></a>e'                );
+   insert into tq84_x values ( 254.1, '<?xml version="1.0"><a/>'); -- Should be <?xml version="1.0"?>
   
-   insert into tq84_x values (   0.0,  null         );
+   insert into tq84_x values (   0.0,  null                     );
 end;
 /
 code }
  
  
 code {
-select xmltype(c) from tq84_x where lpx =    7.1;
+select → development/databases/Oracle/installed/types/XMLType[xmltype](c) from tq84_x where lpx =    7.1;
 -- ORA-31011: XML parsing failed
 -- → development/databases/Oracle/errors/ORA-19202_error-in-XML-processing
 -- LPX-00007: unexpected end-of-file encountered
@@ -81,15 +86,23 @@ select xmltype(c) from tq84_x where lpx =  245.1;
 code }
 
 code {
-drop table tq84_x;
+select xmltype(c) from tq84_x where lpx =  254.1;
+-- ORA-31011: XML parsing failed
+-- → development/databases/Oracle/errors/ORA-19213_error-occurred-in-XML-processing-at-lines[ORA-19213: error occurred in XML processing at lines 1]
+-- LPX-00254: invalid XML declaration
 code }
 
 code {
-select xmltype('') from dual;
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_x;
+code }
+
+code {
+select xmltype('') from → development/databases/Oracle/SQL/dual;
 -- ORA-19032: Expected XML tag , got no content
 -- ORA-06512: at "SYS.XMLTYPE", line 310
 -- ORA-06512: at line 1
 code }
+
 
 sa:
   → development/databases/Oracle/errors[Other Oracle error messages]
