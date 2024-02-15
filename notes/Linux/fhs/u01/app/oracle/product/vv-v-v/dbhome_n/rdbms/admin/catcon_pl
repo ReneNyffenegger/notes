@@ -1,27 +1,36 @@
 $ $ORACLE_HOME/rdbms/admin/catcon.pl
 @ catcon.pl
 
+`catcon.pl` is a perl script that executes SQL scripts or SQL statements in container and pluggable databases at once. It can run these scripts in correct order in `CDB$ROOT` and specified PDBs.
+
 code {
 $ → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/perl[$ORACLE_HOME/perl]/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl [options] -b|--log_file_base  sql-script|statement
 code }
 
+{ Command line options
 
-table { llll
-
-
+  Typically, the following command line options are used:
+  table { llll
    `-u` ☰ `--usr` ☰ `username[/password]` ☰ Specify username and optional password for user with which user supplied script is run. Default: `/ as sysdba`
+   `-d` ☰ `--script_dir` ☰ `directory` ☰ Name of the directory in which the script to be run is located
+   `-b` ☰ `-log_file_base` ☰ ☰ The *base name* for log files. This parameter is mandatory. It's value can be freely chosen.
+   `-s` ☰ `--spool` ☰ ☰ → development/databases/Oracle/SQL-Plus/spool[Spool] to `<log-file-name-base>_<script_name_without_extension>_[<container_name_if_any>].<default_extension>`
+   `-e` ☰ `--echo` ☰ ☰ Sets → development/databases/Oracle/SQL-Plus/set/echo[`echo`] on
+   `-c` ☰ `--incl_con` ☰ `container(s)` ☰ The container(s) (space separated) in which the scripts should be run. (By default, the script is run in all open databases. Compare with `-C`)
+    ☰ `--p` ☰ `value` ☰ Variables to pass to the scripts
+  table }
+
+  Additinal command line options are:
+  table { llll
+
    `-w` ☰ `--usr_pwd_env_var` ☰ `env-var-name` ☰ Specify name of environment variable that stores a user's password.
    `-U` ☰ `--int_usr` ☰  `username[/password]` ☰ User to perform internal tasks
-   `-W` ☰ `--int_usr_pwd_env_var` ☰  `env-var-name ☰ Same ide as `-w`, but for `-U` user.
-   `-d` ☰ `--script_dir` ☰ `directory` ☰ Name of the directory in which the script is located
+   `-W` ☰ `--int_usr_pwd_env_var` ☰  `env-var-name` ☰ Same ide as `-w`, but for `-U` user.
    `-l` ☰ `--log_dir` ☰ `directory` ☰ Directory to spool log files to
-   `-c` ☰ `--incl_con` ☰ `container(s)` ☰ The container(s) (space separated) in which the scripts should be run. 
-   `-C` ☰ `--excl_con` ☰ `container(s)` ☰ The container(s) in which the scripts should *not* be run.
+   `-C` ☰ `--excl_con` ☰ `container(s)` ☰ The container(s) in which the scripts should *not* be run. Compare with `-c`
    `-p` ☰ `--catcon_instances` ☰ `degree-of-parallelism` ☰ number of concurrent invocations (rarely used)
    `-z` ☰ `--ez_conn` ☰ `EZConnect-strings` ☰ EZConnect strings corresponding to RAC instances
         ☰ `--ezconn_to_pdb` ☰ `pdb-name` ☰
-   `-e` ☰ `--echo` ☰ ☰ Sets echo on
-   `-s` ☰ `--spool` ☰ ☰ Spool to `<log-file-name-base>_<script_name_without_extension>_[<container_name_if_any>].<default_extension>`
    `-E` ☰ `--error_logging` ☰ `{ON | errorlogging-table-other-than-SPERRORLOG}` ☰ Use default or specified error logging table.
    `-F` ☰ `--app_con` ☰ `Application-Root` ☰ Run script in *application root* and all *application PDBs* that belong to this root. (cannot be specified with `-c` or `-C`)
    `-V` ☰ `--ignore_errors` ☰ `errors-to-ignore` ☰ Only supported error type is `script_path`
@@ -35,7 +44,7 @@ table { llll
    `-m` ☰ `--pdb_seed_mode` ☰ `pdb-mode` ☰ Mode in which a PDB should be opened (`UNCHANGED`, `READ WRITE` (default), `READ ONLY`, `UPGRADE` or `DOWNGRADE`)
    `-D` ☰ `--disable_lockdown` ☰ ☰ Disab le lockdown profile before running script(s)
         ☰ `--fail_on_unopenable_pdbs` ☰ ☰ 
-        ☰ `--force_pdb_mode` ☰ `pdb-mode` ☰ 
+        ☰ `--force_pdb_mode` ☰ `pdb-mode` ☰ Specifies the required open mode for all PDBs where the scripts are run. Same set of possible values as in `--pdb_seed_mode`.
         ☰ `--all_instances` ☰ ☰
         ☰ `--upgrade` ☰ ☰ Specified if a database is upgraded
         ☰ `--sqlplus_dir` ☰ `directory` ☰ Directory where `sqlplus` binary is located
@@ -46,7 +55,10 @@ table { llll
       ☰ `--app_action_no_arg` ☰ ☰
      `-h` ☰ `--help` ☰ ☰ 
 
-table }
+  table }
+
+}
 
 sa:
- `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin`
+
+ The `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin` directory (especially the two scripts `sqlsessstart.sql` and `sqlsessend.sql`).
