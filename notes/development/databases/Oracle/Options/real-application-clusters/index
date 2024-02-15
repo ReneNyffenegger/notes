@@ -6,7 +6,6 @@ RAC is the computer cluster version of → development/databases/Oracle[Oracle D
 → development/databases/Oracle/architecture/database[database]. The instances are
 connected by an *interconnect*.
 
-
 Reasons to use RAC are
   • → development/databases/Oracle/High-Availability (fault tolerance)
   • Scalability (on demand, additional nodes can be added to the cluster (Grid plug and play))
@@ -16,6 +15,24 @@ RAC requires *Oracle Clusterware*
 { ADR
 
    In a RAC environment, each participating → development/databases/Oracle/architecture/instance and ASM have their own → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository[ADR] home.
+
+}
+{ Checking if an instance is a RAC instance
+
+
+  Is → development/databases/Oracle/architecture/processes/background `LMON` running:
+code {
+$ → Linux/shell/commands/ps -ef | → Linux/shell/commands/grep lmon | grep $ORACLE_SID
+code }
+
+  Does → development/databases/Oracle/SQL-Plus show *Real Application Clusters* in its banner when started up?
+
+  Is the value of the init paramter `→ development/databases/Oracle/adminstration/init-parameters/cluster/database` = `true` (note that during a maintenance period, the value may be `false` even though its a RAC instance)j.wj
+
+  The following shell command checks if the RAC option is linked. If it does not return anything, it is not linked, otherwise, it prints `kcsm.o`:
+code {
+$  → development/GNU/toolchain/binutils/ar -t → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/lib/libknlopt_a | → Linux/shell/commands/grep kcsm.o
+code }
 
 }
 
