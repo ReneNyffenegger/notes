@@ -35,7 +35,7 @@ select
    --
    trunc(da.ys) || ' days ' ||
    to_char(
-      trunc(sysdate) + 
+      trunc(→ development/databases/Oracle/SQL/functions/date/sysdate) +
       mod(da.ys, 1)  , --  Add date difference's fractional part to start of 'today'
      'hh24 "hours" mi "minutes" ss "seconds"'
    )                                                     humanly_readable
@@ -112,7 +112,7 @@ select
    --
    to_char(date '+1582-02-28', 'J'),
 -- to_char(date '+1582-02-29', 'J'),
-   to_char(date '+1582-03-01', 'J')  
+   to_char(date '+1582-03-01', 'J')
 from
    dual;
 code }
@@ -124,17 +124,17 @@ code }
 
   Oracle uses 7 bytes to store a date. These bytes correspond to a date's century, the last two digits of the year, month, day, hour, minute and second.
 
-  The year is calculated with `(ByteCentury-100)*100 + ByteYear-100`. 
+  The year is calculated with `(ByteCentury-100)*100 + ByteYear-100`.
 
   In order to get the actual values for hour, minute and seconds, the value 1 must be subtracted from the corresponding byte value.
 
-  The function `dump` allows to print the internal representation of a value:
+  The function `→ development/databases/Oracle/SQL/functions/misc/dump` allows to print the internal representation of a value:
 code {
 create table tq84_dt(a date);
 insert into tq84_dt values (timestamp '1950-04-08 12:16:20');
 commit;
 
-select dump(a) from tq84_dt;
+select → development/databases/Oracle/SQL/functions/misc/dump(a) from tq84_dt;
 --
 -- Typ=12 Len=7: 119,150,4,8,13,17,21
 --
@@ -143,6 +143,33 @@ drop table tq84_dt;
 code }
 
   The internal format is described in → https://support.oracle.com/epmos/faces/DocumentDisplay?&id=69028.1[MOS note 69028.1].
+
+  { External datatype 13 vs internal datatype 12 #ora-date-12-vs-13
+
+    Note how the data type number and length of a `date` which *is not* stored in a datafile (such as the value evaluated by `→ development/databases/Oracle/SQL/functions/date/sysdate`)
+    is different from a `date` which *is* stored in a datafile:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_t(dt date);
+insert into tq84_t values (sysdate);
+
+select → development/databases/Oracle/SQL/functions/misc/dump(dt     ) from tq84_t → development/databases/Oracle/SQL/select/set-operators/union/all
+select → development/databases/Oracle/SQL/functions/misc/dump(→ development/databases/Oracle/SQL/functions/date/sysdate) from → development/databases/Oracle/SQL/dual;
+--
+-- DUMP(DT)
+-- -----------------------------------
+-- Typ=12 Len=7: 120,124,2,16,18,11,16
+-- Typ=13 Len=8: 232,7,2,16,17,10,15,0
+
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_t;
+code }
+
+    The «external data» type 13 is an «internal c-struct» whose length varies depending on the compiler's representation of the structure.
+    -
+    Type 13 is mainly used for date related calculations in → development/databases/Oracle/PL-SQL.
+
+    See also → development/databases/Oracle/SQL/data-types#ora-data-type-codes[`dbms_types.typecode_date`] whose value is 12.
+
+  }
 
 }
 { Misc
@@ -160,5 +187,7 @@ sa:
     • → development/databases/Oracle/errors/ORA-02436_date-or-system-variable-wrongly-specified-in-CHECK-constraint
 
   The → development/databases/ADO/data-types[ADO data type] that corresponds to Oracle's `date` is `adDBTimeStamp`.
+
+  → development/databases/Oracle/SQL/data-types/date/export-to-Excel
 
   → development/databases/Oracle/SQL/data-types

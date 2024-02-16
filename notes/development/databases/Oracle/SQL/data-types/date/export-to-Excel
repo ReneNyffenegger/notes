@@ -1,0 +1,21 @@
+$ Exporting Oracle DATEs to Excel
+
+Exporting → development/databases/Oracle/SQL/data-types/date[date values] from Oracle to Excel as string value is, *IMHO*, error prone because it must be relied on Excel interpreting the dates in the correct format.
+
+It seems to be safer (albeit also a bit more tedious) to export Oracle date values in → Microsoft/Office/Excel/data-types/number/serial[Excel's serial number format] (i. e. the number
+of fractional days between the date and December 31st 1899.
+
+Such a serial number value can be obtained by subtracting `date 'date '1900-12-30'` from the exported date:
+code {
+select
+   → development/databases/Oracle/SQL/functions/type-conversion/to_date('2024-02-16 12:34:56', 'yyyy-mm-dd hh24:mi:ss') - → development/databases/Oracle/SQL/data-types/date#ora-date-literal[date] '1900-12-30' serial_number
+from
+   → development/databases/Oracle/SQL/dual;
+code }
+
+The obtained value (in this example: 44973.5242592592592592592592592592592593) can then be copied into a → Microsoft/Office/Excel/Object-Model/Range/cell in Excel and given the
+→ Microsoft/Office/Excel/Object-Model/Range/numberFormat/[number format] of a date. For example, in VBA with:
+code {
+→ Microsoft/Office/Excel/Object-Model/Application/selection[selection].value = 44973.5242592592592592592592592592592593
+→ Microsoft/Office/Excel/Object-Model/Application/selection[selection].numberFormat = "dd/mm/yyyy hh:mm:ss"
+code }
