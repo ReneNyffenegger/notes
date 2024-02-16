@@ -3,7 +3,30 @@ $ Oracle: V$ENCRYPTED_TABLESPACES
 
 `v$encrypted_tablespaces` lists all *currently encrypted* → development/databases/Oracle/architecture/database/logical-structures/tablespace[tablespaces].
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/encrypted_tablespaces/show.sql||
+code {
+select
+   ts#,
+   encryptionalg,
+   encryptedts,
+   encryptedkey,
+   masterkeyid,
+-- --------------------------------------------------------------------------------------------------------
+-- masterkeyid is in → development/Base64 format. 
+-- The following transformation returns the key a the format which can be used to
+-- compare it to the wallet's ORACLE.SECURITY.DB.ENCRYPTION.MASTERKEY
+--     (MOS Note 1228046.1)
+   utl_raw.cast_to_varchar2(utl_encode.base64_encode('01'||substr(masterkeyid, 1, 4                  ))) ||
+   utl_raw.cast_to_varchar2(utl_encode.base64_encode(      substr(masterkeyid, 5, length(masterkeyid))))     masterkey_, 
+-- ------------------------------------------------------------------------------------------------------- 
+   blocks_encrypted
+   blocks_decrypted,
+   key_version,
+   status,
+   ciphermode,
+   con_id
+from
+   v$encrypted_tablespaces;
+code }
 
 sa:
 
@@ -11,5 +34,7 @@ sa:
  `→ development/databases/Oracle/installed/dynamic-performance-views/database_key_info`
 
  `→ development/databases/Oracle/installed/dynamic-performance-views/tablespace`
+
+ → development/databases/Oracle/installed/data-dictionary/base-tables/enc[`sys.enc$`]
  
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
