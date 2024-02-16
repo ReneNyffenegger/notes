@@ -1,0 +1,28 @@
+$ Oracle: DBA_HIST_DATABASE_INSTANCE
+@ dba_hist_database_instance
+
+code {
+select
+   dbi.instance_name,
+   dbi.database_role,
+   case when dbi.dbid in (select gvd.dbid from gv$database gvd) then '*' end cur_db,
+   case when dbi.dbid = dbi.cdb_root_dbid then '*' end is_cdb,  
+   nvl(dbi.startup_time_tz, dbi.startup_time) startup_time,
+  (select max(sample_time) from → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history shi where shi.sample_id <= dbi.last_ash_sample_id and shi.dbid = dbi.dbid) last_sample_time,
+   dbi.last_ash_sample_id,
+   dbi.dbid,
+   dbi.cdb,
+   dbi.cdb_root_dbid,
+   dbi.host_name,
+   dbi.db_name,
+   dbi.db_unique_name,
+   dbi.instance_number,
+   dbi.con_id
+from
+   dba_hist_database_instance dbi
+order by
+   dbi.startup_time desc;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/hist[`dba_hist*` views]
