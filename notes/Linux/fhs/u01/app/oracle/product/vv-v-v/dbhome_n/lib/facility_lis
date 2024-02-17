@@ -1,0 +1,59 @@
+$ $ORACLE_HOME/lib/facility.lis
+
+`$ORACLE_HOME/lib/facility.lis` defines Oracle *facilities* and corresponding component names.
+
+Each «data line» contains of a colon separated list with the following values:
+  • facility
+  • component name
+  • real facility (?) - As far as I can tell, this is always a '*'
+  • optional facility description
+
+This file is consumed by `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/oerr_pl`
+
+The following one-liner counts the different component names:
+code {
+$ → Linux/shell/commands/grep -vE '^\s*($|#)' facility.lis | → Linux/shell/commands/cut -d: -f2  | → Linux/shell/commands/sort | → Linux/shell/commands/uniq -c
+      1 assistants
+      1 browser
+      1 crs
+      1 css
+      1 ctx
+      1 cwmlite
+      1 evm
+      5 forms
+      5 forms40
+     24 has
+      1 install
+      1 ldap
+      2 md
+     44 network
+      3 nls
+      1 oacore
+      2 obackup
+     20 office
+      1 olap
+     10 oracore
+      5 ord
+      1 pfs
+      3 plsql
+     22 precomp
+      4 qos
+      1 racg
+     30 rdbms
+      1 reports20
+     10 rhp
+      1 slax
+      5 sqlplus
+      1 sqlreport
+      3 sqltr
+     48 srvm
+      1 svrmgr
+     11 usm
+      1 xag
+      2 xdk
+code }
+
+Some of these → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/_component[components correspond to directories] found under `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n`. A variation of the one liner can be used to find components without a corresponding directory:
+code {
+$ for f in $(grep -vE '^\s*($|#)' facility.lis | cut -d: -f2  | sort -u); do test ! -d $ORACLE_HOME/$f && echo $f is not a directory ; done
+code }
