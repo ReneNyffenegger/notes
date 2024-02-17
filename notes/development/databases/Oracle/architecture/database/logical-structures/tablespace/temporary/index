@@ -1,16 +1,45 @@
 $ Oracle: Temporary tablespace
 @ temporary tablespace
 
-A *temporary tablespace* stores objects only for the duration of a → development/databases/Oracle/architecture/session such as
+A *temporary → development/databases/Oracle/architecture/database/logical-structures/tablespace* stores objects only for the duration of a → development/databases/Oracle/architecture/session such as
   • intermediary sort results
   • temporary tables and indexes
   • → development/databases/Oracle/SQL/data-types/lob#ora-lob-3-types[temporary LOBs].
   • temporary B-trees
 
 A single temporary tablespace named *TEMP* is created along with the creation of a → development/databases/Oracle/architecture/database.
--
-It's possible to add more temporary tablespaces.
+
+When adding more temporary tablespaces, Oracle recommends to create them → development/databases/Oracle/architecture/database/logical-structures/tablespace#ora-ts-local-mgmt[locally managed] with *uniform extent sizes* of 1MB.
 
 It's not possible to create → development/databases/Oracle/objects[database objects] in a temporary tablespace (however, the column name `tablespace_name` in
 `→ development/databases/Oracle/installed/data-dictionary/private_temp_tables` seems to indicate that data stored in a → development/databases/Oracle/objects/tables/types/temporary/private[private temporary table]
 may be stored in a temporary tablespace).
+
+{ Shrinking the tablespace
+
+  Temporary tablespaces can be shrunk:
+code {
+alter tablespace temp shrink space;
+alter tablespace temp shrink space                                       keep 500 m;
+alter tablespace temp shrink tempfile '/opt/oracle/oradata/…/temp01.dbf' keep 500 m;
+code }
+
+}
+{ Determine a database's default temporary tablespace #ora-temp-ts-def
+
+code {
+select property_value from → development/databases/Oracle/installed/data-dictionary/database/properties where property_name = 'DEFAULT_TEMP_TABLESPACE';
+code }
+
+}
+{ Tablespace groups
+
+  A *tablespace group* allows to use multiple temporary tablespaces for operations that require large amounts of temporary space.
+
+}
+
+sa:
+
+ `→ development/databases/Oracle/installed/data-dictionary/temp/files`, `→ development/databases/Oracle/installed/dynamic-performance-views/tempfile`
+
+  *MOS Note* 1498442.1

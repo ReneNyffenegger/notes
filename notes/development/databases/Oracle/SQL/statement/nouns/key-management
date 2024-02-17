@@ -1,8 +1,28 @@
 $ Oracle SQL noun: KEY MANAGEMENT
 
+{ Creating a keystore
+
+
+  In a shell on the database server
 code {
-administer key management create keystore '/u01/app/oracle/secure' identified by …;
+→ Linux/shell/commands/mkdir /opt/oracle/wallet
 code }
+
+  Then in an SQL prompt:
+code {
+administer key management create keystore '/opt/oracle/wallet' identified by theWalletsSecret;
+code }
+
+  This command created the file `ewallet.p12` in the wallet directory:
+code {
+→ Linux/shell/commands/ls → Linux/shell/commands/ls/l[-l] /opt/oracle/wallet
+total 4
+-rw------- 1 oracle oinstall 2555 Feb 17 09:17 ewallet.p12
+code }
+
+}
+
+{ TODO
 
 code {
 administer key management set keystore open identified by …;
@@ -11,3 +31,32 @@ code }
 code {
 administer key management set key identified by … with backup;
 code }
+
+  The following command creates `/opt/oracle/wallet/cwallet.sso`:
+code {
+administer key management create       auto_login keystore from keystore '/opt/oracle/wallet' identified by theWalletsSecret;
+code }
+
+code {
+administer key management create local auto_login keystore from keystore '/opt/oracle/wallet' identified by theWalletsSecret;
+code }
+
+  Change the keystore's password:
+code {
+administer key management alter keystore password identified by theWalletsSecret set theWalletsNewSecret with backup using 'pwd_change';
+code }
+
+  Back up the keystore:
+code {
+administer key management backup keystore using 'wallet-backup-of-2024-02-17' identified by theWalletsSecret;
+code }
+
+  As per MOS Note 2253348.1, a security officer should be given the SYSKM privilege rather than the SYSDBA - so that the security officer cannot execute `alter system` commands such as `alter system set encryption key …`.
+
+}
+
+sa:
+
+  → development/databases/Oracle/errors/ORA-46633_creation-of-password-based-keystore-failed
+
+  → development/databases/Oracle/errors/ORA-28367_wallet-does-not-exist

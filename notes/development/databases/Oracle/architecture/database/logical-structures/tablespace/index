@@ -32,13 +32,7 @@ There are three types of tablespaces:
     • Locally managed tablespaces (LMT) with either automatical (ASSM) or manual segment space management (MSSM), and
     • Dictionary managed tablespaces (DMT)
 
-  A *locally managed tablespaces* is the more modern and usually preferred variant.
-  -
-  Oracle recommends LMTs with ASSM.
-
-  Dictionary managed tablespaces can only be created if the SYSTEM tablespace is also dictionary managed (error message → development/databases/Oracle/errors/ORA-12913_cannot-create-dictionary-managed-tablespace)
-
-  Which variant is used for a tablespace can be queried with the following select statement:
+  The variant being used for a tablespace can be queried with the following select statement:
 code {
 select
    tablespace_name,
@@ -47,15 +41,36 @@ from
    → development/databases/Oracle/installed/data-dictionary/tablespaces[dba_tablespaces];
 code }
 
+  { Dictionary managed tablespaces #ora-ts-dict-mgmt
+
+    Dictionary managed tablespaces manage free and used segments in the data dictionary (hence the name) in the tables `→ development/databases/Oracle/installed/data-dictionary/base-tables/fet` and `→ development/databases/Oracle/installed/data-dictionary/base-tables/uet`.
+
+    Dictionary managed tablespaces can only be created if the SYSTEM tablespace is also dictionary managed (error message → development/databases/Oracle/errors/ORA-12913_cannot-create-dictionary-managed-tablespace)
+
+  }
+  { Locally managed tablespaces #ora-ts-local-mgmt
+
+    Locally managed tablepsaces manages extents with bitmaps stored in the tablespace's data files. Each bit corresponds to a block or a group of blocks.
+    -
+    Because (except for tablespace quota information), the extent management is
+    not tracked in the dictionary, no → development/databases/Oracle/architecture/database/logical-structures/segment/undo/data (rollback information) is
+    generated when extents are allocated or freed.
+
+    A *locally managed tablespaces* is the more modern and usually preferred variant.
+    Oracle recommends LMTs with ASSM.
+
+    Extent information of locally managed tablespaces can be queried from `→ development/databases/Oracle/architecture/instance/fixed-tables/k/t/f/b/ue`.
+
+  }
   { Segment space management for locally managed tablespace
 
     For a locally managed tablespace, there are again two different methods to manage space:
       • Automatic segment space management (ASSM), the default for locally managed tablespace
       • Manual segment space management (MSSM), which is considered legacy
 
-    { Automatic segment space management
+    { Automatic segment space management #ora-ts-assm
 
-      With *ASSM*, space in a tablespace is managed using bitmaps. There is only one parameter that controls space allocation:
+      With *ASSM*, space in a tablespace is managed using bitmaps. There is only one → development/databases/Oracle/SQL/clauses/physical-attributes-and-storage-clause[storage attribute] that controls space allocation:
         • `pctfree`
 
     }
@@ -64,7 +79,7 @@ code }
       With *MSSM*, free space is managed using a linked list by the name of *free list*. This list records free
       → development/databases/Oracle/architecture/database/logical-structures/data-block[data blocks] below a segment's *high water mark*.
 
-      Parameters that control space management are:
+      → development/databases/Oracle/SQL/clauses/physical-attributes-and-storage-clause[Storage attributes] that control space management are:
         • `pctfree`
         • `pctused`
         • `freelists`
@@ -78,9 +93,12 @@ code }
       But compare with the value of `segment_subtype` (which can be `ASSM`, `MSSM`, `SECUREFILE` and `→ development/databases/Oracle/SQL/null`) in `→ development/databases/Oracle/installed/data-dictionary/segments`.
 
     }
+  }
+  { See also
+
+    MOS Note 93771.1: Introduction to Locally-Managed Tablespaces
 
   }
-
 }
 
 sa:
