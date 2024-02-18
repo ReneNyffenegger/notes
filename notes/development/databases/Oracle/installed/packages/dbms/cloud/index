@@ -108,10 +108,14 @@ rem }
 code {
 begin
    dbms_cloud.create_external_table(
-    table_name      =>'TEST_EXT',
+    table_name      =>'TQ84_CLOUD_TABLE_TEST',
     credential_name => null,
     file_uri_list   =>'https://www.web.statistik.zh.ch/ogd/daten/ressourcen/KTZH_00002063_00004104.csv',
-    format          => json_object('type' value 'csv', 'delimiter' value ',', 'header' value true),
+    format          => json_object(
+                           'type'        value 'csv',
+                           'delimiter'   value ','  ,
+                           'skipheaders' value '1'             -- , 'header' value true),
+                        ),
     column_list     => 'JAHR VARCHAR2(200),'                  ||
                        'DATUM VARCHAR2(200), '                ||
                        'GEMEINDE_NUMMER VARCHAR2(200), '      ||
@@ -127,6 +131,27 @@ begin
    );
 end;
 /
+
+
+select
+   tab.owner,
+   tab.external,
+   tex.type_name,
+   tex.default_directory_name,
+   tex.access_parameters,
+   tex.access_type,
+   tex.property
+from
+   dba_tables               tab                                         left join
+   dba_external_tables      tex on tab.owner      = tex.owner      and
+                                   tab.table_name = tex.table_name
+where
+   tab.table_name = 'TQ84_CLOUD_TABLE_TEST';
+   
+select * from tq84_cloud_table_test;
+--
+-- ORA-29913: error while processing ODCIEXTTABLEOPEN routine
+-- ORA-20000: Database property SSL_WALLET not found
 code }
 
     See → https://github.com/ReneNyffenegger/oracle-patterns/issues/3[here].
