@@ -96,20 +96,21 @@ code }
   PowerShell (or → Microsoft/dot-net?) distinguishes between *weakly typed* and *strongly typed* arrays:
   gh|about-PowerShell|/language/type/array/weakly-and-strongly-typed.ps1||
 
+  { An array can contain different data types
+
+     A weakly typed array can contain different data types.
+
+code {
+PS:\> $ary = 42, 'foo', (get-date)
+code }
+
+  }
+
 }
 { Sorting arrays
 
   A non-numeric array can be sorted numerically like so:
   gh|about-PowerShell|/language/type/array/numerically-sort-array.ps1||
-
-}
-{ An array can contain different data types
-
-   A weakly typed array can contain different data types.
-
-code {
-PS:\> $ary = 42, 'foo', (get-date)
-code }
 
 }
 { Nested arrays
@@ -151,9 +152,11 @@ code }
   gh|about-PowerShell|/language/type/array/unrolling.ps1||
 
 }
-{ Cmdlets returning arrays
+{ Cmdlets/functions returning arrays
 
-  A → Windows/PowerShell/language/cmdlet[cmdlet] might return an array:
+  { Returning arrays with an indeterminate number of eleements
+
+    Some → Windows/PowerShell/language/cmdlet[cmdlets] return arrays with an indeterminate number of elements (usually all of the same type):
 code {
 PS C:\> $services = get-service
 PS C:\> $services[0].name
@@ -164,17 +167,33 @@ PS C:\> $services[-1].name
 ZeroConfigService
 code }
 
-  In a → Windows/PowerShell/pipeline, the elements of the returned array can be sent to a → Windows/PowerShell/command-inventory/noun/object/forEach[`forEach-object` cmdlet] to process each
-  element of the array individually in a → Windows/PowerShell/language/scriptblock.
-  -
-  Within the script block, the → Windows/PowerShell/language/variable/automatic[automatic] variable → Windows/PowerShell/language/variable/automatic/psItem[`$_` (= `$psItem`)] refers to the
-  item being processed:
+    In a → Windows/PowerShell/pipeline, the elements of the returned array can be sent to a → Windows/PowerShell/command-inventory/noun/object/forEach[`forEach-object` cmdlet] to process each
+    element of the array individually in a → Windows/PowerShell/language/scriptblock.
+    -
+    Within the script block, the → Windows/PowerShell/language/variable/automatic[automatic] variable → Windows/PowerShell/language/variable/automatic/psItem[`$_` (= `$psItem`)] refers to the
+    item being processed:
 code {
 function doSomethingWithService {
   …
 }
 get-service | forEach-object { doSomethingWithService $_ }
 code }
+
+  }
+  { Returning a fixed number of elements
+
+    The following function returns an array with two elements with differing types. When invoked, the returned elements get assigned to two corresponding variables:
+code {
+function two-objects() {
+   return (→ Windows/PowerShell/command-inventory/noun/random/get[get-random]), (→ Windows/PowerShell/command-inventory/noun/date/get[get-date])
+}
+ 
+$rand, $now = two-objects
+→ Windows/PowerShell/command-inventory/noun/host/write "Random number is $rand"
+→ Windows/PowerShell/command-inventory/noun/host/write "Date now is      $now"
+code }
+
+  }
 
 }
 { The influence of $OFS #ps-array-ofs
@@ -204,7 +223,7 @@ code }
 }
 { Calling functions, passing arguments separated with commas
 
-  PowerShell separates arguments by whitepsace, not by comma, When calling a function or → Windows/PowerShell/language/cmdlet.
+  PowerShell separates arguments by whitespace, not by comma, When calling a function or → Windows/PowerShell/language/cmdlet.
   Thus, the individual → Windows/PowerShell/language/statement/function/parameters[arguments (or parameters)]
   must not be separated with commas because the commas construct an array.
 
