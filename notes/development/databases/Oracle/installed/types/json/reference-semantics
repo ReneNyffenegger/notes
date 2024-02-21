@@ -1,0 +1,44 @@
+$ Oracle JSON related PL/SQL types: Reference semantics
+
+By default → development/databases/Oracle/installed/types/json[JSON related PL/SQL types] have reference semantics:
+code {
+declare
+   jsn json_object_t;
+  
+   ary json_array_t;
+   obj json_object_t;
+begin
+ 
+   jsn := json_object_t.parse('{
+      "scl":  17,
+      "ary": [1,2,3],
+      "obj": {"num": 42}
+   }');
+  
+   ary := jsn.get_array('ary');
+   ary.append(4);
+  
+   obj := jsn.get_object('obj');
+   obj.put('txt','Hello world');
+  
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line[dbms_output.put_line](jsn.to_string(pretty=>true));
+  
+end;
+/
+--
+-- {
+--   "scl" : 17,
+--   "ary" :
+--   [
+--     1,
+--     2,
+--     3,
+--     4
+--   ],
+--   "obj" :
+--   {
+--     "num" : 42,
+--     "txt" : "Hello world"
+--   }
+-- }
+code }

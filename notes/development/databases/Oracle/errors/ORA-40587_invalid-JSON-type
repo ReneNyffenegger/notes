@@ -5,7 +5,6 @@ code {
 select → development/databases/Oracle/installed/types/json/object_t('{"num": 42, "txt": "hello world"}') from → development/databases/Oracle/SQL/dual;
 code }
  
-
 However, this → development/databases/Oracle/PL-SQL/block runs fine:
 code {
 declare
@@ -17,6 +16,37 @@ end;
 code }
 
 My *assumption* (!) is that this error is thrown in SQL because `json_object_t` is not a → development/databases/Oracle/objects/types#ora-plsql-type-persistable[persistable type].
+
+{ Oracle considers scalar values not valid JSON
+
+  Oracle considers → development/languages/JavaScript/JSON#json-scalar[scalar] values to be invalid JSON, the following → development/databases/Oracle/PL-SQL/block throws error ORA-40573:
+code {
+declare
+   obj json_element_t;
+begin
+   obj := json_element_t.parse(42);
+end;
+/
+code }
+ 
+   These two blocks don't throw the error:
+code { 
+declare
+   obj json_element_t;
+begin
+   obj := json_element_t.parse('{"num": 42}');
+end;
+/
+ 
+declare
+   obj json_element_t;
+begin
+   obj := json_element_t.parse('[1,2,3]');
+end;
+/
+code }
+
+}
 
 sa:
 

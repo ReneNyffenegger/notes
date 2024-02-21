@@ -1,0 +1,25 @@
+$ Oracle JSON related PL/SQL types: SELECT INTO
+
+Because of the → development/databases/Oracle/errors/ORA-40573_invalid-use-of-PL_SQL-JSON-object-type error, the result of `→ development/databases/Oracle/SQL/functions/json/arrayagg` cannot
+be used in a PL/SQL `select … into` clause to create a `json_array_t` or `→ development/databases/Oracle/installed/types/json/object_t` instance.
+-
+Rather, the result must first be selected into a → development/databases/Oracle/SQL/data-types/lob[`clob`] and *then* the desired type be created:
+code {
+→ development/databases/Oracle/PL-SQL/block[declare]
+   res_clb clob;
+   res_typ json_array_t;
+begin
+   select
+      json_arrayagg(json_array(column_name, data_type)) into res_clb
+   from
+      → development/databases/Oracle/installed/data-dictionary/tab/columns[all_tab_columns]
+   where
+      table_name = 'USER_TAB_COLUMNS'
+   ;
+ 
+   res_typ := json_array_t.parse(res_clb);
+  
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line[dbms_output.put_line](res_typ.to_string);
+end;
+/
+code }
