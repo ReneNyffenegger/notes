@@ -1,22 +1,32 @@
 $ SQL Server: sys.sql_modules
 @ sys.sql_modules
 
-
 `sys.sql_modules` stores the definition of → development/databases/SQL-Server/objects[object] that are defined with SQL (such as a view or a → development/databases/SQL-Server/T-SQL/procedures[stored procedure]).
-
-gh|about-MSSQL|/administration/schemas/sys/objects/views/sql_modules/object-definitions.sql||
 
 code {
 select
-   definition --, uses_ansi_nulls, uses_quoted_identifier, is_schema_bound  
+   sch.name          sch,
+   obj.name          obj_name,
+   obj.type          obj_type,
+-- obj.type_desc     obj_type_desc,
+   mod.definition    mod_definition,
+   obj.modify_date   obj_mod_dt,
+   obj.object_id     obj_id
 from
-   sys.sql_modules  
+   sys.objects       obj                                   join
+   sys.sql_modules   mod on obj.object_id = mod.object_id  join
+   sys.schemas       sch on obj.schema_id = sch.schema_id
 where
-   object_id = → development/databases/SQL-Server/T-SQL/functions/object_id[object_id]('nameOfObject');  
+   lower(obj.name) = 'tq84_ect' and
+   lower(sch.name) = 'dbo'
+-- object_id = → development/databases/SQL-Server/T-SQL/functions/object_id[object_id]('nameOfObject');  
+;
 code }
 
-  See also → development/databases/SQL-Server/objects#mssql-show-obj-definition[Showing object definitions]
+TODO 2024-02-22: there are stored procedures whose definitions are null if selected with this statement.
 
 sa:
+
+  → development/databases/SQL-Server/objects#mssql-show-obj-definition[Showing object definitions]
 
   The → development/databases/SQL-Server/administration/schemas/sys[sys schema].

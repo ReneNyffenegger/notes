@@ -1,4 +1,38 @@
 $ oradebug hanganalyze
 
+code {
+$ → development/databases/Oracle/SQL-Plus[sqlplus] / as sysdba
+…
+→ development/databases/Oracle/tools/oradebug/setmypid
+→ development/databases/Oracle/tools/oradebug/unlimit
+oradebug hanganalyze
+  … [ wait a minute or so, see MOS Note 4523581.1 ]
+oradebug hanganalyze
+→ development/databases/Oracle/tools/oradebug/tracefile_name
+…
+→ development/databases/Oracle/SQL-Plus/exit
+code }
+
+10g and above (MOS Note 4523581.1)
+code {
+oradebug setmypid
+oradebug unlimit
+oradebug -g all hanganalyze 3
+oradebug -g all hanganalyze 3
+oradebug -g all dump systemstate 258
+oradebug -g all dump systemstate 258
+code }
+
+{ Hanganalyze levels
+
+  table { ll
+    3 ☰ In 11g onwards, level 3 also collects a short stack for relevant processes in hang chain
+    4 ☰ Collects everything from level 3 and dumps leaf nodes (blockers) in wait chains
+    5 ☰ Collects everything from level 4 and dumps all processes involved in wait chains
+  table }
+
+}
+
+
 sa:
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/hangdiag_sql[`$ORACLE_HOME/rdbms/admin/hangdiag.sql`]

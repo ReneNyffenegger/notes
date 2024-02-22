@@ -11,6 +11,50 @@ $ Excel: Recording macros
   Alternatively, the recording of a macro can also be started or stopped with the → Microsoft/Office/Excel#excel-key-shortcut[keyboard shortcut] `ALT-L+R`.
  
 }
+{ «Problems» with the macro recorder
+
+  Macros produced with the macro recorder make extensive use of the → Microsoft/Office/Excel/Object-Model/Application/selection[`application.selection`] property and the
+  → Microsoft/Office/Excel/Object-Model/Range/select[`range.select()`] method:
+code {
+Sub Macro2()
+'
+' Macro2 Macro
+'
+ 
+'
+    Range("B3").Select
+    ActiveCell.FormulaR1C1 = "Price 1"
+    Range("C3").Select
+    ActiveCell.FormulaR1C1 = "22.3"
+    Range("B4").Select
+    ActiveCell.FormulaR1C1 = "Price 2"
+    Range("C4").Select
+    ActiveCell.FormulaR1C1 = "18.45"
+    Range("C5").Select
+    ActiveCell.FormulaR1C1 = "=SUM(R[-2]C:R[-1]C)"
+    Range("C3:C5").Select
+    Selection.→ Microsoft/Office/Excel/Object-Model/Range/numberFormat[NumberFormat] = "$ #,##0.00"
+End Sub
+code }
+ 
+  In most (if not all) cases, the combination first calling `.select` and then using `selection.` can be simplified with just one line of code:
+code {
+→ development/languages/VBA/language/statements/option/explicit
+ 
+sub addPrices()
+    with sheets(1)
+        .range("b3") = "Price 1"
+        .range("c3") =  22.3
+        .range("b4") = "Price 2"
+        .range("c4") =  18.45
+        .range("c5").formulaR1C1 = "=sum(r[-2]c:r[-1]c)"
+        .range("c3:c5").→ Microsoft/Office/Excel/Object-Model/Range/numberFormat[numberFormat] = "$ #,##0.00"
+    end with
+end sub
+code }
+
+}
 
 sa:
-  The → Microsoft/Office/GUI/Ribbon/tabs/Developer[Developer tab on the Ribbon]
+
+  → Microsoft/Office/Excel/GUI/Ribbon/tabs/Developer#excel-show-developer-tab[Showing] the → Microsoft/Office/GUI/Ribbon/tabs/Developer[Developer tab on the Ribbon].

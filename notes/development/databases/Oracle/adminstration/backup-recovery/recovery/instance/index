@@ -1,14 +1,53 @@
-$ Oracle: instance recovery
+$ Oracle: Instance Recovery
 @ instance recovery
 
-*Instance recovery* takes place when an → development/databases/Oracle/architecture/instance is re-started after a failure or a
-→ development/databases/Oracle/architecture/instance/startup-shutdown[`shutdown abort`].
+*Instance recovery* ensures that a database is in a *consistent state* after an *instance failure*.
+
+It takes place when an → development/databases/Oracle/architecture/instance is re-started after
+  • an instance failure or
+  • a → development/databases/Oracle/architecture/instance/startup-shutdown[`shutdown abort`]
+
+In these two situations, an instance recovery is necessary because
+  • database blocks commited by a transaction are not written to the data file, or vice versa,
+  • the data files contain uncommited data
+
+The data necessary bring the database to a consistent state is found in
+  • the *active* → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] and
+  • the current online data data files
+
+No other data is required for instance recovery.
 
 Instance recovery is performed by → development/databases/Oracle/architecture/processes/background/SMON[`SMON`].
 
-The *active* → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] contains the data that is required for instance recovery.
+{ Determining if instance recovery is necessary
 
-? Phases: cache recovery, transaction recovery
+  When Oracle opens a database, it checks if redo threads are marked open in the control file. If this is the case, it means that the database was not closed properly (because closing a database marks
+  the redo threads as closed when an instance is shut down consistently) and that instance recovery is necessary.
+
+  If an instance crashes in a RAC environment, one of the surviving instances performs instance recovery on the dead one.
+
+}
+{ Recovery phases
+
+  An instance recovery takes place in two phases; cache recovery and transaction recovery.
+
+  { Cache recovery (rolling forward)
+
+    All transactions in the online redo log are applied to the data files.
+
+    This phase also regenerates the state of undo segments.
+
+  }
+  { Transaction recovery
+
+    This phase uses the undo segments to roll back changes stored to data files that were not commited.
+
+  }
+
+}
 
 sa:
+
+  MOS Note 1495163.1
+
   → development/databases/Oracle/adminstration/backup-recovery/recovery
