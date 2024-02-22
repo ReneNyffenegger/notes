@@ -5,14 +5,17 @@ $ Oracle: V$PGASTAT
 
 code {
 select
-   pga.con_id,
-   pga.name,
-   pga.unit,
-   pga.value
+   name,
+   case unit
+      when 'bytes'   then to_char(value / 1024/1024, '999,990') || ' mb'
+      when 'percent' then to_char(value            , '9999990') || ' %'
+      else                to_char(value            , '9999990')
+   end                                                                 val,
+   con_id
 from
-   v$pgastat pga
+   v$pgastat
 order by
-   lower(pga.name);
+   lower(name);
 code }
 
 { PGA statistic names

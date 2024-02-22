@@ -13,7 +13,43 @@ $ Oracle: V$ACTIVE_SESSION_HISTORY
   → development/databases/Oracle/objects#ora-obj-name[name] and owner of the «current»
   → development/databases/Oracle/objects[object]
 
-  gh|oracle-patterns|/Installed/dynamic-performance-views/active/session_history/join-session-sql.sql||
+code {
+select
+   to_char(ash.pga_allocated        / 1024/1024, '999,990.0') pga_allocated_mb,
+   to_char(ash.temp_space_allocated / 1024/1024, '999,990.0') tmp_spc_alloc_mb,
+   ash.event,
+   ash.p1text, ash.p1,
+   ash.p2text, ash.p2,
+   ash.p3text, ash.p3,
+-- ses.program,
+   sql.sql_fulltext,
+-- ses.osuser
+   obj.object_name                                            obj_name,
+   obj.owner                                                  obj_owner,
+   ash.*,
+   ash.sample_time_utc,
+   ash.event,
+   ash.session_state,
+   ash.usecs_per_row,
+   ses.sid,
+   ses.serial#,
+   ash.top_level_sql_id,
+   ash.sql_exec_id,
+   to_char(ash.sql_exec_start, 'yyyy-mm-dd hh24:mi:ss') sql_exec_start
+from
+   v$session                ses                                                                         join
+   v$active_session_history ash on ses.sid = ash.session_id and ses.serial# = ash.session_serial#  left join
+   v$sqlarea                sql on ash.top_level_sql_id = sql.sql_id                               left join
+   dba_objects              obj on ash.current_obj#     = obj.object_id
+where
+   ash.session_id      =   775             and
+   ash.session_serial# = 14104 
+-- ses.osuser          = 'RENE'            and
+-- ses.program         = 'sqldeveloper.exe'
+order by
+   ash.sample_id desc
+;
+code }
 
 }
 { Find SQL statements of a given session

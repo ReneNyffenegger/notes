@@ -1,0 +1,34 @@
+$ ORA-30008: CONNECT BY clause must reference a PRIOR
+
+code {
+select
+   level
+from
+   → development/databases/Oracle/SQL/dual → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] level <= 5;
+--
+--      LEVEL
+-- ----------
+--          1
+--          2
+--          3
+--          4
+--          5   
+code }
+   
+  Using `connect by` without → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by#ora-connect-by-prior[`prior`] clause is not allowed, but not enforced by default.
+  -
+  The following «fix» enforces it:
+code {
+alter session set "→ development/databases/Oracle/adminstration/init-parameters/fix/control[_fix_control]" = '6520717:on';   
+code }
+
+  Now, the same statement throws *ORA-30008: CONNECT BY clause must reference a PRIOR*:
+code {
+select
+   level
+from
+   dual connect by level <= 5;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
