@@ -1,4 +1,4 @@
-$ Oracle: Flashback data archive
+$ Oracle: Flashback Data Archive
 @ flashback data archive
 
 A *Flashback data archive* (previously known as *Total Recall* in 11g, possibly now renamed to
@@ -14,6 +14,14 @@ Flashback archiving can be turned on and off for individual → development/data
 
 { Demonstration
 
+  { Create a flashback administrator and a flashback user
+
+    gh|Oracle-demo-flashback-archive|/create-administrator.sql||
+
+    gh|Oracle-demo-flashback-archive|/create-user.sql||
+
+  }
+
   { Create a flashback archive
 
     First we need to create a flashback archive. The archive resides in a → development/databases/Oracle/architecture/database/logical-structures/tablespace which needs to be named (here: `data`)
@@ -24,14 +32,15 @@ Flashback archiving can be turned on and off for individual → development/data
   { Create tables
 
     We also need some tables for the demonstration. With the `flashback archive …` clause, we could put the tables into the archive as they're created, but for this demonstration, we
-    alsoc create («register») an application, see next step.
+    also create («register») an application, see next step.
     gh|Oracle-demo-flashback-archive|/create-tables.sql||
 
   }
   { Register an application
 
-    We use the `→ development/databases/Oracle/installed/packages/dbms/flashback_archive` package to register an «application»:
-    to provide an umbrella to manage all (i. e. in this demo: two) tables together:
+    We use the `→ development/databases/Oracle/installed/packages/dbms/flashback_archive` package to register an «application».
+    -
+    It Provide an umbrella to manage all (i. e. in this demo: two) tables together:
     gh|Oracle-demo-flashback-archive|/register-application.sql||
 
   }
@@ -47,16 +56,11 @@ Flashback archiving can be turned on and off for individual → development/data
     gh|Oracle-demo-flashback-archive|/enable-application.sql||
 
   }
-  { Wait 20 seconds
+  { Wait 15-20 seconds
 
     → https://docs.oracle.com/en/database/oracle/oracle-database/21/adfns/flashback.html#GUID-06AA782A-3F79-4235-86D5-2D136485F093[Oracle's documentation (Flashback Time Travel Restrictions)] recommends
-    to wait 20 seconds before inserting data into the table.
-code {
-begin
-   dbms_session.sleep(20);   
-end;
-/
-code }
+    to wait 20 (15?) seconds before inserting data into the table.
+    gh|Oracle-demo-flashback-archive|/wait-20-secs.sql||
   }
   { Context package
 
@@ -67,7 +71,7 @@ code }
   { Helper package
 
     The following helper package is intended to store the → development/databases/Oracle/architecture/transaction/SCN and timestamp of a → development/databases/Oracle/SQL/TCL/commit. These values are associated
-    with a tag (whose value is provied when calling the package's `commit_` procecure).
+    with a tag (whose value is provied when calling the package's `commit_` procedure).
     -
     Because the time resolution of timestamps → development/databases/Oracle/Features_Options_Management-Packs/Flashback/Logical-Features/data-archive/versions-starttime-timestamp[is three seconds when using flashback queries],
     the package also sleeps for a certain amount when commiting. In addition, it adds six seconds to the timestamp of the commit because it turned out that this is the value actually needed when doing
@@ -160,3 +164,7 @@ sa:
   The → development/databases/Oracle/architecture/processes/background/FBDA[Flashback data archive process (FBDA)]
 
   There is an → development/databases/Oracle/Options/advanced-compression optimization for FDA history tables.
+
+  → development/databases/Oracle/errors/ORA-55611_No-privileges-to-manage-default-Flashback-Archive
+
+  MOS Note 470199.1
