@@ -185,7 +185,7 @@ code }
       `@import` ☰ Imports style rules from other stylesheets. Must be specified as the first at-rule after the optional `@charset` rule. Note that `@import url("path/to.css")` → https://stackoverflow.com/a/24579614/180275[is equivalent] to `@import "path/to.css"`.
       `@keyframes` ☰ Allows to control a transition sequence more precisely than using the → development/web/CSS/properties/transition[`transition-*`] properties.
       `@layer` ☰ Defines a cascade layer.
-      `@media` ☰ Apply portions a style sheet based on the result of (one or more) *media queries*. In → development/languages/JavaScript, the rules that were created with `@media` can be accessed with the `CSSMediaRule` interface.
+      `→ development/web/CSS/selectors/at-rules/media` ☰ Apply portions a style sheet based on the result of (one or more) *media queries*. In → development/languages/JavaScript, the rules that were created with `@media` can be accessed with the `CSSMediaRule` interface.
       `@namespace` ☰ Defines → development/XML namespaces for a style sheet.
       `@page` ☰ Modifies properties of a *printed page*
       `@property` ☰ An *experimental* at-rule which allows to define  custome CSS properties. `@property` is part of the CSS Houdini umbrella of APIs.
@@ -193,13 +193,13 @@ code }
     table }
     
 code {
-@media (perfers-color-scheme: light) { body { background-color: #f1f1f1; color: #151515; }}
-@media (perfers-color-scheme: dark ) { body { background-color: #151515; color: #f1f1f1; }}
+@media (prefers-color-scheme: light) { body { background-color: #f1f1f1; color: #151515; }}
+@media (prefers-color-scheme: dark ) { body { background-color: #151515; color: #f1f1f1; }}
 code }
 
 code {
 @font-face {
-   font-family : 'qualita rossa';
+   font-family :'qualita rossa';
    font-style  : normal;
    font-weight : 400;
    font-stretch: 100%;
@@ -231,7 +231,102 @@ code {
 code }
 
   }
-  { Staring a CSS
+  { Data types
+
+    { Textual
+
+      table { ll
+         `initial` ☰ The value specified as the property's initial value.
+         `inherit` ☰ The computed value of the property on the element's parent.
+         `revert` ☰ Rolls back the cascade to the value of the earlier origin.
+         `unset` ☰ Acts as inherit or initial depending on whether the property is inherited or not.
+         Pre-defined keywords ☰ For example: `collapse` (which can be applied to `border-collapse`)
+         `<custom-ident>` ☰
+         `<dashed-ident>` ☰
+         `<string>` ☰
+         `url()` ☰
+      table }
+
+    }
+    { Numeric
+
+      table { ll
+         `<integer>` ☰ `42`, `999` …
+         `<number>` ☰ `42`, `2.5`, `1.618` …
+         `<dimension>` ☰ A number with a *unit*  (`23px` or `15em`). See the *quantity* data types.
+         `<percentage>` ☰ For example `10%`
+         `<ratio>` ☰ `<number> / <number>`
+         `<flex>` ☰ A *flexible length* introduced for CSS Grid Layout, written as a `<number>` with the `fr` unit attached and used for grid track sizing.
+      table }
+
+    }
+    { Quantities
+
+      Used for distances etc.
+
+      table { ll
+      `<length>` ☰ Lengths are a `<dimension>` and refer to distances.
+      `<angle>` ☰ Angles are used in properties such as `linear-gradient()` and are a `<dimension>` with one of `deg`, `grad`, `rad` or *turn units* attached.
+      `<time>` ☰ Duration units are a `<dimension>` with an `s` or `ms` unit.
+      `<frequency>` ☰ Frequencies are a `<dimension>` with a `Hz` or `kHz` unit attached.
+      `<resolution>` ☰ Is a `<dimension>` with a unit identifier of `dpi`, `dpcm`, `dppx` or `x`.
+      table }
+
+      { Combinations
+
+        table { ll
+        `<length-percentage>` ☰ Length or a percentage as a value.
+        `<frequency-percentage>` ☰ A frequency or a percentage as a value.
+        `<angle-percentage>` ☰ An angle or a percentage as a value.
+        `<time-percentage>` ☰ A time or a percentage as a value.
+        table }
+
+      }
+
+    }
+    { Colors
+
+       table { ll
+       `<color>` ☰ Specified as a keyword or a numerical color value.
+       `<alpha-value>` ☰ Specifies the transparency of a color. May be a `<number>`, in which case `0` is fully transparent and `1` is fully opaque, or a `<percentage>`, in which case `0%` is fully transparent and `100%` fully opaque.
+       `<hue>` ☰ Specifies the `<angle>`, with a unit identifier of `deg`, `grad`, `rad`, `turn` or unitless `<number>` interpreted as `deg`, of the color wheel specific to the `<absolute-color-functions>` of which it is a component.
+       table }
+
+    }
+    { Images
+
+      table { ll
+        `<image>` ☰ A URL reference to an image or a color gradient.
+        `<color-stop-list>` ☰ A list of two or more color stops with optional transition information using a color hint.
+        `<linear-color-stop>` ☰ A `<color>` and a `<length-percentage>` to indicate the color stop for this part of the gradient.
+        `<linear-color-hint>` ☰ A `<length-percentage>` to indicate how the color interpolates.
+        `<ending-shape>` ☰ Used for radial gradients; can have a keyword value of `circle` or `ellipse`.
+        `<size>` ☰ Determines the size of the radial gradient's ending shape. This accepts a value of a keyword or a `<length>` but not a percentage.
+      table }
+
+    }
+    { 2D positioning
+
+      table { ll
+        `<position>` ☰ Defines the position of an object area. Accepts a keyword value such as top or left, or a `<length-percentage>`.
+      table }
+
+    }
+    { Calculation data types
+
+      Used for → https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Functions#math_functions[math functions].
+
+      table { ll
+         `<calc-sum>` ☰A calculation which is a sequence of calculation values interspersed with addition (+) and subtraction (-) operators. This data type requires both values to have units.
+         `<calc-product>` ☰A calculation which is a sequence of calculation values interspersed with multiplication (*) and division (/) operators. When multiplying, one value must be unitless. When dividing, the second value must be unitless.
+         `<calc-value>` ☰Defines accepted values for calculations, values such as <number>, <dimension>, <percentage>, <calc-constant> or nested <calc-sum> calculations.
+         `<calc-constant>` ☰Defines a number of CSS keywords representing numeric constants such as `e` and `π`, that can be used in CSS math functions.
+      table }
+
+    }
+
+  }
+  { Starting a CSS
 
     Is it good practice to start a CSS with something like
 code {
@@ -241,6 +336,13 @@ code {
     padding: 0;
 }
 code }
+
+  }
+  { Units
+
+    table { ll
+`fr` ☰ Used with grid layout?
+    table }
 
   }
 
