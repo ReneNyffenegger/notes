@@ -6,13 +6,97 @@ $ Oracle: DBMS_LOCK
 { Functions and procedures
 
   table { ll
-    `ALLOCATE_UNIQUE` ☰
-    `ALLOCATE_UNIQUE_AUTONOMOUS` ☰
-    `CONVERT` ☰
-    `RELEASE` ☰
-    `REQUEST` ☰
-    → development/databases/Oracle/installed/packages/dbms/lock/sleep[`SLEEP`]☰ Wait for the given amount of seconds. `dbms_lock.sleep` is deprecated in favor of `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].sleep`.
+    `allocate_unique` ☰ Calling this procedure commits the current transaction.
+    `allocate_unique_autonomous` ☰ Same as `allocate_unique` except that the transaction is commited → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction[autonomously] and does therefore not commit the current transaction.
+    `convert` ☰
+    `release` ☰
+    `request` ☰
+    → development/databases/Oracle/installed/packages/dbms/lock/sleep[`sleep`]☰ Wait for the given amount of seconds. `dbms_lock.sleep` is deprecated in favor of `→ development/databases/Oracle/installed/packages/dbms/session[dbms_session].sleep`.
   table }
+
+}
+{ Example: Acquiring an exclusive lock
+
+  A → development/databases/Oracle/architecture/session tries to acquire a lock named `tq84 lock test` in exclusive mode:
+code {
+declare
+   lockhandle  varchar2(128);
+   ret         pls_integer;
+begin
+ 
+   dbms_lock.allocate_unique_autonomous(
+       'tq84 lock test',
+        lockhandle
+   );
+  
+   ret := dbms_lock.request(
+        lockhandle,
+        dbms_lock.x_mode, -- exclusive access,
+        timeout => 0
+   );
+
+   if    ret = 0 then
+         dbms_output.put_line('Lock was sucessfully acquired');
+   elsif ret = 1 then
+         raise_application_error(-20800, 'Lock is already exclusively acquired, lockhandle = ' || lockhandle);
+   else
+         raise_application_error(-20800, 'Error! Ret = ' || ret);
+   end if;
+ 
+end;
+/
+code }
+
+  If no other session has already acquired this lock in exclusive mode, this PL/SQL block prints
+code {
+Lock was sucessfully acquired
+code }  
+
+  If another session now executesd the same block, the following error is thrown:
+code {
+ORA-20800: Lock is already exclusively acquired, lockhandle = 10737418641073741864187
+code }
+ 
+  It's now possible to determine the session that owns the lock with the following statement:
+code {
+select
+   ses.sid,
+   ses.username,
+   ses.osuser,
+   lck.ctime      secs_allocated,
+   ses.program,
+   ses.module
+from
+   v$lock    lck                             join
+   v$session ses on lck.sid = ses.sid
+where
+   lck.type = 'UL' and
+   lck.id1  = substr('10737418641073741864187', 1, 10);
+code }
+
+  The first session releases a lock like so:
+code {
+declare
+   lockhandle  varchar2(128);
+   ret         pls_integer;
+begin
+ 
+   dbms_lock.allocate_unique_autonomous(
+       'tq84 lock test',
+        lockhandle
+   );
+
+   ret := dbms_lock.release(
+        lockhandle
+   );
+
+   if ret != 0 then
+      raise_application_error(-20800, 'Error! Ret = ' || ret);
+   end if;
+ 
+end;
+/
+code }
 
 }
 
