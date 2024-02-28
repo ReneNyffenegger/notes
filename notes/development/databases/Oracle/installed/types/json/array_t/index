@@ -1,0 +1,36 @@
+$ Oracle: JSON_ARRAY_T
+@ json_array_t
+
+code {
+→ development/databases/Oracle/PL-SQL/block[declare]
+ 
+   json_text      clob;
+   json_obj       json_object_t;
+   array_of_array json_array_t;
+   array          json_array_t;
+   elem           json_element_t;
+  
+begin
+ 
+   json_text      := 
+   '{
+     "data": [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+      ]
+    }';
+  
+   json_obj       := → development/databases/Oracle/installed/types/json/object_t[json_object_t].parse(json_text);
+   array_of_array := json_obj.get_array('data');
+   array          := treat(array_of_array.get(1) as json_array_t);
+   elem           := array.get(0);
+  
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line[dbms_output.put_line](elem.to_number()); -- 4
+  
+end;
+/
+code }
+
+sa:
+  → development/databases/Oracle/installed/types/json[JSON related object types]
