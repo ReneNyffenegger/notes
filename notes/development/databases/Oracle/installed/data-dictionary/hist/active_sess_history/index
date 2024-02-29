@@ -26,8 +26,19 @@ code }
 
 code {
 select
+   ash.sample_id,
+-- ash.sample_time_utc,
+-- ash.snap_id,                       -- join with → development/databases/Oracle/installed/data-dictionary/hist/ash/snapshot
    ash.sample_time,                 -- compare with sample_time_utc
-   --
+-- round( (ash.sql_exec_start - cast(ash.sample_time as date)) * 24 * 60 * 60) sql_running_since_approx_s,
+   round( ( cast(ash.sample_time as date) - ash.sql_exec_start ) * 24 * 60 * 60) running_s, -- approximate(1) running time of sql UNTIL snapshot
+   ash.event,--   ash.event_id,
+   ash.p1text, ash.p1,
+   ash.p2text, ash.p2,
+   ash.p3text, ash.p3,  
+   ash.module,
+-- ash.sql_id,
+   sql.sql_text,
    ash.action,
    ash.blocking_hangchain_info,
    --
@@ -43,12 +54,7 @@ select
    ash.con_dbid,
    ash.con_id,
    --
-   ash.consumer_group_id,
-   --
-   ash.current_block#,
-   ash.current_file#,
-   ash.current_obj#,
-   ash.current_row#,
+   ash.current_block#, ash.current_file#, ash.current_obj#, ash.current_row#,
    --
    ash.dbop_exec_id,
    ash.dbop_name,
@@ -61,8 +67,7 @@ select
    ash.delta_write_io_bytes,
    ash.delta_write_io_requests,
    ash.ecid,
-   ash.event,
-   ash.event_id,
+ 
    ash.flags,
    ash.force_matching_signature,
    ash.in_bind,
@@ -85,16 +90,11 @@ select
    ash.in_sql_execution,
    ash.in_tablespace_encryption,
    ash.instance_number,
-   ash.is_captured,
+  ash.is_captured,
    ash.is_replay_sync_token_holder,
    ash.is_replayed,
    ash.is_sqlid_current,
    ash.machine,
-   ash.module,
-   --
-   ash.p1, ash.p1text,
-   ash.p2, ash.p2text,
-   ash.p3, ash.p3text,
    --
    ash.pga_allocated,
    --
@@ -111,11 +111,6 @@ select
    ash.qc_session_serial#,
    ash.remote_instance#,
    ash.replay_overhead,
-
-   ash.sample_id,
-   ash.sample_time_utc,
-   ash.snap_id,                       -- join with → development/databases/Oracle/installed/data-dictionary/hist/ash/snapshot
-
    ash.seq#,
    ash.service_hash,
    ash.session_id,
@@ -126,9 +121,7 @@ select
    --
    ash.sql_child_number,
    ash.sql_exec_id,
-   ash.sql_exec_start,
    ash.sql_full_plan_hash_value,
-   ash.sql_id,
    --
    ash.sql_opcode,
    ash.sql_opname,
@@ -151,9 +144,17 @@ select
    ash.wait_class,
    ash.wait_class_id,
    ash.wait_time,
-   ash.xid
+   ash.xid,
+   --
+   ash.consumer_group_id
 from
-   sys.dba_hist_active_sess_history ash
+   sys.dba_hist_active_sess_history             ash                                   left join
+   sys.dba_hist_sqltext                         sql on ash.sql_id = sql.sql_id and
+                                                       ash.dbid   = sql.dbid
+where
+   ash.sample_time between to_date('2024-02-26 14:00:30', 'yyyy-mm-dd hh24:mi:ss') and
+                           to_date('2024-02-26 14:00:40', 'yyyy-mm-dd hh24:mi:ss')
+ 
 order by
    ash.sample_time desc
 ;
@@ -178,8 +179,6 @@ group by
 order by
    ash.sample_time desc;
 code }
-
-Start and end of sessions
 
 sa:
 

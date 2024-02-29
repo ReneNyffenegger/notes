@@ -1,0 +1,23 @@
+$ ORA-22835: Buffer too small for CLOB to CHAR or BLOB to RAW conversion (actual: …, maximum: …)
+
+On a system whre the value of `→ development/databases/Oracle/adminstration/init-parameters/max/string_size` is `standard`:
+code {
+create table tq84_t (c clob);
+
+insert into tq84_t values (lpad('x', 4000, 'x'));
+select → development/databases/Oracle/SQL/functions/conversion/cast[cast](c as → development/databases/Oracle/SQL/data-types/varchar2[varchar2](4)) c4 from tq84_t;
+--
+-- C4  
+-- ----
+-- xxxx
+   
+update tq84_t set c = c || '!';
+select → development/databases/Oracle/SQL/functions/conversion/cast[cast](c as → development/databases/Oracle/SQL/data-types/varchar2[varchar2](4)) c4 from tq84_t;
+--
+-- ORA-22835: Buffer too small for CLOB to CHAR or BLOB to RAW conversion (actual: 4001, maximum: 4000)
+code }
+
+If the value of `max_string_size` is `extended`, this error is correspondingly thrown if the size of the cast `clob` exceeds 32767 characters.
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
