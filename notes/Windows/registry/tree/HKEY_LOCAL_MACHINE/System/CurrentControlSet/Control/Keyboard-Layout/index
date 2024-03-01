@@ -5,6 +5,35 @@ $ Registry: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout
 
   The keyboard layout, or more accurately, the mapping of → hardware/keyboard#scancode[scancodes] can be configured in the
   → Windows/registry[registry] with a simple → Windows/PowerShell script.
+  -
+  The following, arguably useless mapping, demonstratres how an environment can be created where `6` is mapped to `5`, `A` is mapped to `6` and `5` to `A`.
+  -
+  The script uses `+` to concatenate the scan codes arrays in order to → Windows/PowerShell/language/type/array#ps-array-comma-vs-plus[unpack them within an array]:
+code {
+#
+#  Scan codes:
+#
+$s_5 = 0x06, 0x00
+$s_6 = 0x07, 0x00
+$s_A = 0x1e, 0x00
+
+$mapping = [byte[]] (
+  0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,
+# ----------------------
+  0x04, 0x00, 0x00, 0x00 +  # 3 mappings + 1 ending  = 0x04
+  $s_5      + $s_6       +  # 1st mapping: 6 -> 5
+  $s_6      + $s_A       +  # 2nd mapping: A -> 6
+  $s_A      + $s_5       +  # 3rd mapping: 5 -> A
+# ----------------------
+  0x00, 0x00, 0x00, 0x00   # final four bytes
+)
+
+→ Windows/PowerShell/language/variable/automatic/null = → Windows/PowerShell/command-inventory/noun/itemProperty/new -path "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -name "Scancode Map" -value $mapping -force
+code }
+
+
+  The following script is (at least for my purposes) more useful:
   gh|about-Windows-Registry|/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Keyboard Layout/scancode-map.ps1||
 
   After changing the scan map, the computer needs to be restarted.

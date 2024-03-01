@@ -8,7 +8,29 @@ $ Oracle: DBA_HIST_SQLSTAT
 }
 { Stats of a given SQL ID
 
-  gh|oracle_scriptlets|/ash-awr/awr/stat_of_sql_id.sql||
+  Report an → development/databases/Oracle/SQL/statement[SQL statement's] (identified by `sql_id`) statistics in each snapshot:
+code {
+select
+   snap.snap_id,
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char[to_char](snap.begin_interval_time, 'yyyy-mm-dd hh24:mi:ss')             snap_begin,
+   stat.executions_delta,
+   → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](stat.elapsed_time_delta/1e6) ela_time_secs,
+   → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](stat.elapsed_time_delta/→ development/databases/Oracle/SQL/functions/null-related#nullif[nullif](stat.executions_delta, 0)/1e6,2)  secs_per_stmt,
+   → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](stat.cpu_time_delta/1e6)                                         cpu_secs,
+   → development/databases/Oracle/SQL/functions/math/round-trunc-floor-ceil[round](stat.iowait_delta/1e6)                                           iowait_secs,
+   stat.disk_reads_delta,
+   stat.buffer_gets_delta,
+   stat.parse_calls_delta,
+   stat.sorts_delta
+from
+   dba_hist_sqlstat  stat join
+   → development/databases/Oracle/installed/data-dictionary/hist/snapshot snap on stat.snap_id = snap.snap_id
+where
+   stat.dbid   = (select con_dbid from → development/databases/Oracle/installed/dynamic-performance-views/database) and
+   stat.sql_id = '&sql_id'
+order by
+   snap.begin_interval_time desc;
+code }
 
 }
 
