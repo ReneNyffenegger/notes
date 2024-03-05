@@ -1,7 +1,7 @@
 $ SQL*Plus: EXECUTE
 @ execute
 
-`execute` (or its abbreviation `exec`) embeds the given text into a → development/databases/Oracle/PL-SQL/block/[`begin … ; end;`] block (note the `;` after the repaced text) and executes it.
+`execute` (or its abbreviation `exec`) embeds the given text into a → development/databases/Oracle/PL-SQL/block/[`begin … ; end;`] block (note the `;` after the replaced text) and executes it.
 
 code {
 exec → development/databases/Oracle/installed/packages/dbms/output[dbms_output].put_line('Today is ' || → development/databases/Oracle/SQL/functions/type-conversion/to/char(→ development/databases/Oracle/SQL/functions/date/sysdate, 'yyyy-mm-dd'))
@@ -14,8 +14,25 @@ exec :num := 42
 select * from xyz where id = :num; 
 code }
 
-
 Using `execute` does not change SQL*Plus' buffer.
+
+{ Peculiarity
+
+  If the → development/databases/Oracle/adminstration/init-parameters[init parameter] `nls_length_semantics` is set to `byte`, then using `exec` to assign a text value to a bind variable truncates it to the length of the variable:
+code {
+SQL> → development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] nls_length_semantics=byte;
+SQL> → development/databases/Oracle/SQL-Plus/variable[var] txt varchar2(5)
+SQL> exec :txt := 'hello world'
+SQL> print txt
+
+TXT
+--------------------------------
+hello
+code }
+
+  Trying the same in → development/databases/Oracle/SQLcl results in → development/databases/Oracle/errors/ORA-06502_PL-SQL-numeric-or-value-error[ORA-06502: PL/SQL: value or conversion error: character string buffer too small].
+
+}
 
 sa:
 
