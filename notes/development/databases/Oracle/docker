@@ -1,0 +1,108 @@
+$ Oracle/Docker
+
+{ Running 21c EE
+
+  In order to be able to pull the 21c EE image, the license terms need to be accepted in → https://container-registry.oracle.com[container-registry.oracle.com] (but see also `→ development/tools/Docker/commands/login`).
+
+code {
+$ portlistener=1521
+$ portem=5521
+$ → development/tools/Docker/commands/run \
+  -d \
+  -p$portlistener:1521  \
+  -p$portem:5500        \
+ --name ora21           \
+  container-registry.oracle.com/database/enterprise:21.3.0.0
+
+Unable to find image 'container-registry.oracle.com/database/enterprise:21.3.0.0' locally
+21.3.0.0: Pulling from database/enterprise
+7c8051acdded: Pull complete
+e8e925221939: Pull complete
+…
+9af4cdee8387: Pull complete
+Digest: sha256:c5ad975902cfe523a4ac9f046ec87cd0fd41c24118651ca0e7194f736ae4e3c7
+Status: Downloaded newer image for container-registry.oracle.com/database/enterprise:21.3.0.0
+a4afb6a8cc2029dd902ead30a960dbc45e43564c321d4c36e62faedb43e6b577
+code }
+
+Use the `--follow` option of `→ development/tools/Docker/commands/logs` to watch the logs produced by the container as the database is being installed:
+code {
+$ → development/tools/Docker/commands/logs --follow ora21
+…
+#########################
+DATABASE IS READY TO USE!
+#########################
+…
+code }
+
+Make sure the container's status is *healthy* (as opposed to *starting*):
+code {
+$ → development/tools/Docker/commands/ps
+CONTAINER ID   IMAGE                                                        COMMAND                  CREATED          STATUS                    PORTS                    NAMES
+a4afb6a8cc20   container-registry.oracle.com/database/enterprise:21.3.0.0   "/bin/sh -c 'exec $O…"   29 minutes ago   Up 29 minutes (healthy)                            ora21
+…
+
+$ → development/tools/Docker/commands/ps --filter 'name=ora21' --no-trunc --format "{{.Command}}"
+"/bin/sh -c 'exec $ORACLE_BASE/$RUN_FILE'"
+code }
+
+{ Opening a shell on the container
+
+  Looking around
+code {
+$ → development/tools/Docker/commands/exec -it ora21 /bin/bash
+bash-4.2$ echo $ORACLE_BASE
+/opt/oracle
+bash-4.2$ echo $RUN_FILE
+runOracle.sh
+bash-4.2$ cat $ORACLE_BASE/$RUN_FILE
+. /opt/oracle/runOracle.sh.k8s
+. /opt/oracle/runOracle.sh.orig
+. /opt/oracle/runOracle.sh.sharding
+bash-4.2$ → Linux/shell/commands/pwd
+/home/oracle
+bash-4.2$ ls
+setPassword.sh  shutDown.sh  startUp.sh
+code }
+
+  Connecting to the DB 
+code {
+bash-4.2$ → development/databases/Oracle/SQL-Plus[sqlplus] / as sysdba
+…
+SQL> → development/databases/Oracle/SQL-Plus/show/pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+         3 ORCLPDB1                       READ WRITE NO
+
+SQL> → development/databases/Oracle/SQL-Plus/set/linesize[set lines] 200
+SQL> select con_id, name from → development/databases/Oracle/installed/dynamic-performance-views/containers[v$containers];
+
+    CON_ID NAME
+---------- --------
+         1 CDB$ROOT
+         2 PDB$SEED
+         3 ORCLPDB1
+
+SQL> alter user sys identified by iAmTheDBA;
+SQL> exit
+code }
+
+code {
+$ exit
+code }
+
+
+}
+{ On the host again
+
+code {
+sqlcl sys/iAmTheDBA@localhost:$portlistener/orclcdb  as sysdba
+…
+sqlcl sys/iAmTheDBA@localhost:$portlistener/orclpdb1 as sysdba
+code }
+
+}
+
+}
