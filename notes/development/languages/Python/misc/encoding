@@ -1,0 +1,46 @@
+$ Python: Encoding
+
+{ Source file encoding #py-src-file-encoding
+
+  In a → Linux/shell, we create three simple Python source files that are supposed to → development/languages/Python/built-in-functions/print the word *Café* (note the accent):
+code {
+echo -e                   'print("Caf\xc3\xa9")' > utf-8.py
+echo -e                   'print("Caf\xe9")'     > latin-1.py
+echo -e '# coding:latin-1\nprint("Caf\xe9")'     > latin-1-coding.py
+code }
+
+  In `utf-8.py`, the accent is encoded in → development/Unicode/UTF-8, i. e. as hex c3 a9.
+  -
+ `latin-1.py` encodes the character in latin-1: e9.
+  -
+ `latin-1-coding.py` also encodes the character in latin-1, but additionally uses the *coding* directive to specify the source file's encoding (See
+  → development/languages/Python/PEP/0263[PEP-263])
+
+  Python3 expects source files to be encoded in Python 3 (PEPs 686 and 3120), so running `utf-8.py` prints *Café* as epxected:
+code {
+$ python3 utf-8.py
+Café
+code }
+
+  Running `latin-1.py` throws an error:
+code {
+$ python3 latin-1.py
+SyntaxError: Non-UTF-8 code starting with '\xe9' in file /home/rene/notes/test/expected/sub/sub-sub/latin-1.py on line 1, but no encoding declared; see → http://python.org/dev/peps/pep-0263/ for details
+code }
+
+  With the *coding directive*, a latin-1 encoded source file *can* be executed:
+code {
+$ python3 latin-1-coding.py
+Café
+code }
+
+}
+
+sa:
+  PEP 597
+
+  The `-X warn_default_encoding` option
+
+  The `PYTHONWARNDEFAULTENCODING` enviornment variable.
+
+  `sys.flags.warn_default_encoding`
