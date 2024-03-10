@@ -23,6 +23,25 @@ PCI stands for *Peripheral Component Interconnect*. It connects the → hardware
   The *device number* distinguishes between PCI devices with the same vendor and device ID.
 
 }
+{ Accessing the PCI configuration space #pci-access-config-space
+
+  In the x86 architecture, the → https://en.wikipedia.org/wiki/PCI_configuration_space[PCI configuration space] is accessed with the `0xcf8` (address) and `0xcfc` (data) I/O ports.
+  -
+  The Linux Kernel source file → https://github.com/torvalds/linux/blob/master/drivers/virt/acrn/ioreq.c[`drivers/virt/acrn/ioreq.c`] has the following → https://github.com/torvalds/linux/blob/e8f897f4afef0031fe618a8e94127a0934896aba/drivers/virt/acrn/ioreq.c#L304-L311[comment]:
+code {
+/*
+ * A PCI configuration space access via PIO 0xCF8 and 0xCFC normally has two
+ * following steps:
+ *   1) writes address into 0xCF8 port
+ *   2) accesses data in/from 0xCFC
+ * This function combines such paired PCI configuration space I/O requests into
+ * one ACRN_IOREQ_TYPE_PCICFG type I/O request and continues the processing.
+ */
+code }
+
+  The Kernel source file `→ Linux/kernel/source/arch/x86/pci/direct_c` contains functionality for «low-level direct config space access».
+
+}
 { TODO
 
   PCI ISA bridge
@@ -30,10 +49,12 @@ PCI stands for *Peripheral Component Interconnect*. It connects the → hardware
 }
 
 sa:
- `→ Linux/shell/commands/lspci`
+ `→ Linux/shell/commands/lspci` (part of the → http://mj.ucw.cz/sw/pciutils/[PCI Utilities Suite].
 
  `→ Linux/kernel/source/include/linux/pci_ids_h`
 
   → Linux/fhs/usr/share/hwdata[`/usr/share/hwdata/pci.ids`]
+
+ `→ Linux/fhs/sys/bus/pci`
 
   → hardware/PC/motherboard
