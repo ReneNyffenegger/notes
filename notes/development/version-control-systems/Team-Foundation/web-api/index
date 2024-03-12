@@ -38,8 +38,8 @@ code }
 
 Choose a project URL and ID from output shown above:
 code {
-$project_url = ...
-$project_id  = ...
+$project_id  = '01234567-89ab-cdef-0123-456789abcdef'
+$project_url = "$collUrl/_apis/projects/$project_id"
 code }
  
 code {
@@ -84,6 +84,7 @@ function ls-TFSDirectory {
    foreach ($item in $dir.value) {
       if ($item.psobject.Properties.name -match 'isFolder') {
          $dir_file = 'd'
+         ts
          $size     = ''
       }
       else {
@@ -101,9 +102,32 @@ ls-TFSDirectory $collUrl $/path/to/directory
 code }
 
 }
-{ Iterate over change sets
+{ Show change sets
 
-Iterate over last `n` changesets that were checked in by given person under a given path: 
+  Function to render a change set in a readable form:
+code {
+function format-changeSet ($v) {
+    $comment = ''
+    if ($v.PSObject.properties.item("comment") -ne $null) { $comment = $v.comment}
+ 
+   [dateTime] $createDt = $v.createdDate
+ 
+   '{0,5}  {1,-15}  {2,-30} {3}' -f $v.changeSetId, ($createDt.ToString('yyyy-MM-dd HH:mm')), $v.author.displayName,  $comment
+}
+code }
+
+  Iterate over the change sets that affected a *given file*:
+code {
+$path='$/PROJECT/path/to/file.txt'
+ 
+$versions=(get-webApiJson  "$collUrl/_apis/tfvc/changesets?searchCriteria.itemPath=$path").value
+
+foreach ($v in $versions){
+   format-changeSet $v
+}
+code }
+
+  Iterate over the last `n` changesets that were checked in by given person under a given path: 
 code {
 #
 #  https://docs.microsoft.com/en-us/rest/api/azure/devops/tfvc/changesets/get-changesets?view=azure-devops-rest-6.1
@@ -111,13 +135,14 @@ code {
 $top_n  = 100
 $path   = '$/TRAUM/DWH'
 $author = 'Nyffenegger, René'
-
+ 
 foreach ($changeSet in (get-webApiJson ("$collUrl/_apis/tfvc/changesets?project=$project_id" +
                       "&`$top=$top_n"                       +
                       "&`searchCriteria.itemPath=$path"     +
                       "&`searchCriteria.author=$author"
                       )).value) {
-   write-host ('{0,5} {1,-30} {2,-30} {3}' -f $changeSet.changeSetId, $changeSet.author.displayName, $changeSet.createdDate, $changeSet.comment)
+ 
+   format-changeset $changeSet
 }
 code }
 
@@ -393,6 +418,57 @@ function print-release-details {
 code }
 
   }
+
+}
+{ Download and compare versioned files
+
+  Function to download a file from a web service:
+code {
+function download-file {
+   param (
+      [string] $url,
+      [string] $localFile
+   )
+ 
+   $res = invoke-webRequest -useDefaultCredential $url
+ 
+  [System.IO.File]::WriteAllBytes($localFile, $res.Content)
+}
+code }
+ 
+  This function uses `download-file` to download a file that is versioned in TFVC:
+code {
+function download-tfvcFile {
+    param (
+        [string] $path,
+        [int]    $version
+    )
+ 
+    $leaf = split-path -leaf $path
+    $filename = "$pwd/$version.$leaf"
+    download-file "$collUrl/_apis/tfvc/items?path=$path&versionDescriptor.version=$version" $filename
+ 
+    return $filename
+}
+code }
+ 
+  This function uses → Windows/dirs/Program-Files/Microsoft-Office/root/OfficeN/DCF/SPREADSHEETCOMPARE_EXE#spreadsheetcompare-ps[`compare-spreadsheets`] to download two excel files and compare them:
+code {
+function compare-tfvcExcelSheets {
+    param (
+        [string] $path,
+        [int]    $version_1,
+        [int]    $version_2
+    )
+ 
+    $filename_1 = download-tfvcFile $path $version_1
+    $filename_2 = download-tfvcFile $path $version_2
+ 
+    compare-spreadsheets $filename_1 $filename_2
+}
+ 
+compare-tfvcExcelSheets $path  15310  15656
+code }
 
 }
 
