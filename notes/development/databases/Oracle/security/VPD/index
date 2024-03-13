@@ -1,1 +1,84 @@
 $ Oracle: Virtual Private Database
+
+{ Simple demonstration
+
+
+  { Define SQL*Plus/sqlcl variables
+
+code {
+→ development/databases/Oracle/SQL-Plus/define dbService=localhost:1521/ora21
+→ development/databases/Oracle/SQL-Plus/define sysPw=elCarosSecret
+→ development/databases/Oracle/SQL-Plus/define tablespaceName=users
+code }
+
+  }
+  { Create users
+
+    gh|Oracle-demo-virtual-private-database|/create/users.sql||
+
+  }
+  { Create tables
+
+    In this example, it is assumed that a company consists of different
+    departments (with each having an entry in the `departments` table). An
+    employee belongs to exactly on department. A department can have secrets
+    that go into the `department_secrets` table.
+
+    gh|Oracle-demo-virtual-private-database|/create/tables.sql||
+
+    Insert some data into the tables (of which the data in `department_secrets` is confidential and private to the associated department):
+    gh|Oracle-demo-virtual-private-database|/insert-data.sql||
+
+  }
+  { Create the VPD/policy package
+
+    For any employee, it must be possible to see all secrets of his department, but no secret of another department.
+
+    In order to make that happen with Oracle, we need to create a package, a trigger, and set a policy.
+
+    First, the package is created:
+    gh|Oracle-demo-virtual-private-database|/create/vpd-package.sql||
+
+  }
+  { Create a logon trigger
+
+    This trigger fires whenever someone logs on to the database. It finds the user's departement id (`dep_id`) and calls `set_dep_id` in the VPD package:
+    gh|Oracle-demo-virtual-private-database|/create/trigger.sql||
+
+  }
+  { Add a policy to the sensitive table
+
+    Finally, the policy is defined.
+
+    The policy states which procedure is used to add a where clause part to the where clause if someone executes a select statement:
+    gh|Oracle-demo-virtual-private-database|/create/policy.sql||
+
+  }
+  { Different users executing the same select statement:
+
+    { Frank
+      Frank (belonging to R+D) executes a query:
+      gh|Oracle-demo-virtual-private-database|/frank.sql||
+    }
+    { Julia
+      Julia (belonging to HR) executes a query:
+      gh|Oracle-demo-virtual-private-database|/julia.sql||
+    }
+    { Peter
+      Peter (belonging to Sales) executes a query:
+      gh|Oracle-demo-virtual-private-database|/peter.sql||
+    }
+
+  }
+  { Cleaning up
+
+    gh|Oracle-demo-virtual-private-database|/cleanup.sql||
+  
+  }
+
+}
+
+sa:
+ `→ development/databases/Oracle/installed/packages/dbms/rls`
+
+ `→ development/databases/Oracle/installed/dynamic-performance-views/vpd_policy`
