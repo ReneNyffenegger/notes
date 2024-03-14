@@ -1,0 +1,39 @@
+$ Oracle SQL Plan operation DATA LINK
+@ DATA LINK FULL
+
+Find a random → development/databases/Oracle/objects/tables with `DATA LINK` sharing:
+code {
+select
+   tab.table_name
+from
+    → development/databases/Oracle/installed/data-dictionary/objects obj   join
+    → development/databases/Oracle/installed/data-dictionary/tables  tab on obj.object_name = tab.table_name
+where
+   obj.sharing = 'DATA LINK';
+--
+-- SYSTEM_PRIVILEGE_MAP
+-- TABLE_PRIVILEGE_MAP
+-- USER_PRIVILEGE_MAP
+-- STMT_AUDIT_OPTION_MAP
+-- …
+code }
+
+Then find the plan for selecting from this table from a PDB:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select * from system_privilege_map;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- -------------------------------------------------
+-- | Id  | Operation        | Name                 |
+-- -------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select[SELECT STATEMENT] |                      |
+-- |   1 |  DATA LINK FULL  | SYSTEM_PRIVILEGE_MAP |
+-- -------------------------------------------------
+code }
+sa:
+
+ `→ development/databases/Oracle/SQL/statement/execution/plan/operations/extended-data-link/full`
+  
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
