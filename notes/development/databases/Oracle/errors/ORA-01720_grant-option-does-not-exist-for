@@ -1,0 +1,76 @@
+$ ORA-01720: grant option does not exist for …
+
+Create three → development/databases/Oracle/users-roles/users[users]:
+code {
+→ development/databases/Oracle/SQL-Plus/connect rene/rene
+
+create user tq84_a identified by tq84_a quota unlimited on users;
+create user tq84_b identified by tq84_b quota unlimited on users;
+create user tq84_c identified by tq84_c quota unlimited on users;
+
+→ development/databases/Oracle/SQL/DCL/grant create session, create table, create view to tq84_a;
+→ development/databases/Oracle/SQL/DCL/grant create session, create table, create view to tq84_b;
+→ development/databases/Oracle/SQL/DCL/grant create session, create table, create view to tq84_c;
+code }
+
+User `A` creates a table …
+code {
+connect tq84_a/tq84_a; 
+→ development/databases/Oracle/SQL/statement/nouns/table/create t (a number, b varchar2(10));
+code }
+
+… and grants `select` to `tq84_b` *with* …
+code {
+grant select on t to tq84_b with grant option;
+code }
+
+… and to `tq84_c` *without grant option*:
+code {
+grant select on t to tq84_c;
+code }
+
+User `tq84_b` creates a table and a view that selects from from tq84_a's table as well as from its own table:
+code {
+connect tq84_b/tq84_b; 
+
+create table t (a number, b varchar2(10));
+
+create view v as 
+  select * from tq84_a.t union all
+  select * from tq84_b.t;
+code }
+
+Because `tq84_b` granted `select` *with* grant option, he can «pass on» selectability:
+code {
+grant select on v to tq84_c;
+code }
+
+User `tq84_c` does the same thing…
+code {
+connect tq84_c/tq84_c
+
+create table t (a number, b varchar2(10));
+
+create view v as 
+  select * from tq84_a.t union all
+  select * from tq84_c.t;
+code }
+
+
+… but the following `grant` throws *ORA-01720: grant option does not exist for TQ84_A.T*:
+code {
+grant select on v to tq84_b;
+code }
+
+
+Cleaning up:
+code {
+connect rene/rene
+drop user tq84_a;
+drop user tq84_b;
+drop user tq84_c;
+code }
+
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

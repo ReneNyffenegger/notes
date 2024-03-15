@@ -1,0 +1,56 @@
+$ Oracle: Referential integrity from a foreign key to a unique constraint
+@ Referential integrity from a foreign key to a unique constraint
+
+code {
+create table tq84_p (
+    c1   varchar2(1) not null,
+    c2   varchar2(1)     null,
+    v    number,
+    constraint tq84_p_uq unique(c1, c2)
+);
+ 
+create table tq84_c (
+    c1,
+    c2,
+    v   number,
+    constraint tq84_c_fk foreign key (c1, c2) references tq84_p(c1,c2)
+);
+code }
+ 
+The following insert statements run without problems:
+code {
+begin
+   insert into tq84_p values ('a', 'b', 1);
+   insert into tq84_p values ('x', null, 2);
+   
+   insert into tq84_c values ('a', 'b', 9);
+   insert into tq84_c values ('x', null, 8);
+end;
+/
+code }
+ 
+This one throws → development/databases/Oracle/errors/ORA-02291_integrity-constraint-violated_parent-key-not-found[ORA-02291: integrity constraint (RENE.TQ84_C_FK) violated - parent key not found]
+code {
+insert into tq84_c values ('b', 'd', 5);
+code }
+
+The following insert statements run (contrary to my intution) also without problems:
+code {
+begin
+   insert into tq84_c values ('a', null, 7);
+   insert into tq84_c values ('b', null, 6);
+   insert into tq84_c values (null, null, 6);
+   insert into tq84_c values (null, 'c', 6);
+end;
+/
+code }
+
+Cleaning up:
+code {
+drop table tq84_c;
+drop table tq84_p;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/constraints/referential-integrity[Referential integrity], → development/databases/Oracle/objects/tables/constraints/unique[unique constraints],
+  → development/databases/Oracle/objects/tables/constraints/foreign-key[foreign keys].
