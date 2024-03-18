@@ -1,4 +1,41 @@
 $ Oracle SQL Plan operation: LOAD AS SELECT (CURSOR DURATION MEMORY)
 
+`LOAD AS SELECT (CURSOR DURATION MEMORY)` is always a child of a `→ development/databases/Oracle/SQL/statement/execution/plan/operations/temp-table-transformation` operation.
+
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+→ development/databases/Oracle/SQL/clauses/with[with]
+   numbers as (select level as n from dual connect by level <= 100)
+select
+   n1.n           n1,
+   n2.n           n2,
+   n1.n * n2.n as product
+from
+   numbers n1  join
+   numbers n2  on n1.n <= n2.n;
+  
+ 
+ 
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- --------------------------------------------------------------------------------
+-- | Id  | Operation                                | Name                        |
+-- --------------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                         |                             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/temp-table-transformation               |                             |
+-- |   2 |   LOAD AS SELECT (CURSOR DURATION MEMORY)| SYS_TEMP_0FD9D858D_E7611E22 |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/connect-by/without-filtering          |                             |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/fast-dual                            |                             |
+-- |   5 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops                           |                             |
+-- |   6 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                  |                             |
+-- |   7 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                    | SYS_TEMP_0FD9D858D_E7611E22 |
+-- |   8 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/view                                  |                             |
+-- |   9 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                    | SYS_TEMP_0FD9D858D_E7611E22 |
+-- --------------------------------------------------------------------------------
+code }
+
 sa:
+
+ `→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select`
+
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

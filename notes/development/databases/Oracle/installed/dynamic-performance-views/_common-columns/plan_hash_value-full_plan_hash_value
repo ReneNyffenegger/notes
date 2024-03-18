@@ -5,8 +5,7 @@ with all of its possible plan alternatives.
 -
 `PLAN_HASH_VALUE` identifies an actually executed → development/databases/Oracle/SQL/statement/execution/plan[execution plan].
 
-These columns appear in the following views
-
+These → development/databases/Oracle/objects/tables/columns[columns] appear in the following → development/databases/Oracle/objects/views[views]:
 table { lll
   → development/databases/Oracle/installed/dynamic-performance-views/active/session_history[V$ACTIVE_SESSION_HISTORY] ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
   V$ALL_ACTIVE_SESSION_HISTORY ☰ SQL_PLAN_HASH_VALUE ☰ SQL_FULL_PLAN_HASH_VALUE
@@ -27,16 +26,15 @@ table { lll
   V$SQL_PLAN_STATISTICS_ALL ☰ PLAN_HASH_VALUE ☰ FULL_PLAN_HASH_VALUE
 table }
 
-
-This list was selected with the following SQL statement
+This list was selected with the following → development/databases/Oracle/SQL/statement:
 code {
 select
    replace(a.table_name, 'V_$', 'V$'),
    max(case when  a.column_name in ('PLAN_HASH_VALUE', 'SQL_PLAN_HASH_VALUE')  then a.column_name end ) name_plan_hash,
    max(case when b.column_name in ('FULL_PLAN_HASH_VALUE', 'SQL_FULL_PLAN_HASH_VALUE') then b.column_name end) name_full_plan_hash
 from
-   dba_tab_columns a join
-   dba_tab_columns b on a.table_name = b.table_name
+   → development/databases/Oracle/installed/data-dictionary/tab/columns a join
+   → development/databases/Oracle/installed/data-dictionary/tab/columns b on a.table_name = b.table_name
    
 where
    a.table_name like 'V\_$%' escape '\' and
@@ -49,3 +47,8 @@ group by
 order by
    a.table_name;
 code }
+
+sa:
+  A noteable → development/databases/Oracle/objects/tables that doesn't have a `%plan_hash_value` column is the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table`.
+
+  Different → development/databases/Oracle/SQL/statement[SQL statements] with the same → development/databases/Oracle/SQL/statement/execution/plan[execution plan] (or at least plan hash value).

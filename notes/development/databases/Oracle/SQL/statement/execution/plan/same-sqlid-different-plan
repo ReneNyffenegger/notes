@@ -1,0 +1,104 @@
+$ Oracle: Same execution plan for different SQL statements (sql ids)
+
+
+Different → development/databases/Oracle/SQL/statement[SQL statements] can have the same → development/databases/Oracle/SQL/statement/execution/plan[execution plan] (or at least the same
+→ development/databases/Oracle/installed/dynamic-performance-views/_common-columns/plan_hash_value-full_plan_hash_value[plan hash value]).
+
+{ First demonstration
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_sql_hash_value (a number, b number);
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for select sum(a)   from tq84_sql_hash_value;
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- Plan hash value: 746934648
+--  
+-- --------------------------------------------------
+-- | Id  | Operation          | Name                |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |                     |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |                     |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_SQL_HASH_VALUE |
+-- --------------------------------------------------
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for select sum(b)   from tq84_sql_hash_value;
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- Plan hash value: 746934648
+--  
+-- --------------------------------------------------
+-- | Id  | Operation          | Name                |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |                     |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |                     |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_SQL_HASH_VALUE |
+-- --------------------------------------------------
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for select count(*) from tq84_sql_hash_value;
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- Plan hash value: 746934648
+--  
+-- --------------------------------------------------
+-- | Id  | Operation          | Name                |
+-- --------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |                     |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate    |                     |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_SQL_HASH_VALUE |
+-- --------------------------------------------------
+
+
+
+select sum  (a) from tq84_sql_hash_value;
+select sum  (b) from tq84_sql_hash_value;
+select count(*) from tq84_sql_hash_value;
+ 
+select
+   sql.sql_id,
+   sql.hash_value           sql_hash_value,
+   pln.hash_value           sql_hash_value_pln,
+   pln.plan_hash_value,
+   pln.full_plan_hash_value
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/area     sql   join
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan    pln on sql.sql_id = pln.sql_id  and
+                        pln.id = 0
+where
+   sql.sql_text like 'select %tq84_sql_hash_value';
+--
+-- SQL_ID        SQL_HASH_VALUE SQL_HASH_VALUE_PLN PLAN_HASH_VALUE FULL_PLAN_HASH_VALUE
+-- ------------- -------------- ------------------ --------------- --------------------
+-- dd02cgu2gwpxh     2231261104         2231261104       746934648            132718768
+-- 2rj6urdm5q82s     1717248088         1717248088       746934648            132718768
+-- bvjzvxp8z2vhj     1374776849         1374776849       746934648            132718768
+code }
+
+}
+{ CREATE TABLE statements
+
+  If multiple tables (i. e. tables different names) are created with the same statement, the execution plan is the same for all statements:
+code {
+create table tq84_dual_one → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[as select] * from → development/databases/Oracle/SQL/dual;
+create table tq84_dual_two → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[as select] * from → development/databases/Oracle/SQL/dual;
+
+select
+   sql.sql_id,
+   pln.plan_hash_value
+from
+   v$sqlarea     sql   join
+   v$sql_plan    pln on sql.sql_id = pln.sql_id  and
+                        pln.id = 0
+where
+   sql.sql_text like 'create table tq84_dual% as select * from dual';
+--  
+-- SQL_ID        PLAN_HASH_VALUE
+-- ------------- ---------------
+-- 9q2zctwzk1jrh      1501550473
+-- 7x3snfqfw9qfq      1501550473
+code }
+
+
+}
+
+sa:
+ → development/databases/Oracle/SQL/statement/execution/plan
