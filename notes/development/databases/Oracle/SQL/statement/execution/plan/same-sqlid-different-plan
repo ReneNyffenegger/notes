@@ -5,6 +5,9 @@ Different → development/databases/Oracle/SQL/statement[SQL statements] can hav
 → development/databases/Oracle/installed/dynamic-performance-views/_common-columns/plan_hash_value-full_plan_hash_value[plan hash value]).
 
 { First demonstration
+
+  In this first demonstration, the hash value for three similar SQL statements is displayed: all three statements select an aggregate function from the same table.
+
 code {
 → development/databases/Oracle/SQL/statement/nouns/table/create tq84_sql_hash_value (a number, b number);
 
@@ -74,7 +77,7 @@ where
 code }
 
 }
-{ CREATE TABLE statements
+{ CREATE TABLE and/or INSERT statements
 
   If multiple tables (i. e. tables different names) are created with the same statement, the execution plan is the same for all statements:
 code {
@@ -97,6 +100,30 @@ where
 -- 7x3snfqfw9qfq      1501550473
 code }
 
+  The same is also true for `insert` statements:
+code {
+create table tq84_dest_1(c1 number, c2 varchar2(10));
+create table tq84_dest_2(c1 number, c2 varchar2(10));
+create table tq84_src   (c1 number, c2 varchar2(10));
+ 
+insert into tq84_dest_1 select * from tq84_src;
+insert into tq84_dest_2 select * from tq84_src;
+ 
+select
+   sql.sql_id,
+   pln.plan_hash_value
+from
+   v$sqlarea     sql   join
+   v$sql_plan    pln on sql.sql_id = pln.sql_id  and
+                        pln.id = 0
+where
+   sql.sql_text like 'insert into tq84_dest_%from tq84_src';
+--  
+-- SQL_ID        PLAN_HASH_VALUE
+-- ------------- ---------------
+-- gpfq9dup6a6zr      3670527110
+-- fp0q14paf291t      3670527110  
+code }
 
 }
 

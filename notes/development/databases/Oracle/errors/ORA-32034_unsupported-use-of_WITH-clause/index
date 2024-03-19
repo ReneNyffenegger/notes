@@ -1,13 +1,28 @@
 $ ORA-32034: unsupported use of WITH clause
 
+{ Nested WITH clauses
+
+  Nested → development/databases/Oracle/SQL/clauses/with[`with` clauses] are not supported. The following statement tries to nest such clauses nevertheless which results in
+ *ORA-32034: unsupported use of WITH clause*:
+code {
+with
+    a as (select 4   n from → development/databases/Oracle/SQL/dual),
+    b as (with c as (select n+3 n from a)
+select
+   * from b;
+code }
+
+}
+{ Using the WITH_PLSQL hint #ora-32034-with_plsql
+
+  We need a demonstration table:
 code {
 create table tq84_t (n number);
+code }
 
---
--- Following statement causes
---   ORA-32034: unsupported use of WITH clause
--- error:
---
+
+  The following statement causes *ORA-32034: unsupported use of WITH clause*:
+code {
 insert into tq84_t
    with function f(i number) return number as begin
         return i*2;
@@ -15,13 +30,13 @@ insert into tq84_t
 select
    f(level)
 from
-   dual connect by level <= 10;
+   dual → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by level] <= 10;
 /
+code }
 
 
---
--- The WITH_PLSQL hint is required to
--- prevent this error:
+  The following statement uses the `with_plsql` → development/databases/Oracle/SQL/hints to prevent this error:
+code {
 insert /*+ with_plsql */ into tq84_t
    with function f(i number) return number as begin
         return i*2;
@@ -31,11 +46,16 @@ select
 from
    dual connect by level <= 10;
 /
+code }
 
+  Testing the result and cleaninug up:
+code {
 select * from tq84_t;
 
 drop table tq84_t;
 code }
+
+}
 
 sa:
   → development/databases/Oracle/SQL/clauses/with[`with` clause]
