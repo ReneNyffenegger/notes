@@ -1,6 +1,5 @@
 $ Oracle: Same execution plan for different SQL statements (sql ids)
 
-
 Different → development/databases/Oracle/SQL/statement[SQL statements] can have the same → development/databases/Oracle/SQL/statement/execution/plan[execution plan] (or at least the same
 → development/databases/Oracle/installed/dynamic-performance-views/_common-columns/plan_hash_value-full_plan_hash_value[plan hash value]).
 
@@ -15,7 +14,7 @@ code {
 select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
 --
 -- Plan hash value: 746934648
---  
+--
 -- --------------------------------------------------
 -- | Id  | Operation          | Name                |
 -- --------------------------------------------------
@@ -28,7 +27,7 @@ select * from → development/databases/Oracle/installed/packages/dbms/xplan/api
 select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
 --
 -- Plan hash value: 746934648
---  
+--
 -- --------------------------------------------------
 -- | Id  | Operation          | Name                |
 -- --------------------------------------------------
@@ -41,7 +40,7 @@ select * from → development/databases/Oracle/installed/packages/dbms/xplan/api
 select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
 --
 -- Plan hash value: 746934648
---  
+--
 -- --------------------------------------------------
 -- | Id  | Operation          | Name                |
 -- --------------------------------------------------
@@ -55,7 +54,7 @@ select * from → development/databases/Oracle/installed/packages/dbms/xplan/api
 select sum  (a) from tq84_sql_hash_value;
 select sum  (b) from tq84_sql_hash_value;
 select count(*) from tq84_sql_hash_value;
- 
+
 select
    sql.sql_id,
    sql.hash_value           sql_hash_value,
@@ -93,7 +92,7 @@ from
                         pln.id = 0
 where
    sql.sql_text like 'create table tq84_dual% as select * from dual';
---  
+--
 -- SQL_ID        PLAN_HASH_VALUE
 -- ------------- ---------------
 -- 9q2zctwzk1jrh      1501550473
@@ -105,10 +104,10 @@ code {
 create table tq84_dest_1(c1 number, c2 varchar2(10));
 create table tq84_dest_2(c1 number, c2 varchar2(10));
 create table tq84_src   (c1 number, c2 varchar2(10));
- 
+
 insert into tq84_dest_1 select * from tq84_src;
 insert into tq84_dest_2 select * from tq84_src;
- 
+
 select
    sql.sql_id,
    pln.plan_hash_value
@@ -118,11 +117,68 @@ from
                         pln.id = 0
 where
    sql.sql_text like 'insert into tq84_dest_%from tq84_src';
---  
+--
 -- SQL_ID        PLAN_HASH_VALUE
 -- ------------- ---------------
 -- gpfq9dup6a6zr      3670527110
--- fp0q14paf291t      3670527110  
+-- fp0q14paf291t      3670527110
+code }
+
+}
+{ Object names have no influence for plan operations LOAD AS SELECT and REMOTE #remote-load-as-select-no-influence-on-hash
+
+  The object names or objects that are targeted with the plan operations `→ development/databases/Oracle/SQL/statement/execution/plan/operations/remote` and `→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select` have no influence on the execution plan hash.
+
+  In order to demonstrate this, two tables are created at a remote and on a local database:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/database-link#ora-create-db-link[create database link] tq84_remote_db connect to …;
+
+begin
+   → development/databases/Oracle/installed/packages/dbms/utility/api/exec_ddl_statement[dbms_utility.exec_ddl_statement]@tq84_remote_db('create table tq84_src_1 (a number, b varchar2(10))');
+   → development/databases/Oracle/installed/packages/dbms/utility/api/exec_ddl_statement[dbms_utility.exec_ddl_statement]@tq84_remote_db('create table tq84_src_2 (c date  , e blob        )');
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_dest_1(a number);
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_dest_2(b number);
+code }
+
+   The two plans to load `tq84_dest_1` and `tq84_dest_2` have (obviously) a different object name for the `load as select` operator, but the same hash value (`2098243032`):
+code {
+explain plan for insert /*+ → development/databases/Oracle/SQL/hints/list/append */ into tq84_dest_1 select count(*) from tq84_src_1@tq84_remote_db;
+
+select * from dbms_xplan.display(format=>'basic');
+Plan hash value: 2098243032
+--
+-- --------------------------------------------------------
+-- | Id  | Operation                        | Name        |
+-- --------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert                 |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select                  | TQ84_DEST_1 |
+-- |   2 |   → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/remote                        |             |
+-- --------------------------------------------------------
+
+
+explain plan for insert /*+ → development/databases/Oracle/SQL/hints/list/append */ into tq84_dest_2 select count(*) from tq84_src_1@tq84_remote_db;
+select * from dbms_xplan.display(format=>'basic');
+--
+-- Plan hash value: 2098243032
+--
+-- --------------------------------------------------------
+-- | Id  | Operation                        | Name        |
+-- --------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert                 |             |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select                  | TQ84_DEST_2 |
+-- |   2 |   → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering |             |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/remote                        |             |
+-- --------------------------------------------------------
+code }
+
+  The same hash value is also produced when selecting from the «other» remote table (i. e. `tq84_src_2`):
+code {
+explain plan for insert /*+ append */ into tq84_dest_1 select count(*) from tq84_src_2@tq84_remote_db;
+explain plan for insert /*+ append */ into tq84_dest_2 select count(*) from tq84_src_2@tq84_remote_db;
 code }
 
 }

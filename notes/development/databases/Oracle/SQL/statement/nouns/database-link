@@ -1,0 +1,56 @@
+$ Oracle SQL noun: DATABASE LINK
+
+The → development/databases/Oracle/SQL/statement[Oracle SQL statements] using the → development/databases/Oracle/SQL/verb-noun#ora-sql-noun[noun] `database link` are
+  • `alter database link`
+  • `create database link`
+  • `drop database link`
+
+
+{ Create a database link #ora-create-db-link
+
+code {
+create database link tq84_remote_db
+   connect to usr_abc
+   identified by secretGarden
+   using 'srv:1521/ora19';
+code }
+
+}
+{ Dropping a database link
+
+  { Error messages #ora-db-link-drop-err
+
+code {
+drop database link tq84_remote_db;
+-- → development/databases/Oracle/errors/ORA-02018_database-link-of-same-name-has-an-open-connection
+
+→ development/databases/Oracle/SQL/statement/nouns/session/alter/close-database-link tq84_remote_db;
+-- → development/databases/Oracle/errors/ORA-02080_database-link-is-in-use
+
+begin dbms_session.close_database_link('tq84_remote_db'); end;
+/
+-- ORA-02080: database link is in use
+
+select
+   logged_on,
+   open_cursors,
+   in_transaction 
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/dblink
+where
+   db_link like 'TQ84_REMOTE_DB';
+   
+→ development/databases/Oracle/SQL/TCL/commit;
+
+→ development/databases/Oracle/SQL/statement/nouns/session/alter/close-database-link tq84_remote_db;
+-- Session altered
+
+drop database link tq84_remote_db;
+-- Database link TQ84_REMOTE_DB dropped.
+code }
+
+     See also MOS Note 1034343.6 (How To Close Remote Connections)
+
+  }
+
+}
