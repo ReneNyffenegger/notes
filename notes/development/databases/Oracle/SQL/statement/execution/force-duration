@@ -1,0 +1,19 @@
+$ Oracle: Force an SQL statement to run for a given amount of time
+
+For testing purposes, it is sometimes desired to have an → development/databases/Oracle/SQL/statement that → development/databases/Oracle/SQL/statement/execution[executes] for a given amount of time.
+-
+The following statement runs for 5 seconds and a bit:
+code {
+select max(null) from (
+    with n as (select /*+ → development/databases/Oracle/SQL/hints/list/materialize */ → development/databases/Oracle/installed/packages/dbms/utility/api/get_time ow  from → development/databases/Oracle/SQL/dual)
+    select
+       null
+    from
+       n → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by n.ow] + 500 > → development/databases/Oracle/installed/packages/dbms/utility/api/get_time
+);
+code }
+
+Beware that this statement might throw → development/databases/Oracle/errors/ORA-30009_Not-enough-memory-for-CONNECT-BY-operation.
+
+sa:
+  → development/databases/Oracle/SQL/functions/date/sysdate#sysdate-sql-statement[Using `sysdate`] in an SQL statement.

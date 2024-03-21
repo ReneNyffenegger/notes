@@ -1,0 +1,32 @@
+$ ORA-02287: sequence number not allowed here
+
+code {
+create sequence tq84_seq;
+create table    tq84_tab   (id integer, val varchar2(10));
+
+begin
+   insert into tq84_tab values (tq84_seq.nextval, 'abc');
+   insert into tq84_tab values (tq84_seq.nextval, 'def');
+   commit;
+end;
+/
+code }
+
+→ development/databases/Oracle/objects/sequences[Sequences] are not allowed in `where` conditions; the following statement throws *ORA-02287: sequence number not allowed here*:
+code {
+select val from tq84_tab where id = tq84_seq.currval;
+code }
+
+Sequences are also not allowed with → development/databases/Oracle/SQL/clauses/with[`with` clauses], the same error is thrown:
+code {
+with seqval as (select tq84_seq.currval curid from → development/databases/Oracle/SQL/dual)
+select
+   val
+from
+   tq84_seq       join
+   seqval   on id = curid;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

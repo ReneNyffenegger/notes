@@ -1,0 +1,55 @@
+$ Oracle SQL Plan operation CONNECT BY PUMP
+@ CONNECT BY PUMP
+
+code {
+create table tq84_cbp (
+    id  integer primary key,
+    pid references tq84_cbp,
+    val varchar2(10)
+);
+
+begin
+   insert into tq84_cbp values(1, null, 'ROOT');
+   insert into tq84_cbp values(2,    1, 'A');
+   insert into tq84_cbp values(5,    2,   'ij');  
+   insert into tq84_cbp values(6,    2,   'klm');  
+   insert into tq84_cbp values(3,    1, 'B');
+   insert into tq84_cbp values(7,    3,   'nop');  
+   insert into tq84_cbp values(4,    1, 'C');
+   insert into tq84_cbp values(8,    4,   'q');  
+   insert into tq84_cbp values(9,    4,   'stuvwxyz');  
+   
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_cbp');  
+end;
+/
+ 
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ connect_by_filtering  */
+   lpad(' ', level-1) || val
+from
+   tq84_cbp
+      → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[start with] pid is null
+      → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] prior id = pid;
+
+select * from dbms_xplan.display(format=>'basic');
+--
+-- ----------------------------------------------
+-- | Id  | Operation                 | Name     |
+-- ----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select          |          |
+-- |   1 |  CONNECT BY WITH FILTERING|          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full       | TQ84_CBP |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/hash-join               |          |
+-- |   4 |    CONNECT BY PUMP        |          |
+-- |   5 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full      | TQ84_CBP |
+-- ----------------------------------------------
+code }
+
+  Note: the table `tq84_cbp` is accessed twice.
+
+sa:
+
+  The `connect_by_filtering` → development/databases/Oracle/SQL/hints.
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations] such as `→ development/databases/Oracle/SQL/statement/execution/plan/operations/recursive-with-pump`

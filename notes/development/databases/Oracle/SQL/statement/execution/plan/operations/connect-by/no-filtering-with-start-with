@@ -1,0 +1,47 @@
+$ Oracle SQL Plan operation CONNECT BY NO FILTERING WITH START-WITH
+
+code {
+
+create table tq84_cbnfwsw (
+   id integer primary key,
+   pid references tq84_cbnfwsw,
+   val varchar2(10)
+);
+
+begin
+   insert into tq84_cbnfwsw values(1, null, 'ROOT');
+   insert into tq84_cbnfwsw values(2,    1, 'A');
+   insert into tq84_cbnfwsw values(5,    2,   'ij');  
+   insert into tq84_cbnfwsw values(6,    2,   'klm');  
+   insert into tq84_cbnfwsw values(3,    1, 'B');
+   insert into tq84_cbnfwsw values(7,    3,   'nop');  
+   insert into tq84_cbnfwsw values(4,    1, 'C');
+   insert into tq84_cbnfwsw values(8,    4,   'q');  
+   insert into tq84_cbnfwsw values(9,    4,   'stuvwxyz');  
+   
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_cbnfwsw');  
+end;
+/
+ 
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   lpad(' ', level-1) || val
+from
+   tq84_cbnfwsw
+      → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[start with] pid is null
+      → development/databases/Oracle/SQL/select/hierarchical-queries/start-with_connect-by[connect by] prior id = pid;
+      
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- ----------------------------------------------------------------
+-- | Id  | Operation                               | Name         |
+-- ----------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                        |              |
+-- |   1 |  CONNECT BY NO FILTERING WITH START-WITH|              |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                     | TQ84_CBNFWSW |
+-- ----------------------------------------------------------------
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
