@@ -6,7 +6,6 @@ There are two types of operations:
   • Operations that retrieve data from a → development/databases/Oracle/architecture/database/files/data (for example → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[`TABLE ACCESS (FULL)`]), or
   • Operations that combine or otherwise manipulate the data that it receives from its child operations (for example `NESTED JOIN`).
 
-
 table { llll
 
   ~Operation~ ☰ ~Option~ ☰ ~nof inputs~ ☰ ~Comment~
@@ -33,10 +32,11 @@ table { llll
    CONNECT BY PUMP ☰  ☰ 1 ☰ Compare with `→ development/databases/Oracle/SQL/statement/execution/plan/operations/recursive-with-pump`
    → development/databases/Oracle/SQL/statement/execution/plan/operations/count[COUNT] ☰ ☰ 1 ☰ Created by `→ development/databases/Oracle/objects/tables/columns/pseudo/rownum`.
    COUNT ☰ STOPKEY ☰ 1 ☰ `rownum` plus criterion (in outer query?)
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/create-table ☰  ☰ 1 - (?) ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/create-table ☰  ☰ 1 - (?) ☰ One of the → #ora-sql-plan-root-op[root operations].
+   CREATE INDEX STATEMENT ☰ ☰ 1 ☰ One of the → #ora-sql-plan-root-op[root operations]. For non-parallel execution, the (only) child operator is `INDEX BUILD`.
    → development/databases/Oracle/SQL/statement/execution/plan/operations/data-link ☰ FULL ☰ 1 ☰ Compare with `→ development/databases/Oracle/SQL/statement/execution/plan/operations/extended-data-link/full`.
    DELETE ☰  ☰ 1 ☰
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/delete ☰ ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/delete ☰ ☰ 1 ☰ One of the → #ora-sql-plan-root-op[root operations]. The (only) child operation is always `DELETE`.
    DOMAIN INDEX ☰ ☰ ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/expression-evaluation ☰ ☰ ☰
    EXTENDED DATA LINK ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/extended-data-link/full[FULL] ☰ 1 ☰  Compare with `DATA LINK`
@@ -77,7 +77,7 @@ table { llll
    INDEX ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan[UNIQUE SCAN] ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/index-maintenance[INDEX MAINTENANCE] ☰ ☰ 1 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/inlist-iterator[INLIST ITERATOR] ☰  ☰ 1 ☰ Iterate over each element in a `where x in (elem_1, elem_2, …, elem_n)` predicate and execute the child plan operation
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert[INSERT STATEMENT] ☰  ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert[INSERT STATEMENT] ☰  ☰ 1 ☰ One of the → #ora-sql-plan-root-op[root operations].
    → development/databases/Oracle/SQL/DML/insert/all/execution-plan[INTO] ☰ ☰ ? ☰ Used in conjuction with the `MULTI-TABLE INSERT` operator for → development/databases/Oracle/SQL/DML/insert/all[`insert all`] (multi table insert) statements
    JOIN FILTER ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/join-filter/create[CREATE] ☰ 1 ☰ Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/part-join-filter/create[`PART JOIN FILTER (CREATE)`]
    JOIN FILTER ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/join-filter/use[USE] ☰ 1 ☰
@@ -102,7 +102,7 @@ table { llll
    MERGE JOIN ☰ OUTER ☰ 2 ☰
    MERGE JOIN ☰ → development/databases/Oracle/SQL/join/semi[SEMI] ☰ 2 ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join[MERGE JOIN] ☰  ☰ 2 ☰
-   MERGE STATEMENT ☰  ☰ 1 ☰
+   MERGE STATEMENT ☰  ☰ 1 ☰ One of the → #ora-sql-plan-root-op[root operations]. For non-parallel execution, the only child operator is `MERGE`.
    → development/databases/Oracle/SQL/statement/execution/plan/operations/minus[MINUS] ☰  ☰ 2 ☰
    → development/databases/Oracle/SQL/DML/insert/all/execution-plan[MULTI-TABLE INSERT] ☰ ☰ ? ☰ Used in conjuction with the `INTO` operator for → development/databases/Oracle/SQL/DML/insert/all[`insert all`] (multi table insert) statements
    → development/databases/Oracle/SQL/statement/execution/plan/operations/nested-loops[NESTED LOOPS] ☰ ANTI ☰ 2 ☰
@@ -153,7 +153,7 @@ table { llll
    → development/databases/Oracle/SQL/statement/execution/plan/operations/recursive-with-pump ☰ ? ☰ ? ☰ Compare with `CONNECT BY PUMP`
    → development/databases/Oracle/SQL/statement/execution/plan/operations/remote ☰ ? ☰ ? ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/result-cache ☰  ☰ 1 ☰
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select ☰  ☰ 1 - n ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select ☰  ☰ 1 - n ☰ One of the → #ora-sql-plan-root-op[root operations].
    SELECT STATEMENT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select/remote[`REMOTE`] ☰ ☰
    → development/databases/Oracle/SQL/statement/execution/plan/operations/sequence ☰  ☰ 1 ☰
    SORT ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate[AGGREGATE] ☰ 1 - 2 ☰ Used when → development/databases/Oracle/SQL/select/aggregate[aggregate functions] are applied to an entire table/subquery without → development/databases/Oracle/SQL/select/group-by[`group by`]. Compare with → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[`BUFFER (SORT)`].
@@ -189,7 +189,7 @@ table { llll
    UNION ALL PUSHED PREDICATE ☰  ☰ 2(?) - n ☰
    → development/databases/Oracle/SQL/select/pivot/un/execution-plan[UNPIVOT] ☰ ☰ ☰
    UPDATE ☰  ☰ 1 - n ☰
-   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update ☰  ☰ 1 ☰
+   → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update ☰  ☰ 1 ☰ One of the → #ora-sql-plan-root-op[root operations]. For non-parallel execution, the only child operator is `UPDATE`.
    → development/databases/Oracle/SQL/statement/execution/plan/operations/view ☰  ☰ 1 ☰ A passive operation: it passes its resultset to the parent operation. → https://www.red-gate.com/simple-talk/databases/oracle-databases/execution-plans-part-7-query-blocks-and-inline-views/[Jonathan Lewis] says the VIEW operator identifies a separately optimized → development/databases/Oracle/SQL/statement/query-block (in a possibly transformed SQL statement) whose result set might be completely built in memory before passing it to the parent operators. Compare with the plan operation → development/databases/Oracle/SQL/statement/execution/plan/operations/filter[`FILTER`].
    → development/databases/Oracle/SQL/statement/execution/plan/operations/view-pushed-predicate[VIEW PUSHED PREDICATE] ☰  ☰ 1 ☰ Compare with with `→ development/databases/Oracle/SQL/statement/execution/plan/operations/view`
    → development/databases/Oracle/SQL/statement/execution/plan/operations/window[WINDOW] ☰ → development/databases/Oracle/SQL/statement/execution/plan/operations/window/buffer[BUFFER] ☰ 1 ☰ Used in `over()` clauses in an → development/databases/Oracle/SQL/select/analytic[analytic function] when the clause *does not* contain a `partition by` or `order by`.
@@ -268,6 +268,20 @@ order by
    p_options;
 code }
 
+{ Root operators #ora-sql-plan-root-op
+
+  There are seven root operators for execution plans
+    •  `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select`
+    •  `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert`
+    •  `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/delete`
+    •  `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/update`
+    •  `MERGE STATEMENT`
+    •  `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/create-table`
+    •  `CREATE INDEX STATEMENT`
+
+  Usually, these operators have no options (but see also `→ development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select/remote`).
+
+}
 { Matrix Operation/Object type #ora-sql-plan-op-obj-type-matrix
 
   The following matrix show which → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/object_type[object types] are accessed by which plan operations.
@@ -360,14 +374,12 @@ order by
    else operation end,
    options;
 code } 
- 
-
-
 
 }
-{ TODO
 
-  Find parent child operation relations:
+{ Find parent child operation relations
+
+  From `v$sql_plan`:
 code {
 select
    count(*) cnt,
@@ -395,7 +407,37 @@ order by
 ;
 code }
 
-  Find *entire* plans (including text of SQL statement) where a given operation is present:
+  Same idea, but from `dba_hist_sql_plan`:
+code {
+select
+   count(*) cnt,
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+from
+   dba_hist_sql_plan    p                                                                                                                 left join
+   dba_hist_sql_plan    c1 on p.dbid = c1.dbid and p.plan_hash_value = c1.plan_hash_value and p.sql_id = c1.sql_id and p.id = c1.parent_id and c1.position = 1 left join
+   dba_hist_sql_plan    c2 on p.dbid = c2.dbid and p.plan_hash_value = c2.plan_hash_value and p.sql_id = c2.sql_id and p.id = c2.parent_id and c2.position = 2 left join
+   dba_hist_sql_plan    c3 on p.dbid = c3.dbid and p.plan_hash_value = c3.plan_hash_value and p.sql_id = c3.sql_id and p.id = c3.parent_id and c3.position = 3
+where
+   p.operation = 'SELECT STATEMENT'  -- and p.options = 'BY INDEX ROWID BATCHED'
+group by
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+order by
+   p .operation, p .options,
+   c1.operation, c1.options,
+   c2.operation, c2.options,
+   c3.operation, c3.options
+;
+code }
+
+}
+{ Find entire plans where a given operation is present
+
 code {
 with s as (
    select distinct
