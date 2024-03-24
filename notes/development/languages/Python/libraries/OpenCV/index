@@ -1,0 +1,48 @@
+$ Python library: OpenCV
+
+{ Capturing and saving frames from a webcam
+
+  Pressing `space` saves the current image from the webcam with an increasing counter in the filename, `esc` exits the loop and script.
+
+code {
+import cv2
+
+cam = cv2.VideoCapture(0)
+# type(cam) # cv2.VideoCapture
+
+cv2.namedWindow('frame-out')
+cnt = 0
+
+while True:
+
+      ret, frame = cam.read()  #read frame
+   #  type(ret  )  #  bool
+   #  type(frame)  #  → development/languages/Python/libraries/numpy/ndarray[numpy.ndarray]
+   #  frame.shape  # (height, width, nof-colors)  --  nof-colors likely to be 3
+
+      cv2.imshow('frame-out', frame)
+
+      if not ret:
+         break
+
+      keyPressed = cv2.waitKey(1)
+
+      if   keyPressed % 256 == 27:
+         # ESC pressed: exit loop
+
+           break
+
+      elif keyPressed % 256 == 32:
+         # SPACE pressed: save image
+
+          img_name = f'/tmp/cv2-capture-{cnt}.jpg'
+          cv2.imwrite(img_name, frame)
+          print(f'{img_name} written')
+
+          cnt += 1
+
+cam.release()
+cv2.destroyAllWindows()
+code }
+
+}
