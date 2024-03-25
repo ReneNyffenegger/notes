@@ -2,7 +2,7 @@ $ ORA-00054: resource busy and acquire with NOWAIT specified or timeout expired
 
 → development/databases/Oracle/architecture/session[Session] 1:
 code {
-create table tq84_ora_54 (
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_ora_54 (
    txt varchar2(10)
 );
 --
@@ -16,14 +16,29 @@ insert into tq84_ora_54 values ('xyz');
 -- 1 row created.
 code }
 
-As long as session 2 did not commit the DML on `tq84_ora_54`, another session cannot drop the table.
+As long as session 2 did not commit the → development/databases/Oracle/SQL/DML[DML] on `tq84_ora_54`, another session cannot drop the table.
 -
 Session 1:
 code {
-drop table tq84_ora_54;
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_ora_54;
 --         *
 -- ERROR at line 1:
 -- ORA-00054: resource busy and acquire with NOWAIT specified or timeout expired
+code }
+
+Find the → development/databases/Oracle/architecture/session that is blocking the table from being dropped:
+code {
+select
+   ses.sid,
+   ses.serial#,
+   prc.spid
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/locked_object lck join
+   → development/databases/Oracle/installed/data-dictionary/objects     obj on lck.object_id  = obj.object_id join
+   → development/databases/Oracle/installed/dynamic-performance-views/session       ses on lck.session_id = ses.sid       join
+   → development/databases/Oracle/installed/dynamic-performance-views/process       prc on ses.paddr      = prc.addr
+where
+   obj.object_name = 'TQ84_ORA_54';
 code }
 
 Session 2:

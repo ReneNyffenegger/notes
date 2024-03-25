@@ -1,0 +1,54 @@
+$ Oracle SQL Statement Execution: Diff V$SQL Statistics
+
+The following statement gets some execution stats from a (preferably → development/databases/Oracle/SQL/statement/execution[running]) → development/databases/Oracle/SQL/statement from
+`→ development/databases/Oracle/installed/dynamic-performance-views/sql` and and then gets the same performance indicators
+after an interval of time (`time_diff`) again and then reports the stats and their differences.
+code {
+with
+   function sleep(secs number) return number is
+   begin
+      dbms_session.sleep(secs);
+      return 0;
+   end sleep;
+   param as (
+       select
+         'b63vag62z3h9x' as sqlid,
+          0              as chnr,
+          10             as time_diff
+      from
+         dual
+   ),  
+   slowdown as (
+     select
+        level lvl,
+        dbms_utility.get_time tm
+     from
+        param connect by sleep(time_diff) = 0 and level <= 2
+  ),
+  stats as ( 
+select
+   stat.*
+from
+   param, slowdown, lateral (
+        select lvl, executions, fetches, parse_calls, buffer_gets, rows_processed, cpu_time, elapsed_time from v$sql where sql_id = param.sqlid and child_number = param.chnr and lvl = 1 union all
+        select lvl, executions, fetches, parse_calls, buffer_gets, rows_processed, cpu_time, elapsed_time from v$sql where sql_id = param.sqlid and child_number = param.chnr and lvl = 2
+   ) stat
+)
+select * from stats
+union all
+select
+   3,
+   max(case when stats.lvl = 2 then executions     end) - max(case when stats.lvl = 1 then executions     end),
+   max(case when stats.lvl = 2 then fetches        end) - max(case when stats.lvl = 1 then fetches        end),
+   max(case when stats.lvl = 2 then parse_calls    end) - max(case when stats.lvl = 1 then parse_calls    end),
+   max(case when stats.lvl = 2 then buffer_gets    end) - max(case when stats.lvl = 1 then buffer_gets    end),
+   max(case when stats.lvl = 2 then rows_processed end) - max(case when stats.lvl = 1 then rows_processed end),
+   max(case when stats.lvl = 2 then cpu_time       end) - max(case when stats.lvl = 1 then cpu_time       end),
+   max(case when stats.lvl = 2 then elapsed_time   end) - max(case when stats.lvl = 1 then elapsed_time   end)
+from
+   stats
+/
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution#ora-sql-exec-tracing
