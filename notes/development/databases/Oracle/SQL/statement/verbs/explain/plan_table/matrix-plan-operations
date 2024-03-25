@@ -1,0 +1,92 @@
+$ Oracle: Matrix PLAN_TABLE columns / Plan operations
+
+The following → development/databases/Oracle/SQL/statement creates a matrix of columns in the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table` (which are also found in
+`→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan` and `→ development/databases/Oracle/installed/data-dictionary/hist/sql/plan` etc.) and
+→ development/databases/Oracle/SQL/statement/execution/plan/operations[execution plan operators].
+
+Each «cell value» in the result set is either `null`, `not null` or `both` and indicates if the plan operator fills a value into the corresponding column
+-
+The value for `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/search_columns` is a bit special in that is never `null` - so I determine if the value is `0` or larger.
+
+code {
+with x as (
+select
+   operation,
+   options,
+   case when object_node       = cnt then 'not null' when object_node       is null then 'null' else 'both' end "object_node",
+   case when object#           = cnt then 'not null' when object#           is null then 'null' else 'both' end "object#",
+   case when object_owner      = cnt then 'not null' when object_owner      is null then 'null' else 'both' end "object_owner",
+   case when object_name       = cnt then 'not null' when object_name       is null then 'null' else 'both' end "object_name",
+   case when object_alias      = cnt then 'not null' when object_alias      is null then 'null' else 'both' end "object_alias",
+   case when object_type       = cnt then 'not null' when object_type       is null then 'null' else 'both' end "object_type",
+   case when optimizer         = cnt then 'not null' when optimizer         is null then 'null' else 'both' end "optimizer",
+   case when search_columns    = cnt then '> 0' when search_columns         is null then '0' else '?' end "search_columns",
+   case when cost              = cnt then 'not null' when cost              is null then 'null' else 'both' end "cost",
+   case when cardinality       = cnt then 'not null' when cardinality       is null then 'null' else 'both' end "cardinality",
+   case when bytes             = cnt then 'not null' when bytes             is null then 'null' else 'both' end "bytes",
+   case when other_tag         = cnt then 'not null' when other_tag         is null then 'null' else 'both' end "other_tag",
+   case when partition_start   = cnt then 'not null' when partition_start   is null then 'null' else 'both' end "partition_start",
+   case when partition_stop    = cnt then 'not null' when partition_stop    is null then 'null' else 'both' end "partition_stop",
+   case when partition_id      = cnt then 'not null' when partition_id      is null then 'null' else 'both' end "partition_id",
+   case when other             = cnt then 'not null' when other             is null then 'null' else 'both' end "other",
+   case when distribution      = cnt then 'not null' when distribution      is null then 'null' else 'both' end "distribution",
+   case when cpu_cost          = cnt then 'not null' when cpu_cost          is null then 'null' else 'both' end "cpu_cost",
+   case when io_cost           = cnt then 'not null' when io_cost           is null then 'null' else 'both' end "io_cost",
+   case when temp_space        = cnt then 'not null' when temp_space        is null then 'null' else 'both' end "temp_space",
+   case when access_predicates = cnt then 'not null' when access_predicates is null then 'null' else 'both' end "access_predicates",
+   case when filter_predicates = cnt then 'not null' when filter_predicates is null then 'null' else 'both' end "filter_predicates",
+   case when projection        = cnt then 'not null' when projection        is null then 'null' else 'both' end "projection",
+   case when time              = cnt then 'not null' when time              is null then 'null' else 'both' end "time",
+   case when qblock_name       = cnt then 'not null' when qblock_name       is null then 'null' else 'both' end "qblock_name",
+   case when remarks           = cnt then 'not null' when remarks           is null then 'null' else 'both' end "remarks",
+   case when other_xml         = cnt then 'not null' when other_xml         is null then 'null' else 'both' end "other_xml"
+from (
+   select
+      count(*) cnt,
+      operation,
+      options,
+      sum(case when object_node       is not null then 1 end ) object_node,
+      sum(case when object#           is not null then 1 end ) object#,
+      sum(case when object_owner      is not null then 1 end ) object_owner,
+      sum(case when object_name       is not null then 1 end ) object_name,
+      sum(case when object_alias      is not null then 1 end ) object_alias,
+      sum(case when object_type       is not null then 1 end ) object_type,
+      sum(case when optimizer         is not null then 1 end ) optimizer,
+      sum(case when search_columns > 0            then 1 end ) search_columns,
+      sum(case when cost              is not null then 1 end ) cost,
+      sum(case when cardinality       is not null then 1 end ) cardinality,
+      sum(case when bytes             is not null then 1 end ) bytes,
+      sum(case when other_tag         is not null then 1 end ) other_tag,
+      sum(case when partition_start   is not null then 1 end ) partition_start,
+      sum(case when partition_stop    is not null then 1 end ) partition_stop,
+      sum(case when partition_id      is not null then 1 end ) partition_id,
+      sum(case when other             is not null then 1 end ) other,
+      sum(case when distribution      is not null then 1 end ) distribution,
+      sum(case when cpu_cost          is not null then 1 end ) cpu_cost,
+      sum(case when io_cost           is not null then 1 end ) io_cost,
+      sum(case when temp_space        is not null then 1 end ) temp_space,
+      sum(case when access_predicates is not null then 1 end ) access_predicates,
+      sum(case when filter_predicates is not null then 1 end ) filter_predicates,
+      sum(case when projection        is not null then 1 end ) projection,
+      sum(case when time              is not null then 1 end ) time,
+      sum(case when qblock_name       is not null then 1 end ) qblock_name,
+      sum(case when remarks           is not null then 1 end ) remarks,
+      sum(case when other_xml         is not null then 1 end ) other_xml
+    from
+      v$sql_plan
+    --dba_hist_sql_plan
+    group by
+       operation,
+       options
+)
+)
+select *from x
+-- where
+--   "access_predicates" <> 'null'
+order by
+   operation,
+   options;
+code }
+
+sa:
+  The → development/databases/Oracle/SQL/statement/execution/plan/operations#ora-sql-plan-op-obj-type-matrix[matrix of plan operations / object types].
