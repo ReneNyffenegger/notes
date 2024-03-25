@@ -1,10 +1,103 @@
 $ Oracle hints: ENABLE_PARALLEL_DML, DISABLE_PARALLEL_DML
+
+Preparation of tables:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_src as select * from → development/databases/Oracle/installed/data-dictionary/objects;
+ 
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_dest (
+   id   number,
+   own  varchar2(128),
+   nam  varchar2(128),
+   typ  varchar2( 20)
+);
+code }
+ 
+ 
+The following (explained) → development/databases/Oracle/SQL/statement uses the `→ development/databases/Oracle/SQL/hints/list/parallel` hint.
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+insert /*+ → development/databases/Oracle/SQL/hints/list/parallel[parallel](4) */ into tq84_dest
+select
+   object_id,
+   owner,
+   object_name,
+   object_type
+from
+   tq84_src;
+code }
+
+The statement's → development/databases/Oracle/SQL/statement/execution/plan[execution plan] places the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional` operator
+«above» the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator` operator which indicates that `tq84_dest` is not filled in parallel (although the data from `tq84_src` is selected
+in parallel).
 -
+The plan also has the *PDML is disabled in current session* note which confirms this observation:
+code {
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic +note');
+--
+-- ----------------------------------------------
+-- | Id  | Operation                | Name      |
+-- ----------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert         |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional | TQ84_DEST |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator         |           |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random   | :TQ10000  |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator    |           |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full   | TQ84_SRC  |
+-- ----------------------------------------------
+-- Note
+-- -----
+--    - Degree of Parallelism is 4 because of hint
+--    - PDML is disabled in current session
+code }
+ 
+ 
+The `enable_parallal_dml` → development/databases/Oracle/SQL/hints is added:
+code {
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+insert /*+ enable_parallel_dml → development/databases/Oracle/SQL/hints/list/parallel[parallel](4) */ into tq84_dest
+select
+   object_id,
+   owner,
+   object_name,
+   object_type
+from
+   tq84_src;
+code }
+  
+This changes the execution plan such that `tq84_dest` is filed in parallel (the `development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select/hybrid-tsm-hwmb` operator is now found «below»
+the `→ development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator` operator).
+-
+In addition, the *PDML is disabled in current session* note is now gone:
+code {
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic +note');
+-- 
+-- --------------------------------------------------------
+-- | Id  | Operation                          | Name      |
+-- --------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert                   |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator                    |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random              | :TQ10000  |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/load/as-select/hybrid-tsm-hwmb[LOAD AS SELECT (HYBRID TSM/HWMB)]| TQ84_DEST |
+-- |   4 |     → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering |           |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator             |           |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full            | TQ84_SRC  |
+-- --------------------------------------------------------
+-- Note
+-- -----
+--    - Degree of Parallelism is 4 because of hint
+code }
+   
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_src;
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_dest;  
+code }
 
 sa:
 
   The → development/databases/Oracle/SQL/hints/list/parallel[`parallel` hint]
 
   → development/databases/Oracle/SQL/statement/execution/parallel#ora-enable-paralle-execution[Enable parallel execution] of SQL statements.
+
+  MOS Note 1991034.1
  
   Other → development/databases/Oracle/SQL/hints[hints]

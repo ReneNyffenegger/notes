@@ -9,5 +9,42 @@ Typically, `LOAD AS SELECT (HYBRID TSM/HWMB)` has one *child row-source*:
 -
 The parent (consuming) row-source is a → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send[`PX SEND`] with the options `QC (RANDOM)` or `RANGE` (or others?)
 
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_src as select * from → development/databases/Oracle/installed/data-dictionary/objects;
+ 
+→ development/databases/Oracle/SQL/statement/nouns/table/create tq84_dest (
+   id   number,
+   own  varchar2(128),
+   nam  varchar2(128),
+   typ  varchar2( 20)
+);
+ 
+insert /*+ enable_parallel_dml → development/databases/Oracle/SQL/hints/list/parallel[parallel](4) */ into tq84_dest
+select
+   object_id,
+   owner,
+   object_name,
+   object_type
+from
+   tq84_src;
+  
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic);
+-- 
+-- --------------------------------------------------------
+-- | Id  | Operation                          | Name      |
+-- --------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert                   |           |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator                    |           |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random              | :TQ10000  |
+-- |   3 |    LOAD AS SELECT (HYBRID TSM/HWMB)| TQ84_DEST |
+-- |   4 |     → development/databases/Oracle/optimizer/statistics/gathering/online/optimizer-statistics-gathering |           |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator             |           |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full            | TQ84_SRC  |
+-- --------------------------------------------------------
+
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_src;
+→ development/databases/Oracle/SQL/statement/nouns/table/drop tq84_dest;  
+code }
+
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
