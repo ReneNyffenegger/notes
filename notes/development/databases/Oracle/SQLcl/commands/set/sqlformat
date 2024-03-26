@@ -1,0 +1,82 @@
+$ SQLcl: SET SQLFORMAT
+@ sqlformat
+
+code {
+SET SQLFORMAT { default,→ development/Data/exchange/formats/CSV[csv],html,→ development/XML[xml],json,fixed,insert,loader,delimited,ansiconsole}
+code }
+
+code {
+SQL> select * from (values(1, 'one', 'foo'),(2, 'two', 'baz'),(3,'three', 'bar')) data(id, num, txt);
+
+   ID NUM      TXT
+_____ ________ ______
+    1 one      foo
+    2 two      baz
+    3 three    bar
+
+SQL> set sqlformat → development/Data/exchange/formats/CSV[csv]
+SQL> /
+"ID","NUM","TXT"
+1,"one","foo"
+2,"two","baz"
+3,"three","bar"
+
+SQL> set sqlformat → development/XML[xml]
+/
+<?xml version='1.0'  encoding='UTF-8' ?>
+<RESULTS>
+        <ROW>
+                <COLUMN NAME="ID"><![CDATA[1]]></COLUMN>
+                <COLUMN NAME="NUM"><![CDATA[one]]></COLUMN>
+                <COLUMN NAME="TXT"><![CDATA[foo]]></COLUMN>
+        </ROW>
+        <ROW>
+                <COLUMN NAME="ID"><![CDATA[2]]></COLUMN>
+                <COLUMN NAME="NUM"><![CDATA[two]]></COLUMN>
+                <COLUMN NAME="TXT"><![CDATA[baz]]></COLUMN>
+        </ROW>
+        <ROW>
+                <COLUMN NAME="ID"><![CDATA[3]]></COLUMN>
+                <COLUMN NAME="NUM"><![CDATA[three]]></COLUMN>
+                <COLUMN NAME="TXT"><![CDATA[bar]]></COLUMN>
+        </ROW>
+</RESULTS>
+
+SQL> set sqlformat json
+/
+{"results":[{"columns":[{"name":"ID","type":"NUMBER"},{"name":"NUM","type":"VARCHAR2"},{"name":"TXT","type":"CHAR"}],"items":
+[
+{"id":1,"num":"one","txt":"foo"}
+,{"id":2,"num":"two","txt":"baz"}
+,{"id":3,"num":"three","txt":"bar"}
+]}]}
+code }
+
+{ set sqlformat ansiconsole -config… #sqlcl-sqlformat-ansiconsole
+
+  gh|about-SQLcl|/set/sqlformat/highlight.json||
+
+  gh|about-SQLcl|/set/sqlformat/ansiconsole-config.sql||
+
+  gh|about-SQLcl|/set/sqlformat/img/ansiconsole-config.png||
+
+  The idea is cool, but it would be great if the coloring could be based on the return value of a function that is invoked for each value.
+
+  It should be noted that the config/json file is reloaded with every SQL execution.
+
+  Kris Rice → https://krisrice.io/2019-04-18-SQLcl-SQLFormat/[blog post on this feature] was quite helpful to me.
+
+  The colors can apparently be chosen from the → https://fusesource.github.io/jansi/documentation/api/org/fusesource/jansi/AnsiRenderer.Code.html[`org.fusesource.jansi.AnsiRenderer.Code`] enum.
+
+  See also → development/databases/Oracle/SQLcl/commands/prompt#sqlcl-prompt-color[coloring the text] in the `→ development/databases/Oracle/SQLcl/commands/prompt` command.
+
+}
+
+sa:
+
+  The → development/databases/Oracle/SQLcl#sqlcl-sqldev-select-hints[SQLcl and SQL Developer select hints] `/*csv*/`, `/*xml*/`, `/*json*/` etc.
+
+ `set → development/databases/Oracle/SQLcl/commands/set/highlighting`
+
+ `→ development/databases/Oracle/SQLcl/commands/set`
+
