@@ -212,9 +212,20 @@ code {
 select generate_series( 1, 100 );
 code }
 
-   A column name for such a series can the be specified like so:
+   A table and column name for such a series can the be specified like so:
 code {
-select num from generate_series(1, 10) as t(num);
+select
+   num
+from
+   generate_series(1, 10) as t(num);
+
+select
+   t.a,
+   u.b,
+   t.a*u.b  prod
+from
+   generate_series(1, 5) as t(a)                           join
+   generate_series(5,10) as u(b) on t.a + u.b <= 8;
 code }
 
    A list can be «rotated» 90 degress:
@@ -228,6 +239,15 @@ code }
 code {
 select 
    [ num ** 2 for num in [ 7, -3,  5,  2] if num > 0 ] as squared;
+code }
+
+      As far as I understand, the above statement is at least semantically equivalent to the following one:
+code {
+select
+   list_transform(
+       list_filter( [ 7, -3, 5, 2 ],  num -> num > 0 ),
+       n -> n ** 2
+   );
 code }
 
     }
@@ -598,5 +618,22 @@ code }
     The idea and the result of a positional join is similar to that of the shell command `→ Linux/shell/commands/paste` and
     → Linux/shell/commands/pr[`pr -mt …`].
  
+  }
+  { Execution plans / run-time profiling
+
+    The execution plan of a statement is printed with
+code {
+explain select …
+code }
+
+    The above statement does not actually execute the statement. In order to execute the statement, use
+code {
+explain analyze select …
+code }
+
+    See also the `pragma enable_profiling='json'` and `pragma profile_output='/home/rene/duckdb/runtime-profile.json'` statements. 
+    -
+    Use `python -m duckdb.query_graph /home/rene/duckdb/runtime-profile.json` to generate a HTML file.
+
   }
 }
