@@ -1,17 +1,43 @@
 
+
+{ Download files
+
+  By default, curl prints the content of a resource to → development/stdin-stdout-stderr[stdout]:
 code {
-$ curl http://some.url.xyz/path/to/file -o downloaded-file-name
+curl https://www.google.com/robots.txt
 code }
 
-{ Download and untar in one go
+  In order to save the file to a file with the same name as the downloaded file, `-O` must be used.
+  -
+  This command creates or overwrites the file `robots.txt` in the current directory:
+code {
+curl -O https://www.google.com/robots.txt
+code }
 
-  It's possible to pipe a downloaded tar file directly to `→ Linux/shell/commands/tar` so that the tar file can be extracted in one go:
+  The previous command prints some statistics to → development/stdin-stdout-stderr[stderr].
+  -
+ `-s` suppresses that:
+code {
+curl -Os https://www.google.com/robots.txt
+code }
+
+  `-o` can be used to specify the name of the written file
+  -
+   The `-L` option here is suggested in order to follow redirects:
+code {
+$ curl -sL http://some.url.xyz/path/to/file -o downloaded-file-name
+code }
+
+  { Download and untar in one go
+
+    It's possible to pipe a downloaded tar file directly to `→ Linux/shell/commands/tar` so that the tar file can be extracted in one go.
 code {
 curl -L https://.tar.xz | tar xJ -C /tmp/mesa
 code }
 
-  Note: the `J` option of `tar` is to extract a *xz* archive.
+    Note: the `J` option of `tar` is to extract a *xz* archive.
 
+  }
 }
 
 { Interesting command line options
@@ -258,7 +284,7 @@ table { llll
     ☰ `--ntlm` ☰ ☰          Use HTTP → development/security/authentication/NTLM authentication
     ☰ `--ntlm-wb` ☰ ☰       Use HTTP → development/security/authentication/NTLM authentication with winbind
     ☰ `--oauth2-bearer` ☰ `<token>` ☰ OAuth 2 Bearer Token
- `-o` ☰ `--output` ☰ `<file>` ☰ Write to file instead of stdout
+ `-o` ☰ `--output` ☰ `<file>` ☰ Write to file instead of → development/stdin-stdout-stderr[stdout]. Compare with `-O` which chooses the name of the written file according to the downloaded file
     ☰ `--pass` ☰ `<phrase>` ☰ Pass phrase for the private key
     ☰ `--path-as-is` ☰ ☰    Do not squash .. sequences in URL path
     ☰ `--pinnedpubkey` ☰ `<hashes>` ☰ FILE/HASHES Public key to verify peer against
@@ -303,7 +329,7 @@ table { llll
     ☰ `--raw` ☰ ☰           Do HTTP "raw"; no transfer decoding
  `-e` ☰ `--referer` ☰ `<URL>` ☰ Referrer URL
  `-J` ☰ `--remote-header-name` ☰ ☰ Use the header-provided filename
- `-O` ☰ `--remote-name` ☰ ☰   Write output to a file named as the remote file
+ `-O` ☰ `--remote-name` ☰ ☰ Write output to a file named as the remote file. Use `-o` to specify a different file name.
     ☰ `--remote-name-all` ☰ ☰ Use the remote file name for all URLs
  `-R` ☰ `--remote-time` ☰ ☰   Set the remote file's time on the local output
  `-X` ☰ `--request` ☰ `<→ development/web/HTTP/request-methods[HTTP-request-method]>` ☰ Specify the → development/web/HTTP/request-methods[HTTP request method] to use.
