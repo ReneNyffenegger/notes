@@ -137,16 +137,27 @@ code }
 
     A language list can be created with the → Windows/PowerShell/command-inventory/noun/winUserLanguageList[`winUserLanguageList` cmdLet noun]:
 code {
-$preferredLanguages = → Windows/PowerShell/command-inventory/noun/winUserLanguageList/new[new-winUserLanguageList] 'en-US'
+$preferredLanguages = → Windows/PowerShell/command-inventory/noun/winUserLanguageList/new 'en-US'
 $preferredLanguages.add('de-CH')
-→ Windows/PowerShell/command-inventory/noun/winUserLanguageList/set[set-winUserLanguageList] -force $preferredLanguages
+→ Windows/PowerShell/command-inventory/noun/winUserLanguageList/set -force $preferredLanguages
 code }
 
-   Before I knew that there were such PowerShell cmdLets, I tried to configure the language list directly in the → Windows/registry.
+   { Windows 11
+
+     2024-03-29: In Windows 11, I had the problem that months after executing these command a third item appeared in the language bar: Swissgerman with US Keyboard.
+
+     Unfortunately, I was unable to get rid of the third item by running the Powershell commands again.
+
+     It seemd to finally disappear by going to Settings -> Time & language -> Language & region -> Choosing «deutsch» in *Windows display language* and the remove the US keyboard from there - but only to be completely messed up aftwards.
+
+   }
+   { Registry
+
+     Before I knew that there were PowerShell cmdLets like `→ Windows/PowerShell/command-inventory/noun/winUserLanguageList/new` and `→ Windows/PowerShell/command-inventory/noun/winUserLanguageList/set`, I tried to configure the language list directly in the → Windows/registry.
 code {
 #
 # No substitutes
-#    Remove entire key `HKCU\Keyboard Layout\Substitutes' and add an empty one
+#    Remove entire key 'HKCU\Keyboard Layout\Substitutes' and add an empty one
 #
   remove-item        -path 'HKCU:\Keyboard Layout\Substitutes'
   $eatMe = → Windows/PowerShell/command-inventory/noun/item/new[new-item]  -path 'HKCU:\Keyboard Layout\Substitutes'
@@ -164,6 +175,8 @@ code {
   new-itemProperty -path 'HKCU:\Keyboard Layout\Preload' -name  1 -value ('0000' + '0409') # US
   new-itemProperty -path 'HKCU:\Keyboard Layout\Preload' -name  2 -value ('0000' + '0807') # German (Switzerland)
 code }
+
+    }
 
   }
   { Language bar
