@@ -1,4 +1,45 @@
-$ /lib/systemd/systemd
+$ /usr/lib/systemd/systemd
+@ systemd
 
-sa:
- `→ Linux/fhs/sbin/init`
+rem {
+Move this file to Linux/fhs/usr/lib/systemd/systemd
+rem }
+
+`/usr/lib/systemd/systemd` is likely the most important → Linux/init/systemd#systemd-binaries[systemd binary].
+
+{ Started as first process vs. subsequent starts
+
+  { First process
+
+    In a → Linux/init/systemd environment, `systemd` is started as first process and hence has PID 1.
+
+    This process then brings up and maintains userspace services.
+
+
+  }
+  { Additional processes
+
+    Besides the `systemd` process with PID 1, additional `systemd` processes can be (or are?) started for users that are logging into the system.
+
+    If these additional processes are started via a (symlinked) `init` name, it will execute `telinit` (for compatiblity with SysV) and pass the command line arguments. 
+
+  }
+
+}
+{ /sbin/init
+
+  Typically, `→ Linux/fhs/sbin/init` is a symlink to `/lib/systemd/systemd`:
+code {
+$ → Linux/shell/commands/readlink -f /sbin/init
+/usr/lib/systemd/systemd
+code }
+
+}
+
+{ TODO
+
+  The user manager instances are started automatically through the `user@.service(5)` service.
+
+  `man 8 telinit`
+
+}
