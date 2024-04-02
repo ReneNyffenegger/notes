@@ -1,13 +1,48 @@
 $ Oracle data type BOOLEAN
 @ boolean
 
-In Oracle releases earlier than → development/databases/Oracle/Releases-and-versions/23c[23c], there is no → development/databases/SQL/data-types/predefined/boolean[boolean data type] in → development/databases/Oracle/SQL,
-but in → development/databases/Oracle/PL-SQL[PL/SQL], there is.
--
-The following example defines the procedure `tq84_convert_boolean` so that it is possible to use a PL/SQL function, that returns a boolean, in a
-→ development/databases/Oracle/SQL/select[`select` statement].
+{ Introduction of the boolean data type for SQL in Oracle 23c
 
-gh|Oracle-Patterns|/SQL/datatypes/boolean/select.sql||
+  → development/databases/Oracle/Releases-and-versions/23c[Oracle 23c] introduced the *boolean* data type in SQL:
+code {
+create table tq84_bool (
+   id  integer primary key,
+   val varchar2(10),
+   flg boolean
+);
+
+insert into tq84_bool values
+( 1, 'abc', true ),
+( 2, 'def', true ),
+( 3, 'ghi', false),
+( 4, 'jkl', true );
+
+select * from tq84_bool where     flg;
+select * from tq84_bool where not flg;
+code }
+
+  In a numeric context, `true` is cast to 1, `false` to 0. The following statement returns 3:
+code {
+select sum(flg) from tq84_bool;
+code }
+
+  The following statement returns 2:
+code {
+select false + true + false + true + false;
+code }
+
+}
+{ Pre 23c era
+
+  In Oracle releases earlier than → development/databases/Oracle/Releases-and-versions/23c[23c], there is no → development/databases/SQL/data-types/predefined/boolean[boolean data type] in → development/databases/Oracle/SQL,
+  but in → development/databases/Oracle/PL-SQL[PL/SQL], there is.
+
+  The following example defines the procedure `tq84_convert_boolean` so that it is possible to use a PL/SQL function, that returns a boolean, in a
+  → development/databases/Oracle/SQL/select[`select` statement].
+
+  gh|Oracle-Patterns|/SQL/datatypes/boolean/select.sql||
+
+}
 
 sa:
   → development/databases/Oracle/SQL/data-types[Oracle data types]
