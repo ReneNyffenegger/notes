@@ -1,8 +1,74 @@
 $ Shell command: wmctrl
 @ wmctrl
 
-Interact with a EWMH/NetWM compatible → Linux/X/window-manager.
+`wmctrl` is acommand to query an EWMH/NetWM compatible → Linux/X/window-manager for information or request it to perform a given action.
 
+{ Actions
+
+  table { ll
+
+   `-m` ☰                   Show information about the window manager and about the environment.
+   `-l` ☰ List windows managed by the window manager, see → #wmctrl-l[columns for `wmctrl -l`]
+   `-d` ☰                   List desktops. The current desktop is marked with an asterisk.
+   `-s <DESK>` ☰            Switch to the specified desktop.
+   `-a <WIN>` ☰ Activate the window by switching to its desktop and raising it.
+   `-c <WIN>` ☰             Close the window gracefully.
+   `-R <WIN>` ☰             Move the window to the current desktop and activate it.
+   `-r <WIN> -t <DESK>` ☰   Move the window to the specified desktop.
+   `-r <WIN> -e <MVARG>` ☰  Resize and move the window around the desktop.
+   `-r <WIN> -b <STARG>` ☰  Change the state of the window. Using this option it's possible for example to make the window maximized, minimized or fullscreen. The format of the <STARG> argument and list of possible states is given below.
+   `-r <WIN> -N <STR>` ☰    Set the name (long title) of the window.
+   `-r <WIN> -I <STR>` ☰    Set the icon name (short title) of the window.
+   `-r <WIN> -T <STR>` ☰    Set both the name and the icon name of the window.
+   `-k (on|off)` ☰ Activate or deactivate window manager's "showing the desktop" mode. Many window managers do not implement this mode.
+   `-o <X>,<Y>` ☰           Change the viewport for the current desktop. The X and Y values are separated with a comma. They define the top left corner of the viewport. The window manager may ignore the request.
+   `-n <NUM>` ☰             Change number of desktops.  The window manager may ignore the request.
+   `-g <W>,<H>` ☰           Change geometry (common size) of all desktops. The window manager may ignore the request.
+   `-h` ☰                   Print help.
+
+  table }
+
+  { Arguments
+
+    table { ll
+      `<DESK>` ☰ An integer, starting with 0, that identifies a desktop.
+      `<MVARG>` ☰ Five integers, separated by commas (`g,x,y,w,h`) which are used for the `-r … -e …` command. `g` stands for gravity (and `0` is the most common value for `g`). `-1` can be used in the four remaining values to specify the «current» value.
+      `<WIN>` ☰  A string to identify a window. If `-F` is used, the string must match case sensitively and the entire title, otherwise, it's sufficient that the string matches a substring case insensitively. `-F` can be combined with `-i` to still force a case insenstive match. The special name `:SELECT:` let's the user select a window by clicking on it and `:ACTIVE:` refers to the currently active window.
+      `<WORKAROUND>` ☰ …
+    table }
+
+  }
+
+
+}
+{ Options
+
+  table { ll
+
+    `-i` ☰ Interpret `<WIN>` as a numerical window ID.
+    `-p` ☰ Can be added to `-l` to include → Linux/kernel/process#linux-pid[PIDs] in the window list. Very few X applications support this feature.
+    `-G` ☰ Can be added to `-l` to include geometry in the window list.
+    `-x` ☰ Include WM_CLASS in the window list or interpret <WIN> as the WM_CLASS name.
+    `-u` ☰ Override auto-detection and force UTF-8 mode.
+    `-F` ☰ Modifies the behavior of the window title matching algorithm. It will match only the full window title instead of a substring, when this option is used.  Furthermore it makes the matching case sensitive.
+    `-v` ☰               Be verbose. Useful for debugging.
+    `-w <WA>` ☰          Use a workaround. The option may appear multiple times. List of available workarounds is given below.
+
+  table }
+
+}
+{ Columns for -l #wmctrl-l
+
+  The `-l` action prints the following columns:
+    • The *windows identity* (hexadecimal integer)
+    • The *desktup number* (-1 identifying a sticky window, for example `xfce4-panel`)
+    • If `-p` is used: the PID
+    • If `-G` is used: the four columns x-offset, y-offset, width and height
+    • Client machine name
+    • Window title (which may contain spaces)
+
+
+}
 { Moving x-terminal around
 
   gh|shell-commands|/wmctrl/move-window.sh||
@@ -10,6 +76,9 @@ Interact with a EWMH/NetWM compatible → Linux/X/window-manager.
 }
 
 sa:
-  → Linux/shell/commands/index[Shell commands]
+
+ `→ Linux/shell/commands/zenity`
+
+  → Linux/shell/commands[Shell commands]
 
   `xdotools`
