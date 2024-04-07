@@ -1,0 +1,67 @@
+$ Python standard library: concurrent.futures
+@ concurrent.futures
+
+{ ThreadPoolExecutor
+
+code {
+#!/usr/bin/env python3
+
+from concurrent.futures import ThreadPoolExecutor
+import time
+import random
+
+items = [1, 2, 3, 4, 5, 6, 7, 8]
+
+def f(item):
+
+    r = random.uniform(0.05, 0.50)
+
+    print(' ' * item + 'S')  # Start
+    for i in range(5):   
+          print(' ' * item + '.')
+          time.sleep(r)
+
+    print(' ' * item + 'F')  # Finished
+    
+
+
+with ThreadPoolExecutor(max_workers=3) as executor:
+     executor.map(f, items)
+code }
+
+}
+
+Almost the same thingk, but using a slow item generator. It turns out that the concurrent execution starts as soon as an item is available:
+code {
+from concurrent.futures import ThreadPoolExecutor
+import time
+import random
+
+def slow_item_generator():
+
+    for i in range(16):
+        yield i
+        time.sleep(1)
+
+
+def f(item):
+
+    r = random.uniform(0.05, 0.50)
+
+    print(' ' * item + 'S')  # Start
+    for i in range(5):   
+          print(' ' * item + '.')
+          time.sleep(r)
+
+    print(' ' * item + 'F')  # Finished
+    
+
+with ThreadPoolExecutor(max_workers=3) as executor:
+     executor.map(f, slow_item_generator())
+code }
+
+sa:
+
+ `→ development/languages/Python/standard-library/asyncio`
+
+  → development/languages/Python/standard-library
