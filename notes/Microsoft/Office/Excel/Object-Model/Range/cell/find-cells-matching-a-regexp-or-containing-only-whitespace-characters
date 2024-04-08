@@ -1,0 +1,52 @@
+$ Excel: Find cells matching a given regular expression or contain whitespace characters only
+
+{ findRegex #xls-findRegex
+
+ `findRegex` is a function that iterates over the → Microsoft/Office/Excel/Object-Model/Range/cell[cells] over an Excel's active → Microsoft/Office/Excel/Object-Model/Worksheet[worksheet's] → Microsoft/Office/Excel/Object-Model/Worksheet/usedRange[used range] to
+  find the cells that match a given → development/regular-expressions[regular expression].
+
+code {
+→ development/languages/VBA/language/statements/option/explicit
+ 
+sub findRegex(pattern as string) ' {
+    dim c as range
+    dim reWS as new regexp
+ 
+    reWS.pattern = pattern
+ 
+    → development/languages/VBA/language/statements/for#vba-for-each[for each] c in → Microsoft/Office/Excel/Object-Model/Application#excel-application-active-objects[activeSheet].→ Microsoft/Office/Excel/Object-Model/Worksheet/usedRange
+ 
+        if reWS.test(c.value) then
+           debug.print c.address
+         ' c.value = ""
+        end if
+ 
+    next c
+ 
+end sub ' }
+code }
+
+  In order to be able to refer to the regexp object models by name, the following reference needs to be added in the workbook:
+code {
+thisWorkbook.→ Microsoft/Office/Visual-Basic-Editor/Object-Model/VBProject[VBProject].→ Microsoft/Office/Visual-Basic-Editor/Object-Model/References[references].→ Microsoft/Office/Visual-Basic-Editor/Object-Model/References/addFrom[addFromGuid] GUID:="{3F4DACA7-160D-11D2-A8E9-00104B365C9F}", major := 5, minor  :=  5
+code }
+
+}
+{ findWhitespaces #xls-findWhitespaces
+
+ `findWhitespaces` is a function that uses `findRegex` with the regular expresion `[ \t\n\r]+` to uses finds cells that contain only spaces, tabs and/or → development/line-break[new lines].
+  -
+  This function comes handy to reduce the size of `→ Microsoft/Office/Excel/Object-Model/Worksheet/usedRange` if there are some cells with whitespace lingering.
+
+code { 
+sub findWhitespaces() ' {
+    findRegex "[ \t\n\r]+"
+    activeSheet.usedRange.select
+end sub ' }
+code }
+
+}
+
+
+sa:
+  The → development/Unicode/Codepoints/spacy-codepoints[complete(?) list] of → development/Unicode white space → development/Unicode/Codepoints[code points].
