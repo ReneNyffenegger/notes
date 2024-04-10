@@ -1,0 +1,81 @@
+$ SQLcl: liquibase generate-schema
+@ generate-schema
+
+code {
+SQL> → development/databases/Oracle/SQL-Plus/host mkdir /home/rene/lb
+SQL> lb generate-schema -split -sql
+SQL> host ls -l
+COMMENT
+controller.xml
+INDEX
+REF_CONSTRAINT
+SEQUENCE
+TABLE
+VIEW
+
+SQL> host cat controller.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+-->
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:n0="http://www.oracle.com/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+  <include file="SEQUENCE/account_id_seq_sequence.xml"/>
+  …
+  <include file="TABLE/account_table.xml"/>
+  <include file="TABLE/customer_table.xml"/>
+  …
+  <include file="VIEW/account_v_view.xml"/>
+  …
+  <include file="REF_CONSTRAINT/account_fk_ref_constraint.xml"/>
+  …
+  <include file="INDEX/account_ix_index.xml"/>
+  <include file="COMMENT/customer_comments.xml"/>
+</databaseChangeLog>
+code }
+
+The relevant contents of the referenced xml file seem to be SXML documents produced by `→ development/databases/Oracle/installed/packages/dbms/metadata`:
+code {
+SQL> host cat TABLE/account_table.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:n0="http://www.oracle.com/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+        <changeSet id="7aa80776527eaaa5f3c5c47073252bcfb83579aa" author="(DIFF_TEST_USR)-Generated" failOnError="false"   runOnChange="false" runAlways="false"  >
+                <n0:createSxmlObject objectName="ACCOUNT" objectType="TABLE" ownerName="DIFF_TEST_USR"  replaceIfExists="false" >
+                        <n0:source><![CDATA[
+  <TABLE xmlns="http://xmlns.oracle.com/ku" version="1.0">
+   <SCHEMA>%USER_NAME%</SCHEMA>
+   <NAME>ACCOUNT</NAME>
+   <RELATIONAL_TABLE>
+      <COL_LIST>
+
+        …
+
+      </COL_LIST>
+      …
+   </RELATIONAL_TABLE>
+</TABLE>]]></n0:source>
+                </n0:createSxmlObject>
+        </changeSet>
+</databaseChangeLog>
+code }
+
+{ TODO
+
+  The `-database-changelog-table-name` is supposed to name the table used for *tracking database changes*. However, using this option does not create such a table.
+
+}
+
+sa:
+
+  An emtpy `controller.xml` can be created with `→ development/databases/Oracle/SQLcl/commands/liquibase/generate/controlfile`.
+
+  The → development/databases/Oracle/SQLcl command `→ development/databases/Oracle/SQLcl/commands/liquibase`.
