@@ -1,0 +1,104 @@
+$ Oracle Demo: Sync Database Schema Changes with Liquibase
+
+→ development/databases/Oracle/demo/database-schema-changes/variables[`variables.sql`]
+
+code {
+$ → development/databases/Oracle/SQLcl[sqlcl] -nolog @run-liquibase.sql
+code }
+
+{ Initial state
+
+  → development/databases/Oracle/demo/database-schema-changes/schema-evolution/initial
+
+}
+{ lb generate-schema
+
+ `lb generate-schema` captures the schema to which SQLcl is connected into a `controller.xml` file in the current working directory.
+
+  This The controller file is acts as a *change log* that includes all files in the proper order to allow the schema to be deployed correctly.
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/generate-schema.sql||
+
+  Compare `generate-schema` with `generate-changelog`.
+
+}
+{ lb changelog-sync
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/changelog-sync.sql||
+
+}
+{ Tagging the current state
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/tag-rel-1.0.sql||
+
+}
+{ Developing release 1.1 on dev DB
+
+  → development/databases/Oracle/demo/database-schema-changes/schema-evolution/release-1-1
+
+}
+{ lb diff-changelog
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/diff-changelog.sql||
+
+}
+{ Deploy release 1.1 to prod DB
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/update.sql||
+
+}
+{ Tagging release 1.1
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/tag-rel-1.1.sql||
+
+}
+{ Select data in account table
+
+  gh|Oracle-demo-database-schema-changes|/sql/select-account.sql||
+
+}
+{ Developing release 1.2 on dev DB
+
+  → development/databases/Oracle/demo/database-schema-changes/schema-evolution/release-1-2
+
+}
+{ lb diff-changelog
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/diff-changelog.sql||
+
+}
+{ Deploy release 1.2
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/update.sql||
+
+}
+{ Tagging release 1.2
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/cmd/tag-rel-1.2.sql||
+
+}
+{ Select data in account table
+
+  The column `account_type` is renamed (but empty, because column was dropped and recreated).
+
+  gh|Oracle-demo-database-schema-changes|/sql/select-account.sql||
+
+}
+{ Check if index was recreated
+
+  gh|Oracle-demo-database-schema-changes|/sql/index-account_ix.sql||
+
+}
+{ Show database changelog
+
+  gh|Oracle-demo-database-schema-changes|/liquibase/sql/databasechangelog.sql||
+
+}
+{ Cleaning up
+
+  → development/databases/Oracle/demo/database-schema-changes/schema-evolution/clean-up
+
+}
+
+sa:
+  → development/databases/Oracle/demo/database-schema-changes
