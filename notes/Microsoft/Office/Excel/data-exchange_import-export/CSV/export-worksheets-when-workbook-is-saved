@@ -1,0 +1,47 @@
+$ Excel: Export worksheets as CSV when workbook is saved
+
+This piece of code demonstrates how this event can be used to export a → Microsoft/Office/Excel/Object-Model/Workbook[workbook's] → Microsoft/Office/Excel/Object-Model/Worksheet[worksheets] as
+→ development/Data/exchange/formats/CSV when the workbook is saved.
+
+code {
+option explicit
+ 
+private isSaving as boolean
+ 
+private sub workbook_afterSave(byVal ok as boolean)
+ 
+   if isSaving then
+      exit sub
+   end if
+ 
+   isSaving = true
+   application.displayAlerts = false
+ 
+   dim sh as workSheet
+   for each sh in me.sheets
+       debug.print "Saving " & sh.name
+       sh.copy
+     '
+     ' The workbook created by sh.copy becomes the new active workbook.
+     '
+       activeWorkbook.saveAs filename := me.path & "\CSV\" & sh.name & ".csv", fileFormat := xlCSV , createBackup := false
+       activeWorkbook.close
+   next sh
+ 
+   application.displayAlerts = true
+   isSaving = false
+ 
+   msgBox "CSVs were saved"
+end sub
+ 
+private sub workbook_open()
+ 
+   isSaving = false
+end sub
+code }
+
+sa:
+
+  The `afterSave` → Microsoft/Office/Excel/Object-Model/Workbook/_events[event of `workbook`].
+
+  → Microsoft/Office/Excel/data-exchange_import-export/CSV
