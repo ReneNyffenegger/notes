@@ -1,0 +1,42 @@
+$ Power Query M formula language standard library: Table.Unpivot
+@ Table.Unpivot
+
+
+code {
+let
+   pivotData = #table(
+     { "fruit" ,"min price", "max price" },
+  //    -----    ---------    ---------
+     {{"orange",      2.58 ,       2.73  },
+      {"apple" ,      1.82 ,       2.07  },
+      {"pear"  ,      1.33 ,       1.42  }}
+   ),
+   pivotDataTyped = Table.TransformColumnTypes(pivotData, {
+             {"fruit"    , type text  },
+             {"min price", type number},
+             {"max price", type number}
+   }),
+   unpivot= Table.Unpivot(
+       pivotData,
+        {"min price", "max price"},
+         "label",
+         "price"
+       )
+in
+   unpivot
+code }
+ 
+ 
+This → Microsoft/Power-Query program produces:
+code { 
+fruit       label          price
+orange      min price       2.58
+orange      max price       2.73
+apple       min price       1.82
+apple       max price       2.07
+pear        min price       1.33
+pear        max price       1.42
+code }
+
+sa:
+  The Power Query → Microsoft/Power-Query/M-formula/standard-library
