@@ -1,0 +1,48 @@
+$ Power Query: Find difference of two tables
+
+The following example uses `→ Microsoft/Power-Query/M-formula/standard-library/Table/Join` with → Microsoft/Power-Query/M-formula/standard-library#pq-stdlib-joinkind[`JoinKind.FullOuter`] to
+determine the differences between to tables (missing records, changed values).
+
+The two columns `id` and `grp` are assumed to be primary keys.
+
+code {
+let
+   tab_1 = #table(
+    { "id", "grp", "val 1", "val 2"},
+    {
+     {  1 , "x"  , "ABC"  ,    1.3 },
+     {  1 , "y"  , "DEF"  ,    4.0 },
+     {  2 , "y"  , "FGH"  ,    2.7 },
+     {  3 , "x"  , "IJK"  ,    2.9 }
+   }),
+   tab_2 = #table(
+    { "id", "grp", "val 1", "val 2"},
+    {
+     {  1 , "x"  , "ABC"  ,    1.3 },
+     {  1 , "x"  , "DEF"  ,    4.1 },
+     {  2 , "y"  , "FGH"  ,    2.6 },
+     {  2 , "X"  , "LMN"  ,    2.7 },
+     {  3 , "x"  , "IJK"  ,    2.9 }
+   }),
+   tab_a = Table.TransformColumnNames(tab_1, each _ & "_a"),  // Add unique column name suffixes to prevent
+   tab_b = Table.TransformColumnNames(tab_2, each _ & "_b"),   // Expression.Error: A join operation cannot result in a table with duplicate column names
+   tab_joined = Table.Join(
+      tab_a, {"id_a", "grp_a"},
+      tab_b, {"id_b", "grp_b"},
+      JoinKind.FullOuter
+   ),
+   tab_col_miss = Table.AddColumn(tab_joined, "miss", each
+      if      [id_a] = null then "A"
+      else if [id_b] = null then "B"
+      else                        null
+   ),
+   tab_col_id  = Table.CombineColumns(tab_col_miss, {"id_a" , "id_b" } , each if _{0} = null then _{1} else _{0}, "id" ), // Does coalesce operator ?? not
+   tab_col_grp = Table.CombineColumns(tab_col_id  , {"grp_a", "grp_b"} , each if _{0} = null then _{1} else _{0}, "grp"), // work here?
+   tab_col_chg = Table.AddColumn(tab_col_grp , "chg", each
+      if [val 1_a] <> [val 1_b] or
+         [val 2_a] <> [val 2_b] then "diff"
+      else                            null),
+   res = Table.ReorderColumns(tab_col_chg, {"id", "grp", "miss", "chg", "val 1_a", "val 1_b", "val 2_a", "val 2_b"})
+in
+   res
+code }

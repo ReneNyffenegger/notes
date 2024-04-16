@@ -1,0 +1,55 @@
+$ Power Query M formula language standard library: Table.AddKey
+@ Table.AddKey
+
+code {
+Table.AddKey(TABLE as table, COLUMNS as list, ISPRIMARY as logical) as table
+code }
+
+{ Primary keys
+
+  The following → Microsoft/Power-Query program creates a table with a primary key:
+code {
+let
+   tab = #table(
+     {"id", "val 1", "val 2"}, {
+     {  1 , "one"  , "foo"  },
+     {  2 , "two"  , "bar"  },
+     {  3 , "three", "baz"  }
+   }),
+   tab_pk = Table.AddKey(
+     tab,
+     {"id"},
+     true
+   )
+in
+   tab_pk
+code }
+
+  { PKs are not enforced
+
+    Unfortunately, Power Query does not enforce (or check) primary keys. The last record should be rejected, imho, because the `id` 2 is already used. However, the program just runs fine:
+code {
+let
+   tab = #table(
+     {"id", "val 1", "val 2"}, {
+     {  1 , "one"  , "foo"  },
+     {  2 , "two"  , "bar"  },
+     {  3 , "three", "baz"  },
+     {  2 , "uh oh", "!"    }
+   }),
+   tab_pk = Table.AddKey(
+     tab,
+     {"id"},
+     true
+   )
+in
+   tab_pk
+code }
+
+  }
+
+}
+
+sa:
+
+  The Power Query → Microsoft/Power-Query/M-formula/standard-library, especially the function `→ Microsoft/Power-Query/M-formula/standard-library/Table/Keys`
