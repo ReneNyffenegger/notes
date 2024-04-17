@@ -1,6 +1,54 @@
 $ Oracle: V$DIAG_ALERT_EXT
--
 @ v$diag_alert_ext
+
+code {
+select
+   dae.record_id,
+   dae.process_id,  
+   to_char(dae.originating_timestamp, 'yyyy-mm-dd hh24:mi:ss') ts,
+-- dae.normalized_timestamp,  
+   dae.message_text,
+   dae.detailed_location,
+   dae.message_group,
+   dae.message_id,
+   dae.message_level,
+   dae.message_type,
+   dae.module_id,  
+   dae.client_id,
+   dae.con_id,
+   dae.con_uid,
+   dae.container_id,
+   dae.container_name,
+   dae.downstream_comp_id,
+   dae.error_instance_id,
+   dae.error_instance_sequence,
+   dae.execution_context_id,
+   dae.execution_context_sequence,
+   dae.filename,
+   dae.host_address,
+   dae.host_id,
+   dae.instance_id,
+   dae.log_name,
+   dae.message_arguments,
+   dae.partition,
+   dae.problem_key,
+   dae.supplemental_attributes,
+   dae.supplemental_details,
+   dae.thread_id,
+   dae.upstream_comp_id,
+   dae.user_id,
+   dae.version,
+   dae.organization_id,  
+   dae.component_id  
+from
+   sys.v_$diag_alert_ext dae
+where
+   dae.message_text != 'Maximum of 148 enabled roles exceeded for user SYS. Not loading all the roles.' || chr(10) and
+   dae.message_text not like 'Resize operation completed for file# %'
+order by
+   dae.originating_timestamp desc
+;
+code }
 
 sa:
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

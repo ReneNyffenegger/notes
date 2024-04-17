@@ -1,0 +1,37 @@
+$ SQLcl: User defined command handlers
+
+{ Print the name of an executed script in green #sqlcl-cmd-handler-green
+
+  The following → development/databases/Oracle/SQLcl/script#sqlcl-script-cmd-handler[SQLcl command handler] runs (→ development/databases/Oracle/SQL-Plus/start[`start`, `@`]) an SQL script.
+
+  Before the script is executed, its name is colored in green to make debugging easier if lots of scripts are run.
+
+code {
+→ development/databases/Oracle/SQLcl/commands/script
+Java.type("oracle.dbtools.raptor.newscriptrunner.CommandRegistry").addForAllStmtsListener(
+   Java.extend(Java.type("oracle.dbtools.raptor.newscriptrunner.CommandListener"),
+   {
+      handleEvent: function(conn, ctx, cmd) {
+
+         var stmt = cmd.getSql().trim();
+         if ( stmt.startsWith('runscript') ) {
+
+             var scriptName = stmt.substring("runscript".length).trim();
+             print("Running \x1b[32m" + scriptName + "\x1b[0m"); // Embed the script name in → Linux/shell/ANSI-escape-sequences[ANSI escape sequences] for green.
+             sqlcl.setStmt('@ ' + scriptName); sqlcl.run();
+
+             return true;
+         }
+
+         return false;
+      },
+
+      beginEvent: function(conn, ctx, cmd) {},
+      endEvent :  function(conn, ctx, cmd) {}
+
+   }).class
+);
+/
+code }
+
+}
