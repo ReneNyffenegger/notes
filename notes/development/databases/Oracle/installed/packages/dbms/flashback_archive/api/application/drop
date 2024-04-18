@@ -1,0 +1,41 @@
+$ DBMS_FLASH_ARCHIVE.DROP_APPLICATION
+
+
+{ The same application name can be present multiple times
+
+code {
+SQL> select * from sys_fba_app where appname = 'TQ84_FBA_DEMO_APP';
+
+APPNAME                 APP#    FA#    FLAGS    SPARE
+____________________ _______ ______ ________ ________
+TQ84_FBA_DEMO_APP          5      1        0
+TQ84_FBA_DEMO_APP          6      1        0
+TQ84_FBA_DEMO_APP          7      1        0
+
+SQL> exec sys.→ development/databases/Oracle/installed/packages/dbms/flashback_archive[dbms_flashback_archive].drop_application('TQ84_FBA_DEMO_APP');
+
+SQL> select * from sys_fba_app where appname = 'TQ84_FBA_DEMO_APP';
+
+APPNAME                 APP#    FA#    FLAGS    SPARE
+____________________ _______ ______ ________ ________
+TQ84_FBA_DEMO_APP          6      1        0
+TQ84_FBA_DEMO_APP          7      1        0
+
+-- Lowercase!
+SQL> exec sys.dbms_flashback_archive.drop_application('tq84_fba_demo_app');
+-- ORA-55650: application not registered for flashback archive
+
+SQL> exec sys.dbms_flashback_archive.drop_application('TQ84_FBA_DEMO_APP');
+
+SQL> select * from sys_fba_app where appname = 'TQ84_FBA_DEMO_APP';
+
+APPNAME                 APP#    FA#    FLAGS    SPARE
+____________________ _______ ______ ________ ________
+TQ84_FBA_DEMO_APP          7      1        0
+
+SQL> exec sys.dbms_flashback_archive.drop_application('TQ84_FBA_DEMO_APP');
+
+no rows selected
+code }
+
+}
