@@ -1,0 +1,45 @@
+$ Querying data from Excel with SQL using OLE DB
+
+The following → development/languages/VBA code demonstrates how SQL and OLE DB can be used to query data in → Microsoft/Office/Excel:
+code {
+→ development/languages/VBA/language/statements/option/explicit
+ 
+sub main() ' {
+ 
+  dim con as → development/databases/ADO/objects/connection[adodb.connection]
+  set con = openExcelConnection
+ 
+  dim rs as → development/databases/ADO/objects/recordSet[adodb.recordSet]
+  set rs = con.→ development/databases/ADO/objects/connection/execute[execute]("select * from rng_2") ' rng_2 is the → Microsoft/Office/Excel/Object-Model/Range#excel-range-name[name] of a → Microsoft/Office/Excel/Object-Model/Range[range]. Use [sheetName$] (with $) to select from an entire sheet.
+ 
+  sheets("sheet3").cells(1,1).→ Microsoft/Office/Excel/Object-Model/Range/copyFromRecordset rs
+ 
+end sub ' }
+ 
+function openExcelConnection() as adodb.connection ' {
+ 
+   dim provider as string
+ ' provider="Microsoft.ACE.OLEDB.12.0"
+   provider="Microsoft.ACE.OLEDB.15.0"
+ 
+   set openExcelConnection = new adodb.connection
+   openExcelConnection.open                                   _
+     "Provider="              &  provider                   & _
+    ";Data Source="           &  activeWorkbook.fullName    & _
+    ";Extended Properties=""" & "Excel 12.0;HDR=yes"        & """"
+ 
+end function ' }
+code }
+
+The workbook, in which this code is executed, needs a → Microsoft/Office/Visual-Basic-Editor/Object-Model/Reference to ADODB which can be added in the
+→ Microsoft/Office/Visual-Basic-Editor/Immediate-Window with
+code {
+thisWorkbook.VBProject.references.addFromGuid "{B691E011-1797-432E-907A-4D8C69339129}", 6, 1
+code }
+ 
+
+sa:
+  → development/databases/OLE-DB/provider/Microsoft-Access-database-engine/create-excel
+
+  → development/databases/OLE-DB
+

@@ -1,0 +1,57 @@
+$ Power Query M formula language standard library: Web.Page
+@ Web.Page
+
+`Web.Page` returns a → Microsoft/Power-Query/M-formula/language/types/table with the following columns:
+table {  ll
+  `Caption` ☰
+  `Source` ☰
+  `ClassName` ☰
+  `Id` ☰
+  `Data` ☰
+table }
+
+{ Simple parsing of HTML documents
+
+code {
+let
+  page = Web.Page("
+<html>
+  <head>
+    <title>Test</title>
+ </head>
+  <body>
+    <div>First div</div>
+    <div>Second div</div>
+    <div>Third div</div>
+ </body>
+</html>"
+),
+   pageContent = page[Data],
+   pageCont    = pageContent{0},
+   chldPage    = pageCont[Children],
+ 
+   elemHtml    = chldPage{0},
+   elemHead    = elemHtml{0},
+   elemBody    = elemHtml{1},
+ 
+   chldHead    = elemHead[Children],
+   elemTitle   = chldHead{0},
+ 
+   chldBody    = elemBody[Children],
+   elemDiv1    = chldBody{0},
+   elemDiv2    = chldBody{1},
+   elemDiv3    = chldBody{2}
+in
+  [
+    title = elemTitle                  , // No Text ???
+    div1  = elemDiv1[Children]{0}[Text],
+    div2  = elemDiv2[Children]{0}[Text],
+    div3  = elemDiv3[Children]{0}[Text]
+  ]
+code }
+
+}
+
+sa:
+
+  The Power Query → Microsoft/Power-Query/M-formula/standard-library

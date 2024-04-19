@@ -21,7 +21,15 @@ Flashback archiving can be turned on and off for individual → development/data
     gh|Oracle-demo-flashback-archive|/create-user.sql||
 
   }
+  { Create a dedicated tablespace
 
+    A dedicataed → development/databases/Oracle/architecture/database/logical-structures/tablespace for the flashback archive is created.
+    -
+    It is assmed that `→ development/databases/Oracle/adminstration/init-parameters/db/create/file_dest` is set, for example with `alter system set db_create_file_dest = '/opt/oracle/oradata' scope=both;`.
+
+    gh|Oracle-demo-flashback-archive|/create-tablespace.sql||
+
+  }
   { Create a flashback archive
 
     First we need to create a flashback archive. The archive resides in a → development/databases/Oracle/architecture/database/logical-structures/tablespace which needs to be named (here: `data`)
@@ -40,8 +48,10 @@ Flashback archiving can be turned on and off for individual → development/data
 
     We use the `→ development/databases/Oracle/installed/packages/dbms/flashback_archive` package to register an «application».
     -
-    It Provide an umbrella to manage all (i. e. in this demo: two) tables together:
+    It provides an umbrella to manage all (i. e. in this demo: two) tables together:
     gh|Oracle-demo-flashback-archive|/register-application.sql||
+
+    The registered application is stored in `SYS.SYS_FBA_APP`.
 
   }
   { Add tables to application
@@ -49,11 +59,28 @@ Flashback archiving can be turned on and off for individual → development/data
     The tables are added to the application.
     gh|Oracle-demo-flashback-archive|/add-tables-to-application.sql||
 
+    The added tables can be found in `SYS.SYS_FBA_APP_TABLES` (but not yet in `dba_flashback_archive_tables`.
+code {
+select
+   tab.name     tabname,
+   app.appname
+from
+   sys.sys_fba_app         app                            join
+   sys.sys_fba_app_tables  a2t  on app.app# = a2t.app#    join
+   sys.obj$                tab  on a2t.obj# = tab.obj#
+;
+code }
+  
+
   }
   { Enable application
     
     By enabling the application, the tables become subject to flashback queries:
     gh|Oracle-demo-flashback-archive|/enable-application.sql||
+
+    With this step,
+      • the tables are now found in `dba_flashback_archive_tables`.
+      • objects such as `SYS_FBA_DDL_COLMAP_n`, `SYS_FBA_TCRV_IDX1_n` and `SYS_FBA_HIST_n` are created
 
   }
   { Wait 
