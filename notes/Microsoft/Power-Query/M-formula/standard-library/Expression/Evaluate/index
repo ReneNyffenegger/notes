@@ -21,6 +21,49 @@ gh|about-Power-Query-Formula-M|/standard-library/Expression/Evaluate/nested.M||
   gh|about-Power-Query-Formula-M|/standard-library/Expression/Evaluate/shared.M||
 
 }
+{ Reusing functions stored in files
+
+  `Expression.Evaluate` can be used when PowerQuery functions are stored in files so that they can be re used in different projects.
+
+  { One function
+
+  Imagine a file (here named `add_nums.M`) with the following (simple because of demonstration purposes) function:
+code {
+(a, b) => a + b
+code }
+
+  This function can then be executed with the following expression:
+code {
+let
+   add_nums = Expression.Evaluate(→ Microsoft/Power-Query/M-formula/standard-library/Text/FromBinary[Text.FromBinary](→ Microsoft/Power-Query/M-formula/standard-library/File/Contents[File.Contents]("C:\Users\rene\PowerQuery\GlobalFunctions\add_nums.M")))
+in
+   add_nums(9, 33)
+code }
+
+  }
+  { Multiple function
+
+    Multiple functions can be stored in a file using a → Microsoft/Power-Query/M-formula/language/types/primitive/record structure:
+code {
+[
+   mult = (a,b) => a * b,
+   add  = (a,b) => a + b,
+   sub  = (a,b) => a - b,
+   div  = (a,b) => a / b
+]
+code }
+
+  A function can then be selected from the record like so:
+code { 
+let
+   funcs = Expression.Evaluate(→ Microsoft/Power-Query/M-formula/standard-library/Text/FromBinary[Text.FromBinary](→ Microsoft/Power-Query/M-formula/standard-library/File/Contents[File.Contents]("C:\Users\rene\PowerQuery\GlobalFunctions\funcs.M")))
+in
+   funcs[sub](61,19
+code }
+
+  }
+
+}
 
 sa:
   The Power Query → Microsoft/Power-Query/M-formula/standard-library
