@@ -1,0 +1,43 @@
+$ Shell command: perf
+@ perf
+
+code {
+$ perf list
+code }
+
+code {
+$ perf stat → Linux/shell/commands/ls
+code }
+
+{ Counting instructions
+
+  The following simple program counts more than 280,000 instructions on my machine! The number varies with each invocation.
+code {
+$ echo '
+.intel_syntax noprefix
+
+.data
+
+string_to_print:
+.ascii "Hello, World\n"
+
+.text
+.globl _start
+
+_start:
+    mov rax, 60        # syscall number for exit
+    xor rdi, rdi       # exit status is in rdi, set it to 0:
+    syscall            # invoke kernel
+' | gcc -nostdlib -x assembler -o /tmp/small -
+
+$ perf stat -e instructions /tmp/small
+code }
+
+
+}
+
+sa:
+
+ `→ Linux/fhs/proc/sys/kernel/perf_event_paranoid`
+
+  → Linux/shell/commands[Shell commands]
