@@ -161,13 +161,55 @@ code }
 }
 { Iterate over result (21c)
 
-  In 21c, it's possible to iterate over the result set produced by `execute immediate`:
+  In 21c, it's possible to iterate over the result set produced by `execute immediate` with a `record` type and the `in values of` clause:
 code {
-for rec rec_type IN VALUES OF (
-  execute immediate '…'
-) loop
-  …
-end loop;
+set serveroutput on
+
+declare
+
+   stmt varchar2(4000);
+
+   type obj_count is record (
+      cnt   number,
+      owner varchar2(128)
+   );
+
+begin
+
+   stmt := 'select count(*) cnt, owner from → development/databases/Oracle/installed/data-dictionary/objects group by owner';
+  
+   for rec obj_count IN VALUES OF (
+       execute immediate stmt
+   ) loop
+       dbms_output.put_line(rec.owner || ': ' || rec.cnt);
+   end loop;
+
+end;
+/
+code }
+
+  When I mistakingly created an `object type` instead of using a `record` type, Oracle threw the error message PLS-00801: internal error [*** ASSERT at file pdw4.c, line 1006; Cannot coerce from type 25 to type 32; Xanon__0x68e2a910__AB[7, 25]]:
+code {
+create or replace type obj_count as object (
+   cnt   number,
+   owner varchar2(30)
+);
+/
+
+declare
+   stmt varchar2(4000);
+begin
+  
+   stmt := 'select count(*) cnt, owner from → development/databases/Oracle/installed/data-dictionary/objects group by owner';
+
+   for rec obj_count in values of (
+       execute immediate stmt
+   ) loop
+       dbms_output.put_line(rec.owner || ': ' || rec.cnt);
+   end loop;
+
+end;
+/
 code }
 
 }
