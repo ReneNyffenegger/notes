@@ -1,6 +1,97 @@
 $ ORA-01460: unimplemented or unreasonable conversion requested
--
+ 
+{ Visual Basic for Application
 
+  An *ORA-01460: unimplemented or unreasonable conversion requested* error message is for example thrown when trying to pass a → development/databases/Oracle/SQL/data-types/lob[`clob`] exceeding the
+  value of `→ development/databases/Oracle/adminstration/init-parameters/max/string_size` to a → development/databases/Oracle/PL-SQL procedure with
+  → development/languages/VBA.
+  -
+  This is demonstrated with the following test case.
+
+  First we need a table …
+code {
+create table tq84_ora_01460_tab (
+   clb  clob
+);
+code }
+ 
+  … and a procedure filling the table which will be called by the VBA code: 
+code {
+create or replace procedure tq84_ora_01460_prc(c clob)
+   → development/databases/Oracle/PL-SQL/authid definer
+as
+  → development/databases/Oracle/PL-SQL/pragma/autonomous_transaction pragma autonomous_transaction;
+begin
+   insert into tq84_ora_01460_tab (clb) values (c);
+   commit;
+end tq84_ora_01460_prc;
+/
+code }
+ 
+ 
+  The following code throws the *ORA-01460 unimplemented or unreasonable conversion requested* error:  
+code { 
+→ development/languages/VBA/language/statements/option/explicit
+ 
+sub ora_01460() ' {
+ 
+    dim stmt as new adodb.command
+    set stmt.activeConnection = connectOra
+ 
+    stmt.commandText = "begin tq84_ora_01460_prc(:1); end;"
+ 
+    dim param as adodb.parameter
+    set param = stmt.createParameter(, adLongVarChar, adParamInput, 64000)
+  ' param.attributes = adParamLong
+    param.attributes = adFldLong
+    stmt.parameters.append param
+ 
+ 
+    stmt.parameters(0).appendChunk string(16000, "x")
+    stmt.parameters(0).appendChunk string(16000, "7")
+    stmt.parameters(0).appendChunk string(16000, "x")
+    stmt.parameters(0).appendChunk string(16000, "7")
+ 
+    dim dummy as long
+    stmt.execute dummy
+ 
+ 
+end sub ' }
+ 
+ 
+function connectOra() as adodb.connection
+on error goto err_
+ 
+    dim user_id  as string
+    dim password as string
+    dim dbName   as string
+ 
+    dbName   = "dreampt2"
+    user_id  = "[sbxfibu]"
+    password = ""
+ 
+    set connectOra = new adodb.connection
+    connectOra.open                          _
+         "Provider=OraOLEDB.Oracle.1"   & _
+        ";Persist Security Info=False"  & _
+        ";User ID="     & user_id       & _
+        ";Password="    & password      & _
+        ";Data Source=" & dbName        & _
+        ";FetchSize=10000"              & _
+        ";Extended Properties="""""
+ 
+    exit function
+err_:
+ 
+    if left(err.description, 9) = "ORA-01017" then
+       msgBox "Not enough privileges to connect to the database"
+       end
+    end if
+ 
+end function
+code }
+
+}
 
 sa:
   → development/databases/Oracle/errors[Other Oracle error messages]
