@@ -1,0 +1,44 @@
+$ SQLite: dbstat (eponymous virtual table)
+@ dbstat
+
+`dbstat` contanis information about the amount of disk space used (page size and allocation).
+
+`dbstat` is a so-called → https://www.sqlite.org/vtab.html#epovtab[eponymous virtual table].
+
+code {
+select
+   name,
+   sum(pgsize)  / 1024.0 / 1024.0 mb
+from
+   dbstat
+group by
+   name
+order by
+   sum(pgsize) desc;
+code }
+
+code {
+select
+   name,
+   path,
+   pageno,
+   pagetype,
+   ncell,
+   payload,
+   unused,
+   mx_payload,
+   pgoffset,
+   pgsize
+from
+   dbstat
+order by
+   pageno limit 50;
+code }
+
+sa:
+
+ → https://www.sqlite.org/sqlanalyze.html[`sqlite3_analyzer.exe`]
+
+ The → development/databases/SQLite/pragmas#sqlite-pragma-page_[`page_size` and `page_count` pragmas].
+
+ → development/databases/SQLite/internals/schema-objects[Internal schema objects]
