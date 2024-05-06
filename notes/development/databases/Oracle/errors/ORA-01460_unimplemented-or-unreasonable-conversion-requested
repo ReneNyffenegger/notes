@@ -35,17 +35,16 @@ code {
  
 sub ora_01460() ' {
  
-    dim stmt as new adodb.command
+    dim stmt as new → development/databases/ADO/objects/command[adodb.command]
     set stmt.activeConnection = connectOra
  
     stmt.commandText = "begin tq84_ora_01460_prc(:1); end;"
  
-    dim param as adodb.parameter
+    dim param as → development/databases/ADO/objects/parameter[adodb.parameter]
     set param = stmt.createParameter(, adLongVarChar, adParamInput, 64000)
   ' param.attributes = adParamLong
     param.attributes = adFldLong
     stmt.parameters.append param
- 
  
     stmt.parameters(0).appendChunk string(16000, "x")
     stmt.parameters(0).appendChunk string(16000, "7")
@@ -53,7 +52,7 @@ sub ora_01460() ' {
     stmt.parameters(0).appendChunk string(16000, "7")
  
     dim dummy as long
-    stmt.execute dummy
+    stmt.→ development/databases/ADO/objects/connection/execute dummy
  
  
 end sub ' }
@@ -66,12 +65,12 @@ on error goto err_
     dim password as string
     dim dbName   as string
  
-    dbName   = "dreampt2"
-    user_id  = "[sbxfibu]"
+    dbName   = "ora19"
+    user_id  = "[rene]"
     password = ""
  
-    set connectOra = new adodb.connection
-    connectOra.open                          _
+    set connectOra = new → development/databases/ADO/objects/connection[adodb.connection]
+    connectOra.open                       _
          "Provider=OraOLEDB.Oracle.1"   & _
         ";Persist Security Info=False"  & _
         ";User ID="     & user_id       & _
@@ -83,7 +82,7 @@ on error goto err_
     exit function
 err_:
  
-    if left(err.description, 9) = "ORA-01017" then
+    if left(err.description, 9) = "→ development/databases/Oracle/errors/ORA-01017_invalid-username-password_logon-denied[ORA-01017]" then
        msgBox "Not enough privileges to connect to the database"
        end
     end if
@@ -94,4 +93,7 @@ code }
 }
 
 sa:
+
+  → development/databases/Oracle/SQL/data-types/lob/VBA
+
   → development/databases/Oracle/errors[Other Oracle error messages]

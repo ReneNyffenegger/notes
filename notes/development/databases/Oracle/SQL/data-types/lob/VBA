@@ -1,0 +1,243 @@
+$ Uploading CLOBs to Oracle with VBA
+
+{ The table
+
+code {
+create table tq84_upload_clob_from_vba_via_plsql_tab(clb clob);
+code }
+
+}
+{ The test PL/SQL Package
+
+  { Specification
+code {
+create or replace package tq84_upload_clob_from_vba_via_plsql_pkg authid definer as
+
+   procedure upload_prc(clb clob);
+   function  upload_fnc(clb clob) return clob;
+
+--
+-- Piecewise upload
+--
+   procedure upload_pieces_beg;
+   procedure upload_pieces_add(piece varchar2);
+   procedure upload_pieces_end;
+
+end tq84_upload_clob_from_vba_via_plsql_pkg;
+/
+code }
+  }
+  { Body
+
+code {
+create or replace package body tq84_upload_clob_from_vba_via_plsql_pkg as
+
+   upload_pieces_clb clob;
+
+   procedure upload_prc(clb clob) is
+      pragma autonomous_transaction;
+   begin
+      insert into tq84_upload_clob_from_vba_via_plsql_tab (clb) values (clb);
+      commit;
+   end upload_prc;
+
+   function upload_fnc(clb clob) return clob is
+   begin
+      upload_prc(clb);
+      return 'dummy';
+   end upload_fnc;
+
+   procedure upload_pieces_beg is begin
+      dbms_lob.createtemporary(upload_pieces_clb, false);
+   end upload_pieces_beg;
+
+   procedure upload_pieces_add(piece varchar2) is begin
+       dbms_lob.append(upload_pieces_clb, piece);
+   end upload_pieces_add;
+
+   procedure upload_pieces_end is begin
+        upload_prc(upload_pieces_clb);
+        dbms_lob.freetemporary(upload_pieces_clb);
+   end upload_pieces_end;
+
+end tq84_upload_clob_from_vba_via_plsql_pkg;
+/
+code }
+
+  } 
+  { Testing the *upload pieces* interface without VBA:
+code {
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_beg;
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add('abc');
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add(lpad('.', 32000, '.'));
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add(lpad('.', 32000, '.'));
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add(lpad('.', 32000, '.'));
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add(lpad('.', 32000, '.'));
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add('xyz');
+exec tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_end;
+code }
+  }
+
+}
+{ The VBA subs
+
+code {
+'
+' application.VBE.activeVBProject.references.addFromGuid "{B691E011-1797-432E-907A-4D8C69339129}", 6,  1
+'
+option explicit
+
+sub insert_direct(txt as string) ' {
+
+    dim stmt as new adodb.command
+    dim conn as adodb.connection : set conn = connectOra
+    set stmt.activeConnection = conn
+
+    stmt.commandText = "insert into tq84_upload_clob_from_vba_via_plsql_tab (clb) values (:clb)"
+
+    dim param as adodb.parameter
+    set param = stmt.createParameter(, adLongVarChar, adParamInput, 1000& * 1000)
+    stmt.parameters.append param
+
+    param.value = txt ' "123456789" & string(63980, ".") & "zyxwvutsrq"
+    stmt.execute
+
+    conn.execute "commit"
+
+end sub ' }
+
+
+sub add_pieces(txt as string) ' {
+
+    dim conn as adodb.connection : set conn = connectOra
+
+    dim stmt_beg as new adodb.command : set stmt_beg.activeConnection = conn
+    dim stmt_add as new adodb.command : set stmt_add.activeConnection = conn
+    dim stmt_end as new adodb.command : set stmt_end.activeConnection = conn
+
+    stmt_beg.commandText = "begin tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_beg    ; end;"
+    stmt_add.commandText = "begin tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_add(:p); end;"
+    stmt_end.commandText = "begin tq84_upload_clob_from_vba_via_plsql_pkg.upload_pieces_end    ; end;"
+
+    dim pieceSize as long : pieceSize = 4096
+
+    dim param as adodb.parameter
+    set param = stmt_add.createParameter(, adVarChar, adParamInput, pieceSize)
+    stmt_add.parameters.append param
+
+    stmt_beg.execute
+
+    dim numChunks as long
+    dim remainder as long
+    dim i         as long
+
+    numChunks = len(txt)  \  pieceSize
+    remainder = len(txt) mod pieceSize
+
+    if remainder > 0 Then
+       numChunks = numChunks + 1
+    end if
+
+    for i = 1 to numChunks
+        if i = numChunks and remainder > 0 Then
+           param.value = mid(txt, (i - 1) * pieceSize + 1, remainder)
+        else
+           param.value = mid(txt, (i - 1) * pieceSize + 1, pieceSize)
+        end if
+        stmt_add.execute
+    next i
+
+    stmt_end.execute
+
+end sub ' }
+
+sub use_function(txt as string) ' {
+
+    dim stmt as new adodb.command
+    set stmt.activeConnection = connectOra
+
+    stmt.commandText = "select tq84_upload_clob_from_vba_via_plsql_pkg.upload_fnc(:1) from dual"
+
+    dim param as adodb.parameter
+    set param = stmt.createParameter(, adLongVarChar, adParamInput, 1000& * 1000)
+'   param.attributes = adFldLong
+    stmt.parameters.append param
+
+    param.value = txt '  "123456789" & string(63980, ".") & "zyxwvutsrq"
+
+    dim rs as adodb.recordSet
+    set rs = stmt.execute
+
+    debug.print(rs.fields(0))
+
+end sub ' }
+
+sub use_procedure(txt as string) ' {
+
+    dim stmt as new adodb.command
+    set stmt.activeConnection = connectOra
+
+    stmt.commandText = "begin tq84_upload_clob_from_vba_via_plsql_pkg.upload_prc(:1); end;"
+
+    dim param as adodb.parameter
+    set param = stmt.createParameter(, adLongVarChar, adParamInput, 1000& * 1000)
+  ' param.attributes = adParamLong
+    param.attributes = adFldLong
+    stmt.parameters.append param
+
+    param.value = txt
+
+    dim dummy as long
+    stmt.execute dummy
+
+end sub ' }
+
+
+function connectOra() as adodb.connection
+ on error goto err_
+
+    dim user_id  as string
+    dim password as string
+    dim dbName   as string
+
+    dbName   = "ora19"
+    user_id  = "[rene]"
+    password = ""
+
+    set connectOra = new adodb.connection
+    connectOra.open                       _
+         "Provider=OraOLEDB.Oracle.1"   & _
+        ";Persist Security Info=False"  & _
+        ";User ID="     & user_id       & _
+        ";Password="    & password      & _
+        ";Data Source=" & dbName        & _
+        ";FetchSize=10000"              & _
+        ";Extended Properties="""""
+
+    exit function
+ err_:
+
+    if left(err.description, 9) = "ORA-01017" then
+       msgBox "Not enough privileges to connect to the database"
+       end
+    end if
+
+end function
+code }
+
+}
+{ Test execution
+
+  The following two subs throw → development/databases/Oracle/errors/ORA-01460_unimplemented-or-unreasonable-conversion-requested
+code {
+use_procedure "proc" & string(99999, ".") & "crop"
+use_function  "func" & string(99999, ".") & "cnuf"
+code }
+
+  These work OK:
+code {
+add_pieces    "piec" & string(99999, ".") & "ceip"
+insert_direct "insd" & string(99999, ".") & "dsni"
+code }
+
+}
