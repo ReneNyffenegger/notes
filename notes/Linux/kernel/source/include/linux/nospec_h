@@ -1,0 +1,21 @@
+$ include/linux/nospec.h
+
+{ array_index_nospec
+
+ `array_index_nospec(index, size)` is a macro to *sanitize an array index after a bounds check*.
+
+  This macro is used, *for example*, in → Linux/kernel/source/arch/x86/entry/common_c#do_syscall_x64[`do_syscall_x64`]:
+code {
+  … 
+  if (likely(unr < NR_syscalls)) {
+
+     unr = array_index_nospec(unr, NR_syscalls);
+     regs->ax = x64_sys_call(regs, unr);
+     return true;
+
+  }
+  return false;
+ …
+code }
+
+}

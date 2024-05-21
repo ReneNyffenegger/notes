@@ -18,7 +18,15 @@ code }
 }
 { do_syscall_x64() #do_syscall_x64
 
- `do_syscall_x64()` looks up passed sys call number (2nd argument) in the  `→ Linux/kernel/source/arch/x86/include/asm/syscall_h#sys_call_table` array of function pointers and calls the function. The return value is assigned to the `ax` register.
+ `do_syscall_x64(struct pt_regs, int nr)`  calls `x64_sys_call`:
+code {
+unr = array_index_nospec(unr, NR_syscalls);
+regs->ax = → Linux/kernel/source/arch/x86/entry/syscall_64_c#x64_sys_call[x64_sys_call](regs, unr);
+code }
+
+rem {
+looks up passed sys call number (2nd argument `nr`) in the  `→ Linux/kernel/source/arch/x86/include/asm/syscall_h#sys_call_table` array of function pointers and calls the function. The return value is assigned to the `ax` register.
+rem }
 
  `do_syscall_x64()` is called by → #do_syscall_64[`do_syscall_64()`].
 

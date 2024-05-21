@@ -2,6 +2,24 @@ $ arch/x86/entry/entry_64.S
 
 `arch/x86/entry/entry_64.S` contains the → Linux/kernel/sys-calls[system-call] and fault low-level handling routines.
 
+{ Notes on argument passing
+
+  This source file comments which in which registers arguemnts to syscalls are passed:
+  table { ll
+    rax  ☰ system call number
+    rdi  ☰ arg 0
+    rsi  ☰ arg 1
+    rdx  ☰ arg 2
+    r10  ☰ arg 3 (needs to be moved to rcx to conform to C ABI)
+    r8   ☰ arg 4
+    r9   ☰ arg 5
+    rcx  ☰ return address (set by `syscall` instruction`)
+    r11  ☰ saved rflags (set by `syscall` instruction` / note: r11 is callee-clobbered register in C ABI)
+  table }
+
+  Note: r12-r15, rbp, rbx are callee-preserved in C ABI.
+
+}
 { entry_SYSCALL_64 #linux-entry_SYSCALL_64
 
  `entry_SYSCALL_64` is *the* entry point for 64-bit system calls (`syscall` instruction?).
