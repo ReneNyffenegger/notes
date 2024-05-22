@@ -1,0 +1,84 @@
+
+→ https://h3geo.org/[H3] is a *Hexagonal hierarchical geospatial indexing system*.
+
+This system divides the surface of the Earth into 12 pentagons and n hexagons. The number of n depends on the resolution.
+
+H3 uses the a/the → https://en.wikipedia.org/wiki/Dymaxion_map[dymaxion] orientation which means that all centers of the 12 pentagons are located in water.
+
+The github repository is → https://github.com/uber/h3[here].
+
+{ Resolutions
+
+  There are 16 possible resolutions which vary from 0 (110 hexagons of approx 4,3 million km²) to 15 (Approx 569 trillions (10¹²) hexagons of 0,895 m²), see → https://h3geo.org/docs/core-library/restable/[cell statistics].
+
+}
+{ Not a strict hierarchy
+
+  Child hexagons are not strictly inside their parent hexagon, i. e. a certain set of areas is outside of that of the parent.
+
+}
+{ Pentagons / distortion vertices.
+
+  Some «hexagons» are pentagons.
+
+  Pentagons have a → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L114-L117[maximum number of 10 cell boundary vertices (`MAX_CELL_BNDRY_VERTS`)].
+
+}
+{ Library API
+
+  Some interesting functions, structs and consts (defines) found in the H3 library:
+
+  { H3Index
+
+   `H3Index` is a → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L69[`typedef for uint64_t`] (?? and identifies a H3 cell on the sphere ??).
+
+    A `H3Index` can be obtained from a latitude/longitude pair by calling `latLngToCell`.
+
+    All 64 bits of this type → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3Index.h#L28-L29[are used].
+
+    An invalid index is indicated with → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L71-L76[`H3_NULL`] (analogous to `NaN` for → development/IEEE/754[floating points]).
+
+  ? A `h3Index` stores the resolution in 4 bits (hence the possible 16 resolutions) in bits 63 through 60.
+
+  }
+  { LatLng
+
+    A → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L122-L125[`LatLng` struct] stores the latitude and longitude in (not so familiar) radians.
+
+  }
+  { latLngToCell
+
+   `H3Error latLngToCell(const LatLng *g, int res, H3Index *out)` returns the H3 index of a given resulution in which the given coordinate is located.
+
+   `latLngToCell` is implemented in → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/lib/h3Index.c#L764-L791[`h3Index.c`].
+
+    TODO: Compare to `cellToLatLng`.
+
+  }
+  { H3Error
+
+   `H3Error` is the → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L79[`uint32_t`] which is returned from a H3 function.
+
+    The → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L81-L105[following codes] are available:
+    table { lrl
+      `E_SUCCESS` ☰ 0 ☰ Success (no error)
+      `E_FAILED` ☰ 1 ☰ The operation failed but a more specific error is not available
+      `E_DOMAIN` ☰ 2 ☰ Argument was outside of acceptable range (when a more specific error code is not available)
+      `E_LATLNG_DOMAIN` ☰ 3 ☰ Latitude or longitude arguments were outside of acceptable range
+      `E_RES_DOMAIN` ☰ 4 ☰ Resolution argument was outside of acceptable range
+      `E_CELL_INVALID` ☰ 5 ☰ `H3Index` cell argument was not valid
+      `E_DIR_EDGE_INVALID` ☰ 6 ☰ `H3Index` directed edge argument was not valid
+      `E_UNDIR_EDGE_INVALID` ☰ 7 ☰ `H3Index` undirected edge argument was not valid
+      `E_VERTEX_INVALID` ☰ 8 ☰ `H3Index` vertex argument was not valid
+      `E_PENTAGON` ☰ 9 ☰ Pentagon distortion was encountered which the algorithm could not handle it
+      `E_DUPLICATE_INPUT` ☰ 10 ☰ Duplicate input was encountered in the arguments and the algorithm could not handle it
+      `E_NOT_NEIGHBORS` ☰ 11 ☰ `H3Index` cell arguments were not neighbors
+      `E_RES_MISMATCH` ☰ 12 ☰ `H3Index` cell arguments had incompatible resolutions
+      `E_MEMORY_ALLOC` ☰ 13 ☰ Necessary memory allocation failed
+      `E_MEMORY_BOUNDS` ☰ 14 ☰ Bounds of provided memory were not large enough
+      `E_OPTION_INVALID` ☰ 15 ☰ Mode or flags argument was not valid.
+    table }
+
+  }
+
+}
