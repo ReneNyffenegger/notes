@@ -3,13 +3,31 @@
 
 This system divides the surface of the Earth into 12 pentagons and n hexagons. The number of n depends on the resolution.
 
-H3 uses the a/the → https://en.wikipedia.org/wiki/Dymaxion_map[dymaxion] orientation which means that all centers of the 12 pentagons are located in water.
+? The centers of each cell have the same distance to the centers of the adjacent cells which makes H3 suitable for modelling movements through the grid.
+
+H3 uses the → https://en.wikipedia.org/wiki/Dymaxion_map[dymaxion] orientation which means that all centers of the 12 pentagons are located in water.
+
+The DGGS that underlies H3 is based on an aperture 7 hexagonal tessalation of the icosahedron.
 
 The github repository is → https://github.com/uber/h3[here].
 
 { Resolutions
 
-  There are 16 possible resolutions which vary from 0 (110 hexagons of approx 4,3 million km²) to 15 (Approx 569 trillions (10¹²) hexagons of 0,895 m²), see → https://h3geo.org/docs/core-library/restable/[cell statistics].
+  There are 16 possible resolutions which vary from 0 (110 hexagons of approx 4,3 million km²) to 15 (Approx 569 trillions (10¹²) hexagons of approx 0,895 m²), see → https://h3geo.org/docs/core-library/restable/[cell statistics].
+
+  Sometimes, the buzz about H3 gives the impression that a resolution's cell size is constant. *But that's not true!*, see → https://github.com/uber/h3/issues/168#issuecomment-523063844[this computation] and → https://github.com/isaacbrodsky/h3measurements/blob/master/README-SummaryAreaStats.md[Average cell area statistics].
+
+? Apparently, this distortion is caused by the *Gnomonic projection* which preserves shapes well but incurs significant distortions of areas (described in → https://www.tandfonline.com/doi/abs/10.1559/152304099782294186[Comparing Geometrical Properties of Global Grids]?)
+
+  → https://gis.stackexchange.com/a/481690/221067[This gis.stackexchange] answer was very helpful in that regard:
+  "
+    H3 is based round an icosahedron that touches the earth sphere at a small
+    number of places. This icosahedron has flat sides. These flat sides are
+    divided into hexagons of equal size and so equal area. But when these
+    hexagons are projected onto the sphere, they'll have different sizes and
+    areas because the face of the icosahedron meets the sphere at different
+    angles.
+  "
 
 }
 { Not a strict hierarchy
@@ -55,6 +73,13 @@ The github repository is → https://github.com/uber/h3[here].
     TODO: Compare to `cellToLatLng`.
 
   }
+  { h3ToString
+
+   `h3Tostring(H3Index h, char *str, size_t sz)` returns a zero terminated hexadecimal representation (i. e. `sprintf(str, "%" PRIx64, h)`) of the `H3Index`.
+
+    Because the index is 64 bit, the allocated size of buffer (`str`) needs to be at least 17 bytes (16 bytes for the representation and 1 byte for the terminating 0).
+
+  }
   { H3Error
 
    `H3Error` is the → https://github.com/uber/h3/blob/77b6215629015d28d9b43b6f85cadb196fe86567/src/h3lib/include/h3api.h.in#L79[`uint32_t`] which is returned from a H3 function.
@@ -80,5 +105,4 @@ The github repository is → https://github.com/uber/h3[here].
     table }
 
   }
-
 }
