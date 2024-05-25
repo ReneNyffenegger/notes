@@ -1,0 +1,61 @@
+
+{ Getting (cloning) the sources
+
+code {
+$ fossil clone https://sqlite.org/althttpd
+code }
+
+  The `clone` operation has cloned the repo into `althttpd.fossil` and opened it into the directory `althttpd`:
+code {
+$ ls -1AF
+althttpd/
+althttpd.fossil
+code }
+
+ `althttpd.fossil` is a → development/databases/SQLite database:
+code {
+$ → Linux/shell/commands/file althttpd.fossil
+althttpd.fossil: SQLite 3.x database (Fossil repository), last written using SQLite version 3046000
+code }
+
+}
+{ Building the sources
+
+  In the opened repository, running `make` creates `althttpd` and `althttpsd`, the webserver without and with SSL support:
+code {
+$ cd althttpd
+$ make
+cc -o mkversion mkversion.c
+./mkversion manifest.uuid manifest VERSION >VERSION.h
+cc -Os -Wall -Wextra -I. -o althttpd althttpd.c
+cc -Os -Wall -Wextra -I. -fPIC -o althttpsd -DENABLE_TLS althttpd.c -lssl -lcrypto
+code }
+
+}
+{ Running the webserver
+
+  { althttpd
+
+code {
+$ ./althttpd
+Listening for HTTP requests on TCP port 8080
+code }
+
+  }
+  { althttpsd
+
+code {
+$ sudo ./althttpsd --port 443 --user rene
+code }
+
+  }
+
+}
+{ Misc
+
+  Unfortunately, it seems that althttpd operates in no-blocking mode, i. e. it tries to `accept()` incoming connections in a loop.
+
+}
+
+sa:
+  → web/webserver[Web servers]
