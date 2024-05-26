@@ -50,6 +50,105 @@ $ sudo nginx -t && sudo nginx -s reload
 code }
 
 }
+{ Digging into the source code
+
+
+  { auto/configure
+
+   `auto/configure` is used in place of the traditional `./configure` to configure the options with which nginx will be compiled.
+
+    The very first thing that `auto/configure` does is to call → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L10[`auto/options`].
+    
+  }
+  { auto/options
+
+    → https://github.com/nginx/nginx/blob/master/auto/options[`auto/options`] contains a list of shell variables which correspond to configurable options.
+
+    The variable are assigned default values, for example
+    → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L62[`HTTP_SSL=NO`] or → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L86[`HTTP_REWRITE=YES`].
+
+    The script → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L184-L420[iterates over all arguments] given to `auto/configure` and replaces the default values with the ones specified when `auto/configure` is called, for example like so:
+code {
+./auto/configure \
+   --without-http_rewrite_module \
+   --with-http_ssl_module
+code }
+
+    The user specified configuration values are first → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L186[accumulated into `$opt`] and then assigned to
+    → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L423[`NGX_CONFIGURE`].
+
+    This value is written as preprocessor macro `#define NGX_CONFIGURE` into the file → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L19[whose value is stored in `$NGX_AUTO_CONFIG_H`]
+   (typically → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L10[`objs/ngx_auto_config.h`])
+    and can be displayed with the command line option `-V`:
+code {
+$ objs/nginx -V 2>&1 | → Linux/shell/commands/grep 'configure arguments'
+…
+configure arguments: --without-http_rewrite_module --with-http_ssl_module
+code }
+
+
+  }
+  { auto/init
+
+   `auto/init` is the second script that is → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L11[called from `auto/configure`].
+
+    This script defines the paths of the following files which are all found under `$NGX_OBJS`:
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L6[`Makefile`] (but compare with → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L17[this line])
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L7[`ngx_modules.c`]
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L9[`ngx_auto_headers.h`]
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L10[`ngx_auto_config.h`]
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L12[`ngx_autotest.h`]
+      • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L13[`ngx_autoconf.err`] (but compare with → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L16[this line])
+
+  }
+  { auto/cc/conf
+
+   `auto/cc/conf` specifies options (etc.?) with which the compiler is invoked.
+
+    Depending on the present compiler, it sources `auto/cc/gcc`, `auto/cc/icc`, `auto/cc/msvc` etc.
+
+  }
+  { auto/have
+
+   `auto/have` adds a «have» directive to `$NGX_AUTO_CONFIG_H` (typically `objs/ngx_auto_config.h`).
+
+    The script is intended to be called like so:
+code {
+have=NGX_HAVE_EPOLL . auto/have
+code }
+
+    This invocation would add the follwoing to `$NGX_AUTO_CONFIG_H`:
+code {
+#ifndef NGX_HAVE_EPOLL
+#define NGX_HAVE_EPOLL  1
+#endif
+code }
+
+  }
+  { auto/module
+
+    As far as I can tell, `auto/module` is only called from `auto/modules`.
+
+   `auto/module` expects the following variables to be set (possibly to an empty value):
+    table { ll
+     `$ngx_module_type` ☰ `CORE`, `HTTP`, `HTTP_FILTER`, `HTTP_INIT_FILTER`, `MAIL`, `STREAM`, `MISC`
+     `$ngx_module_name` ☰
+     `$ngx_module_incs` ☰ The name of a directory.
+     `$ngx_module_deps` ☰
+     `$ngx_module_srcs` ☰ The (relative) path to a `.c` file.
+     `$ngx_module_libs` ☰
+     `$ngx_module_link` ☰
+    table }
+
+  }
+  { Misc
+
+   `objs/ngx_modules.c` seems to be created when making the executable, possibly when calling the `auto/configure` script.
+    A list of module names is found in `objs/ngx_modules.c` and assigned to `ngx_module_names`.
+
+  }
+
+}
 { TODO
 
   { APT package python3-certbot-nginx
@@ -60,6 +159,14 @@ Description: Nginx plugin for → development/security/cryptography/SSL-TLS/Lets
 code }
 
   }
+  { Configure options
+
+    What is the benefit of using the `auto/configure` option `--with-threads`. See also the configure-time file `auto/threads`.
+
+    What is the purpose of using `--without-http`?
+
+  }
+
  
 }
 
