@@ -18,7 +18,6 @@ $ → Linux/shell/commands/systemctl status nginx
 $ → Linux/shell/commands/sudo → Linux/shell/commands/ss -plntu | → Linux/shell/commands/grep nginx
 code }
 
-
 code {
 $ sudo systemctl start nginx
 code }
@@ -100,6 +99,10 @@ code }
       • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L12[`ngx_autotest.h`]
       • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L13[`ngx_autoconf.err`] (but compare with → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L16[this line])
 
+    `auto/init` also sets the variable `NGX_AUTOTEST` to `$NGX_OBJS/autotest`.
+     -
+     The value of this variable is prominently used in `auto/feature` but also in other tests such as `auto/types/uintptr_t` etc.
+
   }
   { auto/cc/conf
 
@@ -141,6 +144,231 @@ code }
     table }
 
   }
+  { auto/feature
+
+ ? `auto/feature` checks if the compiler supports a given feature.
+
+    When sourced, the script expects the following variables to be set (possibly to an empty value):
+    table { ll
+       `ngx_feature` ☰
+       `ngx_feature_name` ☰ An identifier such as `NGX_HAVE_EPOLL`, `NGX_HAVE_GEOIP_V6` or `NGX_PCRE`.
+       `ngx_feature_run` ☰ `yes`, `bug`, `value` have a specific meaning. `no` is indicated as absence (but any other value can be chosen)
+       `ngx_feature_incs` ☰ Additional includes required for the test.
+       `ngx_feature_path` ☰
+       `ngx_feature_libs` ☰
+       `ngx_feature_test` ☰
+    table }
+
+    In essence, the script creates a C file (`$NGX_AUTOTEST.c`) with the following content, compiles and executes it:
+code {
+#include <sys/types.h>
+$NGX_INCLUDE_UNISTD_H
+$ngx_feature_incs
+
+int main(void) {
+    $ngx_feature_test;
+    return 0;
+}
+code }
+
+    The result of the test is either written to `$NGX_AUTO_CONFIG_H` using `auto/have` (`ngx_feature_run` != `value` (especially `yes` or `value`)) or directly (`ngx_feature_run` = `value`).
+
+    The output of stdout and stderr is appended to `$NGX_AUTOCONF_ERR`
+
+   `auto/feature` is sourced from
+     • `auto/unix`
+     • `auto/cc/conf`
+     • `auto/cc/gcc`
+     • `auto/cc/name`
+     • `auto/lib/google-perftools/conf`
+     • `auto/lib/zlib/conf`
+     • `auto/lib/pcre/conf`
+     • `auto/lib/openssl/conf`
+     • `auto/lib/libatomic/conf`
+     • `auto/lib/geoip/conf`
+     • `auto/lib/libgd/conf`
+     • `auto/lib/libxslt/conf`
+     • `auto/os/linux`
+     • `auto/os/darwin`
+     • `auto/os/solaris`
+
+  }
+
+  { Configuration variables
+
+    table { llllll
+
+    `--with-cc=` ☰ PATH ☰ CC ☰ `${CC:-cc}` ☰ set C compiler pathname ☰
+    `--with-cpp=` ☰ PATH ☰ CPP ☰ ☰ set C preprocessor pathname ☰
+    `--with-cpu-opt=` ☰ CPU ☰ CPU ☰ NO ☰ build for the specified CPU, valid values: pentium, pentiumpro, pentium3, pentium4, athlon, opteron, sparc32, sparc64, ppc64 ☰
+    `--add-dynamic-module=` ☰ PATH ☰ DYNAMIC_ADDONS ☰ ☰ enable dynamic external module ☰
+       ☰ ☰ DYNAMIC_MODULES ☰ ☰ ☰
+       ☰ ☰ DYNAMIC_MODULES_SRCS ☰ ☰ ☰
+       ☰ ☰ EVENT_FOUND ☰ NO ☰ ☰
+    `--with-poll_module` ☰ ☰ EVENT_POLL ☰ NO ☰ enable poll module ☰
+    `--without-poll_module` ☰ ☰ EVENT_POLL ☰ NO ☰ disable poll module ☰
+    `--with-select_module` ☰ ☰ EVENT_SELECT ☰ NO ☰ enable select module ☰
+    `--without-select_module` ☰ ☰ EVENT_SELECT ☰ NO ☰ disable select module ☰
+    `--without-http` ☰ ☰ HTTP ☰ YES ☰ disable HTTP server ☰ It seems to me that this option is intended to be used if nginx is used as *proxy* (reverse proxy, mail proxy or tcp/udp proxy)  or as *load balancer*.
+    `--without-http_access_module` ☰ ☰ HTTP_ACCESS ☰ YES ☰ disable ngx_http_access_module ☰
+    `--with-http_addition_module` ☰ ☰ HTTP_ADDITION ☰ NO ☰ enable ngx_http_addition_module ☰
+    `--without-http_auth_basic_module` ☰ ☰ HTTP_AUTH_BASIC ☰ YES ☰ disable ngx_http_auth_basic_module ☰
+    `--with-http_auth_request_module` ☰ ☰ HTTP_AUTH_REQUEST ☰ NO ☰ enable ngx_http_auth_request_module ☰
+    `--without-http_autoindex_module` ☰ ☰ HTTP_AUTOINDEX ☰ YES ☰ disable ngx_http_autoindex_module ☰
+    `--without-http_browser_module` ☰ ☰ HTTP_BROWSER ☰ YES ☰ disable ngx_http_browser_module ☰
+    `--without-http-cache` ☰ ☰ HTTP_CACHE ☰ YES ☰ disable HTTP cache ☰
+    `--without-http_charset_module` ☰ ☰ HTTP_CHARSET ☰ YES ☰ disable ngx_http_charset_module ☰
+    `--with-http_dav_module` ☰ ☰ HTTP_DAV ☰ NO ☰ enable ngx_http_dav_module ☰
+    `--with-http_degradation_module` ☰ ☰ HTTP_DEGRADATION ☰ NO ☰ enable ngx_http_degradation_module ☰
+    `--without-http_empty_gif_module` ☰ ☰ HTTP_EMPTY_GIF ☰ YES ☰ disable ngx_http_empty_gif_module ☰
+    `--without-http_fastcgi_module` ☰ ☰ HTTP_FASTCGI ☰ YES ☰ disable ngx_http_fastcgi_module ☰
+    `--with-http_flv_module` ☰ ☰ HTTP_FLV ☰ NO ☰ enable ngx_http_flv_module ☰
+    `--without-http_geo_module` ☰ ☰ HTTP_GEO ☰ YES ☰ disable ngx_http_geo_module ☰
+    `--with-http_geoip_module` ☰ ☰ HTTP_GEOIP ☰ NO ☰ enable ngx_http_geoip_module ☰
+    `--with-http_geoip_module=` ☰ dynamic ☰ HTTP_GEOIP ☰ NO ☰ enable dynamic ngx_http_geoip_module ☰
+    `--without-http_grpc_module` ☰ ☰ HTTP_GRPC ☰ YES ☰ disable ngx_http_grpc_module ☰
+    `--with-http_gunzip_module` ☰ ☰ HTTP_GUNZIP ☰ NO ☰ enable ngx_http_gunzip_module ☰
+    `--without-http_gzip_module` ☰ ☰ HTTP_GZIP ☰ YES ☰ disable ngx_http_gzip_module ☰
+    `--with-http_gzip_static_module` ☰ ☰ HTTP_GZIP_STATIC ☰ NO ☰ enable ngx_http_gzip_static_module ☰
+    `--with-http_image_filter_module` ☰ ☰ HTTP_IMAGE_FILTER ☰ NO ☰ enable ngx_http_image_filter_module ☰
+    `--with-http_image_filter_module=` ☰ dynamic ☰ HTTP_IMAGE_FILTER ☰ NO ☰ enable dynamic ngx_http_image_filter_module ☰
+    `--without-http_limit_conn_module` ☰ ☰ HTTP_LIMIT_CONN ☰ YES ☰ disable ngx_http_limit_conn_module ☰
+    `--without-http_limit_req_module` ☰ ☰ HTTP_LIMIT_REQ ☰ YES ☰ disable ngx_http_limit_req_module ☰
+    `--without-http_map_module` ☰ ☰ HTTP_MAP ☰ YES ☰ disable ngx_http_map_module ☰
+    `--without-http_memcached_module` ☰ ☰ HTTP_MEMCACHED ☰ YES ☰ disable ngx_http_memcached_module ☰
+    `--without-http_mirror_module` ☰ ☰ HTTP_MIRROR ☰ YES ☰ disable ngx_http_mirror_module ☰
+    `--with-http_mp4_module` ☰ ☰ HTTP_MP4 ☰ NO ☰ enable ngx_http_mp4_module ☰
+    `--with-http_perl_module` ☰ ☰ HTTP_PERL ☰ NO ☰ enable ngx_http_perl_module ☰
+    `--with-http_perl_module=` ☰ dynamic ☰ HTTP_PERL ☰ NO ☰ enable dynamic ngx_http_perl_module ☰
+    `--without-http_proxy_module` ☰ ☰ HTTP_PROXY ☰ YES ☰ disable ngx_http_proxy_module ☰
+    `--with-http_random_index_module` ☰ ☰ HTTP_RANDOM_INDEX ☰ NO ☰ enable ngx_http_random_index_module ☰
+    `--with-http_realip_module` ☰ ☰ HTTP_REALIP ☰ NO ☰ enable ngx_http_realip_module ☰
+    `--without-http_referer_module` ☰ ☰ HTTP_REFERER ☰ YES ☰ disable ngx_http_referer_module ☰
+    `--without-http_rewrite_module` ☰ ☰ HTTP_REWRITE ☰ YES ☰ disable ngx_http_rewrite_module ☰ The `ngx_http_rewrite_module` depends on the PCRE library. Thus, this flag might be used if PCRE is not available.
+    `--without-http_scgi_module` ☰ ☰ HTTP_SCGI ☰ YES ☰ disable ngx_http_scgi_module ☰
+    `--with-http_secure_link_module` ☰ ☰ HTTP_SECURE_LINK ☰ NO ☰ enable ngx_http_secure_link_module ☰
+    `--with-http_slice_module` ☰ ☰ HTTP_SLICE ☰ NO ☰ enable ngx_http_slice_module ☰
+    `--without-http_split_clients_module` ☰ ☰ HTTP_SPLIT_CLIENTS ☰ YES ☰ disable ngx_http_split_clients_module ☰
+    `--without-http_ssi_module` ☰ ☰ HTTP_SSI ☰ YES ☰ disable ngx_http_ssi_module ☰
+    `--with-http_ssl_module` ☰ ☰ HTTP_SSL ☰ NO ☰ enable ngx_http_ssl_module ☰
+    `--without-http_status_module` ☰ ☰ HTTP_STATUS ☰ ☰ ☰
+    `--with-http_stub_status_module` ☰ ☰ HTTP_STUB_STATUS ☰ NO ☰ enable ngx_http_stub_status_module ☰
+    `--with-http_sub_module` ☰ ☰ HTTP_SUB ☰ NO ☰ enable ngx_http_sub_module ☰
+    `--without-http_upstream_hash_module` ☰ ☰ HTTP_UPSTREAM_HASH ☰ YES ☰ disable ngx_http_upstream_hash_module ☰
+    `--without-http_upstream_ip_hash_module` ☰ ☰ HTTP_UPSTREAM_IP_HASH ☰ YES ☰ disable ngx_http_upstream_ip_hash_module ☰
+    `--without-http_upstream_keepalive_module` ☰ ☰ HTTP_UPSTREAM_KEEPALIVE ☰ YES ☰ disable ngx_http_upstream_keepalive_module ☰
+    `--without-http_upstream_least_conn_module` ☰ ☰ HTTP_UPSTREAM_LEAST_CONN ☰ YES ☰ disable ngx_http_upstream_least_conn_module ☰
+    `--without-http_upstream_random_module` ☰ ☰ HTTP_UPSTREAM_RANDOM ☰ YES ☰ disable ngx_http_upstream_random_module ☰
+    `--without-http_upstream_zone_module` ☰ ☰ HTTP_UPSTREAM_ZONE ☰ YES ☰ disable ngx_http_upstream_zone_module ☰
+    `--without-http_userid_module` ☰ ☰ HTTP_USERID ☰ YES ☰ disable ngx_http_userid_module ☰
+    `--without-http_uwsgi_module` ☰ ☰ HTTP_UWSGI ☰ YES ☰ disable ngx_http_uwsgi_module ☰
+    `--with-http_v2_module` ☰ ☰ HTTP_V2 ☰ NO ☰ enable ngx_http_v2_module ☰
+    `--with-http_v3_module` ☰ ☰ HTTP_V3 ☰ NO ☰ enable ngx_http_v3_module ☰
+    `--with-http_xslt_module` ☰ ☰ HTTP_XSLT ☰ NO ☰ enable ngx_http_xslt_module ☰
+    `--with-http_xslt_module=` ☰ dynamic ☰ HTTP_XSLT ☰ NO ☰ enable dynamic ngx_http_xslt_module ☰
+    `--with-mail` ☰ ☰ MAIL ☰ NO ☰ enable POP3/IMAP4/SMTP proxy module ☰
+    `--with-mail=` ☰ dynamic ☰ MAIL ☰ NO ☰ enable dynamic POP3/IMAP4/SMTP proxy module ☰
+    `--with-imap` ☰ ☰ MAIL ☰ ☰ ☰ *Deprecated* in favor of `--with-mail`
+    `--without-mail_imap_module` ☰ ☰ MAIL_IMAP ☰ YES ☰ disable ngx_mail_imap_module ☰
+    `--without-mail_pop3_module` ☰ ☰ MAIL_POP3 ☰ YES ☰ disable ngx_mail_pop3_module ☰
+    `--without-mail_smtp_module` ☰ ☰ MAIL_SMTP ☰ YES ☰ disable ngx_mail_smtp_module ☰
+    `--with-mail_ssl_module` ☰ ☰ MAIL_SSL ☰ NO ☰ enable ngx_mail_ssl_module ☰
+    `--with-imap_ssl_module` ☰ ☰ MAIL_SSL ☰ ☰ ☰ *Deprecated* in favor of `--with-mail_ssl_module`
+    `--add-module=` ☰ PATH ☰ NGX_ADDONS ☰ ☰ enable external module ☰
+       ☰ ☰ NGX_ADDON_DEPS ☰ ☰ ☰
+       ☰ ☰ NGX_ADDON_SRCS ☰ ☰ ☰
+    `--build=` ☰ NAME ☰ NGX_BUILD ☰ ☰ set build name ☰
+    `--with-cc-opt=` ☰ OPTIONS ☰ NGX_CC_OPT ☰ ☰ set additional C compiler options ☰
+    `--with-compat` ☰ ☰ NGX_COMPAT ☰ NO ☰ dynamic modules compatibility ☰
+    `--conf-path=` ☰ PATH ☰ NGX_CONF_PATH ☰ `conf/nginx.conf` ☰ set → Linux/fhs/etc/nginx/nginx_conf[`nginx.conf`] pathname ☰
+       ☰ ☰ NGX_CONF_PREFIX ☰ ☰ ☰
+    `--with-cpp_test_module` ☰ ☰ NGX_CPP_TEST ☰ NO ☰ enable ngx_cpp_test_module ☰
+       ☰ ☰ NGX_CPU_CACHE_LINE ☰ ☰ ☰
+    `--with-debug` ☰ ☰ NGX_DEBUG ☰ NO ☰ enable debug logging ☰
+    `--error-log-path=` ☰ PATH ☰ NGX_ERROR_LOG_PATH ☰ ☰ set error log pathname ☰
+    `--with-file-aio` ☰ ☰ NGX_FILE_AIO ☰ NO ☰ enable file AIO support ☰
+    `--with-google_perftools_module` ☰ ☰ NGX_GOOGLE_PERFTOOLS ☰ NO ☰ enable ngx_google_perftools_module ☰
+    `--group=` ☰ GROUP ☰ NGX_GROUP ☰ ☰ set non-privileged group for worker processes ☰
+    `--http-client-body-temp-path=` ☰ PATH ☰ NGX_HTTP_CLIENT_TEMP_PATH ☰ ☰ set path to store http client request body temporary files ☰
+    `--http-fastcgi-temp-path=` ☰ PATH ☰ NGX_HTTP_FASTCGI_TEMP_PATH ☰ ☰ set path to store http fastcgi temporary files ☰
+    `--http-log-path=` ☰ PATH ☰ NGX_HTTP_LOG_PATH ☰ ☰ set http access log pathname ☰
+    `--http-proxy-temp-path=` ☰ PATH ☰ NGX_HTTP_PROXY_TEMP_PATH ☰ ☰ set path to store http proxy temporary files ☰
+    `--http-scgi-temp-path=` ☰ PATH ☰ NGX_HTTP_SCGI_TEMP_PATH ☰ ☰ set path to store http scgi temporary files ☰
+    `--http-uwsgi-temp-path=` ☰ PATH ☰ NGX_HTTP_UWSGI_TEMP_PATH ☰ ☰ set path to store http uwsgi temporary files ☰
+    `--with-ld-opt=` ☰ OPTIONS ☰ NGX_LD_OPT ☰ ☰ set additional linker options ☰
+    `--with-libatomic` ☰ ☰ NGX_LIBATOMIC ☰ NO ☰ force libatomic_ops library usage ☰
+    `--with-libatomic=` ☰ DIR ☰ NGX_LIBATOMIC ☰ NO ☰ set path to libatomic_ops library sources ☰
+    `--lock-path=` ☰ PATH ☰ NGX_LOCK_PATH ☰ ☰ set nginx.lock pathname ☰
+    `--modules-path=` ☰ PATH ☰ NGX_MODULES_PATH ☰ ☰ set modules path ☰
+    `--builddir=` ☰ DIR ☰ NGX_OBJS ☰ objs ☰ set build directory ☰
+    `--with-perl=` ☰ PATH ☰ NGX_PERL ☰ perl ☰ set perl binary pathname ☰
+    `--with-perl_modules_path=` ☰ PATH ☰ NGX_PERL_MODULES ☰ ☰ set Perl modules path ☰
+    `--pid-path=` ☰ PATH ☰ NGX_PID_PATH ☰ ☰ set nginx.pid pathname ☰
+    `--crossbuild=` ☰ ☰ NGX_PLATFORM ☰ ☰ ☰
+       ☰ ☰ NGX_POST_CONF_MSG ☰ ☰ ☰
+    `--prefix=` ☰ PATH ☰ NGX_PREFIX ☰ `/usr/local/nginx/` ☰ set installation prefix ☰
+       ☰ ☰ NGX_RPATH ☰ NO ☰ ☰
+    `--sbin-path=` ☰ PATH ☰ NGX_SBIN_PATH ☰ ☰ set nginx binary pathname ☰
+    `--test-build-devpoll` ☰ ☰ NGX_TEST_BUILD_DEVPOLL ☰ ☰ ☰
+    `--test-build-epoll` ☰ ☰ NGX_TEST_BUILD_EPOLL ☰ ☰ ☰
+    `--test-build-eventport` ☰ ☰ NGX_TEST_BUILD_EVENTPORT ☰ ☰ ☰
+    `--test-build-solaris-sendfilev` ☰ ☰ NGX_TEST_BUILD_SOLARIS_SENDFILEV ☰ ☰ ☰
+    `--user=` ☰ USER ☰ NGX_USER ☰ ☰ set non-privileged user for worker processes ☰
+       ☰ ☰ NGX_WINE ☰ ☰ ☰
+    `--with-openssl=` ☰ DIR ☰ OPENSSL ☰ NONE ☰ set path to OpenSSL library sources ☰
+    `--with-openssl-opt=` ☰ OPTIONS ☰ OPENSSL_OPT ☰ ☰ set additional build options for OpenSSL ☰
+    `--with-pcre=` ☰ DIR ☰ PCRE ☰ NONE ☰ set path to PCRE library sources ☰
+    `--without-pcre2` ☰ ☰ PCRE2 ☰ YES ☰ do not use PCRE2 library ☰
+       ☰ ☰ PCRE_CONF_OPT ☰ ☰ ☰
+    `--with-pcre-jit` ☰ ☰ PCRE_JIT ☰ NO ☰ build PCRE with JIT compilation support ☰
+    `--with-pcre-opt=` ☰ OPTIONS ☰ PCRE_OPT ☰ ☰ set additional build options for PCRE ☰
+    `--without-quic_bpf_module` ☰ ☰ QUIC_BPF ☰ NO ☰ disable ngx_quic_bpf_module ☰
+       ☰ ☰ SO_COOKIE_FOUND ☰ NO ☰ ☰
+    `--with-stream` ☰ ☰ STREAM ☰ NO ☰ enable TCP/UDP proxy module ☰
+    `--with-stream=` ☰ dynamic ☰ STREAM ☰ NO ☰ enable dynamic TCP/UDP proxy module ☰
+    `--without-stream_access_module` ☰ ☰ STREAM_ACCESS ☰ YES ☰ disable ngx_stream_access_module ☰
+    `--without-stream_geo_module` ☰ ☰ STREAM_GEO ☰ YES ☰ disable ngx_stream_geo_module ☰
+    `--with-stream_geoip_module` ☰ ☰ STREAM_GEOIP ☰ NO ☰ enable ngx_stream_geoip_module ☰
+    `--with-stream_geoip_module=` ☰ dynamic ☰ STREAM_GEOIP ☰ NO ☰ enable dynamic ngx_stream_geoip_module ☰
+    `--without-stream_limit_conn_module` ☰ ☰ STREAM_LIMIT_CONN ☰ YES ☰ disable ngx_stream_limit_conn_module ☰
+    `--without-stream_map_module` ☰ ☰ STREAM_MAP ☰ YES ☰ disable ngx_stream_map_module ☰
+    `--without-stream_pass_module` ☰ ☰ STREAM_PASS ☰ YES ☰ disable ngx_stream_pass_module ☰
+    `--with-stream_realip_module` ☰ ☰ STREAM_REALIP ☰ NO ☰ enable ngx_stream_realip_module ☰
+    `--without-stream_return_module` ☰ ☰ STREAM_RETURN ☰ YES ☰ disable ngx_stream_return_module ☰
+    `--without-stream_set_module` ☰ ☰ STREAM_SET ☰ YES ☰ disable ngx_stream_set_module ☰
+    `--without-stream_split_clients_module` ☰ ☰ STREAM_SPLIT_CLIENTS ☰ YES ☰ disable ngx_stream_split_clients_module ☰
+    `--with-stream_ssl_module` ☰ ☰ STREAM_SSL ☰ NO ☰ enable ngx_stream_ssl_module ☰
+    `--with-stream_ssl_preread_module` ☰ ☰ STREAM_SSL_PREREAD ☰ NO ☰ enable ngx_stream_ssl_preread_module ☰
+    `--without-stream_upstream_hash_module` ☰ ☰ STREAM_UPSTREAM_HASH ☰ YES ☰ disable ngx_stream_upstream_hash_module ☰
+    `--without-stream_upstream_least_conn_module` ☰ ☰ STREAM_UPSTREAM_LEAST_CONN ☰ YES ☰ disable ngx_stream_upstream_least_conn_module ☰
+    `--without-stream_upstream_random_module` ☰ ☰ STREAM_UPSTREAM_RANDOM ☰ YES ☰ disable ngx_stream_upstream_random_module ☰
+    `--without-stream_upstream_zone_module` ☰ ☰ STREAM_UPSTREAM_ZONE ☰ YES ☰ disable ngx_stream_upstream_zone_module ☰
+       ☰ ☰ USE_GEOIP ☰ NO ☰ ☰
+       ☰ ☰ USE_LIBGD ☰ NO ☰ ☰
+       ☰ ☰ USE_LIBXSLT ☰ NO ☰ ☰
+       ☰ ☰ USE_OPENSSL ☰ NO ☰ ☰
+       ☰ ☰ USE_OPENSSL_QUIC ☰ NO ☰ ☰
+    `--with-pcre` ☰ ☰ USE_PCRE ☰ NO ☰ force PCRE library usage ☰
+    `--without-pcre` ☰ ☰ USE_PCRE ☰ NO ☰ disable PCRE library usage ☰
+       ☰ ☰ USE_PERL ☰ NO ☰ ☰
+    `--with-threads` ☰ ☰ USE_THREADS ☰ NO ☰ enable thread pool support ☰
+       ☰ ☰ USE_ZLIB ☰ NO ☰ ☰
+    `--with-zlib=` ☰ DIR ☰ ZLIB ☰ NONE ☰ set path to zlib library sources ☰
+    `--with-zlib-asm=` ☰ CPU ☰ ZLIB_ASM ☰ NO ☰ use zlib assembler sources optimized for the specified CPU, valid values: pentium, pentiumpro ☰
+    `--with-zlib-opt=` ☰ OPTIONS ☰ ZLIB_OPT ☰ ☰ set additional build options for zlib ☰
+    `--help` ☰ ☰ help ☰ ☰ print this message ☰
+    `--with-ipv6` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-md5=` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-md5-opt=` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-md5-asm` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-sha1=` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-sha1-opt=` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+    `--with-sha1-asm` ☰ ☰ ☰ ☰ ☰ *Deprecated*
+
+  table }
+
+  }
+
   { Misc
 
    `objs/ngx_modules.c` seems to be created when making the executable, possibly when calling the `auto/configure` script.
@@ -166,7 +394,6 @@ code }
     What is the purpose of using `--without-http`?
 
   }
-
  
 }
 
@@ -177,6 +404,8 @@ sa:
   → web/webserver/nginx/application-gateway
 
   → web/webserver
+
+  nginx supports → development/web/RFC#rfc-9000[QUIC] since version 1.25.0.
 
 links:
   → https://www.nginx.com/resources/wiki/start/[Getting started]
