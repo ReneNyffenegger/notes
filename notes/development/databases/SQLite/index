@@ -41,21 +41,63 @@ code }
 }
 { Compiling the amalgamation
 
-  Shell:
+  «Default» (no optimazation etc.) compilation Shell:
+
+  { Compiling object files from sqlite3.c
+
+    First, we need a few variables:
 code {
-gcc $AMALDIR/shell.c $AMALDIR/sqlite3.c -ldl -lpthread -o $AMALDIR/shell
+AMALDIR=sqlite
+OBJDIR=/tmp
+BINDIR=~/bin
 code }
+
+    We're now ready to create the object files:
+code {
+gcc -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_THREADSAFE=0 -Ofast -c $AMALDIR/sqlite3.c -o $OBJDIR/sqlite3-thread-0.o
+gcc -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_THREADSAFE=1 -Ofast -c $AMALDIR/sqlite3.c -o $OBJDIR/sqlite3-thread-1.o
+gcc -DSQLITE_OMIT_SHARED_CACHE -DSQLITE_THREADSAFE=2 -Ofast -c $AMALDIR/sqlite3.c -o $OBJDIR/sqlite3-thread-2.o
+code }
+
+  }
+
+  { Compiling the shell executable
+
+    Note, `-lpthread` is required if the object file was created with the macro `SQLITE_THREADSAFE` set to 1 or 2:
+code {
+gcc $AMALDIR/shell.c $OBJDIR/sqlite3-thread-0.o -ldl           -o $BINDIR/sqlite3-shell-thread-0
+gcc $AMALDIR/shell.c $OBJDIR/sqlite3-thread-1.o -ldl -lpthread -o $BINDIR/sqlite3-shell-thread-2
+gcc $AMALDIR/shell.c $OBJDIR/sqlite3-thread-2.o -ldl -lpthread -o $BINDIR/sqlite3-shell-thread-2
+code }
+
+    Make a particular executable the default:
+code {
+ln -s $BINDIR/sqlite3-shell-thread-0 $BINDIR/sqlite3-shell
+code }
+
+code {
+sqlite3-shell :memory: '→ development/databases/SQLite/sql/pragma/compile_options[pragma compile_options]'
+code }
+
+  }
+  { No readline support
+
+    Unfortunately, when compiled as outlined above, there is no readline support.
+    -
+    It seems it needs to be enabled → https://sqlite.org/forum/info/eb24496693bbc7da[already when configuring the project].
+
+  }
 
 }
 { PHP
 
   It seems sqlite can be accessed (in Ubuntu) from → development/web/php with
 code {
-sudo apt-get install php-sqlite3
+→ Linux/shell/commands/sudo apt-get install php-sqlite3
 code }
 
 }
-{ Find SQLite databases in a file system
+{ Using PowerShell to find SQLite databases in a file system
 
   The following simple → Windows/PowerShell/pipeline[PowerShell pipeline] finds SQLite databases below the current directory in a file system:
 code {
@@ -69,8 +111,8 @@ code }
 }
 { Trivia
 
-  The → https://github.com/endlesssoftware/sqlite3/blob/master/os.h#L133-L143[default prefix for temporary files] used to be `sqlite_` but was changed
-  to `etilqs_` so that annoyed users wouldn't find the phone numbers of the SQLite developers when googling for etilqs.
+  The https://github.com/endlesssoftware/sqlite3/blob/8004eeafeec9ac4bc0fbc7a3c0bb01eca55694a0/os.h#L133-L134[default prefix for temporary files] used to be `sqlite_` but was changed
+  to `etilqs_` so that annoyed users wouldn't find the phone numbers of the SQLite developers when googling for *sqlite*.
 
 }
 { TODO
