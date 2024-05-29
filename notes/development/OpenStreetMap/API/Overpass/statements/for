@@ -4,13 +4,13 @@ $ Overpass API: for statement
 code {
 [out:csv("name";false)];
 
-area[name="Pfungen"];
+→ development/OpenStreetMap/API/Overpass/statements/query/area[area][name="Pfungen"];
 
 way(area)[highway][name];
 
 for (t["name"]) (
-   make x name=_.val;
-   out; 
+   → development/OpenStreetMap/API/Overpass/statements/make x name=_.val;
+   → development/OpenStreetMap/API/Overpass/statements/out; 
 );
 code }
 
@@ -26,11 +26,11 @@ node[name='Freienstein'] -> .nd;
 for.nd -> .id (id())  {
   for.id -> .ky (keys()) {    
     for.ky -> .vl(t[ky.val]) {
-      make x
+      → development/OpenStreetMap/API/Overpass/statements/make x
           id  = id.val, 
           key = ky.val,
           val = vl.val;
-      out;
+      → development/OpenStreetMap/API/Overpass/statements/out;
     }
   }
 };
@@ -40,6 +40,10 @@ code }
 
   The `for` statement behaves like the → development/databases/SQL/select/group-by[SQL `GROUP BY`] clause where the expression in the parantheses (here: `t['name']`) is the value on which the other
   elements are grouped (and/or aggregated).
+  
+? Therefore, in a `for (t['…']) { … }` loop, the aggregation functions `sum`, `→ development/OpenStreetMap/API/Overpass/functions/count`, `min`, `max` (but not `avg`?) can be used.
+
+
 code {
 [ → development/OpenStreetMap/API/Overpass/settings/out[out : csv](
    name,
@@ -57,17 +61,17 @@ way[highway](area);
 
 for (t['name']) {
 
-   make Beispiel
+   → development/OpenStreetMap/API/Overpass/statements/make Beispiel
      name         = _.val,
      total_length = sum(length()),                // Aggregate all lengths
-     cnt_ways     = count(ways)  ,
+     cnt_ways     = → development/OpenStreetMap/API/Overpass/functions/count[count](ways)  ,
      min_length   = min(length()),
      max_length   = max(length()),
      avg_length   = sum(length()) / count(ways),  // There is no function avg()
      all_lengths  = set(length())                 // Concatenate the individual lengths with semicolons.
    ;
 
-   out;
+   → development/OpenStreetMap/API/Overpass/statements/out;
 }
 code }
 
@@ -86,14 +90,15 @@ code {
 
 
 for.ways (1) { // Group by constant value -> get aggregate for all elements
-  make x
+  → development/OpenStreetMap/API/Overpass/statements/make x
     cnt    = count(ways),
     length = sum(length());
-  out;
+  → development/OpenStreetMap/API/Overpass/statements/out;
 }
 code }
 
 }
 
 sa:
+
   The `→ development/OpenStreetMap/API/Overpass/statements/foreach` → development/OpenStreetMap/API/Overpass/statements[statement].
