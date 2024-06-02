@@ -1,18 +1,40 @@
 
 A *RAID device* is a *virtual device* that is created from at least two → Linux/devices/index#block-devices[block devices].
 
-table { rl
- ~Level~ ☰ ~Lost capacity~
-  0 ☰ None
-  1 ☰ 50 %
-  5 ☰ 1 disk
-  6 ☰ 2 disks
- 10 ☰ 50 %
-table }
+RAID is an abbreviation for *redundant array of inexpensive* (or also *independent*) *disks* which highlights the difference to *SLED* (single large expensive disk).
+
+{ RAID levels
+
+  The *RAID level* specifies how data is distributed accross the disks to achieve one of the following goals:
+    • reliability,
+    • availability,
+    • performance and/or
+    • capacity.
+
+  RAID levels greater than 0 protect against
+    • unrecoverable sector read errors or
+    • failures of whole physical drives.
+
+  table { rlll
+   ~Level~ ☰ ☰ ~Read | Write performance~ ☰ ~Lost capacity~
+    0 ☰ Blocks are striped accross the disks. This leads to better read and write performance but causes the entire array to fail if only one disk gets corrupted. ☰ | NX ☰ None
+    1 ☰ Data is identically stored («mirrored») on multiple drives. ☰ ☰ 50 %
+    2 ☰ Bit-level striping with dedicated Hamming-code parity. Not commonly used (if at all) ☰ ☰
+    3 ☰ Byte-level striping with decicated parity. Not commonly used. ☰ ☰
+    4 ☰ Block-level striping with dedicated parity ☰  ☰
+    5 ☰ Block-level striping with distributed parity. The failure of one disk can be tolerated. Requires at least three disks. Generally, RAID 5 is not recommended because a) of its write penalty when managing parity data and b) if a disk fails while an already failed disk is repaired, the whole array becomes useless. ☰ ☰ 1 disk
+    6 ☰ Block-level striping with double distributed parity. ☰ ☰ 2 disks
+   10 ☰ Aka RAID 1+0 (i. e. A RAID 0 stripe of mirror sets). Allegedly the more optimal compared to RAID 1 if four drives are available. ☰  ☰ 50 %
+  table }
+
+}
+{ Misc
 
 ? Linux supports software RAID devices through the *md* (multiple devices) device driver.
 
-TODO: What's the difference between RAID 1 and RAID 10?
+  TODO: What's the difference between RAID 1 and RAID 10?
+
+}
 
 sa:
  `→ Linux/fhs/dev/mdN`
