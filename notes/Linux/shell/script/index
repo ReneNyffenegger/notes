@@ -113,6 +113,31 @@ fi
 code }
 
 }
+{ Prevent the script from being stopped with Ctrl-C #shell-script-notrl-c
+
+code {
+#!/bin/bash
+
+→ Linux/shell/bash/built-in/trap "echo Ctrl-C detected, but ignored. Use 'kill -9 $$' to → Linux/shell/commands/kill it." SIGINT
+
+echo "Script is running. Press Ctrl-C to try to stop it."
+
+for i in {1..4}; do
+    echo "Loop $i"
+    /bin/sleep 5
+done
+
+→ Linux/shell/bash/built-in/trap - SIGINT
+echo "Default behavior of Ctrl-C is restored. Press Ctrl-C to stop the script now."
+
+while true; do
+    /bin/sleep 1
+done
+code }
+
+  Note: when the user presses `ctrl-c`, the shell script is not stopped, but the foreground process initiated by the script (here: `/bin/sleep`) is.
+
+}
 
 sa:
   → Linux/shell/script/shebang
