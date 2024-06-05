@@ -5,65 +5,56 @@ The (Linux) *file system hierarchy standard* is sometimes abbreviated with FHS.
 
 The Filesystem Hierarchy Standard is a reference describing the conventions used for the layout of a UNIX system.
 
-`/` This is the root directory under which the whole «FHS tree» is located.
+table { lll
 
-→ Linux/fhs/bin[`/bin`] This directory contains executable programs which are needed in single user mode and to bring the system up or repair it.
+  `/` ☰ The root directory under which the whole «FHS tree» is located. ☰
+  → Linux/fhs/bin[`/bin`] ☰ This directory contains executable programs which are needed in single user mode and to bring the system up or repair it. ☰
+ → Linux/fhs/boot[`/boot`] ☰ Contains static files for the boot loader (only files which are needed during the boot process). The map installer and configuration files should go to → Linux/fhs/sbin[`/sbin`] and → Linux/fhs/etc[`/etc`].  The operating system kernel (for example `initrd`) must be located in either `/` or `/boot`. ☰
+  → Linux/fhs/dev[`/dev`] ☰ Special or → Linux/devices[device] files, usually referring to physical devices. ☰
+  → Linux/fhs/run[`/run`] ☰ `/run` and its subdirectories expose userspace sockets and files. See → Linux/shell/commands/mknod[`mknod (1)`]. ☰
+  → Linux/fhs/etc[`/etc`] ☰ Configuration files which are local to the machine (some site-wite configuration files may also be placed in`/usr/etc`). Some larger software packages, like → Linux/X[X11], can have their own subdirectories below `/etc`, for example → Linux/fhs/etc/X11[`/etc/X11`]. ☰
+  → Linux/fhs/etc/opt[`/etc/opt`] ☰ Host-specific configuration files for add-on applications installed in → Linux/fhs/opt[`/opt`]. ☰
+  → Linux/fhs/home[`/home`] ☰ «Home» directories for users. The entire path for a user whose name is `username` is located under → Linux/fhs/home/username/[`/home/username`] and can be referred to in a → Linux/shell[shell] with the tilde `~` or `~rene`. ☰
+  → Linux/fhs/lib[`/lib`] ☰ This directory should hold those shared libraries that are necessary to boot the system and to run the commands in the root filesystem. ☰
+  `/lib<qual>` ☰ These directories are variants of /lib on system which support more than one binary format requiring separate libraries. ☰
+  → Linux/fhs/lib/modules[`/lib/modules`] ☰ Loadable → Linux/kernel/module[kernel modules]. ☰
+  `/lost+found` ☰ lost items in the filesystem. These items are usually chunks of files mangled as a consequence of a faulty disk or a system crash. ☰
+  → Linux/fhs/media[`/media`] ☰  mount  points for removable media such as CD and DVD disks or USB sticks. On systems where more than one device exists for mounting a certain type of media, mount directories can be created by appending a digit to the name of those available above starting with '0', but the unqualified name must also exist. ☰
+  → Linux/fhs/mnt[`/mnt`] ☰ holds mount points for temporarily mounted filesystems. In some distributions, `/mnt` contains subdirectories intended to be used as mount points for several temporary filesystems. ☰
+  → Linux/fhs/opt[`/opt`] ☰ add-on packages that contain static files. ☰
+  → Linux/fhs/proc[`/proc`] ☰ Mount point for the → Linux/filesystem/filesystems#proc[proc] → Linux/filesystem[filesystem], which provides information about running processes and the kernel which exposes kernel settings, processes and other kernel information to userspace. (Compare with → Linux/fhs/sys[`/sys`]) ☰
+  → Linux/fhs/root[`/root`] ☰ is usually the home directory for the root user. ☰
+  → Linux/fhs/sbin[`/sbin`] ☰  Like `/bin`, this directory holds commands needed to boot the system, but which are usually not executed by normal users. ☰
+  → Linux/fhs/srv[`/srv`] ☰ contains site-specific data that is served by this system.  Sub directories might be `/srv/http` or `/srv/ftp`. ☰
+  → Linux/fhs/sys[`/sys`] ☰ mount point for the → Linux/filesystem/sysfs[sysfs] filesystem which exposes kernel devices, drivers and other kernel information to userspace (Compare → Linux/fhs/proc[`/proc`]) ☰
+  → Linux/fhs/tmp[`/tmp`] ☰ contains temporary files which may be deleted without notice, usually at → Linux/booting[system boot up], but also by a regular job. Compare with → Linux/fhs/var/tmp/[`/var/tmp`]. ☰
+  → Linux/fhs/usr[`/usr`] ☰ should only contain sharable, read-only data, so that it can be → Linux/shell/commands/mount[mounted] by various Linux installations.  Thus, it is usually mounted from a separate partition. ☰
+  → Linux/fhs/usr/bin[`/usr/bin`] ☰ is the primary directory for executable programs which are not necessary for booting or repairing a system and run by »normal« users. ☰
+  `/usr/games` ☰ Binaries for games and educational programs. ☰
+  → Linux/fhs/usr/include[`/usr/include`] ☰ Include files for the C compiler. ☰
+  → Linux/fhs/usr/lib[`/usr/lib`] ☰  Object libraries, including dynamic libraries, plus some executables which usually are not invoked directly. More complicated programs may have whole subdirectories there. ☰
+  → Linux/fhs/usr/local[`/usr/local`] ☰  This is where programs which are local to the site typically go. ☰
+  → Linux/fhs/usr/local/bin[`/usr/local/bin`] ☰  Binaries for programs local to the site. (Apparently empty under arch linux). ☰
+  → Linux/fhs/usr/sbin[`/usr/sbin`] ☰  Program binaries for system administration which are not essential for the boot process, for mounting /usr, or for system repair. ☰
+  → Linux/fhs/usr/share[`/usr/share`] ☰ Subdirectories with specific application data, that can be shared among different architectures of the same OS. ☰
+  `/usr/share/dict` ☰ word lists used by spell checkers (for example `/usr/share/dict/words` is a list of english words). ☰
+  `/usr/share/zoneinfo` ☰ Files for timezone information (optional). ☰
+  → Linux/fhs/var[`/var`] ☰ Files which may change in size, such as spool and log files. ☰
+  → Linux/fhs/var/cache/[`/var/cache`] ☰ Data cached for programs. ☰
+  `/var/crash` ☰ System crash dumps. ☰
+  → Linux/fhs/var/lib[`/var/lib`] ☰ Variable state information for programs. ☰
+  → Linux/fhs/var/lock[`/var/lock`] ☰ contains lock files. ☰
+  → Linux/fhs/var/log[`/var/log`] ☰ → Linux/security/log-file[log files]. ☰
+  → Linux/fhs/var/run[`/var/run`] ☰ Run-time variable files, like files holding process identifiers (PIDs) and logged user information (utmp). ☰
+  → Linux/fhs/var/tmp[`/var/tmp`] ☰ Temporary files. Compare → Linux/fhs/tmp/[`/tmp`]. ☰
+   → Linux/fhs/usr/include/X11[`/usr/include/X11`] ☰ Include files for the C compiler and the X-Window system. ☰
+   `/usr/include/asm` ☰ Include files which declare some assembler functions. ☰
+   → Linux/fhs/usr/include/linux[`/usr/include/linux`] ☰ Information which may change from system release to system release. ☰
 
-→ Linux/fhs/boot[`/boot`] Contains static files for the boot loader.
-  -
-  This directory holds only the files which are needed during the boot process.
-  -
-  The map installer and configuration files should go to → Linux/fhs/sbin[`/sbin`] and → Linux/fhs/etc[`/etc`].
-  -
-  The operating system kernel (initrd for example) must be located in either / or /boot.
-
-→ Linux/fhs/dev[`/dev`] Special or device files, which refer to physical devices.
-
-→ Linux/fhs/run[`/run`] and its subdirectories expose userspace sockets and files.
-  -
-  See → Linux/shell/commands/mknod[`mknod (1)`].
-
-→ Linux/fhs/etc[`/etc`] Contains configuration files which are local to the machine.
--
-Some larger software packages, like → Linux/X[X11], can have their own subdirectories below `/etc`, for example → Linux/fhs/etc/X11[`/etc/X11`].
+table }
 
 
-rem {
-Site-wide configuration files may be placed here or  in  /usr/etc.   Nevertheless,
-       programs should always look for these files in /etc and you may have links for these files to /usr/etc.
-rem }
 
-→ Linux/fhs/etc/opt[`/etc/opt`] Host-specific configuration files for add-on applications installed in → Linux/fhs/opt[`/opt`].
-
-rem {
-/etc/sgml
-       This directory contains the configuration files for SGML (optional).
-rem }
-
-→ Linux/fhs/etc/skel[`/etc/skel`] When a new → Linux/user[user account] is created, files from this directory are usually copied into the user's home directory.
-
-
-rem {
-/etc/xml
-       This directory contains the configuration files for XML (optional).
-rem }
-
-
-→ Linux/fhs/home[`/home`] »Home« directories for users. The entire path for a user whose name is `username` is located under → Linux/fhs/home/username/[`/home/username`] and can be referred to in a
-→ Linux/shell[shell] with the tilde `~`.
-
-→ Linux/fhs/lib[`/lib`]   This directory should hold those shared libraries that are necessary to boot the system and to run the commands in the root filesystem.
-
-`/lib<qual>`
-       These directories are variants of /lib on system which support more than one binary format requiring separate libraries.
-
-→ Linux/fhs/lib/modules[`/lib/modules`] Loadable kernel modules.
-
-`/lost+found` This directory contains items lost in the filesystem.  These items are usually chunks of files mangled as a consequence of a faulty disk or a system crash.
-
-→ Linux/fhs/media[`/media`] contains  mount  points for removable media such as CD and DVD disks or USB sticks.
-  -
-  On systems where more than one device exists for mounting a certain type of media, mount directories can be created by appending a digit to the name of those available above starting with '0', but the unqualified name must also exist.
 
 rem {
 /media/floppy[1-9] Floppy drive (optional).
@@ -81,30 +72,23 @@ rem {
        USB drive (optional).
 rem }
 
-→ Linux/fhs/mnt[`/mnt`] holds mount points for temporarily mounted filesystems.
--
-In some distributions, `/mnt` contains subdirectories intended to be used as mount points for several temporary filesystems.
+rem {
+/etc/sgml
+       This directory contains the configuration files for SGML (optional).
+rem }
 
-→ Linux/fhs/opt[`/opt`] contains add-on packages that contain static files.
+rem {
+→ Linux/fhs/etc/skel[`/etc/skel`] When a new → Linux/user[user account] is created, files from this directory are usually copied into the user's home directory.
+rem }
 
-→ Linux/fhs/proc[`/proc`] The mount point for the → Linux/filesystem/filesystems#proc[proc] → Linux/filesystem[filesystem], which provides information about running processes and the kernel which
-exposes kernel settings, processes and other kernel information to userspace. (Compare with → Linux/fhs/sys[`/sys`])
 
-→ Linux/fhs/root[`/root`] is usually the home directory for the root user.
+rem {
+/etc/xml
+       This directory contains the configuration files for XML (optional).
+rem }
 
-→ Linux/fhs/sbin[`/sbin`]  Like `/bin`, this directory holds commands needed to boot the system, but which are usually not executed by normal users.
 
-→ Linux/fhs/srv[`/srv`] contains site-specific data that is served by this system.
--
-Sub directories might be `/srv/http` or `/srv/ftp`.
 
-→ Linux/fhs/sys[`/sys`] mount point for the → Linux/filesystem/sysfs[sysfs] filesystem which exposes kernel devices, drivers and other kernel information to userspace (Compare → Linux/fhs/proc[`/proc`])
-
-→ Linux/fhs/tmp[`/tmp`] contains temporary files which may be deleted without notice, usually at → Linux/booting[system boot up], but also by a regular job. Compare with → Linux/fhs/var/tmp/[`/var/tmp`].
-
-→ Linux/fhs/usr[`/usr`] should only contain sharable, read-only data, so that it can be → Linux/shell/commands/mount[mounted] by various Linux installations.
--
-Thus, it is usually mounted from a separate partition.
 
 rem {
 /usr/X11R6
@@ -123,7 +107,6 @@ rem {
        Contains include files needed for compiling programs using the X11 window system.  Often, there is a symbolic link from /usr/include/X11 to this directory.
 rem }
 
-→ Linux/fhs/usr/bin[`/usr/bin`] is the primary directory for executable programs which are not necessary for booting or repairing a system and run by »normal« users.
 
 rem {
 /usr/bin/mh
@@ -144,63 +127,17 @@ rem {
        appropriate files in /usr/etc.
 rem }
 
-`/usr/games` Binaries for games and educational programs.
-
-→ Linux/fhs/usr/include[`/usr/include`] Include files for the C compiler.
 
 rem {
 /usr/include/bsd BSD compatibility include files (optional).
 rem }
 
-→ Linux/fhs/usr/include/X11[`/usr/include/X11`] Include files for the C compiler and the X-Window system.
-
-`/usr/include/asm` Include files which declare some assembler functions.
-
-→ Linux/fhs/usr/include/linux[`/usr/include/linux`] contains information which may change from system release to system release.
 
 
 rem {
 /usr/include/g++
        Include files to use with the GNU C++ compiler.
 rem }
-
-→ Linux/fhs/usr/lib[`/usr/lib`] Object libraries, including dynamic libraries, plus some executables which usually are not invoked directly. More complicated programs may have whole subdirectories there.
-
-→ Linux/fhs/usr/local[`/usr/local`] This is where programs which are local to the site typically go.
-
-→ Linux/fhs/usr/local/bin[`/usr/local/bin`] Binaries for programs local to the site. (Apparently empty under arch linux).
-
-→ Linux/fhs/usr/sbin[`/usr/sbin`] contains program binaries for system administration which are not essential for the boot process, for mounting /usr, or for system repair.
-
-→ Linux/fhs/usr/share[`/usr/share`] contains subdirectories with specific application data, that can be shared among different architectures of the same OS.
-
-`/usr/share/dict` contains the word lists used by spell checkers (for example `/usr/share/dict/words` is a list of english words).
-
-`/usr/share/zoneinfo` contains files for timezone information (optional).
-
-→ Linux/fhs/var[`/var`] contains files which may change in size, such as spool and log files.
-
-→ Linux/fhs/var/cache/[`/var/cache`]: Data cached for programs.
-
-`/var/crash` System crash dumps.
-
-→ Linux/fhs/var/lib[`/var/lib`] Variable state information for programs.
-
-→ Linux/fhs/var/lock[`/var/lock`] contains lock files.
-
-→ Linux/fhs/var/log[`/var/log`] is for log files.
-
-→ Linux/fhs/var/run[`/var/run`] contains run-time variable files, like files holding process identifiers (PIDs) and logged user information (utmp).
-
-→ Linux/fhs/var/tmp[`/var/tmp`] contains temporary files. Compare → Linux/fhs/tmp/[`/tmp`].
-
-{ Misc
-
-  Most Linux distributions follow the FHS. Two examples of non compliant distributions are:
-    • GoboLinux (where the filesystem *is* the package database)
-    • NixOS
-
-}
 
 rem {
 /usr/lib<qual>
@@ -424,6 +361,55 @@ rem {
        Database files for NIS, formerly known as the Sun Yellow Pages (YP).
 
 rem }
+
+
+{ Misc
+
+  Most Linux distributions follow the FHS. Two examples of non compliant distributions are:
+    • GoboLinux (where the filesystem *is* the package database)
+    • NixOS
+
+}
+{ Mount points
+
+ `findmnt` can be used to display the hierarchy of mounted filesystems, for example:
+code {
+$ findmnt -oTARGET,SOURCE,FSTYPE
+TARGET                                                  SOURCE      FSTYPE
+/                                                       /dev/md2    ext4
+├─/sys                                                  sysfs       sysfs
+│ ├─/sys/kernel/security                                securityfs  securityfs
+│ ├─/sys/fs/cgroup                                      cgroup2     cgroup2
+│ ├─/sys/fs/pstore                                      pstore      pstore
+│ ├─/sys/firmware/efi/efivars                           efivarfs    efivarfs
+│ ├─/sys/fs/bpf                                         bpf         bpf
+│ ├─/sys/kernel/debug                                   debugfs     debugfs
+│ │ └─/sys/kernel/debug/tracing                         tracefs     tracefs
+│ ├─/sys/kernel/tracing                                 tracefs     tracefs
+│ ├─/sys/kernel/config                                  configfs    configfs
+│ ├─/sys/fs/fuse/connections                            fusectl     fusectl
+│ └─/sys/kernel/config                                  configfs    configfs
+├─/proc                                                 proc        proc
+│ └─/proc/sys/fs/binfmt_misc                            systemd-1   autofs
+│   └─/proc/sys/fs/binfmt_misc                          binfmt_misc binfmt_misc
+├─/dev                                                  udev        devtmpfs
+│ ├─/dev/pts                                            devpts      devpts
+│ ├─/dev/shm                                            tmpfs       tmpfs
+│ ├─/dev/mqueue                                         mqueue      mqueue
+│ └─/dev/hugepages                                      hugetlbfs   hugetlbfs
+├─/run                                                  tmpfs       tmpfs
+│ ├─/run/lock                                           tmpfs       tmpfs
+│ ├─/run/credentials/systemd-sysctl.service             ramfs       ramfs
+│ ├─/run/credentials/systemd-sysusers.service           ramfs       ramfs
+│ ├─/run/credentials/systemd-tmpfiles-setup-dev.service ramfs       ramfs
+│ ├─/run/credentials/systemd-tmpfiles-setup.service     ramfs       ramfs
+│ └─/run/user/1000                                      tmpfs       tmpfs
+└─/boot                                                 /dev/md0    ext4
+  └─/boot/efi                                           /dev/sdd1   vfat
+code }
+
+}
+
 
 
 
