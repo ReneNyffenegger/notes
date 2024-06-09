@@ -1,8 +1,173 @@
 $ Shell command: iostat
 @ iostat
 
+code {
+iostat [options] [ interval [ count ]]
+code }
+
+If `iostat` is called with an `interval` it prints  report every `interval` seconds. The maximum number of reports is indicated with `count`.
+-
+The first report prints the data since the system was booted, the subsequent reports the difference between the previous and current report (but see the `-y` option).
+
+Quite likely, `iostat` should be executed with the `-x` (= extended statistics) option:
+code {
+$ iostat -x
+code }
+
+{ Types of reports
+
+  `iostat` generates three types of reports:
+     • CPU Utilization Report    ( `-c` )
+     • Device Utilization Report  ( `-d` )
+     • Network Filesystem Report ( `-n` )
+
+  { CPU Utilization Report
+
+    The CPU Utilization Report shows the following values pertaining to the CPU. The values are averaged for multiprocessor systems.
+
+    table { ll
+
+      `%user` ☰ Percentage of CPU utilization that occurred while executing at the user level (application).
+      `%nice` ☰ Percentage of CPU utilization that occurred while executing at the user level with nice priority.
+      `%system` ☰ Percentage of CPU utilization that occurred while executing at the system level (kernel).
+      `%iowait` ☰ Percentage of time that the CPU or CPUs were idle during which the system had an outstanding disk I/O request.
+      `%steal` ☰ Percentage of time spent in involuntary wait by the virtual CPU or CPUs while the hypervisor was servicing another virtual processor.
+      `%idle` ☰ Percentage of time that the CPU or CPUs were idle and the system did not have an outstanding disk I/O request.
+
+    table }
+
+    The sum of these numbers is, *of course*, 100, as can be demonstrated with the following simple awk script (I have used `NR == 4` because the
+    percentages are reported in the fourth line if `iostat` is called with `-c`):
+code {
+$ iostat | → development/languages/awk 'NR == 4 { for(i = 1; i <= NF; i++) sum += $i } END { print sum }'
+100
+code }
+
+  }
+  { Device Utilization Report
+
+    In the following table, `X` stands for the unit shown. It is `Blk`, `kB` or `MB, depending on if `POSIXLY_CORRECT` is set or `-k` or `-m` was used when `iostat` was invoked.
+
+    A block is equivalent to a → Linux/kernel/source/include/linux/blk_types_h#linux-block-size[sector of 512 bytes].
+
+    table { lll
+     *Name* ☰ Device or partition name as listed in the `→ Linux/fhs/dev` directory. ☰
+
+     `tps` ☰ Indicate the number of transfers per second that were issued to the device. A transfer is an I/O request to the device. Multiple logical requests can be combined into a single I/O request to the device. A transfer is of indeterminate size. ☰ Shown with `-s`
+
+     `X_read/s` ☰ Indicate the amount of data read from the device. ☰ Shown with `-s` or if not invoked with `-x`
+     `X_wrtn/s` ☰ Indicate the amount of data written to the device. ☰ Is this column ever shown?
+     `X_read` ☰ The total number of blocks read. ☰ Shown with `-s`
+     `X_wrtn` ☰ The total number of blocks written. ☰ Is this column ever shown?
+     `X_dscd` ☰ Discarded ☰
+
+   table }
+
+   Columns shown with `-x`
+   table { lll
+     `r/s` ☰ The number of read requests (after merges) that were issued to the device per second. ☰
+     `rX/s` ☰ The number of `X`-units read from the device per second. ☰
+     `rrqm/s` ☰ The number of read requests merged per second that were queued to the device. ☰
+     `%rrqm` ☰ The percentage of read requests merged together before being sent to the device. ☰
+     `r_await` ☰ The average time (in milliseconds) for read requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them. ☰
+     `rareq-sz` ☰ The average size (in kilobytes) of the read requests that were issued to the device. ☰ 
+
+     `w/s` ☰ The number of write requests (after merges) that were issued to the device per second. ☰
+     `wX/s` ☰ The number of `X`-units written to the device per second. (with block reporting: no `blk` in title) ☰
+     `wrqm/s` ☰ The number of write requests merged per second that were queued to the device. ☰
+     `%wrqm` ☰ The percentage of write requests merged together before being sent to the device. ☰
+     `w_await` ☰ The average time (in milliseconds) for write requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them. ☰
+     `wareq-sz` ☰ Like `rareq-sz`, but for writes ☰ 
+
+     `d/s` ☰ Number of completed discard requests per second ☰
+     `dX/s` ☰ Number of discarded X-units (after merges), per second ☰
+     `drqm/s` ☰ ☰
+     `%drqm` ☰ ☰
+     `d_await` ☰ ☰
+     `dareq-sz` ☰ ☰
+
+     `f/s` ☰ The number (after merges) of flush requests completed per second for the device.  This counts flush requests executed by disks. Flush requests are not tracked for partitions.  Before being merged, flush operations are counted as writes.  ☰
+     `f_await` ☰ The average time (in milliseconds) for flush requests issued to the device to be served.  The block layer combines flush requests and executes at most one at a time.  Thus flush operations could be twice as long: Wait for current flush request, then execute it, then wait for the next one.☰
+
+     `aqu-sz` ☰ The average queue length of the requests that were issued to the device. ☰ Previously reported under `avgqu-sz`
+
+     `%util` ☰ → https://unix.stackexchange.com/a/726414/6479[The percentage of sample time] during which at least one io was outstanding within the scheduler/driver/storage (bandwidth utilization for the device). Device saturation occurs when this value is close to 100%. ☰
+
+   table }
+
+    `-s` also shows the columns `X_w+d/s` and `X_w+d/s` (`d` stands for discarded).
+
+    The man page also mentions the following statistics which I've never seen:
+     • `avgrq-sz` - The average size (in sectors) of the requests that were issued to the device.
+     • `await` - The average time (in milliseconds) for I/O requests issued to the device to be served. This includes the time spent by the requests in queue and the time spent servicing them.
+     • `svctm` - The average service time (in milliseconds) for I/O requests that were issued to the device. *This value is meaningless* because I/O statistics are calculated at block level, and we don't know when the disk driver starts to process a request.
+
+  }
+  { Network Filesystem Report
+
+   The *Network Filesystem (NFS) Report* provides statistics for each mounted network filesystem. The report shows the following fields:
+   -
+   In a~Network Filesystem Report, the following fields are displayed:
+   table { ll
+
+     `rX_nor/s` ☰ Units of `X` read by applications via the `read(2)` system call interface.
+     `wX_nor/s` ☰ Units of `X` written by applications via the `write(2)` system call interface.
+     `rX_dir/s` ☰ Units of `X` read from files opened with the `O_DIRECT` flag.
+     `wX_dir/s` ☰ Units of `X` written to files opened with the `O_DIRECT` flag.
+     `rX_svr/s` ☰ Units of `X` read from the server by the NFS client via an NFS READ request.
+     `wX_svr/s` ☰ Units of `X` written to the server by the NFS client via an NFS WRITE request.
+
+     `ops/s` ☰ operations that were issued to the filesystem per second.
+     `rops/s` ☰ `read` operations that were issued to the filesystem per second.
+     `wops/s` ☰ `write` operations that were issued to the filesystem per second.
+    table }
+
+  }
+}
+{ Options
+
+  table { ll
+
+     `-c` ☰ Display the CPU utilization report.
+     `--compact` ☰ Don't break the Device Utilization Report into sub-reports so that all the metrics get displayed on a single line.
+     `-d` ☰ Display the device utilization report.
+     `--dec` ☰ Number of decimal places to be shown (0…2, default = 2)
+     `-f`, `+f` ☰
+     `-g` ☰
+     `-H` ☰ Must be combined with `-g`
+     `-h` ☰ Make the NFS report displayed by option `-n` easier to read by a human (same as `--human --pretty`)
+     `-j` ☰
+     `-k` ☰ Display statistics in kilobytes per second instead of blocks per second. (This seems to be the default if `POSIXLY_CORRECT` is not set.
+     `-m` ☰ Display statistics in megabytes per second instead of blocks or kilobytes per second.
+     `-N` ☰ Display the registered device mapper names for any device mapper devices. Useful for viewing LVM2 statistics.
+     `-n` ☰ Display the network filesystem (NFS) report. See also the `-h` option.
+     `-o` ☰
+     `-p [ { device [,...] | ALL } ]` ☰ The -p option displays statistics for block devices and all their partitions that are used by the system. If a device name is entered on the command line, then statistics for it and all its partitions are displayed. Last, the ALL keyword indicates that statistics have to be displayed for all the block devices and partitions defined by the system, including those that have never been used. Note that this option works only with post 2.5 kernels.
+     `-s` ☰ Narrow output that fits into 80 columns
+     `-t` ☰ Print the time for each report displayed. The timestamp format may depend on the value of the S_TIME_FORMAT environment variable (see below).
+     `-V` ☰ Print version number then exit.
+     `-x` ☰ Display extended statistics. This option requires `→ Linux/fhs/proc/diskstats` (sometimes also `/rpoc/partitions`) or a mounted *sysfs* to get the statistics.
+     `-y` ☰ Omit the first report with statistics since the system was started up (if `interval` is used)
+     `-z` ☰ Tell iostat to omit output for any devices for which there was no activity during the sample period.
+
+  table }
+
+}
+
 sa:
 
- AFICT, one of or the major source of data for `iostat` comes from `→ Linux/fhs/proc/diskstats`.
+ `iostat` is part of the APT package `sysstat` which also contains the following executables:
+    • `cifsiostat`
+    • `mpstat`
+    • `pidstat`
+    • `sadf`
+    • `sar.sysstat`
+    • `tapestat`
+
+ `→ Linux/fhs/etc/default/sysstat`
+
+  AFICT, one of or the major source of data for `iostat` comes from `→ Linux/fhs/proc/diskstats` and potentially also `→ Linux/fhs/sys/block/_device_/stat`
 
   → Linux/shell/commands[Shell commands]
+
+  Compare with the Oracle `→ development/databases/Oracle/installed/dynamic-performance-views/iostat/file` view.

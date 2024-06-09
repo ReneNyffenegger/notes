@@ -1,7 +1,73 @@
 $ /sys/block/_device_/stat
 
+`/sys/block/_device_/stat` provides several statistics about the state of the → Linux/devices#block-devices[block device] `_device_`.
+
+{ Fields
+
+  The file contains one line with 17 decimal values separated by whitespace:
+  table { lll
+    ~Name~ ☰ ~units~ ☰ ~description~
+     read I/Os       ☰ requests      ☰ number of read I/Os processed
+     read merges     ☰ requests      ☰ number of read I/Os merged with in-queue I/O
+     read sectors    ☰ sectors       ☰ number of sectors read
+     read ticks      ☰ milliseconds  ☰ total wait time for read requests
+     write I/Os      ☰ requests      ☰ number of write I/Os processed
+     write merges    ☰ requests      ☰ number of write I/Os merged with in-queue I/O
+     write sectors   ☰ sectors       ☰ number of sectors written
+     write ticks     ☰ milliseconds  ☰ total wait time for write requests
+     in_flight       ☰ requests      ☰ number of I/Os currently in flight
+     io_ticks        ☰ milliseconds  ☰ total time this block device has been active
+     time_in_queue   ☰ milliseconds  ☰ total wait time for all requests
+     discard I/Os    ☰ requests      ☰ number of discard I/Os processed
+     discard merges  ☰ requests      ☰ number of discard I/Os merged with in-queue I/O
+     discard sectors ☰ sectors       ☰ number of sectors discarded
+     discard ticks   ☰ milliseconds  ☰ total wait time for discard requests
+     flush I/Os      ☰ requests      ☰ number of flush I/Os processed
+     flush ticks     ☰ milliseconds  ☰ total wait time for flush requests
+  table }
+
+  { Details
+
+    *read I/Os*, *write I/Os*, *discard I/0s* and *flush I/Os* are incremented when an I/O request completes.
+
+    *flush I/Os*: Block layer combines flush requests and executes at most one at a time. This counts flush requests are executed by disk and not tracked for partitions.
+
+    *read merges*,* write merges* and *discard merges* are incremented when an I/O request is merged with an already-queued I/O request.
+
+    *read sectors*, *write sectors* and *discard_sectors* count the number of sectors read from, written to, or discarded from this block device and are incremented when the I/O completes.
+     -
+     The size of *sectors* is the standard → Linux/kernel/source/include/linux/blk_types_h#linux-block-size[UNIX 512-byte], not any device- or filesystem-specific block size.
+
+    *read ticks*, *write ticks*, *discard ticks* and *flush ticks* count the number of milliseconds that I/O requests have waited on this block device.
+     -
+     The waiting time for *each* requestor will be summed up: if 60 read requests wait for an average of 30 ms, the read_ticks field will increase by 60*30 = 1800.
+
+    *in_flight* counts the number of I/O requests that have been issued to the device driver but have not yet completed.
+     -
+     It does not include I/O requests that are in the queue but not yet issued to the device driver.
+
+    *io_ticks*:  This value counts the number of milliseconds during which the device has had I/O requests queued.
+
+    *time_in_queue* counts the number of milliseconds that I/O requests have waited on this block device.
+    -
+    If there are multiple I/O requests waiting, this value will increase as the product of the number of milliseconds times
+    the number of requests waiting (see *read ticks* above for an example).
+
+  }
+
+}
+{ Misc
+
+  While *sysfs* normally writes single statistics into individual files, these statistics are written into a single file so that reading the file gets a consistent snapshot of the statistics.
+
+}
+
 sa:
 
+  The `/sys/block/_device_/stat` file is documented in the Linux kernel source tree in `→ Linux/kernel/source/Documentation/block/stat_rst`. 
+
  `→ Linux/fhs/proc/diskstats`
+
+ `→ Linux/shell/commands/iostat`
 
  `→ Linux/fhs/sys/block/_device_`
