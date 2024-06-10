@@ -1,4 +1,84 @@
 $ /sys/devices/system/cpu
 
+
+Files and directories found in `/sys/devices/system/cpu` include:
+table { ll
+   `cpu0/`, `cpu1/`, … `cpuN/` ☰ A directory for each CPU
+   `cpufreq/` ☰
+   `cpuidle/` ☰
+   `hotplug/` ☰
+   `intel_pstate/` ☰
+   `isolated` ☰
+   `kernel_max` ☰
+   `microcode/` ☰
+   `modalias` ☰
+   `nohz_full` ☰
+   `offline` ☰
+   `online` ☰
+   `possible` ☰
+   `power` ☰
+   `present` ☰
+   `smt/` ☰
+   `uevent` ☰
+   `vulnerabilities/` ☰
+table }
+
+{ Counting the number of CPUs
+
+  Because each cpu has a directory whose name is `cpu` followed by at least one digit, the following C program counts the numbers of CPUs in a system:
+code {
+#include <stdio.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAX_PF_NAME   1024
+#define SYSFS_DEVCPU "/sys/devices/system/cpu"
+
+int nof_cpus() {
+
+  DIR   *dir;
+  struct dirent *drd;
+  struct stat    cpu_dir_stat;
+  char           cpu_dir_name[MAX_PF_NAME];
+  int            cpu_count = 0;
+
+
+  if ((dir = opendir(SYSFS_DEVCPU)) == NULL)
+     return 0;
+
+  while ((drd = readdir(dir)) != NULL) {
+
+     if (!strncmp(drd->d_name, "cpu", 3) && isdigit(drd->d_name[3])) {
+
+        snprintf(cpu_dir_name, sizeof(cpu_dir_name), "%s/%s", SYSFS_DEVCPU, drd->d_name);
+        cpu_dir_name[sizeof(cpu_dir_name) - 1] = '\0';
+
+        if (stat(cpu_dir_name, &cpu_dir_stat) < 0)
+           continue;
+
+        if (S_ISDIR(cpu_dir_stat.st_mode)) {
+            cpu_count++;
+        }
+     }
+  }
+
+  closedir(dir);
+
+  return cpu_count;
+}
+
+int main() {
+   printf("nof_cpus = %d\n", nof_cpus());
+}
+code }
+
+  This code is a slightly modified version of the function → https://github.com/sysstat/sysstat/blob/89a28c1b7f1294eb82ca28ad275b9903c5f12326/count.c#L111-L136[`get_proc_cpu_nr`] found in → https://github.com/sysstat/sysstat/blob/master/count.c[`count.c`] of the
+  → https://github.com/sysstat/sysstat[sysstat/sysstat github repository].
+
+}
+
 sa:
+
  `→ Linux/fhs/proc/cpuinfo`
