@@ -1,0 +1,99 @@
+$ OpenStreetMap: OAuth 2.0
+
+{ Getting an Access Token for a non-web application in a shell
+
+  { Registering an application
+
+    First, I had to register an application in a browser. I went to → https://www.openstreetmap.org/oauth2/applications and clicked *Register new application*. This led me to → https://www.openstreetmap.org/oauth2/applications/new which I believe can be entered directly into the browser.
+
+    I was asked for a name and a *redirect URL*.
+    -  
+    Because the application is a non-web application, I chose the special URI `urn:ietf:wg:oauth:2.0:oob`.
+
+    I enabled all permissions and then clicked *Register*. This opened a new page which presented me with a
+      • Client id, and a
+      • Client secret (which apparently needs to be kept secret) and won't be shown again
+
+  }
+  { Shell
+
+    I then opened a → Linux/shell and defined a few environment variables:
+code {
+CLIENT_ID="…"
+CLIENT_SECRET="…"
+DOMAIN="https://www.openstreetmap.org"
+AUTHORIZATION_ENDPOINT=$(→ tools/cURL[curl] --silent $DOMAIN/.well-known/oauth-authorization-server | → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[--raw-output] '.authorization_endpoint')
+TOKEN_ENDPOINT=$(        → tools/cURL[curl] --silent $DOMAIN/.well-known/oauth-authorization-server | → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[--raw-output] '.token_endpoint'        )
+code }
+
+    In case of OpenStreetMap, the *authorization endpoint* is `https://www.openstreetmap.org/oauth2/authorize` and the *token endpoint* is `https://www.openstreetmap.org/oauth2/token`.
+
+  }
+  { Opening the browser for authentication
+
+    Still in the shell, I used `echo` to display the URL where I can authenticate myself with my username and password for the application I just created:
+code {
+echo "$AUTHORIZATION_ENDPOINT?response_type=code&client_id=$CLIENT_ID&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&scope=read_prefs+write_prefs+write_api+read_gpx+write_gpx+write_notes+write_diary+write_redactions+openid"
+code }
+
+    I opened this url and clicked *Authorize* which opened a new website that presented me with an *authorization code*.
+
+  }
+  { Finally: The access token
+
+    Again in the shell, I was now able to create the access token.
+
+    First, I defined yet another environment variable with the authorization code:
+code {
+AUTHORIZATION_CODE="…"
+code }
+
+code {
+ACCESS_TOKEN=$(curl --silent -X POST -d "grant_type=authorization_code&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&code=$AUTHORIZATION_CODE&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob" "$TOKEN_ENDPOINT" | jq --raw-output '.access_token')
+code }
+
+  }
+  { Testing the access token
+
+code {
+$ curl --silent -H "Authorization: Bearer $ACCESS_TOKEN" $DOMAIN/api/0.6/user/details.json | jq
+{
+  "version": "0.6",
+  "generator": "OpenStreetMap server",
+  "copyright": "OpenStreetMap and contributors",
+  "attribution": "http://www.openstreetmap.org/copyright",
+  "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+{
+  "version": "0.6",
+  "generator": "OpenStreetMap server",
+  "copyright": "OpenStreetMap and contributors",
+  "attribution": "http://www.openstreetmap.org/copyright",
+  "license": "http://opendatacommons.org/licenses/odbl/1-0/",
+  "user": {  "user": {
+    …
+  }
+}
+code }
+
+code {
+$ curl -H "Authorization: Bearer $ACCESS_TOKEN" https://api.openstreetmap.org/api/0.6/permissions
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+  <permissions>
+    <permission name="allow_read_prefs"/>
+    <permission name="allow_write_prefs"/>
+    <permission name="allow_write_api"/>
+    <permission name="allow_read_gpx"/>
+    <permission name="allow_write_gpx"/>
+    <permission name="allow_write_notes"/>
+    <permission name="allow_write_diary"/>
+  </permissions>
+</osm>
+code }
+
+  }
+
+}
+
+sa:
+  → development/OpenStreetMap/API
