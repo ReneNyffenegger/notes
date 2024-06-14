@@ -91,7 +91,45 @@ $ geodata
       • → https://en.wikipedia.org/wiki/Hierarchical_triangular_mesh[Hierarchical Triangular Mesh] (HTM) - but the tiles are not all of equal size
       • → https://en.wikipedia.org/wiki/Quadrilateralized_Spherical_Cube[Quadrilaterilzed Spherical Cube]
     
-    See also:
+
+    { Source code stuff
+
+      Some interesting stuff I found in the source code…
+
+      The `enum Healpix_Ordering_Scheme` (`src/cxx/Healpix_cxx/healpix_tables.h`) corresponds to the two orderings schemes of a HEALPix map: `RING` and `NEST`.
+
+     `class pointing` (`src/cxx/cxxsuport/pointing.h`) represents a direction in 3d space or a location on the unit sphere.
+      -
+      Two possibly important `public` members of this class are
+        • `theta`
+        • `phi`
+
+    `template<typename I> class T_Healpix_Base` derives from `Healpix_Tables`, but it's unclear what these classes are needed for.
+     -
+    `T_Healpix_Base<I>::order_max` specifies the maximum order.
+     -
+     The value of `T_Healpix_Base<int>::order_max` is 13 and 29 for `T_Healpix_Base<int64>`.
+
+     Interesting functions seem to be:
+     table { ll
+      → https://healpix.sourceforge.io/html/sub_query_disc.htm[`query_disc`] ☰ Finds the indices of all pixels within an angular distance radius from a defined center
+      → https://healpix.sourceforge.io/html/sub_query_polygon.htm[`query_polygon`] ☰ Finds the indices of all pixels within a polygon with at most one koncave vertex.
+     table }
+
+     `src/cxx/Healpix_cxx/hpxtest.cc` can be used to get a first impression on how HEAPix functions can be used.
+      -
+      Among others, the following identities are tested:
+        • `ring2nest(nest2ring(m))==m`
+        • `peano2nest(nest2peano(m))==m`
+        • `zphi2pix(pix2zphi(m))==m`
+        • `ang2pix(pix2ang(m))==m`
+        • `pix2zphi(zphi2pix(ptg)) approx zphi`
+
+
+    }
+    { See also
+
+      See also
       • → https://healpix.jpl.nasa.gov/html/intronode4.htm[Geometric and Algebraic Properties of HEALPix]
       • The python package → https://pypi.org/project/astropy-healpix/[astropy-healpix] (especially the function → https://astropy-healpix.readthedocs.io/en/latest/api/astropy_healpix.HEALPix.html#astropy_healpix.HEALPix.cone_search_lonlat[`cone_search_lonlat`] which finds all HEALPix pixels within a given radius of a given coordinate). (See also → https://github.com/astropy/astropy-healpix/blob/6cdea5e6680b902960e5e9bea6ee63c4e204d932/astropy_healpix/_core.c#L310[the Python binding] and this → https://github.com/astropy/astropy-healpix/blob/main/docs/cone_search.rst[rst file])
       • → https://github.com/ntessore/healpix[This] github repository
@@ -99,6 +137,7 @@ $ geodata
       • The → development/languages/Python/libraries/healpy[healpy] Python library
       • The → https://healpix.sourceforge.io/data/examples/healpix_fits_specs.pdf[FITS] (Flexible Image Transport System) is often seen in the context of HEALpix because of 1) the self-documentation of FITS files, thanks to their human readable headers, 2) their portability across all types and architectures of computers, and 3) the availability of FITS reading and writing routines and libraries in virtually all computer languages. (See the → https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html[CFITSIO]) library)
 
+    }
  
   }
 
