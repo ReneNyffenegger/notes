@@ -54,6 +54,35 @@ code }
   gh|about-sqlite|/pragma/foreign_key_check.sql||
 
 }
+{ index_list
+
+ The sqlite shell command `.schema` does not explicitely display the indexes created for unique columns. These indexes can be shown however with `index_list`.
+
+code {
+create table t1 (id integer primary key, txt text not null       , val double);
+create table t2 (id integer primary key, txt text not null unique, val double);
+code }
+
+  The following statement returns an empty set:
+code {
+pragma index_list('t1');
+code }
+
+  For `t2`, the index for the unique index *is* shown:
+code {
+pragma index_list('t2');
+--
+-- 0|sqlite_autoindex_t2_1|1|u|0
+code }
+
+  See also the `index_info` pragma, which shows the columns of an index:
+code {
+pragma index_info('sqlite_autoindex_t2_1');
+--
+-- 0|1|txt
+code }
+
+}
 { journal_mode #pragma-journal-mode
 
  `→ development/databases/SQLite/sql/pragma/journal_mode` can be set to `WAL` (Write-Ahead Log). In most cases, WAL provides more concurrency as readers to not block writers
