@@ -1,7 +1,230 @@
 $ Compile SQLite
 
+{ 2024-06-17 / Linux / Version 3.43.0 
 
-{ Windows / Visual Studio
+  These are some notes about compiling SQLite 3.43.0 on Linux, taken 2024-06-17.
+
+  Clone the → https://github.com/sqlite/sqlite[official Git mirror] of the SQLite 
+code {
+cd ~
+git clone https://github.com/sqlite/sqlite
+cd sqlite
+./configure
+code }  
+
+  Calling `.configure` created the following files:
+code {
+$ find . -type f -cmin -1
+./libtool
+./config.status
+./Makefile
+./config.log
+./sqlite_cfg.h
+./sqlite3.pc
+code }
+
+  { sqlite_cfg.h
+
+    `sqlite_cfg.h` (which was produced by calling `./configure` from → https://github.com/sqlite/sqlite/blob/master/sqlite_cfg.h.in[`sqlite_cfg.h.in`]) contains various `HAVE_` (such as `HAVE_INT64_T` etc.) and other macros (such as `#define PACKAGE_VERSION "3.47.0"`)
+
+    `sqlite_cfg.h` is included from → https://github.com/sqlite/sqlite/blob/master/src/sqliteInt.h[`src/sqliteInt.h`] which in turn is included from most (or all C source files).
+
+  }
+  { src/sqliteInt.h
+
+    … 
+
+  }
+  { sqlite3.h
+
+   `sqlite3.h` is the public «SQLIte interface» and included from → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L199[`src/sqliteInt.h`].
+
+  }
+  { struct sqlite3
+
+    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1663[Each database connection is an instance] of `struct sqlite3`.
+
+    table { lll
+
+  `sqlite3_vfs *pVfs` ☰  OS Interface ☰
+  `struct Vdbe *pVdbe` ☰  List of active virtual machines ☰
+  `CollSeq *pDfltColl` ☰  BINARY collseq for the database encoding ☰
+  `sqlite3_mutex *mutex` ☰  Connection mutex ☰
+  `Db *aDb` ☰  All backends ☰
+  `int nDb` ☰  Number of backends currently in use ☰
+  `u32 mDbFlags` ☰  flags recording internal state ☰
+  `u64 flags` ☰  flags settable by pragmas. See below ☰
+  `i64 lastRowid` ☰  ROWID of most recent insert (see above) ☰
+  `i64 szMmap` ☰  Default mmap_size setting ☰
+  `u32 nSchemaLock` ☰  Do not reset the schema when non-zero ☰
+  `unsigned int openFlags` ☰  Flags passed to sqlite3_vfs.xOpen() ☰
+  `int errCode` ☰  Most recent error code (SQLITE_*) ☰
+  `int errByteOffset` ☰  Byte offset of error in SQL statement ☰
+  `int errMask` ☰  & result codes with this before returning ☰
+  `int iSysErrno` ☰  Errno value from last system error ☰
+  `u32 dbOptFlags` ☰  Flags to enable/disable optimizations ☰
+  `u8 enc` ☰  Text encoding ☰
+  `u8 autoCommit` ☰  The auto-commit flag. ☰
+  `u8 temp_store` ☰  1: file 2: memory 0: default ☰
+  `u8 mallocFailed` ☰  True if we have seen a malloc failure ☰
+  `u8 bBenignMalloc` ☰  Do not require OOMs if true ☰
+  `u8 dfltLockMode` ☰  Default locking-mode for attached dbs ☰
+  `signed char nextAutovac` ☰  Autovac setting after VACUUM if >=0 ☰
+  `u8 suppressErr` ☰  Do not issue error messages if true ☰
+  `u8 vtabOnConflict` ☰  Value to return for s3_vtab_on_conflict() ☰
+  `u8 isTransactionSavepoint` ☰  True if the outermost savepoint is a TS ☰
+  `u8 mTrace` ☰  zero or more SQLITE_TRACE flags ☰
+  `u8 noSharedCache` ☰ True if no shared-cache backends ☰
+  `u8 nSqlExec` ☰ Number of pending OP_SqlExec opcodes ☰
+  `u8 eOpenState` ☰ Current condition of the connection ☰
+  `int nextPagesize` ☰  Pagesize after VACUUM if >0 ☰
+  `i64 nChange` ☰  Value returned by sqlite3_changes() ☰
+  `i64 nTotalChange` ☰  Value returned by sqlite3_total_changes() ☰
+  `int aLimit[SQLITE_N_LIMIT]` ☰ Limits ☰
+  `int nMaxSorterMmap` ☰  Maximum size of regions mapped by sorter ☰
+
+  `struct sqlite3InitInfo init` ☰  Information used during initialization ☰
+
+  `int nVdbeActive` ☰  Number of VDBEs currently running ☰
+  `int nVdbeRead` ☰  Number of active VDBEs that read or write ☰
+  `int nVdbeWrite` ☰  Number of active VDBEs that read and write ☰
+  `int nVdbeExec` ☰  Number of nested calls to VdbeExec() ☰
+  `int nVDestroy` ☰  Number of active OP_VDestroy operations ☰
+  `int nExtension` ☰  Number of loaded extensions ☰
+  `void **aExtension` ☰  Array of shared library handles ☰
+
+  `trace` ☰ A union with`void (*xLegacy)(void*,const char*)` and `int (*xV2)(u32,void*,void*,void*)`  ☰ 
+
+  `void *pTraceArg` ☰  Argument to the trace function ☰
+
+  `void (*xProfile)(void*,const char*,u64)` ☰  Profiling function ☰ Not `SQLITE_OMIT_DEPRECATED`
+  `void *pProfileArg` ☰  Argument to profile function ☰ Not `SQLITE_OMIT_DEPRECATED`
+
+  `void *pCommitArg` ☰  Argument to xCommitCallback() ☰
+  `int (*xCommitCallback)(void*)` ☰  Invoked at every commit. ☰
+  `void *pRollbackArg` ☰  Argument to xRollbackCallback() ☰
+  `void (*xRollbackCallback)(void*)` ☰  Invoked at every commit. ☰
+  `void *pUpdateArg` ☰ ☰
+  `void (*xUpdateCallback)(void*,int, const char*,const char*,sqlite_int64)` ☰ ☰
+  `void *pAutovacPagesArg` ☰  Client argument to autovac_pages ☰
+  `void (*xAutovacDestr)(void*)` ☰  Destructor for pAutovacPAgesArg ☰
+  `unsigned int (*xAutovacPages)(void*,const char*,u32,u32,u32)` ☰ ☰
+  `Parse *pParse` ☰  Current parse ☰
+
+  `void *pPreUpdateArg` ☰  First argument to `xPreUpdateCallback` ☰ `SQLITE_ENABLE_PREUPDATE_HOOK`
+  `void (*xPreUpdateCallback)(void*,sqlite3*,int,char const*,char const*,sqlite3_int64,sqlite3_int64)` ☰  Registered using `sqlite3_preupdate_hook()` ☰ `SQLITE_ENABLE_PREUPDATE_HOOK`
+  `PreUpdate *pPreUpdate` ☰  Context for active pre-update callback ☰ `SQLITE_ENABLE_PREUPDATE_HOOK`
+
+  `int (*xWalCallback)(void *, sqlite3 *, const char *, int)` ☰ ☰ Not `SQLITE_OMIT_WAL`
+  `void *pWalArg` ☰ ☰ Not `SQLITE_OMIT_WAL`
+
+  `void(*xCollNeeded)(void*,sqlite3*,int eTextRep,const char*)` ☰ ☰
+  `void(*xCollNeeded16)(void*,sqlite3*,int eTextRep,const void*)` ☰ ☰
+  `void *pCollNeededArg` ☰ ☰
+
+  `sqlite3_value *pErr` ☰  Most recent error message ☰
+
+   `u1` ☰ A `union` with `volatile int isInterrupted` (true if `sqlite3_interrupt` has been called) and `double notUsed1 ☰
+
+  `Lookaside lookaside` ☰ Lookaside malloc configuration ☰
+
+  `sqlite3_xauth xAuth` ☰ Access authorization function ☰ Not `SQLITE_OMIT_AUTHORIZATION`
+  `void *pAuthArg` ☰ 1st argument to the access auth function ☰ Not `SQLITE_OMIT_AUTHORIZATION`
+
+  `int (*xProgress)(void *)` ☰  The progress callback ☰ not `SQLITE_OMIT_PROGRESS_CALLBACK`
+  `void *pProgressArg` ☰  Argument to the progress callback ☰ not `SQLITE_OMIT_PROGRESS_CALLBACK`
+  `unsigned nProgressOps` ☰  Number of opcodes for progress callback ☰ not `SQLITE_OMIT_PROGRESS_CALLBACK`
+
+  `int nVTrans` ☰  Allocated size of aVTrans ☰ not `SQLITE_OMIT_VIRTUALTABLE`
+  `Hash aModule` ☰  populated by sqlite3_create_module() ☰ not `SQLITE_OMIT_VIRTUALTABLE`
+  `VtabCtx *pVtabCtx` ☰  Context for active vtab connect/create ☰ not `SQLITE_OMIT_VIRTUALTABLE`
+  `VTable **aVTrans` ☰  Virtual tables with open transactions ☰ not `SQLITE_OMIT_VIRTUALTABLE`
+  `VTable *pDisconnect` ☰  Disconnect these in next sqlite3_prepare() ☰ not `SQLITE_OMIT_VIRTUALTABLE`
+
+  `Hash aFunc` ☰ Hash table of connection functions ☰
+  `Hash aCollSeq` ☰ All collating sequences ☰
+  `BusyHandler busyHandler` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1175-L1187[The busy callback] for the database handle. Each pager opened via the `sqlite**` handle is passed a pointer to `sqlite.busyHandler`. The busy-handler callback is currently invoked only from within `pager.c` ☰ 
+  `Db aDbStatic[2]` ☰ Static space for the 2 default backends ☰
+  `Savepoint *pSavepoint` ☰ List of active savepoints ☰
+  `int nAnalysisLimit` ☰ Number of index rows to ANALYZE ☰
+  `int busyTimeout` ☰ Busy handler timeout, in msec ☰
+  `int nSavepoint` ☰ Number of non-transaction savepoints ☰
+  `int nStatement` ☰ Number of nested statement-transactions ☰
+  `i64 nDeferredCons` ☰  Net deferred constraints this transaction. ☰
+  `i64 nDeferredImmCons` ☰ Net deferred immediate constraints ☰
+  `int *pnBytesFreed` ☰  If not NULL, increment this in DbFree() ☰
+  `DbClientData *pDbData` ☰ `sqlite3_set_clientdata()` content ☰
+
+rem {
+   The following variables are all protected by the STATIC_MAIN
+   mutex, not by sqlite3.mutex. They are used by code in notify.c.
+
+   When X.pUnlockConnection==Y, that means that X is waiting for Y to
+   unlock so that it can proceed
+
+   When X.pBlockingConnection==Y, that means that something that X tried
+   tried to do recently failed with an SQLITE_LOCKED error due to locks
+   held by Y.
+rem }
+  `sqlite3 *pBlockingConnection` ☰ Connection that caused `SQLITE_LOCKED` ☰ `SQLITE_ENABLE_UNLOCK_NOTIFY`
+  `sqlite3 *pUnlockConnection` ☰  Connection to watch for unlock ☰ `SQLITE_ENABLE_UNLOCK_NOTIFY`
+  `void *pUnlockArg` ☰  Argument to xUnlockNotify ☰ `SQLITE_ENABLE_UNLOCK_NOTIFY`
+  `void (*xUnlockNotify)(void **, int)` ☰  Unlock notify callback ☰ `SQLITE_ENABLE_UNLOCK_NOTIFY`
+  `sqlite3 *pNextBlocked` ☰  Next in list of all blocked connections ☰ `SQLITE_ENABLE_UNLOCK_NOTIFY`
+
+  `sqlite3_userauth auth` ☰ User authentication information. ☰ `SQLITE_USER_AUTHENTICATION`
+
+    table }
+
+  }
+  { SQLITE_… macros
+
+    Some (imho) interesting SQLITE_ macros include:
+    table { ll
+      `PREFERRED_SCHEMA_TABLE` ☰ With the value → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1209[`"sqlite_schema"`]
+      `PREFERRED_TEMP_SCHEMA_TABLE` ☰ With the value → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1210[`"sqlite_temp_schema"`]
+
+      `SQLITE_CUSTOM_INCLUDE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L184-L193[Optionally include a user-defined header] to define compilation options before they take effect. (This custom include file would be included in `src/sqliteInt.h` if specified).
+      `SQLITE_DEBUG` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L437-L438[Is the opposite of `NDEBUG`]. It should always be true that `defined(NDEBUG)==!defined(SQLITE_DEBUG)`. `SQLITE_DEBUG` implies → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L455-L459[`SQLITE_ENABLE_EXPLAIN_COMMENTS`]
+      `SQLITE_DEFAULT_FILE_FORMAT` ☰ See also `SQLITE_MAX_FILE_FORMAT`
+      `SQLITE_DEFAULT_PCACHE_INITSZ` ☰ The default initial allocation for the pagecache when using separate pagecaches for each database connection. A positive number is the number of pages. A negative number `N` translations means that a buffer of `-1024*N` bytes is allocated and used for as many pages as it will hold.
+      `SQLITE_DEFAULT_RECURSIVE_TRIGGERS` ☰ Value can be changed at runtime with a `pragma`.
+      `SQLITE_DEFAULT_SORTERREF_SIZE` ☰
+      `SQLITE_DEFAULT_WORKER_THREADS` ☰ See also `SQLITE_MAX_WORKER_THREADS`
+      `SQLITE_ENABLE_BATCH_ATOMIC_WRITE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L755[Cannot be used together] with `SQLITE_MMAP_READWRITE`.
+      `SQLITE_ENABLE_EXPLAIN_COMMENTS` ☰ Incompatible with → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L599[`SQLITE_OMIT_EXPLAIN`]; enabled if → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L455-L459[`SQLITE_DEBUG`] is defined.
+      `SQLITE_FORCE_OS_TRACE` ☰
+      `SQLITE_MAX_FILE_FORMAT` ☰ The file format number is an integer that is incremented whenever the VDBE-level file format changes. See also `SQLITE_DEFAULT_FILE_FORMAT`
+      `SQLITE_MAX_WORKER_THREADS` ☰ See also `SQLITE_DEFAULT_WORKER_THREADS`
+      `SQLITE_MMAP_READWRITE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L755[Cannot be used together] with `SQLITE_ENABLE_BATCH_ATOMIC_WRITE`.
+      `SQLITE_MUTEX_STATIC_TEMPDIR` ☰ defined to the value of → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L204[`SQLITE_MUTEX_STATIC_VFS1`]
+      `SQLITE_OMIT_AUTHORIZATION` ☰ Compare with `SQLITE_USER_AUTHENTICATION`
+      `SQLITE_OMIT_EXPLAIN` ☰ Incompatible with → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L599[`SQLITE_ENABLE_EXPLAIN_COMMENTS`]
+      `SQLITE_OMIT_FLOATING_POINT` ☰
+      `SQLITE_OMIT_TEMPDB` ☰
+      `SQLITE_OMIT_VIRTUALTABLE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L606[Implies] `SQLITE_OMIT_ALTERTABLE`
+      `SQLITE_OMIT_WAL` ☰
+      `SQLITE_TEMP_STORE` ☰ If set to `3`, temporary files are never used.
+      `SQLITE_THREADSAFE` ☰
+      `SQLITE_USER_AUTHENTICATION` ☰ Compare with `SQLITE_OMIT_AUTHORIZATION`
+
+    table }
+
+  }
+  { Typedefs
+
+    table { ll
+      `sqlite_int64`, `sqlite_uint64`, → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L836C22-L836C25[`i64`], → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L837C23-L837C26[`u64`] etc. ☰
+      `tRowcnt` ☰ The datatype used to → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L856[store estimates of the number of rows in a table or index].
+    table }
+
+  }
+
+
+
+
+}
+{ Older notes of unknown date, tyring to compile SQLIte on Windows with Visual Studio
 
   Apparently, `tclsh.exe` is needed. It can be downloaded from → https://bitbucket.org/tombert/tcltk/downloads/tcltk85-8.5.19-14.tcl85.Win10.x86_64.tgz
 
