@@ -40,6 +40,14 @@ code }
    `sqlite3.h` is the public «SQLIte interface» and included from → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L199[`src/sqliteInt.h`].
 
   }
+  { Some functions
+
+    table { ll
+      `sqlite3_open_v2` ☰ Note, If flags contains `SQLITE3_CREATE` it also *must* contain `SQLITE_OPEN_READWRITE`, otherwise `SQLITE_MISUSE` is returned.
+      `sqlite3_initialize` ☰ Allocation of memory, VFS and the mutex subsystem. Must be called explicitely prior to doing any serious work unless SQLITE_OMIT_AUTOINIT` is defined.
+    table }
+
+  }
   { struct sqlite3
 
     → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1663[Each database connection is an instance] of `struct sqlite3`.
@@ -193,12 +201,15 @@ rem }
       `SQLITE_DEFAULT_WORKER_THREADS` ☰ See also `SQLITE_MAX_WORKER_THREADS`
       `SQLITE_ENABLE_BATCH_ATOMIC_WRITE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L755[Cannot be used together] with `SQLITE_MMAP_READWRITE`.
       `SQLITE_ENABLE_EXPLAIN_COMMENTS` ☰ Incompatible with → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L599[`SQLITE_OMIT_EXPLAIN`]; enabled if → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L455-L459[`SQLITE_DEBUG`] is defined.
+      `SQLITE_ENABLE_SQLLOG` ☰
       `SQLITE_FORCE_OS_TRACE` ☰
       `SQLITE_MAX_FILE_FORMAT` ☰ The file format number is an integer that is incremented whenever the VDBE-level file format changes. See also `SQLITE_DEFAULT_FILE_FORMAT`
       `SQLITE_MAX_WORKER_THREADS` ☰ See also `SQLITE_DEFAULT_WORKER_THREADS`
       `SQLITE_MMAP_READWRITE` ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L755[Cannot be used together] with `SQLITE_ENABLE_BATCH_ATOMIC_WRITE`.
       `SQLITE_MUTEX_STATIC_TEMPDIR` ☰ defined to the value of → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L204[`SQLITE_MUTEX_STATIC_VFS1`]
+      `SQLITE_NEED_ERR_NAME` ☰ Needed for `sqlite3ErrName()`
       `SQLITE_OMIT_AUTHORIZATION` ☰ Compare with `SQLITE_USER_AUTHENTICATION`
+      `SQLITE_OMIT_AUTOINIT` ☰ Omit automatic alls to `sqlite3_initialize()` (for example from from `sqlite3_open()`). This option might become the default behavior in a future release.
       `SQLITE_OMIT_EXPLAIN` ☰ Incompatible with → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L599[`SQLITE_ENABLE_EXPLAIN_COMMENTS`]
       `SQLITE_OMIT_FLOATING_POINT` ☰
       `SQLITE_OMIT_TEMPDB` ☰
@@ -238,7 +249,7 @@ rem }
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4385-L4392[`Cte`] ☰ A *common table expression*. See also the `With` struct
    `CteUse` ☰
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1435-L1447[`Db`] ☰ The «backend»? used to access database files. See the `aDb` array in the `sqlite3` struct.
-   `DbClientData` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4436-L4441[`DbClientData`] ☰ Client data associated with `sqlite3_set_clientdata()` and `sqlite3_get_clientdata()`.
    `DbFixer` ☰
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1466-L1478[`Schema`] ☰
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2997-L3058[`Expr`] ☰
@@ -280,7 +291,7 @@ rem }
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2418-L2456[`Table`] ☰ Each schema for each SQL table, virtual table or view is represented in memory by an instance of this struct.
    `TableLock` ☰
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2851-L2854[`Token`] ☰ A token as produces by the lexer.
-   `TreeView` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4448-L4452[`TreeView`] ☰ printing the content of data structures on `sqlite3DebugPrintf()` using a tree-like view.Only available when `SQLITE_DEBUG` is enabled.
    `Trigger` ☰
    `TriggerPrg` ☰
    `TriggerStep` ☰
@@ -290,7 +301,7 @@ rem }
    `VtabCtx` ☰
    `Walker` ☰
    `WhereInfo` ☰
-   `Window` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4477-L4507]`Window`] ☰ Used in various ways, mostly for → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4455C18-L4456C13[window functions].
    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4405-L4410[`With`] ☰ See also the `Cte` struct.
    table }
 
