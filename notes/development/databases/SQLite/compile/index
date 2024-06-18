@@ -50,7 +50,7 @@ code }
   `struct Vdbe *pVdbe` ☰  List of active virtual machines ☰
   `CollSeq *pDfltColl` ☰  BINARY collseq for the database encoding ☰
   `sqlite3_mutex *mutex` ☰  Connection mutex ☰
-  `Db *aDb` ☰  All backends ☰
+  `Db *aDb` ☰  All backends (database files). `aDB[0]` → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1437C32-L1437C64[is the main database file] and `aDB[1]` → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1438C4-L1438C61[is the database file used to hold temporary tables]. Additional databases may be attached. Unlike most scheme objects, `aDb[1]` → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1452C54-L1453C75[is not associated witha B-Tree] ☰ 
   `int nDb` ☰  Number of backends currently in use ☰
   `u32 mDbFlags` ☰  flags recording internal state ☰
   `u64 flags` ☰  flags settable by pragmas. See below ☰
@@ -216,11 +216,91 @@ rem }
     table { ll
       `sqlite_int64`, `sqlite_uint64`, → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L836C22-L836C25[`i64`], → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L837C23-L837C26[`u64`] etc. ☰
       `tRowcnt` ☰ The datatype used to → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L856[store estimates of the number of rows in a table or index].
+      → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1383-L1389[`VList`] ☰ Records a mapping between parameters/variables/wildcards in the SQL statement (such as `$abc`, `@pqr` or `:xyz`) and the integer variable number associated with that parameter. See the format description on the `sqlite3VListAdd()`  routine for more information. ? A VList is really just an array of integers ?
     table }
 
   }
 
+  { Other observations
 
+    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1293-L1352[Some structs]:
+    table { ll
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2869-L2905[`AggInfo`] ☰
+   `AuthContext` ☰
+   `AutoincInfo` ☰
+   `Bitvec` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L525-L551[`BtCursor`] ☰ A → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L500C16-L501C33[pointer to a particular entry within a particular B-Tree] within a database file. Declared in `src/btreeInt.h`
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L345-L363[`Btree`] ☰ A `Btree` instance is used for → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L326C4-L327C57[every open database file an SQLite has opened]. When the database file is shared, there are multiple `Btree` objects bunt only one `BtShared` object. Unclear to me is if `Btree` is used in other scenarios as well. Defined in `src/btreeInt.h`.
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L425-L460[`BtShared`] ☰ An instance of this object represents → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L391C4-L391C64[a single database file]. If the database file is shared bu multiple connections, → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L394C35-L397C32[there is only one `BtShared` object but multiple `Btree` objects].
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L480-L486[`CellInfo`] ☰ Information about a cell, filled by `parseCellPtr()`. See also the structs `Table` and `Column`
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2296-L2302[`CollSeq`] ☰ A *collating sequence*, basically a → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2289C15-L2290C65[name and comparison function] which defines the sequence's order.
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2239-L2248[`Column`] ☰ A column's name, datatype and collating sequence. See also the structs `Table` and `CellInfo`.
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4385-L4392[`Cte`] ☰ A *common table expression*. See also the `With` struct
+   `CteUse` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1435-L1447[`Db`] ☰ The «backend»? used to access database files. See the `aDb` array in the `sqlite3` struct.
+   `DbClientData` ☰
+   `DbFixer` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1466-L1478[`Schema`] ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2997-L3058[`Expr`] ☰
+   `ExprList` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2575-L2590[`FKey`] ☰ An object corresponds to a *foreign key*.
+   `FpDecode` ☰
+   `FuncDestructor` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1962-L1976[`FuncDef`] ☰ Objects correspond to *SQL functions*. See also the `FuncDestructor` object.
+   `FuncDefHash` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1992-L1996[`FuncDestructor`] ☰
+   `IdList` ☰
+   `Index` ☰
+   `IndexedExpr` ☰
+   `IndexSample` ☰
+   `KeyClass` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2646-L2654[`KeyInfo`] ☰ An instance of this object is passed as the first argument to `sqlite3VdbeKeyCompare`. It controls the comparison of two index keys.
+   `Lookaside` ☰
+   `LookasideSlot` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L273-L304[`MemPage`] ☰ Each instance of this struct corresponds to a database page that is loaded into memory. Access to its data is → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L270-L271[secured by the mutex] `MemPage.pBt->mutex`. This struct declared in `btreeInt.h`.
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2205-L2212[`Module`] ☰ Module == virtual table definition?
+   `NameContext` ☰
+   `OnOrUsing` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3813-L3928[`Parse`] ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3798C4-L3798C26[An SQL parser context].
+   `ParseCleanup` ☰
+   `PreUpdate` ☰
+   `PrintfArguments` ☰
+   `RCStr` ☰
+   `RenameToken` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4113-L4122[`Returning`] ☰ Information about the `RETURNING` clause.
+   `RowSet` ☰
+   `Savepoint` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3527-L3548[`Select`] ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3511C52-L3512C57[All information needed to generate code for a single `SELECT` statement]
+   `SQLiteThread` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4209-L4282[`Sqlite3Config`] ☰ → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4205C25-L4205C73[Global configurations] for the SQLite library.
+   `SelectDest` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3289-L3332[`SrcItem`] ☰ Representation of → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3269C34-L3269C77[a single term in the `FROM` clause of a query].
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3350-L3354[`SrcList`] ☰ One or more tables that are the source of content for an SQL statement
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4128-L4136[`sqlite3_str`] ☰ `StrAccum` is an → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1337C41-L1337C71[internal alias for `sqlite3_str`].
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2418-L2456[`Table`] ☰ Each schema for each SQL table, virtual table or view is represented in memory by an instance of this struct.
+   `TableLock` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2851-L2854[`Token`] ☰ A token as produces by the lexer.
+   `TreeView` ☰
+   `Trigger` ☰
+   `TriggerPrg` ☰
+   `TriggerStep` ☰
+   `UnpackedRecord` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3487-L3508[`Upsert`] ☰ Description of → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L3474C50-L3475C22[a single `ON CONFLICT` clause in an upsert].
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L2396-L2406[`VTable`] ☰ An object corresponds to a *virtual table*.
+   `VtabCtx` ☰
+   `Walker` ☰
+   `WhereInfo` ☰
+   `Window` ☰
+   → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L4405-L4410[`With`] ☰ See also the `Cte` struct.
+   table }
+
+  }
+
+  { Database files
+
+    → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/btreeInt.h#L506C4-L507C32[Database files can be shared] by multiple database connectsion, unlike cursors.
+
+  }
 
 
 }

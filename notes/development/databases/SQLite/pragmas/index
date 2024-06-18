@@ -113,5 +113,28 @@ code }
 
   This helps improve the → development/databases/SQLite/Performance[performance], however, the database is not transactionally safe anymore.
 
+  TODO: → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1414-L1432[These comments and defines] in the source code:
+code {
+** Note that (for historical reasons) the PAGER_SYNCHRONOUS_* macros differ
+** from the SQLITE_DEFAULT_SYNCHRONOUS value by 1.
+**
+**           PAGER_SYNCHRONOUS       DEFAULT_SYNCHRONOUS
+**   OFF           1                         0
+**   NORMAL        2                         1
+**   FULL          3                         2
+**   EXTRA         4                         3
+**
+** The "PRAGMA synchronous" statement also uses the zero-based numbers.
+** In other words, the zero-based numbers are used for all external interfaces
+** and the one-based values are used internally.
+*/
+#ifndef SQLITE_DEFAULT_SYNCHRONOUS
+# define SQLITE_DEFAULT_SYNCHRONOUS 2
+#endif
+#ifndef SQLITE_DEFAULT_WAL_SYNCHRONOUS
+# define SQLITE_DEFAULT_WAL_SYNCHRONOUS SQLITE_DEFAULT_SYNCHRONOUS
+#endif
+code }
+
 }
 }
