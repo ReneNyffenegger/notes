@@ -1,0 +1,170 @@
+
+
+{ Dump all predefined macros
+
+ `dumpdef(MACRO)` prints the text that `MACRO` expands to to → development/stdin-stdout-stderr[stdout].
+
+  Without argument, it prints all currently defined macros, including the predefined macros:
+code {
+echo dumpdef | m4
+code }
+
+  I found the following predefined macros:
+  table { lll
+    `__file__` ☰ ☰ Quoted name of the current input file
+    `__gnu__` ☰ ☰
+    `__line__` ☰ ☰ Current line number
+    `__program__` ☰ ☰ The name with which `m4` was invoked
+    `__unix__` ☰ ☰ Defined because running in a Unix (Linux) environment. See also `__windows__`.
+    `builtin` ☰ `(name, [args…])` ☰ Calls `name`
+    `changecom` ☰ `([start], [end = ‘NL’])` ☰ Sets the text that delimits comments
+    `changequote` ☰ `([start = ‘`’], [end = ‘'’])` ☰ Sets the delimiters with which text is quoted
+    `debugfile` ☰ `([file])` ☰
+    `debugmode` ☰ `([flags])` ☰ See also the `-d` option
+    `decr` ☰ `(number)` ☰ See also `incr`
+    `define` ☰ `(name, [expansion])` ☰ Defines the expansion to which a macro (`name`) expands
+    `defn` ☰ `(name…)` ☰ Rename an already defined macro.
+    `divert` ☰ `([number = ‘0’])` ☰ Divert output. If `number` is negative, the diversion is discarded.
+    `divnum` ☰ ☰
+    `dnl` ☰ ☰ Discard all characters up to and including the next newline.
+    `dumpdef` ☰ `([names…])` ☰
+    `errprint` ☰ `(message, …)` ☰
+    `esyscmd` ☰ `(shell-command)` ☰ Read the output of a → Linux/shell/commands[shell command]. Compare with `syscmd`
+    `eval` ☰ `(expression, [radix = ‘10’], [width])` ☰ Evaluate an integer expression
+    `format` ☰ `(format-string, …)` ☰
+    `ifdef` ☰ ☰ Tests if a macro is defined
+    `ifelse` ☰ ☰
+    `include` ☰ `(file)` ☰ See also `sinclude`
+    `incr` ☰ `(number)` ☰ See also `decr`
+    `index` ☰ `(string, substring)` ☰ Search for `substring` in `string`
+    `indir` ☰ `(name, [args…])` ☰ Call a macro indirectly
+    `len` ☰ `(string)` ☰ Length of `string`
+    `m4exit` ☰ `([code = ‘0’])` ☰
+    `m4wrap` ☰ `(string, …)` ☰ Stores `string` in a safe place, to be reread when end of input is reached. Expands to void.
+    `maketemp` ☰ `(template)` ☰
+    `mkstemp` ☰ `(template)` ☰
+    `patsubst` ☰ `(string, regexp, [replacement])` ☰ Searches `string` for matches of `regexp`, and substitutes replacement for each match. 
+    `popdef` ☰ `(name…)` ☰ `popdef` and `pushdef` are analogous to `define` and `undefine`
+    `pushdef` ☰ `(name, [expansion])` ☰
+    `regexp` ☰ `(string, regexp, [replacement])` ☰
+    `shift` ☰ `(arg1, …)` ☰
+    `sinclude` ☰ `(file)` ☰
+    `substr` ☰ `(string, from, [length])` ☰
+    `syscmd` ☰ `(shell-command)` ☰ Compare with `esyscmd`
+    `sysval` ☰ ☰
+    `traceoff` ☰ `([names…])` ☰
+    `traceon` ☰ `([names…])` ☰
+    `translit` ☰ `(string, chars, [replacement])` ☰
+    `undefine` ☰ `(name…)` ☰
+    `undivert` ☰ `([diversions…])` ☰
+  table }
+
+  TODO: What about
+    • `define_blind`
+    • `downcase`, `upcase`, `capitalize`
+    • `dquote`, `dquote_elt`
+    • `exch`
+    • `foreach`, `foreachq`, `forloop`
+    • `join`, `joinall`
+    • `nargs`
+    • `quote`
+
+}
+{ Some snippets
+
+  { Simple example
+
+    gh|about-m4|/simple.m4||
+
+    If run with `-P`, this snippet evaluates to
+code {
+#
+#  m4 -P simple.m4
+#
+
+
+
+Harry met Sally
+code }
+
+    The `-P` option prefixes predefined macros with `m4_`.
+
+  }
+  { Dollar variables
+
+    gh|about-m4|/define-arguments.m4||
+
+    This file expands to
+code {
+First argument is:      one
+Number of arguments is: 6
+All arguments:          one,two,three,four,five,six
+code }
+  
+  }
+  { Macro expansion in strings
+
+    A macro is expanded in `"strings"`.
+    gh|about-m4|/within-quotes.m4||
+
+    This snippet expands to
+code {
+printf("Hello world\n");
+code }
+
+  }
+  { Defining a macro with arguments
+
+    gh|about-m4|/define-with-arguments.m4||
+
+    This file expands to
+code {
+one two three
+code }
+
+  }
+  { pushdef / popdef
+
+    Note, the order of `popdef` does not be the reverse of `pushdef`.
+
+    gh|about-m4|/pushdef.m4||
+
+    The output is:
+code {
+one two three
+ONE TWO three
+ONE two three
+one two three
+code }
+
+  }
+  { ifelse
+
+    Note the quotes around `ifelse(…)`. Withtout them, the output would be different.
+
+    gh|about-m4|/ifelse.m4||
+
+code {
+foo != bar
+baz == baz
+code }
+
+  }
+  { Diversion
+
+    gh|about-m4|/divert.m4||
+
+    This evaluates to
+code {
+one
+two
+three
+four
+code }
+
+  }
+
+}
+
+sa:
+ *M4sugar* introduces additional generic macros. Its name was coined by Lars J. Aas: “Readability And Greater Understanding Stands 4 M4sugar”.
