@@ -70,6 +70,28 @@ code }
     • `quote`
 
 }
+{ Definitions
+
+  { Definitions with arbitrary characters
+
+    It possible to define macros with arbitrary characters such as as `,,,,` or `X(1)`. Note that commans and parantheses have a special meaning when the text is parsed:
+
+    The definition of such macros can be queried with `defn()` although it cannot be simply expanded:
+    gh|about-m4|/definitions-with-arbitrary-characters.m4||
+
+    This script prodcues
+code {
+X(1) is defined 
+X(2) is not defined
+,,,, is defined
+one
+
+commas
+code }
+
+  }
+
+}
 { Diversions
 
   By default, output is sent to stdout.
@@ -82,6 +104,34 @@ code }
 
   Text recovered from a diversion is not scanned again for macros.
 
+  { No diversion while arguments are collected
+
+    A limitation of m4 is that text which is part of an argument collection is not diverted:
+    gh|about-m4|/diversion-in-argument-collection.m4||
+
+    When executed, this demonstration prints
+code {
+-------------------------
+starting
+
+started
+-------------------------
+arg-1 = DIVERSION ARG1 first argument
+arg-2 = DIVERSION ARG2 second argument
+-------------------------
+ending
+
+ended
+-------------------------
+DIVERS START
+DIVERSION END
+code }
+
+     A consequence of this limitation is that → https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Diversion-support.html#Diversion-support[macros that change the current diversion cannot be used as an unquoted argument] to another macro, but must be expanded at top level.
+     -
+     The → development/tools/m4/sugar macro `m4_expand` diagnoses such attempts.
+
+  }
 }
 { Some snippets
 
@@ -457,6 +507,15 @@ code }
   Support for Extended Regular Expressions (ERE) is scheduled for GNU M4 2.0. Unfortunately, I found no hint *when* this release will be. The → https://git.savannah.gnu.org/cgit/m4.git/log/?h=branch-2.0[commit log of the 2.0] branch has stalled 2017 (checked June 2024).
 
 }
+
+{ Version 1.4 vs 1.6
+
+  `m4sugar/foreach.m4` comments that M4 1.4 rescans every byte of `$@` which results in a quadratic nature when using `$@` for recursion
+  
+  In M$ 1.6, `$@` is only scanned once and then back-references are made to information stored about the scan.
+
+}
+
 
 sa:
   → development/tools/m4/sugar introduces additional generic macros.
