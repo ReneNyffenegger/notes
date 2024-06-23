@@ -1,18 +1,70 @@
 $ OpenStreetMaps: nodes, ways, relations and tags
 
-Nodes, ways, relations and → development/OpenStreetMap/tags[tags] are the fundamental data structures in → development/OpenStreetMap[OpenStreetMap].
+Nodes, ways, relations and → development/OpenStreetMap/tags[tags] are the fundamental data structures in → development/OpenStreetMap[OpenStreetMap]:
+  • A ~node~ is a coordinate, consisting of a *lattitude* and a *longitude*.
+  • A ~way~ is an ordered list (array) of nodes.
+  • A ~relation~ is an ordered list of nodes, ways and even other relations. Each member in this set is assigned a *role*. 
 
-A ~node~ is a coordinate, consisting of a *lattitude* and a *longitude*.
--
-A ~way~ is an ordered list (array) of nodes.
--
-A ~relation~ is an ordered list of nodes, ways and even other relations. Each member in this set is assigned a *role*. 
+Each of these objects has a few properties
+  • Unique (per object, that is!) 64-bit signed integer *id*. Negative ids are usually used when → https://wiki.openstreetmap.org/wiki/API_v0.6#Diff_upload:_POST_/api/0.6/changeset/#id/upload[uploading new data] to indicate that the objects refer to new objects and the OSM server is expected to assign an id.
+  • A (possibly empty) set of *tags* (which are textual, → development/Unicode/UTF-8, key-value pairs). The key is unique for an object.
+  • Version number (which is *1* when the object is created)
+  • A (boolean) *visibility flag*. Only the most recent version of an object can have this flag set to true. When the object is deleted, a new version is created where the visibility flag is set to false.
+  • Timestamp
+  • Changeset id
+  • User id
 
 Then, there are also → development/OpenStreetMap/tags[tags] which are textual key value pairs to describe what nodes, ways and relations actually are in the real world.
 
+{ Tags
+
+  { Colons
+
+    A colon typically specifies a hierarchical nature (`name`, `name:en`, `name:de`…)
+
+  }
+  { Real-world and other attributes
+
+    Most tags describe real-world features.
+
+    Other tags, such as `source` or `created_by` are not related to the physical thing being mapped.
+
+    And then there are also some tags such as `note`, `description`, `fixme`, `start_date`, `survey:date` etc.
+
+  }
+  { Implication of tags on ways
+
+    Some tags, when applied on ways, imply a multipolygon (for example: `landuse`) while others imply lines (such as `highway`).
+    -
+    There are even cases, where a tag can imply both (`man_made=pier`).
+
+  }
+
+}
+{ Changesets
+
+  A changeset records → development/Data/metadata 
+
+}
 { Relation #osm-rel
 
-  A relation's *type* can be specified with the → development/OpenStreetMap/tags#type[`type`] attribute.
+  { type attribute
+
+    A relation's *type* can be specified with the → development/OpenStreetMap/tags#type[`type`] tag. Allegedly, 99% of all relations have this attribue set.
+
+    The most often seen attributes are:
+    table { ll
+      `multipolygon` ☰ Relations whose type is `multipolygon` should only have way, but no node members. The roles of the members should be `inner` or `outer`
+      `restriction` ☰ Essential members are those with a `via` tag.
+      `route` ☰ Public transport routes, hiking and biking routes etc.
+      `boundary` ☰ Boundaries can often be understood as multipolygons. A node member (`admin_centre`) lables the boundary.
+      `associated street` ☰ Points to a node with tags to make sense.
+      `public_transport` ☰
+      `site` ☰
+      `destination_sign` ☰ Structurally similar to `restriction`.
+    table }
+
+  }
 
 }
 
@@ -37,6 +89,20 @@ code }
     In addition, the → development/OpenStreetMap#osm-overpass-api[Overpass API] provides → https://wiki.openstreetmap.org/wiki/Overpass_API/Areas[areas] as an extension to the three basic OSM data types nodes, tags and relations.
 
   }
+}
+{ Historical notes
+
+  The current OSM data model (nodes, ways, and relations) has evolved from an earlier model
+  with
+    • nodes,
+    • segments (which connected exactly two nodes)
+
+  In 2005, segments were removed an relations were added.
+  -
+  Apparently, there was some support for an *area* datatype before this change. But with the removal of segments, the area datatype is gone, too.
+  
+  Changesets were introduced in 2007.
+
 }
 { Limits #osm-db-limits
 

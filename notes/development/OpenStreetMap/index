@@ -13,6 +13,25 @@ The database does not contain any *private data*.
   Apparently, the southern hemisphere has negative latitude, the hemisphere west of
   grenwich has negative longitude.
 
+  { Precision
+
+    OSM stores a coordinate in a 32 bit integer with a precision of 7 digits after the decimal point. Thus, a latitude/longitude coordinate pair requires 64-bit.
+
+    With this precision, a point can be identified with an accuracy of at least 1 cm.
+
+  }
+  { Quad tiles #osm-quad-tile
+
+    The current «official» OSM data stores the 64 bits required for longitude and lattitude along with 64-bits (column `tile`) which identify the coordinate's *quad tile*.
+
+    The `tile` column is indexed with a B-tree.
+
+  }
+  { Anti-Meridian considerations
+
+    A way that connects 179° E with 179° Way goes which way exactly? Does it cross the anti-meridian or does it take the longer way around the entire wordl?
+
+  }
 }
 
 { Perl and other scripts
@@ -172,6 +191,19 @@ code }
 }
 { Tools
 
+  { osmium-surplus #osmium-surplus
+
+    → https://github.com/osmcode/osmium-surplus[osmium-surplus] contains some commands to detect problems and anomalies in OSM data:
+    table { ll
+      osp-find-colocated-nodes ☰
+      osp-find-orphans ☰ Find untagged, unconnected «orphan» nodes.
+      osp-find-unusual-tags ☰
+      osp-find-way-problems ☰
+      osp-find-relation-problems ☰
+      osp-find-multipolygon-problems ☰
+    table }
+
+  }
   { OSM Conflator
 
     → https://wiki.openstreetmap.org/wiki/OSM_Conflator[OSM Conflator] is a python script to merge (aka → https://wiki.openstreetmap.org/wiki/Conflation[confluate]) a third-party dataset with coordinates and OpenStreetMap data.
@@ -272,3 +304,5 @@ links:
 
   An → https://osm.renenyffenegger.ch[experiment] that tries to load the OpenStreetMap database into
   → development/databases/SQLite.
+
+  → https://www.openhistoricalmap.org/[OpenHistoricMap] also has a time dimension and tries to show how the earth used to look like.jkjkj
