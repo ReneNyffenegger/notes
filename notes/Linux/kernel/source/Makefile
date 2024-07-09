@@ -31,6 +31,8 @@ code }
 
 sa:
 
+  The `Makefile` includes `→ Linux/kernel/source/include/config/auto_conf_cmd`
+
 code {
 $ → Linux/kernel/compilation/make [target]
 code }
@@ -43,4 +45,3 @@ links:
   → https://docs.kernel.org/kbuild/makefiles.html[Linux Kernel Makefiles]
 
   → https://0xax.gitbooks.io/linux-insides/content/Misc/linux-misc-2.html[Process of the Linux kernel building]
-
