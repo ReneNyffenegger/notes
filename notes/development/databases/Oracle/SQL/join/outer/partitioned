@@ -1,0 +1,91 @@
+$ Oracle: Partitioned outer join
+
+A *paritioned outer join* fills gaps in sparse data.
+
+code {
+drop table tq84_article;
+create table tq84_item (
+   id         integer primary key,
+   name       varchar2(20) not null
+);
+ 
+create table tq84_sale (
+   dt         date,
+   id_item    not null references tq84_item,
+   qty        number(3) not null
+);
+ 
+ 
+ 
+-- dates for locations are "gappy":
+-- none of the locations has entries for all 3 dates
+-- ( date range: 2019-01-15 - 2019-01-17 )
+begin
+   insert into tq84_item values (1, 'ABC');
+   insert into tq84_item values (2, 'PQR');
+   insert into tq84_item values (3, 'XYZ');
+  
+   insert into tq84_sale values (date '2024-07-01', 1,  13);
+   insert into tq84_sale values (date '2024-07-01', 2, 697);
+   insert into tq84_sale values (date '2024-07-01', 3,   6);
+  
+   insert into tq84_sale values (date '2024-07-02', 1,  10);
+   insert into tq84_sale values (date '2024-07-02', 2, 612);
+-- insert into tq84_sale values (date '2024-07-02', 3,    );  -- NO XYZ sold on 2024-07-02
+ 
+-- insert into tq84_sale values (date '2024-07-03', 1,    );  -- NO ABC sold on 2024-07-03
+   insert into tq84_sale values (date '2024-07-03', 2, 572);
+   insert into tq84_sale values (date '2024-07-03', 3,    2);
+ 
+   commit;
+end;
+/
+ 
+ 
+select
+   to_char(sal.dt, 'yyyy-mm-dd') day_,
+   itm.name,
+   sal.qty
+from
+   tq84_sale  sal  partition by (dt)
+                   right join
+   tq84_item  itm  on sal.id_item = itm.id
+order by
+   sal.dt,
+   itm.name;
+--
+-- DAY_                                                                        NAME                        QTY
+-- --------------------------------------------------------------------------- -------------------- ----------
+-- 2024-07-01                                                                  ABC                          13
+-- 2024-07-01                                                                  PQR                         697
+-- 2024-07-01                                                                  XYZ                           6
+-- 2024-07-02                                                                  ABC                          10
+-- 2024-07-02                                                                  PQR                         612
+-- 2024-07-02                                                                  XYZ                           
+-- 2024-07-03                                                                  ABC                           
+-- 2024-07-03                                                                  PQR                         572
+-- 2024-07-03                                                                  XYZ                           2  
+code }
+
+{ Execution plan
+
+code {
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--------------------------------------------------
+| Id  | Operation                    | Name      |
+--------------------------------------------------
+|   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select             |           |
+|   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/order-by               |           |
+|   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/view                       |           |
+|   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/merge-join/partition-outer[MERGE JOIN PARTITION OUTER]|           |
+|   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/join                |           |
+|   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full       | TQ84_ITEM |
+|   6 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/partition-join      |           |
+|   7 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full       | TQ84_SALE |
+--------------------------------------------------
+code }
+
+}
+
+links:
+  This example is inspired and mostly copied from →  https://dba.stackexchange.com/a/227507/515[this dba.stackexchange.com] answer.

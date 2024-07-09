@@ -30,6 +30,40 @@ code {
 drop table tq84_tab;
 code }
 
+{ SQLERRM and SQLCODE #ora-00984-sqlerrm-sqlcode
+
+  The two «functions» → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[`sqlerrm` and `sqlcode`] cannot be used in SQL statements.
+
+  The `insert` statement in the exception handler throws an ORA-00984.
+code {
+create table tq84_log(
+   ts  timestamp default systimestamp,
+   txt clob
+);
+ 
+declare
+   num integer;
+-- err varchar2(512);
+begin
+   select 0/0 into num from dual;
+   insert into tq84_log(txt) values ('num = ' || num);
+   commit;
+  
+exception when others then
+   insert into tq84_log(txt) values ('error: ' || sqlerrm);
+ 
+-- err := sqlerrm;
+-- insert into tq84_log(txt) values ('error: ' || err);
+ 
+   commit;
+end;
+/
+code }
+
+  If `sqlerrm` needs to be logged, it needs to be assigned to a variable first (as shown in the commented code above).
+
+}
+
 sa:
 
   This error message in a → development/databases/Oracle/SQL/select/model#ora-model-00984[SQL model clause].
