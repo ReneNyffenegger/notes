@@ -6,13 +6,37 @@ $ arch/x86/kernel/head_64.S
  -
  This location is specified with the `ENTRY()` command in the linker script `→ Linux/kernel/source/arch/SRCARCH/kernel/vmlinux_lds`.
 
+  At this point the CPU runs in 64bit mode
+  -
+  `CS.L = 1`
+  -
+  `CS.D = 0`
+  -
+  someone has loaded an identity mapped page table for us.  These identity mapped page tables map all of the kernel pages and possibly all of memory.
+
  This function is → https://github.com/torvalds/linux/blob/42dc814987c1feb6410904e58cfd4c36c4146150/arch/x86/kernel/head_64.S#L58-L59[called either]
    • by a 64-bit bootloader, or
    • from `→ Linux/kernel/source/arch/x86/boot/compressed/head_64_S`
 
-  But… see also
+ The function allegedly calls (or might call) → #linux-axk-secondary_startup_64[`secondary_startup_64()`]
+
+ But… see also
     • the → Linux/kernel/source/arch/x86/kernel/vmlinux_lds_S#linux-axk-ENTRY[`ENTRY` symbol] defined in `→ Linux/kernel/source/arch/x86/kernel/vmlinux_lds_S`
     • the function → Linux/kernel/source/arch/x86/kernel/head_32_S#linux-axk-startup_32[`startup_32`], defined in `→ Linux/kernel/source/arch/x86/kernel/head_32_S`
+
+}
+{ secondary_startup_64 #linux-axk-secondary_startup_64
+
+  At this point the CPU runs in 64bit mode.
+  -
+  `CS.L = 1`
+  -
+  `CS.D = 0`
+  -
+  someone has loaded a mapped page table.
+	
+	We come here either from → #startup_64[`startup_64`] (using physical addresses) or from `trampoline.S` (using virtual addresses).
+  
 
 }
 

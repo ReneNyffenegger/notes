@@ -1,4 +1,51 @@
 $ Linux Kernel Debugging
 
+{ Create a kernel to be run in QEMU and debugged with gdb
+
+  Get the → Linux/kernel/source#linux-get-sources-from-archive[latest Linux sources]:
+code {
+→ Linux/shell/commands/mkdir -p linux-src
+→ tools/cURL[curl] $( → tools/cURL[curl] -s → https://www.kernel.org/releases.json | → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[-r] '.releases[] | select(.moniker == "stable") | .source' ) | → Linux/shell/commands/tar xJ -C linux-src --strip-components=1
+code }
+
+  Create the `→ Linux/kernel/source/_config` file with a default configuration:
+code {
+cd linux-src
+→ Linux/kernel/compilation/make/defconfig
+code }
+
+  Enable the config options
+    • `CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT` (which → https://github.com/torvalds/linux/blob/d6e1712b78251cf4470b0543bb4a8b491949aa32/lib/Kconfig.debug#L259-L269[relies on the toolchain's implicit default DWARF version]) and
+    • `GDB_SCRIPTS` (which causes the `→ Linux/kernel/source/Makefile` to → https://github.com/torvalds/linux/blob/d6e1712b78251cf4470b0543bb4a8b491949aa32/Makefile#L1770-L1777[call] make the directory `/scripts/gdb/` and create a symbolic link from `vmlinux-gdb.py` to `→ Linux/kernel/source/scripts/gdb/vmlinux-gdb_py`.
+   (I am not sure if the latter is really required, but I've seen it recommended):
+code {
+→ Linux/kernel/source/scripts/config[./scripts/config] --enable DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT 
+→ Linux/kernel/source/scripts/config[./scripts/config] --enable GDB_SCRIPTS
+code }
+
+  After changing config options with `./scripts/config`, config options that are dependent on the changed ones need to be updated (at least this what I think the following make target does):
+code {
+→ Linux/kernel/compilation/make olddefconfig
+code }
+
+  TODO: the previous command displayed `.config:4980:warning: override: DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT changes choice state`.
+
+  We're now ready to build the Kernel. The `-j` option is used to assign the number of cpus (here: 2 less than available):
+code {
+→ Linux/kernel/compilation/make -j $(( $(→ Linux/shell/commands/nproc) - 2 ))
+code }
+
+  Since we're at it, we also make the gdb scripts:
+code {
+make scripts_gdb
+code }
+
+}
+
 sa:
   → Linux/kernel/source/kernel/printk/printk_c#kernel-printk[`printk()`], defined in `→ Linux/kernel/source/kernel/printk/printk_c`
+
+links:
+  → https://www.youtube.com/@nirlichtman[Nir Lichtman's] youtube videos yt|aAuw2EVCBBg|How Linux Kernel Prints Text on Screen| and yt|D4k1Q3aHpT8|Exploring How Linux Boots with GDB| were very helpful to me.
+
+
