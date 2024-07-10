@@ -71,6 +71,62 @@ $ Linux kernel source tree
   }
 
 }
+{ Determining the latest version (in a script etc.)
+
+  In the command line (or by extension a script), the latest version numbers can be determined with
+code {
+$ → tools/cURL[curl] -s → https://www.kernel.org/finger_banner
+The latest stable version of the Linux kernel is:             6.9.8
+The latest mainline version of the Linux kernel is:           6.10-rc7
+The latest stable 6.9 version of the Linux kernel is:         6.9.8
+The latest longterm 6.6 version of the Linux kernel is:       6.6.38
+The latest longterm 6.1 version of the Linux kernel is:       6.1.97
+The latest longterm 5.15 version of the Linux kernel is:      5.15.162
+The latest longterm 5.10 version of the Linux kernel is:      5.10.221
+The latest longterm 5.4 version of the Linux kernel is:       5.4.279
+The latest longterm 4.19 version of the Linux kernel is:      4.19.317
+The latest linux-next version of the Linux kernel is:         next-20240709
+code }
+
+code {
+$ → tools/cURL[curl] -s → https://www.kernel.org/releases.json | → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[-r] .latest_stable.version
+6.9.8
+code }
+
+}
+{ Getting the sources
+
+  { From an archive
+
+    Get the link for the latest «stable» sources and downoad it:
+code {
+$ latest_stable_dir=~/latest-stable-kernel
+$ mkdir -p $latest_stable_dir
+$ latest_stable_url=$( curl -s https://www.kernel.org/releases.json | jq -r '.releases[] | select(.moniker == "stable") | .source' )
+$ curl $latest_stable_url | → Linux/shell/commands/tar xJ -C $latest_stable_dir
+$ dir $latest_stable_dir
+linux-6.9.8
+code }
+
+  Alternatively, using the `--strip-components` option of `tar`, the kernel sources can be extracted to a destination without having a directory with the version number:
+code {
+$ curl $latest_stable_url | → Linux/shell/commands/tar xJ -C $latest_stable_dir --strip-components=1
+$ → Linux/shell/commands/ls $latest_stable_dir/
+→ Linux/kernel/source/arch[arch]   certs    → Linux/kernel/source/CREDITS[CREDITS]  → Linux/kernel/source/Documentation/[Documentation]  fs   init    → Linux/kernel/source/ipc[ipc]     → Linux/kernel/source/Kconfig[Kconfig]  → Linux/kernel/source/lib[lib]       → Linux/kernel/source/MAINTAINERS[MAINTAINERS]  mm   README  samples  security  → Linux/kernel/source/tools[tools]  virt
+block  COPYING  crypto   drivers  include  io_uring  Kbuild  kernel   LICENSES  → Linux/kernel/source/Makefile[Makefile]     net  rust    → Linux/kernel/source/scripts[scripts]  sound     usr
+code }
+
+  }
+  { With git
+
+    Shallow copy of most recent sources in git repository:
+code {
+$ → development/version-control-systems/git/commands/clone[git clone] --depth 1 -b master → https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git ~/linux-src
+code }
+
+  }
+
+}
 { Browsing the sources
 
   → https://elixir.bootlin.com/linux/latest/source[Elixir Cross Referencer]
@@ -90,14 +146,6 @@ code }
 
 { TODO
 
-  { Getting the sources
-
-    Shallow copy of most recent sources in git repository:
-code {
-$ git clone --depth 1 -b master https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git ~/linux-src
-code }
-
-  }
   { KCONFIG variables
 
     The KCONFIG variables found in the source tree can be found with
