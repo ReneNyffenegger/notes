@@ -1,6 +1,6 @@
 $ Linux Kernel Debugging
 
-{ Create a kernel to be run in QEMU and debugged with gdb
+{ Create a kernel to be run in QEMU and debugged with gdb #create-kernel-for-qemu-gdb
 
   Get the → Linux/kernel/source#linux-get-sources-from-archive[latest Linux sources]:
 code {
@@ -30,7 +30,7 @@ code }
 
   TODO: the previous command displayed `.config:4980:warning: override: DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT changes choice state`.
 
-  We're now ready to build the Kernel. The `-j` option is used to assign the number of cpus (here: 2 less than available):
+  We're now ready to → Linux/kernel/compilation[build the Kernel]. The `-j` option is used to assign the number of cpus (here: 2 less than available):
 code {
 → Linux/kernel/compilation/make -j $(( $(→ Linux/shell/commands/nproc) - 2 ))
 code }
@@ -38,6 +38,82 @@ code }
   Since we're at it, we also make the gdb scripts:
 code {
 make scripts_gdb
+code }
+
+}
+{ Setting breakpoints in the kernel
+
+  The following is a simple demonstration on using → development/tools/gdb[gdb] to set breakpoints and stepping through the
+  kernel.
+
+  First, the newly built kernel is started in QEMU:
+code {
+qemu-system-x86_64 -kernel → Linux/kernel/source/arch/x86_64/boot/bzImage -s -S -append kaslr
+code }
+
+  The command line option `-s` is shorthand for `-gdb tcp::1234` which in turn specifies the port to which gdb can connect
+  to to debug the kernel.
+  -
+  The command line option `-S` starts the kernel in a suspended (frozen) mode and waits for the debugger to connect to it.
+
+  We now connect to the debugee with gdb:
+code {
+gdb → Linux/kernel/source/vmlinux
+code }
+
+  Connect to the debugee:
+code {
+(gdb) target remote :1234
+Remote debugging using :1234
+0x000000000000fff0 in exception_stacks ()
+code }
+
+  A (hardware) breakpoint (`hbreak`) is set at an early stage in the execution of the kernel.
+  -
+  When I tried to find the earliest breakable line in Linux version 6.9.8, I found this to be → https://github.com/torvalds/linux/blob/a38297e3fb012ddfa7ce0321a7e5a8daeb1872b6/arch/x86/kernel/head_64.S#L208[line 208] of `→ Linux/kernel/source/arch/x86/kernel/head_64_S`.
+code {
+(gdb) hbreak → Linux/kernel/source/arch/x86/kernel/head_64_S[arch/x86/kernel/head_64.S]:208
+Hardware assisted breakpoint 1 at 0xffffffff8102de38: file arch/x86/kernel/head_64.S, line 208.
+code }
+
+  Run the kernel until it hits the breakpoint:
+code {
+(gdb) cont
+Continuing.
+
+Breakpoint 1, secondary_startup_64 () at arch/x86/kernel/head_64.S:208
+208		movl	$(X86_CR4_PAE | X86_CR4_LA57), %edx
+code }
+
+  Show the backtrace:
+code {
+(gdb) bt
+#0  secondary_startup_64 () at arch/x86/kernel/head_64.S:208
+#1  0x0000000000000000 in ?? ()
+code }
+
+  Delete the breakpoint, add another one and continue
+code {
+(gdb) delete 1lk
+(gdb) hbreak arch/x86/kernel/head_64.S:→ https://github.com/torvalds/linux/blob/a38297e3fb012ddfa7ce0321a7e5a8daeb1872b6/arch/x86/kernel/head_64.S#L420[420]
+Hardware assisted breakpoint 2 at 0xffffffff8102df5e: file arch/x86/kernel/head_64.S, line 420.
+(gdb) cont
+Continuing.
+
+Breakpoint 2, secondary_startup_64 () at arch/x86/kernel/head_64.S:420
+420		callq	*initial_code(%rip)
+code }
+  
+  This `callq` instruction jumps to `x86_64_start_kernel`
+code {
+(gdb) delete 2
+(gdb) s
+x86_64_start_kernel (real_mode_data=0x14750 <entry_stack_storage+1872> <error: Cannot access memory at address 0x14750>) at arch/x86/kernel/head64.c:426
+…
+(gdb) bt
+#0  x86_64_start_kernel (real_mode_data=0x14750 <entry_stack_storage+1872> <error: Cannot access memory at address 0x14750>) at arch/x86/kernel/head64.c:426
+#1  0xffffffff8102df64 in secondary_startup_64 () at arch/x86/kernel/head_64.S:420
+#2  0x0000000000000000 in ?? ()
 code }
 
 }
