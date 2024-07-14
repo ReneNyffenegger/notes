@@ -28,6 +28,28 @@ code }
  `include/generated/uapi/linux/version.h` (if it exists).
 
 }
+{ Included files
+
+  table { ll
+    `→ Linux/kernel/source/scripts/Kbuild_include` ☰ Definition of *convenience variables* such as `comma`, `quote` etc., *comparison macros* (`test-ge`, `test-lt`) and more such stuff
+    `→ Linux/kernel/source/scripts/subarch_include` ☰ Assign value to `SUBARCH`
+    `scripts/Makefile.clang` ☰ if `CC_VERSION_TEXT` contains `clang`
+    `scripts/Makefile.compiler` ☰ If `need-compiler` is defined
+    `arch/$(SRCARCH)/Makefile` ☰ For example `→ Linux/kernel/source/arch/x86/Makefile`
+    `→ Linux/kernel/source/include/config/auto_conf` ☰ If `need-config` is defined.
+    `scripts/Makefile.extrawarn` ☰
+    `scripts/Makefile.debug` ☰ if `CONFIG_DEBUG_INFO` = `y`
+    `scripts/Makefile.btf` ☰ if `CONFIG_DEBUG_INFO_BTF` = `y`
+    `scripts/Makefile.kasan` ☰ if `CONFIG_KASAN` = `y`
+    `scripts/Makefile.kcsan` ☰ if `CONFIG_KCSAN` = `y`
+    `scripts/Makefile.kmsan` ☰ if `CONFIG_KMSAN` = `y`
+    `scripts/Makefile.ubsan` ☰ if `CONFIG_UBSAN` = `y`
+    `scripts/Makefile.kcov` ☰ if `CONFIG_KCOV` = `y`
+    `scripts/Makefile.randstruct` ☰ if `CONFIG_RANDSTRUCT` = `y`
+    `scripts/Makefile.gcc-plugins` ☰ if `CONFIG_GCC_PLUGINS` = `y`
+  table }
+
+}
 
 sa:
 

@@ -2,6 +2,8 @@ $ Linux Kernel Debugging
 
 { Create a kernel to be run in QEMU and debugged with gdb #create-kernel-for-qemu-gdb
 
+  The following steps try to lay out the steps necessary to → Linux/kernel/compilation[compile] a → Linux/kernel for being debuggedin in → hardware/QEMU.
+
   Get the → Linux/kernel/source#linux-get-sources-from-archive[latest Linux sources]:
 code {
 → Linux/shell/commands/mkdir -p linux-src
@@ -115,6 +117,103 @@ x86_64_start_kernel (real_mode_data=0x14750 <entry_stack_storage+1872> <error: C
 #1  0xffffffff8102df64 in secondary_startup_64 () at arch/x86/kernel/head_64.S:420
 #2  0x0000000000000000 in ?? ()
 code }
+
+}
+{ Setting breakpoints on a syscall
+
+  In order to set a breakpoint on a syscall, we need a process that executes the syscall because for obvious reasons the syscall cannot be called from within the kernel.
+  -
+  Therefore, we create an `init` executable which is the default first process started by the kernel. This `init` will then call `write` twice and shutdown the kernel. This gives us the possiblity to break on the `write` syscall (we actually `ksys_write`).
+
+  { init.S
+
+    This assembler code is the source for the `init` process:
+code {
+.section .data
+    text_1:      .ascii "\033[91m" "first line"  "\033[0m\n"
+    text_1_len = . - text_1
+    text_2:      .ascii "\033[92m" "second line" "\033[0m\n"
+    text_2_len = . - text_2
+
+.section .text
+    .globl _start
+
+_start:
+
+ # Call write syscall (rax = 1) which takes the three parameters
+ #    rdi = filedescriptor
+ #    rsi = pointer to message
+ #    rdx = length of message
+
+ #
+ # Line 1
+ #
+   mov $1          , %rax
+   mov $1          , %rdi
+   lea text_1(%rip), %rsi
+   mov $text_1_len , %rdx
+   syscall
+
+ #
+ # Line 2
+ #
+   mov $1          , %rax
+   mov $1          , %rdi
+   lea text_2(%rip), %rsi
+   mov $text_2_len , %rdx
+   syscall
+
+ #
+ # call reboot syscall with shutdown
+ #
+   mov $169        , %rax # sys_reboot
+   mov $0xfee1dead , %rdi # magic number 1
+   mov $0x28121969 , %rsi # magic number 2
+   mov $0x4321fedc , %rdx # magic number 3
+   mov $0x00000000 , %r10 # LINUX_REBOOT_CMD_POWER_OFF
+   syscall
+code }
+
+    It is compiled like so:
+code {
+as --64 -o init.o init.S
+ld      -o init   init.o
+code }
+
+  }
+  { Creating an init ram disk #create-kernel-for-qemu-initrd
+
+    In order for the kernel to access the `init` executable, it needs to be put into an *init ram disk*:
+code {
+echo init | → Linux/shell/commands/cpio -H newc -o > init.cpio
+code }
+
+  }
+  { Starting the kernel in QEMU
+
+    With the cpio archive, we can now start the kernel in QEMU in the directory where linux was compiled (note the `-initrd` option):
+code {
+qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -s -S -append nokaslr -initrd ../init.cpio 
+code }
+
+  }
+  { Setting the breakpoint
+
+code {
+$ gdb vmlinux
+(gdb) break ksys_write
+…
+(gdb) cont
+…
+(gdb) step
+…
+(gdb) finish
+…
+(gdb) cont
+code }
+
+  }
+
 
 }
 
