@@ -1,5 +1,6 @@
 $ ORA-40441: JSON syntax error
 
+This snippet throws a *ORA-40441: JSON syntax error* exception:
 code {
 declare
    json_obj json_object_t;
@@ -8,6 +9,21 @@ begin
 -- Note the missing quotes around `y` which cause the error:
 --
    json_obj := → development/databases/Oracle/installed/types/json/object_t(  '{"x": y}'   );
+end;
+/
+code }
+
+The same exception is also thrown by the following snippet. Note the backslash («solidus») in `"hello\world"` (and compare with the → development/databases/Oracle/errors/ORA-40472_invalid-escape-in-JSON-data error message):
+code {
+declare
+   jsn json_object_t;
+begin
+   jsn := json_object_t.parse(q'<
+     {
+       "num": 42,
+       "txt": "hello\world"
+     }
+   >');
 end;
 /
 code }
