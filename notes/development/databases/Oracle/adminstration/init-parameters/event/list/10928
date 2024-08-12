@@ -1,0 +1,55 @@
+$ Oracle Event 10928
+@ 10928
+
+Event 10928 controls if tracing of all executed → development/databases/Oracle/PL-SQL pseudo codes is enabled.
+
+Create a simple demonstration function:
+code {
+-- drop   function tq84_f;
+create function tq84_f(n integer) return number authid definer as
+begin
+   if n > 5 then
+      return 2 * n;
+   end if;
+   return 3 * n;
+end tq84_f;
+/
+
+-- alter function tq84_f compile debug;
+code }
+ 
+Enable tracing
+code {
+alter session set events '10928 trace name context level 1';
+-- alter session set events '10938 trace name context level 5';
+code }
+ 
+Exeecute the function:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line(tq84_f(3));
+end;
+/
+code }
+ 
+Show the data in the → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/trace-file.
+code {
+select
+   trc.payload,
+   trc.timestamp
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/info inf   join
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents  trc on regexp_replace(inf.value, '.*[\\/]', '') = trc.trace_filename
+where
+   inf.name = 'Default Trace File'
+order by
+   trc.line_number
+;
+code }
+
+sa:
+  See also Event 10938
+
+  MOS Note 52481.1
+
+  → http://www.petefinnigan.com/weblog/archives/00001474.htm[Pete Finnigans blog]
