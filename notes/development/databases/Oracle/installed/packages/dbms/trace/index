@@ -1,7 +1,194 @@
-$ Oracle: DBMS_ADVANCED_TRACE
--
+$ Oracle: DBMS_TRACE
 @ dbms_trace
 
+{ Trace function/procedcure calls
+
+  Create two package specifications …
+code {
+create package tq84_pkg_1 authid definer as
+
+   function func_a(n integer) return integer;
+   function func_b(n integer) return integer;
+   function func_c(n integer) return integer;
+
+end tq84_pkg_1;
+/
+
+create package tq84_pkg_2 authid definer as
+
+   procedure proc_a;
+   procedure proc_b;
+   procedure proc_c;
+
+end tq84_pkg_2;
+/
+code }
+
+  … and bodies:
+code {
+create package body tq84_pkg_1 as
+
+   function func_a(n integer) return integer is begin
+
+      tq84_pkg_2.proc_a;
+
+      if mod(n, 13) = 0 then
+         return func_b(n-2);
+      end if;
+
+      if mod(n,  3) = 0 then
+         return func_c(n-2);
+      end if;
+
+      return n-1;
+
+   end func_a;
+
+
+   function func_b(n integer) return integer is begin
+
+      tq84_pkg_2.proc_b;
+
+      if mod(n, 11) = 0 then
+         return func_a(n-2);
+      end if;
+
+      if mod(n,  5) = 0 then
+         return func_c(n-2);
+      end if;
+
+      return n-1;
+
+   end func_b;
+
+
+   function func_c(n integer) return integer is begin
+
+      tq84_pkg_2.proc_c;
+
+      if mod(n,  2) = 0 then
+         return func_a(n-2);
+      end if;
+
+      if mod(n,  7) = 0 then
+         return func_b(n-2);
+      end if;
+
+      return n-1;
+
+   end func_c;
+
+end tq84_pkg_1;
+/
+
+create package body tq84_pkg_2 as
+
+   procedure proc_a is begin null; end proc_a;
+   procedure proc_b is begin null; end proc_b;
+   procedure proc_c is begin null; end proc_c;
+
+end tq84_pkg_2;
+/
+code }
+
+  Add debug information:
+code {
+alter package tq84_pkg_1 compile debug;
+alter package tq84_pkg_1 compile debug body;
+alter package tq84_pkg_2 compile debug;
+alter package tq84_pkg_2 compile debug body;
+code }
+
+  A table so that we can select from the table and combine the select statement with calls into `tq84_pkg_1`:
+code {
+create table tq84_t as select level n from dual connect by level <= 20;
+code }
+
+  Enable tracing:
+code {
+begin
+   dbms_trace.set_plsql_trace (dbms_trace.trace_all_calls);
+end;
+/
+code }
+
+  Do something with the created packages:
+code {
+select
+   tq84_pkg_1.func_b(n) b
+from
+   tq84_t
+where
+   n in (11);
+code }
+
+  Stop tracing:
+code {
+begin
+   dbms_trace.clear_plsql_trace;
+end;
+/
+code }
+
+  Select «my» last trace run id and when it was performed:
+code {
+select
+   max(runid) last_run_id,
+   to_char(trunc(sysdate) + (sysdate - max(r.run_date)), 'hh24:mi:ss') as how_long_ago
+from
+   sys.plsql_trace_runs r
+where
+   r.run_owner = user;
+code }
+
+  Select the traced function/procedure calls:
+code {
+set lines  200
+set pages 5000
+select
+   pte.stack_depth                     dep,
+   substr(pte.event_unit     , 1, 12)  calling_unit,
+   substr(pte.event_proc_name, 1, 12)  calling_proc,
+   substr(pte.proc_unit      , 1, 12)  called_unit,
+   substr(pte.proc_name      , 1, 12)  called_proc,
+   substr(trim(src.text), 1, 20)       src_line
+from
+   sys.plsql_trace_events pte                                                left join
+   dba_source             src on pte.event_unit_kind  = src.type  and
+                                 pte.event_unit_owner = src.owner and
+                                 pte.event_unit       = src.name  and
+                                 pte.event_line       = src.line
+where
+   pte.runid = (select max(runid) from sys.plsql_trace_runs where run_owner = user)  and
+   pte.event_comment = 'Procedure Call'                                              and
+   pte.event_unit like 'TQ84_PKG%'
+order by
+   pte.event_seq;
+--
+--        DEP CALLING_UNIT CALLING_PROC CALLED_UNIT  CALLED_PROC  SRC_LINE            
+-- ---------- ------------ ------------ ------------ ------------ --------------------
+--          1 TQ84_PKG_1   FUNC_B       TQ84_PKG_2   PROC_B       tq84_pkg_2.proc_b;  
+--          1 TQ84_PKG_1   FUNC_B       TQ84_PKG_1   FUNC_A       return func_a(n-2); 
+--          2 TQ84_PKG_1   FUNC_A       TQ84_PKG_2   PROC_A       tq84_pkg_2.proc_a;  
+--          2 TQ84_PKG_1   FUNC_A       TQ84_PKG_1   FUNC_C       return func_c(n-2); 
+--          3 TQ84_PKG_1   FUNC_C       TQ84_PKG_2   PROC_C       tq84_pkg_2.proc_c;  
+--          3 TQ84_PKG_1   FUNC_C       TQ84_PKG_1   FUNC_B       return func_b(n-2); 
+--          4 TQ84_PKG_1   FUNC_B       TQ84_PKG_2   PROC_B       tq84_pkg_2.proc_b;  
+--          4 TQ84_PKG_1   FUNC_B       TQ84_PKG_1   FUNC_C       return func_c(n-2); 
+--          5 TQ84_PKG_1   FUNC_C       TQ84_PKG_2   PROC_C       tq84_pkg_2.proc_c;  
+code }
+
+  Cleaning up:
+code {
+drop   package tq84_pkg_1;
+drop   package tq84_pkg_2;
+drop   table   tq84_t;
+code }
+
+}
+
 sa:
+
+  The tables `plsql_trace_runs` and `plsql_trace_events` are created with the `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/tracetab_sql` script.
 
   → development/databases/Oracle/installed/packages/dbms
