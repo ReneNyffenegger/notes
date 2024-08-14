@@ -1,0 +1,21 @@
+$ Oracle Event 10397: suppress verbose parallel coordinator error reporting
+@ 10397
+
+The 10397 event prevents the → development/databases/Oracle/errors/ORA-12801_error-signaled-in-parallel-query-server error to be put on top of the error stack which can be useful if a frontend only
+shows the top Oracle error (which in case of ORA-12801 is quite meaningless).
+
+code {
+create table tq84_ora_12801 (n varchar2(50));
+insert into tq84_ora_12801 select level from dual connect by level <= 1e6;
+-- This is not a zero but the uppercase letter O!
+insert into tq84_ora_12801 values ('O');
+commit;
+ 
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */ max(→ development/databases/Oracle/SQL/functions/type-conversion/to/number(n)) from tq84_ora_12801;
+-- → development/databases/Oracle/errors/ORA-12801_error-signaled-in-parallel-query-server[ORA-12801: error signaled in parallel query server P005]
+-- → development/databases/Oracle/errors/ORA-01722_invalid-number
+ 
+alter session set events '10397 trace name context forever, level 1';
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */ max(→ development/databases/Oracle/SQL/functions/type-conversion/to/number(n)) from tq84_ora_12801;
+-- → development/databases/Oracle/errors/ORA-01722_invalid-number
+code }

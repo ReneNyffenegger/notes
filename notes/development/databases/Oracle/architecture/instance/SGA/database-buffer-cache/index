@@ -15,8 +15,9 @@ shared pool primarily caches metadata while the buffer cache stores data.
 
 The goal is to keep frequently used data blocks in the buffer cache in order to improve I/O by having less physical reads or writes.
 
-When a dirty buffer is not used anymore, it is written to disk by the → development/databases/Oracle/architecture/processes/background/DBWn[Database Writer background process].
+The buffers in the cache are organized in linked chains under a hash value calculated for the buffer (DB block).
 
+When a dirty buffer is not used anymore, it is written to disk by the → development/databases/Oracle/architecture/processes/background/DBWn[Database Writer background process].
 
 { Components of the buffer cache
 
@@ -27,17 +28,34 @@ When a dirty buffer is not used anymore, it is written to disk by the → develo
     • Recycle pool
     • Non-default buffer pools (One for each nonstandard block sizes of 2, 4, 16 or 32 KB)
     • Database Smart Flash Cache (flash cache)
-    • Least Recently Used list (LRU)
+    • → #ora-buffer-cache-lru[Least Recently Used list] (LRU)
     • Checkpoint queue
     • Flash Buffer Area
 
 }
 { Least recently used (LRU) list #ora-buffer-cache-lru
 
-  A → development/databases/Oracle/objects/tables or → development/databases/Oracle/objects/views/materialized can be created with the `cache` attribute.
+  All blocks stored in the buffer cache are on a LRU list.
+  -
+  When a free buffer is needed, this list is scanned from the LRU end until a non-dirty buffer is found that can be freed.
+  -
+  When then the block is copied into the newly freed block moves other blocks down the LRU.
 
+  When a block is accessed that is already in the buffer cache, the block is moved up in the LRU list.
+
+  The *cache buffers lru chain* latch is used to serialize operations on the LRU list.
+
+  A → development/databases/Oracle/objects/tables or → development/databases/Oracle/objects/views/materialized can be created with the `cache` attribute.
+  -
   → development/databases/Oracle/architecture/database/logical-structures/data-block[Blocks] of «cached» objects that are read into the buffer cache as part of a full table are placed at the most recently used end of the LRU list. Thus, they tend to
   stay longer in the buffer cache. Typically, objects are attributed with `cache` if they're small and used to look up data.
+
+  See also the `tch` (touch) counter in `→ development/databases/Oracle/architecture/instance/fixed-tables/bh`
+
+}
+{ Dirty blocks
+
+  A dirty block is a block whose content was modified but is not yet flushed back to the datafile by DBWR.
 
 }
 { Cache hit vs cache miss
@@ -117,6 +135,8 @@ sa:
 
   When executing cartesian joins, the buffer cache is bypassed and the blocks of the inner table are stored in 
   the → development/databases/Oracle/architecture/instance/PGA, see the → development/databases/Oracle/SQL/statement/execution/plan/operations/buffer/sort[plan operation `BUFFER SORT`].
+
+ `v$db_cache_advice` (which is populated when the `db_cache_advice` parameter is enabled) shows the simulated miss rates for a range of potential buffer cache sizes (See *MOS Note 148511.1*)
 
 links:
    Craig Shallahamer's → http://blog.orapub.com/20100922/oracle-database-buffer-cache-visualization-and-tool.html[Buffer Cache Visualization Tool]

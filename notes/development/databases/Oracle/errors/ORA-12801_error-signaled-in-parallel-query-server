@@ -1,0 +1,22 @@
+$ ORA-12801: error signaled in parrallel query server …
+
+The *ORA-12801 is error signaled in parrallel query server* error is thrown by the *query coordinator* (QC) as reaction of an underlying problem (i. e. it does not describe the actual issue).
+
+code {
+create table tq84_ora_12801 (n varchar2(50));
+insert into tq84_ora_12801 select level from dual connect by level <= 1e6;
+-- This is not a zero but the uppercase letter O!
+insert into tq84_ora_12801 values ('O');
+commit;
+ 
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */ max(→ development/databases/Oracle/SQL/functions/type-conversion/to/number(n)) from tq84_ora_12801;
+-- ORA-12801: error signaled in parallel query server P005
+-- → development/databases/Oracle/errors/ORA-01722_invalid-number
+code }
+
+In order to suppress the *ora-12801* in the error stack and go directly to the underlying error message, use → development/databases/Oracle/adminstration/init-parameters/event/list/10397[event 10397].
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages] such as *ORA-12805*
+
+  MOS Notes *184416.1*, *1348342.1* and *187823.1*.

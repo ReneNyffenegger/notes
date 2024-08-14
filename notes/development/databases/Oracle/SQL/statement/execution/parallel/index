@@ -74,9 +74,9 @@ code }
 
    Other → development/databases/Oracle/SQL/hints[hints] include
      • `statement_queuing`, `no_statement_queuing`
-     • `parallel`, `no_parallel`
+     • `→ development/databases/Oracle/SQL/hints/list/parallel`, `no_parallel`
      • `parallel_index`, `no_parallel_index`
-     • `disable_parallel_dml`
+     • → development/databases/Oracle/SQL/hints/list/parallel/enable-disable_dml[`enable_parallel_dml`], `disable_parallel_dml`
      • `pq_concurrent_union`, `no_pq_concurrent_union`
      • `pq_distribute`
      • `pq_skew`
@@ -90,6 +90,61 @@ code }
   ? A rollback of a DML statement that was executed in parallel seems to be faster as well. TOOD: Needs to be investigated.
 
   }
+
+}
+{ Verify if (last) query was executed in parallel #ora-verify-parallel-execution
+
+  The value of `last_query` of `→ development/databases/Oracle/installed/dynamic-performance-views/pq/sesstat` can be used to verify if the (last) executed query was executed in parallel.
+  -
+  Especially useful for such an investigation are the values where `statistic in ('Queries Parallelized', 'DOP')` (DOP = Degree of parallism).
+
+  Note the typo in the `parlallel` → development/databases/Oracle/SQL/hints:
+code {
+select /*+ parlallel(4) */ count(*) from dba_objects where object_name like 'N%';
+…
+select
+   statistic,
+   last_query
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/pq/sesstat
+order by
+   → development/databases/Oracle/SQL/functions/decode(statistic,
+     'Queries Parallelized', chr(0),
+     'DOP'                 , chr(1),
+      statistic
+  );
+-- 
+-- STATISTIC                      LAST_QUERY
+-- ------------------------------ ----------
+-- Queries Parallelized                    0
+-- DOP                                     0
+-- …
+code }
+
+  Same query, but with fixed hint:
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel[parallel(4)] */ count(*) from dba_objects where object_name like 'N%';  
+… 
+select
+   statistic,
+   last_query
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/pq/sesstat
+order by
+   → development/databases/Oracle/SQL/functions/decode(statistic,
+     'Queries Parallelized', chr(0),
+     'DOP'                 , chr(1),
+      statistic
+  );
+-- 
+-- STATISTIC                      LAST_QUERY
+-- ------------------------------ ----------
+-- Queries Parallelized                    1
+-- DOP                                     4
+-- …
+code }
+
+  See also *MOS Note 237287.1*.
 
 }
 { Granules
@@ -161,19 +216,32 @@ code }
 }
 { TODO
 
-
   TQ: Table Queue
+
+code {
+select
+   substr(parameter, 1,15) param,
+   substr(value    , 1, 5) val
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/option
+where
+   lower(parameter) like '%parallel%';
+--
+-- PARAM              VAL 
+-- -----------------  ----
+-- Parallel backup    TRUE
+-- Parallel execut    TRUE
+-- Parallel load      TRUE
+code }
 
   { ORA-12801 and ORA-12805
 
-    ORA-12801 is *error signaled in parrallel query server …*
+    ORA-12801 is → development/databases/Oracle/errors/ORA-12801_error-signaled-in-parallel-query-server[error signaled in parrallel query server …].
     -
     ORA-12805 is *parallel query server died unexpectedly*
 
     These two errors are generic messages that may be caused when executing a parallel query. These errors are usually (always?) accompanied by additional messages which indicate
     the real cause of the problem.
-
-    See also MOS note *184416.1*.
 
   }
 
@@ -194,6 +262,8 @@ sa:
 
   → development/databases/Oracle/SQL/statement/nouns/table/create/as-select#ora-ctas-parallel[`create table … PARALLEL as select …`]
 
-  Enabling → development/databases/Oracle/PL-SQL functions for → development/databases/Oracle/PL-SQL/function-procedure/parallel[parallel execution].
+  Enabling → development/databases/Oracle/PL-SQL functions for → development/databases/Oracle/PL-SQL/function-procedure/parallel[parallel execution with the `parallel_enable` clause].
 
   → development/databases/Oracle/errors/ORA-12838_cannot-read-modify-an-object-after-modifying-it-in-parallel
+
+  Init parameters such as `→ development/databases/Oracle/adminstration/init-parameters/parallel/threads_per_cpu`
