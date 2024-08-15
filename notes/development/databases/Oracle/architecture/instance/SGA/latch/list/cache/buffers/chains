@@ -1,0 +1,30 @@
+$ Oracle latch: cache buffers chains
+@ cache buffers chains
+
+Count the numbers of *cache buffers chains* and *cache buffers lru chains* → development/databases/Oracle/architecture/instance/SGA/latch[latches]:
+code {
+select
+   count(*) cnt,
+   name
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/latch/children
+where
+   name like 'cache buffers %'
+group by
+   name;
+code }
+
+Check value of hidden parameter `_db_block_hash_latches` (Number of database block hash latches). It should correspond to `count(*)` of `cache buffers chain`:
+code {
+select
+   v.ksppstvl    value_v,
+   v.ksppstdfl   default_value_v,
+   w.ksppstvl    value_w,
+   w.ksppstdfl   default_value_w
+from
+   → development/databases/Oracle/architecture/instance/fixed-tables/k/s/p/pi  par                      join
+   x$ksppcv v on par.indx = v.indx   join
+   x$ksppsv w on par.indx = w.indx
+where
+   par.ksppinm = '_db_block_hash_latches';
+code }

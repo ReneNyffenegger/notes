@@ -1,5 +1,12 @@
 $ Oracle: Init parameters PARALLEL_MIN_SERVERS and PARALLEL_MAX_SERVERS
 
+The value of `parallel_min_servers` specifies the number of → development/databases/Oracle/architecture/processes[processes] that are pre-allocated for
+→ development/databases/Oracle/SQL/statement/execution/parallel[parallel execution] at
+→ development/databases/Oracle/architecture/instance/startup-shutdown[instance startup]. They remain
+until the instance is shut down.
+
+The value of `parallel_max_servers` specifies the maximum number of proceses that can be used for parallel execution.
+
 code {
 select
    name,
@@ -24,5 +31,13 @@ where
 ;
 code }
 
+Compare configured values with actual number of processed used for parallel processing:
+code {
+select count(*)         from → development/databases/Oracle/installed/dynamic-performance-views/px/process union all
+select count(*)         from → development/databases/Oracle/installed/dynamic-performance-views/pq/slave   union all
+select to_number(value) from → development/databases/Oracle/installed/dynamic-performance-views/parameter where name = 'parallel_min_servers' union all
+select to_number(value) from → development/databases/Oracle/installed/dynamic-performance-views/parameter where name = 'parallel_max_servers';
+code }
+
 sa:
-  → development/databases/Oracle/adminstration/init-parameters
+  → development/databases/Oracle/adminstration/init-parameters (such as `processes`)

@@ -13,7 +13,7 @@ $ Oracle: V$PX_SESSION
     `QCSID`, `QCSERIAL#` ☰ Identification of the coordinator session for the session identified in `SID`, `SERIAL#`. `QCSERIAL#` is (at least sometimes) `NULL` for coordinator session.
     `QCINST_ID` ☰
     `SERVER_GROUP` ☰
-    `SERVER_SET` ☰
+    → #server_set[`SERVER_SET`] ☰ Identfies concurrently executed parallel queries in a → development/databases/Oracle/architecture/session.
     `SERVER#` ☰
     `DEGREE`, `REQ_DEGREE` ☰ → development/databases/Oracle/SQL/statement/execution/parallel#ora-parallel-dop[Degree of parallism (DOP)] set by server and DOP that was requested. If `DEGREE < REQ_DEGREE`, the DOP was downgraded.
     `CON_ID` ☰
@@ -33,6 +33,95 @@ $ Oracle: V$PX_SESSION
     gh|oracle-patterns|/Installed/dynamic-performance-views/px/session/joins.sql||
 
   }
+}
+
+{ Column SERVER_SET #server_set
+
+  A session can execute multiple parallel queries concurrently. The value of `server_set` identifies each of these statements.
+
+  The following statements try to demonstrate this. The statements are inspired by → https://jonathanlewis.wordpress.com/2018/12/21/qc-vs-px/[Jonathan Lewis].
+
+  First, we need a few tables:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/table/create/as-select[create table tq84_t2 nologging as]
+select *
+from
+   → development/databases/Oracle/installed/data-dictionary/objects
+;
+create table tq84_t3 nologging as select * from tq84_t2;
+create table tq84_t4 nologging as select * from tq84_t2;
+create table tq84_t5 nologging as select * from tq84_t2;
+
+begin
+   dbms_stats.gather_table_stats(user,'tq84_t2', method_opt=>'for all columns size 1');
+   dbms_stats.gather_table_stats(user,'tq84_t3', method_opt=>'for all columns size 1');
+   dbms_stats.gather_table_stats(user,'tq84_t4', method_opt=>'for all columns size 1');
+   dbms_stats.gather_table_stats(user,'tq84_t5', method_opt=>'for all columns size 1');
+end;
+/
+code }
+
+  Then we execute four parallel statements concurrently:
+code {
+declare
+ 
+   cursor c2 is select /*+ → development/databases/Oracle/SQL/hints/list/parallel (t 2) */ object_id from tq84_t2 t;
+   cursor c3 is select /*+ → development/databases/Oracle/SQL/hints/list/parallel (t 3) */ object_id from tq84_t3 t;
+   cursor c4 is select /*+ → development/databases/Oracle/SQL/hints/list/parallel (t 4) */ object_id from tq84_t4 t;
+   cursor c5 is select /*+ → development/databases/Oracle/SQL/hints/list/parallel (t 5) */ object_id from tq84_t5 t;
+ 
+   o2 number;
+   o3 number;
+   o4 number;
+   o5 number;
+begin
+ 
+   open c2; fetch c2 into o2;
+   open c3; fetch c3 into o3;
+   open c4; fetch c4 into o4;
+   open c5; fetch c5 into o5;
+
+   dbms_output.put_line(o2 || ' - ' || o3 || ' - ' || o4 || ' - ' || o5);
+   dbms_session.sleep(20);
+
+   close c2;
+   close c3;
+   close c4;
+   close c5;
+end;
+/
+code }
+ 
+  While the above → development/databases/Oracle/PL-SQL/block/index[anonymous PL/SQL block] is running in a
+  → development/databases/Oracle/architecture/session, we query the value of `server_set` (and a few other values) in another session: 
+code {
+select
+   px.sid, px.qcsid,
+   px.server_group, px.server_set, px.server#,
+   sq.sql_text
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/px/session px                           join
+   → development/databases/Oracle/installed/dynamic-performance-views/session    ss on px.sid    = ss.sid     join
+   → development/databases/Oracle/installed/dynamic-performance-views/sql        sq on ss.sql_id = sq.sql_id and ss.sql_child_number = sq.child_number
+where
+   ss.username = user      and
+   ss.sid      = px.sid
+order by
+   px.server_group nulls first,
+   px.server_set,
+   px.server#
+;
+code }
+ 
+   Cleaning up
+code {
+drop table tq84_t2;
+drop table tq84_t3;
+drop table tq84_t4;
+drop table tq84_t5;
+code }
+ 
+
 }
 
 sa:
