@@ -1,0 +1,96 @@
+$ Oracle PL/SQL: Compare Functions with DETERMINISTIC and RESULT_CACHE functions
+
+code {
+set feedback off
+
+create or replace package tq84_funcs authid definer as -- {
+
+    function func              (i integer) return integer;
+    function func_deterministic(i integer) return integer deterministic;
+    function func_result_cache (i integer) return integer result_cache;
+    
+    procedure cnt_reset;
+    procedure cnt_report;
+
+end tq84_funcs; -- }
+/
+
+create or replace package body tq84_funcs as -- {
+
+    cnt_func               integer := 0;
+    cnt_func_deterministic integer := 0;
+    cnt_func_result_cache  integer := 0;
+
+    function func              (i integer) return integer is begin
+       cnt_func := cnt_func + 1;
+       return i;
+    end func;
+    
+    function func_deterministic(i integer) return integer deterministic is begin
+       cnt_func_deterministic := cnt_func_deterministic + 1;
+       return i;
+    end func_deterministic;
+    
+    function func_result_cache (i integer) return integer result_cache is begin
+       cnt_func_result_cache := cnt_func_result_cache + 1;
+       return i;
+    end func_result_cache;
+    
+    procedure cnt_reset is begin
+       cnt_func                := 0;
+       cnt_func_deterministic  := 0;
+       cnt_func_result_cache   := 0;
+    end cnt_reset;
+
+    procedure cnt_report is begin
+       dbms_output.put_line('func:               ' || to_char(tq84_funcs.cnt_func              , '99G999G999'));
+       dbms_output.put_line('func deterministic: ' || to_char(tq84_funcs.cnt_func_deterministic, '99G999G999'));
+       dbms_output.put_line('func result_cache:  ' || to_char(tq84_funcs.cnt_func_result_cache , '99G999G999'));
+    end cnt_report;
+
+end tq84_funcs; -- }
+/
+
+
+select
+   sum(tq84_funcs.func              (mod(level, 10))) s,
+   sum(tq84_funcs.func_deterministic(mod(level, 10))) s_deterministic,
+   sum(tq84_funcs.func_result_cache (mod(level, 10))) s_result_cache
+from
+   dual connect by level <= 1000;
+   
+set serveroutput on
+begin tq84_funcs.cnt_report; end;
+/
+
+exec tq84_funcs.cnt_reset;
+   
+select
+   sum(l) s
+from
+   (select level l from dual connect by level <= 1000)
+where
+   tq84_funcs.func              (mod(l, 10)) = 1 or
+   tq84_funcs.func_deterministic(mod(l, 10)) = 2 or
+   tq84_funcs.func_result_cache (mod(l, 10)) = 3
+;
+   
+   
+set serveroutput on
+begin tq84_funcs.cnt_report; end;
+/
+
+create table tq84_func_res (x number);
+
+set  timing on
+insert into tq84_func_res select tq84_funcs.func              (mod(level, 1000)) x from dual connect by level <= 1000 * 1000;
+insert into tq84_func_res select tq84_funcs.func_deterministic(mod(level, 1000)) x from dual connect by level <= 1000 * 1000;
+insert into tq84_func_res select tq84_funcs.func_result_cache (mod(level, 1000)) x from dual connect by level <= 1000 * 1000;
+set  timing off
+
+drop table   tq84_func_res;
+drop package tq84_funcs;
+code }
+
+sa:
+  → development/databases/Oracle/PL-SQL/function-procedure/deterministic[Deterministic functions]
