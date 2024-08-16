@@ -1,7 +1,38 @@
 $ GDB (GNU debugger)
 
-Some commands:
-  • `start` - start the program
+{ Starting gdb
+
+code {
+gdb prog
+gdb prog core
+code }
+
+  Specifying command line options:
+code {
+gdb --args prog arg-1 arg-2
+code }
+
+  Use `--silent`, `--quiet` or `-q` to omit printing introductory and copyright messages.
+
+  { Specifying a PID
+
+    Specifing a PID attaches to the running program with the given → Linux/kernel/process/index#linux-pid[process ID (PID)]:
+code {
+gdb prog 1234
+gdb -p   1234
+code }
+
+   }
+
+}
+{ Some commands
+
+  Some commands include:
+  • `start` - start the programs by temporarily setting a breakpoint on `main` (for c/c++ programs) and then invoking the `run` command. Comare with `starti` that sets the temprary breakpoint in `_start` (if the default entry point for executables is used by a program)
+  • `run`
+  • `finish` - run until the function returns and print returned value. Compare with `return`
+  • `until`: run to next source line (used to «skip» a loop)
+  • `skip`: Specify unininteresting functions that need not be stepped into
   • `p` - print values of variables (might use `frame` to change the context)
   • `x` - examine (print) low level data structers: memory, registers …
   • `s` - step an instruction
@@ -10,13 +41,88 @@ Some commands:
   • `watch` - interrupt the program when the watched variable changes
   • `rwatch` (?) - interrupt the program when the value of a variable is read
   • `list` - show the program source code (if compiled with → development/languages/C-C-plus-plus/GCC/options/g[`-g`])
-  • `break` - set a breakpoint
+  • `break` - set a breakpoint. Use `clear` to remove. Use `save breakpoints …` to save current breakpoint definitions and `source …` to read them.
   • `bt` - backtrace
-  • `set var varName = 42` - set the value of `varName` to 42.
+  • `set var varName = 42` - set the value of `varName` to 42. `set prompt …` sets the prompt.
   • `tui enable`: start TUI mode (Text User Interface).
-  • `quit`
+  • `quit` (compare with `ctrl-c`)
+  • `apropos word`: searches for commands related to `word` (see also `gdb --help`)
+  • `info` describe the the state of the debuggee. Compare with `show`
+  • `show` describe the state of GDB (for example `show configuration`). Compare with `info`
+  • `find`: search memory for a given sequence of bytes
+  • `checkpoint`: save a snapshot of the debugged program's current execution state. This execution state can later be restarted with `restart <checkpoint-id>`.
 
-Setting the syntax of disassembled code:
+  `ctrl-c` does not exit GDB but rather terminates the currently executed GDB command. Compare with `quit` or `exit`
+   -
+
+}
+{ Breakpoints, watchpoints and catchpoints
+
+  A program is stopped when its execution reaches a *breakpoint*.
+  -
+  It's possible to assign conditions to breakpoints which must be met in order for the program to be stopped.
+
+  A *watchpoint* is a breakpoint that stops the program if the value of an expression changes.
+
+  A *catchpoint* stops the program when a given event occurs (syscalls (`catch syscall write`), exceptions, loading of libraries …)
+
+  Each breakpoint (and also watchpoints and catchpoint?) can be enabled and disabled.
+
+}
+{ Modifying variables
+
+code {
+(gdb) set var foo=42
+code }
+
+}
+{ Standard register names
+
+  table { ll
+    `$pc` ☰ Program counter
+    `$sp` ☰ Stack pointer
+    `$fp` ☰ Frame pointer
+    `$ps` ☰ Processor status
+  table }
+
+  Print program counter in hex: `p/x $c`
+  -
+  Print instruction to be executed next: `x/i $pc`
+  -
+  Add four to the stack pointer: `set $sp += 4`
+
+}
+{ set
+
+  { input-radix
+
+code {
+(gdb) set input-radix 10
+(gdb) set output-radix 16
+(gdb) set radix 16
+…
+code }
+
+  }
+
+}
+{ Multithreaded programs
+
+  A mutlithread program is either debugged in
+    • all-stop mode (the default): all threads are stopped if any thread is stopped (for example because of hitting a breakpoint)
+    • non-stop mode: all threads except the currently stopped one continue to execute.
+
+  Non-stop mode is entered by
+code {
+(gdb) set pagination off
+(gdb) set non-stop on
+code }
+
+  Note: the scheduling of threads is not under control of GDB, thus when stepping one statement, other threads might execute multiple statements in the mean time.
+
+}
+{ Setting the syntax of disassembled code:
+
 code {
 set disassembly-flavor intel
 code }
@@ -24,6 +130,7 @@ Compare with
   • The → development/GNU/toolchain/binutils/objdump#objdump-M[`-M`] option of `→ development/GNU/toolchain/binutils/objdump` chooses the assembly dialect.
   • → development/languages/C-C-plus-plus/GCC/as#gnu-as-intel-syntax[`.intel_syntax noprefix`] in the GNU assembler (→ development/languages/C-C-plus-plus/GCC/as[`as`])
 
+}
 { Python
 
   gdb is built with a → development/languages/Python[python] interpreter.
@@ -33,6 +140,22 @@ code {
 (gdb) python print(gdb.breakpoints())
 (gdb) python print(gdb.breakpoints()[0].location)
 code }
+
+code {
+(gdb) python-interactive
+code }
+
+code {
+(gdb) python help (gdb)
+code }
+
+
+}
+{ Misc
+
+  The debugged program is apparently also referred to by «inferior» in gdb's documentation.
+  -
+  See also the commands `info inferiors` and `info connections`
 
 }
 
@@ -44,3 +167,5 @@ sa:
   → development/languages/C-C-plus-plus/GCC/options/g[`gcc -ggdb`]
 
   → Linux/kernel/debugging#create-kernel-for-qemu-gdb[Creating a kernel for debugging] with QEMU and gdb.
+
+ `~/.gdbinit` (and other `.gdbinit` files), `~/.config/gdb/gdbearlyinit` or `~/.gdbearlyinit`
