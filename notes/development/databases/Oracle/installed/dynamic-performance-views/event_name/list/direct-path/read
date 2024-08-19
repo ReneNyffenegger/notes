@@ -1,0 +1,37 @@
+$ Oracle wait event: direct path read
+@ direct path read
+
+A *direct path read* reads a → development/databases/Oracle/architecture/database/logical-structures/data-block into the → development/databases/Oracle/architecture/instance/PGA rather than the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache.
+
+Direct path reads are typically used for
+  • When data to be sorted does not fit into memory
+  • Parallel query slaves
+  • Readahed (a process issues an I/O request for a block it expects to need momentarily)
+
+{ Disabling and forcing direct path reads #ora-disable-force-direct-path
+
+  MOS Note 2426051.1 lists two ways to disable direct path reads:
+    • Set → development/databases/Oracle/adminstration/init-parameters/event/list[event] 10949 to level 1
+    • Set → development/databases/Oracle/adminstration/init-parameters[parameter] `_serial_direct_read`
+
+  The note also lists two ways to force direct path reads:
+    • Using the `/*+ parallel */` → development/databases/Oracle/SQL/hints.
+    • Setting a table's number of block statistics to a higher value than the parameter `_small_table_threshold`
+
+  But also consider the `_direct_read_decision_statistics_driven` parameter: if its value is `true` (the default), the decision is based on optimizer statistics, if `false`, then it is based on the actual
+  block count value in the segment header.
+
+}
+
+sa:
+
+  → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache#buffer-cache-direct-path[Bypassing the buffer cache with direct path insert and read]
+
+  → development/databases/Oracle/SQL/DML/insert/paths[direct path insert]
+
+  → development/databases/Oracle/adminstration/init-parameters/event/list[Event] 10357 (?)
+
+  A direct path read is performed by the → development/databases/Oracle/internals/functions[function] `kcbldrget`
+
+  MOS Notes 50415, 2426051.1
+
