@@ -94,6 +94,76 @@ code }
   are related to → development/databases/Oracle/architecture/instance/SGA/latch[latches].
 
 }
+{ Displaying the value of string variables
+
+  First, we need to determine the addresses of string variables (i. e. where the type of the SGA variable is `oratext *`) we want to display:
+code {
+select   
+   var.ksmfsnam                                variable_name,
+   to_number(var.ksmfsadr, rpad('x', 16, 'x')) ptr_to_addr_str,
+   to_number(mem.ksmmmval, rpad('x', 16, 'x')) addr_str
+from
+   x$ksmfsv   var                              join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr 
+where
+   var.ksmfstyp = 'oratext *'
+order by
+   var.ksmfsnam
+;
+--
+-- VARIABLE_NAME      PTR_TO_ADDR_STR   ADDR_STR
+-- ------------------ --------------- ----------
+-- gwm_spare_sga4_         1611732544          0
+-- gwm_spare_sga5_         1611732552          0
+-- krbdbutspitr_           1611465072          0
+-- ksii2tmap_              1610654608 2471616472
+-- ksitypstr_              1610661888 2478881768
+-- ksm_ob_path_            1610618736 2551961328
+-- ksm_obc_path_           1610618752 2551961360
+-- ksm_obh_path_           1610618744 2551961416
+-- ksmanotshnm_            1610618664          0
+-- ksmanotshnme_           1610618672          0
+-- kspstrs_buf_            1610659784 2479164480
+-- ksuplsb_                1610648640 2471486880
+-- kzekmrsafipspath_       1611553928 2281696384
+-- qmhsthdr_               1611675576 2237062784
+code }
+
+  We now determine the PID of the main Oracle process …
+code {
+$ → Linux/shell/commands/ps -ef | → Linux/shell/commands/grep -P "oracle$ORACLE_SID \(" | → development/languages/awk '{ print $2 }'
+498
+code }
+
+  … so that we can attach to this process with → development/tools/gdb and then to examine its memory at the given string addresses:
+code {
+$ gdb -p 498
+…
+(gdb) x/s 2551961328
+0x981bd6f0:     "/opt/oracle"
+code }
+
+}
+{ Speculation about some variables #ora-ksmfsv-speculation
+
+  table { lll
+   `gwm_spare_sga4_` ☰ `oratext *` ☰
+   `gwm_spare_sga5_` ☰ `oratext *` ☰
+   `ksii2tmap_` ☰ `oratext *` ☰
+   `ksitypstr_` ☰ `oratext *` ☰ The string `"ABCDEFGHIJKLMNOPQRSTUVWXYZ"`
+   `ksm_ob_path_` ☰ `oratext *` ☰ `/opt/oracle` on my current machine
+   `ksm_obc_path_` ☰ `oratext *` ☰ Path to Oracle home (?)
+   `ksm_obh_path_` ☰ `oratext *` ☰ Path to Oracle home (?)
+   `ksmanotshnm_` ☰ `oratext *` ☰
+   `ksmanotshnme_` ☰ `oratext *` ☰
+   `kspstrs_buf_` ☰ `oratext *` ☰ The string `"_appqos_qt"`. This value is incidentally (?) the first value returned by `select ksppinm from x$ksppi`.
+   `ksuplsb_` ☰ `oratext *` ☰
+   `kzekmrsafipspath_` ☰ `oratext *` ☰ The path to `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/lib`
+   `qmhsthdr_` ☰ `oratext *` ☰ The string `"MS-Author-Via: DAV\r\nDAV: 1,2,<http://www.oracle.com/xdb/webdav/props>\r\n"`
+
+  table }
+
+}
 
 sa:
 

@@ -80,6 +80,27 @@ table }
    • VKRM: Virtual sKeduler for Resource Manager
    • Wnnn: space management slave pool
 
+{ Query to determine how long background processes were sleeping
+
+code {
+select
+   b.name,
+   b.description,
+   s.state,
+   s.event,      
+   to_char(s.wait_time_micro      / 1000 / 1000, '999,990.000') wait_time,
+   to_char(s.time_remaining_micro / 1000 / 1000, '999,990.000') time_remaining,
+   p.pid,
+   p.spid
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/process   p                        join
+   → development/databases/Oracle/installed/dynamic-performance-views/bgprocess b on p.addr = b.paddr    join
+   → development/databases/Oracle/installed/dynamic-performance-views/session   s on p.addr = s.paddr
+order by
+   s.wait_time_micro nulls first;
+code }
+
+}
 { Slave processes
 
   Slave processes perform work on behalf of other processes.

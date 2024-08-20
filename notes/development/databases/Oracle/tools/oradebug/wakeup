@@ -1,0 +1,34 @@
+$ oradebug wakeup
+
+`oradebug wakup <orapid>` wakes up a sleeping → development/databases/Oracle/architecture/processes.
+
+{ Waking up SMON #oradebug-wakeup-smon
+
+  Typically, the → development/databases/Oracle/architecture/processes/background[backround] process development/databases/Oracle/architecture/processes/background/SMON sleeps for 5 minutes between its activities.
+  -
+  With `oradebug wakup`, it can be woken up at anytime.
+
+  First, we need to determine the PID of SMON with the following query (which conveniently also returns how long the SMON process was already sleeping and how long it is expected to sleep):
+code {
+select
+   p.pid,
+   s.state,
+   s.event,      
+   to_char(s.wait_time_micro      / 1000 / 1000, '999,990.000') wait_time,
+   to_char(s.time_remaining_micro / 1000 / 1000, '999,990.000') time_remaining
+from
+   v$process   p                        join
+   v$bgprocess b on p.addr = b.paddr    join
+   v$session   s on p.addr = s.paddr
+where
+   b.name='SMON';
+code }
+
+  With this PID, we can now wake up SMON:
+code {
+→ development/databases/Oracle/tools/oradebug wakeup 24
+code }
+  
+  After executing this command, the previous query should now show a low `wait_time`.
+
+}

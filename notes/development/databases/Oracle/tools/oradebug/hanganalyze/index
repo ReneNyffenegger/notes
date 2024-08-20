@@ -1,11 +1,15 @@
 $ oradebug hanganalyze
 
+? MOS Note 215858.1 says that *hanganalyze* users internal kernel calls to determine if a session is waiting for a resource and reports the relationships between waiters and blockers.
+-
+? Apparently, it only dumps «interesting» processes.
+
 code {
 $ → development/databases/Oracle/SQL-Plus[sqlplus] / as sysdba
 …
 → development/databases/Oracle/tools/oradebug/setmypid
 → development/databases/Oracle/tools/oradebug/unlimit
-oradebug hanganalyze
+→ development/databases/Oracle/tools/oradebug hanganalyze
   … [ wait a minute or so, see MOS Note 4523581.1 ]
 oradebug hanganalyze
 → development/databases/Oracle/tools/oradebug/tracefile_name
@@ -26,13 +30,30 @@ code }
 { Hanganalyze levels
 
   table { ll
-    3 ☰ In 11g onwards, level 3 also collects a short stack for relevant processes in hang chain
+  1-2 ☰ Hanganalyze output only without process dump
+    3 ☰ In 11g onwards, level 3 also collects a short stack for relevant processes (i. e. processes thought to be) in hang chain (IN_HANG state)
     4 ☰ Collects everything from level 3 and dumps leaf nodes (blockers) in wait chains
-    5 ☰ Collects everything from level 4 and dumps all processes involved in wait chains
+    5 ☰ Collects everything from level 4 and dumps all processes involved in wait chains (NLEAF state)
+   10 ☰ Dumps all processes (IGN state)
   table }
+
+  Level 5 and 10 are generate huge amounts of data but are otherwise usually useless.
 
 }
 
 
 sa:
+
+  A hanganalyze can alternatively also triggered with
+code {
+alter session set events 'immediate trace name hanganalyze level <level>';
+code }
+
+   A cluster wide hanganalyze can be initiated with
+code {
+oradebug setmypid
+oradebug setinst all
+oradebug -g def hanganalyze <level>
+code }
+
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/hangdiag_sql[`$ORACLE_HOME/rdbms/admin/hangdiag.sql`]
