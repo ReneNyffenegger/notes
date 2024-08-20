@@ -3,13 +3,21 @@ $ Oracle: V$MEMORY_DYNAMIC_COMPONENTS
 
 `v$memory_dynamic_components` shows the current sizes of all *dynamically tuned memory components*, including the total size of the SGA and the instance PGA.
 
+`v$memory_dynamic_components` shows exactly the same information as `→ development/databases/Oracle/installed/dynamic-performance-views/sga/dynamic_componentes` except
+that `v$sga_dynamic_components` does not include the two rows for `SGA Target` and `PGA Target`).
+-
+Both views select from `x$kmgsct`.
+
 gh|oracle-patterns|/Installed/dynamic-performance-views/memory/dynamic_components/show.sql||
 
 Determine diff between *SGA target* and actual SGA size:
 code {
 select
    (select current_size from v$memory_dynamic_components where component = 'SGA Target') -
-   (select sum(value)   from → development/databases/Oracle/installed/dynamic-performance-views/sga                                                     ) diff_sga_target_to_sga
+   (select sum(value)   from → development/databases/Oracle/installed/dynamic-performance-views/sga                                                     ) diff_sga_target_to_sga,
+    --
+   (select current_size from v$memory_dynamic_components where component = 'SGA Target') -
+   (select    value     from → development/databases/Oracle/installed/dynamic-performance-views/parameter                 where name      = '→ development/databases/Oracle/adminstration/init-parameters/sga/target[sga_target]') diff_to_param
 from
    dual;
 code }

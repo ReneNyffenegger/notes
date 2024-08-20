@@ -21,6 +21,11 @@ Most components of the Shared Pool are shared among → development/databases/Or
 A notable distinction between the Shared Pool and the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache (which is also shared between sessions) is that the
 shared pool primarily caches metadata while the buffer cache stores data.
 
+{ Size of the shared pool
+
+? The size of the shared pool depends on whether *automatic shared memory management* (ASMM) and *Automatic Memory Management* (AMM) is used or not and might depend on the value of `shared_pool_size` (See MOS Note 455179.1)
+
+}
 { Examining the contents of the Shared Pool #ora-exam-cont-shared-pool
 
   The following query shows the summed up allocations of memory for various components in the Shared Pool:
@@ -100,6 +105,17 @@ code }
     • Library cache lock and pin contention (high library cache reloads), investigate in `→ development/databases/Oracle/installed/dynamic-performance-views/librarycache`
     • Row cache enqueue contention (high row cache reloads), investigate in `→ development/databases/Oracle/installed/dynamic-performance-views/rowcache`
     • Latch contention (Shared pool, library cache, row cache)
+
+}
+{ Subpools
+
+  The shared pool comprises of *subpools*
+
+rem {
+  When the instances starts up, it creates a subpool for every 4 CPUs with a maximum of 7 subpools: 1-4 CPUs: 1 subpool, 5-8 CPUs: 2 subpools etc.
+rem }
+
+  See also the hidden parameter `_kghdsidx_count` and MOS Note 455179.1
 
 }
 

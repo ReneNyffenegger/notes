@@ -3,7 +3,25 @@ $ Oracle: Init parameters SGA_MAX_SIZE and SGA_MIN_SIZE
 The value of `sga_max_size` specifies the maximum size for the → development/databases/Oracle/architecture/instance/SGA for the lifetime of the
 → development/databases/Oracle/architecture/instance.
 
+? When Oracle starts up, it reserves («allocates») as much *virtual* (not physical) memory as specified with `sga_max_size` in order to make sure this amount of memory can be provided
+to processes that need memory.
+-
+? If the size of `sga_max_size` is larger than the sum of configured size for SGA components, the remaining memory is found/seen in the → development/databases/Oracle/architecture/instance/SGA#ora-variable-sga[variable SGA].
+
 The default value of `sga_max_size` depends on the values of `→ development/databases/Oracle/adminstration/init-parameters/memory/target` and `memory_max_target`.
 
+{ TODO
+
+  Are the following two numbers not equal because `sum(value) from v$sga` is not rounded up to a granule size? (See MOS note 266702.1)
+code {
+select to_number(value) from v$parameter where name = 'sga_max_size' union all
+select sum(value) from v$sga;
+code }
+
+}
+
 sa:
-  → development/databases/Oracle/adminstration/init-parameters
+
+  MOS note 260171.1
+
+  → development/databases/Oracle/adminstration/init-parameters such as `→ development/databases/Oracle/adminstration/init-parameters/sga/target` and `→ development/databases/Oracle/adminstration/init-parameters/memory/target`.

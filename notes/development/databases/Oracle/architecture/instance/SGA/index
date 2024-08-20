@@ -2,29 +2,51 @@ $ Oracle System Global Area (SGA)
 @ SGA
 
 The SGA is the (shared) memory that an → development/databases/Oracle/architecture/instance[Oracle instance] needs to operate.
-It consists of
-  • → development/databases/Oracle/architecture/instance/SGA/Shared-Pool (parsed → development/databases/Oracle/SQL[SQL statements], system parameters, data dictionary etc.)
-  • → development/databases/Oracle/Features_Options_Management-Packs/Flashback[Flashback] buffer (optional)
-  • → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[Database buffer cache] (stores copies of *data blocks*)
-  • Database Smart Flash cache (optional level 2 cache on Solaris and → Linux)
-  • → development/databases/Oracle/architecture/instance/SGA/redo-log-buffer[Redo log buffer]
-  • → development/databases/Oracle/architecture/instance/SGA/Large-Pool (optional)
-  • → development/databases/Oracle/architecture/instance/SGA/In-Memory-Area (optional, to store data in the columnar format)
-  • → development/databases/Oracle/architecture/instance/SGA/memoptimize-pool (optional, for key-based queries(?))
-  • Shared I/O Pool (Secure files)
-  • Streams pool (used by Oracle Streams, Data Pump and → development/databases/Oracle/High-Availability/Golden-Gate to store buffered queue messages). This pool's size is controlled by the init parameter `→ development/databases/Oracle/adminstration/init-parameters/streams_pool/size`.
-  • Java pool
-  • → development/databases/Oracle/architecture/instance/SGA/fixed[Fixed SGA] (stores general information about the state of the database and → development/databases/Oracle/architecture/instance[instance], and information communicated between processes)h
+
+{ Components of the SGA
+
+  The components of the SGA are
+    • → development/databases/Oracle/architecture/instance/SGA/fixed[Fixed SGA] (stores general information about the state of the database and → development/databases/Oracle/architecture/instance[instance], and information communicated between processes)h
+    • variable SGA
+    • → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache[Database buffer cache] (stores copies of *data blocks*)
+    • → development/databases/Oracle/architecture/instance/SGA/redo-log-buffer[Redo log buffer]
+
+  The sizes of these components can be queried from `→ development/databases/Oracle/installed/dynamic-performance-views/sga`.
+
+  { Variable SGA #ora-variable-sga
+
+    The variable SGA consists of
+      • → development/databases/Oracle/architecture/instance/SGA/Shared-Pool (parsed → development/databases/Oracle/SQL[SQL statements], system parameters, data dictionary etc.)
+      • → development/databases/Oracle/architecture/instance/SGA/Large-Pool (optional)
+      • Java pool
+      • → development/databases/Oracle/Features_Options_Management-Packs/Flashback[Flashback] buffer (optional)
+      • Database Smart Flash cache (optional level 2 cache on Solaris and → Linux)
+      • → development/databases/Oracle/architecture/instance/SGA/In-Memory-Area (optional, to store data in the columnar format)
+      • → development/databases/Oracle/architecture/instance/SGA/memoptimize-pool (optional, for key-based queries(?))
+      • Shared I/O Pool (Secure files)
+      • Streams pool (used by Oracle Streams, Data Pump and → development/databases/Oracle/High-Availability/Golden-Gate to store buffered queue messages). This pool's size is controlled by the init parameter `→ development/databases/Oracle/adminstration/init-parameters/streams_pool/size`.
+
+  }
+  { Shared pool vs buffer cache
+
+    A notable distinction between the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool and the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache is that the
+    shared pool primarily caches metadata while the buffer cache stores data.
+  }
+}
 
 
-A notable distinction between the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool and the → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache is that the
-shared pool primarily caches metadata while the buffer cache stores data.
+{ SGA Granules #sga-granules
 
-{ SGA Granules
-
-? In 9i, the SGA architecture was reengineered with a concepts called *granules*. These allow to relocate memory between areas such as buffer cache and shared pool.
+? In 9i, the SGA architecture was reengineered with a concepts called *granules* which are uniformely sized memory units that can be allocated, freed or relocated between memory areas such as buffer cache and shared pool depending on the workload.
 
   The size of the granules are dependent on OS, → development/databases/Oracle/Releases-and-versions[Oracle version] and size of the SGA (MOS ID #947152.1).
+  -
+  It can be determined with
+code {
+select bytes/1024/1024 gran_sz_mb from → development/databases/Oracle/installed/dynamic-performance-views/sga/info where name = 'Granule Size';
+code }
+
+  See also `→ development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/ge`
 
 }
 { Queries

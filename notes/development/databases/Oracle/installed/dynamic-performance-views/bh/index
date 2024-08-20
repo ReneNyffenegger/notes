@@ -49,7 +49,10 @@ select
    bh.direct                                                                              bh_direct,
    bh.flash_cache                                                                         bh_flash_cache,
    bh.lobid                                                                               bh_lobid,
-   bh.lock_element_addr                                                                   bh_lock_element_addr,
+   bh.lock_element_addr                                                                   bh_lock_element_addr,   -- Address of the lock element that is locking this buffer
+                                                                                                                  -- Multiple buffers be protected by the same lock (same address)
+                                                                                                                  -- When multiple buffers are protected by the same PCM lock,
+                                                                                                                  -- false collisions can occur between the buffers.
    bh.lock_element_class                                                                  bh_lock_element_class,
    bh.lock_element_name                                                                   bh_lock_element_name,
    bh.ping                                                                                bh_ping,
@@ -137,7 +140,22 @@ code }
 }
 { TODO 
 
-  gh|oracle-patterns|/Installed/dynamic-performance-views/bh/compare-with_Buffer_Cache_Size.sql||
+  { Cmpare with DB_BLOCK_SIZE
+
+    gh|oracle-patterns|/Installed/dynamic-performance-views/bh/compare-with_Buffer_Cache_Size.sql||
+
+  }
+  { STATUS LIKE 'flash%'
+
+    Buffers in the *flash cache* have `status like 'flash%'` (MOS Note 1431603.1)
+
+  }
+  { Max value for _db_block_hash_latches if db_cache_size is set
+
+    MOS Note 334119.1 says that `_db_block_hash_latches` cannot be more than twice the number of blocks in the buffer cache if `db_cache_size` is set, otherwise
+   `select … from v$bh` results in *ORA-07445*.
+
+  }
 
 }
 
@@ -147,6 +165,8 @@ code {
 SQL> → development/databases/Oracle/tools/oradebug → development/databases/Oracle/tools/oradebug/dump[dump] buffers 1
 code }
 
-  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views] (such as `v$cache` and `v$ping`)
 
   → development/databases/Oracle/architecture/instance/fixed-tables/bh[`x$bh`] (which also features the two somewhat interesting columns `tch` (touch count) and `lru_flag`).
+
+  MOS Note 73582.1

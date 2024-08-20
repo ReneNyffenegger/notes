@@ -1,6 +1,33 @@
 $ Oracle: X$KSMGE
 @ x$ksmge
 
+`x$ksmge` lists *memory granules*: sizes, start address, states (allocated, free, invalid…)?
+
+code {
+select
+   gran.baseaddr,
+   gran.granstate,
+   type.component /*,
+   type.parno,
+   type.cursize,
+   type.usersize,
+   type.initsize,
+   type.targsize,
+   type.minsize,
+   type.maxsize,
+   type.opercnt,
+   type.lastoper,
+   type.lastmode,
+   type.lasttime,
+   type.starttime,
+   type.laststat,
+   type.lastopstatus,
+   type.lastopts */
+from
+   x$ksmge  gran                                      left join
+   x$kmgsct type on gran.grantype = type.grantype;
+code }
+
 code {
 select
    to_number(baseaddr, 'xxxxxxxxxxxxxxxx') addr,
@@ -9,3 +36,6 @@ select
 from
    x$ksmge;
 code }
+
+sa:
+  → development/databases/Oracle/architecture/instance/SGA#sga-granules[Granules]
