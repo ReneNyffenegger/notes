@@ -32,7 +32,71 @@ Almost everything on this page is *guesswork*!
   table }
 
 }
+{ Using GDB to break on kksParseCursor and print submitted SQL statements #ora-attach-gdb-to-proc
 
+  The following steps worked on an Oracle 23c free installation in a docker environment.
+
+  First, I needed to determine the process ID of the Oracle process which handles submitted SQL statements:
+code {
+select
+   prc.spid
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session  ses                          join
+   → development/databases/Oracle/installed/dynamic-performance-views/process  prc on ses.paddr = prc.addr
+where
+   ses.sid = sys_context('userenv', 'sid');
+code }
+
+ On the server, I then started → development/tools/gdb[gdb] with the id returned by the previous query:
+code {
+$ gdb -p 467
+…
+Missing separate debuginfos, use: yum debuginfo-install oracle-database-free-23c-1.0-1.x86_64
+(gdb)
+code }
+
+  gdb is now started and attached to process 467. I can now set the breakpoint on `kksParseCursor`. (TODO: should I or can I alternatively set a breakpoint on `kksParseChildCursor`?)
+code {
+(gdb) b kksParseCursor
+Breakpoint 1 at 0x1804da70
+code }
+
+  I also execute the following command so that SIGUSR2 does not distract me by jumping to function `sspuser`):
+code {
+(gdb) handle SIGUSR2 nostop noprint
+Signal        Stop      Print   Pass to program Description
+SIGUSR2       No        No      Yes             User defined signal 2
+code }
+
+  Continue the execution:
+code {
+(gdb) c
+Continuing.
+code }
+
+  In the client, I execute an SQL statement:
+code {
+select level from dual connect by level <= 100;
+code }
+
+  The breakpoint is hit and the processing of the SQL statement stops (which explains why the statement seems to hang):
+code {
+Breakpoint 1, 0x000000001804da70 in kksParseCursor ()
+code }
+
+  The pointer to the text of the SQL statement is passed to the function in register `rbx`, so I can show the text in gdb with:
+code {
+(gdb) x/s $rbx
+0x7ffee20f1d60: "select level from dual connect by level <= 100"
+code }
+
+  I continue the execution so that the statement returns to the user:
+code {
+(gdb) c
+code }
+  
+
+}
 { Filenames and functions #ora-intenals-filenames-and-functions
 
   Some filenames and → development/databases/Oracle/internals/functions[functions] can be extracted from → development/databases/Oracle/architecture/instance/fixed-tables/trace[`x$trace`] and
