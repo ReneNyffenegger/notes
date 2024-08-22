@@ -14,6 +14,26 @@ Because rowids identify the location of a row, they are the fastest way to retri
   gh|Oracle-Patterns|/SQL/datatypes/rowid/select.sql||
 
 }
+{ MOS Note 399410.1
+
+code {
+select
+   to_number(utl_encode.base64_decode(utl_raw.cast_to_raw(s.data_object_id      )), 'XXXXXXXXXXXX') obj_,
+   to_number(utl_encode.base64_decode(utl_raw.cast_to_raw(s.rel_fno             )),       'XXXXXX') rel_fno_,
+   to_number(utl_encode.base64_decode(utl_raw.cast_to_raw(s.block_number        )), 'XXXXXXXXXXXX') block_no_,
+   to_number(utl_encode.base64_decode(utl_raw.cast_to_raw(s.row_number          )), 'XXXXXXXXXXXX') row_no_
+from (
+   select
+      'AA' || substr('AAANdqAABAAAPFyAAA',  1, 6) data_object_id,
+       'A' || substr('AAANdqAABAAAPFyAAA',  7, 3) rel_fno,
+      'AA' || substr('AAANdqAABAAAPFyAAA', 10, 6) block_number,
+       'A' || substr('AAANdqAABAAAPFyAAA', 16, 3) row_number -- slot
+   from
+     dual
+   ) s;
+code }
+
+}
 
 sa:
 
