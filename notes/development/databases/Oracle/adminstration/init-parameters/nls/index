@@ -2,7 +2,7 @@ $ Oracle: NLS related init parameters
 @ NLS related init parameters
 
 code {
-select * from nls_session_parameters order by parameter;
+select * from → development/databases/Oracle/installed/data-dictionary/nls#nls_session_parameters[nls_session_parameters] order by parameter;
 
 NLS_CALENDAR              GREGORIAN
 NLS_COMP                  BINARY
@@ -23,6 +23,22 @@ NLS_TIME_FORMAT           HH24:MI:SSXFF
 NLS_TIME_TZ_FORMAT        HH24:MI:SSXFF TZR
 code }
 
+{ NLS_CHARACTERSET #ora-nls_characterset
+
+  A list of valid values for `nls_characterset` can be obtained with
+code {
+select
+   value,
+   isdeprecated
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/nls/valid_values
+where
+   parameter = 'CHARACTERSET'
+order by
+   value;
+code }
+
+}
 { NLS_COMP #ora-nls_comp
 
  `NLS_COMP` can be set to one of
@@ -43,20 +59,38 @@ code }
 { NLS_LANG #ora-nls_lang
 
   The value of `NLS_LANG` sets the language and territory of both, the session running on the Server, and the client.
+  -
+  Do not confuse `NLS_LANG` with `NLS_LANGUAGE` (`NLS_LANG`, unlike `NLS_LANGUAGE`, is *not* an → development/databases/Oracle/adminstration/init-parameters[init parameter] that can be set in `init.ora` or an spfile).
 
  `NLS_LANG` has three components, all of which are optional.
   table { ll
     language ☰ Controls the language of day and month names and → development/databases/Oracle/errors[error messages], and sorting.
     territory ☰ Specifies the default format for dates, numbers and monetary values.
-    character set ☰ Specifies the character set with which a user works. Each language has a default character set assosiated with it (which seems to be used when character set is not explicitly specified)
+    character set ☰ Specifies the → development/Unicode/character-set with which a user works. Each language has a default character set assosiated with it (which seems to be used when character set is not explicitly specified)
   table }
 
-  These components are separated between the language and the territory with an underscore and between the territory and character set with a dot (for example `FRENCH.CANADA.WE8ISO8859P1`)
+  These components are separated
+    • with an underscore between the language and the territory and
+    • with a dot between the territory and character set
+
+  An exaple of an `NLS_LANG` value is `FRENCH.CANADA.WE8ISO8859P1`.
+
+  The language specifies the value of `NLS_LANGUAGE`, the value of territory the value of → #ora-nls_territory[`NLS_TERRITORY`].
 
   The value of `NLS_LANG` should correspond to that of the client's operating system.
 
+  In → development/databases/Oracle/SQL-Plus, when running in Windows, the value of `NLS_LANG` can be determined with `@.[%NLS_LANG%]` (→ development/databases/Oracle/SQL-Plus#sqlplus-nls_lang-windows[see here]).
+
+
   TODO: → development/databases/Oracle/SQL-Plus#sqlplus-char-set[Setting the environment variable `NLS_LANG`] prior to starting
   → development/databases/Oracle/SQL-Plus.
+
+  See also MOS note 137127.1: Character Sets, Code Pages, Fonts and the NLS_LANG Value 
+
+}
+{ NLS_LANGUAGE
+
+  Do not confuse `NLS_LANGUAGE` with → #ora-nls_lang[`NLS_LANG`]: The language part of `NLS_LANG` sets the (default) value for `NLS_LANGUAGE`.
 
 }
 { NLS_LENGTH_SEMANTICS #ora-nls_length_semantics
@@ -121,6 +155,8 @@ code }
     • `nls_iso_currency`
 
   The value also influences the day of week (→ development/databases/Oracle/SQL/functions/type-conversion/format-models#ora-format-day-of-week[`to_char(…, 'D')`]).
+
+  The default value of `NLS_TERRITORY` is set by → #ora-nls_lang[`NLS_LANG`]
 
 }
 
