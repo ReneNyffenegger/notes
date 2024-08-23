@@ -3,46 +3,54 @@ $ Oracle: X$KSPPI
 
 `x$ksppi` lists → development/databases/Oracle/adminstration/init-parameters[(Init-) parameter] names and description.
 
-`x$ksppi` is interesting because, unlike `→ development/databases/Oracle/installed/dynamic-performance-views/parameter`, it also shows so called *hidden* parameters.
+`x$ksppi` is interesting because, unlike `→ development/databases/Oracle/installed/dynamic-performance-views/parameter`, it also shows so-called → development/databases/Oracle/adminstration/init-parameters/_hidden[hidden parameters].
 
 `x$ksppi` can be joined to `x$ksppcv` and `x$ksppsv`:
 code {
 select
-   par.ksppinm   name,
-   par.ksppdesc  description,
+   par.ksppinm     name,
+   par.ksppdesc    description,
    --
-   v.ksppstvl    value_v,
-   v.ksppstdvl   display_value_v,
-   v.ksppstdfl   default_value_v,
+   vin.ksppstvl    val_instance,
+   vin.ksppstdvl   val_instance_display,
+   vin.ksppstdfl   val_instance_default,
    --
-   w.ksppstvl    value_w,
-   w.ksppstdvl   display_value_w,
-   w.ksppstdfl   default_value_w,
+   vse.ksppstvl    val_session,
+   vse.ksppstdvl   val_session_display,
+   vse.ksppstdfl   val_session_default,
    --
-   v.ksppstdf    is_default_v,
-   v.ksppstvf,
-   v.ksppstcmnt  update_comment,
+   vin.ksppstdf    is_default_instance,
+   vin.ksppstvf    val_instance_display,
+   vin.ksppstcmnt  update_comment_instance,
    --
-   w.ksppstdf    is_default_w,
-   w.ksppstvf    vf_w,
-   w.ksppstcmnt  update_comment_w,
+   decode(bitand(par.ksppiflg/  256,1), 1, 'yes','no')  is_session_modifiable,
+   decode(bitand(par.ksppiflg/65536,3), 1, 'immediate',
+                                        2, 'deferred' ,
+                                        3, 'immediate',
+                                           'no')        is_system_modifable,
+   --
+   vse.ksppstdf    is_default_session,
+   vse.ksppstvf,
+   vse.ksppstcmnt  update_comment_session,
    --
    par.ksppilrmflg,
    par.ksppity,
    par.ksppihash
 from
-   x$ksppi  par                      join
-   x$ksppcv v on par.indx = v.indx   join
-   x$ksppsv w on par.indx = w.indx
+   x$ksppi  par                          join
+   x$ksppcv vse on par.indx = vse.indx   join
+   x$ksppsv vin on par.indx = vin.indx
 where
-   par.ksppinm like '%db%block%'
+   par.ksppinm like '%spin%'
 order by
    lower(replace(par.ksppinm, '_', ''));
 code }
 
 { TODO
 
-  Apparently, `x$ksppi` can be joined to `x$ksppcv2` like so:
+  { Joining X$KSPPI to X$KSPPCV
+
+    Apparently, `x$ksppi` can be joined to `x$ksppcv2` like so:
 code {
 select
    x.ksppinm    name,
@@ -61,10 +69,25 @@ order by
    name;
 code }
 
+  }
+  { Namespace ksppar_const_ns
+
+    Executing `oradebug dumpsga` writes (among other things) a section named *Namespace ksppar_const_ns (KSP parameter collection)* into the trace file.
+    -
+    The number of lines in this section equals the number of records in `x$ksppi`.
+
+    Each line in this section has the form `identifer = n` where `n` is a number starting at 1 and increased by one for each line.
+
+    It seems that the line of this section corresponds to the record in `x$ksppi` where `indx` is `n-1`.
+
+  }
+
 }
 
 sa:
 
  `x$ksppi` is selected from in `→ development/databases/Oracle/installed/dynamic-performance-views/system/parameter`.
+
+  MOS Note 315631.1
 
   → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]

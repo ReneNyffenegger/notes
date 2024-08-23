@@ -20,6 +20,24 @@ order by
 ;
 code }
 
+{ Displaying the value of a variable
+
+  The column `ksmfsadr` can be joined to the column `addr` of `→ development/databases/Oracle/architecture/instance/fixed-tables/k/s/m/mem` which allows determine the value of an SGA variable.
+  -
+  Note, the returned value is 8 bytes, even if the data type of the variable is different!
+code {
+select
+   var.ksmfsnam                                     var_nam,
+   mem.ksmmmval                                     val_hex,
+   to_number(mem.ksmmmval, rpad('x', 16, 'x'))      val_dec
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr
+where
+   var.ksmfsnam like '%kywmpleq1%'
+code }
+
+}
 { SCN number (kcsgscn_)
 
   Such a variable is for example `kcsgscn_` which stores the *current SCN number*:
@@ -85,7 +103,7 @@ oradebug dumpvar kcsgscn
 code }
 
 }
-{ Column ksmfstyp
+{ Datatype (column ksmfstyp)
 
  `ksmfstyp` shows the type of the variable: Some of these types are basic memory units such as `uword`, `ub4`, `int` etc., others seem to refer to some kind of structs, such as
  `ksllt`, `ksbsa`, `kzxctok` etc. Also seen is `void *`, `size_t`, `oratext *` and many more.
@@ -173,6 +191,8 @@ code }
 
 sa:
 
-  The → development/databases/Oracle/tools/oradebug/doc/event/action/varaddr[`varaddr`] action of → development/databases/Oracle/tools/oradebug.
+  → development/databases/Oracle/tools/oradebug:
+     • The→ development/databases/Oracle/tools/oradebug/doc/event/action/varaddr[`varaddr`]
+     • `dump sga` dumps variable names and their values
 
   → development/databases/Oracle/architecture/instance/fixed-tables[fixed tables]
