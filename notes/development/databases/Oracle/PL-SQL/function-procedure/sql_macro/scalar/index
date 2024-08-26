@@ -1,0 +1,52 @@
+$ Oracle: Scalar macros
+
+The following example demonstrates how a scalar macro is used in order to not invoke a PL/SQL function (and thus reduce SQL-PL/SQL context switches,
+but compare with → development/databases/Oracle/SQL/transpiler[SQL transpilation]):
+code {
+create or replace function tq84_save_div(a number, b number) return varchar2
+   sql_macro(scalar)
+as
+begin
+   return 'a/nullif(b, 0)';
+end;
+/
+code }
+
+code {
+create table tq84_x (
+   txt varchar2(10),
+   n1  number,
+   n2  number
+);
+
+begin
+   insert into tq84_x values ('ABC', 10,    5);
+   insert into tq84_x values ('DEF', 28,    7);
+   insert into tq84_x values ('GHI',  0,    9);
+   insert into tq84_x values ('JKL',  9,    0);
+   insert into tq84_x values ('MNO', 22, null);
+   commit;
+end;
+/
+code }
+
+
+code {
+explain plan for
+select
+   *
+from
+   tq84_x
+where
+   tq84_save_div(n1, n2) = 4;
+
+select * from dbms_xplan.display();
+--
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter]("N1"/CASE "N2" WHEN 0 THEN NULL ELSE "N2" END =4)
+code }
+
+sa:
+  → development/databases/Oracle/PL-SQL/function-procedure/sql_macro[SQL Macros]

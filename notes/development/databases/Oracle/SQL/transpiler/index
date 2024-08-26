@@ -1,0 +1,97 @@
+$ Oracle: SQL Transpiler
+@ SQL transpiler
+
+The goal of the *SQL transpiler* is to reduce context switches that occur when PL/SQL functions are called during SQL execution by converting the PL/SQL function to an SQL expression (*if possible*).
+
+The functionality was introduced with → development/databases/Oracle/Releases-and-versions/23c (now apparently referred to as 23ai).
+
+In order to demonstrate SQL transpilation, the function `tq84_save_div` is created. This function prevents → development/databases/Oracle/errors/ORA-01476_divisor-is-equal-to-zero:
+code {
+create or replace function tq84_save_div(a number, b number) return number
+  -- authid definer  -- SQL transpilation does not seem to work if the function is declared with the → development/databases/Oracle/PL-SQL/authid clause
+as
+begin
+   return a/→ development/databases/SQL/expression/nullif(b, 0);
+end tq84_save_div;
+/
+code }
+
+In addtion, a table with some data is created so that the function can be used in a `select` statement:
+code {
+create table tq84_x (
+   txt varchar2(10),
+   n1  number,
+   n2  number
+);
+
+begin
+   insert into tq84_x values ('ABC', 10,    5);
+   insert into tq84_x values ('DEF', 28,    7);
+   insert into tq84_x values ('GHI',  0,    9);
+   insert into tq84_x values ('JKL',  9,    0);
+   insert into tq84_x values ('MNO', 22, null);
+   commit;
+end;
+/
+code }
+
+{ Without transpilation
+
+  The value of the init parameter `sql_transpiler` is `OFF`, so SQL transpilation is disabled:
+code {
+select value from v$parameter where name = 'sql_transpiler';
+-- OFF
+code }
+
+code {
+explain plan for
+select
+   *
+from
+   tq84_x
+where
+   tq84_save_div(n1, n2) = 4;
+
+select * from dbms_xplan.display();
+--
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter]("TQ84_SAVE_DIV"("N1","N2")=4)
+code }
+
+}
+{ Turning on SQL transpilation
+
+code {
+alter session set sql_transpiler = on;
+alter system flush shared_pool;
+code }
+
+   With SQL transpilation, the filter does not invoke the PL/SQL function anymore:
+code {
+explain plan for
+select
+   *
+from
+   tq84_x
+where
+   tq84_save_div(n1, n2) = 4;
+
+select * from dbms_xplan.display();
+--
+-- Predicate Information (identified by operation id):
+-- ---------------------------------------------------
+--  
+--    1 - → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter]("N1"/CASE "N2" WHEN 0 THEN NULL ELSE "N2" END =4)
+code }
+
+}
+
+sa:
+
+ The init parameter `sql_transpiler`
+
+ → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/scalar[Scalar SQL macros]
+
+ MOS Note 3002410.1
