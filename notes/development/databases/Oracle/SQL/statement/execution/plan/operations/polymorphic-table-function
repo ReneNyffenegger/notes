@@ -1,0 +1,71 @@
+$ Oracle SQL Plan operation: POLYMORPHIC TABLE FUNCTION
+@ POLYMORPHIC TABLE FUNCTION
+
+code {
+create or replace package tq84_ptf_pkg authid definer as
+
+   function describe(tab in out dbms_tf.table_t) return dbms_tf.describe_t;
+   
+   procedure fetch_rows;
+
+end tq84_ptf_pkg;
+/
+code }
+
+code {
+create or replace package body tq84_ptf_pkg as
+
+   function describe(tab in out dbms_tf.table_t) return dbms_tf.describe_t
+   is begin
+      return null;
+   end describe;
+ 
+   procedure fetch_rows as
+      rowset dbms_tf.row_set_t;
+   begin
+      dbms_tf.get_row_set(rowset);
+      dbms_tf.put_row_set(rowset);
+   end fetch_rows;
+
+end tq84_ptf_pkg;
+/
+code }
+
+code {
+create or replace function tq84_ptf(tab table) return table pipelined row polymorphic using tq84_ptf_pkg;
+/
+code }
+
+code {
+create table tq84_tab(n number, t varchar2(10));
+code }
+
+code {
+explain plan for
+select * from tq84_ptf(tq84_tab);
+
+select * from dbms_xplan.display();
+--
+-- ----------------------------------------------------------------------------------------
+-- | Id  | Operation                   | Name     | Rows  | Bytes | Cost (%CPU)| Time     |
+-- ----------------------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select            |          |     1 |    20 |     2   (0)| 00:00:01 |
+-- |   1 |  POLYMORPHIC TABLE FUNCTION | TQ84_PTF |     1 |    20 |            |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full         | TQ84_TAB |     1 |    20 |     2   (0)| 00:00:01 |
+-- ----------------------------------------------------------------------------------------
+--  
+-- Polymorphic Table Function
+-- ------------------------------------------------------
+--  
+--    1 - type = row, Pass Through Columns = (N, T)
+code }
+
+Note
+  • If the procedure `fetch_rows` were removed from the package `tq84_ptf_pkg`, the plan wouldn't include `POLYMORPHIC TABLE FUNCTION` anymore.
+  • The output of shows `type = row` because the PTF has row semantics. For a PTF with table semantics, it would be `type = table`
+
+sa:
+
+  → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table[Polymorphic table functions]
+
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

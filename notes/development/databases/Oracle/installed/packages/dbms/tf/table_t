@@ -1,6 +1,27 @@
-$ dbms_tf.table_t
+$ Oracle: DBMS_TF.TABLE_T
+@ dbms_tf.table_t
 
-gh|oracle-patterns|/Installed/dbms/tf/table_t.sql||
+`dbms_tf.table_t` is used in a PTF's implementation package's `describe` function to pass information about the polymorphed table.
+
+? In `describe`, the corresponding parameter is `in out` so that columns can be marked as *pass through* or *for read*.
+
+code {
+TYPE TABLE_T          IS RECORD
+(
+  column                TABLE_COLUMNS_T,-- Column information, TABLE_COLUMNS_T is a TABLE OF → development/databases/Oracle/installed/packages/dbms/tf/column_t[COLUMN_T]
+  schema_name           dbms_quoted_id, -- the schema name OF ptf
+  package_name          dbms_quoted_id, -- the package name OF ptf
+  ptf_name              dbms_quoted_id, -- the ptf name invoked
+  table_schema_name     dbms_quoted_id, -- schema name table
+  table_name            dbms_quoted_id  -- table name
+);
+code }
+
+{ Example code
+
+  gh|oracle-patterns|/Installed/dbms/tf/table_t.sql||
+
+}
 
 sa:
   → development/databases/Oracle/installed/packages/dbms/tf[`dbms_tf`]

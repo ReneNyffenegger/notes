@@ -17,7 +17,6 @@ Because PTFs are semantically used like tables, their invocation occurs in a `fr
   -
   With *table semantics*, the input to the function are one or more rows.
 
-
   These rows can optionally be partitioned with a `partition by` clause or sorted with a `order by` clause.
 
   { Declaration
@@ -29,15 +28,40 @@ function ptf_t(tab table[, …]) return table pipelined table polymorphic using 
 code }
 
   }
+  { Querying the data dictionary
+
+    The value of `polymorphic` in `→ development/databases/Oracle/installed/data-dictionary/procedures` shows if a PTF has row or table semantics:
+code {
+select
+   impltypename,   -- Name of the package that implements the PTF
+   polymorphic     -- TABLE or ROW
+from
+   user_procedures
+where
+   object_name = '<ptf-func-name>';
+code }
+
+  }
+
+}
+{ Pass-through vs. for-read columns #ora-ptf-pass-through-for-read
+
+  The values of *pass-through* columns go to the result set unchanged.
+
+  Only the values of *for-read* columns can be seen in `fetch_rows`.
+
+? Thus, a column can be both, pass-through and for-read.
+
+   See also the `→ development/databases/Oracle/installed/packages/dbms/tf/column_t` type.
 
 }
 
 { Requirements for a polymorphic table function
 
   A PTF is a named → development/databases/Oracle/PL-SQL function that
-    • has exactly *one* parameter whose → development/databases/Oracle/SQL/data-types[data type] is `table`
+    • has exactly *one* parameter whose → development/databases/Oracle/SQL/data-types[data type] is `table` (see error messages *PLS-00773: Table function must have at least one argument of TABLE type* and *PLS-00766: more than one parameter of TABLE type is not allowed*). This `table` parameter makes the PTF a *non-leaf PTF*.
     • zero or more parameters of other data types
-    • returns a `table`
+    • returns a `table` (*PLS-00767: polymorphic table function can only return TABLE type*)
     • specifies if it is a function with *row* or *table semantics*
     • a reference to a → development/databases/Oracle/PL-SQL/package[PL/SQL package] that implements the → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface[client interface] for the PTF implementation of the PTF.
 
@@ -49,6 +73,10 @@ code }
 
     The *client-interface* package that implements the PTF functionality is required to have at least a → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table/client-interface/describe[`describe`]
     function.
+    -
+    The function defines the shape (column names and types etc.) of the table that the PTF produces and returns it as `dbms_tf.describe_t`
+    -
+    This function is called by the SQL engine when it parses the query, it cannot be called directly by the user
 
     Optionally, this package specification also comes with one or more of the functions/procedures
       • `open`
@@ -73,10 +101,24 @@ select * from peeTeaEff(w);
 code }
 
 }
+{ Non-leaf and leaf PTFs
+
+  PTFs with a `table` parameter are called *non-leaf PTFs*, PTFs without such a paramter *leaf PTFs*.
+
+  Apparently, *leaf PTFs* are not implemented by Oracle.
+
+
+}
+
 
 sa:
   → development/databases/Oracle/PL-SQL/function-procedure[PL/SQL functions and procedures]
 
   → development/databases/Oracle/installed/packages/dbms/tf[`dbms_tf`]
 
+  → development/databases/Oracle/errors[Error messages]:
+    • → development/databases/Oracle/errors/ORA-62569_nested-polymorphic-table-function-is-disallowed
+
   → misc/ISO/9075/features/B200[SQL standard: Feature B200]: → misc/ISO/9075#sql-standard-ptf[Polymorphic table functions]
+
+  The execution plan operation `→ development/databases/Oracle/SQL/statement/execution/plan/operations/polymorphic-table-function`

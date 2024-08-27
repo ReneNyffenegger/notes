@@ -1,0 +1,44 @@
+$ ORA-62569: nested polymorphic table function is disallowed
+
+code {
+create or replace package tq84_ptf_pkg authid definer as
+
+   function describe(tab in out dbms_tf.table_t) return dbms_tf.describe_t;
+end tq84_ptf_pkg;
+/
+
+create or replace package body tq84_ptf_pkg as
+
+   function describe(tab in out dbms_tf.table_t) return dbms_tf.describe_t
+   is begin
+      return null;
+   end describe;
+
+end tq84_ptf_pkg;
+/
+
+
+create or replace function tq84_ptf(tab table) return table pipelined row polymorphic using tq84_ptf_pkg;
+/
+code }
+
+This works:
+code {
+select * from tq84_ptf(dual);
+code }
+
+This throws *ORA-62569: nested polymorphic table function is disallowed*
+code {
+select * from tq84_ptf(tq84_ptf(dual));
+code }
+
+Nesting of → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table[PTFs] is indirectly possible using the `→ development/databases/Oracle/SQL/clauses/with[with]` clause:
+code {
+with a as (select * from tq84_ptf(dual))
+select * from tq84_ptf(a);
+code }
+
+sa:
+  → development/databases/Oracle/PL-SQL/function-procedure/polymorphic-table[Polymorphic table functions]
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
