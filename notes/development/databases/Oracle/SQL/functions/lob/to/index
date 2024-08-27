@@ -6,6 +6,34 @@ a → development/databases/Oracle/SQL/data-types/lob[lob data type].
 
 gh|Oracle-Patterns|/SQL/functions/to_lob.sql||
 
+{ WTF #ora-to-lob-wtf
+
+  WTF, or more specifically, why?
+
+  The following select statement throws → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes#ora-00932-exp-got-clob
+code {
+select to_lob(data_default) def_dat from user_tab_columns;
+code }
+ 
+   But if the *same* select statement is used in a → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[`create table … as select …`] statement, it works and the table will be created:
+code {
+create table tq84_to_lob_wtf as
+select to_lob(data_default) def_dat from user_tab_columns;
+-- Table TQ84_TO_LOB_WTF created.
+ 
+desc tq84_to_lob_wtf;
+-- Name    Null? Type
+-- ------- ----- ----
+-- DEF_DAT       CLOB
+code }
+ 
+   Cleaning up
+code {
+drop table tq84_to_lob_wtf;
+code }
+
+}
+
 rem {
 
 { to_blob()
