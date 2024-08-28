@@ -48,6 +48,38 @@ The → development/databases/SQL-Server equivalent for clob is `text` and `imag
   
   }
 }
+{ LOB Index
+
+  Oracle creates an index for each LOB column. The name of these indexes start with `SYS_IL` and end with `$$`.
+
+code {
+create table tq84_xyz (
+   id  integer primary key,
+   txt clob
+);
+
+select
+   index_name
+from
+   user_lobs
+where
+   table_name  = 'TQ84_XYZ' and
+   column_name = 'TXT';
+--
+-- SYS_IL0000107991C00002$$
+code }
+
+  The index is registered in the data dictionary:
+code {
+select * from user_indexes where index_name = 'SYS_IL0000107991C00002$$';
+code }
+
+  But is has no ordinary columns, the following statement returns nothing:
+code {
+select * from user_ind_columns where index_name = 'SYS_IL0000107991C00002$$';
+code }
+
+}
 { ORA-06502: PL/SQL: numeric or value error: character string buffer too small #lob-ora-06502
 
   When concatenating strings (→ development/databases/Oracle/SQL/data-types/varchar2[`varchar2`]) and the resulting length becomes larger than 64 KB,
