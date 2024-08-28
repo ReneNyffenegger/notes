@@ -80,21 +80,6 @@ where
 code }
 
 }
-{ Unix Epoch
-
- `ksudbrmseccnt_` stores the value of the → development/date-time/Unix-time[Unix epoch] (seconds since January 1st 1970):
-code {
-select
-   date '1970-01-01' + (1/24/60/60) * to_number(mem.ksmmmval, rpad('x', 16, 'x')) as "current time UTC"
-from
-   x$ksmfsv   var                                   join
-   x$ksmmem   mem on var.ksmfsadr = mem.addr
-where
-   var.ksmfsnam = 'ksudbrmseccnt_'
-;
-code }
- 
-}
 { Dumping variable values with oradebug
 
   → development/databases/Oracle/tools/oradebug[ORADEBUG] allows to print the value of a variable with the → development/databases/Oracle/tools/oradebug/dumpvar[`dumpvar`] command:
@@ -177,6 +162,12 @@ code }
    `ksmanotshnm_` ☰ `oratext *` ☰
    `ksmanotshnme_` ☰ `oratext *` ☰
    `kspstrs_buf_` ☰ `oratext *` ☰ The string `"_appqos_qt"`. This value is incidentally (?) the first value returned by `select ksppinm from x$ksppi`.
+   `kstmrmtickcnt_` ☰ `ub4` ☰ Counts tenth of seconds. Seems to be started shortly after instance startup
+   `kstmlastHighResTime_` ☰ `ub8` ☰
+   `kstmlastLowResTime_` ☰ `ub4` ☰
+   `ksudbrmseccnt_` ☰ `ub4` ☰ Unix epoch
+   `ksuinstchk_proc_` ☰ `ksupr *` ☰ (instance check process?) This pointer seems to point to memory related to PMON 
+   `ksufix_` ☰ `ub8` ☰ Value that records how often a fixed table was accessed? Seems to be increased by selecting from a fixed table.
    `ksuplsb_` ☰ `oratext *` ☰
    `kzekmrsafipspath_` ☰ `oratext *` ☰ The path to `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/lib`
    `qmhsthdr_` ☰ `oratext *` ☰ The string `"MS-Author-Via: DAV\r\nDAV: 1,2,<http://www.oracle.com/xdb/webdav/props>\r\n"`
@@ -186,6 +177,170 @@ code }
    `sdsudd_` ☰ `text *` ☰ Trace directory? (something like `$ORACLE_HOME/rdbms/log`). Compare with `sdsddd_`
 
   table }
+
+  { ksudbrmseccnt_ (Unix Epoch)
+
+   `ksudbrmseccnt_` stores the value of the → development/date-time/Unix-time[Unix epoch] (seconds since January 1st 1970):
+code {
+select
+   date '1970-01-01' + (1/24/60/60) * to_number(mem.ksmmmval, rpad('x', 16, 'x')) as "current time UTC"
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr
+where
+   var.ksmfsnam = 'ksudbrmseccnt_'
+;
+code }
+ 
+  }
+  { kstmrmtickcnt_, kstmlastHighResTime_, kstmlastLowResTime_
+
+code {
+select
+   to_char(sysdate - (1/24/60/60) *to_number(mem.ksmmmval, rpad('x', 16, 'x')) / 10, 'yyyy-mm-dd hh24:mi:ss') ticks,
+   to_char(startup_time                                                            , 'yyyy-mm-dd hh24:mi:ss') startup
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr  cross join v$instance
+where
+   var.ksmfsnam = 'kstmrmtickcnt_'
+;
+code }
+
+code {
+select
+   to_char(sysdate - (1/24/60/60) *to_number(mem.ksmmmval, rpad('x', 16, 'x')) / 1000/1000, 'yyyy-mm-dd hh24:mi:ss') ticks,
+   to_char(startup_time                                                                   , 'yyyy-mm-dd hh24:mi:ss') startup
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr  cross join v$instance
+where
+   var.ksmfsnam = 'kstmlastHighResTime_'
+;
+code }
+
+code {
+select
+   to_char(sysdate - (1/24/60/60) *to_number(mem.ksmmmval, rpad('x', 16, 'x')) / 1000, 'yyyy-mm-dd hh24:mi:ss') ticks,
+   to_char(startup_time                                                            , 'yyyy-mm-dd hh24:mi:ss') startup
+from
+   x$ksmfsv   var                                   join
+   x$ksmmem   mem on var.ksmfsadr = mem.addr  cross join v$instance
+where
+   var.ksmfsnam = 'kstmlastLowResTime_'
+;
+code }
+
+  }
+  { TODO
+
+    Variable names that are not exposed:
+code {
+select
+   substr(val_hex, 1, 8) kcrf_lgwr_write_cnt_ , -- < This variable (or its name) is not found in x$ksmfsv (likely because it is a word)
+   substr(val_hex, 9   ) kcrf_max_read_recsz_
+from (
+   select
+      mem.ksmmmval                                     val_hex
+   from
+      x$ksmfsv   var                                   join
+      x$ksmmem   mem on var.ksmfsadr = mem.addr
+   where
+      var.ksmfsnam = 'kcrf_max_read_recsz_'
+);
+code }
+ 
+   `ksbsa` variables:
+code {
+select
+   to_number(m_0.ksmmmval, lpad('x', 16, 'x'))    id,         -- m_0_val,
+             var.ksmfsnam                         var_nam,
+             m_2.ksmmmval                         m_2_val,
+             m_x.ksmmmval                         m_x_val,    -- Flags?
+             v_x.ksmfsnam                         xnam,
+             v_x.ksmfstyp                         xtyp,       -- Always ksbdp (or null)
+       ltrim(m_1.ksmmmval, '0')                   ptr         -- m_1_val
+from
+   x$ksmfsv   var                                                                                                     join
+   x$ksmmem   m_0 on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') + 0,'fm0XXXXXXXXXXXXXXX')= m_0.addr          join
+   x$ksmmem   m_1 on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') + 8,'fm0XXXXXXXXXXXXXXX')= m_1.addr          join
+   x$ksmmem   m_2 on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') +16,'fm0XXXXXXXXXXXXXXX')= m_2.addr     left join
+   x$ksmmem   m_x on m_1.ksmmmval = m_x.addr                                                                     left join
+   x$ksmfsv   v_x on m_x.addr     = v_x.ksmfsadr
+where
+   var.ksmfstyp = 'ksbsa'
+order by
+-- m_2.ksmmmval -- index
+   v_x.ksmfsnam
+;
+code }
+
+  krdrsb_ckpt_action_
+code {
+with cnt as (select (level-1) * 8 as val from dual connect by level <= 3)
+select
+   mem.addr,
+   mem.ksmmmval                                     mem_val
+from
+   cnt                                                                                                           cross join
+   x$ksmfsv   var                                                                                                      join
+   x$ksmmem   mem on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') + cnt.val,'fm0XXXXXXXXXXXXXXX')= mem.addr
+where
+   var.ksmfsnam like 'krdrsb_ckpt_action_'
+;
+
+alter system checkpoint;
+code }
+
+  }
+
+}
+{ Select continuous memory values
+
+code {
+with cnt as (select (level-1) * 8 as val from dual connect by level <= 18)
+select
+-- var.ksmfsnam                                     var_nam,
+   mem.addr,
+   mem.ksmmmval                                     mem_val
+from
+   cnt                                                                                                           cross join
+   x$ksmfsv   var                                                                                                      join
+   x$ksmmem   mem on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') + cnt.val,'fm0XXXXXXXXXXXXXXX')= mem.addr
+where
+   var.ksmfsnam like 'ksusrollat_'
+;
+  
+code }
+
+}
+{ Misc
+
+  { Failed attempt to read gets and immedate_gets for a latch
+
+code {
+select
+-- var.ksmfsnam                                     var_nam,
+   mem.addr,
+   mem.ksmmmval                                     mem_val
+from
+   x$ksmfsv   var                                                                                                join
+   x$ksmmem   mem on to_char(to_number(var.ksmfsadr, 'XXXXXXXXXXXXXXXX') + 1*8,'fm0XXXXXXXXXXXXXXX')= mem.addr
+where
+   var.ksmfsnam like 'ksusoln_' -- 'session allocation'
+;
+
+
+select
+   to_char(          gets, 'xxxxxxxx') g,
+   to_char(immediate_gets, 'xxxxxxxx') i
+from
+   v$latch
+where
+   name = 'session allocation';
+code }
+
+  }
 
 }
 
