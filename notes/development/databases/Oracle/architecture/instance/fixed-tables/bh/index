@@ -151,7 +151,7 @@ order by
 ;
 code }
 
-{ prv and nxt values
+{ PRV and NXT values
 
   The various `prv` and `nxt` values are unique (or distinct):
 code {
@@ -165,6 +165,25 @@ select
    count(distinct aq_prv  ) cnt_pa, count(distinct aq_nxt  ) cnt_na
 from
    x$bh;
+code }
+
+}
+{ SET_DS
+
+  As per → https://x.com/ora600pl/status/1828849112155861188[Kamil Stawiarski], `set_ds` and `set_ds + 264` are addresses of latches that protect the buffer.
+
+code {
+select
+   count(*),
+   set_ds_dec,
+   set_ds_dec + 264 set_ds_dec_
+from (
+   select to_number(set_ds, lpad('x', 16, 'x')) set_ds_dec from x$bh
+)
+group by
+   set_ds_dec,
+   set_ds_dec + 264
+;
 code }
 
 }
