@@ -1,0 +1,33 @@
+$ ORA-01955: Role "" not granted to the user.
+
+code {
+create user tq84_user;
+
+create role tq84_role_direct;
+create role tq84_role_indirect;
+
+grant create session     to tq84_role_indirect;
+grant tq84_role_indirect to tq84_role_direct;
+grant tq84_role_direct   to tq84_user;
+code }
+
+The following `alter user` statement runs without problem:
+code {
+alter user tq84_user default role all except tq84_role_direct;
+code }
+
+This statement throws *ORA-01955: Role "TQ84_ROLE_INDIRECT" not granted to the user*.
+code {
+alter user tq84_user default role all except tq84_role_indirect;
+code }
+
+Cleaning up:
+code {
+drop user tq84_user;
+drop role tq84_role_direct;
+drop role tq84_role_indirect;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages]

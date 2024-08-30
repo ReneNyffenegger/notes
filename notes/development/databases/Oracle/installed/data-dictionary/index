@@ -12,19 +12,38 @@ The data in the base tables is not always stored in a user friendly way and Orac
 Each of these views comes in up to four variants that have one of the prefixes `USER_`, `ALL_`, `DBA_` and/or `CDB_`:
 table { ll
   ~Prefix~ ☰
-  `USER_` ☰ Only shows → development/databases/Oracle/objects[objects] that are owned by the → development/databases/Oracle/users-roles/users[user] that selects from that view
+  `USER_` ☰ Only shows → development/databases/Oracle/objects[objects] that are owned by the → development/databases/Oracle/users-roles/users[user] that selects from that view. Thus, these views don't have an `OWNER` column.
   `ALL_` ☰ Shows objects on which the querying user has been granted → development/databases/Oracle/security/privileges[privileges]
   `DBA_` ☰ All objects, sometimes with addtional columns that are interesting for → development/databases/DBA[DBAs].
-  `CDB_` ☰
+  `CDB_` ☰ Used in the root of a PDB to select information about all objects in the root and PDBs (thus it includes a `CON_ID` column). In a PDB, the CDB_* views show the objects that are visible throght the corresponding DBA_* views.
 table }
 
 The → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/data-dictionary-cache is the portion of the memory in which the data of the data dictionary is stored that is currently processed or cached.
 
-Oracle's data dictionary is created by → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catalog_sql[`$ORACLE_HOME/rdbms/admin/catalog.sql`] and stored in the
-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[SYSTEM tablespace] which is always online when a → development/databases/Oracle/architecture/instance/startup-shutdown[database is open].
 
 → development/databases/Oracle/architecture/processes/background/SMON cleans up the data dictionary when it is in a transient and inconsistent state.
 
+{ Installation 
+
+  Oracle's data dictionary is created by `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catalog_sql` and stored in the
+  → development/databases/Oracle/architecture/database/logical-structures/tablespace/SYSTEM[SYSTEM tablespace] which is always online when a → development/databases/Oracle/architecture/instance/startup-shutdown[database is open].
+ 
+  → development/databases/Oracle/PL-SQL related views are created with `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catproc_sql`
+
+  `→ development/databases/Oracle/installed/data-dictionary/registry` (which itself is part of the datadictionary…) can be queried to assert that the data dictionary was installed and its status ijs valid:
+code {
+select
+   comp_id,
+   status,
+   version,
+   comp_name
+from
+   → development/databases/Oracle/installed/data-dictionary/registry
+where
+   comp_id in ('CATALOG', 'CATPROC');
+code }
+
+}
 { Views of the data dictionary
 
   Views that expose the data of the data dictionary are: 
@@ -1212,13 +1231,16 @@ sa:
 
   Data dictionary views(?) → development/databases/Oracle/installed/data-dictionary/_wmsys[that are owned by `WMSYS`].
 
-  The `ANALYZE ANY DICTIONARY` → development/databases/Oracle/security/privileges/system[system privilege].
+  The `ANALYZE ANY DICTIONARY` → development/databases/Oracle/security/privileges/system[system privilege] and the `o7_dictionary_accessibility` init parameter.
 
   Almost (if not) all `ALL_` views depend on → development/databases/Oracle/architecture/instance/fixed-tables/k/z/s/ro[`x$kzsro`].
 
   → development/databases/Oracle/installed/data-dictionary/nls[NLS] related views.
 
   The `→ development/databases/Oracle/SQL/dual` table
+
+  MOS Note 1500058.1
+
 
 links:
   Jochen Rapp's → https://www.viskey4you.com/[VISKey] is a lookup tool the get the select statements for the most popular data dictionary views.
