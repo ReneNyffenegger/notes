@@ -1,19 +1,37 @@
 $ ORACLE_HOME/bin/wrap
 
-`wrap` is an executable that can be used to *obfuscate* → development/databases/Oracle/PL-SQL code.
+`wrap` is an executable that can be used to *obfuscate* → development/databases/Oracle/PL-SQL code, i. e. the original source code is not visible anymore in `→ development/databases/Oracle/installed/data-dictionary/source`.
+
+code {
+wrap iname=source.plsql [oname=source.plb]
+code }
+
+If `oname=` is omitted, `wrap` will use the name of the input file and change the extension to `.plb`.
+
+Triggers cannot be wrapped.
 
 { Unwrapping wrapped PL/SQL code
 
-  After obfuscating such code, it can be deobfuscated («unrapped») again with, for example with the following Python script:
-  gh|py-PL-SQL-unwrapper|/unwrap.py||
+  Oracle claims that wrapped code is difficult to recover. I believe this statement is wrong: The code can be deobfuscated («unrapped») again with, for example, the following Python script (but comments of the original code are lost):
+  gh|py-PL-SQL-unwrapper|/plsql_unwrap.py||
 
-  This script was originally written by *Niels Teusink* as → development/languages/Python 2 script and published on
-  → https://github.com/ReneNyffenegger/py-PL-SQL-unwrapper/blob/master/unwrap.py[github].
+  The first version of script was originally written by *Niels Teusink* as → development/languages/Python 2 script and published on
+  → https://github.com/DarkAngelStrike/UnwrapperPLSQL/blob/master/unwrap.py[github].
   -
   I modified this script to run with Python 3.
+
+}
+{ Unwrapping all wrapped code in ORACLE_HOME/rdbms/admin #unwrap-orahome-py
+
+  The following script uses `plsql_unwrap.py` to unwrap all wrapped code found in `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin`:
+  gh|py-PL-SQL-unwrapper|/unwrap-orahome.py||
 
 }
 
 sa:
 
   `→ development/databases/Oracle/installed/packages/dbms/ddl[dbms_ddl].create_wrapped` and `→ development/databases/Oracle/installed/packages/dbms/ddl[dbms_ddl].wrap`
+
+  The code of this page is found in → https://github.com/ReneNyffenegger/py-PL-SQL-unwrapper[this github repository].
+
+  MOS Note 341504.1
