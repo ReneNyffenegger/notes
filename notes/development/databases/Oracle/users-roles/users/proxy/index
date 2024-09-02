@@ -1,0 +1,113 @@
+$ Oracle: Proxy User
+
+
+Create two → development/databases/Oracle/users-roles/users[users], a user (or schema) which represents an application (`tq84_usr_app`) and another user (`tq84_usr_prx`) which will eventually become a proxy user for the application schema:
+code {
+define db=localhost:1533/freepdb1
+
+connect sys/iAmTheDBA@&db as sysdba
+
+
+create user tq84_usr_app
+   identified by pw
+;
+
+create user tq84_usr_prx
+   identified by pw
+;
+
+
+grant  create session,
+       create procedure
+   to
+       tq84_usr_app;
+
+
+grant  create session
+   to 
+       tq84_usr_prx;
+code }
+
+
+The following `alter user` statements makes `tq84_usr_prx` a proxy user for `tq84_usr_app`:
+code {
+alter user tq84_usr_app grant connect through tq84_usr_prx;
+code }
+
+
+The application user creates an (admittedly simple) application: the PL/SQL package `pkg` whose only procedure is `who_am_i`:
+code {
+connect tq84_usr_app/pw@&db
+
+create or replace package tq84_usr_app.pkg
+   authid definer
+as
+
+    procedure who_am_i;
+  
+end pkg;
+/
+
+create or replace package body tq84_usr_app.pkg
+as
+
+    procedure who_am_i is
+    begin
+
+       → development/databases/Oracle/installed/packages/dbms/output/api/put_line[dbms_output.put_line]('current user = ' || → development/databases/Oracle/SQL/functions/sys_context('userenv', 'current_user'));
+       → development/databases/Oracle/installed/packages/dbms/output/api/put_line[dbms_output.put_line]('proxy user   = ' || → development/databases/Oracle/SQL/functions/sys_context('userenv', 'proxy_user'  ));
+
+    end who_am_i;
+  
+end pkg;
+/
+code }
+
+The application user executes `pkg.who_am_i`:
+code {
+→ development/databases/Oracle/SQL-Plus/set/serveroutput on
+begin
+   pkg.who_am_i;
+end;
+/
+code }
+
+The procedure prints:
+code {
+current user = TQ84_USR_APP
+proxy user   =
+code }
+
+Now, the proxy user connects to `tq84_usr_app` using his own credentials:
+code {
+connect tq84_usr_prx[tq84_usr_app]/pw@&db
+code }
+
+The proxy user has now all privileges that `tq84_usr_app` has and thus can execute the package that belongs to `tq84_usr_app` (note especially that there is no `execute` grant on the package to `tq84_usr_prx`):
+code {
+set serveroutput on
+begin
+   pkg.who_am_i;
+end;
+/
+code }
+
+The procedure prints:
+code {
+current user = TQ84_USR_APP
+proxy user   = TQ84_USR_PRX
+code }
+
+Cleaning up:
+code {
+connect sys/iAmTheDBA@&db as sysdba
+
+drop user if exists tq84_usr_app cascade;
+drop user if exists tq84_usr_prx cascade;
+code }
+
+sa:
+
+ `→ development/databases/Oracle/installed/data-dictionary/proxies`
+
+  `sys.proxy_info$`
