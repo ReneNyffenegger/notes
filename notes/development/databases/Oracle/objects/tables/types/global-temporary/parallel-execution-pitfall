@@ -1,0 +1,43 @@
+$ Oracle: Pitfall when using Global Temporary Tables in Parallel Execution
+
+Two tables, an «ordinary» and a → development/databases/Oracle/objects/tables/types/global-temporary[global temporary] are created…
+code {
+create table tq84_tab (n integer);
+create global temporary table tq84_gtt (n number) on commit preserve rows;
+code }
+
+… and populated with 10000 and 1 rows:
+code {
+insert into tq84_tab select level from dual → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by level] <= 10000;
+insert into tq84_gtt values (42);
+
+commit;
+code }
+
+This function returns the (only) value that is stored in the global temporary table:
+code {
+create or replace function tq84_func return number
+   → development/databases/Oracle/PL-SQL/authid definer
+as
+   n_ number;
+   begin
+   select n into n_ from tq84_gtt;
+   return n_;
+end tq84_func;
+/
+code }
+ 
+The following select statement returns 41 rows, as expected:
+code {
+select * from tq84_tab where n < tq84_func;
+code }
+ 
+The following query is → development/databases/Oracle/SQL/statement/execution/parallel[executed in parallel] and returns (possibly a bit unexpectedly) no rows:
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */ * from tq84_tab where n < tq84_func;
+code }
+
+This is because in parallel execution, the parallel sessions cannot see the data in the global temporary table (which is not shared among sessions).
+
+sa:
+  → development/databases/Oracle/objects/tables/types/global-temporary[Global temporary tables]
