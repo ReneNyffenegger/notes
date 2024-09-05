@@ -25,6 +25,11 @@ code }
 
 { NLS_CHARACTERSET #ora-nls_characterset
 
+  The value of `nls_characterset` defines the → development/Unicode/character-set for the `→ development/databases/Oracle/SQL/data-types/char`,
+ `→ development/databases/Oracle/SQL/data-types/varchar2`, → development/databases/Oracle/SQL/data-types/lob[`clob`] and `→ development/databases/Oracle/SQL/data-types/long` data types.
+
+ `→ development/databases/Oracle/installed/packages/utl/file` assumes the files it reads or writes are to be in the → development/Unicode/character-set specified with `nls_characterset`.
+
   A list of valid values for `nls_characterset` can be obtained with
 code {
 select
@@ -37,6 +42,8 @@ where
 order by
    value;
 code }
+
+  Compare with `nls_nchar_characterset`
 
 }
 { NLS_COMP #ora-nls_comp
@@ -58,6 +65,8 @@ code }
 }
 { NLS_LANG #ora-nls_lang
 
+  The purpose of `NLS_LANG` is to specify the character set of the client so that Oracle can correctly convert between the client's encoding (`nls_lang`) and the database's encoding (`nls_characterset`, `nls_nchar_characterset`).
+
   The value of `NLS_LANG` sets the language and territory of both, the session running on the Server, and the client.
   -
   Do not confuse `NLS_LANG` with `NLS_LANGUAGE` (`NLS_LANG`, unlike `NLS_LANGUAGE`, is *not* an → development/databases/Oracle/adminstration/init-parameters[init parameter] that can be set in `init.ora` or an spfile).
@@ -73,19 +82,45 @@ code }
     • with an underscore between the language and the territory and
     • with a dot between the territory and character set
 
-  An exaple of an `NLS_LANG` value is `FRENCH.CANADA.WE8ISO8859P1`.
+  An example of an `NLS_LANG` value is `FRENCH.CANADA.WE8ISO8859P1`.
 
   The language specifies the value of `NLS_LANGUAGE`, the value of territory the value of → #ora-nls_territory[`NLS_TERRITORY`].
 
   The value of `NLS_LANG` should correspond to that of the client's operating system.
 
-  In → development/databases/Oracle/SQL-Plus, when running in Windows, the value of `NLS_LANG` can be determined with `@.[%NLS_LANG%]` (→ development/databases/Oracle/SQL-Plus#sqlplus-nls_lang-windows[see here]).
 
+  { Determining the value of NLS_LANG
 
-  TODO: → development/databases/Oracle/SQL-Plus#sqlplus-char-set[Setting the environment variable `NLS_LANG`] prior to starting
-  → development/databases/Oracle/SQL-Plus.
+code {
+select
+   any_value(client_charset) nls_lang
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session/connect_info
+where
+   sid = sys_context('userenv', 'sid');
+code }
 
-  See also MOS note 137127.1: Character Sets, Code Pages, Fonts and the NLS_LANG Value 
+   In → development/databases/Oracle/SQL-Plus, when running in Windows, the value of `NLS_LANG` can be determined with the following esoteric command (→ development/databases/Oracle/SQL-Plus#sqlplus-nls_lang-windows[see here]):
+code {
+SQL @[%NLS_LANG%]
+code }
+
+  }
+  { TODO
+
+    → development/databases/Oracle/SQL-Plus#sqlplus-char-set[Setting the environment variable `NLS_LANG`] prior to starting
+    → development/databases/Oracle/SQL-Plus.
+
+  }
+  { See also
+
+     → development/databases/Oracle/errors/ORA-12705_Cannot-access-NLS-data-files-or-invalid-environment-specified
+
+     → development/databases/Oracle/SQLcl apparently does not take the value of `nls_lang` into account. Instead, → development/databases/Oracle/SQLcl/commands/set/encoding[`set encoding`] should be used.
+
+     MOS note 137127.1: Character Sets, Code Pages, Fonts and the NLS_LANG Value 
+
+  }
 
 }
 { NLS_LANGUAGE
@@ -107,6 +142,17 @@ code }
   always character-based.
 
   See also → development/databases/Oracle/SQL/data-types/varchar2/byte-vs-char[`VARCHAR2`: `BYTE` vs `CHAR`].
+
+}
+{ NLS_NCHAR_CHARACTERSET
+
+ `nls_nchar_characterset` defines the character set in which `nchar`, `nvarchar2` and `nclob` data is stored.
+
+  Only two values (both of which are Unicode character sets) are allowed for `nls_nchar_characterset`:
+    • `UTF8`, or
+    • `AL16UTF16` (which is the default)
+
+  See also `nls_characterset`, MOS Note 276914.1
 
 }
 { NLS_NUMERIC_CHARACTERS #nls_numeric_characters

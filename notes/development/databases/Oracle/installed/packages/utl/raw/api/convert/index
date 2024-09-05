@@ -8,6 +8,70 @@ Compare with → development/databases/Oracle/installed/packages/utl/i18n/api/st
 
 gh|Oracle-Patterns|/Installed/utl/raw/convert.plsql||
 
+{ Compare some 8-bit character sets
+
+  The following `select` statement uses `utl_raw.convert` in combination with `utl_raw.cast_to_varchar2` to compare
+  four 8-bit → development/Unicode/character-set[character sets]:
+code {
+with
+   num255 as (
+   --
+   -- → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[Number generator]:
+   --    Generate all numbers between 1 and 255
+   --    Return the numbers in decimal and hexadecimal format.
+   --
+      select
+         level                   dec,
+         to_char(level, 'fm0X')  hex
+      from
+         dual connect by level <= 255
+   ),
+   numraw as (
+   --
+   -- Apply hextoraw() to create a raw from the numbers' hexadecimal representation:
+   --
+      select
+         num255.dec,
+         num255.hex,
+         hextoraw(num255.hex) raw_
+      from
+         num255
+   ),
+   chars as (
+   --
+   -- This query is supposed to be on a database with character set AL32UTF8.
+   -- Therefore, use utl_raw.convert to interpret the raw value in AL32UTF8 and
+   -- convert it to a raw that corresponds to one of the four desired character sets.
+   -- Use utl_raw.cast_to_varchar2 to create a varchar2 from the raw varsion.
+   --
+      select
+         dec,
+         hex,
+      -- raw_,
+         utl_raw.cast_to_varchar2(utl_raw.convert(raw_, 'al32utf8', 'we8mswin1252' )) we8mswin1252,
+         utl_raw.cast_to_varchar2(utl_raw.convert(raw_, 'al32utf8', 'we8iso8859p1' )) we8iso8859p1,
+         utl_raw.cast_to_varchar2(utl_raw.convert(raw_, 'al32utf8', 'we8iso8859p9' )) we8iso8859p9,
+         utl_raw.cast_to_varchar2(utl_raw.convert(raw_, 'al32utf8', 'we8iso8859p15')) we8iso8859p15
+      from
+         numraw
+    )
+select
+   *
+from
+   chars
+where
+--
+--  Apply a filter to select specific characters.
+--
+-- we8mswin1252 <> we8iso8859p1
+-- we8iso8859p1 <> we8iso8859p9
+-- we8iso8859p9 <> we8iso8859p15
+   1 = 1
+;
+code }
+
+}
+
 sa:
 
   `→ development/databases/Oracle/SQL/functions/text/convert`
