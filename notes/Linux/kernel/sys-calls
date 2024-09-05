@@ -4,44 +4,48 @@ A program requests the execution of a service provided by the → Linux/kernel[k
 These calls are identified by a number (see  `→ Linux/kernel/source/arch/x86/entry/syscalls/syscall_64_tbl` and `→ Linux/kernel/source/arch/x86/include/generated/asm/syscalls_64_h`).
 
 
-{ Executing syscalls and passing parameters
+{ Executing syscalls and passing parameters (x64) #syscall-x64-abi
+
 
   For 64 bit x86 applications, `→ Linux/kernel/source/arch/x86/entry/entry_64_S` contains the following useful comment:
-  "
-  64-bit SYSCALL instruction entry. Up to 6 arguments in registers.
- 
-  This is the only entry point used for 64-bit system calls.  The
-  hardware interface is reasonably well designed and the register to
-  argument mapping Linux uses fits well with the registers that are
-  available when SYSCALL is used.
- 
-  SYSCALL instructions can be found inlined in libc implementations as
-  well as some other programs and libraries.  There are also a handful
-  of SYSCALL instructions in the vDSO used, for example, as a
-  clock_gettimeofday fallback.
- 
-  64-bit SYSCALL saves rip to rcx, clears rflags.RF, then saves rflags to r11,
-  then loads new ss, cs, and rip from previously programmed MSRs.
-  rflags gets masked by a value from another MSR (so CLD and CLAC
-  are not needed). SYSCALL does not save anything on the stack
-  and does not change rsp.
- 
-  Registers on entry:
-  rax  system call number
-  rcx  return address
-  r11  saved rflags (note: r11 is callee-clobbered register in C ABI)
-  rdi  arg0
-  rsi  arg1
-  rdx  arg2
-  r10  arg3 (needs to be moved to rcx to conform to C ABI)
-  r8   arg4
-  r9   arg5
-  (note: r12-r15, rbp, rbx are callee-preserved in C ABI)
- 
-  Only called from user space.
-  "
+code {
+64-bit SYSCALL instruction entry. Up to 6 arguments in registers.
+
+This is the only entry point used for 64-bit system calls.  The
+hardware interface is reasonably well designed and the register to
+argument mapping Linux uses fits well with the registers that are
+available when SYSCALL is used.
+
+SYSCALL instructions can be found inlined in libc implementations as
+well as some other programs and libraries.  There are also a handful
+of SYSCALL instructions in the vDSO used, for example, as a
+clock_gettimeofday fallback.
+
+64-bit SYSCALL saves rip to rcx, clears rflags.RF, then saves rflags to r11,
+then loads new ss, cs, and rip from previously programmed MSRs.
+rflags gets masked by a value from another MSR (so CLD and CLAC
+are not needed). SYSCALL does not save anything on the stack
+and does not change rsp.
+
+Registers on entry:
+rax  system call number
+rcx  return address
+r11  saved rflags (note: r11 is callee-clobbered register in C ABI)
+rdi  arg0
+rsi  arg1
+rdx  arg2
+r10  arg3 (needs to be moved to rcx to conform to C ABI)
+r8   arg4
+r9   arg5
+(note: r12-r15, rbp, rbx are callee-preserved in C ABI)
+
+Only called from user space.
+code }
+  
+  Compare with the → development/languages/C-C-plus-plus/calling-convention#sys-v-abi[System V ABI].
 
   See also the note about → development/languages/assembler/x86/dialects[x64 assembler dialects] where the `exit` syscall is used to demonstrate some dialects.
+
 
 }
 { Assembler code to call a syscall #linux-syscall-assembler
@@ -882,7 +886,7 @@ sa:
 
   System calls can be traced with `→ Linux/shell/commands/strace`.
 
-  → Linux/kernel/source/Documentation/adding-syscalls_txt
+ `→ Linux/kernel/source/Documentation/adding-syscalls_txt`
 
   → development/languages/C-C-plus-plus/C/libc#libc-syscall[libc's `syscall`], (defined in `unistd.h`).
 
@@ -890,7 +894,7 @@ sa:
 
   → Linux/kernel/process#user-kernel-space
 
-  → Linux/fhs/sys/kernel/debug/tracing/available_events
+ `→ Linux/fhs/sys/kernel/debug/tracing/available_events`
 
  `→ Linux/kernel/source/scripts/checksyscalls_sh`
 
