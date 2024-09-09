@@ -4,12 +4,21 @@
  `valgrind` is built using the standard `./configure`, `make`, `make install` trilogoy.
 
 }
-{ Building targetted program
+{ Building and running target program
 
   Options with which the targetted program should (or might) be built include:
     • `-g`
     • `-fno-inline` (or alternatively using the valgrind option `--read-inline-info=yes`)
     • `-O0` or `-O` (except when using cachegrind (and callgrind?))
+
+  Otherwise, the target program does not need to be linked to special valgrind libraries.
+
+  The target program can then be analyzed with
+code {
+valgrind [valgrind-options] the-executable [options of the-executable]j
+code }
+
+  `the-executable` is then executed on a synthetic CPU (i. e. every instruction is simulated).
 
 }
 
@@ -21,7 +30,7 @@
   table { ll
     memcheck ☰ Intercepts calls to `malloc`, `new`, `free` and `delete`, and generally checks all reads and writes of memory.
     cachegrind ☰ A cache and prediction profiler. It simulates the CPU's I1, D1 and L2 caches and is used to make programs faster. (It seems that the simulation of the cache hierarchy is turned off by default and apparantly, `perf` that accesses hardeware counters is the better tool for such things)
-    callgrind ☰ An exension to cachegrind (call-graph generation). The collected data can be visualized with *KCachegrind*.
+    callgrind ☰ An extension to cachegrind (call-graph generation). The collected data can be visualized with *KCachegrind*.
     massif ☰ A heap profiler helping to reduce memory usage.
     helgrind ☰ A thread debugger.
     drd ☰ Detect errors in POSIX-multithreaded C/C++ programs, similar to helgrind.
