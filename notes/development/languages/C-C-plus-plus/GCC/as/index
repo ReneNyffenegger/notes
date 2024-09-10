@@ -4,6 +4,77 @@ The executable name for the GNU assembler is `as`.
 
 The main purpose of `as` is to assemble the output of the compiler (`gcc`) as object file which is then fed to the linker (`ld`).
 
+When `as` invoked via `gcc`, the `-Wa` option forwards arguments to `as`. In the following example, `gcc` passes the two options `-alh` and `-L` to `as`:
+code {
+gcc -c -g -O -Wa,-alh,-L file.c
+code }
+
+{ Symbols and labels
+
+  { Symbol
+
+    A symbol is a case sensitive sequence of the characters `a` … `z`, `A` … `Z`, `0` … `9`, `.`, `_`, `$` which does not start with a digit.
+    -
+    Other characters can be included when embedding the symbol in double quotes (`"…"`). The `"` can be escaped with `\`.
+    -
+    See also the `--multibyte-handling` option.
+
+    Symbols are given by the programmer to name things and then used by the linker and debugger.
+
+    A symbol has a name, a type and a value.
+    -
+    The *type* specifies (among others) relocation information (see also the `.type` directive)
+
+    { Local symbols
+
+      Local symbols are not saved in object files.
+
+      On ELF systems, a symbol that starts with `.L` is a *local symbol*.
+
+    }
+
+  }
+  { Labels
+
+    A label is a symbol that is immediatly followed by a colon (`:`).
+
+    A label represents the current value of the *active location counter*.
+
+    Labels can be used, for example, as instruction operands.
+
+    See also the `.set` and `.eqv` directives.
+
+    { Local lables
+
+      Local labels are used to use names temporarily.
+
+      The symbol of a local label is (non-negative) integer (for example `1234:`).
+
+     `1234b` and `1234f` refer to the most recent previous and the next definition of the (local) label.
+
+      There are also so-called «dollar-local labels» (`1234$:`)
+
+    }
+
+  }
+
+}
+{ Statements
+
+  A *statement*
+    • begins with zero or more labels,
+    • is optionally followed by a *key symbol* and
+    • ends with a new line character or a line separation character
+
+  { Kind of statement
+
+    The key symbol defines what kind the statement is and thus determines the syntax of the rest of the statement.
+      • If the key symbol begins with a letter, the statement is an assembly language instruction.
+      • If it begins with a dot, the statement is an *assembler directive*.
+
+  }
+
+}
 { Turning on intel syntax or AT&T syntax #gnu-as-intel-syntax
 
 code {
@@ -32,12 +103,12 @@ code }
     `.def NAM`, `.endef` ☰ Define deubging information for the symbol `NAM`. The definition extends until `.endef`
     `.end` ☰ End of source to be compiled
     `.func NAM[, LBL]`, `.endfunc` ☰ If source is assembled with enabled debugging, `.func` emits the function name as debugging information. `LBL` is entry point for the function and resolves to `NAM` prepended with the *leading char* (which typically is an underscore or nothing, depending on the architecture).
-    `.global SYM`☰ Makes *symbol* visible to `ld`. `.global` and `.globl` are equivalent.
+    `.globl SYM`☰ Makes *symbol* visible to `ld`. `.global` and `.globl` are equivalent.
     `.hidden`, `.internal`, `protected` ☰ ELF visiblity directives.
     `.if`, `.else` etc. ☰ Conditional compilation
     `.incbin "file"[, skip[, count]]` ☰ Include `file` verbatim at current location.
     `.include "file"` ☰ 
-    `.byte`, `.word`, `.long`, `.quad`, `.octa` ☰ `.quat` is a 8-byte integer, `.octa` is a 16-byte integer. `.short` is equivalent to `.word`, `.int` is equivalent to `.long`.
+    `.byte`, `.word`, `.long`, `.quad`, `.octa` ☰ `.quad` is an 8-byte integer, `.octa` a 16-byte integer. `.short` is equivalent to `.word`, `.int` is equivalent to `.long`.
     `.loc fileno lineno [column] …` ☰ Emit DWARF2 line number information
     .`macro …` ☰ Startof a macro definition
     `.offset loc` ☰ Set the location counter to loc in the absolute section. `loc` must be an absolute expression. Do not confuse with `.org`
@@ -108,6 +179,18 @@ code }
       • `.data`
       • `.bss` (unitialized data)
       • `.align …`
+
+  }
+  { dot symbol
+
+    `.myaddr: .long`  defines `myaddr` to contain its own address.
+
+    `.=.+4` is equivalent to `.space 4`
+
+  }
+  { -mtune
+
+   `-mtune` specifies the processor to optimize for.
 
   }
 }

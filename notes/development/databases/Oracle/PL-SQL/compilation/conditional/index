@@ -25,6 +25,61 @@ end;
 code }
 
 }
+{ Different functionality on Development, UAT and Production environments
+
+  Conditional compilation can be used to implement different functionalities depending on an environment (such as dev, uat or prod) the package is run:
+
+  { Env package
+
+    The «environment» package is created in three versions: one where `prod` is true, one where `uat` is true and one where `dev` is true and then (ideally only once) deployed to the respective destination:
+code {
+create or replace package tq84_env authid definer as
+
+   prod constant boolean := false;
+   uat  constant boolean := true;
+   dev  constant boolean := false;
+
+end tq84_env;
+/
+code }
+
+  }
+  { Functionality packages
+
+    The conditional if's in the functionality package(s) then implement differing functionality according to the values of the defined constants in the environment packages:
+code {
+create or replace package body tq84_func as
+   procedure go is
+   begin
+      dbms_output.put('Environment is ');
+      $if tq84_env.prod $then
+          dbms_output.put_line('PROD');
+      $elsif tq84_env.uat $then
+          dbms_output.put_line('UAT');
+      $elsif tq84_env.def $then
+          dbms_output.put_line('DEV');
+      $else 
+          dbms_output.put_line('undefined');
+      $end
+   end go;
+end tq84_func;
+/
+code }
+
+  }
+  { Test
+
+code {
+→ development/databases/Oracle/SQL-Plus/set/serveroutput on
+
+begin
+   tq84_func.go;
+end;
+/
+code }
+  }
+
+}
 { Conditionally throw an error when compiling ($ERROR directive)
 
   gh|Oracle-Patterns|/PL-SQL/compilation/conditional/ErrorDirective.plsql||
