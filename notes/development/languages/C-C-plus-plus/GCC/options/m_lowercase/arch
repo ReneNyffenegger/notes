@@ -4,8 +4,7 @@ $ gcc -march
 
 `gcc -march=native` produces code that is optimized for the CPU that is used to compile the program.
 -
-Code proceduced with `-march=native` is not backwards compatible, for example, an executable procuded on an Intel Core CPU won't be able to run on an (old) Intel Atom CPU.)
-
+Code produced with `-march=native` is not backwards compatible, for example, an executable procuded on an Intel Core CPU won't be able to run on an (old) Intel Atom CPU.)
 
 Other possible values for the x86 family are:
   • x86-64
@@ -67,10 +66,74 @@ code }
   }
 
 }
+{ Print known architectures
+
+code {
+$ gcc → development/languages/C-C-plus-plus/GCC/options/help[--help]=target | → development/languages/awk '/Known valid arguments for -march= option/{getline; print}' | → Linux/shell/commands/xargs -n1 | → Linux/shell/commands/sort
+amdfam10
+athlon
+athlon-4
+athlon64
+athlon64-sse3
+…
+generic
+…
+i386
+i486
+i586
+i686
+…
+lakemont
+…
+native
+…
+skylake
+…
+x86-64
+x86-64-v2
+x86-64-v3
+x86-64-v4
+…
+code }
+
+}
+{ TODO
+
+  { Showing default value for -march
+
+code {
+$ gcc -Q --help=target | grep -- '-march=  '
+  -march=                               x86-64
+code }
+
+  }
+  { What is enabled by -march=native
+
+code {
+$ gcc               -Q --help=target > /tmp/march-default
+$ gcc -march=native -Q --help=target > /tmp/march-native
+$ → Linux/shell/commands/diff -y /tmp/march-default /tmp/march-native
+code }
+
+  }
+  { attribute target
+
+  Compile a function as though `-march=…` were used:
+code {
+__attribute__((target("arch=…"))) int func (…) {
+  …
+}
+code }
+
+  }
+
+}
 
 sa:
 
- `-march=cpu-type` implies `-mtune=cpy-type` 
+ `-march=cpu-type` implies `-mtune=cpu-type` 
+
+ `-mcpu`
 
  `-mcpu` (which is deprecated for/on x86 or x86-64 systems)j
 
@@ -80,5 +143,3 @@ sa:
 
 links:
   → https://github.com/hartwork/resolve-march-native[`resolve-march-native`] is a command line tool to resolve `-march=native` into explicit GCC flags.
-
-  
