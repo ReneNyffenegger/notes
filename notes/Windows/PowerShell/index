@@ -260,6 +260,118 @@ code }
 
   }
 
+  { Docker image
+
+code {
+$ docker pull mcr.microsoft.com/powershell
+…
+mcr.microsoft.com/powershell:latest
+code }
+
+
+code {
+$ docker run -it --name pwsh mcr.microsoft.com/powershell:latest
+PowerShell 7.4.2
+
+PS /> which pwsh
+/opt/microsoft/powershell/7/pwsh
+
+PS /> grep PRETTY_NAME /etc/os-release
+PRETTY_NAME="Ubuntu 22.04.4 LTS"
+
+PS /> exit
+code }
+
+code {
+$ docker start -i pwsh
+ A new PowerShell stable release is available: v7.4.5
+   Upgrade now, or check out the release page at:
+     https://aka.ms/PowerShell-Release?tag=v7.4.5
+code }
+
+    Trying to update Powershell to the latest version
+code {
+PS /> invoke-restMethod  https://aka.ms/install-powershell.ps1 -outFile $env:temp/install-powershell.ps1
+PS /> & $env:temp/install-powershell.ps1
+…
+PowerShell has been installed at /root/.powershell
+
+PS /> /root/.powershell/pwsh
+PowerShell 7.4.5
+
+PS /> mv /opt/microsoft/powershell/7/ /opt/microsoft/powershell/7.bak
+PS /> mv /root/.powershell/ /opt/microsoft/powershell/7
+PS /> exit
+code }
+
+    Updating PowerShell seems to be successful (but is this the way it is supposed to be done?)
+code {
+$ docker start -i pwsh
+PowerShell 7.4.5
+code }
+
+    Trying to set hostname
+code {
+PS /> hostnamectl set-hostname pwsh-host
+hostnamectl: The term 'hostnamectl' is not recognized as a name of a cmdlet, function, script file, or executable program
+
+PS /> hostname pwsh-host
+hostname: you must be root to change the host name
+code }
+
+   … but I *am* root:
+code {
+PS /> id
+uid=0(root) gid=0(root) groups=0(root)
+code }
+
+  It seems the following does not have the desired effect:
+code {
+PS /> echo pwsh-host > /etc/hostname
+code }
+
+  Install Git:
+code {
+PS /> git
+git: The term 'git' is not recognized as a name of a cmdlet, function, script file, or executable program.
+…
+PS /> apt update
+PS /> apt install -y git
+code }
+
+    Add myself as user:
+code {
+PS /> useradd -s $(which pwsh) -m rene
+PS /> chpasswd
+rene:***
+^D
+code }
+
+
+    Install sudo:
+code {
+PS /> apt install -y sudo
+PS /> usermod -aG sudo rene
+code }
+
+code {
+PS /> exit
+code }
+
+code {
+$ docker start pwsh
+pwsh
+code }
+
+code {
+$ docker exec --user rene -it pwsh /opt/microsoft/powershell/7/pwsh
+code }
+
+   TODO:
+     • Why am I not in my home directory after doing `docker exec --user rene -it pwsh /opt/microsoft/powershell/7/pwsh`
+
+  }
+
 }
 sa:
   → Windows/PowerShell/examples[Examples]

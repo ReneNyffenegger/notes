@@ -87,7 +87,6 @@ code {
 sudo apt-get install docker.io
 code }
 
-
 }
 { TODO
 
@@ -163,6 +162,81 @@ code }
 
     }
   } 
+  { auth.docker.io
+
+code {
+IMG=debian
+
+TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/$IMG:pull" | jq -r .token)
+curl -s -H "Authorization: Bearer $TOKEN" https://registry-1.docker.io/v2/library/$IMG/tags/list | jq .
+code }
+
+    The returned list has `debian:bullseye-slim` which looks interesting:
+code {
+$ docker pull debian:bullseye-slim
+code }
+
+  }
+  { Experimenting with a debian image
+
+code {
+$ docker pull debian:bullseye-slim
+code }
+
+code {
+$ docker run -it --name deb-test debian:bullseye-slim bash
+root@315475baed4a:/# touch /tmp/touched
+root@315475baed4a:/# exit
+code }
+
+  Container is not running anymore…
+code {
+$ docker ps
+code }
+
+  … but still present:
+code {
+$ docker ps -a
+code }
+
+  Restart the container:
+code {
+$ docker start -i deb-test
+code }
+
+  The touched file is still here:
+code {
+root@315475baed4a:/# ls -1 /tmp
+touched
+code }
+
+  Adding a user:
+code {
+root@315475baed4a:/# useradd -s /bin/bash -m rene
+root@315475baed4a:/# exit
+code }
+
+  Start the container in non-interactive mode:
+code {
+$ docker start  deb-test
+deb-test
+code }
+
+   The container is now running:
+code {
+$ docker ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS          PORTS                    NAMES
+315475baed4a   debian:bullseye-slim   "bash"                   43 minutes ago   Up 48 seconds                            deb-test
+code }
+
+    Connect as rene (why do I not have to enter a password?)
+code {
+$ docker exec --user rene -it deb-test  /bin/bash
+rene@315475baed4a:/$ pwd
+/
+code }
+
+  }
 }
 
 sa:
