@@ -1,0 +1,36 @@
+$ /lib64/ld-linux-x86-64.so.2
+
+`→ Linux/fhs/usr/bin/ld_so` as a symbolic link to `/lib64/ld-linux-x86-64.so.2` which in turn is a symbolic link to `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2`: 
+code {
+$ → Linux/shell/commands/namei → Linux/fhs/usr/bin/ld_so | → Linux/shell/commands/grep '^ *l' | → development/languages/sed 's/^ *l //'
+ld.so -> /lib64/ld-linux-x86-64.so.2
+lib64 -> usr/lib64
+ld-linux-x86-64.so.2 -> → Linux/fhs/lib/x86_64-linux-gnu/ld-linux-x86_64_so_2
+lib -> usr/lib
+code }
+
+{ TODO
+
+  { .interp
+
+    The name of the dynamic linker is stored in the `.interp` section of an executable:
+code {
+$ readelf -p .interp /usr/bin/ls
+
+String dump of section '.interp':
+  [     0]  /lib64/ld-linux-x86-64.so.2
+code }
+
+code {
+$ objdump -s -j .interp /usr/bin/ls
+
+/usr/bin/ls:     file format elf64-x86-64
+
+Contents of section .interp:
+ 0318 2f6c6962 36342f6c 642d6c69 6e75782d  /lib64/ld-linux-
+ 0328 7838362d 36342e73 6f2e3200           x86-64.so.2.    
+code }
+
+  }
+
+}
