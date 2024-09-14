@@ -1,12 +1,72 @@
 
-{ Sections vs Segments
 
- *Sections* store the data that is required for *linking* and *relocation*.
+{ Object files
 
- *Segments* contain the information that is needed when the file is *executed*.
+  Object files are created by the assembler and/or link editor.
+
+  { Types of object files
+
+    There are three main types of object files
+    table { ll
+      Relocatable file ☰ Code and data, used to link with other object files to produce an executable or shared object file.
+      Executable file ☰ A program that can be executed. The file specifies how `exec` creates a program's process image.
+      Shared object file ☰ Code and data. It is used to 1) either by the link editor (`ld`) to create other object files by combining it with other relocatable and shared objects, 2) or the dynamic linker combines it with an executable file when creating the process image.
+    table }
+
+  }
+  { Structure of an object file
+
+    An object file consists of
+      • ELF header, which describes how the object file is organized. See → Linux/fhs/usr/include/elf_h#Elf64_Ehdr[`struct Elf64_Ehdr`].
+      • Program header table, which tells the system how to create a process image. Optional for relocatable and shared object files
+      • Sections (relocatable and shared object files)
+      • Segments (executable file)
+      • Section header table, which describes the sections (every section has an entry in the section header table). Optional for executable files, required when the object file is used for linking.
+
+  }
+  { Sections vs Segments
+
+   *Sections* store the data that is required for *linking* and *relocation*.
+
+   *Segments* contain the information that is needed when the file is *executed*.
+
+    See also → Linux/fhs/usr/include/elf_h#Elf64_Shdr[`struct Elf64_Shdr`].
+
+  }
+  { Special Sections
+
+    table { llll
+
+      `.bss`        ☰ `SHT_NOBITS`   ☰ `SHF_ALLOC + SHF_WRITE`                ☰ Uninitialized data that occupies no space in the object file but is initialized with 0 when the program is executed. Compare with `.data`
+      `.comment`    ☰ `SHT_PROGBITS` ☰                                        ☰ Version control information
+      `.data`       ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC + SHF_WRITE`                ☰ Initialized data. Compare with `.bss`
+      `.data1`      ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC + SHF_WRITE`                ☰ Similar to `.data`?
+      `.debug`      ☰ `SHT_PROGBITS` ☰                                        ☰ Information for symbolic debugging. Format is unspecified. See also `.line`
+      `.dynamic`    ☰ `SHT_DYNAMIC`  ☰ `SHF_ALLOC + SHF_WRITE`                ☰ Information for dynamic linking. Whether `SHF_WRITE` is specified is processor specific.
+      `.dynstr`     ☰ `SHT_STRTAB`   ☰ `SHF_ALLOC`                            ☰ Strings needed for dynamic linking (typically strings that represent the names associated with symbol table entries)
+      `.dynsym`     ☰ `SHT_DYNSYM`   ☰ `SHF_ALLOC`                            ☰ The dynamic symbol table
+      `.fini`       ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC +            SHF_EXECINSTR` ☰ Code that is executed when the program finishes. Compare with `.init`
+      `.got`        ☰ `SHT_PROGBITS` ☰ *see below*                            ☰ Global offset tablej
+      `.hash`       ☰ `SHT_HASH`     ☰ `SHF_ALLOC`                            ☰ Symbol hash table
+      `.init`       ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC +            SHF_EXECINSTR` ☰ Compare with `.fini`
+      `.interp`     ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC`                            ☰ The path of the program interpreter. `SHF_ALLOC` only set if the file has a loadable segment that includes the section.
+      `.line`       ☰ `SHT_PROGBITS` ☰                                        ☰ Line number informatino for symbolic debugging. Format is unspecified. See also `.debug`
+      `.note`       ☰ `SHT_NOTE`     ☰                                        ☰
+      `.plt`        ☰ `SHT_PROGBITS` ☰ *see below*                            ☰ Procedure linkage table.
+      `.rel<name>`  ☰ `SHT_REL`    ` ☰ *see below*                            ☰ Relocation information. `<name>` specifies the section to which the relocation table is applied (for example `.rel.text`)
+      `.rela<name>` ☰ `SHT_RELA`   ` ☰ *see below*                            ☰
+      `.rodata`     ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC`                            ☰ Read-only data
+      `.rodata1`    ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC`                            ☰
+      `.shstrtab`   ☰ `SHT_STRTAB`   ☰                                        ☰ Section names
+      `.strtab`     ☰ `SHT_STRTAB`   ☰ `SHF_ALLOC`                            ☰ Strings, typically associated with symbol table entries. `SHF_ALLOC` is only set if the file has a loadable segment that includes the symbol string table.
+      `.symtab`     ☰ `SHT_SYMTAB`   ☰ `SHF_ALLOC`                            ☰ Symbol table. `SHF_ALLOC` is only set if the file has a loadable segment that includes the symbol table.
+      `.text`       ☰ `SHT_PROGBITS` ☰ `SHF_ALLOC +            SHF_EXECINSTR` ☰ The *text* are the executable instruactions of the program.
+
+    table }
+
+  }
 
 }
-
 { ELF Interpreter #elf-interpreter
 
   The source file → https://repo.or.cz/tinycc.git/blob/7b9f19eaab7e568a7c7a42725da812377a588f50:/tcc.h#l298[`tcc.h`] of the → http://savannah.nongnu.org/projects/tinycc[TinyCC] compiler suggests that there are different *ELF interpreters* depending on the environment:

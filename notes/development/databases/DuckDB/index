@@ -162,6 +162,80 @@ select min(columns(*)) from t;
 code }
 
   } 
+  { Generate ids for primary keys
+
+    The keyword `auto_increment` is not understood (at least in Version 1.1).
+
+    IDs for primary keys can be provided by *sequences*:
+code {
+create sequence seq;
+create table tbl (id int default nextval('seq') primary key, txt varchar);
+insert into tbl (txt) values ('hello world');
+select currval('seq');
+insert into tbl (txt) values ('second record');
+from tbl;
+┌───────┬───────────────┐
+│  id   │      txt      │
+│ int32 │    varchar    │
+├───────┼───────────────┤
+│     1 │ hello world   │
+│     2 │ second record │
+└───────┴───────────────┘
+code }
+
+  }
+  { Generator functions
+
+    Create the number from 0 (inclusively) to 4 (exclusively):
+code {
+from range(4);
+┌───────┐
+│ range │
+│ int64 │
+├───────┤
+│     0 │
+│     1 │
+│     2 │
+│     3 │
+└───────┘
+code }
+
+    Specify the start number:
+code {
+from range(2,4);
+
+D from range(2,4);
+┌───────┐
+│ range │
+│ int64 │
+├───────┤
+│     2 │
+│     3 │
+└───────┘
+code }
+
+ 
+   Create the number from 0 to 4 (inclusively):
+code {
+from generate_series(4) x(s);
+┌───────┐
+│   s   │
+│ int64 │
+├───────┤
+│     0 │
+│     1 │
+│     2 │
+│     3 │
+│     4 │
+└───────┘
+code }
+
+    Create a series of dates:
+code {
+from range(date '2024-01-01', date '2025-01-01', interval 1 month) months(first_day);
+code }
+
+  }
   { Lists
 
   «List» is a native data type:
@@ -224,8 +298,8 @@ select
    u.b,
    t.a*u.b  prod
 from
-   generate_series(1, 5) as t(a)                           join
-   generate_series(5,10) as u(b) on t.a + u.b <= 8;
+   generate_series(1, 5)  t(a)                           join
+   generate_series(5,10)  u(b) on t.a + u.b <= 8;
 code }
 
    A list can be «rotated» 90 degress:
@@ -337,6 +411,29 @@ copy destTbl from '→ Linux/fhs/home/username[/home/rene]/data.csv';
 code }
 
   }
+  { MIN_BY, MAX_BY
+
+   `min_by` and `max_by` return the value of the record in a group where another column has the minimal or maximal value:
+code {
+select
+   min_by(txt, val) txt_of_min_val,
+   max_by(txt, val) txt_of_max_val
+from (values
+   ( 22, 'ABC'),
+   (  1, 'DEF'),
+   ( 33, 'GHI'),
+   (100, 'JKL'),
+   ( 55, 'MNO')) as tbl (val, txt);
+
+┌────────────────┬────────────────┐
+│ txt_of_min_val │ txt_of_max_val │
+│    varchar     │    varchar     │
+├────────────────┼────────────────┤
+│ DEF            │ JKL            │
+└────────────────┴────────────────┘
+code }
+
+  }
   { FILTER clause for aggregate functions
 
 code {
@@ -374,6 +471,42 @@ group by
 -- │ A       │     3 │        1 │ seven            │
 -- │ B       │     5 │        4 │ five             │
 -- └─────────┴───────┴──────────┴──────────────────┘
+code }
+
+  }
+  { Macros
+
+code {
+create table X as select n from range(5) r(n);
+create table Y as select n from range(2) r(n);
+create table Z as select n from range(8) r(n);
+
+create macro cnt(tab) as table
+  select
+     count(*)
+  from
+  --
+  -- Note the QUERY_TABLE(…) function:
+  --
+     query_table(tab);
+
+from cnt(X);
+from cnt(Y);
+from cnt(Z);
+code }
+
+  }
+  { Variables
+
+
+code {
+create table T (txt varchar);
+insert into  T values ('X'), ('Y'), ('Z');
+
+--
+-- Note the LIST(…) function here:
+--
+set variable texts = (select list(txt) from T);
 code }
 
   }
@@ -514,6 +647,58 @@ code }
     See also the Oracle SQL example → development/databases/Oracle/SQL/_examples/bar-chart[creates a bar chart].
 
   }
+  { Histogram
+
+code {
+create table employee_salaries (
+    department varchar,
+    name       varchar,
+    age        int,
+    salary     decimal(10, 2)
+);
+
+insert into employee_salaries (name, department, age, salary) values
+('John Doe'      , 'HR'       , 25,  45000.00),
+('Jane Smith'    , 'HR'       , 30,  55000.00),
+('Alice Johnson' , 'HR'       , 45,  60000.00),
+('Mike Brown'    , 'IT'       , 28,  75000.00),
+('Chris Davis'   , 'IT'       , 35,  95000.00),
+('Sarah Wilson'  , 'IT'       , 40, 120000.00),
+('Emma White'    , 'Marketing', 22,  38000.00),
+('David Taylor'  , 'Marketing', 29,  50000.00),
+('Olivia Lee'    , 'Marketing', 35,  65000.00),
+('James Harris'  , 'Finance'  , 27,  70000.00),
+('Sophia Clark'  , 'Finance'  , 45,  85000.00),
+('Tiger Scott'   , 'IT'       , 62, 150000.00),
+('Liam Walker'   , 'Finance'  , 50,  90000.00),
+('Ethan Lewis'   , 'IT'       , 26,  48000.00),
+('Mia Young'     , 'IT'       , 33,  80000.00),
+('Isabella Hall' , 'Marketing', 37,  72000.00),
+('Noah King'     , 'Finance'  , 55, 105000.00);
+
+from histogram(employee_salaries, department);
+┌───────────┬────────┬──────────────────────────────────────────────────────────────────────────────────┐
+│    bin    │ count  │                                       bar                                        │
+│  varchar  │ uint64 │                                     varchar                                      │
+├───────────┼────────┼──────────────────────────────────────────────────────────────────────────────────┤
+│ Finance   │      4 │ █████████████████████████████████████████████████████▎                           │
+│ HR        │      3 │ ████████████████████████████████████████                                         │
+│ IT        │      6 │ ████████████████████████████████████████████████████████████████████████████████ │
+│ Marketing │      4 │ █████████████████████████████████████████████████████▎                           │
+└───────────┴────────┴──────────────────────────────────────────────────────────────────────────────────┘
+
+from histogram(employee_salaries, salary, bin_count := 3);
+┌────────────────────────────┬────────┬──────────────────────────────────────────────────────────────────────────────────┐
+│            bin             │ count  │                                       bar                                        │
+│          varchar           │ uint64 │                                     varchar                                      │
+├────────────────────────────┼────────┼──────────────────────────────────────────────────────────────────────────────────┤
+│ x <= 50000.00              │      4 │ ████████████████████████████████                                                 │
+│ 50000.00 < x <= 100000.00  │     10 │ ████████████████████████████████████████████████████████████████████████████████ │
+│ 100000.00 < x <= 150000.00 │      3 │ ████████████████████████                                                         │
+└────────────────────────────┴────────┴──────────────────────────────────────────────────────────────────────────────────┘
+code }
+
+  }
   { ARG_MAX and ARG_MIN aggregate function #duckdb-arg_max
 
     The aggregate functions `arg_max(v, w)` returns the value of `w` of the column where `v` has tha maximum value in an aggregated group. The functionality is equal (or at least
@@ -557,6 +742,21 @@ group by
 -- │ B       │      4 │ four        │      2 │ two         │
 -- │ C       │      8 │ eight       │      1 │ one         │
 -- └─────────┴────────┴─────────────┴────────┴─────────────┘
+code }
+
+  }
+  { Select the top n (MAX) values
+
+    `max(x, n)` selects the top-n values for x as a list:
+code {
+select max(n, 3) from range(10) x(n);
+
+┌───────────┐
+│ max(n, 3) │
+│  int64[]  │
+├───────────┤
+│ [9, 8, 7] │
+└───────────┘
 code }
 
   }
@@ -615,7 +815,7 @@ from
 -- └───────┴─────────┴───────────────┴───────────────┘
 code }
 
-    The idea and the result of a positional join is similar to that of the shell command `→ Linux/shell/commands/paste` and
+    The idea and the result of a positional join is similar to that of the Python function `→ development/languages/Python/built-in-functions/zip` or the shell commands `→ Linux/shell/commands/paste` and
     → Linux/shell/commands/pr[`pr -mt …`].
  
   }
@@ -637,3 +837,17 @@ code }
 
   }
 }
+{ Determine version
+
+code {
+D select version();
+┌───────────────┐
+│  "version"()  │
+│    varchar    │
+├───────────────┤
+│ v1.1.1-dev122 │
+└───────────────┘
+code }
+
+}
+
