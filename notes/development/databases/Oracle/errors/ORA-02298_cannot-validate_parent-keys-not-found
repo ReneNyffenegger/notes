@@ -1,0 +1,28 @@
+$ ORA-02298: cannot validate … - parent keys not found
+
+code {
+create table tq84_P ( id integer, txt varchar2(20), constraint tq84_p_pk primary key ( id));
+create table tq84_C (pid integer, val number(7,2),  constraint tq84_c_fk foreign key (pid) references tq84_P);
+code }
+ 
+code {
+alter table tq84_C disable constraint tq84_c_fk;
+insert into tq84_c values (777, 88.88);
+commit;
+code }
+ 
+ 
+code {
+alter table tq84_C enable constraint tq84_c_fk;
+-- ORA-02298: cannot validate (TQ84_C_FK) - parent keys not found
+code }
+ 
+Cleaning up:
+code {
+drop table tq84_C;
+drop table tq84_P;
+code }
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages] such as → development/databases/Oracle/errors/ORA-02297_cannot-disable-constraint_dependencies-exist
