@@ -1,0 +1,78 @@
+$ Slow deletion of rows in table referenced by foreign key
+
+code {
+create table tq84_parent (
+    id integer,
+    payload varchar2(2000),
+   --
+    constraint tq84_pk primary key (id)
+);
+ 
+create table tq84_child (
+   pid integer not null,
+   payload varchar2(2000),
+   --
+   constraint tq84_fk foreign key (pid) references tq84_parent
+);
+ 
+ 
+begin
+ 
+   insert into tq84_parent
+   select
+      level,
+      lpad('x', 2000, 'x')
+   from
+      dual connect by level <= 10000;
+ 
+   insert into tq84_child
+   select
+      level,
+      lpad('x', 2000, 'x')
+   from
+      dual connect by level <= 10000;
+     
+   commit;
+end;
+/
+ 
+-- 0.2
+ 
+ 
+delete from tq84_child;
+-- 0.1
+ 
+commit;
+ 
+delete from tq84_parent;
+-- 11.3
+ 
+rollback;
+code }
+ 
+Create an index to speed up deletion:
+code {
+create index tq84_child_ix on tq84_child(pid);
+ 
+delete from tq84_parent;
+-- 0.2
+
+rollback;
+code }
+
+
+Alternatively disable the foreign key constraint:
+code {
+drop index tq84_child_ix;
+alter table tq84_child disable constraint tq84_fk;
+
+delete from tq84_parent;
+
+rollback;
+code }
+ 
+Cleaning up
+code {
+drop table tq84_child;
+drop table tq84_parent;
+code }
