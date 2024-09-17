@@ -289,7 +289,40 @@ code }
     }
 
   }
+  { Elf64_auxv_t (Auxiliary vector)
+
+    An auxiliary vector is normally only used by the program interpreter.
+
+    The usual definition in an ABI supplement uses the name `auxv_t` and is usually not defined in `<elf.h>`.
+    -
+    GNU(?) includ it in `<elf.h>` because it cannot hurt and renamed it (likely from `auxv_t` to `Elf64_auxv_t`) to avoid conflicts.
+
+code {
+typedef struct
+{
+  uint64_t a_type;              /* Entry type */
+  union
+    {
+      uint64_t a_val;           /* Integer value */
+      /* We use to have pointer elements added here.  We cannot do that,
+         though, since it does not work when using 32-bit definitions
+         on 64-bit platforms and vice versa.  */
+    } a_un;
+} Elf64_auxv_t;
+code }
+
+     TODO: Is the auxiliary vector used to implement `atexit()`?
+
+   ? The dynamic linker can be asked to show some debug information about the auxiliary vector by setting the variable `LD_SHOW_AUXV=1`.
+
+     See also
+       • `man 7 vdso`
+       • `man 3 getauxval`
+       • `/proc/$PID/auxv`
+
+  }
+
 }
 
 sa:
-  → Linux/fhs/usr/include
+ `→ Linux/fhs/usr/include`
