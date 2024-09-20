@@ -5,8 +5,61 @@ A *macro* is a program that writes programs (or pieces of programs).
 A macro language is also referred to as *metaprogramming* because they're able to tread code fragments as data.
 
 
-Ideas/TODOs
-  • SAS distinguishes between statements that are → Companies-Products/SAS/programming/macros/quoting#sas-macro-compile-vs-exec-time[executed at compile time and at execution time].
+{ Ideas, concepts, etc
+
+  { SAS
+
+     SAS distinguishes between statements that are → Companies-Products/SAS/programming/macros/quoting#sas-macro-compile-vs-exec-time[executed at compile time and at execution time].
+
+  }
+  { M5
+  
+    In the → https://www2.eecs.berkeley.edu/Pubs/TechRpts/1992/6374.html[User's Guide to the MS Macro Language], Alan Dain Samples lays out a few features and concepts that he implemented in M5, such as
+      • Recursvie macros should be easy to read and write
+      • Named parameters
+      • Unbounded number of parameters
+      • Namespaces (he calls the «pools») to make it easier to create *context sensitive* macros
+      • Scopes
+      • Easily debuggable
+
+    In M5, the order of processing is (p. 6):
+      • *Scanning*: The input text is scanned for a macro name
+      • *Argument collection*: Once a macro name has been recognized, if that macro was defined to accept arguments, and ifs its name is followed immediately by a left paranthesis, then the arguments are collected in scanning mode and pushed ont a stack (M5 uses positional arguments only)
+      • *Parameter substitution*: Once all of the arguments for a macro are collected, then the body of the macro - also called the replacement text - is scanned for parameter specifications. Each parameter specification is replaced by the corresonding text from the argument stack
+      • *Macro expansion*: the the parameter specifications in the body of the macro have been replaced with the corresponding arguments from the argument stack, the resulting text is stuffed back into the input stream aand reread in scanning mode
+
+  }
+  { What Built-Ins should a macro language offer
+
+    → https://cs61a.org/articles/scheme-builtins/[Built-ins of Scheme]
+
+  }
+  { Processing text (such as SQL)
+
+    A percent sign indicates that the following identifier is the name of a macro function.
+
+    A list is constructed within curly braces.
+
+    List elements are separated by the hash symbol
+
+    The quote makes sure that the following special character (`%`, `{` and `#`) are not immediatly evaluated.
+
+    Everything else is «text».
+
+code {
+select %cols{foo # bar # baz} …
+code }
+
+    How should foreach be implemented?
+
+    Nested invocation of macros:
+code {
+%mac-one{ %mac-two{arg-1 # arg-2 } # arg-3 }
+code }
+
+  }
+
+}
 
 sa:
   → development/languages/C-C-plus-plus/preprocessor/macros
