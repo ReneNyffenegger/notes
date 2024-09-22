@@ -2,6 +2,37 @@ $ ChatGPT
 
 ChatGPT is a fine-tuned version of GPT-3.5 and → development/Artificial-intelligence/language-model/LLM/GPT/4.
 
+{ 2024-09-22 - Cannot login anymore
+
+  On 2024-09-22, all of a sudden, I was unable to login to my ChatGPT account with Firefox using the URL → https://chatgpt.com/auth/login: when clicking on *Log in*, nothing would happen, not even an error message would be displayed.
+
+  Using `ctrl+shift+e`, under the network tab, I found the error message *Uncaught TypeError: Intl.Segmenter is not a constructor*.
+
+  As per → https://community.openai.com/t/cant-login-error-with-intl-segmenter-in-firefox-unresponsive-buttons/948428/28[this link], I was able to create a workaround with the following → https://www.tampermonkey.net/[Tampermonkey] script:
+code {
+// ==UserScript==
+// @name         Intl.Segmenter Polyfill for ChatGPT
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Fix missing Intl.Segmenter in Firefox ESR
+// @match        https://chatgpt.com/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    if (!Intl.Segmenter) {
+        Intl.Segmenter = function() {
+            return {
+                segment: () => [{segment: 'fallback'}]
+            };
+        };
+    }
+})();
+code }
+
+}
+
 sa:
 
   As per → https://arxiv.org/pdf/2310.17680.pdf[CODEFUSION: A Pre-trained Diffusion Model for Code Generation] (2023, Mukul Singh et al.), ChatGPT has 20 B parameters.
