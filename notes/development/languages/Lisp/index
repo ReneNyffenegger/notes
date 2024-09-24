@@ -37,6 +37,15 @@ Unless instructed otherwise, a list triggers a function call, the first argument
 
   See also *M-expressions* which stands for meta-expression.
 
+  { NIL and () is the same object
+
+code {
+* (eq '() 'nil)
+T
+code }
+
+  }
+
 }
 { cons (data structure)
 
@@ -324,6 +333,321 @@ code }
 code {
 * (defun twice (x) (* x 2))
 * (twice 2)
+code }
+
+  }
+  { Variables
+
+    Common Lisp has two types of variables:
+      • Ordinary variables, used to name *data objects*
+      • Function names, used to name *defined functions*, *macros* and *special operators*
+
+    A Function name is either
+      • a symbol, or
+      • a list with two elements whose first element is the symbol `setf` and whose second element is a symbol.
+
+    { Accessing und updating variables
+
+      The dynamic value of a variable can be accessed and updated like so:
+      table { lll
+         ~Accessing~ ☰ ~Updating~ ☰ ~Updating using setf~
+         `sm` ☰ `(setq sm new-value)` ☰ `(setf sm new-value)`
+         `(car ls)` ☰ `(rplaca ls new-value)` ☰ `(setf (car ls) new-value)`
+         `(symbol-value sm)` ☰ `(set sm new-value)` ☰ `(setf (symbol-value sm) new-value)`
+      table }
+
+      Thus, having `setf` makes `setq`, `rplaca` and `set` redundant.
+
+    }
+
+  }
+  { setf
+
+    By convention, any function named `(setf fn)` should return its first argument as its only value, in order to preserve the specification that setf returns.  its *new value*.
+
+  }
+  { function
+
+code {
+* (defun twice (x) (* 2 x) )
+* (function twice)
+#<FUNCTION TWICE>
+
+* #'TWICE
+#<FUNCTION TWICE>
+code }
+
+code {
+* (function (lambda (x) (* 3 x)))
+#<FUNCTION (LAMBDA (X)) {52A4ADDB}>
+code }
+
+  }
+  { function-lambda-expression (Recover the source of a defined function)
+  
+code {
+* (defun fn (a b) (+ a b))
+* (function-lambda-expression #'fn)
+(LAMBDA (A B) (BLOCK FN (+ A B)))
+T
+FN
+
+* (function-lambda-expression #'function-lambda-expression)
+NIL
+T
+FUNCTION-LAMBDA-EXPRESSION
+
+* (function-lambda-expression #'does-not-exist)
+… error …
+code }
+
+  }
+  { Equality predicates
+
+    table { ll
+      `eq` ☰
+      `eql` ☰
+      `equal` ☰
+      `equalp` ☰ Like `equal` but ignores type differences. The most general function of all.
+    table }
+
+code {
+* (equalp 5 5.0)
+T
+
+* (equal 5 5.0)
+NIL
+code }
+
+  }
+  { Printing functions
+
+    table { ll
+
+      `prin1` ☰ Representation of an object. `prin1` is intended to be consumed by `read`, compare with `princ`.
+      `print` ☰ Like `prin1` except that the printed representation is preceeded by a newline (see `terpri`) and followed by a space.
+      `pprint` ☰ Like `print` except that the trailing space is omitted and the object is printed with the `*print-pretty*` flag set to `nil`. Returns no value.
+      `princ` ☰ Like `prin1` except that no escape characters are printed. The output of `princ` is intended to be consumed by humans, compare with `prin1`. `princ` prints a character exactly like `write-char` 
+      `write-to-string` ☰
+      `prin1-to-string` ☰
+      `princ-to-string` ☰
+      `write-char` ☰ Writes a character (and returns it)
+      `write-string` ☰
+      `write-line` ☰ Compare with `read-line`
+      `write-sequence` ☰
+      `terpri` ☰ Writes a newline to the output stream. Identical in effect to `(write-char #\Newline output-stream)`. Compare with `fresh-line`
+      `fresh-line` ☰ LIke `terpri`, but only prints a newline if the stream is not at the start of a line. Returns `T` or `F` accordingly.
+      `finish-output` ☰
+      `force-output` ☰
+      `clear-output` ☰
+      `write-byte` ☰
+
+    table }
+
+    { write-char
+
+code {
+* (write-char #\c)
+c
+#\c
+code }
+
+    }
+
+    { write
+code {
+* (write "foo")
+"foo"
+"foo"
+
+* (write 'foo)
+FOO
+FOO
+
+* (write 2)
+2
+2
+
+* (write #'write)
+#<FUNCTION WRITE>
+#<FUNCTION WRITE>
+code }
+
+    }
+
+  }
+  { format
+
+    Many `format` opereations are directly or indirectly defined in terms of `prin1` or `princ` which are affected  by the *printer control variables*.
+
+    table { ll
+
+      `~A` ☰ Ascii
+      `~S` ☰ S-expression
+      `~D` ☰ Decimal
+      `~B` ☰ Binary
+      `~O` ☰ Octal
+      `~X` ☰ Hexadecimal
+      `~nR` ☰ With given radix `n`. `~@R` and `~:@R` procuce roman numerals
+      `~P` ☰ Plural
+      `~C` ☰ Character
+      `~F` ☰ Fixed floating point
+      `~E` ☰ Exponential floating point
+      `~G` ☰ General floating point
+      `~$` ☰ Dollars floating point
+      `~%` ☰ `#\Newline`. `~n%` prints `n` newlines. See also `terpri`
+      `~&` ☰
+      `~|` ☰ Page seperator
+      `~~` ☰ A tilde
+      `~T` ☰ Tabulate
+      `~*` ☰ Ignore an argument
+      `~?` ☰ Indirection
+      `~_` ☰ Conditional new line
+      `~W` ☰ Write
+      `~I` ☰ Indent
+      `~(str~)` ☰ Case conversion
+
+    table }
+
+    `~` can be followed immediately with a «real» newline.
+
+    There is also `~[str0 ~;str1 ~;...~;strn~` for conditional expressions (and of course *even more*).
+
+    Common Lisp ed 2, p. 909: All of the existing printing functions (`write`, `prin1`, `print`, `princ`, `pprint`, `write-to-string`, `prin1-to-string`, `princ-to-string`, the `~S` and `~A` format operations, and the
+    `~B`, `~D`, `~E`, `~F`, `~G`, `~$`, `~O`, `~R`, and `~X` format operations when they encounter a non-numeric value) are required to be changed to go through the `print-object` generic function
+
+  }
+  { defstruct
+
+code {
+* (defstruct xyz  num txt)
+XYZ
+
+* (make-xyz :num 42 :txt "hello world")
+#S(XYZ :NUM 42 :TXT "hello world")
+code }
+
+   See also `defclass`.
+
+  }
+  { &optional
+
+    In a parameter list (of a functino?), all arguments on the right side of `&optional` are optional
+
+code {
+* (defun greet (name &optional (greeting "Hello"))
+    (format t "~a, ~a!~%" greeting name))
+
+* (greet 'Rene)
+Hello, RENE!
+NIL
+* (greet 'Rene "hi")
+hi, RENE!
+NIL
+* (greet "Rene")
+Hello, Rene!
+NIL
+code }
+
+    See also `&rest` and `&key`.
+
+  }
+  { read
+
+   `read &optional input-stream eof-error-p eof-value recursive-p`
+
+   `read` reads in the printed representation of a Lisp object from input-stream, builds a corresponding Lisp object, and returns the object.
+
+?  `read` seems to be associated with the opening paranethesis (which seems to be a macro)
+
+  }
+  { describe
+
+code {
+* (describe '5)
+5
+  [fixnum]
+code }
+
+code {
+* (describe '5.5)
+5.5
+  [single-float]
+code }
+
+code {
+* (describe #'describe)
+#<FUNCTION DESCRIBE>
+  [compiled function]
+
+
+Lambda-list: (SB-IMPL::OBJECT &OPTIONAL
+              (SB-KERNEL:STREAM-DESIGNATOR *STANDARD-OUTPUT*))
+Declared type: (FUNCTION (T &OPTIONAL (OR STREAM BOOLEAN))
+                (VALUES &OPTIONAL))
+Documentation:
+  Print a description of OBJECT to STREAM-DESIGNATOR.
+Known attributes: unwind, any
+Source file: SYS:SRC;CODE;DESCRIBE.LISP
+code }
+
+  }
+  { inspect
+
+   `inspect` is the interactive version of `describe`
+
+code {
+* (format (inspect #'inspect))
+
+The object is a FUNCTION named INSPECT.
+0. Lambda-list: (SB-IMPL::OBJECT)
+1. Ftype: (FUNCTION (T) (VALUES &OPTIONAL))
+code }
+
+code {
+* (format (inspect #'inspect))
+
+The object is a FUNCTION named INSPECT.
+0. Lambda-list: (SB-IMPL::OBJECT)
+1. Ftype: (FUNCTION (T) (VALUES &OPTIONAL))
+> (inspect 'inspect)
+
+The object is a SYMBOL.
+0. Name: "INSPECT"
+1. Package: #<PACKAGE "COMMON-LISP">
+2. Value: "unbound"
+3. Function: #<FUNCTION INSPECT>
+4. Plist: NIL
+code }
+
+  }
+  { sb-kernel:get-lisp-obj-address
+
+    In *SBCL*:
+code {
+* (sb-kernel:get-lisp-obj-address  42 )
+84
+
+* (sb-kernel:get-lisp-obj-address "42")
+68745230335
+
+* (sb-kernel:get-lisp-obj-address #'sb-kernel:get-lisp-obj-address)
+1386184299
+code }
+    
+
+    Compare with `describe` and `inspect`
+
+    See also
+      • `find-object-by-address`
+      • `system:address-of` in *CLISP*.
+
+
+  }
+  { apropos
+
+code {
+* (apropos 'print)
 code }
 
   }
