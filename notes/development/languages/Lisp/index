@@ -80,17 +80,20 @@ code }
 
     The cdr is `nil`:
 code {
-(cons 3 nil)
+* (cons 3 nil)
+(3)
 code }
 
   The cdr of the outer cons is a list (as per previous example):
 code {
-(cons 2 (cons 3 nil))
+* (cons 2 (cons 3 nil))
+(2 3)
 code }
 
   Because the definition of a list is recursive, this can be extended ad infinitum: 
 code {
-(cons 1 (cons 2 (cons 3 nil)))
+* (cons 1 (cons 2 (cons 3 nil)))
+(1 2 3)
 code }
 
   }
@@ -99,13 +102,13 @@ code }
 
  `list` is the function to create lists
 code {
-> (list 1 2 3 4 5)
+* (list 1 2 3 4 5)
 (1 2 3 4 5)
 code }
 
   The same list can also be created with a sequence of `(cons…)` functions. Note the `nil` in the last `(cons 5 nil)`:
 code {
-> (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
+* (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
 (1 2 3 4 5)
 code }
 
@@ -116,13 +119,13 @@ code }
 
   A simple cons:
 code {
-> (cons 1 2)
+* (cons 1 2)
 (1 . 2)
 code }
 
   A cons whose car is a cons:
 code {
-> (cons (cons 1 2) 3)
+* (cons (cons 1 2) 3)
 ((1 . 2) . 3)
 code }
 
@@ -205,34 +208,36 @@ code {
 code }
 
   }
-
 }
 { (cadr X)
 
 `(cadr X)` is an abbreviation («syntactic sugar) for `(car (cdr X))`:
 code {
-> (car (cdr (list 1 2 3 4)))
+* (car (cdr (list 1 2 3 4)))
 2
 code }
 
   Same same, but shorter:
 code {
-> (cadr (list 1 2 3 4))
+* (cadr (list 1 2 3 4))
 2
 code }
 
 }
 { Quoting lists
 
-  In order to prevent the evaluation of a list, the list must be quoted. This is possible with either a single apostrophe or the pseudo function `quote`:
+  In order to prevent the evaluation of a list, the list must be quoted. This is possible with either a single apostrophe, a backtick or the pseudo function `quote`:
 code {
-> (+ 1 2 3)
+* (+ 1 2 3)
 6
 
-> `(+ 1 2 3)
+* `(+ 1 2 3)
 (+ 1 2 3)
 
-> (quote (+ 1 2 3))
+* '(+ 1 2 3)
+(+ 1 2 3)
+
+* (quote (+ 1 2 3))
 (+ 1 2 3)
 code }
 
@@ -241,9 +246,7 @@ code }
 
 code {
 > (define twice
-    (lambda (x)
-            (* 2 x)
-    )
+    (lambda (x) (* 2 x))
   )
 > (twice 21)
 42
@@ -252,12 +255,31 @@ code }
   Anonymous use of a lambda:
 code {
 > ( 
-    (lambda (x)
-            (* 3 x)
-    )
+    (lambda (x)  (* 3 x))
     14
   )
 42
+code }
+
+  Because a function that is defined with a lambda-expression has no name, this function cannot refer to itself.
+  -
+  Hence, `lambda` cannot be used to create recursive functions.
+
+}
+{ Applying functions to elements in a list
+
+  Functions that apply a function to the elements in a list include
+    • `apply`
+    • `mapcar`
+
+}
+{ mapcar
+
+  Apply a function to each element of a list. Note that the name of the function in `(mapcar 'twice …)` is quoted. Without quoting it, the interpreter would throw an error.
+code {
+* (defun twice (x) (* x 2))
+* (mapcar 'twice '(2 5 3))
+(4 10 6)
 code }
 
 }
@@ -283,6 +305,31 @@ code }
   What is `define` doing, anyway?
 
 }
+{ TODO
+
+  { define vs defun
+
+   `define` is a function that is available in Scheme but not in Common Lisp.
+    -
+   `defun` is a function that is available in Common Lisp, but not in scheme.
+
+    Scheme:
+code {
+> (define (twice x) (* x 2))
+> (twice 2)
+4
+code }
+
+   Common Lisp (sbcl)
+code {
+* (defun twice (x) (* x 2))
+* (twice 2)
+code }
+
+  }
+
+}
+
 
 sa:
   Other → development/languages[programming languages] etc.
