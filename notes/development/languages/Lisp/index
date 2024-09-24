@@ -303,6 +303,29 @@ code {
 code }
 
 }
+{ setq
+
+ `setq` (a special operator) is the *simple variable assignment statement*.
+  -
+  It returns the the last assigned value.
+
+code {
+(defvar a)
+(defvar b)
+(defvar c)
+
+
+(setq        ; Assign
+   a    6    ; 6 to a
+   b    7    ; 7 to b
+   c (* a b) ; 6*7 to c
+)
+
+(print c) ; 13
+code }
+
+
+}
 { define vs let vs setq …
 
  `let` creates a new lexical scope
@@ -359,6 +382,89 @@ code }
       Thus, having `setf` makes `setq`, `rplaca` and `set` redundant.
 
     }
+
+  }
+  { macro-function
+
+   `macro-function` determines if a given symbol is the name of a macro.
+
+code {
+* (if (macro-function 'if    )     "if is a macro"     "if is not a macro")
+"if is not a macro"
+
+* (if (macro-function 'lambda) "lambda is a macro" "lambda is not a macro")
+"lambda is a macro"
+code }
+
+  }
+  { Special operators
+
+    table { ll
+
+    `block` ☰ Like `progn` but with the possibility to bail out with `return` or `return-from`. See also `do` and `prog`.
+    `catch` ☰ See also `throw`
+    `declare` ☰
+    `eval-when` ☰
+    `flet` ☰ Define locally named functions. Compare with `let`
+    `function` ☰
+    `go` ☰
+    `if` ☰
+    `labels` ☰
+    `let` ☰ Execute a series of forms with specified variables bound to the specified values. Compare with `progn` and `flet`.
+    `let*` ☰ Like `let` but variables are bound in sequence.
+    `load-time-value` ☰
+    `locally` ☰
+    `macrolet` ☰
+    `multiple-value-call` ☰
+    `multiple-value-prog1` ☰
+    `progn` ☰ Evaluate forms in a sequence (think `{ … }` in C. Compare with the `prog1` macro, and the `let` and `block` special operators.
+    `progv` ☰ Usefule when writing interpreters for languages embedded in Lisp.
+    `quote` ☰
+    `return-from` ☰ See also the macro `return`.
+    `setq` ☰ The simple variable assignment statement.
+    `symbol-macrolet` ☰
+    `tagbody` ☰
+    `the` ☰
+    `throw` ☰ See also `catch`
+    `unwind-protect` ☰
+
+    table }
+  
+    What about:
+      • `and`, `or`
+      • `cond`
+      • `defconstant`
+      • `defparameter`
+      • `defun` (whose purpose is to define a named function)
+      • `defvar` (The recommended way to declare the use of a special variable in a program)
+      • `do`
+      • `eval-when`
+      • `go`
+      • `multiple-value-bind`
+      • `multiple-value-call`
+      • `multiple-value-list`
+      • `multiple-value-prog1`
+      • `multiple-value-setq`
+      • `prog*` (which is to `prog` as `let*` is to `let`)
+      • `sample-special-form`
+      • `tagbody`
+      • `with-open-file`
+
+    See also `special-operator-p` which determines if a symbol globally names a special operator.
+
+
+  }
+  { Read-eval-print loop (REPL
+
+    The REPL is typically used to interact with the Lisp interpreter:
+      • Read a *form* from an input-source (file, terminal …)
+      • Evaluate the form
+      • Print the value to an output sink (terminal, screen, file …)
+
+  }
+  { macroexpand / macroexpand-1
+
+    …
 
   }
   { setf
@@ -530,6 +636,39 @@ code }
    See also `defclass`.
 
   }
+  { loop
+
+code {
+* (loop for i from 1 to 5 collect i)
+(1 2 3 4 5)
+code }
+
+  }
+  { make-array
+
+code {
+* (make-array 5)
+#(0 0 0 0 0)
+
+* (make-array '(2 3))
+#2A((0 0 0) (0 0 0))
+
+* (make-array 5 :initial-contents '(3 2 5 4 1))
+#(3 2 5 4 1)
+code }
+
+   { :element-type
+
+code {
+* (make-array 5 :element-type 'single-float)
+#(0.0 0.0 0.0 0.0 0.0)
+code }
+
+     See also `subtypep`.
+
+   }
+
+  }
   { &optional
 
     In a parameter list (of a functino?), all arguments on the right side of `&optional` are optional
@@ -621,7 +760,22 @@ The object is a SYMBOL.
 code }
 
   }
-  { sb-kernel:get-lisp-obj-address
+  { apropos
+
+code {
+* (apropos 'print)
+code }
+
+  }
+  { SBCL
+
+    { Types
+
+      The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers. 
+
+    }
+
+    { sb-kernel:get-lisp-obj-address
 
     In *SBCL*:
 code {
@@ -634,7 +788,6 @@ code {
 * (sb-kernel:get-lisp-obj-address #'sb-kernel:get-lisp-obj-address)
 1386184299
 code }
-    
 
     Compare with `describe` and `inspect`
 
@@ -643,12 +796,7 @@ code }
       • `system:address-of` in *CLISP*.
 
 
-  }
-  { apropos
-
-code {
-* (apropos 'print)
-code }
+    }
 
   }
 
