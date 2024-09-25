@@ -58,9 +58,36 @@ code }
 
  `(cons A B)` is the function to create a *cons* (denoted with the S-expression `(x . y)`?).
 code {
-> (cons 1 2)
+* (cons 1 2)
 (1 . 2)
+
+* (cons 1 '(2 3))
+(1 2 3)
+
+* (cons 'one '(two three)) ; Note the quoted one
+(ONE TWO THREE)
+
+* (cons '(one two) 'three)
+((ONE TWO) . THREE)
 code }
+
+  `cons` is one of McCarthy's five elementary functions.
+
+}
+{ cond
+
+  The *L-shaped evaluation* in cond
+code {
+* (cond
+    ( nil                             5                                     )
+    ( nil                            (this list is not evaluated          ) )
+    ( (> 5 10)                       (neither is this list evaluated      ) )
+    ( (< 5 10)                       (write-line "this list is evaluated" ) )
+    ( (this list is not evaluated)   (this list is not evaluated          ) )
+)
+code }
+
+ `cond` is one of the Paul Graham's seven primitives.
 
 }
 { car / cdr (functions)
@@ -77,6 +104,8 @@ code {
 > (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
 ((3 . 4) . 5)
 code }
+
+  `car` and `cdr` belong to McCarthy's five elementary functions.
 
 }
 { list (data structure)
@@ -580,6 +609,17 @@ code }
     By convention, any function named `(setf fn)` should return its first argument as its only value, in order to preserve the specification that setf returns its *new value*.
 
   }
+  { quote
+
+code {
+* (quote (this list is not evaluated))
+(THIS LIST IS NOT EVALUATED)
+code }
+
+
+    `quote` is one of the Paul Graham's seven primitives.
+
+  }
   { function
 
 code {
@@ -632,6 +672,8 @@ T
 * (equal 5 5.0)
 NIL
 code }
+
+    `eq` is one of McCarthy's five elementary functions.
 
   }
   { typep, subtypep, type-of
@@ -790,6 +832,18 @@ code {
 T
 code }
 
+code {
+* (defvar lst '(a b c))
+LST
+* (atom  lst)
+NIL
+* (atom 'lst)
+T
+* (atom 'undefined-symbol)
+T
+code }
+
+    `atom` is one of McCarthy's five elementary functions.
 
   }
   { Printing functions
@@ -1129,7 +1183,41 @@ code }
       • `system:address-of` in *CLISP*.
 
     }
+    { Quicklisp
+
+      Trying to → https://www.quicklisp.org/beta/#installation[install Quicklisp] for SBCL:
+code {
+$ cd ~
+$ curl -O https://beta.quicklisp.org/quicklisp.lisp
+$ gpg --verify quicklisp.lisp.asc quicklisp.lisp
+$ sbcl --load quicklisp.lisp
+…
+* (quicklisp-quickstart:install)
+* ; (ql:system-apropos "vecto")
+* ; (ql:quickload "vecto")
+* (ql:add-to-init-file)
+I will append the following lines to #P"/home/rene/.sbclrc":
+
+  ;;; The following lines added by ql:add-to-init-file:
+  #-quicklisp
+  (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                         (user-homedir-pathname))))
+    (when (probe-file quicklisp-init)
+      (load quicklisp-init)))
+
+Press Enter to continue.
+
+#P"/home/rene/.sbclrc"
+(exit)
+$ (ql:help)
+"For help with Quicklisp, see → http://www.quicklisp.org/beta/[http://www.quicklisp.org/beta/]"
+code }
+
+  But… I should have installed → https://linedit.common-lisp.dev/[Linedit].  
+
+    }
   }
+
 }
 
 sa:
