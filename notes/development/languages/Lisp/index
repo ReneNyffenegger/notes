@@ -251,6 +251,14 @@ code {
 code }
 
 }
+{ quote, function
+
+? `'frm` is identical to `(quote frm)`
+
+? `#'fn` is identical to `(function fn)`
+
+
+}
 { lambda
 
 code {
@@ -526,6 +534,155 @@ NIL
 code }
 
   }
+  { typep, subtypep, type-of
+
+   `(type-of obj)` never returns `nil` because each object has a type.
+
+   `(typep obj (type-of obj)` always returns `t`.
+
+code {
+* (type-of ())
+NULL
+
+* (type-of '())
+NULL
+
+* (type-of 'NIL)
+NULL
+
+* (type-of NIL)
+NULL
+
+* (type-of T)
+BOOLEAN
+
+* (type-of '(1 2 3))
+CONS
+
+* (type-of 42)
+(INTEGER 0 4611686018427387903)
+
+* (type-of 42.99)
+SINGLE-FLOAT
+
+* (type-of 42.99L0)
+DOUBLE-FLOAT
+
+* (type-of "42.99")
+(SIMPLE-ARRAY CHARACTER (5))
+
+* (type-of #'type-of)
+COMPILED-FUNCTION
+
+* (type-of (type-of NIL))
+SYMBOL
+
+* (type-of #\c)
+STANDARD-CHAR
+
+* (type-of (make-array 5))
+(SIMPLE-VECTOR 5)
+code }
+
+code {
+* (type-of *standard-input*)
+SYNONYM-STREAM
+
+* (type-of '*standard-input*)
+SYMBOL
+code }
+
+code {
+* (typep '(a b c) 'cons)
+T
+
+* (typep 42 'cons)
+NIL
+code }
+
+  42 is both an integer *and* and atom.
+code {
+* (typep 42 'integer)
+T
+
+* (typep 42 'atom)
+T 
+code }
+
+  Double float vs single float:
+code {
+* (typep 42.99L0 'double-float)
+T
+
+* (typep 42.99L0 'single-float)
+NIL
+code }
+
+code {
+* (type-of (subtypep 'long-float 'float))
+BOOLEAN
+code }
+
+code {
+* (defvar NUM)
+NUM
+
+(setq NUM 42)
+42
+
+* (type-of NUM)
+(INTEGER 0 4611686018427387903)
+
+* (type-of 'NUM)
+SYMBOL
+code }
+
+code {
+* (subtypep 'float 'long-float)
+NIL
+T
+
+* (subtypep 'long-float 'float)
+T
+T
+code }
+
+    See also
+      • `defstruct` (which creates new types)
+      • `coerce`
+      • `satisfies`
+
+  }
+  { atom, consp
+
+   `(atom obJ) ≡ (typep obj 'atom) ≡ (not (typep obj 'cons))`
+
+   `(consp obJ) ≡ (typep obj 'cons) ≡ (not (typep obj 'atom))`
+
+code {
+* (atom 42)
+T
+
+* (atom '(a b c))
+NIL
+code }
+
+code {
+* (consp 42)
+NIL
+
+* (consp '(a b c))
+T
+code }
+
+  `()` is `nil`,so:
+code {
+* (atom '())
+T
+code }
+
+
+  }
   { Printing functions
 
     table { ll
@@ -628,12 +785,60 @@ code }
 code {
 * (defstruct xyz  num txt)
 XYZ
+code }
 
-* (make-xyz :num 42 :txt "hello world")
+  Behind the scenes, the macro `defstruct` created the function `make-xyz`:
+code {
+* (defvar obj)
+OBJ
+
+* (setf obj (make-xyz :num 42 :txt "hello world"))
 #S(XYZ :NUM 42 :TXT "hello world")
 code }
 
-   See also `defclass`.
+  The macro also created the «accessor» functions `xyz-num` and `xyz-txt`:
+code {
+* (xyz-num obj)
+42
+
+* (xyz-txt obj)
+"hello world"
+code }
+
+  The macro also created the «type» `xyz`:
+code {
+* (type-of obj)
+XYZ
+
+* (typep obj 'xyz)
+T
+
+* (xyz-p obj)
+T
+code }
+
+  … And also a «copier function»:
+code {
+* (defvar copy-of-obj)
+COPY-OF-OBJ
+
+* (setf copy-of-obj (copy-xyz obj))
+#S(XYZ :NUM 42 :TXT "hello world")
+code }
+  
+  Modify struct-objects with `setf`:
+code {
+* (setf (xyz-num copy-of-obj) 99)
+99
+
+* copy-of-obj
+#S(XYZ :NUM 99 :TXT "hello world")
+
+* obj
+#S(XYZ :NUM 42 :TXT "hello world")
+code }
+
+  See also `defclass`.
 
   }
   { loop
@@ -692,6 +897,10 @@ code }
 
   }
   { read
+
+   `read` is the so-called «Lisp reader»: it reads characters from an input stream and parses them as representations of Lisp objects.
+
+    The behavior of `read` is controled by *readtables*.
 
    `read &optional input-stream eof-error-p eof-value recursive-p`
 
