@@ -347,6 +347,20 @@ code }
 }
 { TODO
 
+  { McCarthy's five elementary functions
+
+    table { ll
+      `atom` ☰ Is something atomic?
+      `eq` ☰ Check if two atomic things are equal?
+      `car` ☰ The left part of an S-expression
+      `cdr` ☰ The right part of an S-expression
+      `cons` ☰ Constructs an S-expression from two atoms
+    table }
+
+    In → https://paulgraham.com/rootsoflisp.html[The Roots of Lisp], Paul Graham adds the following two «primitives»: `quote` and `cond` (which he names the *Seven Primitive Operators*).
+
+  }
+
   { define vs defun
 
    `define` is a function that is available in Scheme but not in Common Lisp.
@@ -405,13 +419,28 @@ code {
 code }
 
   }
+  { Special forms
+
+     A → https://www.lispworks.com/documentation/HyperSpec/Body/26_glo_s.htm#special_form[special form]:
+     a list, other than a macro form, which is a form with special syntax or special evaluation rules or both, possibly manipulating the evaluation environment or control flow or both.
+     The first element of a special form is a *special operator*.
+
+   ? Special forms are special because each of them has a special semantics.
+     -  
+   ? Some (all?) predecessors of Common Lisps (such as MacList) had even more special forms. This number was apparently reduced to 25 in Common Lisp because of Kent Pitman.
+    -
+   ? Scheme has reduced the number of special forms even more.
+
+
+     See also: the → https://www.lispworks.com/documentation/HyperSpec/Body/03_ababa.htm[25 special forms]
+  }
   { Special operators
 
     table { ll
 
     `block` ☰ Like `progn` but with the possibility to bail out with `return` or `return-from`. See also `do` and `prog`.
     `catch` ☰ See also `throw`
-    `declare` ☰
+    `declare` ☰ Why is it in *this* list, it is missing → https://www.lispworks.com/documentation/HyperSpec/Body/03_ababa.htm#clspecialops[here].
     `eval-when` ☰
     `flet` ☰ Define locally named functions. Compare with `let`
     `function` ☰
@@ -442,9 +471,9 @@ code }
       • `and`, `or`
       • `cond`
       • `defconstant`
-      • `defparameter`
+      • `defparameter` (Creates a global variable which, when changed, is considered changing the program, i. e. the value of the variable is a parameter of the program. Compare with `defvar` and `defconstant`)
       • `defun` (whose purpose is to define a named function)
-      • `defvar` (The recommended way to declare the use of a special variable in a program)
+      • `defvar` (The recommended way to declare the use of a special variable in a program. Compare with `defparameter` and `defconstant`)
       • `do`
       • `eval-when`
       • `go`
@@ -458,7 +487,7 @@ code }
       • `tagbody`
       • `with-open-file`
 
-    See also `special-operator-p` which determines if a symbol globally names a special operator.
+    See also `special-operator-p` which determines if a symbol globally names a special operator
 
 
   }
@@ -472,12 +501,83 @@ code }
   }
   { macroexpand / macroexpand-1
 
-    …
+    In SBCL:
+code {
+* (macroexpand '(setf (car x) y))
+(SB-KERNEL:%RPLACA X Y)
+T
+code }
+
+  Found in → https://dl.acm.org/doi/pdf/10.1145/173770.173773[Macroexpand-All: An Example of a Simple Lisp Code Walker] (Richard C. Walkers)
+code {
+* (defmacro cond_ (&rest clauses)
+    (when clauses
+     `(if ,(caar clauses)                   ; Note to self: backtick
+         (progn ,@(cdar clauses))
+         (cond_ ,@(cdr  clauses)))))
+
+* (macroexpand '(cond_ (a b) (c d) (e e) (f g)))
+(IF A
+    (PROGN B)
+    (COND_ (C D) (E E) (F G)))
+T
+
+* (defun macroexpand-tree (tree)
+    (setq tree (macroexpand tree))
+    (if (atom tree)
+       tree
+       (mapcar #'macroexpand-tree tree))) 
+MACROEXPAND-TREE
+
+* (macroexpand-tree '(cond_ (a b) (c d) (e e) (f g)))
+(IF A
+    (PROGN B)
+    (IF C
+        (PROGN D)
+        (IF E
+            (PROGN E)
+            (IF F
+                (PROGN G)
+                NIL))))
+code }
 
   }
-  { setf
+  { setf expanders 
 
-    By convention, any function named `(setf fn)` should return its first argument as its only value, in order to preserve the specification that setf returns.  its *new value*.
+    The following example was expired (mostly copied even) from → https://stackoverflow.com/questions/11457071/[this Stackoverflow question].
+code {
+* (defvar arr (make-array 5 :initial-contents '(zero one two XYZ four)))
+ARR
+*
+(defun arr-elem (n) (aref arr n))
+ARR-ELEM
+*
+(arr-elem 3)
+XYZ
+*
+(setf (arr-elem 3) 'three)
+…
+("undefined function" THREE 3)
+code }
+
+  In order to be able to use `setf` to set the value of an element in `arr`, we use a *setf expander*.
+  -
+  *Note*: the *first* parameter is used for the new value (`new-val`).
+code {
+*
+(defun (setf farr-elem) (new-val n)
+    (setf (aref arr n) new-val)
+)
+(SETF FARR-ELEM)
+*
+(setf (farr-elem 3) 'three)
+THREE
+*
+(arr-elem 3)
+THREE
+code }
+
+    By convention, any function named `(setf fn)` should return its first argument as its only value, in order to preserve the specification that setf returns its *new value*.
 
   }
   { function
@@ -600,12 +700,21 @@ T
 NIL
 code }
 
-  42 is both an integer *and* and atom.
+ `42` is both an integer *and* and atom.
 code {
 * (typep 42 'integer)
 T
 
 * (typep 42 'atom)
+T 
+code }
+
+  Similarly, `"text"` is both a string and and atom:
+code {
+* (typep "text" 'string)
+T
+
+* (typep "text" 'atom)
 T 
 code }
 
@@ -741,7 +850,7 @@ code }
   }
   { format
 
-    Many `format` opereations are directly or indirectly defined in terms of `prin1` or `princ` which are affected  by the *printer control variables*.
+    Many `format` operations are directly or indirectly defined in terms of `prin1` or `princ` which are affected  by the *printer control variables*.
 
     table { ll
 
@@ -751,7 +860,7 @@ code }
       `~B` ☰ Binary
       `~O` ☰ Octal
       `~X` ☰ Hexadecimal
-      `~nR` ☰ With given radix `n`. `~@R` and `~:@R` procuce roman numerals
+      `~nR` ☰ With given radix `n`. `~@R` and `~:@R` produce roman numerals
       `~P` ☰ Plural
       `~C` ☰ Character
       `~F` ☰ Fixed floating point
@@ -872,6 +981,21 @@ code }
      See also `subtypep`.
 
    }
+   { See also
+
+    `aref`
+
+   }
+
+  }
+  { aref
+
+code {
+* (let (( a (make-array 6 :initial-contents '(zero one two three four five)) ))
+    (aref a 2)
+  )
+TWO
+code }
 
   }
   { &optional
@@ -1004,13 +1128,9 @@ code }
       • `find-object-by-address`
       • `system:address-of` in *CLISP*.
 
-
     }
-
   }
-
 }
-
 
 sa:
   Other → development/languages[programming languages] etc.
