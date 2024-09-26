@@ -105,6 +105,11 @@ code {
 ((3 . 4) . 5)
 code }
 
+code {
+* (cdr '(A B C D))
+(B C D)
+code }
+
   `car` and `cdr` belong to McCarthy's five elementary functions.
 
 }
@@ -361,6 +366,18 @@ code {
 (print c) ; 13
 code }
 
+}
+{ let
+
+code {
+* (let (
+     (x "hello")
+     (y "world")
+  )
+  (concatenate 'string x " " y)
+)
+"hello world"
+code }
 
 }
 { define vs let vs setq …
@@ -387,6 +404,16 @@ code }
     table }
 
     In → https://paulgraham.com/rootsoflisp.html[The Roots of Lisp], Paul Graham adds the following two «primitives»: `quote` and `cond` (which he names the *Seven Primitive Operators*).
+
+    An environment that implements only those five (seven?) functions is a programming language.
+    -
+  ? Because of this simplicity, Steven Russel was able to create (the abstract machine called `eval`) in a few days on an IBM 709 computer.
+    -
+    Compare this with say C or what not - but also with the 25 special forms of Lisp.
+
+    These five/seven functions (primitives) allow to create 12 additional functions (*but how, `defun` is not part of these 5/7*), it is possible to create
+    the → https://joshbradley.me/understanding-the-power-of-lisp/[universal function `eval`] which is able to evaluate Lisp in Lisp. These 12 functions are: `null`, `and`, `not`, (`caar, cadr`, `caddr`, `cadar`, `caddar`), `append`, `list, `pair` and `assoc`
+    
 
   }
 
@@ -616,6 +643,10 @@ code {
 (THIS LIST IS NOT EVALUATED)
 code }
 
+code {
+* (quote (A . (B . (C . ()))))
+(A B C)
+code }
 
     `quote` is one of the Paul Graham's seven primitives.
 
@@ -665,6 +696,8 @@ code }
       `equalp` ☰ Like `equal` but ignores type differences. The most general function of all.
     table }
 
+   `eq` is one of McCarthy's five elementary functions.
+
 code {
 * (equalp 5 5.0)
 T
@@ -673,7 +706,24 @@ T
 NIL
 code }
 
-    `eq` is one of McCarthy's five elementary functions.
+code {
+* (let ((A "xyz"))(eq A A))
+T
+
+* (let ((A "xyz")(B "xyz")) (eq    A B))
+NIL
+
+* (let ((A "xyz")(B "xyz")) (eql   A B))
+NIL
+
+* (let ((A "xyz")(B "xyz")) (equal A B))
+T
+
+* (let ((A "xyz")(B "xyz")) (equalp A B))
+T
+
+
+code }
 
   }
   { typep, subtypep, type-of
@@ -1009,6 +1059,14 @@ code }
 code {
 * (loop for i from 1 to 5 collect i)
 (1 2 3 4 5)
+code }
+
+  }
+  { concatenate
+
+code {
+* (concatenate 'string "hello"  " "  "world")
+"hello world"
 code }
 
   }
