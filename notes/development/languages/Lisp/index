@@ -76,6 +76,35 @@ code }
 }
 { cond
 
+ `cond` takes n lists with two elements:
+code {
+* (cond 
+    (nil  "first is true"  )
+    (t    "seoncd is true" )
+    (t    "third is true"  )
+)
+"second is true"
+code }
+
+  Evaluating the values in the n lists:
+code {
+* (let (  (x 10) (y 15) )
+  (cond 
+   ( (> x y)  "x is greater than y"  )
+   ( (< x y)  "x is less than y"     )
+   ( (= x y)  "x is equal to y"      )
+  )
+)
+
+* (let (  (x 10) (y 15) )
+  (cond 
+   ( (> x y)  (write-line "x is greater than y") )
+   ( (< x y)  (write-line "x is less than y"   ) )
+   ( (= x y)  (write-line "x is equal to y"    ) )
+  )
+)
+code }
+
   The *L-shaped evaluation* in cond
 code {
 * (cond
@@ -92,16 +121,27 @@ code }
 }
 { car / cdr (functions)
 
-  `car` evaluates to the first element in a list.
+ `car` evaluates to the first element in a list.
+ 
+code {
+* (car '(a b c))
+A
+
+* (car '( (a b c) d e f))
+(A B C)
+
+* (car '())
+NIL
+code }
 
 code {
-> (car (cons (cons 1 2) (cons 3 4)))
+* (car (cons (cons 1 2) (cons 3 4)))
 (1 . 2)
 code}
 
  `cdr` evaluates to the second element in a list (in the liturature typically referred to as «the rest»)
 code {
-> (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
+* (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
 ((3 . 4) . 5)
 code }
 
@@ -110,7 +150,67 @@ code {
 (B C D)
 code }
 
-  `car` and `cdr` belong to McCarthy's five elementary functions.
+  *car* stands for *Contents of the Address part of the Register number*, *cdr* for *Contents of the Decrement part of the Register numer*.
+   -
+  The «register» in these terms refered to words(?) (x bytes?) in memory, not to registers on the CPU as understood today.
+  -
+? The full contents of a register number (i.e. car and cdr) can be used to represent a cons cell.
+
+ `car` and `cdr` belong to McCarthy's five elementary functions.
+
+  List:
+code {
+* (car    '(one two three four five))
+ONE
+
+* (cadr   '(one two three four five))
+TWO
+
+* (caddr   '(one two three four five))
+THREE
+
+* (cadddr  '(one two three four five))
+FOUR
+code }
+
+  List of lists:
+code {
+* (caar    '((one two three) (1 2 3)))
+ONE
+
+* (cadar   '((one two three) (1 2 3)))
+TWO
+
+* (caddar  '((one two three) (1 2 3)))
+THREE
+
+* (cdar    '((one two three) (1 2 3)))
+(TWO THREE)
+
+* (cadr    '((one two three) (1 2 3)))
+(1 2 3)
+
+* (caadr   '((one two three) (1 2 3)))
+1
+
+* (cadadr  '((one two three) (1 2 3)))
+2
+code }
+
+}
+{ (cadr X)
+
+`(cadr X)` is an abbreviation («syntactic sugar) for `(car (cdr X))`:
+code {
+* (car (cdr (list 1 2 3 4)))
+2
+code }
+
+  Same same, but shorter:
+code {
+* (cadr (list 1 2 3 4))
+2
+code }
 
 }
 { list (data structure)
@@ -179,91 +279,33 @@ code }
   There is no such rule that is dependent on cons' car.
 
   There are nine combination how cons-cell can be constructed:
-  { atom | atom
-
 code {
-> (cons 1 2)
-(1 . 2)
-code }
+* (cons 'a 'b)
+(A . B)
 
-  }
-  { atom | cons
+* (cons 'X (cons 'Y 'Z))
+(X Y . Z)
 
-code {
-> (cons 1 (cons 2 3))
-(1 2 . 3)
-code }
+* (cons 'Q nil)
+(Q)
 
-  }
-  { atom | nil
+* (cons (cons 'U 'v) 'W)
+((U . V) . W)
 
-code {
-> (cons 1 nil)
-(1)
-code }
+* (cons (cons 'ONE 'TWO) (cons 'THREE 'FOUR))
+((ONE . TWO) THREE . FOUR)
 
-  }
-  { cons | atom
+* (cons (cons 'hello 'world) nil)
+((HELLO . WORLD))
 
-code {
-> (cons (cons 1 2) 3)
-((1 . 2) . 3)
-code }
+* (cons nil 1)
+(NIL . 1)
 
-  }
-  { cons | cons
+* (cons nil (cons 1 2))
+(NIL 1 . 2)
 
-code {
-> (cons (cons 1 2) (cons 3 4))
-((1 . 2) 3 . 4)
-code }
-
-  }
-  { cons | nil
-
-code {
-> (cons (cons 1 2) nil)
-((1 . 2))
-code }
-
-  }
-  { nil | atom
-
-code {
-> (cons nil 1)
-(() . 1)
-code }
-
-  }
-  { nil | cons
-
-code {
-> (cons nil (cons 1 2))
-(() 1 . 2)
-code }
-
-  }
-  { nil | nil
-
-code {
 > (cons nil nil)
-(())
-code }
-
-  }
-}
-{ (cadr X)
-
-`(cadr X)` is an abbreviation («syntactic sugar) for `(car (cdr X))`:
-code {
-* (car (cdr (list 1 2 3 4)))
-2
-code }
-
-  Same same, but shorter:
-code {
-* (cadr (list 1 2 3 4))
-2
+(NIL)
 code }
 
 }
@@ -413,7 +455,10 @@ code }
 
     These five/seven functions (primitives) allow to create 12 additional functions (*but how, `defun` is not part of these 5/7*), it is possible to create
     the → https://joshbradley.me/understanding-the-power-of-lisp/[universal function `eval`] which is able to evaluate Lisp in Lisp. These 12 functions are: `null`, `and`, `not`, (`caar, cadr`, `caddr`, `cadar`, `caddar`), `append`, `list, `pair` and `assoc`
-    
+
+    This(?) unversal language was already presented by McCarthy himself in chapter 1.6 of the LISP 1.5 Programmer's Manual.
+    -
+    Alan Kay referred to this universal language as → https://queue.acm.org/detail.cfm?id=1039523[Maxwell’s Equations of Software].
 
   }
 
@@ -545,7 +590,6 @@ code }
 
     See also `special-operator-p` which determines if a symbol globally names a special operator
 
-
   }
   { Read-eval-print loop (REPL
 
@@ -653,7 +697,7 @@ code }
   }
   { function
 
-code {
+  code {
 * (defun twice (x) (* 2 x) )
 * (function twice)
 #<FUNCTION TWICE>
@@ -687,7 +731,7 @@ FUNCTION-LAMBDA-EXPRESSION
 code }
 
   }
-  { Equality predicates
+  { Equality predicates (eq etc.)
 
     table { ll
       `eq` ☰
@@ -697,6 +741,8 @@ code }
     table }
 
    `eq` is one of McCarthy's five elementary functions.
+    -
+ ?  However, his version of `eq` could only compare atoms while common lisp allows to compare any two objects.
 
 code {
 * (equalp 5 5.0)
@@ -721,8 +767,31 @@ T
 
 * (let ((A "xyz")(B "xyz")) (equalp A B))
 T
+code }
 
+code {
+* (eq 255 #xff)
+T
+code }
 
+code {
+* (eq    '((A . B) . (C . D))
+         '((A . B)    C . D )
+  )
+NIL
+
+* (equal '((A . B) . (C . D))
+         '((A . B)    C . D )
+  )
+T
+code }
+
+code {
+* (eq  'g 'h)
+NIL
+
+* (eq  'h 'h)
+T
 code }
 
   }
@@ -782,7 +851,14 @@ SYNONYM-STREAM
 
 * (type-of '*standard-input*)
 SYMBOL
+
+* (type-of #(a b c d))
+(SIMPLE-VECTOR 4)
+
+* (type-of #P"$ this path doesn't exist!")
+PATHNAME
 code }
+
 
 code {
 * (typep '(a b c) 'cons)
@@ -866,6 +942,13 @@ T
 
 * (atom '(a b c))
 NIL
+
+* (atom '((( ))) )
+NIL
+
+* (atom '(((X))) )
+NIL
+((ONE TWO THREE))
 code }
 
 code {
@@ -1212,6 +1295,20 @@ code {
 code }
 
   }
+  { M-expressions
+
+    M-expressions can be translated to S-expression.
+
+    M-expressions were not implemented in common lisp.   
+
+  }
+  { declaim
+
+ ? `declaim` is a macro that makes proclamations recognizable at compile time.
+
+    Compare with `proclaim` and `declare`.
+
+  }
   { SBCL
 
     { Types
@@ -1219,7 +1316,25 @@ code }
       The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers. 
 
     }
+    { Diagnostic messages
 
+code {
+(declaim (sb-ext:muffle-conditions sb-ext:compiler-note))
+code }
+
+      See also Chapter 4.1 in the manual (2.4.8)
+
+    }
+    { sbcl:*core-pathname*
+
+code {
+* sb-ext:*core-pathname*
+#P"/usr/bin/../lib/sbcl/sbcl.core"
+code }
+
+?     See also the `--core` command line option.
+
+    }
     { sb-kernel:get-lisp-obj-address
 
     In *SBCL*:
@@ -1274,6 +1389,13 @@ code }
   But… I should have installed → https://linedit.common-lisp.dev/[Linedit].  
 
     }
+  }
+  { Clojure
+
+    Clojure does not have dotted pairs.
+
+    Commas are considered whitespace.
+
   }
 
 }
