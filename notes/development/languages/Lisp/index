@@ -332,6 +332,46 @@ code }
 
 ? `#'fn` is identical to `(function fn)`
 
+}
+{ defun
+
+ `defun` is a (macro(?) / special operator()) to create a function.
+
+  The name of the function can also be used for a variable. `symbol-value` and `symbol-function` allow to query the respective value:
+code {
+* (defvar pq 21)
+PQ
+
+* (defun pq (x) (* 2 x))
+PQ
+
+* (pq pq)
+42
+
+* (symbol-value    'pq)
+21
+
+* (symbol-function 'pq)
+#<FUNCTION PQ>
+code }
+
+}
+{ defvar
+
+code {
+* (defvar num 42)
+NUM
+
+* (setq num (- num 12))
+30
+
+* (setf num (* num 3 ))
+90
+
+* (print num)
+90
+90
+code }
 
 }
 { lambda
@@ -343,8 +383,7 @@ code {
 T
 code }
 
-
-  Anonymous use of a `lambda`:
+  A *labmda expression* can be thought of as a *name of a function* which appears as the first element in a list, giving raise to the following anonymous use of a `lambda`:
 code {
 * (
     (lambda (x)  (* 3 x))
@@ -372,6 +411,7 @@ code {
 42
 code }
 
+  With SBCL, the type of a lambda expression is `COMPILED-FUNCTION`. In CLISP, it is just `FUNCTION`.
 code {
 * (type-of (lambda (x) (* 3 x)) )
 COMPILED-FUNCTION
@@ -432,9 +472,58 @@ code }
 }
 { apply
 
+ `apply` generally  takes two arguments …
 code {
 * (apply #'+ '(1 2 3 4))
 10
+code }
+  … but can be called with more arguments, too:
+code {
+* (apply #'+ 1 2 '(3 4))
+10
+code }
+
+code {
+* (apply (symbol-function '+) '(1 2 3 4))
+10
+code }
+
+code {
+* (apply #'(lambda (a b c d) (+ a b c d)) '(1 2 3 4))
+10
+code }
+
+}
+{ sort
+
+  Sort numbers in ascending order:
+code {
+* (sort '(8 5 3 4 6) #'<)
+(3 4 5 6 8)
+code }
+
+  Sort strings alphabetically
+code {
+* (sort
+     '("eight" "nine" "ten" "eleven" "twelve")
+    #'string<)
+code }
+
+  Sort strings according to their length
+code {
+* (sort
+     '("eight" "nine" "ten" "eleven" "twelve")
+    #'(lambda (str1 str2) (< (length str1) (length str2))))
+("ten" "nine" "eight" "eleven" "twelve")
+code }
+
+}
+{ remove-if
+
+  Remove even numbers:
+code {
+* (remove-if #'evenp '(7 2 6 4 3 8 5))
+(7 3 5)
 code }
 
 }
@@ -465,7 +554,7 @@ code }
 }
 { setq
 
- `setq` (a special operator) is the *simple variable assignment statement*.
+ `setq` (a special operator) is the *simple variable assignment statement* and can be used to assign values to both lexical and special variables.
   -
   It returns the the last assigned value.
 
@@ -495,6 +584,27 @@ code {
   (concatenate 'string x " " y)
 )
 "hello world"
+code }
+
+  Share a (hidden) variable between two functions (See Paul Graham - On Lisp - 2.6. Closures):
+code {
+* (let ((counter 0))
+   (defun new-id   () (incf counter  ))
+   (defun reset-id () (setq counter 0))
+)
+RESET-ID
+
+* (new-id)
+1
+
+* (new-id)
+2
+
+* (reset-id)
+0
+
+* (new-id)
+1
 code }
 
 }
@@ -537,7 +647,6 @@ code }
     Alan Kay referred to this universal language as → https://queue.acm.org/detail.cfm?id=1039523[Maxwell’s Equations of Software].
 
   }
-
   { define vs defun
 
    `define` is a function that is available in Scheme but not in Common Lisp.
@@ -563,6 +672,10 @@ code }
     Common Lisp has two types of variables:
       • Ordinary variables, used to name *data objects*
       • Function names, used to name *defined functions*, *macros* and *special operators*
+
+    Common Lisp also has two kinds of variables:
+      • Lexical (or static) variables
+      • Special (or dynamic) variables (which are preferrably declared with `defvar`). Generally, the names of special variables start and end with `*`. See also `(proclaim '(special …))`
 
     A Function name is either
       • a symbol, or
@@ -869,6 +982,14 @@ NIL
 T
 code }
 
+code {
+* (defvar fn #'print)
+FN
+
+* (eq (symbol-value 'fn) (symbol-function 'print))
+T
+code }
+
   }
   { typep, subtypep, type-of
 
@@ -930,7 +1051,7 @@ STANDARD-CHAR
 code }
 
 code {
-* (type-of *standard-input*)
+* (type-of  *standard-input*)
 SYNONYM-STREAM
 
 * (type-of '*standard-input*)
@@ -1292,6 +1413,14 @@ TWO
 code }
 
   }
+  { length
+
+code {
+* (length "abcd")
+4
+code }
+
+  }
   { &optional
 
     In a parameter list (of a functino?), all arguments on the right side of `&optional` are optional
@@ -1325,6 +1454,25 @@ code }
    `read` reads in the printed representation of a Lisp object from input-stream, builds a corresponding Lisp object, and returns the object.
 
 ?  `read` seems to be associated with the opening paranethesis (which seems to be a macro)
+
+  }
+  { do
+
+code {
+* (do ( (i 0 (1+ i))      ) ; start with i = 0, increment i by one
+      ( (>= i 5 )         ) ; end when i is equal or greater than 5
+;     ( format t "~d~%" i ) ; print i
+      ( print i           ) ; print i
+)
+0
+1
+2
+3
+4
+NIL
+code }
+
+    Compare with `do*`.
 
   }
   { describe
