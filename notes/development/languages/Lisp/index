@@ -27,7 +27,6 @@ Unless instructed otherwise, a list triggers a function call, the first argument
   A *list* is similarly defined as
     • an empty list (denoted as `()`), or
     • a *cons cell* that consists of two elements, both of which are lists.
-  
 
  `(a b c)` is just a short hand notation for `(a . (b . (z . NIL)))`
 
@@ -78,7 +77,7 @@ code }
 
  `cond` takes n lists with two elements:
 code {
-* (cond 
+* (cond
     (nil  "first is true"  )
     (t    "seoncd is true" )
     (t    "third is true"  )
@@ -89,7 +88,7 @@ code }
   Evaluating the values in the n lists:
 code {
 * (let (  (x 10) (y 15) )
-  (cond 
+  (cond
    ( (> x y)  "x is greater than y"  )
    ( (< x y)  "x is less than y"     )
    ( (= x y)  "x is equal to y"      )
@@ -97,7 +96,7 @@ code {
 )
 
 * (let (  (x 10) (y 15) )
-  (cond 
+  (cond
    ( (> x y)  (write-line "x is greater than y") )
    ( (< x y)  (write-line "x is less than y"   ) )
    ( (= x y)  (write-line "x is equal to y"    ) )
@@ -122,7 +121,7 @@ code }
 { car / cdr (functions)
 
  `car` evaluates to the first element in a list.
- 
+
 code {
 * (car '(a b c))
 A
@@ -233,7 +232,7 @@ code {
 (2 3)
 code }
 
-  Because the definition of a list is recursive, this can be extended ad infinitum: 
+  Because the definition of a list is recursive, this can be extended ad infinitum:
 code {
 * (cons 1 (cons 2 (cons 3 nil)))
 (1 2 3)
@@ -337,21 +336,45 @@ code }
 }
 { lambda
 
+  The common lisp manual says that the macro `lambda` is a dubious shortcut for `(function (lambda ...))` or `#'(lambda ...)` - but offers no explanation as to why that is:
 code {
-> (define twice
-    (lambda (x) (* 2 x))
-  )
-> (twice 21)
-42
+* (macroexpand '(lambda (x) (x)) )
+#'(LAMBDA (X) (X))
+T
 code }
 
-  Anonymous use of a lambda:
+
+  Anonymous use of a `lambda`:
 code {
-> ( 
+* (
     (lambda (x)  (* 3 x))
     14
   )
 42
+code }
+
+  Combining `defun` with `lambda`:
+code {
+* (defun twice (n)
+  (
+    (lambda (x) (* 2 x)) n
+  )
+)
+TWICE
+
+* (twice 21)
+42
+code }
+
+  Multiple parameters
+code {
+* ( (lambda (x y z)  (* z y x)) 7 3 2)
+42
+code }
+
+code {
+* (type-of (lambda (x) (* 3 x)) )
+COMPILED-FUNCTION
 code }
 
   Because a function that is defined with a lambda-expression has no name, this function cannot refer to itself.
@@ -364,6 +387,10 @@ code }
   Functions that apply a function to the elements in a list include
     • `apply`
     • `mapcar`
+    • `funcall`
+    • `map` (?)
+
+  The common lisp manual points out that *macros cannot be used as functional arguments to such functions as `apply`, `funcall` or `map`*.
 
 }
 { mapcar
@@ -376,8 +403,57 @@ code {
 code }
 
 }
+{ map
+
+  The first argument to `map` is the type of the returned value.
+
+code {
+* (map  'list    (lambda (x) (+ 2 x)) '(10 7 3 18 9) )
+(12 9 5 20 11)
+
+* (map  'vector  (lambda (x) (+ 2 x)) '(10 7 3 18 9) )
+#(12 9 5 20 11)
+code }
+
+}
+{ funcall
+
+code {
+* (defun f(fn) (funcall fn 1 2 3 4))
+F
+
+* (f '+)
+10
+
+* (f '*)
+24
+code }
+
+}
+{ apply
+
+code {
+* (apply #'+ '(1 2 3 4))
+10
+code }
+
+}
 { Sequential evaluation
 
+code {
+* (progn
+   (defvar X 6)
+   (defvar Y 7)
+   (* X Y)
+)
+42
+
+; Value of defvar is retained ...
+* X
+6
+code }
+
+  Scheme (petite):
 code {
 (begin
    (define X 6)
@@ -527,11 +603,10 @@ code }
      The first element of a special form is a *special operator*.
 
    ? Special forms are special because each of them has a special semantics.
-     -  
+     -
    ? Some (all?) predecessors of Common Lisps (such as MacList) had even more special forms. This number was apparently reduced to 25 in Common Lisp because of Kent Pitman.
     -
    ? Scheme has reduced the number of special forms even more.
-
 
      See also: the → https://www.lispworks.com/documentation/HyperSpec/Body/03_ababa.htm[25 special forms]
   }
@@ -567,7 +642,7 @@ code }
     `unwind-protect` ☰
 
     table }
-  
+
     What about:
       • `and`, `or`
       • `cond`
@@ -626,7 +701,7 @@ T
     (setq tree (macroexpand tree))
     (if (atom tree)
        tree
-       (mapcar #'macroexpand-tree tree))) 
+       (mapcar #'macroexpand-tree tree)))
 MACROEXPAND-TREE
 
 * (macroexpand-tree '(cond_ (a b) (c d) (e e) (f g)))
@@ -642,7 +717,7 @@ MACROEXPAND-TREE
 code }
 
   }
-  { setf expanders 
+  { setf expanders
 
     The following example was expired (mostly copied even) from → https://stackoverflow.com/questions/11457071/[this Stackoverflow question].
 code {
@@ -713,7 +788,7 @@ code }
 
   }
   { function-lambda-expression (Recover the source of a defined function)
-  
+
 code {
 * (defun fn (a b) (+ a b))
 * (function-lambda-expression #'fn)
@@ -817,6 +892,12 @@ NULL
 * (type-of T)
 BOOLEAN
 
+* (type-of 'T)
+BOOLEAN
+
+* (type-of 'XYZ)
+SYMBOL
+
 * (type-of '(1 2 3))
 CONS
 
@@ -833,6 +914,9 @@ DOUBLE-FLOAT
 (SIMPLE-ARRAY CHARACTER (5))
 
 * (type-of #'type-of)
+COMPILED-FUNCTION
+
+* (type-of (lambda (x) (* 3 x)) )
 COMPILED-FUNCTION
 
 * (type-of (type-of NIL))
@@ -857,6 +941,9 @@ SYMBOL
 
 * (type-of #P"$ this path doesn't exist!")
 PATHNAME
+
+* (let (( x 42 )) (type-of x))
+(INTEGER 0 4611686018427387903)
 code }
 
 
@@ -874,7 +961,7 @@ code {
 T
 
 * (typep 42 'atom)
-T 
+T
 code }
 
   Similarly, `"text"` is both a string and and atom:
@@ -883,7 +970,7 @@ code {
 T
 
 * (typep "text" 'atom)
-T 
+T
 code }
 
   Double float vs single float:
@@ -986,7 +1073,7 @@ code }
       `prin1` ☰ Representation of an object. `prin1` is intended to be consumed by `read`, compare with `princ`.
       `print` ☰ Like `prin1` except that the printed representation is preceeded by a newline (see `terpri`) and followed by a space.
       `pprint` ☰ Like `print` except that the trailing space is omitted and the object is printed with the `*print-pretty*` flag set to `nil`. Returns no value.
-      `princ` ☰ Like `prin1` except that no escape characters are printed. The output of `princ` is intended to be consumed by humans, compare with `prin1`. `princ` prints a character exactly like `write-char` 
+      `princ` ☰ Like `prin1` except that no escape characters are printed. The output of `princ` is intended to be consumed by humans, compare with `prin1`. `princ` prints a character exactly like `write-char`
       `write-to-string` ☰
       `prin1-to-string` ☰
       `princ-to-string` ☰
@@ -1033,6 +1120,18 @@ FOO
 code }
 
     }
+
+  }
+  { Number sign
+
+    table { ll
+      `#o77` ☰ Octal value (of an integer?)
+      `#xff` ☰ Hexadecimal value
+      `#b0011101011` ☰ Binary value
+      `#\C` ☰ The character `C`
+      `#(a b c)` ☰ Vector
+      `#'cons` ☰ `#'fn` is to `(function fn)` as `'xyz` is to `(quote xyz)`
+    table }
 
   }
   { format
@@ -1121,7 +1220,7 @@ COPY-OF-OBJ
 * (setf copy-of-obj (copy-xyz obj))
 #S(XYZ :NUM 42 :TXT "hello world")
 code }
-  
+
   Modify struct-objects with `setf`:
 code {
 * (setf (xyz-num copy-of-obj) 99)
@@ -1299,7 +1398,7 @@ code }
 
     M-expressions can be translated to S-expression.
 
-    M-expressions were not implemented in common lisp.   
+    M-expressions were not implemented in common lisp.
 
   }
   { declaim
@@ -1313,7 +1412,7 @@ code }
 
     { Types
 
-      The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers. 
+      The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers.
 
     }
     { Diagnostic messages
@@ -1386,7 +1485,7 @@ $ (ql:help)
 "For help with Quicklisp, see → http://www.quicklisp.org/beta/[http://www.quicklisp.org/beta/]"
 code }
 
-  But… I should have installed → https://linedit.common-lisp.dev/[Linedit].  
+  But… I should have installed → https://linedit.common-lisp.dev/[Linedit].
 
     }
   }
