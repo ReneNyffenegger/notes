@@ -527,6 +527,28 @@ code {
 code }
 
 }
+{ Calling a function (lambda expression0 returned from a function
+
+code {
+(defun create-func (x)
+   (lambda (y) (write-line (concatenate 'string x " " y)))
+;#'(lambda (y) (write-line (concatenate 'string x " " y)))   ; same same but different?
+)
+
+(defvar f1)
+(defvar f2)
+
+  (setf                   f1  (create-func "f1"))
+  (setf (symbol-function 'f2) (create-func "f2"))
+; (setf                 #'f3) (create-func "f3")) ; --> Error
+
+  (funcall          f1  "one"  )
+  (                 f2  "two"  )
+; (               #'f1  "three") ; --> error
+; ((symbol-function f1) "four" ) ; --> error
+code }
+
+}
 { Sequential evaluation
 
 code {
@@ -574,7 +596,7 @@ code {
 code }
 
 }
-{ let
+{ let, let*, flet
 
 code {
 * (let (
@@ -584,6 +606,28 @@ code {
   (concatenate 'string x " " y)
 )
 "hello world"
+code }
+
+  In a `let` expression, the value of a newly defined variable cannot depend on the value of another newly defined variable, thus the following expression throws an error:
+code {
+* (let (
+     (x  21    )
+     (y (* x 3))
+    )
+    (print (- y x))
+  )
+code }
+
+  However, with `let*`, assigning values in sequence *is* possible:
+code {
+* (let* (
+     (x  21    )
+     (y (* x 3))
+    )
+    (print (- y x))
+  )
+42
+42
 code }
 
   Share a (hidden) variable between two functions (See Paul Graham - On Lisp - 2.6. Closures):
@@ -606,6 +650,66 @@ RESET-ID
 * (new-id)
 1
 code }
+
+
+
+  `flet` names local functions:
+code {
+* (flet (
+    ( f (x)
+       (print (concatenate 'string "outer f: " x))
+       (flet (
+           ( f (x)
+              (print (concatenate 'string "inner f: " x))
+           )
+          )
+          (f "two")
+      )
+    )
+   )
+    (f "one")
+  )
+"outer f: one"
+"inner f: two"
+"inner f: two"
+code }
+
+ `labels` is similar to `flet` with the difference that a function defined in `labels` can be used in the function being defined:
+code {
+* (labels (
+    ( fib (n)
+       (
+         if (<= n 2)
+           1
+           (+ (fib (- n 1)) (fib (- n 2)))
+       )
+    )
+   )
+    (fib 7)
+  )
+code }
+
+  Example of using `labels` in a function (Graham - On List, p. 3):
+code {
+* (defun reverse-list (lst)
+   (labels (
+      ( reverse-local (lst accum)
+        (if (null lst)
+           accum
+          (reverse-local (cdr lst) (cons (car lst) accum ))
+        )
+      )
+   )
+     (reverse-local lst nil)
+   )
+)
+REVERSE-LIST
+
+* (reverse-list '(5 4 3 2 1))
+(1 2 3 4 5)
+code }
+
+  Compare `flet` and `labels`  with `macrolet`.
 
 }
 { define vs let vs setq …
@@ -1046,6 +1150,9 @@ SYMBOL
 * (type-of #\c)
 STANDARD-CHAR
 
+* (type-of 10/3)
+RATIO
+
 * (type-of (make-array 5))
 (SIMPLE-VECTOR 5)
 code }
@@ -1140,7 +1247,7 @@ code }
   }
   { atom, consp
 
-   `(atom obJ) ≡ (typep obj 'atom) ≡ (not (typep obj 'cons))`
+   `(atom obj) ≡ (typep obj 'atom) ≡ (not (typep obj 'cons))`
 
    `(consp obJ) ≡ (typep obj 'cons) ≡ (not (typep obj 'atom))`
 
@@ -1167,7 +1274,7 @@ NIL
 T
 code }
 
-  `()` is `nil`,so:
+  `()` is `nil`, so:
 code {
 * (atom '())
 T
@@ -1185,6 +1292,23 @@ T
 code }
 
     `atom` is one of McCarthy's five elementary functions.
+
+code {
+* (vectorp #(1 2 3))
+T
+
+* (vectorp '(1 2 3))
+NIL
+code }
+
+  `(functionp x) ≡ (typep x ’function)`
+code {
+* (functionp #'list)
+T
+
+* (functionp #'(lambda (x) (print x)))
+T
+code }
 
   }
   { Printing functions
@@ -1423,22 +1547,40 @@ code }
   }
   { &optional
 
-    In a parameter list (of a functino?), all arguments on the right side of `&optional` are optional
+    In a parameter list (of a function?), all arguments on the right side of `&optional` are optional
 
 code {
-* (defun greet (name &optional (greeting "Hello"))
-    (format t "~a, ~a!~%" greeting name))
+* (defun ex-1 (param-1 &optional (param-2 "default value"))
+    (format t "~a, ~a!~%" param-1 param-2))
+EX-1
 
-* (greet 'Rene)
-Hello, RENE!
+* (ex-1 "hello")
+hello, default value!
 NIL
-* (greet 'Rene "hi")
-hi, RENE!
-NIL
-* (greet "Rene")
-Hello, Rene!
+
+* (ex-1 "hello" "world")
+hello, world!
 NIL
 code }
+
+code {
+* (defun ex-2 (param-1 &optional param-2)
+   (if param-2
+     (format t "~a, ~a!~%" param-1 param-2)
+     (format t "~a!~%"     param-1        )
+   ))
+EX-2
+
+* (ex-2 "hello")
+hello!
+NIL
+
+* (ex-2 "hello" "world")
+hello, world!
+NIL
+(
+code }
+
 
     See also `&rest` and `&key`.
 
@@ -1473,6 +1615,69 @@ NIL
 code }
 
     Compare with `do*`.
+
+  }
+  { /
+
+code {
+* (/ 9 3)
+3
+
+* (/ 10 3)
+10/3
+
+* (/ 10.0 3)
+3.3333
+
+* (* 10/3 3)
+10
+
+* (type-of 10/3)
+RATIO
+code }
+
+  }
+  { multiple-value-bind, values
+
+   `truncate` returns two values:
+code {
+* (truncate 12.345)
+12
+0.34500027
+code }
+
+    But the following construct compares only the first returned value:
+code {
+* (= 12 (truncate 12.345))
+T
+code }
+    
+  `multiple-value-bind` can be used of both values are needed;
+code {
+* (multiple-value-bind (int frac) (truncate 12.345)
+  (format t "int = ~d, frac = ~f" int frac)
+)
+int = 12, frac = 0.34500027
+NIL
+code }
+
+   `values` can be used to return multiple values:
+code {
+* (defun one-two-three ()
+  (values 1 2 3)
+)
+ONE-TWO-THREE
+
+* (multiple-value-bind (a b c) (one-two-three)
+   (print a)
+   (print b)
+   (print c)
+)
+1
+2
+3
+3
+code }
 
   }
   { describe
@@ -1549,11 +1754,45 @@ code }
     M-expressions were not implemented in common lisp.
 
   }
+  { *
+
+    The `*` seems to represent the last evaluated value:
+code {
+* (+ 11 3)
+14
+
+* (+ * 2)
+16
+code }
+
+  }
+  { proclaim
+
+  ? According to the common lisp manual, `(proclaim '(optimize speed))` informs the compiler to try to use *tail-recursion optimization*. 
+
+  }
   { declaim
 
  ? `declaim` is a macro that makes proclamations recognizable at compile time.
 
     Compare with `proclaim` and `declare`.
+
+  }
+  { declare
+
+code {
+* (defun f (x)
+   (declare (type fixnum x))
+   (+ x 1)
+)
+F
+
+* (f 5)
+6
+
+* (f 5.1) ; --> Error The value 5.1 is not of type FIXNUM when binding X
+
+code }
 
   }
   { SBCL
