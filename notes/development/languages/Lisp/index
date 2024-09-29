@@ -1754,6 +1754,68 @@ code }
     M-expressions were not implemented in common lisp.
 
   }
+  { gensym
+
+   `gensym` creates a variable name that is guaranteed to be unique in the program.
+
+code {
+(defmacro swap (a b) 
+    `(let ((tmp ,a))
+        (setf ,a ,b  )
+        (setf ,b  tmp)
+     )
+)
+    
+(defvar a   42)
+(defvar b   99)
+(swap  a b)
+(print a)
+(print b)
+
+(defvar tmp 1)
+(swap tmp b)
+(print tmp)  ; --> Still 1!
+(print b  )  ; --> Still 2!
+code }
+
+The problem is that `tmp` is used within the macro and is already a global variable:
+code {
+* (macroexpand-1 '(swap tmp b))
+(LET ((TMP TMP))
+  (SETF TMP B)
+  (SETF B TMP))
+T
+code }
+
+  With `gensym`, this problem does not occur:
+code {
+(defmacro swap (a b) 
+  (let ((sym (gensym) ))
+    `(let ((,sym ,a))
+        (setf ,a ,b  )
+        (setf ,b ,sym)
+     )
+  )   
+)
+
+(defvar sym 42)
+(defvar a   99)
+(swap sym a)
+(print a)
+(print sym)
+code }
+
+code {
+* (macroexpand-1 '(swap sym a))
+(LET ((#:G490 SYM))
+  (SETF SYM A)
+  (SETF A #:G490))
+T
+code }
+
+    See also David Wessels → https://youtu.be/UQZusJynjiM?t=902[Intro to lisp macros].
+
+  }
   { *
 
     The `*` seems to represent the last evaluated value:
