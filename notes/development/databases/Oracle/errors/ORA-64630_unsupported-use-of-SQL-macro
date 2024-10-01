@@ -1,0 +1,55 @@
+$ ORA-64630: unsupported use of SQL macro
+
+{ ORA-64630: unsupported use of SQL macro: use of nested scalar SQL macro is not supported #ora-64630-nested-not-supported
+
+  A → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/scalar[scalar] SQL macros cannot be used as part of the expression given to another SQL macro.
+
+code {
+create or replace function tq84_macro(expr varchar2) return varchar2 sql_macro(scalar) is begin
+   return 'substr(expr, 2)';
+end tq84_macro;
+/
+code }
+
+  This SQL statement runs fine:
+code {
+select
+   object_name,
+   tq84_macro(object_name) o2
+from
+   → development/databases/Oracle/installed/data-dictionary/objects[user_objects];
+code }
+
+  This statement throws *ORA-64630: unsupported use of SQL macro: use of nested scalar SQL macro is not supported*:
+code {
+select
+   object_name,
+   tq84_macro(tq84_macro(object_name)) o3
+from
+   → development/databases/Oracle/installed/data-dictionary/objects[user_objects];
+code }
+
+  Calling a scalar macro from *within* another scalar macro, however, *is* possible:
+code {
+create or replace function tq84_macro_wrap(expr varchar2) return varchar2 sql_macro(scalar) is begin
+   return 'tq84_macro(expr)';
+end tq84_macro_wrap;
+/
+
+select
+   object_name,
+   tq84_macro_wrap(object_name) ow
+from
+   user_objects;
+code }
+
+code {
+drop function tq84_macro_wrap;
+drop function tq84_macro;
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
