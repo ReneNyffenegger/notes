@@ -1,7 +1,9 @@
 
 WebGPU is gthe successor of → development/web/WebGL
 
-{ TODO
+{ October 2024: Trying to run a WebGPU application in a browser on Linux/Debian
+
+  The following two attempts to run a WebGPU application in a Linux/Debian enviornment failed in October 2024.
 
   { Chrome
 
@@ -13,9 +15,33 @@ WebGPU is gthe successor of → development/web/WebGL
       • `--enable-features=Vulkan`
       • `--enable-features=SkiaGraphite`
     Or even `--enable-features=Vulkan,UseSkiaRenderer`
+code {
+$ google-chrome --enable-unsafe-webgpu --enable-features=Vulkan
+code }
 
-    As of October 2024, Chrome 131, it seems that an → https://developer.chrome.com/origintrials/#/trials/active[origin trial] needs to be registered to run WebGPU in Chrome.
-    (See also HTTP header `Origin-Trial`).
+    As of October 2024, Chrome 131(?), it seems that an → https://developer.chrome.com/origintrials/#/trials/active[origin trial] needs to be registered to run WebGPU in Chrome.
+   (See also HTTP header `Origin-Trial`).
+
+  }
+  { Firefox Nightly #apt-firefox-nightly
+
+    Trying to following → https://blog.nightly.mozilla.org/2023/10/30/introducing-mozillas-firefox-nightly-deb-packages-for-debian-based-linux-distributions/[these steps]:
+code {
+# Create /etc/apt/keyrings if it does not already exist
+$ sudo install -d -m 0755 /etc/apt/keyrings
+
+# Import the Mozilla APT repository signing key:
+$ sudo wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O /etc/apt/keyrings/packages.mozilla.org.asc
+
+# Check if fingerprint is 35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3
+$ if [ $(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}' != 35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3 ]; then echo nok; fi
+
+# Add the Mozilla APT repository to your sources list:
+$ echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a → Linux/fhs/etc/apt/sources_list_d[/etc/apt/sources.list.d]/mozilla.list > /dev/null
+
+$ sudo apt-get update
+$ sudo apt-get install firefox-nightly
+code }
 
   }
 }
