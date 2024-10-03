@@ -1,0 +1,56 @@
+$ libc: setjmp - longjmp
+
+code {
+#include <stdio.h>
+#include <setjmp.h>
+
+jmp_buf env;
+
+void func() {
+    printf("func, calling longjmp\n");
+ 
+    longjmp(env, 42);
+ // longjmp does not return
+    printf("func, after calling longjmp\n");
+}
+
+int main() {
+
+    switch (setjmp(env)) {
+ // setjmp returns twice, once with 0
+ // and one with the value passed to longjmp
+    case 0:
+       printf("call func()\n");
+       func();
+       break;
+    case 42:
+       printf("setjmp evaluated to 42\n");
+       break;
+    default:
+       printf("setjmp evaluated to neither 42 nor 0\n");
+    }
+}
+code }
+
+When run, this program prints
+code {
+call func()
+func, calling longjmp
+setjmp evaluated to 42
+code }
+
+{ GCC built-in functions __builtin_setjmp and __builtin_setjmp
+
+   GCC provides the built-in functions `__builtin_setjmp` and `__builtin_longjmp` which are
+   similar to, but not interchangeable with `setjmp` and `longjmp`.
+
+   The built-in versions are used internally by GCC's libraries to implement exception handling on
+   some targets.
+
+   The standard C library functions (`<setjmp.h>`) are preferred in regular user code.
+}
+
+sa:
+
+
+  → development/languages/C-C-plus-plus/C/libc
