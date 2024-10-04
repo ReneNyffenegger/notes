@@ -1,6 +1,65 @@
 
 WebGPU is gthe successor of → development/web/WebGL
 
+WebGPU is only available in secured contexts (i. e. → development/web/HTTPS)
+
+{ WebGPU API
+
+  Interesting classes («interfaces») of the WebGPU include
+  table { ll
+    `GPU` ☰ The *main interface* for using WebGPU (for example for requesting a `GPUAdapter` interface. Obtained with `navigator.gpu` or `WorkerNavgiator.gpu`
+    `GPUAdapter` ☰ Used to request a `GPUDevice` or query adapter information, features and its limits (see `GPUSupportedLimits` for the latter). An adapter can be obtained with `navigator.gpu.requestAdapter()`
+    `GPUBindGroup` ☰
+    `GPUBindGroupLayout` ☰ A template used when creating `GPUBindGroup` objects. The template defines the structure and purpose a related GPU resources such as buffers that will be used in a pipeline. Created with `GPUDevice.createBindGroupLayout()`.
+    `GPUBuffer` ☰ A `GPUBuffer` stores the raw data which is processed by the GPU. Created with `GPUDevice.createBuffer`.
+    `GPUDevice` ☰ A logical GPU device which exposes the bulk of WebGPU functionality. A `GPUDevice` is obtained with `GPUAdapter.requestDevice()`.
+    `GPUSupportedLimits` ☰
+  table }
+
+  { GPUDevice.createBindGroupLayout
+
+code {
+GPUDevice.createBindGroupLayout( {
+    "entries": [
+        { "binding": 0, "visibility": GPUShaderStage.COMPUTE, "buffer": { "type": "uniform" } },
+        { "binding": 1, "visibility": GPUShaderStage.COMPUTE, "buffer": { "type": "storage" } }
+    ]
+} );
+code }
+
+   `visibility` is a bitwise-flag which defines in what type of shader the bind group will be used. Because they're bitwise-flags, they can be combined with `|`. The possible values are:
+      • `GPUShaderStage.COMPUTE`
+      • `GPUShaderStage.FRAGMENT`
+      • `GPUShaderStage.VERTEX` 
+
+    In the code fragment above, the `buffer` object indicates that the corresponding `GPUBindGroup` entry will be a `GPUBufferBinding` object (which contains a `GPUBuffer` plus `offset` and `size` values).
+    -
+    The `type` value can be one of
+      • `"read-only-storage"` (buffer is created with `GPUBufferUsage.STORAGE`)
+      • `"storage"` (buffer is created with `GPUBufferUsage.STORAGE`)
+      • `"uniform"` (buffer is created with `GPUBufferUsage.UNIFORM`)
+
+  }
+  { GPUDevice.createBuffer
+
+   `GPUDevice.createBuffer` creates a `GPUBuffer`.
+
+?  `GPUBufferUsage` is a combination of
+   table { lllr
+     `GPUBufferUsage.COPY_SRC` ☰ Source of a copy operation (for example the source argument of `copyBufferToBuffer()`). ☰ 0x0004 ☰ 4
+     `GPUBufferUsage.COPY_DST` ☰ Destination of a copy/write operation (for example the destination argument of `copyTextureToBuffer()`). ☰ 0x0008 ☰ 8
+     `GPUBufferUsage.INDEX` ☰ Index buffer (buffer argument passed to setIndexBuffer()`). ☰ 0x0010 ☰ 16
+     `GPUBufferUsage.INDIRECT` ☰ Store indirect command arguments (`indirectBuffer` argument of `drawIndirect()` or `dispatchWorkgroupsIndirect()`) ☰ 0x0100 ☰ 256
+     `GPUBufferUsage.MAP_READ` ☰ Can be mapped for reading (for example when calling `mapAsync()` with a mode of `GPUMapMode.READ`). This flag may only be combined with `GPUBufferUsage.COPY_DST`. ☰ 0x0001 ☰ 1
+     `GPUBufferUsage.MAP_WRITE` ☰ Can be mapped for writing (for example when calling `mapAsync()` with a mode of `GPUMapMode.WRITE`). This flag may only be combined with `GPUBufferUsage.COPY_SRC`. ☰ 0x0002 ☰ 2
+     `GPUBufferUsage.QUERY_RESOLVE` ☰ Can be used to capture query results (`resolveQuerySet()`). ☰ 0x0200 ☰ 512
+     `GPUBufferUsage.STORAGE` ☰ Can be used as a storage buffer ☰ 0x0080 ☰ 128
+     `GPUBufferUsage.UNIFORM` ☰ Can be used as a uniform buffer ☰ 0x0040 ☰ 64
+     `GPUBufferUsage.VERTEX` ☰ Can be used as a vertex buffer (`setVertexBuffer()`). ☰ 0x0020 ☰ 32    
+   table }
+
+  }
+}
 { October 2024: Trying to run a WebGPU application in a browser on Linux/Debian
 
   The following two attempts to run a WebGPU application in a Linux/Debian enviornment failed in October 2024.
@@ -43,12 +102,21 @@ $ sudo apt-get update
 $ sudo apt-get install firefox-nightly
 code }
 
+    { Chrome Canary
+
+      Chrome Canary does not run on Linux, apparently.
+
+      Downloaded from → https://www.google.com/intl/us/chrome/canary/[here] and this one *seemed actually* to work.
+
+    }
   }
 }
 
 sa:
 
   The `gpu` property of a browser's `→ development/web/browser/object-model/navigator` object.
+
+  → hardware/xPU/GPU
 
 links:
 
