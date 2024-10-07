@@ -1,5 +1,44 @@
 $ Oracle SQL Plan operation PX BLOCK ITERATOR
 @ PX BLOCK ITERATOR
 
+code {
+create table tq84_tab (
+   num   integer           check (num between 1 and 100000) not null,
+   txt  varchar2(10)
+);
+ 
+insert into tq84_tab
+select
+   level,
+   → development/databases/Oracle/installed/packages/dbms/random/api/string('a', 10)
+from
+   → development/databases/Oracle/SQL/dual
+→ development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by level] <= 100000;
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */
+   max(txt)
+from
+   tq84_tab
+;  
+ 
+ 
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format=>'basic');
+--
+-- -------------------------------------------
+-- | Id  | Operation              | Name     |
+-- -------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select       |          |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate        |          |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator       |          |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random | :TQ10000 |
+-- |   4 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/sort/aggregate     |          |
+-- |   5 |      PX BLOCK ITERATOR |          |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_TAB |
+-- -------------------------------------------
+
+drop table tq84_tab;
+code }
+
 sa:
   → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

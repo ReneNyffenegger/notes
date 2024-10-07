@@ -1,0 +1,108 @@
+$ Oracle: Immutable tables
+
+code {
+create immutable table tq84_immutable_table (
+   txt  varchar2(20),
+   dat  date
+)
+no drop   until 16 days idle
+no delete until 20 days after insert;
+code }
+
+Without records, the table can be dropped:
+code {
+drop table tq84_immutable_table;
+code }
+
+Recreae the table and insert a record:
+code {
+create immutable table tq84_immutable_table (
+   txt  varchar2(20),
+   dat  date
+)
+no drop   until 16 days idle
+no delete until 20 days after insert;
+
+begin
+   insert into tq84_immutable_table values ('first record', sysdate);
+   commit;
+end;
+/
+code }
+
+The table cannot be dropped anymore, the following statement throws *ORA-05723: dropping TQ84_IMMUTABLE_TABLE, which is a non-empty blockchain or immutable table, is not allowed*:
+code {
+drop table tq84_immutable_table;
+code }
+
+
+{ Hidden columns
+
+  An immutable table creates the following hidden columns:
+    • `orabctab_inst_id$`
+    • `orabctab_chain_id$`
+    • `orabctab_seq_num$`
+    • `orabctab_creation_time$`
+    • `orabctab_user_number$`
+    • `orabctab_hash$`
+    • `orabctab_signature$`
+    • `orabctab_signature_alg$`
+    • `orabctab_signature_cert$`
+    • `orabctab_spare$`
+
+code {
+select
+   internal_column_id,
+   column_name,
+   data_type,
+   data_length,
+   hidden_column
+from
+   user_tab_cols       
+where
+   table_name = 'TQ84_IMMUTABLE_TABLE'  and
+   column_name not in (select column_name from user_immutable_table_columns where table_name = 'TQ84_IMMUTABLE_TABLE')
+order by
+   internal_column_id;
+code }
+
+}
+{ SYS.ORABCTAB_IMMUTABLE_COLS
+
+ `sys.orabctab_immutable_cols` is a → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/table[table SQL macro].
+
+  When connected as user `SYS`:
+code {
+select
+   col.col_name,
+   col.col_pos,
+   col.col_id,
+   col.data_type
+from
+   dba_objects obj, 
+   sys.orabctab_immutable_cols(obj.object_id) col
+where
+   obj.object_name = 'TQ84_IMMUTABLE_TABLE' and
+   obj.owner       = 'RENE'
+;
+code }
+
+}
+
+sa:
+
+  → development/databases/Oracle/objects/tables[Tables]
+
+  → development/databases/Oracle/errors/ORA-05741_invalid-retention-time-outside-the-range-of_and
+
+ `sys.blockchain_table$`
+
+ `dba_immutable_tables`
+
+ `dba_immutable_row_version_history`
+
+ `dba_immutable_row_version_cols`
+
+ `dba_immutable_table_columns;`
+
+ `dbms_immutable_table`
