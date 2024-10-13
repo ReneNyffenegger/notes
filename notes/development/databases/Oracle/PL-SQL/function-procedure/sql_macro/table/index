@@ -1,0 +1,58 @@
+$ Oracle: Table macros
+
+? The value passed to a *table macro* can appear in the returned select statement anywhere where also a → development/databases/Oracle/SQL/statement/bind-variables[bind variable] might be placed.
+
+code {
+create or replace function tq84_table_macro(p varchar2) return varchar2 sql_macro(table)
+is begin
+ 
+   return q'{
+
+       select
+          object_name,
+          p
+       from
+          user_objects
+        where
+          object_name like upper('%' || p || '%') 
+   }';
+
+end tq84_table_macro;
+/
+
+select * from tq84_table_macro('du');
+code }
+
+{ Parameter is NULL outside of the returned SQL text
+
+  Outside of the returned SQL text, the parameter(s) is `→ development/databases/Oracle/SQL/null`.
+code {
+create or replace function tq84_table_macro(p varchar2) return varchar2 sql_macro(table)
+is
+   col_alias varchar2(128);
+begin
+
+   col_alias := nvl(p, 'p_is_null');
+   
+   return '
+
+       select
+          ''returned value'' as ' || col_alias || '
+       from
+          dual';
+
+end tq84_table_macro;
+/
+
+select * from tq84_table_macro('non_null_value');
+-- P_IS_NULL     
+-- --------------
+-- returned value
+code }
+
+  A consequence of this is that it is not possible to return a fundamentally different SQL text depending on the value passed to the function when it was invoked.
+
+}
+
+sa:
+  → development/databases/Oracle/PL-SQL/function-procedure/sql_macro[SQL Macros]

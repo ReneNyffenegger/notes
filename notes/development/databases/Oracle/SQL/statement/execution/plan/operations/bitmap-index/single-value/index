@@ -111,6 +111,77 @@ drop   table tq84_tab_part;
 code }
 
 }
+{ Combine BITMAP INDEX SINGLE VALUE with BITMAP OR 
+
+ `BITMAP INDEX SINGLE VALUE` can perfectly be combined with → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[`BITMAP OR`]:
+code {
+create table tq84_bitmap_or (
+    id       integer,
+    val      number(7,2),
+    flg_1    varchar2(10),
+    flg_2    varchar2(10),
+    payload  varchar2(2222)
+);
+ 
+create bitmap index tq84_bitmap_or_ix_1 on tq84_bitmap_or(flg_1);
+create bitmap index tq84_bitmap_or_ix_2 on tq84_bitmap_or(flg_2);
+ 
+begin
+   insert into tq84_bitmap_or
+   select
+      level,
+      dbms_random.value(10000, 99999),
+      case mod(level, 1000)
+           when 123  then 'foo'
+           when 456  then 'bar'
+           when 789  then 'baz' end,
+      case mod(level, 1234)
+           when 222  then 'x'
+           when 444  then 'y'   end,
+      lpad('x', 2222, 'x')
+   from
+      → development/databases/Oracle/SQL/dual → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by] level <= 10000;
+  
+   commit;
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_bitmap_or');
+end;
+/
+ 
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+select
+   id,
+   val
+from
+   tq84_bitmap_or
+where
+   flg_1 in ('foo', 'bar', 'baz') or
+   flg_2 in ('x', 'y');
+  
+ 
+ 
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic');
+--
+-- -------------------------------------------------------------------
+-- | Id  | Operation                           | Name                |
+-- -------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                    |                     |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_BITMAP_OR      |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/conversion/rowid/to       |                     |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/bitmap/and-or[BITMAP OR]                        |                     |
+-- |   4 |     BITMAP INDEX SINGLE VALUE       | TQ84_BITMAP_OR_IX_1 |
+-- |   5 |     BITMAP INDEX SINGLE VALUE       | TQ84_BITMAP_OR_IX_1 |
+-- |   6 |     BITMAP INDEX SINGLE VALUE       | TQ84_BITMAP_OR_IX_1 |
+-- |   7 |     BITMAP INDEX SINGLE VALUE       | TQ84_BITMAP_OR_IX_2 |
+-- |   8 |     BITMAP INDEX SINGLE VALUE       | TQ84_BITMAP_OR_IX_2 |
+-- -------------------------------------------------------------------
+ 
+ 
+drop table tq84_bitmap_or;
+code }
+
+
+}
 
 sa:
 

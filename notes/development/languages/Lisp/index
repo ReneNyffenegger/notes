@@ -27,7 +27,6 @@ Unless instructed otherwise, a list triggers a function call, the first argument
   A *list* is similarly defined as
     • an empty list (denoted as `()`), or
     • a *cons cell* that consists of two elements, both of which are lists.
-  
 
  `(a b c)` is just a short hand notation for `(a . (b . (z . NIL)))`
 
@@ -76,6 +75,35 @@ code }
 }
 { cond
 
+ `cond` takes n lists with two elements:
+code {
+* (cond
+    (nil  "first is true"  )
+    (t    "seoncd is true" )
+    (t    "third is true"  )
+)
+"second is true"
+code }
+
+  Evaluating the values in the n lists:
+code {
+* (let (  (x 10) (y 15) )
+  (cond
+   ( (> x y)  "x is greater than y"  )
+   ( (< x y)  "x is less than y"     )
+   ( (= x y)  "x is equal to y"      )
+  )
+)
+
+* (let (  (x 10) (y 15) )
+  (cond
+   ( (> x y)  (write-line "x is greater than y") )
+   ( (< x y)  (write-line "x is less than y"   ) )
+   ( (= x y)  (write-line "x is equal to y"    ) )
+  )
+)
+code }
+
   The *L-shaped evaluation* in cond
 code {
 * (cond
@@ -92,20 +120,96 @@ code }
 }
 { car / cdr (functions)
 
-  `car` evaluates to the first element in a list.
+ `car` evaluates to the first element in a list.
 
 code {
-> (car (cons (cons 1 2) (cons 3 4)))
+* (car '(a b c))
+A
+
+* (car '( (a b c) d e f))
+(A B C)
+
+* (car '())
+NIL
+code }
+
+code {
+* (car (cons (cons 1 2) (cons 3 4)))
 (1 . 2)
 code}
 
  `cdr` evaluates to the second element in a list (in the liturature typically referred to as «the rest»)
 code {
-> (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
+* (cdr (cons (cons 1 2) (cons (cons 3 4) 5)))
 ((3 . 4) . 5)
 code }
 
-  `car` and `cdr` belong to McCarthy's five elementary functions.
+code {
+* (cdr '(A B C D))
+(B C D)
+code }
+
+  *car* stands for *Contents of the Address part of the Register number*, *cdr* for *Contents of the Decrement part of the Register numer*.
+   -
+  The «register» in these terms refered to words(?) (x bytes?) in memory, not to registers on the CPU as understood today.
+  -
+? The full contents of a register number (i.e. car and cdr) can be used to represent a cons cell.
+
+ `car` and `cdr` belong to McCarthy's five elementary functions.
+
+  List:
+code {
+* (car    '(one two three four five))
+ONE
+
+* (cadr   '(one two three four five))
+TWO
+
+* (caddr   '(one two three four five))
+THREE
+
+* (cadddr  '(one two three four five))
+FOUR
+code }
+
+  List of lists:
+code {
+* (caar    '((one two three) (1 2 3)))
+ONE
+
+* (cadar   '((one two three) (1 2 3)))
+TWO
+
+* (caddar  '((one two three) (1 2 3)))
+THREE
+
+* (cdar    '((one two three) (1 2 3)))
+(TWO THREE)
+
+* (cadr    '((one two three) (1 2 3)))
+(1 2 3)
+
+* (caadr   '((one two three) (1 2 3)))
+1
+
+* (cadadr  '((one two three) (1 2 3)))
+2
+code }
+
+}
+{ (cadr X)
+
+`(cadr X)` is an abbreviation («syntactic sugar) for `(car (cdr X))`:
+code {
+* (car (cdr (list 1 2 3 4)))
+2
+code }
+
+  Same same, but shorter:
+code {
+* (cadr (list 1 2 3 4))
+2
+code }
 
 }
 { list (data structure)
@@ -128,7 +232,7 @@ code {
 (2 3)
 code }
 
-  Because the definition of a list is recursive, this can be extended ad infinitum: 
+  Because the definition of a list is recursive, this can be extended ad infinitum:
 code {
 * (cons 1 (cons 2 (cons 3 nil)))
 (1 2 3)
@@ -174,91 +278,33 @@ code }
   There is no such rule that is dependent on cons' car.
 
   There are nine combination how cons-cell can be constructed:
-  { atom | atom
-
 code {
-> (cons 1 2)
-(1 . 2)
-code }
+* (cons 'a 'b)
+(A . B)
 
-  }
-  { atom | cons
+* (cons 'X (cons 'Y 'Z))
+(X Y . Z)
 
-code {
-> (cons 1 (cons 2 3))
-(1 2 . 3)
-code }
+* (cons 'Q nil)
+(Q)
 
-  }
-  { atom | nil
+* (cons (cons 'U 'v) 'W)
+((U . V) . W)
 
-code {
-> (cons 1 nil)
-(1)
-code }
+* (cons (cons 'ONE 'TWO) (cons 'THREE 'FOUR))
+((ONE . TWO) THREE . FOUR)
 
-  }
-  { cons | atom
+* (cons (cons 'hello 'world) nil)
+((HELLO . WORLD))
 
-code {
-> (cons (cons 1 2) 3)
-((1 . 2) . 3)
-code }
+* (cons nil 1)
+(NIL . 1)
 
-  }
-  { cons | cons
+* (cons nil (cons 1 2))
+(NIL 1 . 2)
 
-code {
-> (cons (cons 1 2) (cons 3 4))
-((1 . 2) 3 . 4)
-code }
-
-  }
-  { cons | nil
-
-code {
-> (cons (cons 1 2) nil)
-((1 . 2))
-code }
-
-  }
-  { nil | atom
-
-code {
-> (cons nil 1)
-(() . 1)
-code }
-
-  }
-  { nil | cons
-
-code {
-> (cons nil (cons 1 2))
-(() 1 . 2)
-code }
-
-  }
-  { nil | nil
-
-code {
 > (cons nil nil)
-(())
-code }
-
-  }
-}
-{ (cadr X)
-
-`(cadr X)` is an abbreviation («syntactic sugar) for `(car (cdr X))`:
-code {
-* (car (cdr (list 1 2 3 4)))
-2
-code }
-
-  Same same, but shorter:
-code {
-* (cadr (list 1 2 3 4))
-2
+(NIL)
 code }
 
 }
@@ -286,25 +332,89 @@ code }
 
 ? `#'fn` is identical to `(function fn)`
 
+}
+{ defun
+
+ `defun` is a (macro(?) / special operator()) to create a function.
+
+  The name of the function can also be used for a variable. `symbol-value` and `symbol-function` allow to query the respective value:
+code {
+* (defvar pq 21)
+PQ
+
+* (defun pq (x) (* 2 x))
+PQ
+
+* (pq pq)
+42
+
+* (symbol-value    'pq)
+21
+
+* (symbol-function 'pq)
+#<FUNCTION PQ>
+code }
+
+}
+{ defvar
+
+code {
+* (defvar num 42)
+NUM
+
+* (setq num (- num 12))
+30
+
+* (setf num (* num 3 ))
+90
+
+* (print num)
+90
+90
+code }
 
 }
 { lambda
 
+  The common lisp manual says that the macro `lambda` is a dubious shortcut for `(function (lambda ...))` or `#'(lambda ...)` - but offers no explanation as to why that is:
 code {
-> (define twice
-    (lambda (x) (* 2 x))
-  )
-> (twice 21)
-42
+* (macroexpand '(lambda (x) (x)) )
+#'(LAMBDA (X) (X))
+T
 code }
 
-  Anonymous use of a lambda:
+  A *labmda expression* can be thought of as a *name of a function* which appears as the first element in a list, giving raise to the following anonymous use of a `lambda`:
 code {
-> ( 
+* (
     (lambda (x)  (* 3 x))
     14
   )
 42
+code }
+
+  Combining `defun` with `lambda`:
+code {
+* (defun twice (n)
+  (
+    (lambda (x) (* 2 x)) n
+  )
+)
+TWICE
+
+* (twice 21)
+42
+code }
+
+  Multiple parameters
+code {
+* ( (lambda (x y z)  (* z y x)) 7 3 2)
+42
+code }
+
+  With SBCL, the type of a lambda expression is `COMPILED-FUNCTION`. In CLISP, it is just `FUNCTION`.
+code {
+* (type-of (lambda (x) (* 3 x)) )
+COMPILED-FUNCTION
 code }
 
   Because a function that is defined with a lambda-expression has no name, this function cannot refer to itself.
@@ -317,6 +427,10 @@ code }
   Functions that apply a function to the elements in a list include
     • `apply`
     • `mapcar`
+    • `funcall`
+    • `map` (?)
+
+  The common lisp manual points out that *macros cannot be used as functional arguments to such functions as `apply`, `funcall` or `map`*.
 
 }
 { mapcar
@@ -329,8 +443,128 @@ code {
 code }
 
 }
+{ map
+
+  The first argument to `map` is the type of the returned value.
+
+code {
+* (map  'list    (lambda (x) (+ 2 x)) '(10 7 3 18 9) )
+(12 9 5 20 11)
+
+* (map  'vector  (lambda (x) (+ 2 x)) '(10 7 3 18 9) )
+#(12 9 5 20 11)
+code }
+
+}
+{ funcall
+
+code {
+* (defun f(fn) (funcall fn 1 2 3 4))
+F
+
+* (f '+)
+10
+
+* (f '*)
+24
+code }
+
+}
+{ apply
+
+ `apply` generally  takes two arguments …
+code {
+* (apply #'+ '(1 2 3 4))
+10
+code }
+  … but can be called with more arguments, too:
+code {
+* (apply #'+ 1 2 '(3 4))
+10
+code }
+
+code {
+* (apply (symbol-function '+) '(1 2 3 4))
+10
+code }
+
+code {
+* (apply #'(lambda (a b c d) (+ a b c d)) '(1 2 3 4))
+10
+code }
+
+}
+{ sort
+
+  Sort numbers in ascending order:
+code {
+* (sort '(8 5 3 4 6) #'<)
+(3 4 5 6 8)
+code }
+
+  Sort strings alphabetically
+code {
+* (sort
+     '("eight" "nine" "ten" "eleven" "twelve")
+    #'string<)
+code }
+
+  Sort strings according to their length
+code {
+* (sort
+     '("eight" "nine" "ten" "eleven" "twelve")
+    #'(lambda (str1 str2) (< (length str1) (length str2))))
+("ten" "nine" "eight" "eleven" "twelve")
+code }
+
+}
+{ remove-if
+
+  Remove even numbers:
+code {
+* (remove-if #'evenp '(7 2 6 4 3 8 5))
+(7 3 5)
+code }
+
+}
+{ Calling a function (lambda expression0 returned from a function
+
+code {
+(defun create-func (x)
+   (lambda (y) (write-line (concatenate 'string x " " y)))
+;#'(lambda (y) (write-line (concatenate 'string x " " y)))   ; same same but different?
+)
+
+(defvar f1)
+(defvar f2)
+
+  (setf                   f1  (create-func "f1"))
+  (setf (symbol-function 'f2) (create-func "f2"))
+; (setf                 #'f3) (create-func "f3")) ; --> Error
+
+  (funcall          f1  "one"  )
+  (                 f2  "two"  )
+; (               #'f1  "three") ; --> error
+; ((symbol-function f1) "four" ) ; --> error
+code }
+
+}
 { Sequential evaluation
 
+code {
+* (progn
+   (defvar X 6)
+   (defvar Y 7)
+   (* X Y)
+)
+42
+
+; Value of defvar is retained ...
+* X
+6
+code }
+
+  Scheme (petite):
 code {
 (begin
    (define X 6)
@@ -342,7 +576,7 @@ code }
 }
 { setq
 
- `setq` (a special operator) is the *simple variable assignment statement*.
+ `setq` (a special operator) is the *simple variable assignment statement* and can be used to assign values to both lexical and special variables.
   -
   It returns the the last assigned value.
 
@@ -361,6 +595,121 @@ code {
 (print c) ; 13
 code }
 
+}
+{ let, let*, flet
+
+code {
+* (let (
+     (x "hello")
+     (y "world")
+  )
+  (concatenate 'string x " " y)
+)
+"hello world"
+code }
+
+  In a `let` expression, the value of a newly defined variable cannot depend on the value of another newly defined variable, thus the following expression throws an error:
+code {
+* (let (
+     (x  21    )
+     (y (* x 3))
+    )
+    (print (- y x))
+  )
+code }
+
+  However, with `let*`, assigning values in sequence *is* possible:
+code {
+* (let* (
+     (x  21    )
+     (y (* x 3))
+    )
+    (print (- y x))
+  )
+42
+42
+code }
+
+  Share a (hidden) variable between two functions (See Paul Graham - On Lisp - 2.6. Closures):
+code {
+* (let ((counter 0))
+   (defun new-id   () (incf counter  ))
+   (defun reset-id () (setq counter 0))
+)
+RESET-ID
+
+* (new-id)
+1
+
+* (new-id)
+2
+
+* (reset-id)
+0
+
+* (new-id)
+1
+code }
+
+
+
+  `flet` names local functions:
+code {
+* (flet (
+    ( f (x)
+       (print (concatenate 'string "outer f: " x))
+       (flet (
+           ( f (x)
+              (print (concatenate 'string "inner f: " x))
+           )
+          )
+          (f "two")
+      )
+    )
+   )
+    (f "one")
+  )
+"outer f: one"
+"inner f: two"
+"inner f: two"
+code }
+
+ `labels` is similar to `flet` with the difference that a function defined in `labels` can be used in the function being defined:
+code {
+* (labels (
+    ( fib (n)
+       (
+         if (<= n 2)
+           1
+           (+ (fib (- n 1)) (fib (- n 2)))
+       )
+    )
+   )
+    (fib 7)
+  )
+code }
+
+  Example of using `labels` in a function (Graham - On List, p. 3):
+code {
+* (defun reverse-list (lst)
+   (labels (
+      ( reverse-local (lst accum)
+        (if (null lst)
+           accum
+          (reverse-local (cdr lst) (cons (car lst) accum ))
+        )
+      )
+   )
+     (reverse-local lst nil)
+   )
+)
+REVERSE-LIST
+
+* (reverse-list '(5 4 3 2 1))
+(1 2 3 4 5)
+code }
+
+  Compare `flet` and `labels`  with `macrolet`.
 
 }
 { define vs let vs setq …
@@ -388,8 +737,20 @@ code }
 
     In → https://paulgraham.com/rootsoflisp.html[The Roots of Lisp], Paul Graham adds the following two «primitives»: `quote` and `cond` (which he names the *Seven Primitive Operators*).
 
-  }
+    An environment that implements only those five (seven?) functions is a programming language.
+    -
+  ? Because of this simplicity, Steven Russel was able to create (the abstract machine called `eval`) in a few days on an IBM 709 computer.
+    -
+    Compare this with say C or what not - but also with the 25 special forms of Lisp.
 
+    These five/seven functions (primitives) allow to create 12 additional functions (*but how, `defun` is not part of these 5/7*), it is possible to create
+    the → https://joshbradley.me/understanding-the-power-of-lisp/[universal function `eval`] which is able to evaluate Lisp in Lisp. These 12 functions are: `null`, `and`, `not`, (`caar, cadr`, `caddr`, `cadar`, `caddar`), `append`, `list, `pair` and `assoc`
+
+    This(?) unversal language was already presented by McCarthy himself in chapter 1.6 of the LISP 1.5 Programmer's Manual.
+    -
+    Alan Kay referred to this universal language as → https://queue.acm.org/detail.cfm?id=1039523[Maxwell’s Equations of Software].
+
+  }
   { define vs defun
 
    `define` is a function that is available in Scheme but not in Common Lisp.
@@ -415,6 +776,10 @@ code }
     Common Lisp has two types of variables:
       • Ordinary variables, used to name *data objects*
       • Function names, used to name *defined functions*, *macros* and *special operators*
+
+    Common Lisp also has two kinds of variables:
+      • Lexical (or static) variables
+      • Special (or dynamic) variables (which are preferrably declared with `defvar`). Generally, the names of special variables start and end with `*`. See also `(proclaim '(special …))`
 
     A Function name is either
       • a symbol, or
@@ -455,11 +820,10 @@ code }
      The first element of a special form is a *special operator*.
 
    ? Special forms are special because each of them has a special semantics.
-     -  
+     -
    ? Some (all?) predecessors of Common Lisps (such as MacList) had even more special forms. This number was apparently reduced to 25 in Common Lisp because of Kent Pitman.
     -
    ? Scheme has reduced the number of special forms even more.
-
 
      See also: the → https://www.lispworks.com/documentation/HyperSpec/Body/03_ababa.htm[25 special forms]
   }
@@ -495,7 +859,7 @@ code }
     `unwind-protect` ☰
 
     table }
-  
+
     What about:
       • `and`, `or`
       • `cond`
@@ -517,7 +881,6 @@ code }
       • `with-open-file`
 
     See also `special-operator-p` which determines if a symbol globally names a special operator
-
 
   }
   { Read-eval-print loop (REPL
@@ -555,7 +918,7 @@ T
     (setq tree (macroexpand tree))
     (if (atom tree)
        tree
-       (mapcar #'macroexpand-tree tree))) 
+       (mapcar #'macroexpand-tree tree)))
 MACROEXPAND-TREE
 
 * (macroexpand-tree '(cond_ (a b) (c d) (e e) (f g)))
@@ -571,7 +934,7 @@ MACROEXPAND-TREE
 code }
 
   }
-  { setf expanders 
+  { setf expanders
 
     The following example was expired (mostly copied even) from → https://stackoverflow.com/questions/11457071/[this Stackoverflow question].
 code {
@@ -616,13 +979,17 @@ code {
 (THIS LIST IS NOT EVALUATED)
 code }
 
+code {
+* (quote (A . (B . (C . ()))))
+(A B C)
+code }
 
     `quote` is one of the Paul Graham's seven primitives.
 
   }
   { function
 
-code {
+  code {
 * (defun twice (x) (* 2 x) )
 * (function twice)
 #<FUNCTION TWICE>
@@ -638,7 +1005,7 @@ code }
 
   }
   { function-lambda-expression (Recover the source of a defined function)
-  
+
 code {
 * (defun fn (a b) (+ a b))
 * (function-lambda-expression #'fn)
@@ -656,7 +1023,7 @@ FUNCTION-LAMBDA-EXPRESSION
 code }
 
   }
-  { Equality predicates
+  { Equality predicates (eq etc.)
 
     table { ll
       `eq` ☰
@@ -664,6 +1031,10 @@ code }
       `equal` ☰
       `equalp` ☰ Like `equal` but ignores type differences. The most general function of all.
     table }
+
+   `eq` is one of McCarthy's five elementary functions.
+    -
+ ?  However, his version of `eq` could only compare atoms while common lisp allows to compare any two objects.
 
 code {
 * (equalp 5 5.0)
@@ -673,7 +1044,55 @@ T
 NIL
 code }
 
-    `eq` is one of McCarthy's five elementary functions.
+code {
+* (let ((A "xyz"))(eq A A))
+T
+
+* (let ((A "xyz")(B "xyz")) (eq    A B))
+NIL
+
+* (let ((A "xyz")(B "xyz")) (eql   A B))
+NIL
+
+* (let ((A "xyz")(B "xyz")) (equal A B))
+T
+
+* (let ((A "xyz")(B "xyz")) (equalp A B))
+T
+code }
+
+code {
+* (eq 255 #xff)
+T
+code }
+
+code {
+* (eq    '((A . B) . (C . D))
+         '((A . B)    C . D )
+  )
+NIL
+
+* (equal '((A . B) . (C . D))
+         '((A . B)    C . D )
+  )
+T
+code }
+
+code {
+* (eq  'g 'h)
+NIL
+
+* (eq  'h 'h)
+T
+code }
+
+code {
+* (defvar fn #'print)
+FN
+
+* (eq (symbol-value 'fn) (symbol-function 'print))
+T
+code }
 
   }
   { typep, subtypep, type-of
@@ -698,6 +1117,12 @@ NULL
 * (type-of T)
 BOOLEAN
 
+* (type-of 'T)
+BOOLEAN
+
+* (type-of 'XYZ)
+SYMBOL
+
 * (type-of '(1 2 3))
 CONS
 
@@ -716,23 +1141,39 @@ DOUBLE-FLOAT
 * (type-of #'type-of)
 COMPILED-FUNCTION
 
+* (type-of (lambda (x) (* 3 x)) )
+COMPILED-FUNCTION
+
 * (type-of (type-of NIL))
 SYMBOL
 
 * (type-of #\c)
 STANDARD-CHAR
 
+* (type-of 10/3)
+RATIO
+
 * (type-of (make-array 5))
 (SIMPLE-VECTOR 5)
 code }
 
 code {
-* (type-of *standard-input*)
+* (type-of  *standard-input*)
 SYNONYM-STREAM
 
 * (type-of '*standard-input*)
 SYMBOL
+
+* (type-of #(a b c d))
+(SIMPLE-VECTOR 4)
+
+* (type-of #P"$ this path doesn't exist!")
+PATHNAME
+
+* (let (( x 42 )) (type-of x))
+(INTEGER 0 4611686018427387903)
 code }
+
 
 code {
 * (typep '(a b c) 'cons)
@@ -748,7 +1189,7 @@ code {
 T
 
 * (typep 42 'atom)
-T 
+T
 code }
 
   Similarly, `"text"` is both a string and and atom:
@@ -757,7 +1198,7 @@ code {
 T
 
 * (typep "text" 'atom)
-T 
+T
 code }
 
   Double float vs single float:
@@ -806,7 +1247,7 @@ code }
   }
   { atom, consp
 
-   `(atom obJ) ≡ (typep obj 'atom) ≡ (not (typep obj 'cons))`
+   `(atom obj) ≡ (typep obj 'atom) ≡ (not (typep obj 'cons))`
 
    `(consp obJ) ≡ (typep obj 'cons) ≡ (not (typep obj 'atom))`
 
@@ -816,6 +1257,13 @@ T
 
 * (atom '(a b c))
 NIL
+
+* (atom '((( ))) )
+NIL
+
+* (atom '(((X))) )
+NIL
+((ONE TWO THREE))
 code }
 
 code {
@@ -826,7 +1274,7 @@ NIL
 T
 code }
 
-  `()` is `nil`,so:
+  `()` is `nil`, so:
 code {
 * (atom '())
 T
@@ -845,6 +1293,23 @@ code }
 
     `atom` is one of McCarthy's five elementary functions.
 
+code {
+* (vectorp #(1 2 3))
+T
+
+* (vectorp '(1 2 3))
+NIL
+code }
+
+  `(functionp x) ≡ (typep x ’function)`
+code {
+* (functionp #'list)
+T
+
+* (functionp #'(lambda (x) (print x)))
+T
+code }
+
   }
   { Printing functions
 
@@ -853,7 +1318,7 @@ code }
       `prin1` ☰ Representation of an object. `prin1` is intended to be consumed by `read`, compare with `princ`.
       `print` ☰ Like `prin1` except that the printed representation is preceeded by a newline (see `terpri`) and followed by a space.
       `pprint` ☰ Like `print` except that the trailing space is omitted and the object is printed with the `*print-pretty*` flag set to `nil`. Returns no value.
-      `princ` ☰ Like `prin1` except that no escape characters are printed. The output of `princ` is intended to be consumed by humans, compare with `prin1`. `princ` prints a character exactly like `write-char` 
+      `princ` ☰ Like `prin1` except that no escape characters are printed. The output of `princ` is intended to be consumed by humans, compare with `prin1`. `princ` prints a character exactly like `write-char`
       `write-to-string` ☰
       `prin1-to-string` ☰
       `princ-to-string` ☰
@@ -900,6 +1365,18 @@ FOO
 code }
 
     }
+
+  }
+  { Number sign
+
+    table { ll
+      `#o77` ☰ Octal value (of an integer?)
+      `#xff` ☰ Hexadecimal value
+      `#b0011101011` ☰ Binary value
+      `#\C` ☰ The character `C`
+      `#(a b c)` ☰ Vector
+      `#'cons` ☰ `#'fn` is to `(function fn)` as `'xyz` is to `(quote xyz)`
+    table }
 
   }
   { format
@@ -988,7 +1465,7 @@ COPY-OF-OBJ
 * (setf copy-of-obj (copy-xyz obj))
 #S(XYZ :NUM 42 :TXT "hello world")
 code }
-  
+
   Modify struct-objects with `setf`:
 code {
 * (setf (xyz-num copy-of-obj) 99)
@@ -1009,6 +1486,14 @@ code }
 code {
 * (loop for i from 1 to 5 collect i)
 (1 2 3 4 5)
+code }
+
+  }
+  { concatenate
+
+code {
+* (concatenate 'string "hello"  " "  "world")
+"hello world"
 code }
 
   }
@@ -1052,24 +1537,50 @@ TWO
 code }
 
   }
-  { &optional
-
-    In a parameter list (of a functino?), all arguments on the right side of `&optional` are optional
+  { length
 
 code {
-* (defun greet (name &optional (greeting "Hello"))
-    (format t "~a, ~a!~%" greeting name))
+* (length "abcd")
+4
+code }
 
-* (greet 'Rene)
-Hello, RENE!
+  }
+  { &optional
+
+    In a parameter list (of a function?), all arguments on the right side of `&optional` are optional
+
+code {
+* (defun ex-1 (param-1 &optional (param-2 "default value"))
+    (format t "~a, ~a!~%" param-1 param-2))
+EX-1
+
+* (ex-1 "hello")
+hello, default value!
 NIL
-* (greet 'Rene "hi")
-hi, RENE!
-NIL
-* (greet "Rene")
-Hello, Rene!
+
+* (ex-1 "hello" "world")
+hello, world!
 NIL
 code }
+
+code {
+* (defun ex-2 (param-1 &optional param-2)
+   (if param-2
+     (format t "~a, ~a!~%" param-1 param-2)
+     (format t "~a!~%"     param-1        )
+   ))
+EX-2
+
+* (ex-2 "hello")
+hello!
+NIL
+
+* (ex-2 "hello" "world")
+hello, world!
+NIL
+(
+code }
+
 
     See also `&rest` and `&key`.
 
@@ -1085,6 +1596,88 @@ code }
    `read` reads in the printed representation of a Lisp object from input-stream, builds a corresponding Lisp object, and returns the object.
 
 ?  `read` seems to be associated with the opening paranethesis (which seems to be a macro)
+
+  }
+  { do
+
+code {
+* (do ( (i 0 (1+ i))      ) ; start with i = 0, increment i by one
+      ( (>= i 5 )         ) ; end when i is equal or greater than 5
+;     ( format t "~d~%" i ) ; print i
+      ( print i           ) ; print i
+)
+0
+1
+2
+3
+4
+NIL
+code }
+
+    Compare with `do*`.
+
+  }
+  { /
+
+code {
+* (/ 9 3)
+3
+
+* (/ 10 3)
+10/3
+
+* (/ 10.0 3)
+3.3333
+
+* (* 10/3 3)
+10
+
+* (type-of 10/3)
+RATIO
+code }
+
+  }
+  { multiple-value-bind, values
+
+   `truncate` returns two values:
+code {
+* (truncate 12.345)
+12
+0.34500027
+code }
+
+    But the following construct compares only the first returned value:
+code {
+* (= 12 (truncate 12.345))
+T
+code }
+    
+  `multiple-value-bind` can be used of both values are needed;
+code {
+* (multiple-value-bind (int frac) (truncate 12.345)
+  (format t "int = ~d, frac = ~f" int frac)
+)
+int = 12, frac = 0.34500027
+NIL
+code }
+
+   `values` can be used to return multiple values:
+code {
+* (defun one-two-three ()
+  (values 1 2 3)
+)
+ONE-TWO-THREE
+
+* (multiple-value-bind (a b c) (one-two-three)
+   (print a)
+   (print b)
+   (print c)
+)
+1
+2
+3
+3
+code }
 
   }
   { describe
@@ -1154,14 +1747,142 @@ code {
 code }
 
   }
+  { M-expressions
+
+    M-expressions can be translated to S-expression.
+
+    M-expressions were not implemented in common lisp.
+
+  }
+  { gensym
+
+   `gensym` creates a variable name that is guaranteed to be unique in the program.
+
+code {
+(defmacro swap (a b) 
+    `(let ((tmp ,a))
+        (setf ,a ,b  )
+        (setf ,b  tmp)
+     )
+)
+    
+(defvar a   42)
+(defvar b   99)
+(swap  a b)
+(print a)
+(print b)
+
+(defvar tmp 1)
+(swap tmp b)
+(print tmp)  ; --> Still 1!
+(print b  )  ; --> Still 2!
+code }
+
+The problem is that `tmp` is used within the macro and is already a global variable:
+code {
+* (macroexpand-1 '(swap tmp b))
+(LET ((TMP TMP))
+  (SETF TMP B)
+  (SETF B TMP))
+T
+code }
+
+  With `gensym`, this problem does not occur:
+code {
+(defmacro swap (a b) 
+  (let ((sym (gensym) ))
+    `(let ((,sym ,a))
+        (setf ,a ,b  )
+        (setf ,b ,sym)
+     )
+  )   
+)
+
+(defvar sym 42)
+(defvar a   99)
+(swap sym a)
+(print a)
+(print sym)
+code }
+
+code {
+* (macroexpand-1 '(swap sym a))
+(LET ((#:G490 SYM))
+  (SETF SYM A)
+  (SETF A #:G490))
+T
+code }
+
+    See also David Wessels → https://youtu.be/UQZusJynjiM?t=902[Intro to lisp macros].
+
+  }
+  { *
+
+    The `*` seems to represent the last evaluated value:
+code {
+* (+ 11 3)
+14
+
+* (+ * 2)
+16
+code }
+
+  }
+  { proclaim
+
+  ? According to the common lisp manual, `(proclaim '(optimize speed))` informs the compiler to try to use *tail-recursion optimization*. 
+
+  }
+  { declaim
+
+ ? `declaim` is a macro that makes proclamations recognizable at compile time.
+
+    Compare with `proclaim` and `declare`.
+
+  }
+  { declare
+
+code {
+* (defun f (x)
+   (declare (type fixnum x))
+   (+ x 1)
+)
+F
+
+* (f 5)
+6
+
+* (f 5.1) ; --> Error The value 5.1 is not of type FIXNUM when binding X
+
+code }
+
+  }
   { SBCL
 
     { Types
 
-      The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers. 
+      The SBCL compiler treats types differently (with more comprehensive type checking) than most other Lisp compilers.
 
     }
+    { Diagnostic messages
 
+code {
+(declaim (sb-ext:muffle-conditions sb-ext:compiler-note))
+code }
+
+      See also Chapter 4.1 in the manual (2.4.8)
+
+    }
+    { sbcl:*core-pathname*
+
+code {
+* sb-ext:*core-pathname*
+#P"/usr/bin/../lib/sbcl/sbcl.core"
+code }
+
+?     See also the `--core` command line option.
+
+    }
     { sb-kernel:get-lisp-obj-address
 
     In *SBCL*:
@@ -1213,9 +1934,16 @@ $ (ql:help)
 "For help with Quicklisp, see → http://www.quicklisp.org/beta/[http://www.quicklisp.org/beta/]"
 code }
 
-  But… I should have installed → https://linedit.common-lisp.dev/[Linedit].  
+  But… I should have installed → https://linedit.common-lisp.dev/[Linedit].
 
     }
+  }
+  { Clojure
+
+    Clojure does not have dotted pairs.
+
+    Commas are considered whitespace.
+
   }
 
 }

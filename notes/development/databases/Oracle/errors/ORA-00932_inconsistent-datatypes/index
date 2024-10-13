@@ -56,6 +56,20 @@ code }
     • → development/databases/Oracle/errors/ORA-00932_inconsistent-datatypes/expected-CHAR-got-LONG[This link] which shows how `→ development/databases/Oracle/installed/packages/dbms/duma_internal` can be used to somewhat relax this problem.
 
 }
+{ ORA-00932: inconsistent datatypes: expected - got CHAR #ora-00932-exp-got-char
+
+  Without → development/databases/Oracle/Releases-and-versions/23c#ora-23c-err[improved error messages], the following statement throw *ORA-00932: inconsistent datatypes: expected - got CHAR*:
+code {
+select
+   → development/databases/Oracle/SQL/functions/lob/to('xyz')
+from
+   → development/databases/Oracle/SQL/dual;
+code }
+
+  With improved error messages, it throws → development/databases/Oracle/errors/ORA-24856_invalid-use-of-TO_LOB-operator
+
+
+}
 { ORA-00932: inconsistent datatypes: expected - got CLOB #ora-00932-exp-got-clob
 
   It's not possible to execute a `→ development/databases/Oracle/SQL/select/group-by` on a → development/databases/Oracle/SQL/data-types/lob#ora-lob-group-by[`clob` (or `blob`)] value.
@@ -87,6 +101,15 @@ code }
 code {
 drop table tq84_ora_00932_clob;
 code }
+
+  { Comparing a CLOB with a VARCHAR2/string
+
+    This error is also thrown when a `clob` is compared with a `varchar2` value (see → development/databases/Oracle/errors/ORA-22848_cannot-use_type-as-comparison-key).
+
+   → development/databases/Oracle/installed/packages/dbms/lob/api/compare[`dbms_lob.compare`] can be used to
+   → development/databases/Oracle/installed/packages/dbms/lob/api/compare#dbms_lob-compare-prevent-err[compare CLOB values with strings without throwing an error].
+
+  }
 
 }
 { ORA-00932: inconsistent datatypes: expected NUMBER got DATE

@@ -52,10 +52,23 @@ code }
       SGCheck ☰ Find overruns of arrays.
     table }
   }
+  { Writing a tool
+
+    Valgrinds allows to → https://valgrind.org/docs/manual/writing-tools.html#writing-tools.writingatool[write one's own tool].
+
+    As per the documentation, at least the following four functions must be implemented:
+     • `pre_clo_init()` (registereed with the `VG_DETERMINE_INTERFACE_VERSION` macro)
+     • `post_clo_init()`
+     • `instrument()`
+     • `fini()`
+
+    The last three functions are registered with `VG_(basic_tool_funcs)` function (`coregrind/m_tooliface.c`).
+
+   `clo` stands for command line options.
+
+  }
 
 }
-
-
 { Simple example
 
   { prog.c
@@ -86,7 +99,30 @@ code }
   ? The additional logging seems to be written to STDOUT.
 
   }
+  { VEX IR
 
+   *VEX IR* is Valgrind's RISC-like intermediate language.
+
+    This language is somewhat commented in the source code file `VEX/pub/libvex_ir.h`.
+
+?  `instrument()` instruments the VEX IR.
+
+ ?  The tool *Lackey* (`lackey/lk_main.c`) offers a simple example how the VEX IR can be instrumented with calls to c functions when «things happen».
+
+  }
+  { Source code
+
+   `include/pub_tool_*.h` (notably `include/pub_tool_basics.h`) contains the necessary types, macros, functions etc. a tool might need.
+    -
+   `include/pub_tool_basics_asm.h` defines the `VG(…)` macro.
+    -
+    Another important include file is `VEX/pub/libvex_basictypes.h`.
+
+   `pub_tool_libc*.h.` contains a subset of the C library.
+
+   `docs/internals/`
+
+  }
 }
 
 

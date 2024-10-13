@@ -1,7 +1,9 @@
 $ Oracle: Scalar macros
 
-The following example demonstrates how a scalar macro is used in order to not invoke a PL/SQL function (and thus reduce SQL-PL/SQL context switches,
-but compare with → development/databases/Oracle/SQL/transpiler[SQL transpilation]):
+{ Simple example
+
+  The following example demonstrates how a scalar macro is used in order to not invoke a PL/SQL function (and thus reduce SQL-PL/SQL context switches,
+  but compare with → development/databases/Oracle/SQL/transpiler[SQL transpilation]):
 code {
 create or replace function tq84_save_div(a number, b number) return varchar2
    sql_macro(scalar)
@@ -30,7 +32,6 @@ end;
 /
 code }
 
-
 code {
 explain plan for
 select
@@ -48,5 +49,32 @@ select * from dbms_xplan.display();
 --    1 - → development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/filter_predicates[filter]("N1"/CASE "N2" WHEN 0 THEN NULL ELSE "N2" END =4)
 code }
 
+}
+{ Parameter is an SQL expression, NOT a string
+
+code {
+create or replace function tq84_length(expr varchar2) return varchar2 sql_macro(scalar) is begin
+   return 'length(expr)';
+end tq84_length;
+/
+code }
+
+  Even though the paramater `expr` is declared as a `→ development/databases/Oracle/SQL/data-types/varchar2`, the function is invoked with an *SQL expression*, *not* with a string:
+code {
+select
+   owner,
+   object_name,
+   object_type,
+   tq84_length(owner || object_name || object_type) len
+from
+   → development/databases/Oracle/installed/data-dictionary/objects[all_objects];
+code }
+
+}
+
 sa:
+
+  Scalar SQL macros cannot appear within the expression given to another scalar SQL macro, see
+  → development/databases/Oracle/errors/ORA-64630_unsupported-use-of-SQL-macro#ora-64630-nested-not-supported
+
   → development/databases/Oracle/PL-SQL/function-procedure/sql_macro[SQL Macros]

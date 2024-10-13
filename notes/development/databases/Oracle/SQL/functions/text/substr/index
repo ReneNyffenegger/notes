@@ -19,6 +19,39 @@ code }
   gh|Oracle-Patterns|/SQL/functions/text/substr/three-parameters.sql||
 
 }
+{ Test with CLOBS longer than 32K
+
+code {
+create table tq84_substr_test (
+   clb clob
+);
+
+begin
+   insert into tq84_substr_test values ('');
+
+   for c in ascii('a') .. ascii('z') loop
+      update
+         tq84_substr_test
+      set
+         clb = clb || lpad(chr(c), 4000, chr(c));
+    end loop;
+end;
+/
+
+select
+   26*4000 - length(clb) -- 0
+from
+   tq84_substr_test;
+
+select
+   substr(clb, 25*4000, 2) -- yz
+from
+   tq84_substr_test;
+
+drop   table tq84_substr_test;
+code }
+
+}
 { Variants
 
   `substr` comes in five variants:

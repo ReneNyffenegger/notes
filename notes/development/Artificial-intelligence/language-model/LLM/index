@@ -1,4 +1,5 @@
 $ Large Language Models (LLMs)
+@ LLM
 
 { Classification based on the Transformer architecture
 
@@ -31,6 +32,96 @@ $ Large Language Models (LLMs)
 
   ? Context size/length: the number of tokens taken into account to predict the next token.
 
+  { Components of a transformer LLM
+
+    A transformer LLM consists of a
+      • tokenizer, a
+      • stack of transformer blocks and an
+      • language modeling (LM) head
+
+  }
+  { Tokens and embeddings
+
+    The central concepts for using LLMs are tokens and embeddings.
+
+    In a technical sense, language is a sequence of tokens.
+    -
+    When a model is trained, it (hopefully) captures the important token patterns that appear or emerge in the training data.
+
+    Some tokenization algorithms include
+      • Byte Pair Encoding (BPE) - typically used by GPT models
+      • WordPiece (typically used by (BERT)
+      • SentencePiece (FLan-T5)
+
+    Important factors for tokenizers are
+      • The size of its vocabulary (as of 2024: typically between 30 and 50K, but moving towards 100K)
+      • The set of special tokens (Beginning of text (`<S>`), End of text, Padding, Unknown, classification (`[CLS]`), seperation (`[SEP]`), masking…). Models like *Galactica* which focus on scientific knowledge also include tokens like for citations, reasoning, mathematics, amino acid sequences and DNA sequences). Note that `[CLS]` and `<s>` are similar in nature.
+      • How to numerically represent each token (Is this really a thing?)
+      • How to deal with capitilization
+
+
+    For each token in the tokenizer's vocabulary, there is an associated *embedding* which is a vector of numerical values.
+    -
+    The values of these vectors is initialized with random numbers before the model is trained. These values are updated as the model is trained.
+
+  }
+  { Transformer blocks
+
+?   Each token (and in the case of autoregressive models also each generated token) is passed through the *transformer blocks*. The last tranformer block hands its output to the *LM head*.
+
+    A transformer block basically consists of an
+      • attention layer and a
+      • feedforward neural network.
+
+  }
+  { LM Head
+
+?   The LM head calculates the propability distribution for the next token.
+
+  }
+  { Decoding: Choosing next token, temperature
+
+    After the LM head has calculated the probability distribution for the next token, the model needs to choose the next token.
+
+    A simple strategy is to always pick the token with the highest probality score (also called *greedy token*).
+    -
+    The *temparature* parameter allows to define how often the decoder should deviate from that rule.
+    -
+    If the temparature is 0, it never deviates, the higher the temparature is, the more often it deviates.
+
+  }
+  { Context size
+
+  ? The context size is the number of tokens that the model can operate on in parallel.
+
+  }
+  { Autoregressive models
+
+    An *autoregressive model* predicts the next token based on based on the input plus the already predicted tokens.
+
+    BERT is not an autoregressive model (the B stands for *bidirectional*).
+
+  }
+  { GGUF
+
+    { gguf-tools (antirez)
+
+code {
+git clone → https://github.com/antirez/gguf-tools
+cd gguf-tools
+make
+curl -OL https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/main/ggml-model-Q4_K_M.gguf
+./gguf-tools show ggml-model-Q4_K_M.gguf
+code }
+
+    }
+    { convert-hf-to-gguf.py
+
+      → https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py[`convert_hf_to_gguf.py`] (of  → https://github.com/ggerganov/llama.cpp[llama.cpp]) converts HuggingFace to GGUF.
+
+    }
+
+  }
   { Models
 
     A list of models is maintained by → https://lifearchitect.ai/models-table/[LifeArchitect.ai].
@@ -96,6 +187,13 @@ $ Large Language Models (LLMs)
     }
 
   }
+  { Finding and downloading LLMs
+
+    Many LLMs can be found and downloaded in and from the → https://huggingface.co/docs/hub/en/index[Hugging Face Hub].
+    -
+    As of 2024-10, this hub hosts 900k models, 200k datasets and 300k demos.
+
+  }
 
 }
 
@@ -106,3 +204,5 @@ sa:
   → development/Artificial-intelligence/language-model/LLM/LLaMA
 
   Oracle's package `→ development/databases/Oracle/installed/packages/dbms/cloud_ai` uses LLMs to generate → development/databases/Oracle/SQL/statement[SQL statements] from natural language prompts.
+  -
+  But see also the `→ development/databases/Oracle/SQL/select/ai` clause.
