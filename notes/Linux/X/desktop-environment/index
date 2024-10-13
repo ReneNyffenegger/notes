@@ -13,7 +13,140 @@ Elements of a destop environment include:
   • icons (such as volume icon)
   • window manager
 
-Some desktop environments are Enlightenment, XFCE, → Linux/GUI/GNOME[GNOME], → Linux/GUI/KDE, LXE, LXQt, XFce etc.
+Some desktop environments are Enlightenment, Xfce, → Linux/GUI/GNOME[GNOME], → Linux/GUI/KDE, LXE, LXQt etc.
+
+{ Xfce
+
+  { Processes
+
+    With `→ Linux/shell/commands/pstree`, I find the following, *imho*, interesting → Linux/kernel/process[processes]:
+code {
+→ Linux/init/systemd[systemd]-+-…
+        |-dbus-daemon
+        |-lightdm-+-Xorg---22*[{Xorg}]
+        |         |-lightdm-+-xfce4-session-+-Thunar---2*[{Thunar}]
+        |         |         |               |-firefox-esr-+-Isolated Servic---21*[{Isolated Servic}]
+        |         |         |               |             `-…
+        |         |         |               |-kdeconnectd---5*[{kdeconnectd}]
+        |         |         |               |-light-locker---3*[{light-locker}]
+        |         |         |               |-nm-applet---3*[{nm-applet}]
+        |         |         |               |-polkit-gnome-au---2*[{polkit-gnome-au}]
+        |         |         |               |-ssh-agent
+        |         |         |               |-xfce4-panel-+-panel-10-notifi---2*[{panel-10-notifi}]
+        |         |         |               |             |-panel-14-action---2*[{panel-14-action}]
+        |         |         |               |             |-panel-6-systray---2*[{panel-6-systray}]
+        |         |         |               |             |-panel-8-pulseau---2*[{panel-8-pulseau}]
+        |         |         |               |             |-panel-9-power-m---2*[{panel-9-power-m}]
+        |         |         |               |             `-2*[{xfce4-panel}]
+        |         |         |               |-xfce4-power-man---2*[{xfce4-power-man}]
+        |         |         |               |-xfdesktop---2*[{xfdesktop}]
+        |         |         |               |-xfsettingsd---2*[{xfsettingsd}]
+        |         |         |               |-xfwm4---12*[{xfwm4}]
+        |         |         |               |-xiccd---2*[{xiccd}]
+        |         |         |               `-2*[{xfce4-session}]
+        |         |         `-2*[{lightdm}]
+        |         `-2*[{lightdm}]
+        `-xfce4-terminal-+-bash---…
+                         |-bash---pstree
+                         `-2*[{xfce4-terminal}]
+code }
+    `
+
+  }
+  { Executables
+
+    table { ll
+
+     `xfce4-about` ☰
+     `xfce4-accessibility-settings` ☰
+     `xfce4-appearance-settings` ☰
+     `xfce4-appfinder` ☰
+     `xfce4-clipman` ☰
+     `xfce4-clipman-history` ☰
+     `xfce4-clipman-settings` ☰
+     `xfce4-color-settings` ☰
+     `xfce4-dict` ☰
+     `xfce4-display-settings` ☰
+     `xfce4-find-cursor` ☰
+     `xfce4-keyboard-settings` ☰
+     `xfce4-mime-helper` ☰
+     `xfce4-mime-settings` ☰
+     `xfce4-mouse-settings` ☰
+     `xfce4-notifyd-config` ☰
+     `xfce4-panel` ☰
+     `xfce4-popup-applicationsmenu` ☰
+     `xfce4-popup-clipman` ☰
+     `xfce4-popup-clipman-actions` ☰ A symlink to `xfce4-popup-clipman`
+     `xfce4-popup-directorymenu` ☰
+     `xfce4-popup-places` ☰
+     `xfce4-popup-whiskermenu` ☰
+     `xfce4-popup-windowmenu` ☰
+     `xfce4-power-manager` ☰
+     `xfce4-power-manager-settings` ☰
+     `xfce4-screenshooter` ☰
+     `xfce4-sensors` ☰
+     `xfce4-session` ☰
+     `xfce4-session-logout` ☰
+     `xfce4-session-settings` ☰
+     `xfce4-settings-editor` ☰
+     `xfce4-settings-manager` ☰
+     `xfce4-taskmanager` ☰
+     `xfce4-terminal` ☰
+     `xfce4-terminal.wrapper` ☰
+
+     `xfwm4` ☰ The *window manager* for the Xfce Desktop Environment: it places windows on the screen, provides decorations for the windows and allows them to be moved, resized or closed.
+     `startxfce4` ☰ A shell script that seems to start xfce4.
+     `xfdesktop` ☰ The *desktop manager* for the Xfce 4 Desktop Environment
+    table }
+
+  }
+  { xfwm4
+
+    { xfwm4 not started
+
+      Why is `xfwm4` on my broken not started.
+code {
+$ → Linux/shell/commands/ps -C xfwm4
+code }
+
+      Removing `~/.cache/sessions` and then restarting the computer did not help.
+
+      Trying to start it as follows didn't help either:
+code {
+$ xfwm4 --replace
+code }
+
+      However, I was able to start it manually with
+code {
+$ xfwm4 --compositor=off
+code }
+    
+
+    }
+    { See also
+
+      `~/.config/xfce4/xfwm4/`
+
+    }
+
+  }
+  { lightdm
+
+    Starting lightdm can be disabled. When doing so, after the next login, one will land on a TTY
+code {
+$ sudo systemctl disable lightdm.service
+$ sudo systemctl stop lightdm.service
+code }
+
+    Enable and start lightdm:
+code {
+$ sudo systemctl enable lightdm.service
+$ sudo systemctl start lightdm.service
+code }
+
+  }
+
+}
 
 sa:
 
