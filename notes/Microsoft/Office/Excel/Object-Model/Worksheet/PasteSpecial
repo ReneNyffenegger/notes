@@ -1,0 +1,39 @@
+$ Excel VBA: Worksheet.PasteSpecial
+
+{ Rendering HTML text in a cell #xls-render-html-in-cell
+
+  We need to → Microsoft/Office/Visual-Basic-Editor/Object-Model/VBProject#vbProject-add-reference[add] a → Microsoft/Office/Visual-Basic-Editor/Object-Model/Reference to → development/languages/VBA/Useful-object-libraries/Microsoft-Forms[MS Forms] which can be created by executing the following line in the
+  → Microsoft/Office/Visual-Basic-Editor/Immediate-Window.
+code {
+application.vbe.activeVBProject.references.→ Microsoft/Office/Visual-Basic-Editor/Object-Model/References/addFrom#references-addFromGUID[addFromGuid] "{0D452EE1-E08F-101A-852E-02608C4D0BB4}", 2, 0
+code }
+
+  The following function (`sub`) can then be used to render a given HTML in the specified cell:
+code {
+option explicit
+
+public sub htmlToCell(html as string, cel as range)
+
+   application.→ Microsoft/Office/Excel/Object-Model/Application/enableEvents[enableEvents] = false
+
+   dim objData as new msForms.dataObject
+   objData.setText html
+   objData.putInClipboard
+   cel.select
+   cel.parent.pasteSpecial format := "unicode text"
+
+   application.→ Microsoft/Office/Excel/Object-Model/Application/enableEvents[enableEvents] = true
+
+end sub
+code }
+
+  Ideas to test the function:
+code {
+htmlToCell "<html><table><tr><td>x</td><td>xxxxxx</td></tr><tr><td>yyyyyy</td><td>yy</td></tr></html>", cells(5,3)
+htmlToCell "<html><i>Italic</i>, <b>bold</b> and <font color=red>red</font></html>", cells(10, 10)
+code }
+
+}
+
+sa:
+  The `→ Microsoft/Office/Excel/Object-Model/Worksheet` object.

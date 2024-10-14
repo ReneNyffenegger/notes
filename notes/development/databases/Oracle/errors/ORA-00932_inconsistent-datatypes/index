@@ -89,7 +89,7 @@ group by
    txt;
 code }
   
-    Similarly, it's not possible to use → development/databases/Oracle/SQL/select/aggregate[aggregate functions] on LOB values, the following statment raises the same error:
+    Similarly, it's not possible to use → development/databases/Oracle/SQL/select/aggregate[aggregate functions] on LOB values, the following statement raises the same error:
 code {
 select
    count(txt)
@@ -110,6 +110,44 @@ code }
    → development/databases/Oracle/installed/packages/dbms/lob/api/compare#dbms_lob-compare-prevent-err[compare CLOB values with strings without throwing an error].
 
   }
+
+}
+{ ORA-00932: inconsistent datatypes: expected NUMBER got CLOB
+
+  Preparation for demonstration:
+code {
+create table tq84_src_varchar2 (id integer, val varchar2(20));
+create table tq84_src_clob     (id integer, val clob        );
+create table tq84_dest         (id integer, val number (7,2));
+ 
+ 
+begin
+   insert into tq84_src_varchar2 values (1, 111);
+   insert into tq84_src_clob     select * from tq84_src_varchar2;
+   commit;
+end;
+/
+code }
+ 
+  The following `→ development/databases/Oracle/SQL/DML/insert` statement runs without problems, i. e. the `varchar2` of the source table is implicitely converted to a `number`: 
+code {
+insert into tq84_dest select * from tq84_src_varchar2;
+code }
+
+  However, this `→ development/databases/Oracle/SQL/DML/insert` statement throws *ORA-00932: inconsistent datatypes: expected NUMBER got CLOB* (or
+ *ORA-00932: expression is of data type CLOB, which is incompatible with expected data type NUMBER* with improved error messages).
+  -
+  Apparently, a `clob` is not implicitely converted:
+code {
+insert into tq84_dest select * from tq84_src_clob    ;
+code }
+ 
+  Cleaning up:
+code { 
+drop table tq84_dest;
+drop table tq84_src_clob;
+drop table tq84_src_varchar2;
+code }
 
 }
 { ORA-00932: inconsistent datatypes: expected NUMBER got DATE

@@ -1,0 +1,69 @@
+$ Oracle: JSON_TABLE - ERROR clause
+
+No error clause, the value `three` is silently represented as `→  development/databases/Oracle/SQL/null`:
+code {
+select * from 
+   → development/databases/Oracle/SQL/functions/json/table ('[
+     [1, "one"  , "B"],
+     [2, "two"  , "C"],
+     [3, "three", "D"],
+     [4, "four" , "E"],
+    ]',
+   '$[*]'
+    columns
+       id    number  ( 1) path '$[0]' ,
+       num   varchar2( 4) path '$[1]' ,  -- NOTE the varchar2(4) which is too small for "three"
+       meta  varchar2( 3) path '$[2]'
+    );
+   
+--         ID NUM  MET
+-- ---------- ---- ---
+--          1 one  B 
+--          2 two  C 
+--          3      D 
+--          4 four E     
+code }
+    
+Applying the `error on error` clause «globally» for the entire `json_table` expression:    
+code {
+select * from
+   → development/databases/Oracle/SQL/functions/json/table ('[
+     [1, "one"  , "B"],
+     [2, "two"  , "C"],
+     [3, "three", "D"],
+     [4, "four" , "E"],
+    ]',
+   '$[*]'
+    ERROR ON ERROR
+    columns
+       id    number  ( 1) path '$[0]' ,
+       num   varchar2( 4) path '$[1]' ,
+       meta  varchar2( 3) path '$[2]'
+    );
+--
+-- → development/databases/Oracle/errors/ORA-40478_output-value-too-large_maximum[ORA-40478: output value too large (maximum: 4)]
+--
+code }
+      
+Applying the `error on error` clause on selected columns:
+code {
+select * from
+   → development/databases/Oracle/SQL/functions/json/table ('[
+     [1, "one"  , "B"],
+     [2, "two"  , "C"],
+     [3, "three", "D"],
+     [4, "four" , "E"],
+    ]',
+   '$[*]'
+    columns
+       id    number  ( 1) path '$[0]',
+       num   varchar2( 4) path '$[1]' ERROR ON ERROR,
+       meta  varchar2( 3) path '$[2]'
+    );
+--
+-- → development/databases/Oracle/errors/ORA-40478_output-value-too-large_maximum[ORA-40478: output value too large (maximum: 4)]
+--
+code }
+
+sa:
+ `→ development/databases/Oracle/SQL/functions/json/table`
