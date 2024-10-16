@@ -32,6 +32,63 @@ group by
 code }
 
 }
+{ Bug ?
+
+code {
+create table tq84_h (a number, b varchar2(10));
+ 
+begin
+   rollback;
+   insert into tq84_h values (1, 'one'  );
+-- insert into tq84_h values (3, 'three');
+   insert into tq84_h values (1, 'ONE'  );
+   insert into tq84_h values (2, 'two'  );
+end;
+/
+ 
+-- explain plan for
+select /*+ no_push_pred */ * from (
+   select case when max(count(*))  > 1 then 'a is not unique' end t from tq84_h group by a having count(*) > 1  union all
+   select case when max(length(b)) > 5 then 'b has values longer  than 5 characters' end t from tq84_h
+)
+where t is not null;
+ 
+ 
+select               count(*)                                    from tq84_h group by a;
+select               count(*)                                    from tq84_h group by a having count(*) > 1;
+select               count(*)                                    from tq84_h group by a having count(*) > 2;
+select           max(count(*))                                   from tq84_h group by a;
+select           max(count(*))                                   from tq84_h group by a having count(*) > 2;
+select case when max(count(*))  > 1 then 'a is not unique' end t from tq84_h group by a having count(*) > 1;
+select case when max(count(*))  > 2 then 'xyz'             end t from tq84_h group by a having count(*) > 2;
+ 
+select * from (
+select case when max(count(*))  > 2 then 'xyz'             end t from tq84_h group by a having count(*) > 2
+)
+where t is  not null;
+ 
+select * from (
+select case when max(count(*))  > 2 then 'xyz'             end t from tq84_h group by a having count(*) > 2
+union all select 'mmm' t from dual
+)
+where t is  not null;
+ 
+create view tq84_v as
+select case when max(count(*))  > 2 then 'xyz'             end t from tq84_h group by a having count(*) > 2
+union all select 'mmm' t from dual;
+ 
+select * from tq84_v where t is not null;
+
+explain plan for
+select * from tq84_v where t is not null;
+
+select * from dbms_xplan.display();
+
+drop   table tq84_h;
+code }
+
+
+}
 
 sa:
   In order for a → development/databases/Oracle/objects/views/materialized[materialized view] to be fast refreshable, the query must not have a
