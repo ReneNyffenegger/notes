@@ -5,6 +5,74 @@ The value of `arraysize` specifies the number or records that SQL*Plus fetches f
 
 The maximum value for `arraysize` is 5000.
 
+{ Trying to measure the effect of setting ARRAYSIZE
+
+code {
+set termout off
+ 
+set pagesize               0
+set linesize           32000
+set trimspool             on
+set flush                off
+set tab                  off
+ 
+ 
+drop   table tq84_export_performance_test;
+create table tq84_export_performance_test (one_kb varchar(1024));
+ 
+ 
+ 
+insert into tq84_export_performance_test
+select
+   lpad(level, 1024, '*')
+from
+   dual connect by level <= 10000;
+commit;
+ 
+------------------------------------
+ 
+timing start "export 1 with default array size"
+spool tq84_export_performance_test.out
+select * from tq84_export_performance_test;
+set termout on
+timing stop
+ 
+-- Repeat
+ 
+set termout off
+timing start "export 2 with default array size"
+spool tq84_export_performance_test.out
+select * from tq84_export_performance_test;
+set termout on
+timing stop
+ 
+------------------------------------
+ 
+set termout off
+set arraysize           5000
+ 
+timing start "export 1 with modified array size"
+spool tq84_export_performance_test.out
+select * from tq84_export_performance_test;
+set termout on
+timing stop
+ 
+-- Repeat
+ 
+set termout off
+timing start "export 2 with modified array size"
+spool tq84_export_performance_test.out
+select * from tq84_export_performance_test;
+set termout on
+timing stop
+ 
+------------------------------------
+ 
+exit
+code }
+
+}
+
 sa:
 
   The default value of `arraysize` is changed to 100 when using SQL*Plus's → development/databases/Oracle/SQL-Plus/_command-line/options/fast[command line option `-fast`].
@@ -13,6 +81,6 @@ sa:
 
   The value of `arraysize` also specifies the → development/databases/Oracle/SQL-Plus/copy#sqlplus-copy-arraysize[batch size] for the `→ development/databases/Oracle/SQL-Plus/copy` command.
 
-  The stat name → development/databases/Oracle/installed/dynamic-performance-views/statname/names/SQL-Net-roundtrips-to-from-client.
+  The stat name `→ development/databases/Oracle/installed/dynamic-performance-views/statname/names/SQL-Net-roundtrips-to-from-client`.
 
   → development/databases/Oracle/SQL-Plus

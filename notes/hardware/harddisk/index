@@ -1,5 +1,59 @@
 $ harddisk
 
+{ Measuring IO Performance
+
+  { With PowerShell
+
+code {
+param (
+    [int   ] $sizeInMB    = 100,
+    [int   ] $chunkSizeMB =  10,
+    [string] $filePath    = "$env:temp\file"
+)
+
+$chunkSizeBytes = $chunkSizeMB * 1MB
+
+$bytesToWrite = $sizeInMB * 1MB
+$chunks = [math]::Ceiling($bytesToWrite / $chunkSizeBytes)
+
+$byteArray = new-object byte[] ($chunkSizeBytes)
+$startTime = Get-Date
+
+$fileStream = [System.IO.File]::OpenWrite($filePath)
+
+for ($i = 1; $i -le $chunks; $i++) {
+#
+#   Write the chunks
+
+    if ($i -eq $chunks) {
+      #
+      # Last chunk, write remaining bytes only
+
+        $remainingBytes = $bytesToWrite % $chunkSizeBytes
+        if ($remainingBytes -gt 0) {
+            $byteArray = new-object byte[] ($remainingBytes)
+        }
+    }
+
+    $fileStream.Write($byteArray, 0, $byteArray.Length)
+#   write-host "Chunk $i written ($($byteArray.Length / 1MB) MB)"
+}
+
+$fileStream.Close()
+
+$endTime = get-date
+
+$timeTaken = $endTime - $startTime
+
+write-host "File created: $filePath"
+write-host "Size        : $sizeInMB MB"
+write-host "Chunk size  : $chunkSizeMB MB"
+write-host "Time taken  : $($timeTaken.totalSeconds) seconds"
+code }
+
+  }
+
+}
 { Misc
 
   The first sector on a harddisk is the → hardware/harddisk/MBR. (Is this still true? Has it ever been true)
