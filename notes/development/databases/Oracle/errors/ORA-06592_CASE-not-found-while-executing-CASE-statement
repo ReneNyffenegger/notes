@@ -1,0 +1,59 @@
+$ ORA-06592: CASE not found while executing CASE statement
+
+code {
+create or replace function tq84_no_ora_06592(id integer) return varchar2 → development/databases/Oracle/PL-SQL/authid definer is
+begin
+ 
+   return
+   case id
+      when '0' then 'zero'
+      when '1' then 'one'
+      when '2' then 'two'
+   end;
+  
+end tq84_no_ora_06592;
+/
+ 
+ 
+create or replace function tq84_ora_06592(id varchar2) return varchar2 → development/databases/Oracle/PL-SQL/authid definer is
+   ret  varchar2(20);
+begin
+ 
+   case id
+      when 0 then ret := 'null';
+      when 1 then ret := 'eins';
+      when 2 then ret := 'zwei';
+   end case;
+  
+   return ret;
+  
+end tq84_ora_06592;
+/
+code }
+ 
+ 
+This → development/databases/Oracle/SQL/statement[statement] runs without error, the function `tq84_no_ora_06592` just returns `→ development/databases/Oracle/SQL/null`:
+code { 
+begin
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line(tq84_no_ora_06592(3));
+end;
+/
+code }
+ 
+ 
+The following statement throws *ORA-06592: CASE not found while executing CASE statement*:
+code {
+begin
+   → development/databases/Oracle/installed/packages/dbms/output/api/put_line(tq84_ora_06592(3));
+end;
+/
+code }
+ 
+Cleaning up:
+code {
+drop function tq84_no_ora_06592;
+drop function tq84_ora_06592;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
