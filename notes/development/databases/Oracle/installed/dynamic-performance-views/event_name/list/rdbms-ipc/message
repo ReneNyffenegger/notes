@@ -1,0 +1,28 @@
+$ Oracle wait event: rdbms ipc message
+@ rdbms ipc message
+
+`rdbms ipc message` is a wait event that occurs in → development/databases/Oracle/architecture/processes/background[background processes].
+
+code {
+select
+   prc.pname,
+   prc.background,
+   to_char( ses.wait_time_micro       / 1000 / 1000, '999990.999') wait_time_s,
+   to_char( ses.time_remaining_micro  / 1000 / 1000, '999990.999') time_remaining_s,
+   to_char((ses.wait_time_micro        +
+            ses.time_remaining_micro) / 1000 / 1000, '999990.999') time_sum_s,
+   ses.p1text,
+   ses.p1,
+   ses.schemaname,
+   ses.osuser
+from
+   v$session ses                                join
+   v$process prc on ses.paddr = prc.addr
+where
+   ses.event = 'rdbms ipc message'
+order by
+   ses.wait_time_micro desc
+code }
+
+sa:
+ `rdbms ipc reply`

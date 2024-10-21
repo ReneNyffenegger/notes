@@ -15,6 +15,355 @@ gh|oracle-patterns|/Installed/dynamic-performance-views/sql/plan/monitor/select-
   What is the difference between `v$sql_plan_monitor` and `v$all_sql_plan_monitor`? Compare with
   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan/vs-all_plan[`v$sql_plan` vs `v$all_sql_plan`].
 
+  { Joins
+
+code {
+drop table tq84_sql_plan_monitor_snap_1;
+drop table tq84_sql_plan_monitor_snap_2;
+
+--create table tq84_sql_plan_monitor_snap_2 as
+with
+   function div(a number, b number) return number as
+   begin
+       if b = 0 then return null; end if;
+       return a/b;
+   end div;
+select
+   mpl.plan_line_id                                "line" ,
+-- pln.id,
+-- mon.key                                          mon_key, -- mpl.key                                 mpl_key,
+   1-mpl.plan_operation_inactive                   "op act",
+/*
+   lop.opname                                       lop_opname,
+-- lop.target                                       lop_target,
+   lop.sofar                                        lop_sofar,
+   lop.totalwork                                    lop_totalwork,
+   lop.units                                        lop_units,
+   lop.start_time                                   lop_start,
+   lop.last_update_time                             lop_last_update,
+   lop.elapsed_seconds                              lop_elapsed_s,
+*/
+-- round(mon.cpu_time             / 1000 /1000, 2)  mon_cpu_time_s,
+-- round(mon.elapsed_time         / 1000 /1000, 2)  mon_elapsed_time_s,
+-- mon.plsql_exec_time                              mon_plsql_exec_time,
+-- mon.java_exec_time                               mon_java_exec_time,
+   mpl.starts                                                                               "starts",
+   ash.plan_line_cnt                                                                        "ash cnt",   -- Number of times this operation was reported in v$active_session_history
+   round(mpl.physical_read_bytes  / 1024/1024,2)                                            "phys r mb", -- round(mon.physical_read_bytes  / 1024/1024,2)   mon_physical_read_bytes_mb,
+   mpl.physical_read_requests                                                               "phys r reqs", -- mpl_physical_read_requests,
+   round(div(mpl.physical_read_bytes , mpl.physical_read_requests )    /1024,1)             "avg kb per r req",
+   sum(mpl.physical_read_requests) over (partition by mpl.sid, mpl.sql_id, mpl.sql_exec_id) "sum phys. r reqs",
+
+-- round(mpl.io_interconnect_bytes /1024/1024,2)                                            "io ic mb",
+-- round(ratio_to_report(mpl.physical_read_bytes) over (partition by mpl.sid, mpl.sql_id, mpl.sql_exec_id),2) "phys r rtr",
+   div( 100*round(mpl.physical_read_bytes, mon.physical_read_bytes), 2)                                       "phys r pct",  -- Percentage of total read bytes in this step ("ratio to report")
+-- mpl.last_change_time                                                                 mpl_last_change_time,
+   round((sysdate - mpl.last_change_time) * 24*60*60)                                                         "lst chg s ago",
+-- -----------------------------------------------------------------------------------------------------------------------------------------
+   mpl.output_rows                                                                                            "out rows",
+--
+-- Compare the value of the following expression
+-- with that of the cardinality:
+--
+-- case when mpl.starts > 0 then round(    mpl.output_rows / mpl.starts ,1) end        "out rows/start",
+                                 round(div(mpl.output_rows , mpl.starts),1)            "out rows/start",
+   mpl.plan_cardinality                                                                "card", -- pln.cardinality                         pln_cardinality,
+-- -----------------------------------------------------------------------------------------------------------------------------------------
+-- pln.optimizer                                                                        pln_optimizer,
+-- pln.operation                                                                        pln_operation,
+   lpad('| ', mpl.plan_depth * 2, '| ') ||
+        mpl.plan_operation ||
+        case when mpl.plan_options is not null then ' (' || mpl.plan_options || ')' end op,
+   mpl.plan_object_owner ||
+       nvl2(mpl.plan_object_owner, '.', '') || mpl.plan_object_name ||
+       case when ind.table_owner is not null then ' (' ||
+          ind.table_owner || '.' || ind.table_name || ': ' ||
+         (select listagg (column_name, ', ') within group (order by column_position) from dba_ind_columns ixc where ixc.index_name = ind.index_name and ixc.index_owner = ind.owner )  || ')'
+       end   obj, -- mpl.plan_object_owner, mpl.plan_object_name, mpl.object_node pln_object_node, mpl.object_name  pln_object_name,mpl.object#                             pln_object#,
+-- mpl.qblock_name                         pln_qblock_name,
+   regexp_replace(pln.qblock_name , '^([^$]+)\$[^$]+$'   , '\1') pln_qb_#1,
+   regexp_replace(pln.qblock_name , '^[^$]+\$([^$]+)$'   , '\1') pln_qb_#2,
+   case when pln.qblock_name is not null then dense_rank() over (partition by pln.plan_hash_value, pln.sql_id order by pln.qblock_name) end qb_num,
+-- pln.object_alias                        pln_object_alias,
+   regexp_replace(pln.object_alias, '^"([^"]+)"@"[^"]+"$', '\1') pln_obj_a_#1,
+   regexp_replace(pln.object_alias, '^"[^"]+"@"([^"]+)"$', '\1') pln_obj_a_#2,
+
+
+   pln.object_owner                        pln_object_owner,
+   pln.object_type                         pln_object_type,
+
+-- mon.physical_write_bytes                       mon_physical_write_bytes,
+-- mon.buffer_gets * 16 / 1024                    mon_buffer_gets_kb,                       -- TODO Assumes buffer size is 16 KB!
+-- mon.physical_read_requests                     mon_physical_read_requests,
+-- mon.physical_write_requests                    mon_physical_write_requests,
+-- mon.direct_writes                                  mon_direct_writes,
+-- mon.disk_reads                                     mon_disk_reads,
+   round(mpl.workarea_max_mem      /1024/1024,2)      mpl_workarea_max_mem_mb,
+   mpl.workarea_max_tempseg                           mpl_workarea_max_tempseg,
+   round(mpl.workarea_mem          /1024/1024,2)      mpl_workarea_mem_mb,
+   mpl.workarea_tempseg                               mpl_workarea_tempseg,
+   --------------------------------------------------------------
+   pln.access_predicates                              pln_access_predicates,
+   pln.filter_predicates                              pln_filter_predicates,
+   --------------------------------------------------------------
+   mpl.plan_cost                                      mpl_plan_cost    , --    pln.cost                                pln_cost,
+   mpl.plan_io_cost                                   mpl_plan_io_cost , --    pln.io_cost                             pln_io_cost,
+   mpl.plan_cpu_cost                                  mpl_plan_cpu_cost, --    pln.cpu_cost                            pln_cpu_cost,
+   round(case when  (mpl.plan_cost - mpl.plan_io_cost) != 0 then  mpl.plan_cpu_cost / (mpl.plan_cost - mpl.plan_io_cost) end, 1)   plan_cpu_ratio____,
+
+
+
+-- mon.action                              mon_action,
+-- mon.application_wait_time               mon_application_wait_time,
+-- mon.binds_xml                           mon_binds_xml,
+
+-- mon.client_identifier                   mon_client_identifier,
+-- mon.client_info                         mon_client_info,
+-- mon.cluster_wait_time                   mon_cluster_wait_time,
+-- mon.concurrency_wait_time               mon_concurrency_wait_time,
+-- mon.con_id                              mon_con_id,
+-- mon.con_name                            mon_con_name,
+-- mon.dbop_exec_id                        mon_dbop_exec_id, mon.in_dbop_exec_id                     mon_in_dbop_exec_id,
+-- mon.dbop_name                           mon_dbop_name   , mon.in_dbop_name                        mon_in_dbop_name,
+-- mon.ecid                                mon_ecid, -- ECID = Execution context identifier
+
+-- mon.error_facility                      mon_error_facility,  mon.error_message mon_error_message, mon.error_number mon_error_number,
+-- mon.exact_matching_signature            mon_exact_matching_signature,
+-- mon.fetches                             mon_fetches,
+-- mon.first_refresh_time                  mon_first_refresh_time,    mon.last_refresh_time                   mon_last_refresh_time,
+
+-- mon.sql_exec_start                      mon_sql_exec_start, --   mpl.sql_exec_start                      mpl_sql_exec_start,
+   mpl.first_change_time                   mpl_first_change_time,
+   mpl.first_refresh_time                  mpl_first_refresh_time,
+
+   mpl.last_refresh_time                   mpl_last_refresh_time,
+-- mon.refresh_count                       mon_refresh_count,
+
+-- mon.io_cell_offload_eligible_bytes      mon_io_cell_offload_eligible_bytes,
+-- mon.io_cell_offload_returned_bytes      mon_io_cell_offload_returned_bytes,
+-- mon.io_cell_uncompressed_bytes          mon_io_cell_uncompressed_bytes,
+-- mon.io_interconnect_bytes               mon_io_interconnect_bytes,
+-- mon.is_adaptive_plan                    mon_is_adaptive_plan,
+-- mon.is_final_plan                       mon_is_final_plan,
+-- mon.module                              mon_module,
+-- mon.other_xml                           mon_other_xml,
+
+-- pls.object_name                         plsql_entry_object,
+-- pls.procedure_name                      plsql_entry_subprogram,
+/*
+   mon.plsql_entry_object_id               mon_plsql_entry_object_id,
+   mon.plsql_object_id                     mon_plsql_object_id,
+   mon.plsql_entry_subprogram_id           mon_plsql_entry_subprogram_id,
+   mon.plsql_subprogram_id                 mon_plsql_subprogram_id,
+   mon.process_name                        mon_process_name,
+   mon.program                             mon_program,
+   mon.px_is_cross_instance                mon_px_is_cross_instance,
+   mon.px_maxdop                           mon_px_maxdop,
+   mon.px_maxdop_instances                 mon_px_maxdop_instances,
+   mon.px_qcinst_id                        mon_px_qcinst_id,
+   mon.px_qcsid                            mon_px_qcsid,
+   mon.px_server#                          mon_px_server#,
+   mon.px_servers_allocated                mon_px_servers_allocated,
+   mon.px_servers_requested                mon_px_servers_requested,
+   mon.px_server_group                     mon_px_server_group,
+   mon.px_server_set                       mon_px_server_set,
+   mon.queuing_time                        mon_queuing_time,
+
+   mon.report_id                           mon_report_id,
+   mon.rm_consumer_group                   mon_rm_consumer_group,
+   mon.rm_last_action                      mon_rm_last_action,
+   mon.rm_last_action_reason               mon_rm_last_action_reason,
+   mon.rm_last_action_time                 mon_rm_last_action_time,
+   mon.service_name                        mon_service_name,
+
+   mon.sql_child_address                   mon_sql_child_address,
+   mon.sql_full_plan_hash_value            mon_sql_full_plan_hash_value,
+   mon.sql_id                              mon_sql_id, --    pln.sql_id                              pln_sql_id,
+   mon.sql_exec_id                         mon_sql_exec_id   , --   mpl.sql_exec_id                         mpl_sql_exec_id,
+
+   mon.force_matching_signature            mon_force_matching_signature,
+   mon.sql_plan_hash_value                 mon_sql_plan_hash_value,
+   mon.is_full_sqltext                     mon_is_full_sqltext,
+
+   mon.status                              mon_status,
+   mon.username                            mon_username, -- mon.user#                               mon_user#,
+   mon.current_username                    mon_current_username, -- mon.current_user#                       mon_current_user#,
+   mon.user_io_wait_time                   mon_user_io_wait_time,
+*/
+/*pln.child_address,
+pln.child_number,
+pln.plan_hash_value                     pln_plan_hash_value,
+mpl.sql_plan_hash_value                 mpl_sql_plan_hash_value,
+pln.hash_value                          pln_hash_value,
+'-----',
+*/
+
+
+-- mpl.plan_cost - mpl.plan_io_cost ) /  mpl.plan_cpu_cost xxx,
+
+-- round(case when mpl.physical_read_requests > 0 then mpl.physical_read_bytes / mpl.physical_read_requests  end /1024,1) avg_physical_kb_per_request,
+   round(div                                          (mpl.physical_read_bytes , mpl.physical_read_requests )    /1024,1) avg_physical_kb_per_request,
+
+   pln.bytes                               pln_bytes, --    mpl.plan_bytes                          mpl_plan_bytes,
+
+-- round(case when pln.cost    > 0 then pln.bytes / pln.cost      end    ,3)       bytes_per_cost,
+   round(div                           (pln.bytes , pln.cost      )      ,3)       bytes_per_cost,
+-- round(case when pln.io_cost > 0 then pln.bytes / pln.io_cost   end    ,3)       bytes_per_io_cost,
+   round(div                           (pln.bytes , pln.io_cost   )      ,3)       bytes_per_io_cost,
+   mpl.physical_read_requests              mpl_physical_read_requests,
+   sum(mpl.physical_read_requests) over (partition by mpl.sid, mpl.sql_id, mpl.sql_exec_id) sum_physical_read_requests,
+   mpl.physical_write_bytes                mpl_physical_write_bytes,
+   mpl.physical_write_requests             mpl_physical_write_requests,
+-- mon.direct_writes                       mon_direct_writes,
+-- mon.disk_reads                          mon_disk_reads,
+   mpl.plan_time                           mpl_plan_time,
+
+-- pln.full_plan_hash_value                pln_full_plan_hash_value,
+
+-- mpl.sql_id                              mpl_sql_id,
+-- pln.plan_hash_value                     pln_plan_hash_value,
+-- mpl.sql_plan_hash_value                 mpl_sql_plan_hash_value,
+-- pln.hash_value                          pln_hash_value,
+-- mon.sid                                 mon_sid, mon.session_serial#                     mon_session_serial#,
+-- mpl.sid                                 mpl_sid,
+-- mpl.sql_child_address                   mpl_sql_child_address,
+   pln.projection                          pln_projection,
+-- pln.address                             pln_address,
+-- pln.child_address                       pln_child_address,
+-- pln.child_number                        pln_child_number,
+
+-- pln.con_id                              pln_con_id,
+-- pln.depth                               pln_depth, -- mpl.plan_depth                          mpl_plan_depth,
+   pln.distribution                        pln_distribution,
+
+
+-- pln.options                             pln_options,
+   pln.other                               pln_other,
+   pln.other_tag                           pln_other_tag,
+   pln.other_xml                           pln_other_xml,
+-- pln.parent_id                           pln_parent_id,    mpl.plan_parent_id                      mpl_plan_parent_id,
+   pln.partition_id                        pln_partition_id,
+   pln.partition_start                     pln_partition_start,
+   pln.partition_stop                      pln_partition_stop,
+
+
+   pln.remarks                             pln_remarks,
+   pln.search_columns                      pln_search_columns,
+
+   round(pln.temp_space / 1024/1024,11)    pln_temp_space_mb,
+   pln.time                                pln_time,
+   pln.timestamp                           pln_timestamp,
+   mpl.con_id                              mpl_con_id,
+
+/*
+   mpl.otherstat_group_id                  mpl_otherstat_group_id,
+   sn1.name oth_st_nam_1, mpl.otherstat_1_value   oth_st_val_1, -- mpl.otherstat_1_id                      mpl_otherstat_1_id,   mpl.otherstat_1_type                    mpl_otherstat_1_type,   mpl.otherstat_1_value                   mpl_otherstat_1_value, sn1.*,
+   sn2.name oth_st_nam_2, mpl.otherstat_2_value   oth_st_val_2, -- mpl.otherstat_2_id                      mpl_otherstat_2_id,   mpl.otherstat_2_type                    mpl_otherstat_2_type,   mpl.otherstat_2_value                   mpl_otherstat_2_value,
+   sn3.name oth_st_nam_3, mpl.otherstat_3_value   oth_st_val_3, -- mpl.otherstat_3_id                      mpl_otherstat_3_id,   mpl.otherstat_3_type                    mpl_otherstat_3_type,   mpl.otherstat_3_value                   mpl_otherstat_3_value,
+   sn4.name oth_st_nam_4, mpl.otherstat_4_value   oth_st_val_4, -- mpl.otherstat_4_id                      mpl_otherstat_4_id,   mpl.otherstat_4_type                    mpl_otherstat_4_type,   mpl.otherstat_4_value                   mpl_otherstat_4_value,
+   sn5.name oth_st_nam_5, mpl.otherstat_5_value   oth_st_val_5, -- mpl.otherstat_5_id                      mpl_otherstat_5_id,   mpl.otherstat_5_type                    mpl_otherstat_5_type,   mpl.otherstat_5_value                   mpl_otherstat_5_value,
+   sn6.name oth_st_nam_6, mpl.otherstat_6_value   oth_st_val_6, -- mpl.otherstat_6_id                      mpl_otherstat_6_id,   mpl.otherstat_6_type                    mpl_otherstat_6_type,   mpl.otherstat_6_value                   mpl_otherstat_6_value,
+   sn7.name oth_st_nam_7, mpl.otherstat_7_value   oth_st_val_7, -- mpl.otherstat_7_id                      mpl_otherstat_7_id,   mpl.otherstat_7_type                    mpl_otherstat_7_type,   mpl.otherstat_7_value                   mpl_otherstat_7_value,
+   sn8.name oth_st_nam_8, mpl.otherstat_8_value   oth_st_val_8, -- mpl.otherstat_8_id                      mpl_otherstat_8_id,   mpl.otherstat_8_type                    mpl_otherstat_8_type,   mpl.otherstat_8_value                   mpl_otherstat_8_value,
+   sn9.name oth_st_nam_9, mpl.otherstat_9_value   oth_st_val_9, -- ,mpl.otherstat_9_id                      mpl_otherstat_9_id,   mpl.otherstat_9_type                    mpl_otherstat_9_type,   mpl.otherstat_9_value                   mpl_otherstat_9_value,
+   snA.name oth_st_nam_A, mpl.otherstat_10_value  oth_st_val_10,-- mpl.otherstat_10_id                     mpl_otherstat_10_id,   mpl.otherstat_10_type                   mpl_otherstat_10_type,   mpl.otherstat_10_value                  mpl_otherstat_10_value,
+*/
+   mpl.other_xml                           mpl_other_xml,
+-- mpl.plan_line_id                        mpl_plan_line_id,
+   mpl.plan_object_name                    mpl_plan_object_name,
+-- mpl.plan_object_owner                   mpl_plan_object_owner,
+   mpl.plan_object_type                    mpl_plan_object_type,
+-- mpl.plan_operation                      mpl_plan_operation,
+-- mpl.plan_options                        mpl_plan_options,
+   mpl.plan_partition_start                mpl_plan_partition_start,
+   mpl.plan_partition_stop                 mpl_plan_partition_stop,
+-- mpl.plan_position                       mpl_plan_position,    pln.position                            pln_position,
+   mpl.plan_temp_space                     mpl_plan_temp_space
+-- mpl.process_name                        mpl_process_name,
+-- mpl.refresh_count                       mpl_refresh_count,
+-- mpl.status                              mpl_status,
+-- mon.sql_text                            mon_sql_text
+from
+   v$sql_monitor          mon                                                                    join
+   v$sql_plan_monitor     mpl on    mon.key                 = mpl.key                       left join
+   v$sql_plan             pln on    mpl.sql_plan_hash_value = pln.plan_hash_value and
+                                    mpl.plan_line_id        = pln.id              and
+                                    mpl.sql_id              = pln.sql_id          and
+                                    mon.sql_child_address   = pln.child_address         /*   left join
+   v$session_longops      lop on    mon.sid                 = lop.sid             and
+                                    mon.session_serial#     = lop.serial#         and
+                                    mpl.plan_line_id        = lop.sql_plan_line_id   */    outer apply
+  (
+     select
+        count(*)            plan_line_cnt
+     from
+        v$active_session_history ash
+     where
+        ash.session_id       = mon.sid               and
+        ash.session_serial#  = mon.session_serial#   and
+        ash.sql_id           = mon.sql_id            and
+        ash.sql_exec_id      = mon.sql_exec_id       and
+        ash.sql_plan_line_id = mpl.plan_line_id
+     group by
+       sql_plan_line_id
+   )  ash                                                                                  left join
+   dba_objects            obj on    pln.object#             = obj.object_id                left join
+   dba_indexes            ind on    obj.object_name         = ind.index_name  and
+                                    obj.owner               = ind.owner                    left join
+      --                                                                                     left join
+   v$sql_monitor_statname sn1 on /* mpl.con_id              = sn1.con_id          and */ mpl.otherstat_1_id      = sn1.id                       left join
+   v$sql_monitor_statname sn2 on /* mpl.con_id              = sn2.con_id          and */ mpl.otherstat_2_id      = sn2.id                       left join
+   v$sql_monitor_statname sn3 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_3_id      = sn3.id                       left join
+   v$sql_monitor_statname sn4 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_4_id      = sn4.id                       left join
+   v$sql_monitor_statname sn5 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_5_id      = sn5.id                       left join
+   v$sql_monitor_statname sn6 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_6_id      = sn6.id                       left join
+   v$sql_monitor_statname sn7 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_7_id      = sn7.id                       left join
+   v$sql_monitor_statname sn8 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_8_id      = sn8.id                       left join
+   v$sql_monitor_statname sn9 on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_9_id      = sn9.id                       left join
+   v$sql_monitor_statname snA on /* mpl.con_id              = sn3.con_id          and */ mpl.otherstat_10_id     = snA.id                 /*    left join
+   dba_procedures         pls on    mon.plsql_entry_object_id     = pls.object_id and
+                                    mon.plsql_entry_subprogram_id = pls.subprogram_id */
+where
+--
+-- mpl.sql_id       = '1uu389xpv21tn' and  mpl.sql_exec_id  =  16777288       and  pln.child_number =  1
+-- ----------------------------------------------------------------------------------------
+--   mpl.sid    = 1431  and mpl.status = 'EXECUTING'
+   -- and mon.sql_exec_id = 16777216
+                             --          AND mpl.sql_exec_start = '2021-02-15 15:01:18' -- ???????????????
+   mon.key = 3491808766574
+order by
+   pln.id
+;
+/
+
+
+select * from v$sql_monitor       where key = 3805341107969;
+select * from v$sql_plan_monitor where key = 3805341107969;
+
+
+select
+   snap_2."starts"                 - snap_1."starts"                  mpl_starts_d,
+-- snap_1.last_change_time_s_ago     last_change_s_ago_1,
+-- snap_2.last_change_time_s_ago     last_change_s_ago_2,
+   snap_1.op,
+   snap_1.obj,
+   snap_2."phys r mb"              - snap_1."phys r mb"               mpl_physical_read_bytes_mb_d,
+   snap_2.mpl_physical_write_bytes - snap_1.mpl_physical_write_bytes  mpl_physical_write_bytes_d,
+-- snap_2.mpl_starts               , snap_1.mpl_starts,
+   snap_2."out rows"               - snap_1."out rows"                mpl_output_rows_d,
+   snap_1.pln_access_predicates,
+   snap_1.pln_filter_predicates,
+   snap_1.pln_projection,
+   snap_1.*
+from
+   tq84_sql_plan_monitor_snap_2   snap_1                                                     join
+-- tq84_sql_plan_monitor_snap_1   snap_2 on snap_1.plan_line_id = snap_2.plan_line_id;
+   tq84_sql_plan_monitor_snap_1   snap_2 on snap_1."line"       = snap_2."line"
+;
+code }
+
+  }
+
 }
 
 sa:

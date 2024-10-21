@@ -21,106 +21,6 @@ Each record in `v$session` shows information about a «current» → development
   gh|oracle-patterns|/Installed/dynamic-performance-views/session/blocked-blocking.sql||
 
 }
-{ audsid #vSession-audsid
-
-  The column audsid can be joined with `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv','SESSIONID')` to find out which session is the "own one".
-
-  Alternatively, → development/databases/Oracle/installed/packages/dbms/support#dbms_support-mysid[`dbms_support.mysid`] can be used: `where sid = sys.dbms_support.mysid`.
-
-  → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identifying one's own session]
-
-}
-{ Columns MODULE, ACTION, CLIENT_INFO and CLIENT_IDENTIFIER
-
-  The values of the columns `module`, `action` and `client_info`  can be set with procedures `set_module`, `set_client_info` and `set_action` of the
-  `→ development/databases/Oracle/installed/packages/dbms/application_info` package
-  -
-  (See `→ development/databases/Oracle/installed/dynamic-performance-views/session/longops` for an example).
-
-  The value of `client_identifier` can be set with → development/databases/Oracle/installed/packages/dbms/session/api/set/identifier[`dbms_session.set_identifier`].
-
-  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module-action.sql||
-
-  → development/databases/Oracle/tools/RMAN sets the value of `client_info` to something that can be queried with `client_info like '%rman%'`.
-
-  See also → development/databases/Oracle/installed/dynamic-performance-views/session/C-Sharp_set-action-client_identifier_info-module
-
-}
-{ module_hash #ora-v-session-module_hash
-
-  It turns out that the value of `module_hash` is equal to
-  → development/databases/Oracle/SQL/functions/ora/hash[`ora_hash(module)`]. Thus, the following → development/databases/Oracle/SQL/select[`select` statement] does not return a record:
-  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module_hash.sql||
-
-}
-{ sql_exec_id
-
-  As → https://tanelpoder.com/2011/10/24/what-the-heck-is-the-sql-execution-id-sql_exec_id[Tanel Poder] points out, the value of `sql_exec_id` seems to start with 2²⁴ for every `sql_id` when
-  Oracle is started.
-
- `sql_exec_id` is also found in → development/databases/Oracle/installed/dynamic-performance-views/active/session_history[`v$active_session_history`] and
-  → development/databases/Oracle/installed/dynamic-performance-views/open_cursor[`v$open_cursor`].
-
-}
-{ Joins
-
-  Some → development/databases/Oracle/installed/dynamic-performance-views[v$ views] that can be joined to include:
-    • → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`]
-    • → development/databases/Oracle/installed/dynamic-performance-views/transaction[`v$transaction`]
-    • → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`]
-    • → development/databases/Oracle/installed/dynamic-performance-views/sql/command[`v$sql_command`]
-    • → development/databases/Oracle/installed/dynamic-performance-views/px/session[`v$px_session`]
-
-  gh|oracle-patterns|/Installed/dynamic-performance-views/session/joins.sql||
-
-  An attempt to find views that can be joined to `v$session` with a → development/databases/Oracle/SQL/select[select statement]
-  is → development/databases/Oracle/installed/dynamic-performance-views/session/joinable[here].
-
-  { Joining V$SESSION to V$SQL
-  
-    There are (at least) three separate ways to join `v$session` to `v$sql`:
-code {
-select
-   count(ses.sid   ) cnt_ses,
-   count(sql.sql_id) cnt_sql
-from
-   v$session ses left join v$sql sql on ses.sql_id         = sql.sql_id     and ses.sql_child_number = sql.child_number
--- v$session ses left join v$sql sql on ses.sql_address    = sql.address    and ses.sql_child_number = sql.child_number
--- v$session ses left join v$sql sql on ses.sql_hash_value = sql.hash_value and ses.sql_child_number = sql.child_number
-;
-code }
-
-  }
-
-}
-{ sid
-
-  Join sid with v$sesstat to get some statistical information for a particular sesssion. 
-
-}
-{ sid, serial #vSsession-sid-serial
-
- `sid` and `serial#` can be used in a statement to to → development/databases/Oracle/SQL/statement/nouns/system/alter#ora-alter-system-end-session[kill a session].
-
-}
-{ type
-
-  The value of `type` can be used to identify → development/databases/Oracle/architecture/processes/background[background] (`type='BACKGROUND'`) and foreground (`type='USER'`)
-  → development/databases/Oracle/architecture/processes[processes].
-
-}
-{ Waiting sessions
-
-  What a session is waiting for can be queried with → development/databases/Oracle/installed/dynamic-performance-views/session/wait
-
-}
-{ SADDR
-
-  The value of `saddr` (the session address) might be joined to
-    • → development/databases/Oracle/installed/data-dictionary/kgllock[`dba_kgllock`]
-    • … ?
-
-}
 { Columns
 
   table { ll
@@ -228,7 +128,109 @@ code }
    `PLSQL_DEBUGGER_CONNECTED`                            ☰
   table }
 
+  { AUDSID #vSession-audsid
+
+  The column audsid can be joined with `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv','SESSIONID')` to find out which session is the "own one".
+
+  Alternatively, → development/databases/Oracle/installed/packages/dbms/support#dbms_support-mysid[`dbms_support.mysid`] can be used: `where sid = sys.dbms_support.mysid`.
+
+  → development/databases/Oracle/installed/dynamic-performance-views/session/identify-own-session[Identifying one's own session]
+
+  }
+  { MODULE, ACTION, CLIENT_INFO and CLIENT_IDENTIFIER
+
+  The values of the columns `module`, `action` and `client_info`  can be set with procedures `set_module`, `set_client_info` and `set_action` of the
+  `→ development/databases/Oracle/installed/packages/dbms/application_info` package
+  -
+  (See `→ development/databases/Oracle/installed/dynamic-performance-views/session/longops` for an example).
+
+  The value of `client_identifier` can be set with → development/databases/Oracle/installed/packages/dbms/session/api/set/identifier[`dbms_session.set_identifier`].
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module-action.sql||
+
+  → development/databases/Oracle/tools/RMAN sets the value of `client_info` to something that can be queried with `client_info like '%rman%'`.
+
+  See also → development/databases/Oracle/installed/dynamic-performance-views/session/C-Sharp_set-action-client_identifier_info-module
+
+  }
+  { MODULE_HASH #ora-v-session-module_hash
+
+  It turns out that the value of `module_hash` is equal to
+  → development/databases/Oracle/SQL/functions/ora/hash[`ora_hash(module)`]. Thus, the following → development/databases/Oracle/SQL/select[`select` statement] does not return a record:
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/module_hash.sql||
+
+  }
+  { SQL_EXEC_ID
+
+  As → https://tanelpoder.com/2011/10/24/what-the-heck-is-the-sql-execution-id-sql_exec_id[Tanel Poder] points out, the value of `sql_exec_id` seems to start with 2²⁴ for every `sql_id` when
+  Oracle is started.
+
+ `sql_exec_id` is also found in → development/databases/Oracle/installed/dynamic-performance-views/active/session_history[`v$active_session_history`] and
+  → development/databases/Oracle/installed/dynamic-performance-views/open_cursor[`v$open_cursor`].
+
+  }
+  { SID
+
+    Join sid with v$sesstat to get some statistical information for a particular sesssion. 
+
+  }
+  { SID, SERIAL #vSsession-sid-serial
+
+   `sid` and `serial#` can be used in a statement to to → development/databases/Oracle/SQL/statement/nouns/system/alter#ora-alter-system-end-session[kill a session].
+
+  }
+  { TYPE
+  
+    The value of `type` can be used to identify → development/databases/Oracle/architecture/processes/background[background] (`type='BACKGROUND'`) and foreground (`type='USER'`)
+    → development/databases/Oracle/architecture/processes[processes].
+
+  }
+  { SADDR
+
+  The value of `saddr` (the session address) might be joined to
+    • → development/databases/Oracle/installed/data-dictionary/kgllock[`dba_kgllock`]
+    • … ?
+
+  }
 }
+{ Joins
+
+  Some → development/databases/Oracle/installed/dynamic-performance-views[v$ views] that can be joined to include:
+    • → development/databases/Oracle/installed/dynamic-performance-views/process[`v$process`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/transaction[`v$transaction`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/sql[`v$sql`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/sql/command[`v$sql_command`]
+    • → development/databases/Oracle/installed/dynamic-performance-views/px/session[`v$px_session`]
+
+  gh|oracle-patterns|/Installed/dynamic-performance-views/session/joins.sql||
+
+  An attempt to find views that can be joined to `v$session` with a → development/databases/Oracle/SQL/select[select statement]
+  is → development/databases/Oracle/installed/dynamic-performance-views/session/joinable[here].
+
+  { Joining V$SESSION to V$SQL
+  
+    There are (at least) three separate ways to join `v$session` to `v$sql`:
+code {
+select
+   count(ses.sid   ) cnt_ses,
+   count(sql.sql_id) cnt_sql
+from
+   v$session ses left join v$sql sql on ses.sql_id         = sql.sql_id     and ses.sql_child_number = sql.child_number
+-- v$session ses left join v$sql sql on ses.sql_address    = sql.address    and ses.sql_child_number = sql.child_number
+-- v$session ses left join v$sql sql on ses.sql_hash_value = sql.hash_value and ses.sql_child_number = sql.child_number
+;
+code }
+
+  }
+
+}
+{ Waiting sessions
+
+  What a session is waiting for can be queried with → development/databases/Oracle/installed/dynamic-performance-views/session/wait
+
+}
+
+
 { TODO
 
   gh|oracle-patterns|/Installed/dynamic-performance-views/session/distinct_values.sql||
@@ -238,6 +240,372 @@ code }
   { Some programs that might be seen connected to Oracle
 
     gh|oracle-patterns|/Installed/dynamic-performance-views/session/programs.sql||
+
+  }
+  { Big query
+
+code {
+select
+-- case when ses.sid = sys_context('USERENV', 'SID') then '*' else ' ' end myself,
+   case when pxs.qcsid is not null then
+        case when ses.sid     = pxs.qcsid     and
+                  ses.serial# = pxs.qcserial#     then 'm'
+                                                  else 's'
+        end
+   end                                                      pll, -- Parallel                                                                                       
+   ses.sid,  ses.serial#,
+-- User- and schema names ------------------------------------------------------------------------------------
+-- ses.osuser,
+   ses.username                                         ses_username, --- ses.schemaname ses_schemaname, -- ses.schema#,
+   -------------------------------------------------------------------------------------
+   sql.executions              sql_executions,
+-- sql.sql_fulltext,
+   -------------------------------------
+   sql.rows_processed,
+   round((sysdate - ses.sql_exec_start) * 60 * 60 * 24) sql_running_since_s,
+   round(sql.elapsed_time / 1e6      , 2)               sql_accumulated_elapsed_time_s,
+   round(sql.cpu_time     / 1e6      , 2)               sql_cpu_time_s,
+   round(prc.cpu_used     / 1e6      , 2)               prc_cpu_used_s,
+   --
+   sql.sql_text,
+   --
+   mon.key                     sql_monitor_key,
+   mon.binds_xml,
+--'exec kill_my_session(' || ses.sid || ',' || ses.serial# || ');' kill_ses,
+
+
+-- prc.background                          prc_background, -- >> 1 for a SYSTEM background process; NULL for foreground processes or non-SYSTEM background processes
+-- Columns related to v$px_session --------------------------------------------------
+   pxs.server_group,
+   pxs.server_set,
+   pxs.server#,
+   pxs.degree, pxs.req_degree,
+   pxs.con_id,
+   pxs.qcsid, pxs.qcserial#,
+
+-- Columns related to parallel execution -----------------------------------------------
+ '!!!!!!!',
+   ses.pddl_status,
+   ses.pq_status,
+   ses.pdml_status, -- pdml_status replaces ses.pdml_enabled,
+   -------------------------------------------------------------------------------------
+
+-- prc.serial#   prc_serial#,
+-- ses.audsid,
+
+   trx.status                                           trx_st,
+   -----------------------------------------------------
+   -- ses.seq# ,            -- >> A number that uniquely identifies the current or last wait (incremented for each wait)
+   ses.event,               -- ses.event#,
+   ses.wait_class,          -- ses.wait_class#, ses.wait_class_id,
+   ses.state                                            ses_state,
+   ses.status                                           ses_status,
+   round(ses.wait_time_micro / 1e6, 4)                  ses_wait_time_s,
+-- ses.time_remaining_micro,
+   round(ses.time_since_last_wait_micro / 1000/1000, 4) ses_time_since_last_wait_s,
+   ses.p1text,
+   case when ses.p1text = 'driver id' then
+     chr(to_number(substr(ses.p1raw, 1, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw, 3, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw, 5, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw, 7, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw, 9, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw,11, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw,13, 2), 'xx')) ||
+     chr(to_number(substr(ses.p1raw,15, 2), 'xx'))
+    when ses.p1text = 'idn' then -- https://tanelpoder.com/files/Oracle_Latch_And_Mutex_Contention_Troubleshooting.pdf
+      case when ses.p1 <= 131072 then
+        (select sql_text from v$sql s where mod(s.hash_value, 131072) = ses.p1)
+       else
+        (select sql_text from v$sql s where     s.hash_value          = ses.p1)
+      end
+   else
+     to_char(ses.p1)
+   end p1, -- Might be 'TCP' for p1text = 'driver id'
+   ------------------------------------------------------
+
+   ses.p2text, ses.p2, ses.p3text, ses.p3,
+   ses.row_wait_block#   ses_row_wait_block#, ses.row_wait_file#    ses_row_wait_file#, ses.row_wait_obj#     ses_row_wait_obj#, ses.row_wait_row#     ses_row_wait_row#,
+-- Segment related information. Requires uncommented join to dba_extents and dba_indexes below
+-- ext.owner          seg_owner,  ext.segment_name   seg_name, ind.table_name table_name,
+-- --------------------------------------------------------------------------------------
+-- ses.p1raw, ses.p2raw, ses.p3raw,
+   ses.module                                  ses_module, -- sql.module    sql_module, -- sql.module_hash,  ses.program ses_program,
+   ses.action                                  ses_action, -- sql.action    sql_action, -- sql.action_hash,
+   prc.program                                 prc_program,
+   prc.pname                                   prc_pname,
+   --
+   sql.persistent_mem                          sql_persistent_mem,
+   sql.runtime_mem                             sql_runtime_mem,
+   sql.sharable_mem                            sql_sharable_mem,
+   sql.typecheck_mem                           sql_typecheck_mem,
+   --
+   round(prc.pga_alloc_mem    /1024/1024,1)    prc_pga_alloc_mb   ,    -- >> PGA memory currently allocated by the process
+   round(ses.pga_tunable_mem  /1024/1024,1)    ses_pga_tunable_mb ,    -- >> The amount of tunable PGA memory (in bytes).
+   round(prc.pga_freeable_mem /1024/1024,1)    prc_pga_freeable_mb,
+   round(prc.pga_max_mem      /1024/1024,1)    prc_pga_max_mb     ,
+   round(prc.pga_used_mem     /1024/1024,1)    prc_pga_used_mb    ,
+-- sql.parsing_schema_name  sql_parsing_schema_name, -- sql.parsing_schema_id, sql.parsing_user_id,
+-- prc.username prc_username, /* oracle */
+-- --------------------------------------------------------------
+-- trx.used_ublk = trx.ubablk - trx.start_ubablk + 1
+-- trx.used_urec = trx.ubarec - trx.start_ubarec + 1
+   trx.used_ublk,  -- trx.start_ubablk  trx_start_ubablk, trx.ubablk  trx_ubablk      ,
+   trx.used_urec,  -- trx.start_ubarec  trx_start_ubarec, trx.ubarec  trx_ubarec,
+   --
+   trx.start_ubafil trx_start_ubafil, trx.ubafil  trx_ubafil,
+   trx.start_ubasqn trx_start_ubasn , trx.ubasqn  trx_ubaseq,
+-- --------------------------------------------------------------
+   sql.program_id    ses_program_id,
+   sql.program_line# ses_program_line#,
+
+   --
+   sql.direct_reads                                     sql_direct_reads,
+   sql.buffer_gets                                      sql_buffer_gets,
+   --
+   sql.direct_writes                                    sql_direct_writes,
+   sql.disk_reads                                       sql_disk_reads,
+   trx.phy_io                                           trx_phy_io, trx.log_io trx_log_io,
+   round(sql.user_io_wait_time /1e6,2)                  sql_user_io_wait_time_s,
+   sql.physical_read_bytes                              sql_phys_read_bytes,
+   round(case when sql.disk_reads > 0 then sql.physical_read_bytes / sql.disk_reads / 1024 end, 3)  "16K?",
+  '****************',
+   sql.fetches                                          sql_fetches,
+   trx.cr_get                                           trx_cr_get,
+   --
+   sql.physical_read_requests                           sql_phys_read_requests,
+   sql.physical_write_bytes                             sql_phys_write_bytes,
+   sql.physical_write_requests                          sql_phys_write_requests,
+   --
+-- ses.seconds_in_wait,                                        -- >> Deprecated in favor of time_since_last_wait_micro and wait_time_micro
+-- ses.wait_time,                                              -- >> Deprecated in favor of wait_time_micro and state
+-- com.command_name,                                           -- ses.command, sql.command_type,
+   ses.last_call_et,                                           -- time in seconds since status = 'INACTIVE' or 'ACTIVE'
+
+   ses.sql_id,                     ses.sql_child_number,
+   ses.sql_exec_id - 16*1024*1024  sql_exec_id_0,
+-- sql.sql_id             ,   sql.child_number,
+   ses.logon_time,
+-- ses.action_hash, ses.module_hash,
+-- ses.blocking_instance, ses.blocking_session, ses.blocking_session_status,
+   ses.client_identifier,
+   ses.client_info,
+-- ses.con_id,
+
+   ses.external_name,
+-- ses.creator_addr, ses.creator_serial#,
+   ses.current_queue_duration,
+   ses.ecid,
+-- ses.failed_over, ses.failover_method, ses.failover_type,
+-- ses.final_blocking_instance, ses.final_blocking_session, ses.final_blocking_session_status,
+-- ses.fixed_table_sequence, /* number that increases every time the session completes a call to the database and there has been an intervening select from a dynamic performance table */
+   ses.lockwait,
+-- ses.logon_time,
+-- ses.machine,
+-- ses.ownerid,
+-- ses.paddr,
+
+
+-- ses.plsql_debugger_connected,
+   ses.plsql_entry_object_id, ses.plsql_entry_subprogram_id,
+   ses.plsql_object_id      , ses.plsql_subprogram_id,
+-- ses.port,
+
+-- ----------------------
+-- ses.prev_child_number,
+-- ses.prev_exec_id,
+-- ses.prev_exec_start,
+-- ses.prev_hash_value,
+-- ses.prev_sql_addr,
+-- ses.prev_sql_id,
+-- ----------------------
+-- ses.process,
+-- ses.program,
+   ses.resource_consumer_group,
+-- ses.saddr,
+-- ses.server,
+-- ses.service_name,
+-- ses.session_edition_id,
+-- ses.shard_ddl_status,
+-- ses.sid,
+-- ses.sql_address,
+
+-- ses.sql_exec_start,
+-- ses.sql_hash_value,
+-- ses.sql_id,
+
+-- ses.sql_trace, ses.sql_trace_binds, ses.sql_trace_plan_stats, ses.sql_trace_waits,
+-- prc.addr                                prc_addr,
+
+   prc.con_id                              prc_con_id,
+-- prc.execution_type                      prc_execution_type, -- THREAD (Windows) , PROCESS (Linux)
+   prc.latchspin                           prc_latchspin,
+   prc.latchwait                           prc_latchwait,
+   prc.numa_curr                           prc_numa_curr,
+   prc.numa_default                        prc_numa_default,
+
+   prc.pid                                 prc_pid,
+   prc.tracefile                           prc_tracefile,
+   prc.traceid                             prc_traceid,
+   prc.username                            prc_username,
+-- ses.sql_translation_profile_id,
+   prc.terminal                            prc_terminal,
+   ses.terminal                            ses_terminal,
+   ses.top_level_call#                     ses_top_level_call#,
+-- ses.type,              -- USER, ....
+-- ses.user#,
+
+-- sql.address,
+   sql.application_wait_time sql_application_wait_time,
+   sql.avoided_executions    sql_avoided_executions,
+-- sql.bind_data,
+
+-- sql.child_address,
+-- sql.child_latch,
+
+   sql.cluster_wait_time       sql_cluster_wait_time,
+   sql.concurrency_wait_time   sql_concurrency_wait_time_ms,
+-- sql.con_id,
+
+
+   sql.ddl_no_invalidate       sql_ddl_no_invalidate,
+   sql.end_of_fetch_count      sql_end_of_fetch_count,
+   sql.exact_matching_signature, sql.force_matching_signature,
+
+
+   sql.full_plan_hash_value    sql_full_plan_hash_value, -- sql.plan_hash_value,
+-- sql.hash_value,
+-- sql.im_scans, sql.im_scan_bytes_inmemory, sql.im_scan_bytes_uncompressed,
+   sql.invalidations           sql_invalidations,
+   sql.loaded_versions         sql_loaded_versions,
+   sql.loads                   sql_loads,
+-- sql.io_cell_offload_eligible_bytes, sql.io_cell_offload_returned_bytes, sql.io_cell_uncompressed_bytes, sql.io_interconnect_bytes,
+-- sql.is_bind_aware           sql_is_bind_aware,
+-- sql.is_bind_sensitive      "sql bind sens?",
+-- sql.is_obsolete            "sql obsolete?",
+-- sql.is_reoptimizable       "sql reoptim?",
+-- sql.is_resolved_adaptive_plan "sql rlvd adpt. pln?",
+   sql.is_rolling_invalid,
+   sql.is_rolling_refresh_invalid,
+   sql.is_shareable,
+-- sql.java_exec_time            sql_java_exec_time,
+   sql.plsql_exec_time           sql_plsql_exec_time,
+   sql.kept_versions,
+   sql.last_active_time,
+   sql.last_load_time, sql.first_load_time,
+   sql.literal_hash_value,
+
+   sql.locked_total,
+
+   sql.object_status,
+-- sql.old_hash_value,
+   sql.open_versions,
+   sql.optimized_phy_read_requests,
+   sql.optimizer_cost,
+-- sql.optimizer_env, sql.optimizer_env_hash_value,
+   sql.optimizer_mode,
+   sql.outline_category,
+   sql.outline_sid,
+   sql.parse_calls,
+   sql.pinned_total,
+   sql.px_servers_executions,
+-- sql.remote,
+-- sql.result_cache,
+
+   sql.serializable_aborts,
+-- sql.service, -- sql.service_hash,
+   sql.sorts,
+   sql.sqltype,
+-- sql.sql_id,
+   sql.sql_patch,
+   sql.sql_plan_baseline,
+   sql.sql_profile,
+   sql.sql_quarantine,
+   sql.type_chk_heap,
+   sql.users_executing     sql_users_executing,
+   sql.users_opening       sql_users_opening,
+-- prc.addr,
+-- prc.con_id,
+-- prc.execution_type,
+   prc.latchspin,
+   prc.latchwait,
+-- prc.numa_curr,   prc.numa_default,
+   --
+   prc.spid prc_spid, -- prc.sosid prc_sosid,  prc.stid prc_stid,
+-- prc.terminal,
+-- trx.addr, -- ses.taddr,
+   trx.con_id,
+   trx.cr_change,
+   trx.dependent_scn,
+-- trx."DSCN-B", trx."DSCN-W", -- Obsolete, equal to dscn_base and dscn_wrap
+   trx.dscn_base, trx.dscn_wrap,
+   trx.flag,
+   trx.name,
+   trx.noundo,
+   trx.prv_xid,
+   trx.prv_xidslt,
+   trx.prv_xidsqn,
+   trx.prv_xidusn,
+   trx.ptx,
+   trx.ptx_xid,
+   trx.ptx_xidslt,
+   trx.ptx_xidsqn,
+   trx.ptx_xidusn,
+   trx.recursive,
+-- trx.ses_addr,
+   trx.space,
+   trx.start_date         trx_start_date, -- trx.start_time,
+   trx.start_scn          trx_start_scn,
+-- trx.start_scnb, trx.start_scnw,
+   --
+   trx.start_uext,
+   trx.xid,
+-- --------------  DBMS_TRANSACTION.local_transaction_id returns something like
+--                     11.66.843271
+   trx.xidusn ,    --  11
+   trx.xidslot,    --     66
+   trx.xidsqn      --        843271
+from
+   v$session ses                                                                                                     join
+   v$process prc     on ses.paddr                               = prc.addr                                      left join
+   v$sql         sql on ses.sql_id                              = sql.sql_id and
+                        ses.sql_child_number                    = sql.child_number                              left join
+   v$transaction trx on ses.taddr                               = trx.addr                                      left join
+   v$sql_monitor mon on ses.sid                                 = mon.sid               and
+                        ses.serial#                             = mon.session_serial#   and
+                        ses.sql_id                              = mon.sql_id            and
+                     --
+                     -- Use nvl(…) because, apparently, in CREATE TABLE statements, sql_exec_id is
+                     -- not recorded in ses...
+                     --
+                        nvl(ses.sql_exec_id, mon.sql_exec_id)   = mon.sql_exec_id                               left join
+-- v$sqlcommand  com on ses.command          = com.command_type                                                 left join
+   v$px_session  pxs on ses.sid              = pxs.sid and
+                        ses.serial#          = pxs.serial# /*                                                   left join
+   dba_extents   ext on ses.p1text = 'file#' and -- event in( 'db file sequential read') and
+                        ext.file_id = ses.p1 and
+                        ses.p2text = 'block#' and ses.p2 between ext.block_id and ext.block_id + ext.blocks     left join
+   dba_indexes   ind on ext.owner        = ind.owner and
+                        ext.segment_name = ind.index_name   */
+
+where
+   ses.sid         != sys_context('USERENV', 'SID')     and -- Exclude executing session
+-- ses.sid in (177, 236, 1658)
+-- ses.osuser       = sys_context('userenv', 'os_user') and
+-- ses.module       = 'powershell.exe' and
+-- ses.status      != 'INACTIVE'  and
+-- ses.program      = 'powershell.exe' and
+-- prc.pname is null  -- Only show one v$session record for statements executed in parallel
+   prc.background  is null and  -- 1 for a SYSTEM background process; NULL for foreground processes or non-SYSTEM background processes
+-- trx.start_date is not null and
+-- osuser not in ('oracle') and
+   1=1
+order by
+   pxs.qcsid,
+   ses.status,
+   ses.last_call_et
+;
+code }
 
   }
 

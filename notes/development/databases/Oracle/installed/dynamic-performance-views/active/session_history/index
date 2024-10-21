@@ -134,7 +134,148 @@ code }
 
   Does the expression `trunc(px_flags/2097152)` evaluate to the → development/databases/Oracle/SQL/statement/execution/parallel#ora-parallel-dop[DOP] being used in the query?
 
+  { Big query
 
+code {
+select *
+from (
+select
+-- ash.session_id                          session_id,  ash.session_serial#,
+-- ash.px_flags                            ash_px_flags,   ash.qc_instance_id                      ash_qc_instance_id,   ash.qc_session_id                       ash_qc_session_id,   ash.qc_session_serial#                  ash_qc_session_serial#,
+   systimestamp - ash.sample_time          ash_sample_time_ago, --    ash.sample_time_utc                     ash_sample_time_utc,
+-- ash.in_java_execution                   ash_in_java_execution,
+   round(ash.pga_allocated / 1024/1024,1)  pga_allocated_mb,
+   ash.session_state                       ash_session_state,
+   --
+   ash.event                               event, -- ash.event#,                             ash.event_id                            ash_event_id,
+   ash.current_block#                      cur_block#, ash.current_file# cur_file#, ash.current_obj# cur_obj#, ash.current_row# cur_row#,
+   --
+   ash.in_plsql_execution                 "PL/SQL exec?",
+   ash.in_sql_execution                   "SQL exec?",
+   ash.sql_exec_start                      sql_exec_start,
+   ash.sql_plan_line_id                    sql_plan_line_id,  ash.sql_plan_operation                  sql_plan_operation,   ash.sql_plan_options                    sql_plan_options,
+-- ash.sql_opname                          sql_opname, -- ash.sql_opcode                              sql_opcode,
+   sql.sql_fulltext,
+   --
+   row_number() over (
+      partition by
+        ash.session_id,
+        ash.session_serial#,
+        ash.sql_id,
+        ash.sql_child_number,
+        ash.sql_exec_id
+      order by
+        ash.sample_id
+    )                                     "rn sql exec",
+   --
+-- ash.sql_full_plan_hash_value            sql_full_plan_hash_value,
+   ash.sql_exec_id  - 16*1024*1024        "sql exec id 0",
+------------------------------------------------------------------------
+--
+-- Use sql_id, sql_exec_id and ash.sql_child_number to join with v$sql_[sql_]monitor (?)
+--
+   ash.sql_id                              sql_id,
+   ash.sql_exec_id                         sql_exec_id,
+   ash.sql_child_number                   "SQL child #",
+   --------------------------------------------------------------------
+   ash.sql_plan_hash_value                 sql_plan_hash_value,
+   ash.top_level_sql_id                    top_level_sql_id,
+-- ash.top_level_call_name                 top_level_call_name, ash.top_level_call#                     top_level_call#,
+-- ash.top_level_sql_opcode                top_level_sql_opcode,
+-- ash.is_sqlid_current                    is_sqlid_current,
+-- ash.p1text                              p1text, ash.p1                                  p1,   ash.p2text                              p2text, ash.p2                                  p2,   ash.p3text                              p3text, ash.p3                                  p3,
+   ash.action                              action,
+   ash.blocking_hangchain_info             blocking_hangchain_info,
+   ash.blocking_inst_id                    blocking_inst_id,
+   ash.blocking_session                    blocking_session,
+   ash.blocking_session_serial#            blocking_session_serial#,
+   ash.blocking_session_status             blocking_session_status,
+   ash.capture_overhead                    capture_overhead,
+   ash.client_id                           client_id,
+-- ash.consumer_group_id                   consumer_group_id,
+-- ash.con_dbid                            con_dbid,
+-- ash.con_id                              con_id,
+   ash.dbop_exec_id                        dbop_exec_id,
+   ash.dbop_name                           dbop_name,
+   ash.dbreplay_call_counter               dbreplay_call_counter,
+   ash.dbreplay_file_id                    dbreplay_file_id,
+   ash.delta_interconnect_io_bytes         delta_interconnect_io_bytes,
+   ash.delta_read_io_bytes                 delta_read_io_bytes,
+   ash.delta_read_io_requests              delta_read_io_requests,
+   ash.delta_read_mem_bytes                delta_read_mem_bytes,
+   ash.usecs_per_row                       usecs_per_row,
+   ash.delta_time                          delta_time,
+   ash.delta_write_io_bytes                delta_write_io_bytes,
+   ash.delta_write_io_requests             delta_write_io_requests,
+   ash.ecid                                ecid,
+-- ash.flags                               flags,
+   ash.in_parse                           "parse?",
+   ash.in_hard_parse                      "hard parse?",
+   ash.in_bind                            "bind?",
+   ash.in_cursor_close                    "cursor close?",
+   ash.in_plsql_compilation               "PL/SQL compil?",
+   ash.in_connection_mgmt                  in_connection_mgmt,
+   --
+   ash.in_inmemory_populate                in_inmemory_populate,
+   ash.in_inmemory_prepopulate             in_inmemory_prepopulate,
+   ash.in_inmemory_query                   in_inmemory_query,
+   ash.in_inmemory_repopulate              in_inmemory_repopulate,
+   ash.in_inmemory_trepopulate             in_inmemory_trepopulate,
+   --
+   ash.in_plsql_rpc                        in_plsql_rpc,
+   ash.in_sequence_load                    in_sequence_load,
+   --
+-- ash.in_tablespace_encryption            in_tablespace_encryption,
+-- ash.is_awr_sample                       is_awr_sample,
+-- ash.is_captured                         is_captured,
+-- ash.is_replayed                         is_replayed,
+-- ash.is_replay_sync_token_holder         is_replay_sync_token_holder,--
+-- ash.machine                              machine,
+-- ash.module                               module,
+   ash.plsql_entry_object_id                plsql_entry_object_id,
+   ash.plsql_entry_subprogram_id            plsql_entry_subprogram_id,
+   ash.plsql_object_id                      plsql_object_id,
+   ash.plsql_subprogram_id                  plsql_subprogram_id,
+-- ash.port                                 port,
+-- ash.program                              program,
+   ash.remote_instance#                     remote_instance#,
+   ash.replay_overhead                      replay_overhead,
+-- ash.service_hash                         service_hash,
+-- ash.session_type                         session_type,   -- FOREGROUND ...
+   ash.sql_adaptive_plan_resolved           sql_adaptive_plan_resolved,
+   --
+   ash.temp_space_allocated                 temp_space_allocated,
+   ash.time_model                           time_model,
+   ash.time_waited                          time_waited,
+   ash.tm_delta_cpu_time                    tm_delta_cpu_time,
+   ash.tm_delta_db_time                     tm_delta_db_time,
+   ash.tm_delta_time                        tm_delta_time,
+   --
+   ash.force_matching_signature             force_matching_signature,
+   --
+   ash.user_id                              user_id,
+   ash.wait_class                           wait_class,
+   ash.wait_class_id                        wait_class_id,
+   ash.wait_time                            wait_time,
+   ash.xid                                  xid,
+   ash.sample_id                            sample_id,
+   ash.seq#                                 seq#
+from
+   v$active_session_history ash    left join
+   v$sqlarea                sql on ash.sql_id = sql.sql_id
+where
+   ash.session_id      = 1373    /*   and/
+   ash.session_serial# = 64960*/
+)
+where
+--  rn_sql_exec_since_start = 1 and
+    1=1
+order by
+   sample_id desc
+;
+code }
+
+  }
   { fixed view definition
 
 code {
