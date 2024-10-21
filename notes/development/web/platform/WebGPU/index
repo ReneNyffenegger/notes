@@ -1,5 +1,5 @@
 
-WebGPU is gthe successor of → development/web/WebGL
+WebGPU is the successor of → development/web/WebGL (but is otherwise not related to WebGL and does not target the *OpenGL ES*).
 
 WebGPU is only available in secured contexts (i. e. → development/web/HTTPS).
 
@@ -10,16 +10,20 @@ WebGPU is said to be simple: It does not need the vertex buffer and vertex array
   Interesting classes («interfaces») of the WebGPU include
   table { ll
     `GPU` ☰ The *main interface* for using WebGPU (for example for requesting a `GPUAdapter` interface. Obtained with `navigator.gpu` or `WorkerNavgiator.gpu`
-    `GPUAdapter` ☰ Used to request a `GPUDevice` or query adapter information, features and its limits (see `GPUSupportedLimits` for the latter). An adapter can be obtained with `navigator.gpu.requestAdapter()`
+    `GPUAdapter` ☰ A representation of a *physical GPU*, used to request a `GPUDevice` or query adapter information, features and its limits (see `GPUSupportedLimits` for the latter). An adapter can be obtained with `navigator.gpu.requestAdapter()`
     `GPUBindGroup` ☰
     `GPUBindGroupLayout` ☰ A template used when creating `GPUBindGroup` objects. The template defines the structure and purpose a related GPU resources such as buffers that will be used in a pipeline. Created with `GPUDevice.createBindGroupLayout()`.
     `GPUBuffer` ☰ A `GPUBuffer` stores the raw data which is processed by the GPU. Created with `GPUDevice.createBuffer`.
     `GPUCommandEncoder` ☰ Used to send commands to the GPU. Created with `GPUDevice.createCommandEncoder()`.
+    `GPUComputePassEncoder` ☰ A `GPUComputePassEncoder` instance is obtained by calling `GPUCommandEncoder.beginComputePass()`
+    `GPUComputePipeline` ☰ Representation of a pipeline that controls the *compute shader stage*, can be used in a `GPUComputePassEncoder`. `GPUComputePipeline` instances can be created with `GPUDevice.createComputePipeline()` or `GPUDevice.createComputePipelineAsync()`.
     `GPUDevice` ☰ A logical → hardware/xPU/GPU/index device which exposes the bulk of WebGPU functionality. A `GPUDevice` is obtained with `GPUAdapter.requestDevice()`.
     `GPUSupportedLimits` ☰
   table }
 
-  { GPUDevice.createBindGroupLayout
+  { GPUDevice
+
+    { GPUDevice.createBindGroupLayout
 
 code {
 GPUDevice.createBindGroupLayout( {
@@ -42,16 +46,16 @@ code }
       • `"storage"` (buffer is created with `GPUBufferUsage.STORAGE`)
       • `"uniform"` (buffer is created with `GPUBufferUsage.UNIFORM`)
 
-  }
-  { GPUDevice.createBuffer
+    }
+    { GPUDevice.createBuffer
 
-   `GPUDevice.createBuffer` creates a `GPUBuffer`.
+     `GPUDevice.createBuffer` creates a `GPUBuffer`.
 
 ?  `GPUBufferUsage` is a combination of
    table { lllr
      `GPUBufferUsage.COPY_SRC` ☰ Source of a copy operation (for example the source argument of `copyBufferToBuffer()`). ☰ 0x0004 ☰ 4
      `GPUBufferUsage.COPY_DST` ☰ Destination of a copy/write operation (for example the destination argument of `copyTextureToBuffer()`). ☰ 0x0008 ☰ 8
-     `GPUBufferUsage.INDEX` ☰ Index buffer (buffer argument passed to setIndexBuffer()`). ☰ 0x0010 ☰ 16
+     `GPUBufferUsage.INDEX` ☰ Index buffer (buffer argument passed to `setIndexBuffer()`). ☰ 0x0010 ☰ 16
      `GPUBufferUsage.INDIRECT` ☰ Store indirect command arguments (`indirectBuffer` argument of `drawIndirect()` or `dispatchWorkgroupsIndirect()`) ☰ 0x0100 ☰ 256
      `GPUBufferUsage.MAP_READ` ☰ Can be mapped for reading (for example when calling `mapAsync()` with a mode of `GPUMapMode.READ`). This flag may only be combined with `GPUBufferUsage.COPY_DST`. ☰ 0x0001 ☰ 1
      `GPUBufferUsage.MAP_WRITE` ☰ Can be mapped for writing (for example when calling `mapAsync()` with a mode of `GPUMapMode.WRITE`). This flag may only be combined with `GPUBufferUsage.COPY_SRC`. ☰ 0x0002 ☰ 2
@@ -61,19 +65,70 @@ code }
      `GPUBufferUsage.VERTEX` ☰ Can be used as a vertex buffer (`setVertexBuffer()`). ☰ 0x0020 ☰ 32    
    table }
 
-  }
-  { GPUDevice.createCommandEncoder
+    }
+    { GPUDevice.createCommandEncoder
 
-   `GPUDevice.createCommandEncoder` creates a `GPUCommandEncoder` object which can be used to create and store commends that will be sent to the GPU.
+     `GPUDevice.createCommandEncoder` creates a `GPUCommandEncoder` object which can be used to create and store commands that will be sent to the GPU.
 
+    }
+    { GPUDevice.createComputePipeline
+
+code {
+let pip = dev.createComputePipeline(
+   {
+     layout: this.device.createPipelineLayout({ bindGroupLayouts }), // bindGroupLayouts is created with GPUDevice.createBindGroupLayout()
+     compute: {
+         module: dev.createShaderModule({ code }),
+         entryPoint: "main",
+         constants
+      },
+      label
+   });
+code }
+
+    }
+    { GPUDevice.createShaderModule
+
+code {
+const mod = dev.createShaderModule({ code: wgsl_code });
+code }
+
+    }
   }
-  { GPU.getPreferredCanvasFormat
+  { GPU
+    { GPU.getPreferredCanvasFormat
 
  ? `GPU.getPreferredCanvasFormat` returns either the string
      • `"rgba8unorm"` or
      • `"bgra8unorm"`
 
+    }
   }
+  { GPUCommandEncoder
+
+    An instance of a `GPUCommandEncoder` can be used to create and store commands that will be sent to the GPU.
+
+    Interesting methods of `GPUCommandEncoder` include
+      • `beginComputePass` (which returns an instance of a `GPUComputePassEncoder`)
+      • `copyBufferToBuffer` (which copies data from one `GPUBuffer` to another)
+      • `finish` (which completes the recordings of the encoded command sequence and returns a `GPUCommandBuffer` instance)
+
+    TODO: `device.queue.submit([commandEncoder.finish()])`
+
+  }
+  { GPUComputePassEncoder
+
+    Interesting methods of `GPUComputePassEncoder` incude
+      • `setPipeline` (which assigns a `GPUComputePipeline` instance for the compute pass)
+      • `setBindGroup` (which sets the `GPUBindGroup` for subsequent compute commands, for a given index)
+      • `dispatchWorkgroups`
+      • `end` (which completes the recording of the current compute pass command sequence)
+
+  }
+}
+{ WebGPU Shading Language (WGSL)
+
+
 }
 { October 2024: Trying to run a WebGPU application in a browser on Linux/Debian
 
@@ -126,6 +181,11 @@ code }
     }
   }
 }
+{ TODO
+
+  WebGPU issues a unit of work to the GPU in the form of a → https://gpuweb.github.io/gpuweb/#gpu-command[GPU command].
+
+}
 
 sa:
 
@@ -136,6 +196,8 @@ sa:
   → https://github.com/google/dawn[Google Dawn] allows to write WebGPU programs in C/C++.
 
 links:
+
+  → https://gpuweb.github.io/gpuweb/[WebGPU Draft Community Report]
 
   → https://webgpureport.org/[webgpureport.org] displays if WebGPU is enabled (project → https://github.com/webgpu/webgpureport.org[hosted on github]).
 
