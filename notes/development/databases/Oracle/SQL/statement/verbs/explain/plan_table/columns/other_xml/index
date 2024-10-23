@@ -6,7 +6,7 @@ the → development/XML format) for an execution step. Such information includes
   • Database version (release number)
   • Hash value of → development/databases/Oracle/SQL/statement/execution/plan[execution plan]
   • Name of outline or SQL profile to create the plan
-  • If → development/databases/Oracle/optimizer/statistics/dynamic[dynamic statistics] were used when the plan was created
+  • Whether → development/databases/Oracle/optimizer/statistics/dynamic[dynamic statistics] were used when the plan was created
   • Outline data which can reproduce the plan
   • An indication if the supplied → development/databases/Oracle/SQL/hints[hints] were erroneous
 
@@ -80,6 +80,27 @@ code {
 </other_xml>
 code }
 
+{ Exactly one record with OTHER_XML for a plan
+
+  As far as I can tell, there is exactly one record with `other_xml is not null` for a plan:
+code {
+select
+   count(case when other_xml is not null then 'x' end) cnt_xml,
+   count(*) cnt,
+   sql_id,
+   plan_hash_value
+from
+   dba_hist_sql_plan
+where
+   dbid = (select dbid from → development/databases/Oracle/installed/dynamic-performance-views/database)
+group by
+   sql_id,
+   plan_hash_value
+order by
+   count(case when other_xml is not null then 'x' end) desc nulls first;
+code }
+
+}
 { Second level XML elements
 
   The following query is an attempt to find the second level (one below the root element `other_xml`, that is) XML elements:
