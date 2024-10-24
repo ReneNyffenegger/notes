@@ -302,49 +302,102 @@ code }
 
   }
 
-
 }
 { Querying OTHER_XML with XPATH expressions
 
  `other_xml` can be queried with → development/XML/XPath expressions.
 
 code {
-with x as (
-   select xmlType(other_xml) other_xml from v$sql_plan where other_xml is not null
-)
-select 
-   extractvalue(other_xml, '/*/info[@type = "plan_hash"]'                              ) plan_hash,
-   extractvalue(other_xml, '/*/info[@type = "→ development/databases/Oracle/SQL/statement/execution/plan/adaptive[adaptive_plan]"]'                          ) adaptive_plan,
-   extractvalue(other_xml, '/*/info[@type = "sql_profile"]'                            ) sql_profile,
-   extractvalue(other_xml, '/*/info[@type = "sql_patch"]'                              ) sql_patch,
-   extractvalue(other_xml, '/*/info[@type = "baseline"]'                               ) baseline,
-   extractvalue(other_xml, '/*/info[@type = "outline"]'                                ) outline,
-   extractvalue(other_xml, '/*/info[@type = "dynamic_sampling"]'                       ) dynamic_sampling,
-   extractvalue(other_xml, '/*/info[@type = "dop"]'                                    ) dop,
-   extractvalue(other_xml, '/*/info[@type = "dop_reason"]'                             ) dop_reason,
-   extractvalue(other_xml, '/*/info[@type = "pdml_reason"]'                            ) pdml_reason,
-   extractvalue(other_xml, '/*/info[@type = "idl_reason"]'                             ) idl_reason,
-   extractvalue(other_xml, '/*/info[@type = "queuing_reason"]'                         ) queuing_reason,
-   extractvalue(other_xml, '/*/info[@type = "px_in_memory"]'                           ) px_in_memory,
-   extractvalue(other_xml, '/*/info[@type = "px_in_memory_imc"]'                       ) px_in_memory_imc,
-   extractvalue(other_xml, '/*/info[@type = "row_shipping"]'                           ) row_shipping,
-   extractvalue(other_xml, '/*/info[@type = "index_size"]'                             ) index_size,
-   extractvalue(other_xml, '/*/info[@type = "result_checksum"]'                        ) result_checksum,
-   extractvalue(other_xml, '/*/info[@type = "cardinality_feedback"]'                   ) cardinality_feedback,
-   extractvalue(other_xml, '/*/info[@type = "performance_feedback"]'                   ) performance_feedback,
-   extractvalue(other_xml, '/*/info[@type = "rely_constraint"]'                        ) rely_constraint,
-   extractvalue(other_xml, '/*/info[@type = "xml_suboptimal"]'                         ) xml_suboptimal,
-   extractvalue(other_xml, '/*/spd/cu'                                                 ) spd_cu,
-   extractvalue(other_xml, '/*/info[@type = "gtt_session_st"]'                         ) gtt_session_st,
-   extractvalue(other_xml, '/*/info[@type = "gather_stats_on_conventional_dml"]'       ) gather_stats_on_cnvtl_dml,
-   extractvalue(other_xml, '/*/info[@type = "optimizer_use_stats_on_conventional_dml"]') opt_use_stats_on_cnvtl_dml,
-   extractvalue(other_xml, '/*/info[@type = "slave_parse"]'                            ) slave_parse,
-   extractvalue(other_xml, '/*/info[@type = "baseline_repro_fail"]'                    ) baseline_repro_fail,
-   extractvalue(other_xml, '/*/info[@type = "cross_shard_query"]'                      ) cross_shard_query,
-   extractvalue(other_xml, '/*/info[@type = "shard_id"]'                               ) shard_id,
-   extract     (other_xml, '/*/hint_usage').getClobVal()
- from
-   x
+create or replace view tq84_plan_other_xml as
+select /*+ parallel(32) */
+   p.dbid,
+   p.operation,
+   p.options,
+   p.position,
+   t.parse_schema,
+-- t.cpu_rate,
+   t.idl_reason,
+   t.px_in_memory, t.px_in_memory_imc,
+   t.queuing_reason,
+-- t.stats_type,
+   t.stat_comp_bg,
+-- t.nodeid_pflags,
+   t.index_size,
+   t.dop, t.dop_reason, t.pdml_reason,
+   t.dynamic_sampling,
+   t.adaptive_plan,
+   t.baseline,
+   t.baseline_repro_fail          ,
+   t.outline,
+   t.sql_patch,
+   t.sql_profile,
+   t.plan_hash_full,
+   t.plan_hash, p.plan_hash_value,    -- Equal
+   t.plan_hash_2,
+ 
+   t.cardinality_feedback         ,
+   t.performance_feedback         ,
+   t.rely_constraint              ,
+   t.xml_suboptimal               ,
+   t.gtt_session_st               ,
+   t.gather_stats_on_cnvtl_dml    ,
+   t.opt_use_stats_on_cnvtl_dml   ,
+   t.slave_parse                  ,
+   t.cross_shard_query            ,
+   t.shard_id                     ,
+   t.result_checksum              ,
+   t.row_shipping,
+   x.sql_text,
+   p.other_xml
+from
+   dba_hist_sql_plan p  join
+   dba_hist_sqltext  x on p.sql_id = x.sql_id,
+   xmlTable(
+       '/other_xml'
+         passing xmlType(p.other_xml)
+      columns
+         parse_schema                  varchar2( 128) path './info[@type="parse_schema"                            ]',
+--       cpu_rate                      varchar2(4000) path './info[@type="cpu_rate"                                ]',
+         dop                           integer        path './info[@type="dop"                                     ]',
+         dop_reason                    varchar2(  31) path './info[@type="dop_reason"                              ]',      -- hint, parallel threshold, degree limit, table property, no expensive parallel operation, session
+         px_in_memory                  varchar2(   3) path './info[@type="px_in_memory"                            ]',      -- yes, no, null
+         px_in_memory_imc              varchar2(   3) path './info[@type="px_in_memory_imc"                        ]',      -- no, null (also yes?)
+         pdml_reason                   varchar2(  54) path './info[@type="pdml_reason"                             ]',      -- insert values was used, returning clause is present, function is not pure and not declared parallel enabled, PDML is disabled in current session, object is not decorated with parallel clause, single fragment or non partitioned table used, ...
+         idl_reason                    varchar2(  50) path './info[@type="idl_reason"                              ]',      -- remote table used, insert values with no append values hint used, no append hint given and not executing in parallel
+         index_size                    integer        path './info[@type="index_size"                              ]',      -- Filled for CREATE INDEX statements.
+        
+         plan_hash_full                integer        path './info[@type="plan_hash_full"                          ]',
+         plan_hash                     integer        path './info[@type="plan_hash"                               ]',
+         plan_hash_2                   integer        path './info[@type="plan_hash_2"                             ]',
+        
+         dynamic_sampling              varchar2(4000) path './info[@type="outline"                                 ]',       --
+         adaptive_plan                 varchar2(   3) path './info[@type="adaptive_plan"                           ]',       -- yes or null ?
+         sql_profile                   varchar2( 128) path './info[@type="sql_profile"                             ]',       -- "SYS_SQLPROF_015ff2bc9c520000"
+         baseline                      varchar2(4000) path './info[@type="baseline"                                ]',       --
+         baseline_repro_fail           varchar2(   3) path './info[@type="baseline_repro_fail"                     ]',       -- yes, null
+         outline                       varchar2(4000) path './info[@type="outline"                                 ]',       --        
+         slave_parse                   varchar2(   8) path './info[@type="slave_parse"                             ]',       -- regular, outlined
+         sql_patch                     varchar2(4000) path './info[@type="sql_patch"                               ]',       --
+         queuing_reason                varchar2(4000) path './info[@type="queuing_reason"                          ]',       --
+ 
+         stat_comp_bg                  integer        path './stats[@type="compilation"]/stat[@name="bg"]           ',       --
+ 
+--       nodeid_pflags                 varchar2( 100) path './info[@type="nodeid/pflags"                           ]',       --
+--       stats_type                    varchar2(4000) path './stats/@type"                                         ]',
+         cardinality_feedback          varchar2(   3) path './info[@type="cardinality_feedback"                    ]',       -- yes, null
+         performance_feedback          varchar2(   3) path './info[@type="performance_feedback"                    ]',       -- yes, null
+         rely_constraint               varchar2(4000) path './info[@type="rely_constraint"                         ]',
+         xml_suboptimal                varchar2(4000) path './info[@type="xml_suboptimal"                          ]',
+         gtt_session_st                varchar2(4000) path './info[@type="gtt_session_st"                          ]',
+         gather_stats_on_cnvtl_dml     varchar2(4000) path './info[@type="gather_stats_on_conventional_dml"        ]',
+         opt_use_stats_on_cnvtl_dml    varchar2(4000) path './info[@type="optimizer_use_stats_on_conventional_dml" ]',
+         cross_shard_query             varchar2(4000) path './info[@type="cross_shard_query"                       ]',
+         shard_id                      varchar2(4000) path './info[@type="shard_id"                                ]',
+         result_checksum               varchar2(4000) path './info[@type="result_checksum"                         ]',
+         row_shipping                  varchar2(4000) path './info[@type="row_shipping"                            ]'
+   ) t
+where
+   p.other_xml is not null
 ;
 code }
 

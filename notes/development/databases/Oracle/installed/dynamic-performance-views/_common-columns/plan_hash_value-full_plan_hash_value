@@ -48,6 +48,34 @@ order by
    a.table_name;
 code }
 
+{ PLAN_HASH_VALUE = 0
+
+  The value of `plan_hash_value` is 0 for statements of the form `insert into … values (…)`.
+
+code {
+select
+   count(*),
+   operation,
+   options
+from
+-- → development/databases/Oracle/installed/data-dictionary/hist/sql/plan
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/plan
+where
+   plan_hash_value = 0
+group by
+   operation,
+   options
+order by
+   count(*) desc;
+--
+--   COUNT(*) OPERATION                      OPTIONS                       
+-- ---------- ------------------------------ ------------------------------
+--         45 → development/databases/Oracle/SQL/statement/execution/plan/operations/load/table-conventional
+--         45 → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/insert
+code }
+
+}
+
 sa:
   A noteable → development/databases/Oracle/objects/tables that doesn't have a `%plan_hash_value` column is the `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table`.
 

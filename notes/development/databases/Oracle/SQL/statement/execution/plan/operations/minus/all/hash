@@ -1,0 +1,56 @@
+$ Oracle SQL Plan operation MINUS ALL (HASH)
+@ MINUS ALL HASH
+
+code {
+create table tq84_minus_1 (val  number);
+create table tq84_minus_2 (val  number);
+ 
+begin
+
+   insert into tq84_minus_1 values (1);
+
+   insert into tq84_minus_1 values (2);
+   insert into tq84_minus_1 values (2);
+
+   insert into tq84_minus_1 values (3);
+   insert into tq84_minus_1 values (3);
+   insert into tq84_minus_1 values (3);
+
+   insert into tq84_minus_1 values (4);
+   insert into tq84_minus_1 values (4);
+   insert into tq84_minus_1 values (4);
+   insert into tq84_minus_1 values (4);
+ 
+   ------------------------------------
+
+   insert into tq84_minus_2 values (2);
+   insert into tq84_minus_2 values (3);
+
+   insert into tq84_minus_2 values (4);
+   insert into tq84_minus_2 values (4);
+
+   commit;
+end;
+/
+
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+   select val from tq84_minus_1 → development/databases/Oracle/SQL/select/set-operators/minus/all
+   select val from tq84_minus_2;
+
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic');
+--
+-- -------------------------------------------
+-- | Id  | Operation          | Name         |
+-- -------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select   |              |
+-- |   1 |  MINUS ALL HASH    |              |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_MINUS_1 |
+-- |   3 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_MINUS_2 |
+-- -------------------------------------------
+
+drop table tq84_minus_1;
+drop table tq84_minus_2;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]
