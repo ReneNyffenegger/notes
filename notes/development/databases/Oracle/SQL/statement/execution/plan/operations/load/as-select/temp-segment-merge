@@ -1,0 +1,74 @@
+$ Oracle SQL Plan operation: LOAD AS SELECT (TEMP SEGMENT MERGE)
+
+code {
+create table tq84_range_partition (
+   id   number,
+   grp  varchar2(1) not null check (grp in ('A', 'B', 'C', 'D', 'E')),
+   val  number
+)
+→ development/databases/Oracle/objects/tables/partitions/distribution-techniques/range[partition by range] (grp) (
+   partition tq84_range_partition_A  values less than ('B'),
+   partition tq84_range_partition_B  values less than ('C'),
+   partition tq84_range_partition_C  values less than ('D'),
+   partition tq84_range_partition_D  values less than ('E'),
+   partition tq84_range_partition_E  values less than ( maxvalue )
+);
+ 
+begin
+   → development/databases/Oracle/installed/packages/dbms/random[dbms_random].seed(2808);
+  
+   insert into tq84_range_partition
+   select
+      level,
+      → development/databases/Oracle/SQL/functions/text/chr-nchr[chr](ascii('A') + mod(level, 5)),
+      dbms_random.value(100, 99999)
+   from
+      → development/databases/Oracle/SQL/dual → development/databases/Oracle/SQL/_examples/generate-rows[connect by level] <= 1000 * 1000;
+ 
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_range_partition');
+-- commit;
+end;
+/
+ 
+→ development/databases/Oracle/SQL/statement/verbs/explain for
+with
+  abc as (
+     select /*+ → development/databases/Oracle/SQL/hints/list/materialize */
+        grp
+        val
+     from
+        tq84_range_partition
+     where
+        grp in ('D', 'A')
+)
+select /*+ → development/databases/Oracle/SQL/hints/list/parallel */
+   *
+from
+   abc;
+ 
+ 
+select * from → development/databases/Oracle/installed/packages/dbms/xplan/api/display(format => 'basic')
+--
+-- -----------------------------------------------------------------------------
+-- | Id  | Operation                              | Name                       |
+-- -----------------------------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                       |                            |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/temp-table-transformation             |                            |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator                       |                            |
+-- |   3 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random                 | :TQ10000                   |
+-- |   4 |     LOAD AS SELECT (TEMP SEGMENT MERGE)| SYS_TEMP_0FD9D66B8_E3058F9 |
+-- |   5 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator                 |                            |
+-- |   6 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                | TQ84_RANGE_PARTITION       |
+-- |   7 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/px/coordinator                       |                            |
+-- |   8 |    → development/databases/Oracle/SQL/statement/execution/plan/operations/px/send/qc/random                 | :TQ20000                   |
+-- |   9 |     → development/databases/Oracle/SQL/statement/execution/plan/operations/view                               |                            |
+-- |  10 |      → development/databases/Oracle/SQL/statement/execution/plan/operations/px/block/iterator                 |                            |
+-- |  11 |       → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full                | SYS_TEMP_0FD9D66B8_E3058F9 |
+-- -----------------------------------------------------------------------------
+ 
+ 
+drop table tq84_range_partition;
+code }
+
+sa:
+  → development/databases/Oracle/SQL/statement/execution/plan/operations[Plan operations]

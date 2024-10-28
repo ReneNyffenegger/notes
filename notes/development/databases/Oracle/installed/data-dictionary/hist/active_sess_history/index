@@ -24,6 +24,41 @@ group by
 ;
 code }
 
+
+{ Which program are users using
+
+  The following query returns the programs with which different users connect to the database:
+code {
+select
+   count(*)           cnt,
+-- regexp_replace(ash.program, 'oracle@(.*) \((P|J)\d..\)', 'oracle@\1 (\2...)')   program,
+   ash.program,
+   ash.module,
+   usr.username,
+   ash.user_id
+from
+   dba_hist_active_sess_history ash                                           left join
+   dba_users                    usr on ash.user_id = usr.user_id
+where
+   usr.oracle_maintained = 'N'  and
+   not → development/databases/Oracle/SQL/functions/regular_expressions/regexp_like[regexp_like](ash.program, 'oracle@(.*) \((P|J)\d..\)')
+group by
+-- regexp_replace(ash.program, 'oracle@(.*) \((P|J)\d..\)', 'oracle@\1 (\2...)'),
+   ash.program,
+   ash.module,
+   usr.username,
+   ash.user_id
+order by
+   usr.username
+;
+code }
+
+  On the current system, it returned values such as `MSACCESS.EXE`, `plsqldev.exe`, `EXCEL.EXE`, `ISServerExec.exe`, `sqlplus.exe`, `sqldeveloper.exe`, `sqldeveloper64W.exe`, `w3wp.exe`, `ReportingServicesService.exe`, `python.exe`,
+ `JDBC Thin Client`, `spssengine.exe`, `nunit-console.exe`, `Microsoft.Mashup.Container.NetFX40.exe` etc.
+
+}
+{ Big query
+
 code {
 select
    ash.sample_id,
@@ -159,8 +194,8 @@ order by
    ash.sample_time desc
 ;
 code }
-
-Counts per sample
+}
+{ Counts per sample
 code {
 select
    ash.sample_id,
@@ -179,6 +214,7 @@ group by
 order by
    ash.sample_time desc;
 code }
+}
 
 sa:
 
