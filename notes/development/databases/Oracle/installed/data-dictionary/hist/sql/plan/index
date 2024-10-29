@@ -9,15 +9,38 @@ select
 from
    dba_hist_sql_plan pln
 where
-   pln.sql_id = '00qdgx1m0v2br'      and
-   pln.plan_hash_value = 1199950513  and
--- id = 5                            and
+   pln.sql_id          = '00qdgx1m0v2br'  and
+   pln.plan_hash_value =  1199950513      and
+-- id = 5                                 and
    pln.con_id = 4
 ;
 code }
 
 gh|oracle_scriptlets|/ash-awr/awr/plan.sql||
 
+{ TIMESTAMP
+
+  The value of `timestamp` corresponds to the time when the plan was created.
+
+  Obviously, this value is the same for a given plan, as can be verified with the following query:
+code {
+select
+   count(distinct timestamp) dts,
+-- count(*) cnt,
+   sql_id,
+   plan_hash_value
+from
+   dba_hist_sql_plan
+where
+   dbid = (select dbid from → development/databases/Oracle/installed/dynamic-performance-views/database)
+group by
+   sql_id,
+   plan_hash_value
+order by
+   dts desc;
+code }
+
+}
 { Misc
 
   Interestingly, the value of the column `→ development/databases/Oracle/SQL/statement/verbs/explain/plan_table/columns/projection` is
