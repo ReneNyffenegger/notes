@@ -134,6 +134,95 @@ code }
   }
 
 }
+{ Dynamically creating a form with VBA
+
+   Add references in the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window:
+code {
+thisWorkbook.vbProject.references.addFromGuid "{0002E157-0000-0000-C000-000000000046}", 5, 3   ' VBIDE
+thisWorkbook.vbProject.references.addFromGuid "{0D452EE1-E08F-101A-852E-02608C4D0BB4}", 2, 0   ' MS Forms
+code }
+
+   Paste the following code into a module and execute `main` in the immediate window:
+code {
+option explicit
+
+sub main() ' {
+
+    dim proj    as vbIde.vbProject
+    dim frmComp as vbide.vbComponent
+    dim props   as vbide.properties
+    dim frmDsgn as msforms.userForm
+
+    set proj = thisWorkbook.vbProject
+
+    set frmComp = proj.vbComponents.add(vbext_ct_MSForm)
+    set frmDsgn = frmComp.designer
+
+
+    frmComp.name = "dynForm"
+
+    set props = frmComp.properties
+    props("caption") = "Dynamic Form"
+    props("width"  ) =  500
+    props("height" ) =  300
+
+ '     Various attempts to change the font do not wrok:
+'   debug.print frmComp.properties("font")
+'   debug.print frmComp.properties("designMode")
+ '  props("designMode") = 0
+ '  debug.print props("font").value
+ '  props("font"      ) = "calibri"
+
+
+
+    dim i as long
+    for i = 1 to frmComp.properties.count
+'      debug.print frmComp.properties(i).name
+    next i
+
+    frmDsgn.backColor = rgb(255, 222, 111)
+  ' frmDsgn.backColor = &h80000005&
+  ' frmDsgn.foreColor = &h00404040&
+
+  ' ----------------------------------------------------------
+ 
+    dim okButton as msForms.commandButton
+
+    set okButton = frmDsgn.controls.add("forms.commandButton.1")
+    okButton.name      ="ok"
+    okButton.caption   ="OK!"
+
+    okButton.top       = 240
+    okButton.width     =  60
+    okButton.height    =  20
+    okButton.left      = 220
+    okButton.backColor = rgb(100, 255, 80)
+    okButton.font      ="Calibri"
+
+  ' ----------------------------------------------------------
+  
+    dim frmCode as vbide.codeModule
+
+    set frmCode = frmComp.codeModule
+
+    frmCode.insertLines frmCode.countOfLines + 1, "option explicit"
+
+    frmCode.insertLines frmCode.createEventProc("click", "ok") + 1, "msgBox ""clicked"""
+    
+  ' ----------------------------------------------------------
+
+    dim appCode as vbIde.codeModule
+    set appCode = proj.vbComponents("thisWorkbook").codeModule
+    appCode.insertLines appCode.countOfLines + 1, "option explicit"
+    appCode.insertLines appCode.countOfLines + 1, "private sub workbook_open()"
+    appCode.insertLines appCode.countOfLines + 1, "  " & frmComp.name & ".show"
+    appCode.insertLines appCode.countOfLines + 1, "end sub"
+
+end sub ' }
+code }
+
+}
+
 sa:
   → development/languages/VBA/Useful-object-libraries 
 
