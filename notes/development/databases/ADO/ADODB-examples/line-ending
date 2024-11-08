@@ -1,0 +1,72 @@
+$ ADODB Test: Unix line endings
+
+This → development/databases/ADO[ADODB] example demonstrates that Unix → development/line-break[line endings] in combination with `--` development/databases/SQL/statement/comment[comments] throw an error (at least
+if executed in VBA).
+
+In order to run the example, the reference to the ADODB library needs to be set (for example in the immediate window):
+code {
+thisWorkbook.VBProject.references.addFromGuid "{B691E011-1797-432E-907A-4D8C69339129}", 6, 1
+code }
+
+code {
+option explicit
+
+function connectOra(user_id as string, password as string, dbName as string) as adodb.connection ' {
+   set connectOra = new adodb.connection
+   connectOra.open                       _
+        "Provider=OraOLEDB.Oracle.1"   & _
+       ";Persist Security Info=False"  & _
+       ";User ID="     & user_id       & _
+       ";Password="    & password      & _
+       ";Data Source=" & dbName        & _
+       ";FetchSize=10000"              & _
+       ";Extended Properties="""""
+end function ' }
+
+function sql_ok_1() as string ' {
+     sql_ok_1 = sql_ok_1 & "select"         & vbCrLf
+     sql_ok_1 = sql_ok_1 & "  object_name," & vbCrLf
+     sql_ok_1 = sql_ok_1 & "  object_type"  & vbCrLf
+     sql_ok_1 = sql_ok_1 & "from"           & vbCrLf
+     sql_ok_1 = sql_ok_1 & "  user_objects" & vbCrLf
+end function ' }
+
+function sql_ok_2() as string ' {
+     sql_ok_2 = sql_ok_2 & "select"             & vbCrLf
+     sql_ok_2 = sql_ok_2 & "  object_name,"     & vbCrLf
+     sql_ok_2 = sql_ok_2 & "  object_type"      & vbCrLf
+     sql_ok_2 = sql_ok_2 & "-- d            "   & vbCrLf
+     sql_ok_2 = sql_ok_2 & "from"               & vbCrLf
+     sql_ok_2 = sql_ok_2 & "  user_objects"     & vbCrLf
+end function ' }
+
+function sql_nok_1() as string ' {
+  '
+  '  This function returns an SQL statement that has unix line endings
+  '  and a dash-dash comment.
+  '  It fails when it is executed
+  '
+     sql_nok_1 = sql_nok_1 & "select"             & vbLf
+     sql_nok_1 = sql_nok_1 & "  object_name,"     & vbLf
+     sql_nok_1 = sql_nok_1 & "  object_type"      & vbLf
+     sql_nok_1 = sql_nok_1 & "-- d            "   & vbLf
+     sql_nok_1 = sql_nok_1 & "from"               & vbLf
+     sql_nok_1 = sql_nok_1 & "  user_objects"     & vbLf
+end function ' }
+
+sub main() ' {
+   dim con as adodb.connection
+   set con = connectOra("[dwh_dm_abs]", "", "dreampt3")
+
+   dim wb as workbook
+   set wb = workbooks.add
+
+   dim rs  as adodb.recordSet
+
+'  set rs  = con.execute(sql_ok_1 )
+'  set rs  = con.execute(sql_ok_2 )
+   set rs  = con.execute(sql_nok_1)
+
+   wb.sheets(1).cells(1).copyFromRecordset rs
+end sub ' }
+code }
