@@ -1,0 +1,63 @@
+$ AWR Query: Count of Sessions (and display it in an Excel chart)
+
+
+
+Execute this query in SQL Developer
+code {
+select
+   cast(any_value(sample_time) as date) - date '1899-12-30' sample_time_xls, -- See → Microsoft/Office/Excel/data-types/number/serial#xls-serial-ora-dt[converting an Oracle DATE to an Excel serial number]
+   count(*) cnt,
+   count(*) - count(event) cnt_on_cpu
+from
+   → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history
+where
+   dbid = (select dbid from v$database)
+group by
+   sample_id,
+   dbid
+having
+   any_value(sample_time) between trunc(sysdate-4) and trunc(sysdate-3)
+order by
+   any_value(sample_time)
+code }
+ 
+Open an new → Microsoft/Office/Excel/Object-Model/Workbook[Excel workbook] and open the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window, then copy paste the following code.
+-
+Then copy the result set of the previous query into the → Windows/clipboard.
+-
+Then execute the following commands.
+code {
+range("a1:c1").value = array("Time", "Sessions", "on CPU")
+range("a2").select
+
+'
+'  NOW PASTE (select worksheet, ctrl-v) the result set of the query
+'
+
+columns("A:A").numberFormat = "hh:mm"
+set datasrc = range("a1").CurrentRegion
+
+set sh = → Microsoft/Office/Excel/Object-Model/Application/index#excel-application-active-objects[activeSheet].shapes.→ Microsoft/Office/Excel/Object-Model/Shapes/index#xls-obj-model-shapes-addChart2[addChart2](240, xlXYScatterLinesNoMarkers)
+set ch=sh.chart
+ch.setSourceData  source := datasrc
+
+ch.chartTitle.text = "Count of sessions"
+
+sh.left   =   10
+sh.width  = → Microsoft/Office/Excel/Object-Model/Application/index#excel-application-active-objects[activeWorkbook].windows(1).usableWidth  - 20
+sh.top    =   20
+sh.height = → Microsoft/Office/Excel/Object-Model/Application/index#excel-application-active-objects[activeWorkbook].windows(1).usableHeight - 40
+
+ch.axes(xlCategory).minimumScale = cLng(int(now() - 4))
+ch.axes(xlCategory).maximumScale = cLng(int(now() - 3))
+ch.axes(xlCategory).majorUnit    = 1/24
+
+set ser_1 = ch.fullSeriesCollection(1)
+set ser_2 = ch.fullSeriesCollection(2)
+
+ser_1.format.line.weight = 0.5
+ser_2.format.line.weight = 0.5
+
+ser_1.format.line.foreColor.rgb = rgb( 30, 60, 255)
+ser_2.format.line.foreColor.rgb = rgb(255, 30,  60)
+code }

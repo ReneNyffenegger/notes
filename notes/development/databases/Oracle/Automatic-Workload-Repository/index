@@ -8,6 +8,12 @@ The *Automatic Workload Repository* (AWR) is a repository of historical performa
 
 These statistics are collected and evaluated in order to detect problems and self-tune the database.
 
+The captured data is required by features such as
+  • Automatic Segment Advisor
+  • Undo Advisor
+
+AWR includes all information that is available from *StatsPack* and adds more to it.
+
 { Collected performance statistics
 
   The collected statistics include:
@@ -119,6 +125,23 @@ order by
 code }
 
 }
+{ Check the usage of AWR related features
+
+code {
+select
+   name,
+   detected_usages,
+   currently_used,
+   to_char(last_sample_date, 'yyyy-mm-dd hh24:mi') last_sample
+from
+   → development/databases/Oracle/installed/data-dictionary/feature_usage_statistics
+where
+   dbid = (select dbid from → development/databases/Oracle/installed/dynamic-performance-views/database) and
+   name like 'AWR%';
+code }
+
+}
+
 sa:
 
   The → development/databases/Oracle/architecture/processes/background/MMON[`MMON`] and
@@ -147,3 +170,5 @@ sa:
   taking snapshots or creating baselines.
 
  `→ development/databases/Oracle/installed/dynamic-performance-views/metric`
+
+ Query the → development/databases/Oracle/Automatic-Workload-Repository/queries/count-of-sessions[count of sessions] and display it in an Excel chart.
