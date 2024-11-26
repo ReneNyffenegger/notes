@@ -2,12 +2,109 @@ $ three.js
 
 A three.js application needs at least a *scene*, a *camera* and a *renderer*.
 
+{ Using (importing) three.js
+
+  As of version r147, the preferred way to use three.js is via es6 modules and *import maps*
+code {
+<script type='importmap'>
+  {
+    "imports": {
+      "three"        : "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type='module' src='app.js'></script>
+code }
+
+  `app.js`:
+code {
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+code }
+
+
+}
+{ Scene
+
+? A scence is (typically?) rendered by a renderer (WebGLRenderer or WebGPURenderer (or CanvasRenderer? or others?))
+
+  The objects of a scene are arranged hierarchically in a → https://threejs.org/manual/#en/scenegraph[scene graph].
+
+}
+{ Camera
+
+  Abstract base class for cameras.
+
+  The most frequently used derived classes are `PerspectiveCamera` and `OrthographicCamera`.
+
+  Although I have seen examples where a camera is explicitely added to a scene, it is apparently → https://github.com/mrdoob/three.js/issues/1046[not necessary] to do so.
+ (because the influence of the camara is being taken care of with in the line `renderer.render(scene, camera)`.
+  -
+  It's worth noting that a camera can be added to an object such as a car driving through a scene.
+
+  { Constructing a perspective camera
+
+    A «full screen» camera is typically created like so:    
+code {
+camera = new THREE.PerspectiveCamera(
+   45,                                     // field of view (fov)
+   window.innerWidth / window.innerHeight, // aspect
+   0.1, 10000                              // near, far
+);
+code }
+
+  }
+
+}
+{ WebGLRenderer
+
+  An instance of a `WebGLRenderer` renders a scene using a camera.
+
+  See also the `WebGPURenderer` class.
+
+  { Animation loop
+
+code {
+clock    = new THREE.Clock();
+renderer = new THREE.WebGLRenderer();
+scene    = …
+camera   = …
+…
+renderer.setAnimationLoop(animate);
+
+function animate() {
+   const delta = clock.getDelta();
+   const time  = clock.getElapsedTime();
+
+   xyz.rotation.x = time * 0.333;
+   xyz.rotation.y = time * 0.500;
+
+   t += delta * 0.5;
+   … = Math.sin(t);
+
+   renderer.render(scene, camera);
+
+   stats.update();
+}
+code }
+
+  }
+
+}
 { Geometry
+
+  A *geometry* stores the *vertex data* of an object.
 
   With r125, → https://discourse.threejs.org/t/three-geometry-will-be-removed-from-core-with-r125/22401[`THREE.Geometry` was removed] and
  `THREE.BufferGeometry` was suggested as replacement.
 
   { THREE.BufferGeometry
+
+    All geometries seem to inherit from `BufferGeometry`.
+    -
+   `BufferGeometry` inherits from `EventDispatcher` (not from `Object3D`, but has the member property → https://github.com/mrdoob/three.js/blob/beab9e845f9e5ae11d648f55b24a0e910b56a85a/src/core/BufferGeometry.js#L16[`_obj`] which *is* an `Object3D`).
 
     An instance of a → https://threejs.org/docs/index.html?q=buffergeometry#api/en/core/BufferGeometry[`THREE.BufferGeometry`] represents a
       • mesh,
@@ -22,29 +119,34 @@ A three.js application needs at least a *scene*, a *camera* and a *renderer*.
       • custom attributes (which are used to reduce the cost of passing this data to the GPU)
 
   }
+  { TextGeometry
+
+?   A `TextGeometry` creates a `ExtrudeGeometry` from a 3D font (which must first be loaded) and a string.
+
+    The 3D font can be loaded with an instance of a `FontLoader`.
+
+  }
 }
 { Material
 
-  A material describes an object's appearance.
+  A material describes an object's surface properties (so it directly influences how the looks like).
 
-}
-{ Camera
-
-  Abstract base class for cameras.
-
-  The mostly used derived classes are `PerspectiveCamera` and `OrthographicCamera`.
-
-  Although I have seen examples where a camera is explicitely added to a scene, it is apparently → https://github.com/mrdoob/three.js/issues/1046[not necessary] to do.
- (because the influence of the camara is being taken care of with in the line `renderer.render(scene, camera)`.
-  -
-  It's worth noting that a camera can be added to an object such as a car driving through a scene.
+  Some materials include
+    • `MeshBasicMaterial` (which is *not* affected by lights)
+    • `MeshPhongMaterial` (which *is* affected by lights)
+    • `LineBasicMaterial` (for *wireframe-style* geometries)
 
 }
 { Mesh
 
   A mesh is an object that applies a *material* to a *geometry*.
 
-  A mesh inherits from `Object3D`.
+  A material and/or a geometry can be used for mulitple meshes.
+
+  A mesh inherits from `Object3D` and thus records the following attributes of an object relative to its parent in the scene:
+    • position
+    • orientation
+    • scale
 
   The mesh can then be inserted into a *scene* (for example `scene.add()`) and then be moved around
 
@@ -60,22 +162,10 @@ A three.js application needs at least a *scene*, a *camera* and a *renderer*.
     • `SpotLight`
 
 }
-{ Scene
-
-? A scence is (typically?) rendered by a renderer (WebGLRenderer or WebGPURenderer (or CanvasRenderer? or others?))
-
-}
-{ WebGLRenderer
-
-  An instance of a `WebGLRenderer` renders a scene using a camera.
-
-  See also the `WebGPURenderer` class.
-
-}
 { Texture
 
   Classes that inherit from `Texture` include:
-    • `CanvasTexture` (Crated from a `<canvas>` element)k
+    • `CanvasTexture` (Crated from a `<canvas>` element)
     • `CompressedTexture`
     • `CompressedArrayTexture`
     • `CubeTexture` (Made up of six textures, each for a side of a cube)
@@ -165,16 +255,28 @@ code }
 
   The purpose of `Group` is to make working with groups of objects syntactically easier.
 
-  `Group` is almost identical to the `Object3D` class.
-
-  
+ `Group` is almost identical to the `Object3D` class.
 
 }
 { Controls
 
   Abstract base class for control objects.
 
-  Control objects control an Object3D, usually a camera.
+  Control objects control an `Object3D`, usually a camera.
+
+}
+{ Fullscreen: window.resize event 
+
+code {
+window.addEventListener('resize', onWindowResize);
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+code }
 
 }
 { Matrix4 #matrix4
