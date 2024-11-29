@@ -94,6 +94,38 @@ from
    sys.dba_tables tab;
 code }
 
+{ SAMPLE_SIZE
+
+code {
+create table tq84_sample_size (txt varchar2(1000), num number);
+ 
+insert into tq84_sample_size
+select
+   → development/databases/Oracle/SQL/functions/text/rpad-lpad[lpad]('x', 1000, 'x'),
+   rownum
+from
+   → development/databases/Oracle/SQL/dual → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by level] <= 101010;
+ 
+select num_rows, sample_size, last_analyzed from user_tables where table_name = 'TQ84_SAMPLE_SIZE';  
+ 
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_sample_size', estimate_percent => 13.3);
+end;
+/
+ 
+select
+   num_rows,
+   sample_size,
+   to_char(100/num_rows * sample_size, '90.0') || '%' sample_size_,
+   last_analyzed
+from
+   user_tables where table_name = 'TQ84_SAMPLE_SIZE';  
+   
+drop table tq84_sample_size;
+code }
+
+}
+
 sa:
   → development/databases/Oracle/installed/data-dictionary/all_tables[`dba_all_tables`]
 
