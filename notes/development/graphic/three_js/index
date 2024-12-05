@@ -52,11 +52,34 @@ code }
 
     A «full screen» camera is typically created like so:    
 code {
-camera = new THREE.PerspectiveCamera(
+const camera = new THREE.PerspectiveCamera(
    45,                                     // field of view (fov)
    window.innerWidth / window.innerHeight, // aspect
    0.1, 10000                              // near, far
 );
+code }
+
+  }
+  { lookAt
+
+code {
+camera.lookAt(new THREE.Vector3(x, y, z));
+code }
+
+  }
+  { cameraHelper
+
+    An instance of a `cameraHelper` uses line segments to visualize the frustum of a camera.
+
+code {
+const camHlp = new THREE.CameraHelper(camera);
+scene.add(camHlp);
+code }
+
+
+   In the render loop:
+code {
+camHlp.update();
 code }
 
   }
@@ -129,7 +152,7 @@ code }
 
     Besides geometrical data like vertex coordinates, an instance also stores attributes such as
       • face indices
-      • normals
+      • (vertex?) normals
       • colors
       • UVs
       • custom attributes (which are used to reduce the cost of passing this data to the GPU)
@@ -167,15 +190,37 @@ code }
     The 3D font can be loaded with an instance of a `FontLoader`.
 
   }
+  { Vertex normals
+
+    ? Vertex normals
+      • determine light reflection
+      • assist in applying textures
+      • provide information how pixels are lighted, shaded and colored
+
+    `VertexNormalsHelpers` (which inherits from `LineSegments`) visualizes an object's vertex normals.
+
+     See also the `BufferGeometry` method `computeVertexNormal()`.
+
+  }
 }
 { Material
 
   A material describes an object's surface properties (so it directly influences how the looks like).
 
   Some materials include
-    • `MeshBasicMaterial` (which is *not* affected by lights)
-    • `MeshPhongMaterial` (which *is* affected by lights)
+    • `MeshLambertMaterial` (Rough-looking surfaces)
+    • `MeshPhongMaterial` (Shiny-looking surfaces, *is* affected by lights)
+    • `MeshBasicMaterial` (*not* affected by lights)
     • `LineBasicMaterial` (for *wireframe-style* geometries)
+    • `MeshToonMaterial` (Cartoon like objects)
+    • `ShadowMaterial` (A transparent material that shows shadows cast on it)
+    • `MeshStandardMaterial`
+
+  { Shader program
+
+    A material seems to be connected with a *shader program* (see the material's callback `onBeforeCompile`)
+
+  }
 
 }
 { Mesh
@@ -247,6 +292,11 @@ ctx.fillRect(0, 0, canvas.width, canvas.height)
 ctx.font = '15pt Arial'
 …
 code }
+
+  }
+  { Texel
+
+? The pixels of a texture are referred to as texels.
 
   }
 
