@@ -13,6 +13,11 @@ Apparently, this architecture is referred to as → development/hypervisor#hyper
 
 { Enabling Hyper-V
 
+  Use an elevated PowerShell console to check if Hyper-V is enabled:
+code {
+PS:\> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/get -online | → Windows/PowerShell/command-inventory/noun/object/where {$_.featureName → Windows/PowerShell/language/operator/comparison/like[-like] "*Hyper-V*"}
+code }
+
 ? The Processor needs *SLAT (Second Level address translation)* to use Hyper-V.
 
   In → Windows/PowerShell
@@ -29,6 +34,29 @@ code }
 
   Apparently, running Hyper-V and → Companies-Products/Oracle/VM-VirtualBox[VirtualBox VM] is → Companies-Products/Oracle/VM-VirtualBox#vmbox-hyper-v-mutually-exclusive[mutually exclusive]
  (which I also discovered when I → Windows/Subsystem-for-Linux/install-distribution[installed a Windows Subsystem for Linux distribution) distribution]).
+
+  { TODO
+
+    What does the following output mean:
+code {
+C:\> → Windows/dirs/Windows/System32/systeminfo_exe[systeminfo] | → Windows/dirs/Windows/System32/findstr_exe[findstr] Hyper-V
+…
+Hyper-V Requirements:      A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+code }
+
+   With elevated privileges:
+code {
+C:\> → Windows/dirs/Windows/System32/Dism_exe[dism] /online /get-features | → Windows/dirs/Windows/System32/find_exe[find] "Microsoft-Hyper-V"  | → Windows/dirs/Windows/System32/sort_exe[sort]
+Feature Name : Microsoft-Hyper-V
+Feature Name : Microsoft-Hyper-V-All
+Feature Name : Microsoft-Hyper-V-Hypervisor
+Feature Name : Microsoft-Hyper-V-Management-Clients
+Feature Name : Microsoft-Hyper-V-Management-PowerShell
+Feature Name : Microsoft-Hyper-V-Services
+Feature Name : Microsoft-Hyper-V-Tools-All
+code }
+
+  }
 
 }
 { Drivers
@@ -55,6 +83,8 @@ code }
 
 }
 sa:
+
+  A subset of Hyper-V, the *Virtual Machine Platform*, is used to run → Windows/Subsystem-for-Linux[WSL 2].
 
  `→ Windows/dirs/Program-Files/Hyper-V`
   -
