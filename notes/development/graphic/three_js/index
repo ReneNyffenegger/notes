@@ -66,6 +66,10 @@ code {
 camera.lookAt(new THREE.Vector3(x, y, z));
 code }
 
+code {
+camera.lookAt(mesh_abc.position);
+code }
+
   }
   { cameraHelper
 
@@ -140,6 +144,11 @@ code }
  `THREE.BufferGeometry` was suggested as replacement.
 
   { THREE.BufferGeometry
+
+    BufferGeometries store information (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes) in buffers (typed arrays).
+    -
+    This makes them generally faster than standard Geometries, at the cost of being somewhat harder to work with.
+
 
     All geometries seem to inherit from `BufferGeometry`.
     -
@@ -242,7 +251,40 @@ code }
 
   The mesh can then be inserted into a *scene* (for example `scene.add()`) and then be moved around
 
-  TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`àk/
+  Classes that inherit from `Mesh` include
+  table { ll
+    `LineSegments2` ☰ Adds arbitrary line widths and the possibility to change widths to world unit. `Line2` extends `LineSegments2` and allows to create polylines.
+    `InstancedMesh` ☰ Used for *instanced rendering*, i. e. if multiple objects with the same geometry and material but different world transformations (including color?) are placed into a scene. In such scenarios, using `InstancedMesh` reduces the number of draw calls and thus improves the rendering performance. Compare with `BatchedMesh`.
+    `BatchedMesh` ☰ Used to render objects with the same material but different geometries and world coordinates. Compare with `InstancedMesh`.
+    `HTMLMesh` ☰ Used to render HTML? See also `HTMLTexture`
+    `TextureHelper` ☰
+    `LightProbeHelper` ☰
+    `PointLightHelper` ☰
+    `TransformControlsPlane` ☰
+    `LensflareMesh` ☰
+    `Sky` ☰ Creates a ready-to-go sky. Based on → https://www.researchgate.net/publication/220720443_A_Practical_Analytic_Model_for_Daylight[A Practical Analytic Model for Daylight] (aka The Preetham Model), the de facto standard analytic skydome model. First implemented by → http://simonwallner.at/project/atmospheric-scattering/[Simon Wallner].
+    `SkyMesh` ☰
+    `MarchingCubes` ☰ Port of → https://webglsamples.org/blob/blob.html[webglsamples.org/blob/blob.html]
+    `ShadowMesh` ☰ A shadow Mesh that follows a shadow-casting Mesh in the scene, but is confined to a single plane
+    `GroundedSkybox` ☰ A → https://github.com/mrdoob/three.js/blob/e4a48bd6bf72c7728a4d01095a61d6ceb16f06cc/examples/jsm/objects/GroundedSkybox.js#L4C1-L7C59[ground-projected skybox …].
+    `InstancedPoints` ☰
+    `Water` ☰ See Alex Vlachos: → https://alex.vlachos.com/graphics/Vlachos-SIGGRAPH10-WaterFlow.pdf[Water Flow] and Kyle Hayward: → https://graphicsrunner.blogspot.com/2010/08/water-using-flow-maps.html[Animating Water Using Flow Maps]
+    `WaterMesh` ☰
+    `ReflectorForSSRPass` ☰
+    `SkinnedMesh` ☰
+    `Wireframe` ☰ Of which I found nothing in the → https://threejs.org/docs/[docs]. This object is used in the → https://threejs.org/examples/webgl_lines_fat_wireframe.html[webgl_liens_fat_wireframe] example.
+    `QuadMesh` ☰ Of which I found nothing in the docs.
+    `MorphAnimMesh` ☰ Of which I found nothing in the docs or the examples. Apparently, it's → https://github.com/mrdoob/three.js/issues/7010[deprecated].
+    `MorphBlendMesh` ☰
+    `MeshPostProcessingMaterial` ☰
+    `VOXMesh` ☰
+    `Refractor` ☰
+    `Reflector` ☰
+  table }
+
+  TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
+
+  TODO `MeshPhysicalMaterial` inherits from `MeshStandardMaterial`, `MeshPhysicalNodeMaterial` from `MeshStandardNodeMaterial`, `MeshSSSNodeMaterial` from `MeshPhysicalNodeMaterial`
 
 }
 { Light
@@ -359,9 +401,47 @@ code }
 }
 { Controls
 
-  Abstract base class for control objects.
-
+ `Controls` is an abstract base class for control objects.
+   -
   Control objects control an `Object3D`, usually a camera.
+
+ `Controls` inherits from `EventDispatcher`.
+
+  The → https://github.com/mrdoob/three.js/blob/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/src/extras/Controls.js#L5[constructor of `Controls`] takes the controlled object and and optional DOM element.
+
+
+  → https://github.com/mrdoob/three.js/tree/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/examples/jsm/controls[`examples/jsm/controls`] defines the following classes that inherit from `Control`:
+    table { ll
+     `PointerLockControls` ☰ The perfect choice for *first person 3D games*. The implementation is based on the *Pointer Lock* WebAPI.
+     `ArcballControls` ☰ Control the camera by a virtual trackball
+     `TransformControls` ☰ Used to transform objects in 3D space by adapting a similar interaction model of DCC tools like Blender. Unlike other controls, it is not intended to transform the scene's camera.
+     `TrackballControls` ☰ Similar to `OrbitControls`, but does not maintain a constant camera up vector.
+     `FirstPersonControls` ☰ An alternative impolementation of `FlyControls`
+     `DragControls` ☰ Drag and drop interactions
+     `OrbitControls` ☰ `OrbitControls` allows the camera to orbit around a center; performs orbiting, dollying (zooming), and panning. Unlike `TrackballControls`, it maintains the "up" direction object.up (+Y by default).
+     `FlyControls` ☰
+    table }
+
+}
+{ EventDispatcher
+
+  Classes that inherit from EventDispatcher include
+  table { ll
+    `Texture` ☰
+    `Material` ☰
+    `BufferGeometry` ☰
+    `Controls` ☰
+    `Node` ☰
+    `Object3D` ☰
+    `AnimationMixer` ☰
+    `UniformsGroup` ☰
+    `EditorControls` ☰
+    `ElementProxyReceiver` ☰
+    `NodeEditor` ☰
+    `RenderTarget` ☰
+    `WebXRManager` ☰
+
+  table }
 
 }
 { Fullscreen: window.resize event 
@@ -386,7 +466,55 @@ code }
 { Matrix4 #matrix4
 
 }
+{ Coordinate system / AxesHelper
+
+  Three.js uses the *right-hand rule*.
+  -
+  If the observer looks at the origin from a positive z coordinate and the positive x coordinates increase towards the right side, then the positive y coordinates increase upwards.
+
+  The `AxesHelper` draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
+
+}
+{ Directly accessing source files in three.js git repository (without building project)
+
+code {
+<!doctype html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<style> html, body {margin: 0} </style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three"       : "https://web-server.xyz/path-to-github-repo/three.js/src/Three.js",
+      "three-addons": "https://web-server.xyz/path-to-github-repo/three.js/examples/jsm/Addons.js",
+      "three-libs/" : "https://web-server.xyz/path-to-github-repo/three.js/examples/jsm/libs/"
+    }
+  }
+</script>
+
+<script type='module' src='index.js?2'></script>
+code }
+
+  Then, in `index.js`
+code {
+import * as THREE from 'three';
+import { TrackballControls } from 'three-addons';
+import { GUI               } from 'three-libs/lil-gui.module.min.js';
+
+…
+
+console.log(THREE.REVISION);
+code }
+
+}
 { TODO
+
+  { Libraries and plugins
+
+    Externally developped libraries and plugins are → https://threejs.org/docs/#manual/en/introduction/Libraries-and-Plugins[listed on this page].
+
+  }
 
   { Line like objects
 
@@ -396,6 +524,30 @@ code }
     → https://threejs.org/docs/#examples/en/lines/LineSegmentsGeometry[`LineSegmentsGeometry`] which inherits from → https://threejs.org/docs/index.html#api/en/core/InstancedBufferGeometry[`InstancedBufferGeometry`]
 
     → https://threejs.org/docs/#api/en/objects/LineLoop[`LineLoop`] inherits from `Line` but is rendered with `gl.LINE_LOOP` instead of `gl.LINE_STRIP`.
+
+  }
+  { lil-gui
+
+    → https://lil-gui.georgealways.com/[lil-gui] makes a *floating panel for controllers* on the web.
+
+    lil-gui is a → https://discourse.threejs.org/t/lib-why-changed-dat-gui-to-lil-gui/62124/2[drop-in replacement] for *dat.gui* (which is no longer maintained) in most projects.
+
+  }
+  { Text
+
+   → https://github.com/protectwise/troika/tree/main/packages/troika-three-text[Troika three text]
+
+   → https://github.com/felixmariotto/three-mesh-ui[three-mesh-ui]
+
+  }
+  { World unit
+
+    What is a world unit.
+
+  }
+  { AnimationMixer
+
+    → https://threejs.org/docs/#api/en/animation/AnimationMixer[`AnimationMixer`] is a player for animations on a particular object in the scene. When multiple objects in the scene are animated independently, one AnimationMixer may be used for each object.
 
   }
 
