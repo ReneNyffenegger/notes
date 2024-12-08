@@ -48,6 +48,8 @@ code }
   -
   It's worth noting that a camera can be added to an object such as a car driving through a scene.
 
+? For performance reasons, a camera has a frustum (represented by a `Frustum` object). Objects outside the frustum are not rendered.
+
   { Constructing a perspective camera
 
     A «full screen» camera is typically created like so:    
@@ -148,7 +150,6 @@ code }
     BufferGeometries store information (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes) in buffers (typed arrays).
     -
     This makes them generally faster than standard Geometries, at the cost of being somewhat harder to work with.
-
 
     All geometries seem to inherit from `BufferGeometry`.
     -
@@ -389,6 +390,8 @@ code }
 
   A → https://threejs.org/docs/#api/en/objects/Bone[`Bone`] is almost identical to a blank `Object3D`.
 
+  All classes that inherit from `Object3D` have an `Object3D.layers` property which is an instance of the `Layers` object.
+
   The `Group` class is almost identical to `Object3D`.
 
 }
@@ -443,6 +446,8 @@ code }
 
   table }
 
+  EventDispatcher seems to be copied from → https://github.com/mrdoob/eventdispatcher.js[this github repository].
+
 }
 { Fullscreen: window.resize event 
 
@@ -458,11 +463,6 @@ function onWindowResize() {
 code }
 
 }
-{ Raycaster
-
-? The `Raycaster` class allows to select objects (meshes, lines and/or point etc.) with the mouse.
-
-}
 { Matrix4 #matrix4
 
 }
@@ -473,6 +473,90 @@ code }
   If the observer looks at the origin from a positive z coordinate and the positive x coordinates increase towards the right side, then the positive y coordinates increase upwards.
 
   The `AxesHelper` draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
+
+}
+{ src/…
+  { src/core
+
+  → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/core[`src/core`] contains the following files
+   • `BufferAttribute.js` - The `BufferAttribute` class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a `BufferGeometry`, which allows for more efficient passing of data to the GPU. 
+   • `BufferGeometry.js`
+   • `Clock.js` - Uses `performance.now` to keep track of time
+   • `EventDispatcher.js`
+   • `GLBufferAttribute.js` - A buffer attribute class that does not construct a VBO (Vertex Buffer Object?), but allows to alter an already created VBO. This class does *not* inherit from `BufferAttribute` (or any other class).
+   • `InstancedBufferAttribute.js` - The class `InstancedBufferAttribute` inherits from `BufferAttribute`
+   • `InstancedBufferGeometry.js`
+   • `InstancedInterleavedBuffer.js` - An instanced version of an `InterleavedBuffer` (from which it also inherits)
+   • `InterleavedBuffer.js` - The adjective *interleaved* indicates that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
+   • `InterleavedBufferAttribute.js`
+   • `Layers.js` - See below
+   • `Object3D.js`
+   • `Raycaster.js`
+   • `RenderTarget.js`
+   • `Uniform.js` - Global GLSL variables that are passed to shader programs
+   • `UniformsGroup.js`
+
+   { Layers
+
+     A Layers object assigns an `Object3D` to 1 or more of 32 layers numbered 0 to 31
+     -
+     Internally the layers are stored as a bit mask, and by default all `Object3D` instances are a member of layer 0.
+
+    `Layers` can be used to control visibility: an object must share a layer with a camera to be visible when that camera's view is rendered.
+
+     All classes that inherit from `Object3D` have an Object3D.layers property which is an instance of this class.
+
+   }
+   { Raycaster
+
+   ? The `Raycaster` class allows to select objects (meshes, lines and/or point etc.) with the mouse.
+
+     See also the `Ray` object
+
+   }
+
+  } 
+  { src/math
+
+    → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/math[`src/math`] contains
+      • `Box2.js` - an axis-aligned bounding-box in 2D space
+      • `Box3.js` - an axis-aligned bounding-box in 3D space Which is used, for example, to represent certain objects' bounding boxes
+      • `Color.js`
+      • `ColorManagement.js`
+      • `Cylindrical.js` - A point's → https://en.wikipedia.org/wiki/Cylindrical_coordinate_system[cylindrical coordinates]. Compare with `Spherical`.
+      • `Euler.js` - → https://en.wikipedia.org/wiki/Euler_angles[Euler angles]
+      • `Frustum.js` - Used for cameras
+      • `Interpolant.js`
+      • `Line3.js` - A geometric line segment represented by a start and end point.
+      • `MathUtils.js`
+      • `Matrix2.js`
+      • `Matrix3.js`
+      • `Matrix4.js`
+      • `Plane.js` - A two dimensional surface that extends infinitely in 3d space, represented in → https://mathworld.wolfram.com/HessianNormalForm.html[Hessian normal form] by a unit length normal vector and a constant.
+      • `Quaternion.js` - → https://en.wikipedia.org/wiki/Quaternion[Quaternion], used in three.js to represent rotations.
+      • `Ray.js` - Used by `Raycaster`
+      • `Sphere.js` - Which is used, for example, to represent certain objects' bounding spheres
+      • `Spherical.js` - A point in → https://en.wikipedia.org/wiki/Spherical_coordinate_system[spherical coordinates]. Compare with `Cylindrical`.
+      • `SphericalHarmonics3.js` - See → https://graphics.stanford.edu/papers/envmap/envmap.pdf[An Efficient Representation for Irradiance Environment Maps] and → https://www.ppsloan.org/publications/StupidSH36.pdf[Stupid Spherical Harmonics (SH) Tricks]
+      • `Triangle.js`
+      • `Vector2.js`
+      • `Vector3.js`
+      • `Vector4.js`
+
+    In addition, the directory also contains the `interpolants` directory.
+
+  }
+
+}
+{ ComputeBoundingBox, ComputeBoundingSphere
+
+  The methods `ComputeBoundingBox` and `ComputeBoundingSphere` are provided by the four classes
+    • `BufferGeometry`
+    • `SkinnedMesh`
+    • `InstancedMesh`
+    • `BatchedMesh`
+
+  A bounding box seems to be represented by a `Box3` object, a bounding sphere by a `Sphere` object.
 
 }
 { Directly accessing source files in three.js git repository (without building project)
@@ -515,13 +599,14 @@ code }
     Externally developped libraries and plugins are → https://threejs.org/docs/#manual/en/introduction/Libraries-and-Plugins[listed on this page].
 
   }
-
   { Line like objects
 
     → https://threejs.org/docs/index.html#api/en/objects/Line[`Line`] which inherits from `Object3D`, → https://threejs.org/docs/index.html#api/en/objects/LineSegments[`LineSegments`] which inherits from `Line`,
     → https://threejs.org/docs/index.html#examples/en/lines/LineSegments2[`LineSegments2`] which inherits from `Mesh`,
     → https://threejs.org/docs/index.html#examples/en/lines/Line2[`Line2`] which inherits from `LineSegments2`,
     → https://threejs.org/docs/#examples/en/lines/LineSegmentsGeometry[`LineSegmentsGeometry`] which inherits from → https://threejs.org/docs/index.html#api/en/core/InstancedBufferGeometry[`InstancedBufferGeometry`]
+
+    `Line3` (a base class)
 
     → https://threejs.org/docs/#api/en/objects/LineLoop[`LineLoop`] inherits from `Line` but is rendered with `gl.LINE_LOOP` instead of `gl.LINE_STRIP`.
 
