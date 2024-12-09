@@ -1,0 +1,30 @@
+$ Oracle: Identify statements that were executed against tables in a given schema
+
+This is an attempt to use Oracle's AWR to identify SQL statements that were executed against tables in a given schema.
+
+code {
+drop   table tq84_find_stmts_sql_plan purge;
+
+create table tq84_find_stmts_sql_plan as
+select
+   count(*)          cnt,
+   sql_id,
+   dbid
+from
+   dba_hist_sql_plan
+where
+   object_owner in (…)
+group by
+   sql_id,
+   dbid;
+
+select
+   fnd.sql_id,
+   txt.sql_text
+from
+   tq84_find_stmts_sql_plan fnd                                                       left join
+   dba_hist_sqltext         txt on fnd.sql_id = txt.sql_id and fnd.dbid = txt.dbid
+where
+    txt.sql_text is not null
+;
+code }

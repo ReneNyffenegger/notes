@@ -1,6 +1,108 @@
 $ Oracle: DBA_HIST_SQLSTAT
 @ dba_hist_sqlstat
 
+code {
+select
+-- sta.snap_id,
+   to_char(snp.begin_interval_time, 'yyyy-mm-dd hh24:mi:ss')  snap_begin,
+   usr.username                                               parsing_user,
+-- sta.parsing_schema_id,
+   sta.parsing_schema_name                                    parsing_schema,
+   txt.sql_text,
+   sta.module,
+   --
+   sta.action,
+   sta.elapsed_time_delta,
+   sta.elapsed_time_total,
+   sta.apwait_delta,
+   sta.apwait_total,
+   sta.bind_data,
+   sta.buffer_gets_delta,
+   sta.buffer_gets_total,
+   sta.ccwait_delta,
+   sta.ccwait_total,
+   sta.cell_uncompressed_bytes_delta,
+   sta.cell_uncompressed_bytes_total,
+   sta.clwait_delta,
+   sta.clwait_total,
+   sta.cpu_time_delta,
+   sta.cpu_time_total,
+   sta.direct_writes_delta,
+   sta.direct_writes_total,
+   sta.disk_reads_delta,
+   sta.disk_reads_total,
+   sta.end_of_fetch_count_delta,
+   sta.end_of_fetch_count_total,
+   sta.executions_delta,
+   sta.executions_total,
+   sta.fetches_delta,
+   sta.fetches_total,
+   sta.flag,
+   sta.force_matching_signature,
+   sta.instance_number,
+   sta.invalidations_delta,
+   sta.invalidations_total,
+   sta.io_interconnect_bytes_delta,
+   sta.io_interconnect_bytes_total,
+   sta.io_offload_elig_bytes_delta,
+   sta.io_offload_elig_bytes_total,
+   sta.io_offload_return_bytes_delta,
+   sta.io_offload_return_bytes_total,
+   sta.iowait_delta,
+   sta.iowait_total,
+   sta.javexec_time_delta,
+   sta.javexec_time_total,
+   sta.loaded_versions,
+   sta.loads_delta,
+   sta.loads_total,
+   sta.obsolete_count,
+   sta.optimized_physical_reads_delta,
+   sta.optimized_physical_reads_total,
+   sta.optimizer_cost,
+   sta.optimizer_mode,
+   sta.parse_calls_delta,
+   sta.parse_calls_total,
+   sta.parsing_user_id,
+   sta.physical_read_bytes_delta,
+   sta.physical_read_bytes_total,
+   sta.physical_read_requests_delta,
+   sta.physical_read_requests_total,
+   sta.physical_write_bytes_delta,
+   sta.physical_write_bytes_total,
+   sta.physical_write_requests_delta,
+   sta.physical_write_requests_total,
+   sta.plsexec_time_delta,
+   sta.plsexec_time_total,
+   sta.px_servers_execs_delta,
+   sta.px_servers_execs_total,
+   sta.rows_processed_delta,
+   sta.rows_processed_total,
+   sta.sharable_mem,
+   sta.sorts_delta,
+   sta.sorts_total,
+   sta.sql_id,
+   sta.sql_profile,
+   sta.version_count,
+   --
+   sta.plan_hash_value,
+   sta.optimizer_env_hash_value,
+   --
+   sta.con_dbid,
+   sta.con_id,
+   sta.dbid
+from
+   sys.dba_hist_sqlstat  sta                                                                 left join
+   sys.dba_hist_snapshot snp on sta.snap_id         = snp.snap_id and sta.dbid = snp.dbid    left join
+   sys.dba_hist_sqltext  txt on sta.sql_id          = txt.sql_id  and sta.dbid = txt.dbid    left join
+   sys.dba_users         usr on sta.parsing_user_id = usr.user_id
+where
+   sta.dbid            =  (select dbid /* con_dbid? */ from v$database) and
+   sta.sql_id          =  '…'
+-- sta.parsing_user_id <>  0
+order by
+   snap_begin desc;
+code }
+
 { Stats in a given period
 
   gh|oracle_scriptlets|/ash-awr/awr/stats_in_period.sql||
