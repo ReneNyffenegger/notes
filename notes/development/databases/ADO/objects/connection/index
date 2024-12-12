@@ -16,6 +16,51 @@ The `ADODB.connection` represents a connection to an → development/databases/O
 
 }
 
+{ VBA function: Connect to Oracle
+
+  The follwoing → development/languages/VBA function establishes an → development/databases/Oracle/architecture/session[Oracle session]:
+code {
+private function openConnection(dbUser as string, dbPassword as string, dbName as string) as ADODB.connection ' {
+on error goto err_
+ 
+   dim cn as    ADODB.connection
+   set cn = new ADODB.connection
+ 
+   cn.open                            _
+     "User ID="     & dbUser       & _
+    ";Password="    & dbPassword   & _
+    ";Data Source=" & dbName       & _
+    ";Provider=OraOLEDB.Oracle.1"        ' '    Or, alternatively: ";Provider=MSDAORA.1"
+ 
+   set openConnection = cn
+ 
+   exit function
+ 
+err_:
+ 
+    if left(err.description, 9) = "→ development/databases/Oracle/errors/ORA-01017_invalid-username-password_logon-denied[ORA-01017]" then ' invalid username/password; logon denied {
+       msgBox "Not enough privileges to connect to the database", vbOKOnly + vbCritical, "nEXT Frontend"
+       end
+    end if ' }
+ 
+    if left(err.description, 9) = "→ development/databases/Oracle/errors/ORA-12514_TNS-listener-does-not-currently-know-of-service-requested-in-connect[ORA-12514]" then ' TNS:listener does not currently know of service requested in connect descriptor {
+       msgBox "the database " & dbName & " seems to be down or not available", vbOKOnly + vbCritical, "nEXT Frontend"
+       end
+    end if ' }
+ 
+    if left(err.description, 9) = "→ development/databases/Oracle/errors/ORA-12154_TNS-could-not-resolve-the-connect-identifier-specified[ORA-12154]" then 'TNS:could not resolve the connect identifier specified {
+       msgBox "The database name " & dbName & " is not known." & vbCrLf & "Is TNSNAMES.ORA configured correctly?", vbOKOnly + vbCritical, "nEXT Frontend"
+       end
+    end if ' }
+ 
+    msgBox err.description
+ 
+end function ' }
+code }
+
+
+}
+
 sa:
 
   The `activeConnection` property of the `→ development/databases/ADO/objects/command` object and

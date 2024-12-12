@@ -1,6 +1,6 @@
 $ Oracle: Identify statements that were executed against tables in a given schema
 
-This is an attempt to use Oracle's AWR to identify SQL statements that were executed against tables in a given schema.
+This is an attempt to use Oracle's → development/databases/Oracle/Automatic-Workload-Repository[AWR] to identify SQL statements that were executed against tables in a given schema.
 
 code {
 drop   table tq84_find_stmts_sql_plan purge;
@@ -28,3 +28,76 @@ where
     txt.sql_text is not null
 ;
 code }
+
+{ Python script to find statements in multiple databases over a longer period of time #awr-extract-statements-py
+
+  This Python script uses the `→ development/languages/Python/libraries/cx_Oracle` library to extract SQL statements executed against tables in a given
+  schema from multiple databases.
+
+  For every SQL_ID the script finds, it writes an SQL file whose name correponds to the SQL_ID in the subdirectory named `extracted-statements` (which must first be created).
+
+  Thus, the script can be run multiple times over a longer period than the retention period of AWR.
+code {
+from pathlib import Path
+import cx_Oracle as cxora
+ 
+sel_stmt = '''
+select
+   sql_id,
+   sql_text
+from (
+   select
+      p.sql_id,
+      t.sql_text,
+      row_number() over (partition by p.sql_id order by 'x') rn
+   from (
+        select distinct
+           p.sql_id
+        from
+           dba_hist_sql_plan p
+        where
+           p.object_owner in ('DWH_DM_ABS', 'SBXSABS', 'SBXMABS')
+   ) p join
+   dba_hist_sqltext t on t.sql_id = p.sql_id
+)
+where
+   rn = 1
+'''
+ 
+ 
+ 
+def create_or_update_file(sql_id, content) -> str:
+ 
+    filename = f'extracted-statements/{sql_id}.sql'
+ 
+    if Path(filename).exists():
+       print(f'{sql_id} already extracted')
+       return
+ 
+    Path(filename).touch()
+    print(f'{sql_id} newly extracted')
+   
+    with open(filename, 'w') as file:
+        file.write(content)
+   
+ 
+def db(user, dsn):
+ 
+    con = cxora.connect(user=user, dsn=dsn)
+ 
+    cur = con.cursor()
+    global sel_stmt
+    cur.execute(sel_stmt)
+    for sql_id, stmt_clob in cur:
+        stmt = stmt_clob.read()
+        create_or_update_file(sql_id, stmt)
+ 
+ 
+if True:
+   db('[rene]', 'abc1' )
+   db('[rene]', 'def1' )
+   db('[test]', 'testa')
+   db('[test]', 'testb')
+code }
+
+}
