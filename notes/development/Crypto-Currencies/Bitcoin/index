@@ -82,6 +82,11 @@ nobody than can prevent the payment to anyone nor does anyone need someone's per
     A paper by Okamoto and Ohta describe *Merkle trees* to subdivide coins.
 
     Nakamoto started programming on Bitcoin around May 2007.
+    -
+    In 2008, he published → https://bitcoin.org/bitcoin.pdf[Bitcoin: A Peer-to-Peer Electronic Cash System]
+
+    Nakamoto's last known signal was recorded April 23, 2011 when in an eMail to Mike Hearn he wrote
+    → https://www.bitcoin.com/satoshi-archive/emails/mike-hearn/16/[I've moved on to other things].
 
     Compare *Printeton bitcoin book*, p. 9 ff
 
@@ -124,7 +129,7 @@ nobody than can prevent the payment to anyone nor does anyone need someone's per
     There are three kinds of BIP:
       • Standards Track BIP
       • Informational BIP
-      • Process BIP (like Standards Track BIPs but apply to areas other than the Bitcoin protocol itself);w
+      • Process BIP (like Standards Track BIPs but apply to areas other than the Bitcoin protocol itself)
 
     The typical path through the various states («status field») of a BIP (Draft, Proposed, Final/Active, Deferred, Rejected, Withdrawn, Replaced, Obsolete) is outlined in
     → https://github.com/bitcoin/bips/blob/master/bip-0002/process.png[BIP 2].
@@ -139,6 +144,113 @@ nobody than can prevent the payment to anyone nor does anyone need someone's per
       BIP 101 ☰ Increase of the block size
       BIP 141 ☰ Segregated Witness (Consensus layer)
     table }
+
+    Compare BIPs with bLIPs.
+
+  }
+
+  { Lightning 
+  
+   *Lightning* is a protocol for making fast payments with Bitcoin using a network of channels.
+
+    { Basis of Lightning Technology (BOLT)
+
+      The *Basis of Lightning Technology* → https://github.com/lightning/bolts[(BOLT) documents] describe a layer-2 protocol for off-chain bitcoin transfer by mutual cooperation, relying on on-chain transactions for enforcement if necessary.
+
+    }
+    { Bitcoin Lightning Improvement Proposal (bLIP)
+
+      A → https://github.com/lightning/blips[bLIP] is a design document providing information to the Lightning community, or describing a new feature for the Lightning Network.
+
+      Compare bLIPs with BIPs.
+
+    }
+    { Misc
+
+     The format for a Lightning invoice → https://github.com/lightning/bolts/blob/c41536829c1461fe5109183ce8a7f88f5c81348b/11-payment-encoding.md?plain=1#L21C1-L23C53[uses bech32 encoding], which is already used for Bitcoin Segregated Witness. 
+
+    }
+
+  }
+  { bitcoin.info REST API
+
+    Some examples for the → https://www.blockchain.com/explorer/api/blockchain_api[Blockchain Data API] offered by blockchain.com (via blockchain.info?).
+
+    Downloading the information for a block with the `bitcoin.info` REST API because the JSON file is rather large (approx 7 MB): 
+code {
+$ curl -s https://blockchain.info/rawblock/875049 -o /tmp/bitcoin-block-875049.json
+code }
+
+    Extract some information pertaining to the block
+code {
+$ → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/r-raw-output[-r]  '
+  ["Block index"   , .block_index ],
+  ["Height"        , .height],
+  ["Size"          , .size],
+  ["Time"          , (.time | todateiso8601)],
+  ["Version"       , .ver],                     # seems to be a flag field
+  ["Weight"        , .weight],
+  ["Fee"           , .fee],
+  ["hash"          , .hash],
+  ["Nonce"         , .nonce],
+  ["Main chain"    , .main_chain],
+  ["Merkle root"   , .mrkl_root],
+  ["nof Trx"       , .n_tx],
+  ["Next block[0]" , .next_block[0]],
+  ["Prev block"    , .prev_block] |
+     @tsv' \
+     /tmp/bitcoin-block-875049.json   |
+  → Linux/shell/commands/column -ts $'\t'
+
+Block index    875049
+Height         875049
+Size           1542584
+Time           2024-12-16T19:45:11Z
+Version        1073676288
+Weight         3993407
+Fee            10052973
+hash           0000000000000000000256360f807b002c9a993db921212a9700c5805f30ca82
+nonce          847395996
+main chain     true
+merkle root    f6ea21c6e23ec74b65a079a97c283a9f96daffc7734b84a05ffddde303f5f588
+nof trx        3822
+next block[0]  000000000000000000023703272844fe1d2b713deaf69d8f5fa97835fb079e0e
+prev block     0000000000000000000185d0f248f6aefecf5ae2acc0a12398eed5f76f8b79e4
+code }
+
+    The *version* is a bit field:
+code {
+$ printf "%x\n" 1073676288
+3fff0000
+code }
+
+    Display the block's first transaction:
+code {
+$ jq -r  '.tx[0]' /tmp/bitcoin-block-875049.json
+…
+code }
+
+    Show an address's balance:
+code {
+$ curl -s https://blockchain.info/balance?active=33TbzA5AMiTKUCmeVEdsnTj3GiVXuavCAH | jq
+{
+  "33TbzA5AMiTKUCmeVEdsnTj3GiVXuavCAH": {
+    "final_balance": 640863808,
+    "n_tx": 2179,
+    "total_received": 728660071967
+  }
+}
+code }
+
+    Unspent outputs:
+code {
+$ curl -s https://blockchain.info/unspent?active=33TbzA5AMiTKUCmeVEdsnTj3GiVXuavCAH | jq
+code }
+
+    Unconfirmed transactions
+code {
+$ curl -s https://blockchain.info/unconfirmed-transactions?format=json | jq
+code }
 
   }
 
