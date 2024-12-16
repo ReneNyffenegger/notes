@@ -1,0 +1,100 @@
+$ Oracle: ALTER TABLE EXCHANGE PARTITION
+
+Creating a → development/databases/Oracle/objects/tables/partitions[partitioned table]. When I use the
+`check` constraint, I cannot execute the `alter table … exchange with …` stement. It's commented therefore.
+code {
+create table tq84_data (
+   dt            date → development/databases/Oracle/objects/tables/constraints/not-null, -- → development/databases/Oracle/objects/tables/constraints/check[check] (dt = trunc(dt) and dt between date '2020-01-01' and date '2024-12-31'),
+   val           number(7,2),
+   --
+   constraint tq84_data_pk → development/databases/Oracle/objects/tables/constraints/primary-key (dt)
+)
+→ development/databases/Oracle/objects/tables/partitions/distribution-techniques/range[partition by range] (dt) (
+   partition tq84_data_2019 values less than (date '2020-01-01'),
+   partition tq84_data_2020 values less than (date '2021-01-01'),
+   partition tq84_data_2021 values less than (date '2022-01-01'),
+   partition tq84_data_2022 values less than (date '2023-01-01'),
+   partition tq84_data_2023 values less than (date '2024-01-01'),
+   partition tq84_data_2024 values less than (date '2025-01-01')
+);
+code }
+
+code {
+begin
+   insert into tq84_data
+   select
+      dt,
+      case when dt between date '2022-06-10' and date '2022-09-04' then 0 else → development/databases/Oracle/installed/packages/dbms/random[dbms_random].value(1000, 99999) end
+   from (
+      select
+         date '2020-01-01' + level - 1 dt
+      from
+         → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[dual connect by] level <= date '2025-01-01' - date '2020-01-01'
+   );
+
+   commit;
+end;
+/
+code }
+
+Uh oh, avg shows that data is skewed because of simulated wrong ETL between in a period in the year 2022
+code {
+select
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char[to_char](dt, 'yyyy') year_,
+   round(avg(val))     avg_val
+from
+   tq84_data
+→ development/databases/Oracle/SQL/select/group-by
+   → development/databases/Oracle/SQL/functions/type-conversion/to/char[to_char](dt, 'yyyy')
+order by
+   year_;
+code }
+
+create table to correct wrong data:
+code {
+create table tq84_data_2022_correction (
+   dt  date not null primary key,
+   val number(7,2)
+);
+code }
+
+I thought, I could create the correction table with the following (now commented) `create table … for exchange with table …` statement,
+but this will throw *ORA-14097: column type or size mismatch in ALTER TABLE EXCHANGE PARTITION*
+when I execute `alter table … exchange partition` below…
+code {
+-- create table tq84_data_2022_correction for exchange with table tq84_data
+code }
+
+Populate corrected data:
+code {
+begin
+   insert into tq84_data_2022_correction
+   select
+      date '2022-01-01' + level - 1 dt,
+      dbms_random.value(1000, 99999) val
+   from
+      dual connect by level <= date '2023-01-01' - date '2022-01-01'
+   ;
+
+   commit;
+end;
+/
+code }
+
+code {
+alter table tq84_data
+   exchange partition tq84_data_2022
+   with table tq84_data_2022_correction
+   without validation
+   update global indexes
+;
+code }
+
+Cleaning up
+code {
+drop table tq84_data_2022_correction;
+drop table tq84_data purge;
+code }
+
+sa:
+  → development/databases/Oracle/objects/tables/partitions[Partitioned tables]

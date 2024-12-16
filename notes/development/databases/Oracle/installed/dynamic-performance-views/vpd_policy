@@ -1,5 +1,30 @@
 $ Oracle: V$VPD_POLICY
 @ v$vpd_policy
 
+code {
+select
+   pol.object_owner,
+   pol.object_name,
+   pol.policy,
+   pol.policy_group,
+   pom.pf_owner,
+   pom.package,
+   pom.function,
+   sql.last_active_time last_act_sql,
+   sql.sql_text,
+   pol.predicate,
+   pol.policy_function_owner
+from
+   v$vpd_policy pol                                                     left join
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/area    sql on pol.sql_id       = sql.sql_id                    left join
+   → development/databases/Oracle/installed/data-dictionary/policies pom on pol.policy       = pom.policy_name    and
+                       pol.policy_group = pom.policy_group   and
+                       pol.object_owner = pom.object_owner   and
+                       pol.object_name  = pom.object_name
+where
+   pol.object_name like 'TQ84%'
+;
+code }
+
 sa:
   → development/databases/Oracle/security/VPD[Virtual Private Database]
