@@ -1,0 +1,23 @@
+$ ORA-65040: Operation is not allowed from within a pluggable database
+
+Find an → development/databases/Oracle/adminstration/init-parameters[init parameter] that can be immediately modified but is modifiable for a PDB:
+code {
+select
+   name,
+   value
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/parameter
+where
+   ispdb_modifiable = 'FALSE'      and
+   issys_modifiable = 'IMMEDIATE'
+order by
+   name;
+code }
+
+One of these parameters is `background_core_dump`. Assuming we're on a PDB, the following statement throws *ORA-65040: Operation is not allowed from within a pluggable database*:
+code {
+alter system set background_core_dump = full;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
