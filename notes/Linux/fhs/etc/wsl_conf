@@ -10,52 +10,57 @@ code }
 { Example
 
 code {
-# Automatically mount Windows drive when the distribution is launched
 [automount]
 
-# Set to true will automount fixed drives (C:/ or D:/) with DrvFs under the root directory set above.
+# Set to true will automount fixed (Windows) drives (→ Windows/dirs/[C:/] or D:/) with DrvFs under the root directory set above.
 # Set to false means drives won't be mounted automatically, but need to be mounted manually or with fstab.
-enabled = true
+  enabled = true
 
 # Sets the directory where fixed drives will be automatically mounted.
-# Using the slash as mounts C:\ to /c, rather than the default /mnt/c. 
-root = /
+# Using the slash as mounts C:\ to /c, rather than the default → Linux/fhs/mnt[/mnt]/c. 
+# root = /
 
-# DrvFs-specific options can be specified.  
-options = "metadata,uid=1003,gid=1003,umask=077,fmask=11,case=off"
+# → Windows/Subsystem-for-Linux#wsl-drvfs[DrvFs]-specific options:
+#   My user id and group id are both 1000 (reported by command → Linux/shell/commands/id), so set them here with
+#   uid= and gid=
+#   case=off seems to turn of case sensitivity in DrvFS.
+  options = "metadata,uid=1000,gid=1000,umask=077,fmask=011,case=off"
 
 # Process → Linux/fhs/etc/fstab when a WSL distribution is launched.
-mountFsTab = true
+  mountFsTab = true
 
 [network]
 # Network host settings that enable the DNS server used by WSL 2.
 
 # Specify hostname
-hostname = DemoHost
+  hostname = DemoHost
 
 # Setting generateHosts to false prevents WSL from the default behavior of auto-generating → Linux/fhs/etc/hosts
-generateHosts = false
+  generateHosts = false
 
-# Setting generateResolvConf to false prevents WSL from auto-generating → Linux/fhs/etc/resolv_conf, so that you can create your own nameserver (ie. nameserver 1.1.1.1).
-generateResolvConf = false
+# Setting generateResolvConf to false prevents WSL from auto-generating → Linux/fhs/etc/resolv_conf, so that I
+# can use a nameserver of my own choice, for example 8.8.8.8
+  generateResolvConf = false
 
 [interop]
 
 # Block launching Windows processing:
-enabled = false
+  enabled = false
 
-# Do not add %PATH%:
-appendWindowsPath = false
+# Do not add → Windows/development/environment-variables/PATH[%PATH%] to `$PATH`:
+  appendWindowsPath = false
 
-# Set the user when launching a distribution with WSL.
 [user]
-default = DemoUser
+
+# Set the → Linux/user when launching a distribution with WSL.
+  default = DemoUser
 
 [boot]
 # Enable → Windows/Subsystem-for-Linux#wsl-systemd[systemd]
-systemd=true
+  systemd=true
+
 # Set a command to run when a new WSL instance launches.
-command = service docker start
+  command = service docker start
 code }
 
 }

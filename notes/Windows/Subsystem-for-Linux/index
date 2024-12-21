@@ -185,7 +185,6 @@ code }
 
   }
 
-
 }
 { Update WSL 1 to WSL 2
 
@@ -264,11 +263,11 @@ code }
 }
 { Accessing the «other» filesystem
 
-  { DrvFS
+  { DrvFS #wsl-drvfs
 
     → https://learn.microsoft.com/en-us/archive/blogs/wsl/wsl-file-system-support#drvfs[DrvFs] is a filesystem that allows WSL to mount NTFS and ReFS volumes.
 
-    DrvFS provides the following → Linux/shell/commands/mount#mount-options[mount options]:
+    DrvFS provides the following → Linux/shell/commands/mount#mount-options[mount options].
     table { ll
       `uid` ☰ User ID of the owner of the mounted files.
       `gid` ☰ Group ID of the group-owner of the mounted files. 
@@ -279,8 +278,16 @@ code }
       `case` ☰ Case sensitivity of directory(?) names
     table }
 
+    These options can be set, for example, in the value `options` under the section `[automount]` in `→ Linux/fhs/etc/wsl_conf`.
+
+    { WSL 2: 9P
+
+      Apparently, WSL 2 → https://superuser.com/a/1643554[uses the 9P protocol] rathern than DrvFS to → #wsl-win-fs-from-wsl[access the host's files].
+
+    }
+
   }
-  { Accessing the Windows Filesystem from WSL
+  { Accessing the Windows Filesystem from WSL #wsl-win-fs-from-wsl
 
     With DrvFS, a Windows drive is (typically) mounted to `/mnt/<drive>` (the root of the default mount path can be changed with the `root` setting under `[automount]` in `→ Linux/fhs/etc/wsl_conf`):
 code {
@@ -298,6 +305,14 @@ code }
     TODO: Should the → Linux/shell/commands/mount#mount-options[mount options] (specified with `-o`) be
 code {
 $ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t drvfs E: /mnt/e -o uid=1000,gid=1000,fmask=177,dmask=077
+code }
+
+    In WSL 2, I've found the 9P fileystem type to access the windows files:
+code {
+$ → Linux/shell/commands/sudo → Linux/shell/commands/mount | → Linux/shell/commands/grep '/mnt/. ' | → development/languages/sed 's/(.*//'
+C:\ on /mnt/c type 9p
+D:\ on /mnt/d type 9p
+E:\ on /mnt/e type 9p
 code }
 
   }
