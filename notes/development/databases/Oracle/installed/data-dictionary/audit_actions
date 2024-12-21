@@ -1,0 +1,44 @@
+$ Oracle: AUDIT_ACTIONS
+@ audit_actions
+
+`audit_actions` maps an *audit number* («audit trail action type code») to the *audit name* («action type name»).
+
+Codes 150 through 155 are for olap dml cube objects. These don't have a corresponding SQL command or octdef code.
+
+{ TODO
+
+code {
+select * from audit_actions where name like '%LANGUAGE';
+code }
+
+ *Schema synonyms* (`CREaTE SCHEMA SYNONYM`, `DROP SCHEMA SYNONYM`) were allegedly scheduled to be added in 12g, but apparently weren't:
+code {
+select * from audit_actions where action in (222, 224);
+code }
+
+}
+
+sa:
+
+  `dba_audit_trail`
+
+  `system_privilege_map`
+
+  `stmt_audit_option_map`
+
+code {
+with dco as (select id# action, code name from dvsys.code$)
+select
+   nvl(aud.name, dco.name),
+   dco.action   action_dco,
+   aud.action   action_aud
+from
+   dco                           full outer join
+   audit_actions aud on aud.name = dco.name
+order by
+   nvl(dco.action, aud.action);
+code }
+
+code {
+select * from lbacsys.ols$audit_actions;
+code }

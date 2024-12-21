@@ -1,0 +1,87 @@
+$ Oracle: In-Database Archiving
+
+Creating a → development/databases/Oracle/objects/tables with the `row archival` clause …
+code {
+create table tq84_a (
+   id  integer primary key,
+   txt varchar2(20)
+)
+row archival;
+code }
+
+… adds an → development/databases/Oracle/objects/tables/columns/invisible[invisible column] named `ORA_ARCHIVE_STATE`:
+code {
+select
+   column_name,
+   data_type,
+   hidden_column,
+   user_generated
+from
+   → development/databases/Oracle/installed/data-dictionary/tab/cols[user_tab_cols]
+where
+   table_name = 'TQ84_A';
+--
+-- COLUMN_NAME        DATA_TYPE  HID  USE
+-- -----------------  ---------  ---  ---
+-- ORA_ARCHIVE_STATE  VARCHAR2   YES  NO 
+-- ID                 NUMBER     NO   YES
+-- TXT                VARCHAR2   NO   YES
+code }
+
+Inserting some records into the table:
+code {
+begin
+   insert into tq84_a values (1, 'one'  );
+   insert into tq84_a values (2, 'two'  );
+   insert into tq84_a values (3, 'three');
+   → development/databases/Oracle/SQL/TCL/commit;
+end;
+/
+code }
+
+One record is deleted …
+code {
+delete from tq84_a where id = 2;
+code }
+
+… another set for archival:
+code {
+update tq84_a
+set
+   ora_archive_state = '1' -- = dbms_ilm.archiveStateName(dbms_ilm.archive_state_archived)
+where
+   id = 3;
+
+commit;
+code }
+
+I want to see the «active» records only:
+code {
+→ development/databases/Oracle/SQL/statement/nouns/session#ora-alter-session-set[alter session set] row archival visibility = active;
+
+select * from tq84_a;
+--
+--         ID TXT                 
+-- ---------- --------------------
+--          1 one                 
+code }
+
+I want to see the archived records, too:
+code {
+alter session set row archival visibility = all;
+
+select * from tq84_a;
+--
+--         ID TXT                 
+-- ---------- --------------------
+--          1 one                 
+--          3 three               
+code }
+
+Cleaning up:
+code {
+drop table tq84_a;
+code }
+
+sa:
+  The 48th bit of the `property` column in → development/databases/Oracle/installed/data-dictionary/base-tables/tab[`sys.tab$`].

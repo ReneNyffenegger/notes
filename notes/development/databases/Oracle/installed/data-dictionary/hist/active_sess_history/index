@@ -67,6 +67,10 @@ select
    ash.sample_time,                 -- compare with sample_time_utc
 -- round( (ash.sql_exec_start - cast(ash.sample_time as date)) * 24 * 60 * 60) sql_running_since_approx_s,
    round( ( cast(ash.sample_time as date) - ash.sql_exec_start ) * 24 * 60 * 60) running_s, -- approximate(1) running time of sql UNTIL snapshot
+   --
+-- ash.user_id,
+   usr.username,
+   --
    ash.event,--   ash.event_id,
    ash.p1text, ash.p1,
    ash.p2text, ash.p2,
@@ -175,7 +179,6 @@ select
    ash.top_level_sql_id,
    ash.top_level_sql_opcode,
    ash.usecs_per_row,
-   ash.user_id,
    ash.wait_class,
    ash.wait_class_id,
    ash.wait_time,
@@ -183,13 +186,14 @@ select
    --
    ash.consumer_group_id
 from
-   sys.dba_hist_active_sess_history             ash                                   left join
-   sys.dba_hist_sqltext                         sql on ash.sql_id = sql.sql_id and
-                                                       ash.dbid   = sql.dbid
-where
-   ash.sample_time between to_date('2024-02-26 14:00:30', 'yyyy-mm-dd hh24:mi:ss') and
-                           to_date('2024-02-26 14:00:40', 'yyyy-mm-dd hh24:mi:ss')
- 
+   sys.dba_hist_active_sess_history             ash                                    left join
+   sys.dba_hist_sqltext                         sql on ash.sql_id  = sql.sql_id and
+                                                       ash.dbid    = sql.dbid          left join
+   sys.dba_users                                usr on ash.user_id = usr.user_id 
+-- where
+--    ash.sample_time between to_date('2024-02-26 14:00:30', 'yyyy-mm-dd hh24:mi:ss') and
+--                            to_date('2024-02-26 14:00:40', 'yyyy-mm-dd hh24:mi:ss')
+--  
 order by
    ash.sample_time desc
 ;

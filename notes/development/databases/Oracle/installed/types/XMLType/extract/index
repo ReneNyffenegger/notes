@@ -13,10 +13,35 @@ select
        <n>8</n>
        <n>13</n>
        <n>21</n>
-     </nums>').extract('//n[6]/text()') as x
+     </nums>').extract('//n[6]/text()').getClobVal() as x
 from
    dual;
 code }
+
+{ Extracting a value from an XML document with namespaces
+
+  The following works (but I am not sure if this *really* follows the idea of the inventors of XML):
+code {
+select
+    xmlType('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    
+<R    version="2024-12-18+05:00"
+      xsi:schemaLocation="http://tq84/x/y/z tq84.xsd"
+      xmlns="http://tq84/bla/bla"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+      
+     <n>1</n>
+     <n>2</n>
+     <n>3</n>
+     <txt>hello</txt>
+</R>'
+
+).extract('//*:txt/text()').getClobVal() as x
+from
+   dual;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/types/XMLType[XMLType]

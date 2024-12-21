@@ -48,19 +48,30 @@ For example, the error → development/databases/Oracle/errors/ORA-00600_interna
 
 Thus, a list of possible events can be generated with the following
 anonymous → development/databases/Oracle/PL-SQL/block[PL/SQL block]:
+
 code {
+drop   table tq84_ora_events;
+
+create table tq84_ora_events (
+    id number(5),
+    txt varchar2(512)
+);
+
 declare 
-   msg varchar2(256);
+   msg varchar2(512);
 begin
-   for num in 10000..10999 loop
+   for num in 10000 .. 99999 loop
 
      msg := → development/databases/Oracle/PL-SQL/block/exception-handler/sqlerrm-sqlcode[sqlerrm](-num);
 
      if msg not like '%Message ' || num || ' not found%' then
-        dbms_output.put_line (num || ': ' || substr(msg, 11));
+        insert into tq84_ora_events values (num, substr(msg, 12));
+--      dbms_output.put_line (num || ': ' || substr(msg, 12));
      end if;
 
    end loop;
+
+   commit;
 end;
 /
 code }
@@ -944,27 +955,27 @@ table { rll
   10998 ☰ event to enable short stack dumps in system state dumps ☰
   10999 ☰ do not get database enqueue name ☰
   12498 ☰ ☰ Found in `catxev.sql`. Used to add column `refcount` to `xdb$resconfig` table.
-  14524 ☰ `'14524 trace name context forever, level 1'`: Turn the event on that disables partition check. ☰ Found in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`]. Apparently used to circumvent partition check when creating a partition without having Partitioning Option.
-  14529 ☰ ☰ Found in `catawrtb.sql`. Turns on or off *create partition exchange tables with → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[CTAS]*.
-  14533 ☰ ☰ Comment in `c1202000.sql` is *Disable column validation…*
+  14524 ☰ Always allow partitioning. To be used only by trusted clients ☰ `'14524 trace name context forever, level 1'`: Turn the event on that disables partition check. Found in → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`]. Apparently used to circumvent partition check when creating a partition without having Partitioning Option.
+  14529 ☰ copy hakan factor during ctas at facilitate exchange partition ☰ Found in `catawrtb.sql`. Turns on or off *create partition exchange tables with → development/databases/Oracle/SQL/statement/nouns/table/create/as-select[CTAS]*.
+  14533 ☰ Event for ALTER TABLE enhancements for code point semantics ☰ Comment in `c1202000.sql` is *Disable column validation…*
   19056 ☰ Turn on csx dml internal event to let internal columns be reloaded. ☰ Found in `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/utl32k_sql`
-  19119 ☰ ☰ Found in `xdbeo112.sql` or `xdbxtbix.sql`
-  19027 ☰ ☰ Found in `xdbud111.sql`. Used to turn on rewrite for updxml/delxml/insertxml over collections?
-  22372 ☰ ☰ Found in `dbmsobj.sql`. Needed to create packed image typed tables.
-  22825 ☰ ☰ Somehow related to the `→ development/databases/Oracle/SQL/hints/list/opaque_transform` hint.
-  22829 ☰ ☰ Apparently, setting event 22829 in an Oracle 11 environment enables → development/databases/Oracle/SQL/select/subquery/lateral[`lateral`] joins (see for example → https://jonathanlewis.wordpress.com/2011/01/31/ansi-outer/[Jonathan Lewis' Blog]).
-  22830 ☰ ☰ Found in `catqm_int.sql`. Turns off the REF cascade semantics for `resource$`.
-  27401 ☰ ☰ Scheduler tracing event (Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here]). `alter system set events '27401 trace name context forever, level 262144' (See → https://aychin.wordpress.com/2014/08/21/oracle-file_watcher-and-its-troubleshooting/[Oracle FILE_WATCHER and its troubleshooting])
-  27402 ☰ ☰ Scheduler tracing event (Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here])
-  27403 ☰ ☰ Scheduler stop event (Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here])
-  31061 ☰ ☰ Found in `xdbuend.sql`. Traces «further lxs-0002x errors»
-  31098 ☰ ☰ Traces requests for the protocol server of → development/databases/Oracle/XML-DB.
-  31150 ☰ ☰ Found in `catqm_int.sql`, `xdbuend.sql` or `prvtxdz2.plb`. Sets xdk scheme cache event.
-  31156 ☰ ☰ Found in `catxdbc1.sql`. Register Config Schema?
-  38003 ☰ ☰ Setting this event affects the bootstrap process of loading the fixed cache in `kqlblfc()`: Bootstrap objects that are not defined as such in `→ development/databases/Oracle/installed/data-dictionary/base-tables/bootstrap`) will be left as non-bootstrapped.
-  39098 ☰ ☰ *Seems to be related to the data pump*
-  44715 ☰ ☰ Found in `catqm.sql`. This event denotes *XDB initialization (start/complete)*.
-  55622 ☰ ☰ Found in `a21.sql`. The corresponding error message is *ORA-55622: DML, ALTER and CREATE UNIQUE INDEX operations are not allowed on table ….*
+  19119 ☰ event for turning on XMLQUERY and XMLTABLE features ☰ Found in `xdbeo112.sql` or `xdbxtbix.sql`
+  19027 ☰ event for suppressing query rewrite with XML operators ☰ Found in `xdbud111.sql`. Used to turn on rewrite for updxml/delxml/insertxml over collections?
+  22372 ☰ event for type dictionary upgrade ☰ Found in `dbmsobj.sql`. Needed to create packed image typed tables.
+  22825 ☰ event set during import/export ☰ Somehow related to the `→ development/databases/Oracle/SQL/hints/list/opaque_transform` hint.
+  22829 ☰ Event to allow LATERAL views ☰ Apparently, setting event 22829 in an Oracle 11 environment enables → development/databases/Oracle/SQL/select/subquery/lateral[`lateral`] joins (see for example → https://jonathanlewis.wordpress.com/2011/01/31/ansi-outer/[Jonathan Lewis' Blog]).
+  22830 ☰ Event enabling VARRAYs columns to be created as OCTs ☰ Found in `catqm_int.sql`. Turns off the REF cascade semantics for `resource$`.
+  27401 ☰ Scheduler debug event ☰ Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here]. `alter system set events '27401 trace name context forever, level 262144' (See → https://aychin.wordpress.com/2014/08/21/oracle-file_watcher-and-its-troubleshooting/[Oracle FILE_WATCHER and its troubleshooting])
+  27402 ☰ Scheduler tracing event ☰ Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here]
+  27403 ☰ scheduler stop job event ☰ Found → https://berxblog.blogspot.com/2012/02/some-tracing-events-in-dbmsscheduler.html[here]
+  31061 ☰ XDB error: ☰ Found in `xdbuend.sql`. Traces «further lxs-0002x errors»
+  31098 ☰ internal event to turn on XDB tracing ☰ Traces requests for the protocol server of → development/databases/Oracle/XML-DB.
+  31150 ☰ unrecoverable error in handler ☰ Found in `catqm_int.sql`, `xdbuend.sql` or `prvtxdz2.plb`. Sets xdk scheme cache event.
+  31156 ☰ internal event to turn off validation during schema registration ☰ Found in `catxdbc1.sql`. Register Config Schema?
+  38003 ☰ CBO Disable column stats for the dictionary objects in recursive SQL ☰ Setting this event affects the bootstrap process of loading the fixed cache in `kqlblfc()`: Bootstrap objects that are not defined as such in `→ development/databases/Oracle/installed/data-dictionary/base-tables/bootstrap`) will be left as non-bootstrapped.
+  39098 ☰ Worker process received data objects while loading metadata. Invalid process order range is .. ☰ *Seems to be related to the data pump*
+  44715 ☰ Event for XDB initialization ☰ Found in `catqm.sql`. This event denotes *XDB initialization (start/complete)*.
+  55622 ☰ DML, ALTER and CREATE UNIQUE INDEX operations are not allowed on table ""."" ☰ Found in `a21.sql`.
 table }
 
 }

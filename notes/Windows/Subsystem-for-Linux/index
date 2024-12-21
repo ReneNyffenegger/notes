@@ -5,17 +5,24 @@ WSL was introduced in 2016. It promises to run *unmodified* → Linux binaries i
 → https://docs.microsoft.com/en-us/windows/wsl/release-notes#build-14951[Build 14951], it is also possible to run Windows executables
 from a WSL distribution).
 
+Microsoft claims, using WSL rather than a «real» virtual machine requires fewer system resources.
+
 { WSL versions
 
   As of this writing, there are two WSL versions: *WSL 1* and *WSL 2*.
 
-  WSL 2 has the following three features that are not present in WSL 1:
+  WSL 1 basically *emulates* a Linux Kernel while WSL 2 *provides* a real Kernel running in a lgightweight virtual machine.
+
+  Thus, WSL 2 has the following three features that are not present in WSL 1:
     • Managed VM (Virtual Machine)
     • Full → Linux/kernel[Linux kernel]
     • Full → #wsl-syscall[system calls]
+
   On the other hand, WSL 2 lacks *Performance across OS file systems*.
 
   Generally, Microsoft recommends to use WSL 2 if possible. However, accessing the Windows file system from WSL 2 is slower than if accessed from WSL 1.
+
+  WSL 2 uses a subset of → Windows/optional-features/Hyper-V: the *Virtual Machine Platform*.
 
   The default version can be set (here to 2) with:
 code {
@@ -28,7 +35,6 @@ code }
   WSLg is the abbreviation for → https://github.com/microsoft/wslg[Windows Subsystem for Linux GUI]. This component enables GUI applications in WSL. The fundament of WSLg is the *Weston compositor*.
 
   Audio (in and out) is supported by a *PulseAudio* server.
-  
 
   { WSLGd
 
@@ -924,6 +930,27 @@ code }
         • act as a plan 9 file server to share your windows file system with windows,
         • act as an entry point for binfmt_misc to execute windows binaries via interop.
     "
+
+    The two paths/files → #wslinfo[`/usr/bin/wslinfo`] and `→ Linux/fhs/bin/wslpath` are mapped/symlinked to `/init`.
+
+  }
+  { /usr/bin/wslinfo #wslinfo
+
+    Command line arguments of `wslinfo` are
+    table { ll
+      `--networking-mode` ☰ Display current networking mode.
+      `--msal-proxy-path` ☰ Display the path to the MSAL proxy application.
+      `--wsl-version` ☰ Display the version of the WSL package.
+      `-n` ☰ Do not print a newline.
+    table }
+
+    Apparently, WSL maps (or symlinks) `/usr/bin/wslinfo` to → #wsl-init[`/init`] under the hood somehow:
+code {
+$ → Linux/shell/commands/readlink /usr/bin/wslinfo
+/init
+code }
+
+     See also `→ Linux/fhs/bin/wslpath`
 
   }
 

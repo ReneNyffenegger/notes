@@ -12,7 +12,7 @@ select
    tab.duration,                           -- For GTTs, specifies if data is deleted when transaction ends (SYS$TRANSACTION) or remains during the session (SYS$SESSION)
    --
    tab.activity_tracking,
-   tab.admit_null,
+   tab.admit_null,                         -- Whether null is allowed in CON_ID
    tab.avg_row_len,
    tab.avg_space,
    tab.avg_space_freelist_blocks,
@@ -35,19 +35,22 @@ select
    tab.data_link_dml_enabled,
    tab.default_collation,
    tab.degree,
-   tab.dependencies,
-   tab.dml_timestamp,
+   tab.dependencies,                       -- If a table was created with ROWDEPENDENCIES or NOROWDEPENDENCES (see for example → development/databases/Oracle/objects/tables/columns/pseudo/ora_rowscn)
+   tab.dml_timestamp,                      -- Modification time, creation time, or both for Automatic Data Optimization
    tab.dropped,
    tab.duplicated,
    tab.empty_blocks,
    tab.extended_data_link,
    tab.extended_data_link_map,
    tab.external,
+   tab.externally_duplicated,              -- Compare with SYNCHRONOUS_DUPLICATED
+   tab.externally_sharded,
    tab.flash_cache,
    tab.freelist_groups,
    tab.freelists,
    tab.global_stats,
    tab.has_identity,
+   tab.has_reservable_column,
    tab.has_sensitive_column,
    tab.hybrid,
    tab.ini_trans,
@@ -80,19 +83,54 @@ select
    tab.pct_used,
    tab.read_only,
    tab.result_cache,
+   tab.row_change_tracking,                -- Not documented
    tab.row_movement,
    tab.sample_size,
    tab.secondary,
    tab.segment_created,
    tab.sharded,
    tab.skip_corrupt,
+   tab.staging,
    tab.status,
+   tab.synchronous_duplicated,             -- Compare with EXTERNALLY_DUPLICATED
    tab.table_lock,
    tab.tablespace_name,
    tab.user_stats
 from
    sys.dba_tables tab;
 code }
+
+{ SAMPLE_SIZE
+
+code {
+create table tq84_sample_size (txt varchar2(1000), num number);
+ 
+insert into tq84_sample_size
+select
+   → development/databases/Oracle/SQL/functions/text/rpad-lpad[lpad]('x', 1000, 'x'),
+   rownum
+from
+   → development/databases/Oracle/SQL/dual → development/databases/Oracle/SQL/_examples/generate-rows#ora-gen-data-connect-by[connect by level] <= 101010;
+ 
+select num_rows, sample_size, last_analyzed from user_tables where table_name = 'TQ84_SAMPLE_SIZE';  
+ 
+begin
+   → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_sample_size', estimate_percent => 13.3);
+end;
+/
+ 
+select
+   num_rows,
+   sample_size,
+   to_char(100/num_rows * sample_size, '90.0') || '%' sample_size_,
+   last_analyzed
+from
+   user_tables where table_name = 'TQ84_SAMPLE_SIZE';  
+   
+drop table tq84_sample_size;
+code }
+
+}
 
 sa:
   → development/databases/Oracle/installed/data-dictionary/all_tables[`dba_all_tables`]

@@ -8,6 +8,42 @@ code {
 $ nc -vz server.xy 443
 code }
 
+{ Act as client
+
+  By default, `nc` acts as a client and initiates connections.
+
+  In order to use `nc` as a server, the command line `-l` (listen) must be specified.
+
+  The following command listens on port 80 and prints to stdout what it receives, then terminates:
+code {
+$ → Linux/shell/commands/sudo nc -l 80
+code }
+
+  In order to continously listen for new connections, the `-k` option needs to be specified:
+code {
+$ → Linux/shell/commands/sudo nc -lk 80
+code }
+  
+  After a client has connected, the above command reads from stdin and returns the read text to the client.
+  -
+  With `-d`, `nc` does not attempt to read from stdin.
+
+  { Simple webserver #nc-webserver
+
+    It's possible, to write a simple → web/webserver (inspired by → https://stackoverflow.com/a/52351480/180275[this stackoverflow answer]).  
+code {
+cnt=0
+while true; do
+   let cnt++
+   resp=$"<h1>Simple webserver</h1>My PID is <code>$$<</code>p>Request counter: <code>$cnt</code>"
+   len="$(printf '%s' "$resp" | wc -c)"
+   printf "HTTP/1.1 200 OK\r\nContent-Encoding: text/html\r\nContent-Length: $len\r\n\r\n<h1>Simple Webserver</h1>My PID is <code>$$</code><p>Request counter is <code>$cnt</code>"  | nc -Nl 8000
+done
+code }
+
+  } 
+
+}
 { Test client server
 
  `nc` can be used to rudimentarily test a client-server scenario.
@@ -26,6 +62,13 @@ code }
   Going back the the first shell, we see the server having printed the message from the client:
 code {
 this is the client
+code }
+
+}
+{ Print a browser's HTTP request headers
+
+code {
+nc  -kdl 8000
 code }
 
 }

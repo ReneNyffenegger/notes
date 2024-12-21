@@ -21,6 +21,59 @@ Text based browser include
   • retawq
   • elinks
 
+{ Viewports #browser-viewport
+
+  In the context of a mobile browser, the concept of the layout viewport and the visual viewport is somewhat important.
+
+  { Layout viewport
+
+    The *layout viewport* is the portion of the document that the browser currently draws and which is currently looked at.
+    Content outside of the layout viewport can usually be scrolled into the layout viewport to make it visible.
+
+    The layout viewport may be smaller than the entire document because the document does not fit into the layout viewport.
+
+    The portion that makes up the layout viewport *might* be larger than the currently visible elements, see *visual viewport*.
+
+  }
+  { Visual viewport
+
+    The *visual viewport* is the portion of the document that is currently visible.
+    -
+    It might be smaller than the viewport because of
+      • pinch-zoom
+      • showing an on-screen keyboard
+  }
+  { See also
+
+    → development/web/HTML/tags/meta/viewport[`<meta viewport … >`]
+
+    → development/web/HTML/Responsive-design[responsive design]
+
+    The *Visual Viewport* WebAPI, `→ development/web/browser/object-model/window[window].visualViewport`.
+
+    The → https://github.com/WICG/visual-viewport[Visual Viewport README]
+
+    → https://bokand.github.io/viewport/index.html[Visual vs. Layout viewport] demo.
+
+  }
+
+}
+{ Same-origin policy
+
+  Browsers that adhere to the *Same-origin policy* do not make webrequest to different origins (which is typically a domain) in order to prevent attacks such as the
+ *Cross Site Request Forgery* (CSRF or XSRF) attack.
+
+  Without same-origin policy, a malicious site could send the browser a piece of JavaScript code that initiates a web request to another, legit site.
+  -
+  In such a scenario, the browser would send any cookie stored for the legit site to the legit site *without* the user knowing it. Possibly, the cookie allows the browser to
+  initiate an unwanted transaction.
+
+ ~CORS~ is a way for a browser to circumvent this policy *if* the legit server explicitely allows the browser to make web requests, for example by sending the
+  HTTP response header `Access-Control-Allow-Origin: …` (which takes a comma-separated list of allowed origins, or a `*`).
+
+  See also → https://stackoverflow.com/a/27294846/180275[this stackoverflow answer] which I found quite helpful when I tried to understand CORS.
+
+}
 { Storing data
 
   Apparently, there are (only?) three ways to store data in a browser:
@@ -46,6 +99,25 @@ Text based browser include
 
   Most browsers come with the ability to run programs locally (that is in the web browser itself as opposed to in the → web/webserver). This programming language is based on the ECMAScript language and
   implemented as → development/languages/JavaScript.
+
+  { Main thread / event loop #browser-js-mainthread
+
+    The browser's *main (→ development/languages/JavaScript) thread* is closely related to its *event loop*.
+    -
+    These two concepts are responsible to
+      • draw any pending updates to the Document currently being displayed,
+      • run any JavaScript code the page needs to run
+      • accept events from input devices and dispatch those events to the elements that should receive them.
+
+    Additionally, the event loop
+      • handles interactions with the operating system,
+      • updates to the browser's own user interface,
+      • etc.
+
+    Because of the criticality of the main thread and the event loop, some code might be run by a *worker* (See Web Worker API, the Service Workers API, and `Window.requestIdleCallback()`)
+
+
+  }
 
 }
 

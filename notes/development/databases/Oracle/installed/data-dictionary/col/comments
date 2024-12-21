@@ -18,6 +18,39 @@ where
 ;
 code }
 
+Find columns with a given name and show the table and column comments:
+code {
+select
+   col.table_name,
+   col.column_name,
+   col.owner,
+   col.data_type,
+   tcm.comments              comment_tab,
+   ccm.comments              comment_col,
+   obj.object_type,
+   obj.subobject_name
+from
+   → development/databases/Oracle/installed/data-dictionary/tab/cols     col                                               left join
+   → development/databases/Oracle/installed/data-dictionary/objects      obj  on col.owner       = obj.owner       and
+                            col.table_name  = obj.object_name         left join
+   dba_col_comments ccm  on col.owner       = ccm.owner       and
+                            col.table_name  = ccm.table_name  and
+                            col.column_name = ccm.column_name         left join
+   → development/databases/Oracle/installed/data-dictionary/tab/comments tcm  on col.owner       = tcm.owner       and
+                            col.table_name  = tcm.table_name
+where
+   col.column_name like                                                                '%PK_ID%' and -- <== Enter search pattern here.
+   obj.oracle_maintained = 'N'
+order by
+   case
+      when obj.object_type not in ('VIEW', 'TABLE') then   99
+      when col.table_name like 'BIN$%'              then  999
+      when obj.subobject_name is not null           then 9999
+      else 0
+   end,
+   col.table_name;
+code }
+
 sa:
 
   → development/databases/Oracle/objects/tables/columns[Columns]

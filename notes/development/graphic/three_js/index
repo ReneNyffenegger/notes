@@ -2,12 +2,158 @@ $ three.js
 
 A three.js application needs at least a *scene*, a *camera* and a *renderer*.
 
+{ Using (importing) three.js
+
+  As of version r147, the preferred way to use three.js is via es6 modules and *import maps*
+code {
+<script type='importmap'>
+  {
+    "imports": {
+      "three"        : "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type='module' src='app.js'></script>
+code }
+
+  `app.js`:
+code {
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+code }
+
+
+}
+{ Scene
+
+  A `Scene` inherits from `Object3D` and extends it with some properties of which the most interesting ones are:
+    • `.background` (which is a color, a texture, or a `CubeTexture` or equirectangular texture for a skybox.
+    • `.fog`
+
+? A scence is (typically?) rendered by a renderer (WebGLRenderer or WebGPURenderer (or CanvasRenderer? or others?))
+
+  The objects of a scene are arranged hierarchically in a → https://threejs.org/manual/#en/scenegraph[scene graph].
+
+}
+{ Camera
+
+  Abstract base class for cameras.
+
+  The most frequently used derived classes are `PerspectiveCamera` and `OrthographicCamera`.
+
+  Although I have seen examples where a camera is explicitely added to a scene, it is apparently → https://github.com/mrdoob/three.js/issues/1046[not necessary] to do so.
+ (because the influence of the camara is being taken care of with in the line `renderer.render(scene, camera)`.
+  -
+  It's worth noting that a camera can be added to an object such as a car driving through a scene.
+
+? For performance reasons, a camera has a frustum (represented by a `Frustum` object). Objects outside the frustum are not rendered.
+
+  { Constructing a perspective camera
+
+    A «full screen» camera is typically created like so:
+code {
+const camera = new THREE.PerspectiveCamera(
+   45,                                     // field of view (fov)
+   window.innerWidth / window.innerHeight, // aspect
+   0.1, 10000                              // near, far
+);
+code }
+
+  }
+  { lookAt
+
+code {
+camera.lookAt(new THREE.Vector3(x, y, z));
+code }
+
+code {
+camera.lookAt(mesh_abc.position);
+code }
+
+  }
+  { cameraHelper
+
+    An instance of a `cameraHelper` uses line segments to visualize the frustum of a camera.
+
+code {
+const camHlp = new THREE.CameraHelper(camera);
+scene.add(camHlp);
+code }
+
+
+   In the render loop:
+code {
+camHlp.update();
+code }
+
+  }
+
+}
+{ WebGLRenderer
+
+  An instance of a `WebGLRenderer` renders a scene using a camera.
+
+  See also the `WebGPURenderer` class.
+
+  { domElement
+
+    The renderer's `domElement` is a `HTMLCanvasElement` (i. e. a `<canvas>`) on which the renderer draws («renders») the scence.
+    -
+    Hence, this `domElement` must be added to the HTML document:
+code {
+const container = … // for example: document.createElement('div');
+document.body.appendChild(container);
+container.appendChild(renderer.domElement);
+code }
+
+  }
+  { Animation loop
+
+code {
+clock    = new THREE.Clock();
+renderer = new THREE.WebGLRenderer();
+scene    = …
+camera   = …
+…
+renderer.setAnimationLoop(animate);
+
+function animate() {
+   const delta = clock.getDelta();
+   const time  = clock.getElapsedTime();
+
+   xyz.rotation.x = time * 0.333;
+   xyz.rotation.y = time * 0.500;
+
+   t += delta * 0.5;
+   … = Math.sin(t);
+
+   renderer.render(scene, camera);
+
+   stats.update();
+}
+code }
+
+  }
+
+}
 { Geometry
+
+  A *geometry* stores the *vertex data* of an object.
 
   With r125, → https://discourse.threejs.org/t/three-geometry-will-be-removed-from-core-with-r125/22401[`THREE.Geometry` was removed] and
  `THREE.BufferGeometry` was suggested as replacement.
 
   { THREE.BufferGeometry
+
+   `BufferGeometry` objects store information (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes) in buffers (typed arrays).
+    -
+    This makes them generally faster than standard Geometries, at the cost of being somewhat harder to work with.
+
+    All geometries seem to inherit from `BufferGeometry`.
+    -
+   `BufferGeometry` inherits from `EventDispatcher` (not from `Object3D`, but has the member property → https://github.com/mrdoob/three.js/blob/beab9e845f9e5ae11d648f55b24a0e910b56a85a/src/core/BufferGeometry.js#L16[`_obj`] which *is* an `Object3D`).
 
     An instance of a → https://threejs.org/docs/index.html?q=buffergeometry#api/en/core/BufferGeometry[`THREE.BufferGeometry`] represents a
       • mesh,
@@ -16,33 +162,184 @@ A three.js application needs at least a *scene*, a *camera* and a *renderer*.
 
     Besides geometrical data like vertex coordinates, an instance also stores attributes such as
       • face indices
-      • normals
+      • (vertex?) normals
       • colors
       • UVs
       • custom attributes (which are used to reduce the cost of passing this data to the GPU)
+
+   `BufferAttribute` is a class that is designed to store a BufferGeometry's attributes in an efficient way to pass it to a GPU.
+
+    { setAttribute
+
+      table { ll
+         `obj.setAttribute('position', …)` ☰
+         `obj.setAttribute('color'   , …)` ☰
+         `obj.setAttribute('normal'  , …)` ☰
+         `obj.setAttribute('uv'    ' , …)` ☰ ?
+         `obj.setAttribute('tangent' , new BufferAttribute(…))` ☰
+
+      table }
+
+    }
+    { Inheritance
+
+      Classes that inherit from `BufferGeometry` include
+        • `BoxGeometry`
+        • `CircleGeometry`
+        • `CylinderGeometry` (from which `ConeGeometry` inherits)
+        • `EdgesGeometry`
+        • `ExtrudeGeometryk`
+        • `LatheGeometry` (from which `CapsuleGeometry` inherits)
+        • `PlaneGeometry`
+        • `PolyhedronGeometry`
+        • `RingGeometry`
+        • `ShapeGeometry`
+        • `SphereGeometry`
+        • `TorusGeometry`
+        • `TorusKnotGeometry`
+        • `TubeGeometry`
+        • `WireframeGeometry` (the construtor of which takes another geometry as parameter)
+
+      Classes that inherit from `PolyhedronGeometry` include
+        • `DodecahedronGeometry`
+        • `IcosahedronGeometry`
+        • `OctahedronGeometry`
+        • `TetrahedronGeometry`
+    }
+  }
+  { TextGeometry
+
+?   A `TextGeometry` (found in → https://github.com/mrdoob/three.js/tree/beab9e845f9e5ae11d648f55b24a0e910b56a85a/examples/jsm/geometries[`/examples/jsm/geometries`]) creates a `ExtrudeGeometry` from a 3D font (which must first be loaded) and a string.
+
+    The 3D font can be loaded with an instance of a `FontLoader`.
+
+  }
+  { Vertex normals
+
+    ? Vertex normals
+      • determine light reflection
+      • assist in applying textures
+      • provide information how pixels are lighted, shaded and colored
+
+    `VertexNormalsHelpers` (which inherits from `LineSegments`) visualizes an object's vertex normals.
+
+     See also the `BufferGeometry` method `computeVertexNormal()`.
 
   }
 }
 { Material
 
-  A material describes an object's appearance.
+  A material describes an object's surface properties (so it directly influences how the looks like).
+
+  Some materials include
+    • `MeshLambertMaterial` (Rough-looking surfaces)
+    • `MeshPhongMaterial` (Shiny-looking surfaces, *is* affected by lights)
+    • `MeshBasicMaterial` (*not* affected by lights)
+    • `LineBasicMaterial` (for *wireframe-style* geometries)
+    • `MeshToonMaterial` (Cartoon like objects)
+    • `ShadowMaterial` (A transparent material that shows shadows cast on it)
+    • `MeshStandardMaterial`
+
+  { LineBasicMaterial
+
+   `LineBasicMaterial` has the property `linewidth` but, → https://threejs.org/docs/index.html#api/en/materials/LineBasicMaterial.linewidth[due to limitations] of the → https://registry.khronos.org/OpenGL/specs/gl/glspec46.core.pdf[OpenGL Core Profile] with the
+    WebGL renderer, on most platforms this value will be `1` regardless of the set value.
+
+  }
+  { Shader program
+
+    A material seems to be connected with a *shader program* (see the material's callback `onBeforeCompile`)
+
+  }
 
 }
 { Mesh
 
   A mesh is an object that applies a *material* to a *geometry*.
 
+  A material and/or a geometry can be used for mulitple meshes.
+
+  A mesh inherits from `Object3D` and thus records the following attributes of an object relative to its parent in the scene:
+    • position
+    • orientation
+    • scale
+
   The mesh can then be inserted into a *scene* (for example `scene.add()`) and then be moved around
+
+  Classes that inherit from `Mesh` include
+  table { ll
+    `LineSegments2` ☰ Adds arbitrary line widths and the possibility to change widths to world unit. `Line2` extends `LineSegments2` and allows to create polylines.
+    `InstancedMesh` ☰ Used for *instanced rendering*, i. e. if multiple objects with the same geometry and material but different world transformations (including color?) are placed into a scene. In such scenarios, using `InstancedMesh` reduces the number of draw calls and thus improves the rendering performance. Compare with `BatchedMesh`.
+    `BatchedMesh` ☰ Used to render objects with the same material but different geometries and world coordinates. Compare with `InstancedMesh`.
+    `HTMLMesh` ☰ Used to render HTML? See also `HTMLTexture`
+    `TextureHelper` ☰
+    `LightProbeHelper` ☰
+    `PointLightHelper` ☰
+    `TransformControlsPlane` ☰
+    `LensflareMesh` ☰
+    `Sky` ☰ Creates a ready-to-go sky. Based on → https://www.researchgate.net/publication/220720443_A_Practical_Analytic_Model_for_Daylight[A Practical Analytic Model for Daylight] (aka The Preetham Model), the de facto standard analytic skydome model. First implemented by → http://simonwallner.at/project/atmospheric-scattering/[Simon Wallner].
+    `SkyMesh` ☰
+    `MarchingCubes` ☰ Port of → https://webglsamples.org/blob/blob.html[webglsamples.org/blob/blob.html]
+    `ShadowMesh` ☰ A shadow Mesh that follows a shadow-casting Mesh in the scene, but is confined to a single plane
+    `GroundedSkybox` ☰ A → https://github.com/mrdoob/three.js/blob/e4a48bd6bf72c7728a4d01095a61d6ceb16f06cc/examples/jsm/objects/GroundedSkybox.js#L4C1-L7C59[ground-projected skybox …].
+    `InstancedPoints` ☰
+    `Water` ☰ See Alex Vlachos: → https://alex.vlachos.com/graphics/Vlachos-SIGGRAPH10-WaterFlow.pdf[Water Flow] and Kyle Hayward: → https://graphicsrunner.blogspot.com/2010/08/water-using-flow-maps.html[Animating Water Using Flow Maps]
+    `WaterMesh` ☰
+    `ReflectorForSSRPass` ☰
+    `SkinnedMesh` ☰
+    `Wireframe` ☰ Of which I found nothing in the → https://threejs.org/docs/[docs]. This object is used in the → https://threejs.org/examples/webgl_lines_fat_wireframe.html[webgl_liens_fat_wireframe] example.
+    `QuadMesh` ☰ Of which I found nothing in the docs.
+    `MorphAnimMesh` ☰ Of which I found nothing in the docs or the examples. Apparently, it's → https://github.com/mrdoob/three.js/issues/7010[deprecated].
+    `MorphBlendMesh` ☰
+    `MeshPostProcessingMaterial` ☰
+    `VOXMesh` ☰
+    `Refractor` ☰
+    `Reflector` ☰
+  table }
+
+  TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
+
+  TODO `MeshPhysicalMaterial` inherits from `MeshStandardMaterial`, `MeshPhysicalNodeMaterial` from `MeshStandardNodeMaterial`, `MeshSSSNodeMaterial` from `MeshPhysicalNodeMaterial`
+
+}
+{ Light
+
+ `Light` is the abstract base class for an object that emits light.
+
+  Some interesting derived classes include:
+    • `AmbientLight` which illuminates all objects equally and doesn't cast shadows
+    • `DirectionalLight`, a source that is infinitely far away, typically used to simulate the Sun.
+    • `PointLight` which emits light equally in all directions (a «light bulb»)
+    • `SpotLight`
 
 }
 { Texture
 
-  A texture can be created from
-    • static images
-    • HTML 5 canvas elements
-    • … ?
+  Classes that inherit from `Texture` include:
+    • `CanvasTexture` (Crated from a `<canvas>` element)
+    • `CompressedTexture`
+    • `CompressedArrayTexture`
+    • `CubeTexture` (Made up of six textures, each for a side of a cube)
+    • `Data3DTexture`
+    • `DataArrayTexture`
+    • `DataTexture`
+    • `DepthTexture`
+    • `FramebufferTexture (can only be used with `WebGLRenderer.copyFramebufferToTexture()`).
+    • `VideoTexture`
 
-  Creating a texture from a HTML 5 canvas element:
+  See also the `Source` class
+
+
+  { Creation of textures
+
+    A texture can be created from
+      • static images
+      • HTML 5 canvas elements
+      • … ?
+
+  }
+  { Creating a texture from a HTML 5 canvas element:
+
 code {
 const canvas = document.createElement('canvas'),
 ctx = canvas.getContext('2d')
@@ -61,6 +358,41 @@ ctx.font = '15pt Arial'
 …
 code }
 
+  }
+  { Texel
+
+? The pixels of a texture are referred to as texels.
+
+  }
+
+}
+{ Material
+
+  The material specifies an object's appearance.
+
+}
+{ Color
+
+code {
+scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2f0b03);
+code }
+
+}
+{ Fog
+
+code {
+scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x000000, 250, 1400);
+code }
+
+}
+{ Vector…
+
+code {
+cameraTarget = new THREE.Vector3( 0, 150, 0 );
+code }
+
 }
 { Object3D
 
@@ -72,8 +404,251 @@ code }
 
   A → https://threejs.org/docs/#api/en/objects/Bone[`Bone`] is almost identical to a blank `Object3D`.
 
+  All classes that inherit from `Object3D` have an `Object3D.layers` property which is an instance of the `Layers` object.
+
+  The `Group` class is almost identical to `Object3D`.
+
+}
+{ Group
+
+  The purpose of `Group` is to make working with groups of objects syntactically easier.
+
+ `Group` is almost identical to the `Object3D` class.
+
+}
+{ Controls
+
+ `Controls` is an abstract base class for control objects.
+   -
+  Control objects control an `Object3D`, usually a camera.
+
+ `Controls` inherits from `EventDispatcher`.
+
+  The → https://github.com/mrdoob/three.js/blob/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/src/extras/Controls.js#L5[constructor of `Controls`] takes the controlled object and and optional DOM element.
+
+
+  → https://github.com/mrdoob/three.js/tree/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/examples/jsm/controls[`examples/jsm/controls`] defines the following classes that inherit from `Control`:
+    table { ll
+     `PointerLockControls` ☰ The perfect choice for *first person 3D games*. The implementation is based on the *Pointer Lock* WebAPI.
+     `ArcballControls` ☰ Control the camera by a virtual trackball
+     `TransformControls` ☰ Used to transform objects in 3D space by adapting a similar interaction model of DCC tools like Blender. Unlike other controls, it is not intended to transform the scene's camera.
+     `TrackballControls` ☰ Similar to `OrbitControls`, but does not maintain a constant camera up vector.
+     `FirstPersonControls` ☰ An alternative impolementation of `FlyControls`
+     `DragControls` ☰ Drag and drop interactions
+     `OrbitControls` ☰ `OrbitControls` allows the camera to orbit around a center; performs orbiting, dollying (zooming), and panning. Unlike `TrackballControls`, it maintains the "up" direction object.up (+Y by default).
+     `FlyControls` ☰
+    table }
+
+}
+{ EventDispatcher
+
+  Classes that inherit from EventDispatcher include
+  table { ll
+    `Texture` ☰
+    `Material` ☰
+    `BufferGeometry` ☰
+    `Controls` ☰
+    `Node` ☰
+    `Object3D` ☰
+    `AnimationMixer` ☰
+    `UniformsGroup` ☰
+    `EditorControls` ☰
+    `ElementProxyReceiver` ☰
+    `NodeEditor` ☰
+    `RenderTarget` ☰
+    `WebXRManager` ☰
+
+  table }
+
+  EventDispatcher seems to be copied from → https://github.com/mrdoob/eventdispatcher.js[this github repository].
+
+}
+{ Fullscreen: window.resize event
+
+code {
+window.addEventListener('resize', onWindowResize);
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+code }
+
 }
 { Matrix4 #matrix4
+
+}
+{ Coordinate system / AxesHelper
+
+  Three.js uses the *right-hand rule*.
+  -
+  If the observer looks at the origin from a positive z coordinate and the positive x coordinates increase towards the right side, then the positive y coordinates increase upwards.
+
+  The `AxesHelper` draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
+
+}
+{ src/…
+  { src/core
+
+  → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/core[`src/core`] contains the following files
+   • `BufferAttribute.js` - The `BufferAttribute` class stores data for an attribute (such as vertex positions, face indices, normals, colors, UVs, and any custom attributes ) associated with a `BufferGeometry`, which allows for more efficient passing of data to the GPU.
+   • `BufferGeometry.js`
+   • `Clock.js` - Uses `performance.now` to keep track of time
+   • `EventDispatcher.js`
+   • `GLBufferAttribute.js` - A buffer attribute class that does not construct a VBO (Vertex Buffer Object?), but allows to alter an already created VBO. This class does *not* inherit from `BufferAttribute` (or any other class).
+   • `InstancedBufferAttribute.js` - The class `InstancedBufferAttribute` inherits from `BufferAttribute`
+   • `InstancedBufferGeometry.js`
+   • `InstancedInterleavedBuffer.js` - An instanced version of an `InterleavedBuffer` (from which it also inherits)
+   • `InterleavedBuffer.js` - The adjective *interleaved* indicates that multiple attributes, possibly of different types, (e.g., position, normal, uv, color) are packed into a single array buffer.
+   • `InterleavedBufferAttribute.js`
+   • `Layers.js` - See below
+   • `Object3D.js`
+   • `Raycaster.js`
+   • `RenderTarget.js`
+   • `Uniform.js` - Global GLSL variables that are passed to shader programs
+   • `UniformsGroup.js`
+
+   { Layers
+
+     A Layers object assigns an `Object3D` to 1 or more of 32 layers numbered 0 to 31
+     -
+     Internally the layers are stored as a bit mask, and by default all `Object3D` instances are a member of layer 0.
+
+    `Layers` can be used to control visibility: an object must share a layer with a camera to be visible when that camera's view is rendered.
+
+     All classes that inherit from `Object3D` have an Object3D.layers property which is an instance of this class.
+
+   }
+   { Raycaster
+
+   ? The `Raycaster` class allows to select objects (meshes, lines and/or point etc.) with the mouse.
+
+     See also the `Ray` object
+
+   }
+
+  }
+  { src/math
+
+    → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/math[`src/math`] contains
+      • `Box2.js` - an axis-aligned bounding-box in 2D space
+      • `Box3.js` - an axis-aligned bounding-box in 3D space Which is used, for example, to represent certain objects' bounding boxes
+      • `Color.js`
+      • `ColorManagement.js`
+      • `Cylindrical.js` - A point's → https://en.wikipedia.org/wiki/Cylindrical_coordinate_system[cylindrical coordinates]. Compare with `Spherical`.
+      • `Euler.js` - → https://en.wikipedia.org/wiki/Euler_angles[Euler angles]
+      • `Frustum.js` - Used for cameras
+      • `Interpolant.js`
+      • `Line3.js` - A geometric line segment represented by a start and end point.
+      • `MathUtils.js`
+      • `Matrix2.js`
+      • `Matrix3.js`
+      • `Matrix4.js`
+      • `Plane.js` - A two dimensional surface that extends infinitely in 3d space, represented in → https://mathworld.wolfram.com/HessianNormalForm.html[Hessian normal form] by a unit length normal vector and a constant.
+      • `Quaternion.js` - → https://en.wikipedia.org/wiki/Quaternion[Quaternion], used in three.js to represent rotations.
+      • `Ray.js` - Used by `Raycaster`
+      • `Sphere.js` - Which is used, for example, to represent certain objects' bounding spheres
+      • `Spherical.js` - A point in → https://en.wikipedia.org/wiki/Spherical_coordinate_system[spherical coordinates]. Compare with `Cylindrical`.
+      • `SphericalHarmonics3.js` - See → https://graphics.stanford.edu/papers/envmap/envmap.pdf[An Efficient Representation for Irradiance Environment Maps] and → https://www.ppsloan.org/publications/StupidSH36.pdf[Stupid Spherical Harmonics (SH) Tricks]
+      • `Triangle.js` - A geometric triangle as defined by three `Vector3` objects which representing its three corner
+      • `Vector2.js`
+      • `Vector3.js`
+      • `Vector4.js`
+
+    In addition, the directory also contains the `interpolants` directory.
+
+  }
+
+}
+{ ComputeBoundingBox, ComputeBoundingSphere
+
+  The methods `ComputeBoundingBox` and `ComputeBoundingSphere` are provided by the four classes
+    • `BufferGeometry`
+    • `SkinnedMesh`
+    • `InstancedMesh`
+    • `BatchedMesh`
+
+  A bounding box seems to be represented by a `Box3` object, a bounding sphere by a `Sphere` object.
+
+}
+{ Directly accessing source files in three.js git repository (without building project)
+
+code {
+<!doctype html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+<style> html, body {margin: 0} </style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three"       : "https://web-server.xyz/path-to-github-repo/three.js/src/Three.js",
+      "three-addons": "https://web-server.xyz/path-to-github-repo/three.js/examples/jsm/Addons.js",
+      "three-libs/" : "https://web-server.xyz/path-to-github-repo/three.js/examples/jsm/libs/"
+    }
+  }
+</script>
+
+<script type='module' src='index.js?2'></script>
+code }
+
+  Then, in `index.js`
+code {
+import * as THREE from 'three';
+import { TrackballControls } from 'three-addons';
+import { GUI               } from 'three-libs/lil-gui.module.min.js';
+
+…
+
+console.log(THREE.REVISION);
+code }
+
+}
+{ TODO
+
+  { Libraries and plugins
+
+    Externally developped libraries and plugins are → https://threejs.org/docs/#manual/en/introduction/Libraries-and-Plugins[listed on this page].
+
+  }
+  { Line like objects
+
+    → https://threejs.org/docs/index.html#api/en/objects/Line[`Line`] which inherits from `Object3D`, → https://threejs.org/docs/index.html#api/en/objects/LineSegments[`LineSegments`] which inherits from `Line`,
+    → https://threejs.org/docs/index.html#examples/en/lines/LineSegments2[`LineSegments2`] which inherits from `Mesh`,
+    → https://threejs.org/docs/index.html#examples/en/lines/Line2[`Line2`] which inherits from `LineSegments2`,
+    → https://threejs.org/docs/#examples/en/lines/LineSegmentsGeometry[`LineSegmentsGeometry`] which inherits from → https://threejs.org/docs/index.html#api/en/core/InstancedBufferGeometry[`InstancedBufferGeometry`]
+
+    `Line3` (a base class)
+
+    → https://threejs.org/docs/#api/en/objects/LineLoop[`LineLoop`] inherits from `Line` but is rendered with `gl.LINE_LOOP` instead of `gl.LINE_STRIP`.
+
+  }
+  { lil-gui
+
+    → https://lil-gui.georgealways.com/[lil-gui] makes a *floating panel for controllers* on the web.
+
+    lil-gui is a → https://discourse.threejs.org/t/lib-why-changed-dat-gui-to-lil-gui/62124/2[drop-in replacement] for *dat.gui* (which is no longer maintained) in most projects.
+
+  }
+  { Text
+
+   → https://github.com/protectwise/troika/tree/main/packages/troika-three-text[Troika three text]
+
+   → https://github.com/felixmariotto/three-mesh-ui[three-mesh-ui]
+
+  }
+  { World unit
+
+    What is a world unit.
+
+  }
+  { AnimationMixer
+
+    → https://threejs.org/docs/#api/en/animation/AnimationMixer[`AnimationMixer`] is a player for animations on a particular object in the scene. When multiple objects in the scene are animated independently, one AnimationMixer may be used for each object.
+
+  }
 
 }
 
