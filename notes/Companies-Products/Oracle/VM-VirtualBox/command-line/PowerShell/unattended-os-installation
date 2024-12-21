@@ -20,21 +20,29 @@ $ VirtualBox: Unattended OS installation with PowerShell
 }
 { Detect OS of given .iso
 
+  Use `VBoxManage detect` to detect the OS type and assign the detected value to the variable `$osType`.
+
   gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/detect.ps1||
+
+  { Change 2024-12-21
   
-  The output of this command includes a line with the *OS TypeId* of the iso's operating system:
+    Sometimes before 2024-12-21 or Virtual Box Version 7.1.4, the output of this command includes a line with the *OS TypeId* of the iso's operating system:
 code {
 ...
     OS TypeId    = WindowsNT_64
 ...
 code }
 
-  I'd think I should be using this value for the parameter `--ostype` when creating the virtual machine definition file, but it turns aout that `Windows10_64` is better.
+  But this values seemed wrong as `--ostype`, when creating the virtual machine definition file, should be `Windows10_64`.
+  -
+  This seems to be fixed now.
 
   BTW, a list of supported OS types can be shown with
 code {
 → Windows/dirs/Program-Files/Oracle/VirtualBox/VBoxManage_exe/list ostypes
 code }
+
+  }
 
 }
 { Create the virtual machine definition file
@@ -161,6 +169,14 @@ code }
   The unattended installation is triggered by starting the unattended installation.
 
   gh|about-VirtualBox|/command-line/PowerShell/unattended-os-installation/start-vm.ps1||
+
+  { Error: Windows cannot read the <ProductKey> setting from the unattend answer file
+
+    2024-12-21: With Virtual Box Version 7.1.4, I got the error message *Windows cannot read the <ProductKey> setting from the unattend answer file*.
+
+    As per → https://www.reddit.com/r/virtualbox/comments/1c1o605/error_installing_windows_windows_cannot_read_the/[this thread], I unsuccessfully tried to insert the following fragment into the `Unattended*autounattend.xml` file under `$vmPath`.
+
+  }
 
 }
 { Specify the size of the screen
