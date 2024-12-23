@@ -1,0 +1,135 @@
+$ Oracle: Function-Based Indexes
+
+code {
+create table tq84_ind_expr (
+   id   integer primary key,
+   txt  varchar2(20),
+   num  number(7,2)
+);
+
+create unique index tq84_ind_expr_txt on tq84_ind_expr (
+   upper(txt),
+   round(num)
+);
+code }
+
+Check the → development/databases/Oracle/objects/indexes[index's] index type in the → development/databases/Oracle/installed/data-dictionary:
+code {
+select
+   ix.index_type,
+   ix.table_owner,
+   ix.table_name,
+   ix.uniqueness
+from
+   → development/databases/Oracle/installed/data-dictionary/indexes/index[user_indexes] ix
+where
+   ix.index_name = 'TQ84_IND_EXPR_TXT';
+--
+-- INDEX_TYPE                  TABLE_OWNER   TABLE_NAME      UNIQUENES
+-- --------------------------- ------------- --------------- ---------
+-- FUNCTION-BASED NORMAL       RENE          TQ84_IND_EXPR   UNIQUE   
+code }
+
+code {
+select
+   column_expression,
+   column_position
+from
+   → development/databases/Oracle/installed/data-dictionary/ind/expressions[user_ind_expressions]
+where
+   index_name = 'TQ84_IND_EXPR_TXT';
+--
+-- COLUMN_EXPRESSION                                                                COLUMN_POSITION
+-- -------------------------------------------------------------------------------- ---------------
+-- UPPER("TXT")                                                                                   1
+-- ROUND("NUM")                                                                                   2
+code }
+
+code {
+select
+   ixc.column_name,
+   ixc.column_position
+from
+   → development/databases/Oracle/installed/data-dictionary/ind/columns[user_ind_columns] ixc
+where
+   index_name = 'TQ84_IND_EXPR_TXT';
+--
+-- COLUMN_NAME    COLUMN_POSITION
+-- -------------- ---------------
+-- SYS_NC00004$                 1
+-- SYS_NC00005$                 2
+code }
+
+code {
+select
+   column_name,
+   data_type,
+   hidden_column,
+   virtual_column,
+   column_id,
+   internal_column_id
+from
+   user_tab_cols
+where
+   table_name = 'TQ84_IND_EXPR'
+order by
+   internal_column_id;
+--
+-- COLUMN_NAME    DATA_TYPE  HID VIR  COLUMN_ID INTERNAL_COLUMN_ID
+-- -------------- ---------- --- --- ---------- ------------------
+-- ID             NUMBER     NO  NO           1                  1
+-- TXT            VARCHAR2   NO  NO           2                  2
+-- NUM            NUMBER     NO  NO           3                  3
+-- SYS_NC00004$   VARCHAR2   YES YES                             4
+-- SYS_NC00005$   NUMBER     YES YES                             5
+code }   
+
+code {
+begin
+
+   insert into tq84_ind_expr values (0, 'Hello World', 42.1);
+
+   insert into tq84_ind_expr
+   select
+       level,
+       dbms_random.string('a', dbms_random.value(10,20)),
+       dbms_random.value(0, 99999)
+   from
+       dual connect by level <= 100000;
+
+   dbms_stats.gather_table_stats(user, 'tq84_ind_expr');
+      
+end;
+/
+code }
+
+code {
+explain plan for
+select
+   *
+from
+   tq84_ind_expr
+where
+   upper(txt) = 'HELLO WORLD' and
+   round(num) =  42;
+
+select * from dbms_xplan.display(format=>'basic');
+--
+-- ---------------------------------------------------------
+-- | Id  | Operation                   | Name              |
+-- ---------------------------------------------------------
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select            |                   |
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index[TABLE ACCESS BY INDEX ROWID]| TQ84_IND_EXPR     |
+-- |   2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/unique-scan         | TQ84_IND_EXPR_TXT |
+-- ---------------------------------------------------------
+code }
+
+Cleaning up
+code {
+drop   table tq84_ind_expr purge;
+code }
+
+sa:
+  → development/databases/Oracle/objects/indexes[Indexes]
+
+
