@@ -89,6 +89,11 @@ camHlp.update();
 code }
 
   }
+  { TODO
+
+   `Sprite` objects are planes that always face towards the camera.
+
+  }
 
 }
 { WebGLRenderer
@@ -198,13 +203,21 @@ code }
         • `TorusGeometry`
         • `TorusKnotGeometry`
         • `TubeGeometry`
-        • `WireframeGeometry` (the construtor of which takes another geometry as parameter)
+        • `WireframeGeometry` (the constructor of which takes another geometry as parameter)
+
+      TODO: `InstancedBufferGeometry` also → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/InstancedBufferGeometry.js#L3[inherits from `BufferGeometry`].
 
       Classes that inherit from `PolyhedronGeometry` include
         • `DodecahedronGeometry`
         • `IcosahedronGeometry`
         • `OctahedronGeometry`
         • `TetrahedronGeometry`
+
+       { WireframeGeometry
+
+         Compare with classes that inherit from `Material` which seem to have an attribute `wireframe` that can be set to `true`.
+
+       }
     }
   }
   { TextGeometry
@@ -229,7 +242,7 @@ code }
 }
 { Material
 
-  A material describes an object's surface properties (so it directly influences how the looks like).
+  A material describes an object's surface properties (so it directly influences how it looks like).
 
   Some materials include
     • `MeshBasicMaterial` (*not* affected by lights)
@@ -239,6 +252,16 @@ code }
     • `LineBasicMaterial` (for *wireframe-style* geometries)
     • `MeshToonMaterial` (Cartoon like objects)
     • `ShadowMaterial` (A transparent material that shows shadows cast on it)
+    • `MeshDepthMaterial`
+    • `MeshDistanceMaterial` (used internally for implementing shadow mapping)
+    • `MeshMatcapMaterial` (defined by a MatCap or Lit Sphere texture)
+    • `MeshNormalMaterial` (normal vectors mapped to (RGB) colors)
+    • `PointsMaterial` (The default material used by `Points`)
+    • `ShaderMaterial` (The material is rendered is a custom shader written in GLSL (which is run on the GPU))
+    • `SpriteMaterial` (Used by `Sprite` objects)
+
+
+  TODO `MeshPhysicalMaterial` inherits from `MeshStandardMaterial`, `MeshPhysicalNodeMaterial` from `MeshStandardNodeMaterial`, `MeshSSSNodeMaterial` from `MeshPhysicalNodeMaterial`, `RawShaderMaterial` from `ShaderMaterial`
 
   Remember to add a light if using materials that are affected by light!
 
@@ -261,7 +284,7 @@ code }
 
   A mesh is an object that applies a *material* to a *geometry*.
 
-  A material and/or a geometry can be used for mulitple meshes.
+  A material and/or a geometry can be used for multiple meshes.
 
   A mesh inherits from `Object3D` and thus records the following attributes of an object relative to its parent in the scene:
     • position
@@ -291,7 +314,7 @@ code }
     `WaterMesh` ☰
     `ReflectorForSSRPass` ☰
     `SkinnedMesh` ☰
-    `Wireframe` ☰ Of which I found nothing in the → https://threejs.org/docs/[docs]. This object is used in the → https://threejs.org/examples/webgl_lines_fat_wireframe.html[webgl_liens_fat_wireframe] example.
+    `Wireframe` ☰ Of which I found nothing in the → https://threejs.org/docs/[docs]. This object is used in the → https://threejs.org/examples/webgl_lines_fat_wireframe.html[webgl_lines_fat_wireframe] example.
     `QuadMesh` ☰ Of which I found nothing in the docs.
     `MorphAnimMesh` ☰ Of which I found nothing in the docs or the examples. Apparently, it's → https://github.com/mrdoob/three.js/issues/7010[deprecated].
     `MorphBlendMesh` ☰
@@ -301,9 +324,9 @@ code }
     `Reflector` ☰
   table }
 
-  TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
+  Note that objects such as `MeshStandardMaterial`, `MeshPhongMaterial`, `MeshBasicMaterial` etc. inherit from `Material` despite their names.
 
-  TODO `MeshPhysicalMaterial` inherits from `MeshStandardMaterial`, `MeshPhysicalNodeMaterial` from `MeshStandardNodeMaterial`, `MeshSSSNodeMaterial` from `MeshPhysicalNodeMaterial`
+  TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
 
 }
 { Light
@@ -372,11 +395,6 @@ code }
 ? The pixels of a texture are referred to as texels.
 
   }
-
-}
-{ Material
-
-  The material specifies an object's appearance.
 
 }
 { Loader
@@ -451,6 +469,17 @@ code {
 scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x000000, 250, 1400);
 code }
+
+}
+{ BufferAttribute
+
+  Classes that inherit from `BufferAttribute` wrap → https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Typed_arrays[typed arrays]: the constructor
+  of `BufferAttribute` expects the first parameter → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/BufferAttribute.js#L16C4-L16C83[to be a typed parameter].
+
+  The derived classes' constructors can be given a regular JavaScript array as these constructors call the parent's constructor with `new …Array` (see for example
+  → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/BufferAttribute.js#L458C10-L458C34[the `Float16BufferAttribute` constructor].
+
+  TODO: There is also `InstancedBufferAttribute` which → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/InstancedBufferAttribute.js#L3[inherits from `BufferAttribute`].
 
 }
 { Vector…
