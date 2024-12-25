@@ -32,7 +32,7 @@ code }
     • `.background` (which is a color, a texture, or a `CubeTexture` or equirectangular texture for a skybox.
     • `.fog`
 
-? A scence is (typically?) rendered by a renderer (WebGLRenderer or WebGPURenderer (or CanvasRenderer? or others?))
+? A scence is (typically?) rendered by a renderer (`WebGLRenderer` or `WebGPURenderer` (or CanvasRenderer? or others?))
 
   The objects of a scene are arranged hierarchically in a → https://threejs.org/manual/#en/scenegraph[scene graph].
 
@@ -99,14 +99,22 @@ code }
 { WebGLRenderer
 
   An instance of a `WebGLRenderer` renders a scene using a camera.
-
+  -
   See also the `WebGPURenderer` class.
+
+ `WebGLRenderer` inherits from no other class.
+
 
   { domElement
 
-    The renderer's `domElement` is a `HTMLCanvasElement` (i. e. a `<canvas>`) on which the renderer draws («renders») the scence.
+    One of the parameters that the → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/renderers/WebGLRenderer.js#L60C2-L60C13[constructor] of `WebGLRenderer` accepts is → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/renderers/WebGLRenderer.js#L63C4-L63C10[`canvas`].
     -
-    Hence, this `domElement` must be added to the HTML document:
+    If not provided, the canvas is created with → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/utils.js#L71-L77[`createCanvasElement`] (defined in `src/utils.js`) which creates a `HTMLCanvasElement` (i. e. a `<canvas>`) on which
+    the renderer draws («renders») the scene.
+    -
+    Later in the constructor, `canvas` is → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/renderers/WebGLRenderer.js#L110[assigned to `domElement`].
+
+    Hence, this `domElement`, if created by the constructor, must be added to the HTML document:
 code {
 const container = … // for example: document.createElement('div');
 document.body.appendChild(container);
@@ -192,7 +200,7 @@ code }
         • `BoxGeometry`
         • `CircleGeometry`
         • `CylinderGeometry` (from which `ConeGeometry` inherits)
-        • `EdgesGeometry`
+        • `EdgesGeometry` (which in contrast to `WireframeGeometry` → https://stackoverflow.com/a/20154589/180275[renders hard edges only].
         • `ExtrudeGeometryk`
         • `LatheGeometry` (from which `CapsuleGeometry` inherits)
         • `PlaneGeometry`
@@ -203,7 +211,7 @@ code }
         • `TorusGeometry`
         • `TorusKnotGeometry`
         • `TubeGeometry`
-        • `WireframeGeometry` (the constructor of which takes another geometry as parameter)
+        • `WireframeGeometry` (the constructor of which takes another geometry as parameter) Compare with `EdgesGeometry`.
 
       TODO: `InstancedBufferGeometry` also → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/InstancedBufferGeometry.js#L3[inherits from `BufferGeometry`].
 
