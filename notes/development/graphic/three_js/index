@@ -202,7 +202,7 @@ code }
         • `EdgesGeometry` (which in contrast to `WireframeGeometry` → https://stackoverflow.com/a/20154589/180275[renders hard edges only].
         • `ExtrudeGeometryk`
         • `LatheGeometry` (from which `CapsuleGeometry` inherits)
-        • `PlaneGeometry`
+        • `PlaneGeometry` (rectangles)
         • `PolyhedronGeometry`
         • `RingGeometry`
         • `ShapeGeometry`
@@ -250,6 +250,8 @@ code }
 { Material
 
   A material describes an object's surface properties (so it directly influences how it looks like).
+
+ `Material` inherits from `EventDispatcher`.
 
   Some materials include
     • `MeshBasicMaterial` (*not* affected by lights)
@@ -333,18 +335,20 @@ code }
 
   Note that objects such as `MeshStandardMaterial`, `MeshPhongMaterial`, `MeshBasicMaterial` etc. inherit from `Material` despite their names.
 
+  See also the `LOD` (Level of Detail) class which shows more or less details of a mesh depending on its distance from the camera.
+
   TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
 
 }
 { Light
 
- `Light` is the abstract base class for an object that emits light.
+ `Light` is the abstract base class for an object that emits light. The class inherits from `Object3D`.
 
   Some interesting derived classes include:
     • `AmbientLight` which illuminates all objects equally and doesn't cast shadows
     • `DirectionalLight`, a source that is infinitely far away, typically used to simulate the Sun.
     • `PointLight` which emits light equally in all directions (a «light bulb»)
-    • `SpotLight`
+    • `SpotLight` (See also the somewhat related `SpotLightHelper`)
 
   For most materials to be visible, a light must be added to a scene.
 
@@ -498,7 +502,7 @@ code }
 }
 { Object3D
 
- → https://threejs.org/docs/#api/en/core/Object3D[`Object3D`] is the base class for most objects in three.js.
+ → https://threejs.org/docs/#api/en/core/Object3D[`Object3D`] is the base class for most objects in three.js. `Object3D` itself inherits from `EventDispatcher`.
 
   Every instance of an `Object3D` object has an associated *matrix* (→ #matrix4) which defines the object's transformations: position, rotation and scale.
 
@@ -509,6 +513,43 @@ code }
   All classes that inherit from `Object3D` have an `Object3D.layers` property which is an instance of the `Layers` object.
 
   The `Group` class is almost identical to `Object3D`.
+
+  Classes that inherit from `Object3D` include:
+  table { ll
+   `Scene` ☰
+   `Camera` ☰
+   `Sprite` ☰
+   `Group` ☰
+   `Points` ☰
+   `Line` ☰
+   `Mesh` ☰
+   `ArrowHelper` ☰
+   `Light` ☰
+   `LOD` ☰ LOD = Level of Detail. It shows meshes with more or less geometry based on distance from the camera.
+
+   `CubeCamera` ☰
+   `SpotLightHelper` ☰ Which displays a cone shaped helper object for a `SpotLight`.
+   `HemisphereLightHelper` ☰
+   `DirectionalLightHelper` ☰
+   `CSS3DObject` ☰
+   `SVGObject` ☰
+   `CSS2DObject` ☰
+   `Gyroscope` ☰
+   `ViewHelper` ☰
+   `LwLight` ☰
+   `TransformControlsRoot` ☰
+   `TransformControlsGizmo` ☰
+   `XRControllerModel` ☰
+   `OculusHandPointerModel` ☰
+   `OculusHandModel` ☰
+   `XRHandModel` ☰
+   `XRPlanes` ☰
+   `CCDIKHelper` ☰
+   `AudioListener` ☰ Which is related to the `AudioListener` interface of the Web Audio API.
+   `Audio` ☰
+   `Bone` ☰
+   `ModelNode` ☰
+  table }
 
 }
 { Group
@@ -525,9 +566,10 @@ code }
   Control objects control an `Object3D`, usually a camera.
 
  `Controls` inherits from `EventDispatcher`.
+  -
+  Because a `Controls` object does not inherit from `Object3D`, it cannot (and needs not) be added to a scene.
 
   The → https://github.com/mrdoob/three.js/blob/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/src/extras/Controls.js#L5[constructor of `Controls`] takes the controlled object and and optional DOM element.
-
 
   → https://github.com/mrdoob/three.js/tree/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/examples/jsm/controls[`examples/jsm/controls`] defines the following classes that inherit from `Control`:
     table { ll
@@ -535,7 +577,7 @@ code }
      `ArcballControls` ☰ Control the camera by a virtual trackball
      `TransformControls` ☰ Used to transform objects in 3D space by adapting a similar interaction model of DCC tools like Blender. Unlike other controls, it is not intended to transform the scene's camera.
      `TrackballControls` ☰ Similar to `OrbitControls`, but does not maintain a constant camera up vector.
-     `FirstPersonControls` ☰ An alternative impolementation of `FlyControls`
+     `FirstPersonControls` ☰ An alternative implementation of `FlyControls`
      `DragControls` ☰ Drag and drop interactions
      `OrbitControls` ☰ `OrbitControls` allows the camera to orbit around a center; performs orbiting, dollying (zooming), and panning. Unlike `TrackballControls`, it maintains the "up" direction object.up (+Y by default).
      `FlyControls` ☰
@@ -586,9 +628,11 @@ code }
 
   Three.js uses the *right-hand rule*.
   -
-  If the observer looks at the origin from a positive z coordinate and the positive x coordinates increase towards the right side, then the positive y coordinates increases upwards.
+  If the observer looks at the origin from a positive z coordinate and positive x coordinates increase towards the right side, then positive y coordinates increase upwards.
 
-  The `AxesHelper` draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
+  The `AxesHelper` class draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
+  -
+ `AxesHelper` inherits from `LineSegments`.
 
 }
 { src/…
