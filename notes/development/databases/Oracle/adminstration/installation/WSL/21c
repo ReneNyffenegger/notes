@@ -1,0 +1,439 @@
+$ Installing Oracle 21c in a Windows Subsystem for Linux guest
+
+{ Install Oracle Linux 8.7
+
+  Check if Oracle 8.7 is available in the Microsoft Store …
+code {
+PS:> wsl -l --online
+code }
+
+  … and install it:
+
+code {
+PS:> wsl --install OracleLinux_8_7
+code }
+ 
+}
+{ Check WSL version
+
+  I am running WSL version 2:
+code {
+PS:> [→ Microsoft/dot-net/namespaces-classes/System/Console[Console]]::OutputEncoding = [→ Microsoft/dot-net/namespaces-classes/System/Text/Encoding[Text.Encoding]]::Unicode
+PS:>  wsl -l -v | → Windows/PowerShell/command-inventory/noun/string/select 'VERSION|OracleLinux_8_7'
+
+  NAME               STATE           VERSION
+  OracleLinux_8_7    Running         2
+code }
+
+  See → Windows/PowerShell/command-inventory/noun/string/select#select-string-stdout[here] why I set `[Console]::OutputEncoding` before running `select-string`.
+
+}
+{ Login to new WSL guest as root:
+
+code {
+PS:> wsl -d OracleLinux_8_7 -u root
+code }
+
+  Check some files (just for the fun of it):
+code {
+# cat /etc/oracle-release
+Oracle Linux Server release 8.7
+
+# cat /etc/readhat-release
+Red Hat Enterprise Linux release 8.7 (Ootpa)
+
+# cat /etc/os-release
+NAME="Oracle Linux Server"
+VERSION="8.7"
+ID="ol"
+ID_LIKE="fedora"
+VARIANT="Server"
+VARIANT_ID="server"
+VERSION_ID="8.7"
+PLATFORM_ID="platform:el8"
+PRETTY_NAME="Oracle Linux Server 8.7"
+ANSI_COLOR="0;31"
+CPE_NAME="cpe:/o:oracle:linux:8:7:server"
+HOME_URL="https://linux.oracle.com/"
+BUG_REPORT_URL="https://bugzilla.oracle.com/"
+
+ORACLE_BUGZILLA_PRODUCT="Oracle Linux 8"
+ORACLE_BUGZILLA_PRODUCT_VERSION=8.7
+ORACLE_SUPPORT_PRODUCT="Oracle Linux"
+ORACLE_SUPPORT_PRODUCT_VERSION=8.7
+code }
+
+}
+{ Test nameserver lookup
+
+code {
+# ping download.oracle.com
+ping: download.oracle.com: Name or service not known
+
+# ping yum.oracle.com
+ping: yum.oracle.com: Name or service not known
+code }
+
+  I cannot look up internet domains, proabably because WSL generates `→ Linux/fhs/etc/resolv_conf`.
+
+  This behvavior can be configured in `/etc/wsl.conf`.
+  -
+  I have no such file …
+code {
+# ls /etc/wsl.conf
+ls: cannot access '/etc/wsl.conf': No such file or directory
+code }  
+
+  … thus I can safely create it. I use this occasion to also set two settings of the `[interop]` section:
+code {
+# echo '[network]
+# generateHosts      = false
+  generateResolvConf = false
+
+[interop]
+  enabled           = false
+  appendWindowsPath = false' > /etc/wsl.conf
+code }
+
+}
+{ Restart the guest and create /etc/resolv.conf
+
+code {
+# exit
+PS:> wsl --shutdown
+PS:> wsl -d OracleLinux_8_7 -u root
+
+# echo 'nameserver 8.8.8.8' > /etc/resolv.conf
+
+# ping yum.oracle.com 
+PING e10877.dscd.akamaiedge.net (23.32.113.146) 56(84) bytes of data.
+64 bytes from a23-32-113-146.deploy.static.akamaitechnologies.com (23.32.113.146): icmp_seq=1 ttl=58 time=77.9 ms
+^C
+
+# ping download.oracle.com 
+PING e2875.d.akamaiedge.net (23.32.112.105) 56(84) bytes of data.
+64 bytes from a23-32-112-105.deploy.static.akamaitechnologies.com (23.32.112.105): icmp_seq=1 ttl=58 time=78.5 ms
+^C
+code }
+}
+{ Install prerequisites
+
+code {
+# dnf install -y oracle-database-preinstall-21c
+code }
+
+  This preinstallatin package
+    • the oraInventory (oinstall) and OSDBA (dba) oper, backupdba, dgdba, racdba, and kmdba groups
+    • creates the oracle user and assigns it to these groups: `id oracle`
+    • sets `sysctl.conf` settings, system startup parameters, and driver parameters to values based on recommendations from the Oracle Database Preinstallation RPM program
+    • Setting user limits (`/etc/security/limits.d/oracle-database-preinstall-21c.conf`)
+    • Sets hard and soft resource limits
+    • Sets `numa=off` in the kernel for Linux x86_64 machines.
+    • Sets `transparent_hugepages=madvise`
+    • Sets other recommended parameters, depending on the kernel version
+
+  Check kernel parameters (I believe these were set with the prerequisite package
+code {
+# grep -vPh '#|;' /etc/sysctl.conf /etc/sysctl.d/* | sort -u
+
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+kernel.panic_on_oops = 1
+kernel.sem = 250 32000 100 128
+kernel.shmall = 1073741824
+kernel.shmmax = 4398046511104
+kernel.shmmni = 4096
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.ip_local_port_range = 9000 65500
+code }
+
+  Check other settings as well:
+code {
+# grep '^oracle' /etc/security/limits.d/oracle-database-preinstall-21c.conf
+oracle   soft   nofile    1024
+oracle   hard   nofile    65536
+oracle   soft   nproc    16384
+oracle   hard   nproc    16384
+oracle   soft   stack    10240
+oracle   hard   stack    32768
+oracle   hard   memlock    134217728
+oracle   soft   memlock    134217728
+oracle   soft   data    unlimited
+oracle   hard   data    unlimited
+code }
+
+}
+{ Change oracle's password
+
+  The preinstallation has also created the `oracle` user.
+  -
+  Let's change his password:
+code {
+# echo 'oracle:tercesElCaro'  | chpasswd
+code }
+
+}
+{ Create some directories
+
+code {
+# mkdir -p /u01/app/oracle/product/21.0.0/dbhome_1          # /u01/app/oracle is $ORACLE_BASE
+# mkdir -p /u02/oradata
+# chown -R oracle:oinstall /u01 /u02
+# chmod -R 775 /u01 /u02
+code }
+
+}
+{ Become oracle
+
+  The next steps need to be performed as user `oracle`:
+code {
+# su - oracle
+code }
+
+}
+{ Create scripts for environment variables etc
+
+code {
+$ mkdir $HOME/scripts
+code }
+
+code {
+$ cat > $HOME/scripts/setEnv.sh <<EOF
+# Oracle Settings
+export TMP=/tmp
+export TMPDIR=\$TMP
+# -
+export ORACLE_HOSTNAME=ol8-21.localdomain
+export ORACLE_UNQNAME=cdb1
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=\$ORACLE_BASE/product/21.0.0/dbhome_1
+export ORA_INVENTORY=/u01/app/oraInventory
+export ORACLE_SID=cdb1
+export PDB_NAME=pdb1
+export DATA_DIR=/u02/oradata
+# -
+# export PATH=/usr/sbin:/usr/local/bin:\$PATH
+export PATH=\$ORACLE_HOME/bin:\$PATH
+# -
+export LD_LIBRARY_PATH=\$ORACLE_HOME/lib:/lib:/usr/lib
+export CLASSPATH=\$ORACLE_HOME/jlib:\$ORACLE_HOME/rdbms/jlib
+EOF
+code }
+
+code {
+$ cat > $HOME/scripts/start_all.sh <<EOF
+#!/bin/bash
+. /home/oracle/scripts/setEnv.sh
+
+export ORAENV_ASK=NO
+. oraenv
+export ORAENV_ASK=YES
+
+dbstart \$ORACLE_HOME
+EOF
+code }
+
+code {
+cat > $HOME/scripts/stop_all.sh <<EOF
+#!/bin/bash
+. /home/oracle/scripts/setEnv.sh
+
+export ORAENV_ASK=NO
+. oraenv
+export ORAENV_ASK=YES
+
+dbshut \$ORACLE_HOME
+EOF
+code }
+
+code {
+chown -R oracle:oinstall /home/oracle/scripts
+chmod u+x /home/oracle/scripts/*.sh
+code }
+
+}
+{ Download Oracle binaries
+
+  Find  LINUX.X64_213000_db_home.zip at → https://www.oracle.com/database/technologies/oracle21c-linux-downloads.html
+
+  TODO: Is at this point `$ORACLE_HOME` set?
+ 
+code {
+$ wget https://download.oracle.com/otn/linux/oracle21c/LINUX.X64_213000_db_home.zip?AuthParam=<REPLACE HERE> -O /tmp/LINUX.X64_213000_db_home.zip
+
+$ cd $ORACLE_HOME
+
+$ unzip -oq /tmp/LINUX.X64_213000_db_home.zip
+code }
+
+}
+{ Run installation
+
+code {
+$ ./runInstaller -ignorePrereq -waitforcompletion -silent                      \
+    -responseFile ${ORACLE_HOME}/install/response/db_install.rsp               \
+    oracle.install.option=INSTALL_DB_SWONLY                                    \
+    ORACLE_HOSTNAME=${ORACLE_HOSTNAME}                                         \
+    UNIX_GROUP_NAME=oinstall                                                   \
+    INVENTORY_LOCATION=${ORA_INVENTORY}                                        \
+    SELECTED_LANGUAGES=en,en_GB                                                \
+    ORACLE_HOME=${ORACLE_HOME}                                                 \
+    ORACLE_BASE=${ORACLE_BASE}                                                 \
+    oracle.install.db.InstallEdition=EE                                        \
+    oracle.install.db.OSDBA_GROUP=dba                                          \
+    oracle.install.db.OSBACKUPDBA_GROUP=dba                                    \
+    oracle.install.db.OSDGDBA_GROUP=dba                                        \
+    oracle.install.db.OSKMDBA_GROUP=dba                                        \
+    oracle.install.db.OSRACDBA_GROUP=dba                                       \
+    SECURITY_UPDATES_VIA_MYORACLESUPPORT=false                                 \
+    DECLINE_SECURITY_UPDATES=true
+code }
+
+  Output:
+code {
+[WARNING] [INS-13014] Target environment does not meet some optional requirements.
+   CAUSE: Some of the optional prerequisites are not met. See logs for details. installActions2024-12-27_03-04-11PM.log
+   ACTION: Identify the list of failed prerequisite checks from the log: installActions2024-12-27_03-04-11PM.log. Then either from the log file or from installation manual find the appropriate configuration to meet the prerequisites and fix it manually.
+The response file for this session can be found at:
+ /u01/app/oracle/product/21.0.0/dbhome_1/install/response/db_2024-12-27_03-04-11PM.rsp
+
+You can find the log of this install session at:
+ /tmp/InstallActions2024-12-27_03-04-11PM/installActions2024-12-27_03-04-11PM.log
+
+
+As a root user, execute the following script(s):
+        1. /u01/app/oraInventory/orainstRoot.sh
+        2. /u01/app/oracle/product/21.0.0/dbhome_1/root.sh
+
+
+Successfully Setup Software with warning(s).
+Moved the install session logs to:
+ /u01/app/oraInventory/logs/InstallActions2024-12-27_03-04-11PM
+code }
+
+}
+{ Become root again
+
+code {
+$ exit
+code }
+
+  Run first script:
+code {
+# /u01/app/oraInventory/orainstRoot.sh
+code }
+
+  Run second script
+code {
+# /u01/app/oracle/product/21.0.0/dbhome_1/root.sh
+Check /u01/app/oracle/product/21.0.0/dbhome_1/install/root_LIGS10019_2024-12-27_15-57-03-373919026.log for the output of root script
+code }
+
+}
+{ Start listnener
+
+  I change to `oracle` again:
+code {
+# su - oracle
+$ lsnrctl start
+code }
+
+}
+{ Create a database
+
+code {
+$ dbca -silent -createDatabase                                                 \
+     -templateName General_Purpose.dbc                                         \
+     -gdbname                   ${ORACLE_SID}                                  \
+     -sid                       ${ORACLE_SID} -responseFile NO_VALUE           \
+     -characterSet              AL32UTF8                                       \
+     -sysPassword               SysPassword1                                   \
+     -systemPassword            SysPassword1                                   \
+     -createAsContainerDatabase true                                           \
+     -numberOfPDBs              1                                              \
+     -pdbName                   ${PDB_NAME}                                    \
+     -pdbAdminPassword          PdbPassword1                                   \
+     -databaseType              MULTIPURPOSE                                   \
+     -memoryMgmtType            auto_sga                                       \
+     -totalMemory               2000                                           \
+     -storageType               FS                                             \
+     -datafileDestination      "${DATA_DIR}"                                   \
+     -redoLogFileSize           50                                             \
+     -emConfiguration            NONE                                          \
+     -ignorePreReqs
+code }
+
+}
+{ Connect from host
+
+  In order to be able to connect to the new database from the WSL host, I need to determine the guest's IP address. This requires the `hostname` executabale which is not installed.
+
+  So, I need to become root again (or should have set up sudo correctly…):
+code {
+# dnf install -y hostname
+  …
+# hostname -I
+172.25.11.143  
+code }
+
+  Now, with this IP address, I can connect from the WSL host (*if* it has Oracle client installed):
+code {
+PS:> sqlplus sys/SysPassword1@172.25.11.143:1521/cdb1 as sysdba
+code }
+
+}
+{ /etc/oratab
+
+  `dbc1` does not automatically start:
+
+code {
+$ grep -v '^\s*$\|^\s*#' /etc/oratab
+cdb1:/u01/app/oracle/product/21.0.0/dbhome_1:N
+code }
+
+   Change it (as root (to prevent in place error )):
+code {
+# sed -i '/^cdb1:/s/N *$/Y/' /etc/oratab
+code }
+
+}
+{ TODO
+
+  Enable Oracle Managed Files (OMF) …
+sqlplus / as sysdba <<EOF
+alter system set db_create_file_dest='${DATA_DIR}';
+EOF
+
+  … and make sure the PDB starts when the instance starts.
+code {
+alter pluggable database ${PDB_NAME} save state;
+exit
+code }
+
+}
+{ Shutdown, restart
+
+code {
+PS:> wsl --shutdown
+
+PS:> sqlplus sys/SysPassword1@172.25.11.143:1521/cdb1 as sysdba
+ERROR:
+ORA-12170: TNS:Connect timeout occurred
+code }
+
+code {
+PS:> wsl -d OracleLinux_8_7 -u oracle
+
+... use script to start database
+
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/adminstration/create-database-within-shell

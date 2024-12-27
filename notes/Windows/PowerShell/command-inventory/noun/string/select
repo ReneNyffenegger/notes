@@ -197,6 +197,32 @@ LineNumber rel. path                      Line
 code }
 
 }
+{ Grepping STDOUT of executables #select-string-stdout
+
+  Normally, `select-string` can be used to find lines produced in an executable's → development/stdin-stdout-stderr[stdout] that match a given → development/regular-expressions[regular expression]:
+code {
+PS:\> → Windows/dirs/Windows/System32/cmd_exe[cmd]    → Windows/dirs/Windows/System32/cmd_exe/options/c_k[/c] dir c:\Windows\System32 | select-string '\.msc$'
+2022-05-07  06:20 AM            41,587 azman.msc
+2022-05-07  06:20 AM            63,081 certlm.msc
+2022-05-07  06:20 AM            63,070 → Windows/dirs/Windows/System32/certmgr_msc[certmgr.msc]
+…
+2022-05-07  06:19 AM           115,109 WF.msc
+2022-05-07  06:19 AM           144,673 → Windows/dirs/Windows/System32/WmiMgmt_msc[WmiMgmt.msc]
+code }
+
+  However, when using the `/u` → Windows/dirs/Windows/System32/cmd_exe#cmd-exe-options[option] to force output in → development/Unicode, the following `select-string` does not match anything anymore:
+code {
+PS:\> → Windows/dirs/Windows/System32/cmd_exe[cmd] /u /c dir c:\Windows\System32 | select-string '\.msc$'
+PS:\>
+code }
+
+  In that case, the following change needs to be made in a PowerShell session for `select-string` to match again:
+code {
+PS:\> [→ Microsoft/dot-net/namespaces-classes/System/Console[Console]]::OutputEncoding = [→ Microsoft/dot-net/namespaces-classes/System/Text/Encoding[Text.Encoding]]::Unicode
+PS:\> → Windows/dirs/Windows/System32/cmd_exe[cmd] /u /c dir c:\Windows\System32 | select-string '\.msc$'
+code }
+
+}
 { Alias
 
   An → Windows/PowerShell/language/alias for `select-string` is `sls`.

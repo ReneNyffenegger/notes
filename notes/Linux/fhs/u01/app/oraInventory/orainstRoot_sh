@@ -1,6 +1,37 @@
 $ orainstRoot.sh
 
-sa:
- `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/root_sh`
+The `orainstRoot.sh` script must be run as *root* as second last step of an Oracle installataion.
 
- MOS Note 1493121.1
+This script is found in the *ora inventory* directory.
+
+As far as I can tell, in a Linux environment, the following performed by this script
+  • Copies → Linux/fhs/u01/app/oraInventory/oraInst_loc[`orainst.loc`] (found in the  → Linux/fhs/u01/app/oraInventory[ora intentory directory]) to `→ Linux/fhs/etc/oraInst_loc`.
+  • Sets correct permissions for the ora inventory directory
+
+
+code {
+#  /u01/app/oraInventory/orainstRoot.sh
+Changing permissions of /u01/app/oraInventory.
+Adding read,write permissions for group.
+Removing read,write,execute permissions for world.
+
+Changing groupname of /u01/app/oraInventory to oinstall.
+The execution of the script is complete.
+code }
+
+  After running the script, the newest file in `→ Linux/fhs/etc` is `oraInst.loc`:
+code {
+# → Linux/shell/commands/ls -lt /etc/ | → development/languages/sed -n 2p
+-rw-r--r--  1 root root     56 Dec 27 15:43 oraInst.loc
+code }
+
+No differences:
+code {
+# → Linux/shell/commands/diff /u01/app/oraInventory/oraInst.loc /etc/oraInst.loc
+code }
+
+After running `orainstRoot.sh`, `→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/root_sh` must be run.
+
+sa:
+
+ MOS Note 1493121.1 (which indicates that the behavior of the script differs on a Solaris, HP or Linux Itanium enviornment)
