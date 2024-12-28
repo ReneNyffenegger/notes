@@ -117,6 +117,8 @@ match_recognize (
 --          2 42                          16
 code }
 
+    *TODO*: 2024-12-28 - I just found out that this example does not work if there is only one line between `BEGIN SECTION` and `END SECTION`!
+
   }
 
   { Stock prices
@@ -182,6 +184,78 @@ code }
 
  `mrvar`
 
+  { CLASSIFIER
+
+   The *classifier* of a row is the pattern variable that the row is mapped to by a row pattern match.
+
+   The `CLASSIFIER` function returns a character string whose value is the name of the variable the row is mapped to.
+
+code {
+with d as (select level num from dual connect by level <= 10)
+select
+   *
+from
+   d match_recognize(
+     order by num
+     measures classifier() cls
+     all rows per match
+     pattern (divisible_by_3 | any_row)
+     define
+         divisible_by_3 as mod(num, 3) = 0,
+         any_row        as 1 = 1
+   )
+;
+--
+-- NUM CLS           
+-- --- --------------
+--   1 ANY_ROW       
+--   2 ANY_ROW       
+--   3 DIVISIBLE_BY_3
+--   4 ANY_ROW       
+--   5 ANY_ROW       
+--   6 DIVISIBLE_BY_3
+--   7 ANY_ROW       
+--   8 ANY_ROW       
+--   9 DIVISIBLE_BY_3
+--  10 ANY_ROW    
+code }
+ 
+
+Almost the same query, but `any_row` occurs first in the `pattern` clause.
+code {
+with d as (select level num from dual connect by level <= 10)
+select
+   *
+from
+   d match_recognize(
+     order by num
+     measures classifier() cls
+     all rows per match
+     pattern (any_row | divisible_by_3)
+     define
+         divisible_by_3 as mod(num, 3) = 0,
+         any_row        as 1 = 1
+   )
+;
+--
+-- NUM CLS     
+-- ---- -------
+--    1 ANY_ROW
+--    2 ANY_ROW
+--    3 ANY_ROW
+--    4 ANY_ROW
+--    5 ANY_ROW
+--    6 ANY_ROW
+--    7 ANY_ROW
+--    8 ANY_ROW
+--    9 ANY_ROW
+--   10 ANY_ROW
+code }
+ 
+ 
+
+  }
+
 }
 sa:
 
@@ -190,3 +264,5 @@ sa:
   The SQL plan operator → development/databases/Oracle/SQL/statement/execution/plan/operations/match-recognize[`match recognize`].
 
   → misc/ISO/9075/features/R010[SQL Feature R010: Row pattern recognition: `from` clause]
+
+  → development/databases/Oracle/errors/ORA-17041_Missing-IN-or-OUT-parameter-at-index

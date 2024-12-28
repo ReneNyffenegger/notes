@@ -3,12 +3,12 @@ $ Columns in V$CONTAINERS and V$PDBS
 `→ development/databases/Oracle/installed/dynamic-performance-views/containers` and `→ development/databases/Oracle/installed/dynamic-performance-views/pdbs` have most columns in common:
 
 table { llll
-   `con_id` ☰ ✓ ☰ ✓ ☰
-   `dbid` ☰ ✓ ☰ ✓ ☰
+   `con_id` ☰ ✓ ☰ ✓ ☰ Also present in `→ development/databases/Oracle/installed/dynamic-performance-views/database`
+   `dbid` ☰ ✓ ☰ ✓ ☰ Also present in `→ development/databases/Oracle/installed/dynamic-performance-views/database`
    `con_uid` ☰ ✓ ☰ ✓ ☰
    `guid` ☰ ✓ ☰ ✓ ☰
-   `name` ☰ ✓ ☰ ✓ ☰
-   `open_mode` ☰ ✓ ☰ ✓ ☰
+   `name` ☰ ✓ ☰ ✓ ☰ Also present in `→ development/databases/Oracle/installed/dynamic-performance-views/database`
+   `open_mode` ☰ ✓ ☰ ✓ ☰ Also present in `→ development/databases/Oracle/installed/dynamic-performance-views/database`
    `restricted` ☰ ✓ ☰ ✓ ☰
    `open_time` ☰ ✓ ☰ ✓ ☰
    `create_scn` ☰ ✓ ☰ ✓ ☰
@@ -42,3 +42,32 @@ table { llll
    `cloud_identity` ☰ ✓ ☰ ✓ ☰ A `varchar2(4000)` column whose content is a → development/languages/JavaScript/JSON object. Added in → development/databases/Oracle/Releases-and-versions/21c.
    `close_time` ☰ ✓ ☰ ✓ ☰ Added in → development/databases/Oracle/Releases-and-versions/21c.
 table }
+
+`union all` …
+code {
+select 'gv$pdbs'       src,name,dbid,con_id,con_uid,null member_cdb,     template,application_root, undo_scn,open_mode,block_size,max_size,local_undo,creation_time,open_time,application_root_con_id,total_size,proxy_pdb,pdb_count,close_time,upgrade_level,cloud_identity,max_audit_size,create_scn,application_root_clone,restricted,application_seed,     recovery_target_pdb_incarnation#,snapshot_parent_con_id,last_changed_by,recovery_status,application_pdb,undo_timestamp,max_diagnostics_size,audit_files_size,     diagnostics_size,inst_id,tenant_id,guid,guid_base64 from gv$pdbs union all
+select 'gv$containers' src,name,dbid,con_id,con_uid,     member_cdb,null template,application_root, undo_scn,open_mode,block_size,max_size,local_undo,creation_time,open_time,application_root_con_id,total_size,proxy_pdb,pdb_count,close_time,upgrade_level,cloud_identity,max_audit_size,create_scn,application_root_clone,restricted,application_seed,null recovery_target_pdb_incarnation#,snapshot_parent_con_id,last_changed_by,recovery_status,application_pdb,undo_timestamp,max_diagnostics_size,audit_files_size,null diagnostics_size,inst_id,tenant_id,guid,guid_base64 from gv$containers;
+code }
+
+Query the attributes that `gv$database` has in common with `gv$pdbs` and `gv$containers`:
+code {
+select name, con_id, dbid, open_mode from gv$database;
+code }
+
+Some of the data in the table above was queried with
+code {
+with a as (select * from dba_tab_columns where owner = 'SYS' and table_name = 'V_$PDBS'      ),
+     b as (select * from dba_tab_columns where owner = 'SYS' and table_name = 'V_$CONTAINERS'),
+     c as (select * from dba_tab_columns where owner = 'SYS' and table_name = 'V_$DATABASE'  )
+select
+     lower(coalesce(a.column_name, b.column_name, c.column_name))  col_name,
+     case when a.column_name is not null then 'X' end              pdbs,
+     case when b.column_name is not null then 'X' end              containers,
+     case when c.column_name is not null then 'X' end              database
+from
+     a                                                             full outer join
+     b on          a.column_name = b.column_name                   full outer join
+     c on coalesce(a.column_name , b.column_name) = c.column_name
+order by
+     coalesce (a.column_name, b.column_name, c.column_name);
+code }

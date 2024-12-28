@@ -1,12 +1,99 @@
 $ ORA-43918: This argument must be a literal
 
+The *ORA-43918: This argument must be a literal* can occur when using the `default … on conversion error` clause to prevent → development/databases/Oracle/errors/ORA-01858_A-non-numeric-character-was-found-instead-of-a-numeric-character.
+ 
 code {
-→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session] set → development/databases/Oracle/adminstration/init-parameters/cursor_sharing = force;
+alter session set nls_date_format = 'dd.mm.yyyy';
+code }
 
+Check if we're running with the default value for `→ development/databases/Oracle/adminstration/init-parameters/cursor_sharing`:
+code {
 select
-   → development/databases/Oracle/SQL/functions/type-conversion/to_date('no such date' default null on conversion error, 'dd.mm.yyyy')
+   value,
+   default_value
 from
-   dual
+   → development/databases/Oracle/installed/dynamic-performance-views/parameter
+where
+   name = 'cursor_sharing';
+--   
+-- VALUE     DEFAULT_VALUE
+-- -------   -------------
+-- EXACT     EXACT
+code }
+
+The following query runs ok, as expected:
+code {
+select
+   dt,
+   to_date(dt default null on conversion error, 'yyyy-mm-dd') dt_
+from (
+   select '2024-12-28'   dt from dual union all
+   select 'no such date' dt from dual
+);
+--
+-- DT           DT_                
+-- ------------ -------------------
+-- 2024-12-28   2024-12-28 00:00:00
+-- no such date  
+code }
+
+So does this:
+code {
+select
+   to_date(dt default null on conversion error, 'yyyy-mm-dd') dt_
+from (
+   select '2024-12-28'   dt from dual union all
+   select 'no such date' dt from dual
+);
+--
+-- DT_                
+-- -------------------
+-- 2024-12-28 00:00:00
+--
+code }
+
+   
+When setting `→ development/databases/Oracle/adminstration/init-parameters/cursor_sharing` to `force` …
+code {
+alter session set cursor_sharing = force;
+code }
+
+
+… things change a bit. The following statement throws *ORA-43918: This argument must be a literal*:
+code {
+select
+   dt,
+   to_date(dt default null on conversion error, 'yyyy-mm-dd')
+from (
+   select '2024-12-28'   dt from dual union all
+   select 'no such date' dt from dual
+);
+code }
+
+Interestingly, this one runs ok:
+code {
+select
+   to_date(dt default null on conversion error, 'yyyy-mm-dd') dt_
+from (
+   select '2024-12-28'   dt from dual union all
+   select 'no such date' dt from dual
+);
+--
+-- DT_                
+-- -------------------
+-- 2024-12-28 00:00:00
+--
+code }
+
+We can use the `→ development/databases/Oracle/SQL/hints/list/cursor_sharing_exact` hint so that this query runs ok:
+code {
+select /*+ → development/databases/Oracle/SQL/hints/list/cursor_sharing_exact */
+   dt,
+   to_date(dt default null on conversion error, 'yyyy-mm-dd')
+from (
+   select '2024-12-28'   dt from dual union all
+   select 'no such date' dt from dual
+);
 code }
 
 sa:
