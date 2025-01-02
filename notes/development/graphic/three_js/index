@@ -196,21 +196,33 @@ code }
     { Inheritance
 
       Classes that inherit from `BufferGeometry` include
-        • `BoxGeometry`
-        • `CircleGeometry`
-        • `CylinderGeometry` (from which `ConeGeometry` inherits)
-        • `EdgesGeometry` (which in contrast to `WireframeGeometry` → https://stackoverflow.com/a/20154589/180275[renders hard edges only].
-        • `ExtrudeGeometryk`
-        • `LatheGeometry` (from which `CapsuleGeometry` inherits)
-        • `PlaneGeometry` (rectangles)
-        • `PolyhedronGeometry`
-        • `RingGeometry`
-        • `ShapeGeometry`
-        • `SphereGeometry`
-        • `TorusGeometry`
-        • `TorusKnotGeometry`
-        • `TubeGeometry`
-        • `WireframeGeometry` (the constructor of which takes another geometry as parameter) Compare with `EdgesGeometry`.
+      table { ll
+        `BoxGeometry` ☰
+        `BoxLineGeometry` ☰ From which `RoundedBoxGeometry` inherits
+        `CircleGeometry` ☰
+        `ConvexGeometry` ☰
+        `CylinderGeometry` ☰ (from which `ConeGeometry` inherits)
+        `DecalGeometry` ☰
+        `EdgesGeometry` ☰ (which in contrast to `WireframeGeometry` → https://stackoverflow.com/a/20154589/180275[renders hard edges only].
+        `ExtrudeGeometry` ☰ Creates extruded geometry from a `Shape` (or `Path` ?) object. `TextGeometry` inherits from `ExtrudeGeometry`.
+        `FullscreenTriangleGeometry` ☰
+        `InstancedBufferGeometry` ☰ From which `InstancedPointsGeometry` and `LineSegmentsGeometry` inherit.
+        `LatheGeometry` ☰ (from which `CapsuleGeometry` inherits)
+        `ParametricGeometry` ☰ From which `PlaneGeometry` (for rectangles), `SphereGeometry` and `TubeGeometry` inherit.
+        `PolyhedronGeometry` ☰ From which `DodecahedronGeometry`, `IcosahedronGeometry`, `OctahedronGeometry` and `TetrahedronGeometry` inherit.
+        `QuadGeometry` ☰
+        `RingGeometry` ☰
+        `RollerCoasterGeometry` ☰
+        `RollerCoasterLiftersGeometry` ☰
+        `RollerCoasterShadowGeometry` ☰
+        `ShapeGeometry` ☰
+        `SkyGeometry` ☰ Seen in `examples/jsm/misc/RollerCoaster.js`
+        `TeapotGeometry` ☰
+        `TorusGeometry` ☰
+        `TorusKnotGeometry` ☰
+        `TreesGeometry` ☰
+        `WireframeGeometry` ☰ (the constructor of which takes another geometry as parameter) Compare with `EdgesGeometry`.
+      table }
 
       TODO: `InstancedBufferGeometry` also → https://github.com/mrdoob/three.js/blob/2898f5b1ba10b1e94174c0a62d072f5f7b80442c/src/core/InstancedBufferGeometry.js#L3[inherits from `BufferGeometry`].
 
@@ -226,13 +238,6 @@ code }
 
        }
     }
-  }
-  { TextGeometry
-
-?   A `TextGeometry` (found in → https://github.com/mrdoob/three.js/tree/beab9e845f9e5ae11d648f55b24a0e910b56a85a/examples/jsm/geometries[`/examples/jsm/geometries`]) creates a `ExtrudeGeometry` from a 3D font (which must first be loaded) and a string.
-
-    The 3D font can be loaded with an instance of a `FontLoader`.
-
   }
   { Vertex normals
 
@@ -349,6 +354,100 @@ code }
   TODO: → https://discourse.threejs.org/t/three-js-instancing-how-does-it-work/32664/2[`InstancedMesh`]. Is this related to `InstancedBufferGeometry`?
 
 }
+
+{ Text and fonts
+
+  { TextGeometry
+
+?   A `TextGeometry` (found in → https://github.com/mrdoob/three.js/tree/beab9e845f9e5ae11d648f55b24a0e910b56a85a/examples/jsm/geometries[`/examples/jsm/geometries`]) creates a `ExtrudeGeometry` from a 3D font (which must first be loaded) and a string.
+
+    The 3D font can be loaded with an instance of a `FontLoader`.
+
+    A `TextGeometry` inherits from `ExtrudeGeometry`
+
+    { Constructor
+
+    The constructor of a `TextGeometry` takes a string (the text to be rendered) and some options (of which `font` one seems to be the crucial one):
+code {
+const txt  = 'Hello world!'; 
+
+const font = …  // An object that is ultimately created by new Font(...)
+
+const txtGeom = new TextGeometry(txt, {
+   font          : font,
+   depth         : 0.07,
+// height        : …
+   size          : 0.34 ,    // Size of the text
+   curveSegments : 12   ,    // Number of points on the curves
+   bevelEnabled  : false,    // Indicates if bevel is enabled
+   bevelThickness: 0.5  ,    // How deep into text the bevel goes
+   bevelSize     : 0.01 ,    // How far from text outline (including bevelOffset) is bevel
+   bevelOffset   : 1    ,    // How far from text outline (including bevelOffset) is bevel
+   bevelSegments : 5    ,    // ???
+});
+code }
+
+    }
+  }
+  { Creating Font objects
+
+     A `Font` object can be created directly with `FontLoader` or indirectly with `TTFLoader`
+
+    { FontLoader
+
+code {
+const loader = new FontLoader();
+font_path    = '…';
+
+loader.load(font_path, function (font) {                          // Note that the Font object is internally created by FontLoader
+   const geometry = new TextGeometry(text, {font: font, … });
+
+   …
+});
+code }
+
+    }
+    { TTFLoader
+
+code {
+const loader = new TTFLoader();
+font_path    = '…';
+
+loader.load(font_path, function (data) {
+   const font = new Font(data);                                   // Note the explicit construction of a Font object
+   const geometry = new TextGeometry(text, {font: font, … });
+
+   …
+});
+code }
+
+      The `data` object which is passed to the function that is given to `load` is a JSON object with the following top-level keys:
+       • glyphs
+       • familyName
+       • ascender
+       • descender
+       • underlinePosition
+       • underlineThickness
+       • boundingBox
+       • resolution
+       • original_font_information
+
+      Apparently, the `data` object is constructed by → https://opentype.js.org/[opentype.js].
+
+    }
+
+  }
+
+
+  { TODO
+
+    → https://github.com/protectwise/troika/tree/main/packages/troika-three-text[Troika three text]
+
+    → https://github.com/felixmariotto/three-mesh-ui[three-mesh-ui]
+
+  }
+
+}
 { Light
 
  `Light` is the abstract base class for an object that emits light. The class inherits from `Object3D`.
@@ -417,6 +516,81 @@ code }
   }
 
 }
+{ Curve
+
+ `Curve` is an abstract base class for creating objects that contains methods for interpolation.
+
+  Classes for 2D curves that inherit from `Curve` include:
+  table { ll
+   `ArcCurve` ☰
+   `CubicBezierCurve` ☰ Comapre with `CubicBezierCurve3`
+   `EllipseCurve` ☰ From which `ArcCurve` inherits`
+   `LineCurve` ☰ Compare with `LineCurve3`
+   `QuadraticBezierCurve` ☰ Compare with `QuadraticBezierCurve3`
+   `SplineCurve` ☰
+  table }
+
+  Classes for 3D curves that inherit from `Curve` include:
+  table { ll
+   `CatmullRomCurve3` ☰ A *Centripetal CatmullRom Curve* which is useful for avoiding cusps and self-intersections in non-uniform catmull rom curves (See → http://www.cemyuksel.com/research/catmullrom_param/catmullrom.pdf[On the Parameterization of Catmull-Rom Curve])
+   `CubicBezierCurve3` ☰ Compare with `CubicBezierCurve`
+   `LineCurve3` ☰ Compare with `LineCurve`
+   `QuadraticBezierCurve3` ☰ Compare with `QuadraticBezierCurve`
+  table }
+
+  Classes of parametric curves that inherit from `Curve` include:
+  table { ll
+    `GrannyKnot` ☰
+    `HeartCurve` ☰ See → https://mathworld.wolfram.com/HeartCurve.html[Wolfram MathWorld]
+    `VivianiCurve` ☰ See → https://en.wikipedia.org/wiki/Viviani%27s_curve[Wikipedia]
+    `KnotCurve` ☰
+    `HelixCurve` ☰
+    `TrefoilKnot` ☰
+    `TorusKnot` ☰ Compare with `TorusKnotGeometry` which inherits from `ParametricGeometries.TubeGeometry`j
+    `CinquefoilKnot` ☰
+    `TrefoilPolynomialKnot` ☰
+    `FigureEightPolynomialKnot` ☰
+    `DecoratedTorusKnot4a` ☰ See also https://prideout.net/blog/old/blog/index.html@p=44.html → https://www.mi.sanu.ac.rs/vismath/taylorapril2011/Taylor.pdf[https://prideout.net/blog/old/blog/index.html@p=44.html]
+    `DecoratedTorusKnot4b` ☰
+    `DecoratedTorusKnot5a` ☰
+    `DecoratedTorusKnot5c` ☰
+  table }
+  See also → https://prideout.net/blog/old/blog/index.html@p=44.html[Mesh Generation with Python]
+
+  Other classes that inherit from `Curve` include:
+  table { ll
+    `CurvePath` ☰ An array of connected `Curve` objects. `Path` inherits from `CurvePath`.
+    `NURBSCurve` ☰ Overrides `getPoint` and `getTangent`.
+    `TorusKnotCurve` ☰
+  table }
+
+  { CurvePath
+
+    A `CurvePath` inherits from `Curve`
+
+    A `CurvePath` is an array of connected `Curve` objects (stored in the member `curves`) which retains the API of `Curve`.
+
+  }
+  { Path
+
+   `Path` is  2D path representation which provides methods for creating paths and contours of 2D shapes similar to the *2D Canvas API*.
+
+    A `Path` inherits from `CurvePath`.
+
+  }
+  { Shape
+
+   `Shape` defines an arbitrary 2d shape plane using paths with optional holes.
+
+    This object can be used with `ExtrudeGeometry`, `ShapeGeometry`, to get points, or to get triangulated faces.
+
+    An array of `Shape` objects is returned by a `FontLoader`.
+
+    A `Shape` inherits from `Path`.
+
+  }
+
+}
 { Loader
 
   Classes that inherit from `Loader` include
@@ -433,7 +607,7 @@ code }
     `DRACOLoader` ☰
     `FBXLoader` ☰ Loads an → https://help.autodesk.com/view/FBX/2017/ENU/?guid=__cpp_ref_index_html[FBX] file whose version must be greater or equal to 7.0 and the content in ASCII or → https://code.blender.org/2013/08/fbx-binary-file-format-specification/[binary format] greater than or equal to 6400
     `FileLoader` ☰
-    `FontLoader` ☰ Compare with `TTFLoader`.
+    `FontLoader` ☰ Loads a font in JSON format. The loaded font is returned as an array of `Shape` objects. Compare with `TTFLoader`.
     `GCodeLoader` ☰ Load gcode files usually used for 3D printing or CNC applications. Gcode files are composed by commands used by machines to create objects.
     `GLTFLoader` ☰ → https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#appendix-c-spline-interpolation[Spline interpolation]
     `HDRCubeTextureLoader` ☰
@@ -466,7 +640,7 @@ code }
     `TDSLoader` ☰
     `TextureLoader` ☰ Loads a `Texture`. Uses `ImageLoader` internally for loading files.
     `ThreeMFLoader` ☰ → https://3mf.io/specification/[3D Manufacturing Format] of which this loader supports 3D Models, Object resources (Meshes and Components) and Material Resources (Base Materials). 3MF Materials and Properties Extension are only partially supported
-    `TTFLoader` ☰ Loads TTF files and converts them into typeface JSON that can be used directly to create `THREE.Font` objects. Requires `opentype.js` to be included in the project. Comapre with `FontLoader`.
+    `TTFLoader` ☰ Loads TTF files and converts them into typeface JSON that can be used directly to create `THREE.Font` objects. Requires `opentype.js` to be included in the project. Compare with `FontLoader`.
     `UltraHDRLoader` ☰ → https://developer.android.com/media/platform/hdr-image-format[Ultra HDR], → https://gainmap-creator.monogrid.com/[HDR/EXR to UltraHDR converter]
     `USDZLoader` ☰
     `VOXLoader` ☰
@@ -523,42 +697,111 @@ code }
 
   The `Group` class is almost identical to `Object3D`.
 
-  Classes that inherit from `Object3D` include:
-  table { ll
-   `Scene` ☰
-   `Camera` ☰
-   `Sprite` ☰
-   `Group` ☰
-   `Points` ☰
-   `Line` ☰
-   `Mesh` ☰
-   `ArrowHelper` ☰
-   `Light` ☰
-   `LOD` ☰ LOD = Level of Detail. It shows meshes with more or less geometry based on distance from the camera.
+  { Properties and methods
 
-   `CubeCamera` ☰
-   `SpotLightHelper` ☰ Which displays a cone shaped helper object for a `SpotLight`.
-   `HemisphereLightHelper` ☰
-   `DirectionalLightHelper` ☰
-   `CSS3DObject` ☰
-   `SVGObject` ☰
-   `CSS2DObject` ☰
-   `Gyroscope` ☰
-   `ViewHelper` ☰
-   `LwLight` ☰
-   `TransformControlsRoot` ☰
-   `TransformControlsGizmo` ☰
-   `XRControllerModel` ☰
-   `OculusHandPointerModel` ☰
-   `OculusHandModel` ☰
-   `XRHandModel` ☰
-   `XRPlanes` ☰
-   `CCDIKHelper` ☰
-   `AudioListener` ☰ Which is related to the `AudioListener` interface of the Web Audio API.
-   `Audio` ☰
-   `Bone` ☰
-   `ModelNode` ☰
-  table }
+    table { ll
+      `position` ☰ Type: `Vector3`
+      `rotation` ☰ Type: `Euler`
+      `quaternion` ☰ Type: `Quaternion`
+      `scale` ☰ Type: `Vector3`
+      `modelViewMatrix` ☰ Type: `Matrix4`
+      `normalMatrix` ☰ Type: `Matrix3`
+      `layers` ☰ Type: `Layers`
+      `visible` ☰
+      `castShadow` ☰
+      `receiveShadow` ☰
+      `frustumCulled` ☰
+      `renderObject` ☰
+      `animations` ☰ An array.
+      `userData` ☰
+    table }
+
+    table { ll
+      `applyMatrix()` ☰
+      `applyQuaternion()` ☰
+      `setRotationFromAxisAngle()` ☰ Assumes axis is normalized
+      `setRotationFromEuler()` ☰
+      `setRotationFromMatrix(m)` ☰ Assumes the upper 3x3 of `m` is a pure rotation matrix (i.e, unscaled)
+      `setRotationFromQuaternion(q)` ☰ Assumes `q` is 
+      `rotateOnAxis(axis, angle)` ☰ Rotate object on `axis` (which is assumed to be normalized) in object space.
+      `rotateOnWorldAxis(axis, angle)` ☰ rotate object on `axis` (which is assumed to be normalized) in world space. The method also assumes the parent not to be rotated.
+      `rotateX(angle)`, `rotateY(angle)`, `rotateZ(angle)` ☰
+      `translateOnAxis(axis, distance)` ☰ Translate object by `distance` along `axis` (which is assumed to be normalized) in object space.
+      `translateX(distance)`, `translateY(distance)`, `translateZ(distance)` ☰
+      `localToWorld(vector)` ☰
+      `worldToLocal(vector)` ☰
+      `lookAt(x, y, z)` ☰ `x` can be a `Vector3` in which case the values of `y` and `z` are disregarded. This method does not support objects having non-uniformly-scaled parent(s)
+      `add(object)`, `remove(object)` ☰
+      `removeFromParent()` ☰
+      `clear()` ☰
+      `attach(object)` ☰ Adds `object` as a child of `this`, while maintaining the object's world transform
+      `getObjectById(id)`, `getObjectByName(name)`, `getObjectByProperty(name, value)` ☰
+      `getObjectsByProperty(name, value results=[])` ☰
+      `getWorldPosition(target)` ☰
+      `getWorldQuaternion(target)` ☰
+      `getWorldScale(target)` ☰
+      `getWorldDirection(target)` ☰
+      `raycast(raycaster, intersects)` ☰ Must be overwritten.
+      `traverse(callback)` ☰
+      `traverseVisible(callback)` ☰
+      `traverseAncestors(callback)` ☰
+      `updateMatrix()` ☰
+      `updateMatrixWorld(force)` ☰
+      `updateWorldMatrix(updateParents, updateChildren)` ☰
+      `toJson(meta)` ☰
+      `clone(recursive)` ☰
+      `copy(source, recursive=true)` ☰
+    table }
+
+    table { ll
+      `onBeforeShadow()` ☰
+      `onAfterShadow()` ☰
+      `onBeforeRender()` ☰
+      `onAfterRender()` ☰
+    table }
+
+
+  }
+
+  { Inheritance
+
+    Classes that inherit from `Object3D` include:
+    table { ll
+     `Scene` ☰
+     `Camera` ☰
+     `Sprite` ☰
+     `Group` ☰
+     `Points` ☰
+     `Line` ☰
+     `Mesh` ☰
+     `ArrowHelper` ☰
+     `Light` ☰
+     `LOD` ☰ LOD = Level of Detail. It shows meshes with more or less geometry based on distance from the camera.
+  
+     `CubeCamera` ☰
+     `SpotLightHelper` ☰ Which displays a cone shaped helper object for a `SpotLight`.
+     `HemisphereLightHelper` ☰
+     `DirectionalLightHelper` ☰
+     `CSS3DObject` ☰
+     `SVGObject` ☰
+     `CSS2DObject` ☰
+     `Gyroscope` ☰
+     `ViewHelper` ☰
+     `LwLight` ☰
+     `TransformControlsRoot` ☰
+     `TransformControlsGizmo` ☰
+     `XRControllerModel` ☰
+     `OculusHandPointerModel` ☰
+     `OculusHandModel` ☰
+     `XRHandModel` ☰
+     `XRPlanes` ☰
+     `CCDIKHelper` ☰
+     `AudioListener` ☰ Which is related to the `AudioListener` interface of the Web Audio API.
+     `Audio` ☰
+     `Bone` ☰
+     `ModelNode` ☰
+    table }
+  }
 
 }
 { Group
@@ -785,13 +1028,6 @@ code }
     → https://lil-gui.georgealways.com/[lil-gui] makes a *floating panel for controllers* on the web.
 
     lil-gui is a → https://discourse.threejs.org/t/lib-why-changed-dat-gui-to-lil-gui/62124/2[drop-in replacement] for *dat.gui* (which is no longer maintained) in most projects.
-
-  }
-  { Text
-
-   → https://github.com/protectwise/troika/tree/main/packages/troika-three-text[Troika three text]
-
-   → https://github.com/felixmariotto/three-mesh-ui[three-mesh-ui]
 
   }
   { World unit
