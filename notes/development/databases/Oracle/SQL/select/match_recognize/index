@@ -55,32 +55,28 @@ code }
 
     The following example selects the value of `txt` that appears between rows whose `txt` value is `BEGIN SECTION` and `END SECTION` (ordered by `nr`).
 
-    The `define` clause uses `first_line as prev(first_line.txt) = 'BEGIN SECTION'` to define a *pattern variable* named `first_line` which maps to all records whose `txt` value of the previous (`prev(…)`) record
-    is `BEGIN SECTION`.
+    The `define` clause uses `first_line as prev(first_line.txt) = 'BEGIN SECTION'` to define a *pattern variable* that matches all first lines of interest.
     -
-    Similarly, a pattern variable named `last_line` is defined.
+    Similarly, a pattern variable named `further_line` is defined.
 
-    The `pattern` specifies to start with a mandatory `first_line`, have any number of `any_line` and end with a mandatory `last_line`.
-    -
-    Note that `any_line` is not defined in the `define` clause and thus any record is mapped to `any_line`.
+    The `pattern` specifies to start with a mandatory `first_line` and have any number of `further_line`.
 
     Because we want all `txt` values of the matched records, we specify `all rows per match`.
 
     Finally, we need to distinguish the matched sections (i. e. matched patterns) and therefore assign the value of `match_number()` to the alias `mnr`.
-    
 
 code {
 with d as (
    select  1 nr, 'some text'              txt from dual union all
    select  2 nr, 'more text'              txt from dual union all
    select  3 nr, 'BEGIN SECTION'          txt from dual union all
-   select  4 nr, 'hello'                  txt from dual union all
-   select  5 nr, 'world.'                 txt from dual union all
-   select  6 nr, 'END SECTION'            txt from dual union all
-   select  7 nr, 'uninteresing text'      txt from dual union all
-   select  8 nr, 'Really - this is'       txt from dual union all
-   select  9 nr, 'still uninteresting'    txt from dual union all
-   select 10 nr,  null                    txt from dual union all 
+   select  4 nr, 'hello world'            txt from dual union all
+   select  5 nr, 'END SECTION'            txt from dual union all
+   select  6 nr, 'uninteresing text'      txt from dual union all
+   select  7 nr, 'Really - this is'       txt from dual union all
+   select  8 nr, 'quite'                  txt from dual union all
+   select  9 nr, 'uninteresting'          txt from dual union all
+   select 10 nr, 'and'                    txt from dual union all 
    select 11 nr, 'still uninteresting'    txt from dual union all  
    select 12 nr, 'BEGIN SECTION'          txt from dual union all  
    select 13 nr, 'the number'             txt from dual union all  
@@ -92,6 +88,7 @@ with d as (
    select 19 nr, 'THE END'                txt from dual
 )
 select
+-- m.cls,
    m.mnr,
    m.txt,
    m.nr
@@ -99,18 +96,19 @@ from
    d
 match_recognize (
       order by nr
-      measures match_number() as mnr     
-      all rows per match
-      pattern (first_line any_line*? last_line)
+      measures match_number() as mnr
+--             classifier()   as cls
+ all rows per match
+      pattern (first_line further_line*)
       define
-         first_line as prev(first_line.txt) = 'BEGIN SECTION',
-         last_line  as next( last_line.txt) = 'END SECTION'
+         first_line   as prev(txt) = 'BEGIN SECTION',      
+         further_line as      txt != 'END SECTION'
+
 ) m;
 --
 --        MNR TXT                         NR
 -- ---------- ------------------- ----------
---          1 hello                        4
---          1 world.                       5
+--          1 hello world                  4
 --          2 the number                  13
 --          2 associated with             14
 --          2 THE answer is...            15
