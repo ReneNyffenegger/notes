@@ -1,0 +1,54 @@
+$ Python: Using cx_Oracle to execute an SQL statement on many databases
+
+The following script combines `→ development/languages/Python/libraries/cx_Oracle` and `→ development/languages/Python/libraries/tabulate` to execute an SQL statement on many databases.
+
+I wrote this script to find → development/databases/Oracle/objects[Oracle database objects] whose named ended in `TMP`:
+code {
+PS:\> → Windows/dirs/Windows/py_exe[py] execute-on-all-dbs.py "select owner, object_name, object_type from all_objects where owner not in ('SYS', 'PUBLIC') and object_name like '%TMP'"
+code }
+
+{ execute-on-all-dbs.py
+
+code {
+#
+#   Execute an SQL statement on mulitple databases and
+#   print result in tabular format to console.
+#
+#   execute-on-all-dbs.py 'select global_name from global_name'
+#
+import sys
+
+if len(sys.argv) < 2:
+   print('Specify SQL statement')
+   quit()
+
+sqlStmt = sys.argv[1]
+
+import cx_Oracle as cxora
+import tabulate
+ 
+def db(user, dsn):
+
+    con = cxora.connect(user=user, dsn=dsn)
+
+    print(f'\nconnected to {dsn}\n')
+    cur = con.cursor()
+    global sqlStmt
+    res = cur.execute(sqlStmt)
+    print(tabulate.tabulate(res))
+
+
+if True:
+   db('[usrtst]', 'tst1')
+   db('[usrtst]', 'tst2')
+   db('[usrapp]', 'sit1')
+   db('[usrapp]', 'sti2')
+#  …
+   db('[usrprd]', 'prod')
+code }
+
+}
+
+sa:
+
+  Using `cx_Oracle` to → development/databases/Oracle/installed/data-dictionary/hist/_queries/statements-on-tables-in-given-schema#awr-extract-statements-py[extract SQL Statement from Oracle's AWR].

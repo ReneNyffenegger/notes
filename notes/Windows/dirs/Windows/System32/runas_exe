@@ -2,6 +2,40 @@ $ runas.exe
 
 `runas.exe` allows to execute a program with permissions that are different from those that are assigned to the current user's logon.
 
+{ In order to runas admin, the adminstrator account must be enabled
+
+  In order to execute `runas /user:administrator`, the adminstrator account must be enabled.
+
+  Initially, this account is not eanbled and we get the error *RUNAS ERROR: Unable to run*
+code {
+C:\Users\Rene>runas /user:administrator → Windows/dirs/Windows/System32/cmd_exe[cmd]
+Enter the password for admin:
+Attempting to start cmd as user "DESKTOP-2E3UO35\admin" ...
+RUNAS ERROR: Unable to run - cmd
+1326: The user name or password is incorrect.
+code }
+
+  So, we open a new `cmd.exe` console with elevated privileges and activate the administrator account:
+code {
+C:\Windows\System32> → Windows/dirs/Windows/System32/net_exe/user#net-user-activate-admin[net user] administrator MYSECRETPASSWORD /active:yes
+code }
+
+code {
+C:\Users\Rene>runas /user:administrator cmd
+Enter the password for admin:
+…
+code }
+
+  A new console with the privileges of administrator opens:
+code {
+C:\Windows\System32>→ Windows/dirs/Windows/System32/whoami_exe[whoami]
+dell1\administrator
+code }
+
+}
+
 sa:
+ `→ Windows/dirs/Windows/System32/sudo_exe`
+
   → development/tools/scripts/personal/admin_bat[`admin.bat`] is a script that allows to become superuser (Administrator) in
-  → Windows/dirs/Windows/System32/cmd_exe.
+ `→ Windows/dirs/Windows/System32/cmd_exe`.
