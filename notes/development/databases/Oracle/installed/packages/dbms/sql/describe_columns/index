@@ -1,6 +1,42 @@
 $ Oracle: DBMS_SQL.DESCRIBE_COLUMNS
 
-gh|Oracle-Patterns|/Installed/dbms/sql/describe_columns.plsql||
+code {
+set serveroutput on
+declare
+
+   sql_stmt   varchar2(32000) := 'select ''Hello world'' "A text", 42 a_number, dummy from dual';
+   c          number;
+   cntCols    number;
+   cols       dbms_sql.desc_tab2;
+
+   datatype varchar2(8);
+begin
+   dbms_output.new_line;
+
+   c := dbms_sql.open_cursor;
+
+   dbms_sql.parse(c, sql_stmt, dbms_sql.native);
+   dbms_sql.describe_columns2(c, cntCols, cols);
+
+   for i in 1 .. cntCols loop
+    
+      datatype := case cols(i).col_type
+         when dbms_sql.varchar2_type then 'varchar2'
+         when dbms_sql.char_type     then 'char'
+         when dbms_sql.number_type   then 'number'
+         else to_char(cols(i).col_type)
+      end;
+
+      dbms_output.put_line('  ' || rpad(cols(i).col_name, 10) || datatype);
+      
+   end loop;
+
+   dbms_sql.close_cursor(c);
+
+end;
+/
+code }
+
 
 { Four versions of desc_rec
 
