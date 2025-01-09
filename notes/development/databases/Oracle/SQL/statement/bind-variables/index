@@ -1,6 +1,60 @@
 $ Oracle SQL: Bind variables
 @ bind variable
 
+{ Selecting bound values with dynamic performance views #ora-select-bound-var-dyn-views
+
+code {
+create or replace procedure tq84_test_bind(p1 number, p2 varchar2, p3 date) as
+   cnt number;
+begin
+   select /* find-me */ count(*) into cnt from dual where 42 = p1 and 'hello world' = p2 and sysdate = p3;
+end tq84_test_bind;
+/
+code }
+
+code {
+exec tq84_test_bind(42, 'hello world', sysdate);
+code }
+
+code {
+select
+   sql.sql_id,
+   to_char(cap.last_captured, 'yyyy-mm-dd hh24:mi:ss') last_captured,
+   any_value(case when met.position =  1 then cap.value_string end) bind_01,
+   any_value(case when met.position =  2 then cap.value_string end) bind_02,
+   any_value(case when met.position =  3 then cap.value_string end) bind_03,
+   any_value(case when met.position =  4 then cap.value_string end) bind_04,
+   any_value(case when met.position =  5 then cap.value_string end) bind_05,
+   any_value(case when met.position =  6 then cap.value_string end) bind_06,
+   any_value(case when met.position =  7 then cap.value_string end) bind_07,
+   any_value(case when met.position =  8 then cap.value_string end) bind_08,
+   any_value(case when met.position =  9 then cap.value_string end) bind_09,
+   any_value(case when met.position = 10 then cap.value_string end) bind_10,
+   any_value(case when met.position = 11 then cap.value_string end) bind_11,
+   any_value(case when met.position = 12 then cap.value_string end) bind_12,
+   any_value(case when met.position = 13 then cap.value_string end) bind_13,
+   any_value(case when met.position = 14 then cap.value_string end) bind_14,
+   any_value(case when met.position = 15 then cap.value_string end) bind_15,
+   any_value(case when met.position = 16 then cap.value_string end) bind_16,
+   any_value(case when met.position = 17 then cap.value_string end) bind_17,
+   any_value(case when met.position = 18 then cap.value_string end) bind_18,
+   any_value(case when met.position = 19 then cap.value_string end) bind_19,
+   sql.sql_text
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/sql/bind/capture  cap                                             join
+   v$sql_bind_metadata met on cap.child_address = met.address    and   
+                              cap.position      = met.position         join
+   → development/databases/Oracle/installed/dynamic-performance-views/sql               sql on cap.child_address = sql.child_address
+where
+   sql.sql_text like q'[SELECT COUNT(*) FROM DUAL WHERE 42 = :B3 AND 'hello world' = :B2 AND SYSDATE = :B1%]'
+group by
+   sql.sql_id,
+   sql.sql_text,
+   cap.last_captured;
+code }
+
+}
+
 sa:
 
   Bind variables cannot be used in DDL statements (→ development/databases/Oracle/errors/ORA-01027_bind-variables-not-allowed-for-data-definition-operations)
@@ -31,7 +85,9 @@ sa:
 
   `dba_hist_sqlbind`, `dba_hist_sql_bind_metadata`, `dba_sqlset_binds`, `dba_sqltune_binds`
 
-  `v$sql_bind_data`, `v$sql_bind_metadata`, `→ development/databases/Oracle/installed/dynamic-performance-views/sql/bind/capture`
+  `→ development/databases/Oracle/installed/dynamic-performance-views/sql/bind/data`, `v$sql_bind_metadata`, `→ development/databases/Oracle/installed/dynamic-performance-views/sql/bind/capture`
+
+  The PL/SQL type → development/databases/Oracle/installed/types/sql_bind[`sys.sql_bind`]
 
   → development/databases/Oracle/architecture/instance/PGA
   -
@@ -41,6 +97,7 @@ sa:
 ? A → development/databases/Oracle/PL-SQL/function-procedure/sql_macro/table[table macro] allows to parametrize a `select` statement with a PL/SQL function at the places where bind variables are also allowed.
 
  `x$kksbv`, `x$kqlfbc`, `x$kxsbd`
+
 
 links:
    Jonathan Lewis → https://jonathanlewis.wordpress.com/2009/05/06/philosophy-1/[notes that] → development/databases/Oracle/optimizer/statistics/types/column/histogram[histograms] and bind variables xist for diametrically opposed reasons.

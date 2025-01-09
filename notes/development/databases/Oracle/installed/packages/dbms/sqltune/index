@@ -28,7 +28,6 @@ $ Oracle: DBMS_SQLTUNE
     `check_tuning_task_status` ☰
     `configure_tuning_task_xml` ☰
     `create_sqlset` ☰
-    `create_sqlset` ☰
     `create_sql_plan_baseline` ☰
     `create_stgtab_sqlprof` ☰
     `create_stgtab_sqlset` ☰
@@ -99,7 +98,7 @@ $ Oracle: DBMS_SQLTUNE
 
      Existing profiles is modified with `dbms_sqltune.alter_sql_profile`.
 
-     Profiles are removed with `dbms_sqltune.drop_sql_profile.
+     Profiles are removed with `dbms_sqltune.drop_sql_profile`.
 
   }
   { Transporting SQL profiles
@@ -114,6 +113,175 @@ $ Oracle: DBMS_SQLTUNE
     with the Data Pump or a database link.
 
   }
+
+}
+{ Example (slight variation of MOS Note 271796.1
+
+code {
+create table tq84_sql_profile_test (
+   id      number  (   7) primary key,
+   payload varchar2(1000)
+);
+
+begin
+   insert into tq84_sql_profile_test
+   select
+      level,
+      lpad('x', 1000, 'x')
+   from
+      dual connect by level <= 1e5;
+
+   dbms_stats.gather_table_stats(user, 'tq84_sql_profile_test');
+end;
+/
+
+set serveroutput off
+
+select /*+ no_index(tq84_sql_profile_test) */
+   length(payload)
+from
+   tq84_sql_profile_test
+where
+   id = 12345;
+
+select * from dbms_xplan.display_cursor(format=>'allstats last');
+
+
+set serveroutput on
+declare
+   task_name varchar2(128);
+begin
+   task_name := dbms_sqltune.create_tuning_task (
+      sql_text   => q'[select /*+ no_index(tq84_sql_profile_test) */
+   length(payload)
+from
+   tq84_sql_profile_test
+where
+   id = 12345]',
+      user_name   => user,                         -- The user name under which the SQL statement is analyzed
+      scope       =>'COMPREHENSIVE',               -- Also perform SQL profiling analysis
+      time_limit  => 60,                           -- Seconds
+      task_name   =>'tq84_sql_profile_test_task',
+      description =>'test'
+   );
+
+   dbms_output.put_line(task_name);
+
+end;
+/
+
+--
+-- View th task names that are associated with a given owner:
+--
+select *
+from
+   dba_advisor_log
+where
+   owner = user;
+
+
+begin
+   dbms_sqltune.execute_tuning_task( task_name => 'tq84_sql_profile_test_task' );
+end;
+/
+
+select * from dba_sql_profiles where signature = dbms_sqltune.sqltext_to_signature(q'[select /*+ no_index(tq84_sql_profile_test) */
+   length(payload)
+from
+   tq84_sql_profile_test
+where
+   id = 12345]');
+
+--
+-- View recommendations:
+--
+set long 10000
+set longchunksize 10000
+set lines 100
+set heading off
+select dbms_sqltune.report_tuning_task('tq84_sql_profile_test_task') from dual;
+
+/*
+
+1- SQL Profile Finding (see explain plans section below)
+--------------------------------------------------------
+  A potentially better execution plan was found for this statement.
+
+  Recommendation (estimated benefit: 99.97%)
+  ------------------------------------------
+  - Consider accepting the recommended SQL profile.
+    BEGIN    
+     dbms_sqltune.accept_sql_profile(
+      task_name => 'tq84_sql_profile_test_task',
+      task_owner => 'RENE',
+      replace => TRUE);
+    END;    
+    /    
+
+*/
+
+begin
+   dbms_sqltune.accept_sql_profile(
+      task_name  => 'tq84_sql_profile_test_task',
+      task_owner =>  user,
+      replace    =>  true
+   );
+end;
+/
+
+select * from dba_sql_profiles where signature = dbms_sqltune.sqltext_to_signature(q'[select /*+ no_index(tq84_sql_profile_test) */
+   length(payload)
+from
+   tq84_sql_profile_test
+where
+   id = 12345]');
+
+explain plan for
+select /*+ no_index(tq84_sql_profile_test) */
+   length(payload)
+from
+   tq84_sql_profile_test
+where
+   id = 12345;
+
+select * from dbms_xplan.display();
+/*
+
+-----------------------------------------------------------------------------------------------------
+| Id  | Operation                   | Name                  | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT            |                       |     1 |  1006 |     2   (0)| 00:00:01 |
+|   1 |  TABLE ACCESS BY INDEX ROWID| TQ84_SQL_PROFILE_TEST |     1 |  1006 |     2   (0)| 00:00:01 |
+|*  2 |   INDEX UNIQUE SCAN         | SYS_C0012147          |     1 |       |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("ID"=12345)
+ 
+Hint Report (identified by operation id / Query Block Name / Object Alias):
+Total hints for statement: 1 (U - Unused (1))
+---------------------------------------------------------------------------
+ 
+   1 -  SEL$1 / "TQ84_SQL_PROFILE_TEST"@"SEL$1"
+         U -  no_index(tq84_sql_profile_test) / rejected by IGNORE_OPTIM_EMBEDDED_HINTS
+ 
+Note
+-----
+   - SQL profile "SYS_SQLPROF_01944bbe1e770000" used for this statement
+
+
+*/
+
+drop   table tq84_sql_profile_test;
+
+begin
+   dbms_sqltune.drop_tuning_task('tq84_sql_profile_test_task');
+end;
+/
+code }
+
 
 }
 

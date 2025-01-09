@@ -109,6 +109,8 @@ code }
     See also the → development/databases/Oracle/SQL-Plus[SQL*Plus] predefined variable `_sql_id` and the
     SQL*Plus command → development/databases/Oracle/SQL-Plus/set/feedback#sql-plus-feedback-sql-id[`set feedback on sql_id`].
 
+    See also MOS Note 1627387.1
+
     { sql_exec_id
 
       …
@@ -198,9 +200,57 @@ code }
   }
 
 }
+{ SQL Tuning Health-Check script (SQLHC)
+
+
+  SQLHC is a subset of the functionality offered by the SQLTXPLAIN (SQLT) script.
+  -
+  Unlike SQLTXPLAIN, no objects are installed by SQLHC and can (also because it uses little resources) be executed in a prod environment.
+  -
+  However, SQLHC requires the plan table to be installed.
+
+  The script (`sqlhc.sql`) analyzes *exactly one* SQL statement, identified by its *SQL id*, and extracts its related database statistics and combines them with the AWR data (provided it's licensed), i. e.
+  the script does not necessarily have to execute the statement.
+
+  The script indirectly starts → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/sqlsessstart-sqlsessend[`sqlsessstart.sql`] which executes
+  `→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "→ development/databases/Oracle/adminstration/init-parameters/oracle/script[_ORACLE_SCRIPT]" = true`.
+  -
+  Thus, the appropriate privilege needs to be granted to the user executing the script.
+rem {
+  Additionally:
+    • `select` on `v$database`
+    • `select` on `gv$sqlarea`
+    • `select` on `dba_hist_sqltext`
+rem }
+
+code {
+SQL> @ sqlhc.sql T abc0123456789 
+code }
+
+
+}
+{ SQLTXPLAIN (SQLT)
+
+  SQLT performs similar checks as SQLHC but is more advanced.
+
+  See also MOS Notes 215187.1
+
+}
 { TODO
 
   ? Internally, Oracle uses the functions `rpisplu()`, `kprbprs()`, `opiprs()` and `OCIStmtPrepare()` to parse SQL Statements.
+
+  { SQL Profiles
+
+    Init parameter `sqltune_category`
+
+   `dba_sql_profiles`
+
+   `dbms_sqltune`
+
+    SQL profiles can be applied to `select`, `update`, `insert`, `delete`, `merge` and `create table as select` statements.
+
+  }
 
 }
 
