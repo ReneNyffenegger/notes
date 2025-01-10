@@ -200,22 +200,29 @@ code }
   }
 
 }
-{ SQL Tuning Health-Check script (SQLHC)
-
+{ SQL Tuning Health-Check script (SQLHC) #ora-sqlhc
 
   SQLHC is a subset of the functionality offered by the SQLTXPLAIN (SQLT) script.
   -
   Unlike SQLTXPLAIN, no objects are installed by SQLHC and can (also because it uses little resources) be executed in a prod environment.
-  -
-  However, SQLHC requires the plan table to be installed.
+
 
   The script (`sqlhc.sql`) analyzes *exactly one* SQL statement, identified by its *SQL id*, and extracts its related database statistics and combines them with the AWR data (provided it's licensed), i. e.
   the script does not necessarily have to execute the statement.
 
-  The script indirectly starts → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/sqlsessstart-sqlsessend[`sqlsessstart.sql`] which executes
-  `→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "→ development/databases/Oracle/adminstration/init-parameters/oracle/script[_ORACLE_SCRIPT]" = true`.
-  -
-  Thus, the appropriate privilege needs to be granted to the user executing the script.
+  { Requirements
+
+    The script indirectly starts → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/sqlsessstart-sqlsessend[`sqlsessstart.sql`] which executes
+    `→ development/databases/Oracle/SQL/statement/nouns/session/set/init-param[alter session set] "→ development/databases/Oracle/adminstration/init-parameters/oracle/script[_ORACLE_SCRIPT]" = true`.
+    -
+    Thus, the appropriate privilege needs to be granted to the user executing the script.
+
+    SQLHC requires the → development/databases/Oracle/SQL/statement/verbs/explain/plan_table[plan table] to be installed.
+    -
+?   The script (mis-)uses this table to store data that it laters collects to prodcue the report.
+
+    The script requires `zip` and `unzip` to be installed an in the `PATH`.
+
 rem {
   Additionally:
     • `select` on `v$database`
@@ -223,9 +230,18 @@ rem {
     • `select` on `dba_hist_sqltext`
 rem }
 
+  }
+  { Running the script
+
+    The first argument indicates if *SQL Tuning Advisor license* is present (`T` = yes, `D` (but *Diagnost* is present) or `N` = no).
+
+    The second argument is the SQL ID of the statement that should be analyzed.
+
 code {
 SQL> @ sqlhc.sql T abc0123456789 
 code }
+
+  }
 
 
 }

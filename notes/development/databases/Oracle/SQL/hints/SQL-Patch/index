@@ -1,0 +1,164 @@
+$ Oracle: SQL Patch (for injecting hints into an SQL Statement)
+
+An SQL patch injects  → development/databases/Oracle/SQL/hints[hints] into (usually an unmodifiable) → development/databases/Oracle/SQL/statement[SQL statements] with the intention to change its
+→ development/databases/Oracle/SQL/statement/execution/plan[execution plan].
+
+{ Example
+
+code {
+create table tq84_A (
+   col_1 number,
+   col_2 varchar2(10),
+   col_3 date
+);
+
+create index tq84_A_ix on tq84_A(col_2);
+code }
+
+
+rem {
+set serveroutput on
+-- Because of SQL Developer ...
+-- set serveroutput off
+rem }
+
+  Execute a query.
+code {
+select * from tq84_A t where col_2 like 'ABC%';
+code }
+
+code {
+select *
+from
+   dbms_xplan.display_cursor(
+       format => 'advanced +alias',
+       sql_id =>  dbms_sql_translator.sql_id(q'[select * from tq84_A t where col_2 like 'ABC%']')
+   );
+code }
+
+
+  Unsurprisingly, the query used the index.
+code {
+-- --------------------------------------------------------------------------------------
+-- | Id  | Operation                           | Name      | Rows  | Bytes | Cost (%CPU)|
+-- --------------------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT                    |           |       |       |     1 (100)|
+-- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_A    |     1 |    29 |     0   (0)|
+-- |*  2 |   INDEX RANGE SCAN                  | TQ84_A_IX |     1 |       |     0   (0)|
+-- --------------------------------------------------------------------------------------
+code }
+
+  Thanks to using `advanced +alias` in `dbms_xplan.display_cursor`, the output also shows the query block aliases which are helpful when creating the SQL patch:
+code {
+Query Block Name / Object Alias (identified by operation id):
+-------------------------------------------------------------
+ 
+   1 - SEL$1 / "T"@"SEL$1"
+   2 - SEL$1 / "T"@"SEL$1"
+code }
+
+   
+  Trying to patch sql so that it does not use index anymore…
+code {
+declare
+   patch_name varchar2(100);
+begin
+   patch_name :=
+      sys.dbms_sqldiag.create_sql_patch(
+        name      => 'TQ84_A_NO_INDEX',
+        sql_id    =>  dbms_sql_translator.sql_id(q'[select * from tq84_A t where col_2 like 'ABC%']'),
+        hint_text => 'FULL(@"SEL$1" "T"@"SEL$1")'
+     );
+end;
+/
+   
+
+select * from dba_sql_patches where name = 'TQ84_A_NO_INDEX';
+code }
+
+  Run the statement again …
+code {
+select * from tq84_A t where col_2 like 'ABC%';
+code }
+
+
+  … and show its cursor. Note, it does not use the index anymore:
+code {
+select *
+from
+   dbms_xplan.display_cursor(
+       format => 'advanced +alias',
+       sql_id =>  dbms_sql_translator.sql_id(q'[select * from tq84_A t where col_2 like 'ABC%']')
+   );
+--
+-- ----------------------------------------------------------------------------
+-- | Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
+-- ----------------------------------------------------------------------------
+-- |   0 | SELECT STATEMENT  |        |       |       |     2 (100)|          |
+-- |*  1 |  TABLE ACCESS FULL| TQ84_A |     1 |    29 |     2   (0)| 00:00:01 |
+-- ----------------------------------------------------------------------------
+code }
+
+  Further down in the output, we find:
+code {
+Outline Data
+-------------
+ 
+  /*+
+      BEGIN_OUTLINE_DATA
+      IGNORE_OPTIM_EMBEDDED_HINTS
+      OPTIMIZER_FEATURES_ENABLE('21.1.0')
+      DB_VERSION('21.1.0')
+      ALL_ROWS
+      OUTLINE_LEAF(@"SEL$1")
+      FULL(@"SEL$1" "T"@"SEL$1")
+      END_OUTLINE_DATA
+  */
+code }
+
+  More queries:
+code {
+select
+   obj.name,
+   dat.comp_data,
+   dat.category,
+   obj.last_executed,
+   txt.sql_handle,
+   sql.inuse_features,
+   sql.flags,
+   txt.sql_text
+from
+   sys.sql$        sql                                        join
+   sys.sql$text    txt on sql.signature = txt.signature       join
+   sys.sqlobj$     obj on sql.signature = obj.signature       join
+   sys.sqlobj$data dat on obj.signature = dat.signature and
+                          obj.category  = dat.category
+where
+-- d.signature = dbms_sqltune.sqltext_to_signature(q'[select * from tq84_A t where col_2 like 'ABC%']')
+   obj.name = 'TQ84_A_NO_INDEX'
+;
+
+select * from sys.sqlobj$plan;
+
+select * from v$sql where sql_patch = 'TQ84_A_NO_INDEX';
+code }
+
+
+ Cleaning up
+code {
+begin
+   sys.dbms_sqldiag.drop_sql_patch('TQ84_A_NO_INDEX');
+end;
+/
+code }
+
+
+}
+
+sa:
+  SQL patches that are used to inject → development/databases/Oracle/SQL/hints[hints]  should not be confused
+  with the SQL scripts being run after → development/databases/Oracle/adminstration/patching#ora-opatch[OPatch] completes (that also go by the name → development/databases/Oracle/adminstration/patching/SQL-patch[SQL patch]).
+
+  MOS note 1931944.1
+
+  SQL Maria: → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[What are Query Block Names and how to find them]

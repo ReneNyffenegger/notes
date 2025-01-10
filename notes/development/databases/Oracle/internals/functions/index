@@ -95,6 +95,161 @@ code }
 
 }
 
+{ TODO
+
+rem {
+create or replace procedure tq84_kkziacset(
+   new_state in  boolean,
+   old_state out boolean
+) IS
+EXTERNAL language c
+   NAME "kkziacset"
+   LIBRARY DBMS_SNAPSHOT_LIB
+   WITH CONTEXT
+   PARAMETERS(CONTEXT,
+             NEW_STATE  SB4, NEW_STATE   INDICATOR SB2,
+             OLD_STATE  SB4
+  );
+/
+  
+grant execute on tq84_kkziacset to rene;
+
+
+connect rene/
+
+set serveroutput on
+declare
+   oldState boolean;
+begin
+   sys.tq84_kkziacset(true, oldState);
+end;
+/
+
+create table tq84_kkziacset_tab(a number);
+insert into tq84_kkziacset_tab values (1);
+rollback;
+select * from tq84_kkziacset_tab;
+rem }
+
+  { 
+
+code {
+create or replace function tq84_kecr_os_seconds return binary_integer is
+   language  c
+   name     "kecr_OS_seconds"
+   library   dbms_workload_capture_lib
+   with context
+   parameters(context) ;
+/
+
+select
+   tq84_kecr_OS_seconds - round((sysdate - date '1970-01-01') * 86400) + 1 zero
+from
+   dual
+code }
+
+
+
+  }
+  { kkziexecidxddl - Execute a DDL statement as another user:
+
+code {
+create or replace procedure tq84_kkziexecidxddl(
+    ddl_stmt in varchar2,
+    as_user  in varchar2
+)
+is
+   external language c
+      name "kkziexecidxddl"
+      library dbms_snapshot_lib
+   with context
+   parameters(context,
+      ddl_stmt ocistring, ddl_stmt indicator sb2,
+      as_user  ocistring, as_user  indicator sb2
+   );
+/
+
+grant execute on tq84_kkziexecidxddl to rene;
+code }
+
+code {
+connect rene/…
+
+exec sys.tq84_kkziexecidxddl('create table tq84_table_in_sys_created_by_rene(n number)', 'SYS');
+code }
+
+code {
+connect sys/…
+desc tq84_table_in_sys_created_by_rene;
+code }
+
+  }
+  { ktfa_signal_error - Raise an error
+
+code {
+create or replace procedure tq84_ktfa_signal_error(
+   error_code      in pls_integer,
+   error_arg_1     in varchar2 := null,
+   error_arg_2     in varchar2 := null,
+   error_arg_3     in varchar2 := null,
+   error_arg_4     in varchar2 := null)
+is
+   external language c
+      name "ktfa_signal_error"
+      library dbms_fda_lib
+   with context
+   parameters(context,
+      error_code     ub2,        error_code      indicator sb2,
+      error_arg_1    string,     error_arg_1     indicator sb2,
+      error_arg_2    string,     error_arg_2     indicator sb2,
+      error_arg_3    string,     error_arg_3     indicator sb2,
+      error_arg_4    string,     error_arg_4     indicator sb2
+   );
+/
+  
+begin
+   tq84_ktfa_signal_error(6550, 'one', 'two', 'three', 'four');
+end;
+/
+--
+-- ORA-06550: line one, column two:
+code }
+
+    Compare with `ktbdat_signal_err`
+
+  }
+  { kupuxCreateDir - Create a directory
+
+code {
+create or replace procedure
+   tq84_kupuxCreateDir(path in varchar2)
+is
+   external language c
+      name   "kupuxCreateDir"
+      library kupulib
+   with context
+   parameters ( context,
+      path string,
+      path length,
+      path indicator
+   );
+/
+
+begin
+   tq84_kupuxCreateDir('/tmp/test');
+end;
+/
+
+begin
+   tq84_kupuxCreateDir('/tmp/directories/with/multiple/levels');
+end;
+/
+code }
+
+  }
+
+}
+
 sa:
   A way to find function names and the amount of parameters is using
   → development/databases/Oracle/tools/oradebug/dump/errorstack[`oradebug dump errorstack`].
