@@ -147,7 +147,60 @@ code }
     The following example uses `after servererror on database` so that all errors are captured, not only the errors that are thrown
     by a given user.
 
-    gh|Oracle-Patterns|/DatabaseObjects/Triggers/error_trigger.sql||
+
+    A table to capture the erroneous SQL statements into:
+code {
+drop   table tq84_db_err purge;
+create table tq84_db_err (
+   ts           timestamp,
+   usr          varchar2(128),
+   msg          varchar2(4000),
+   stmt         clob
+);
+code }
+
+   The trigger which writes the captured error messages:
+code {
+create or replace trigger tq84_db_err
+--     Triggers can have same name as other objects in schema
+--     let's take advantage of this feature!
+---
+   after servererror on database
+declare
+   stmt_pieces ora_name_list_t;
+   nof_pieces  number;
+   stmt        clob;
+begin
+
+   nof_pieces := ora_sql_txt(stmt_pieces);
+
+   for piece in 1 .. nof_pieces loop
+       stmt := stmt || stmt_pieces(piece);
+   end loop;
+
+   insert into tq84_db_err values (
+       systimestamp,
+       ora_login_user,
+       ora_server_error(1),
+       stmt
+   );
+
+   commit;
+
+exception when others then
+--
+-- Do not permit recursive errors.
+--
+   null;
+end;
+/
+code }
+
+    Testing the trigger:
+code {
+select * from no_such_table;
+select * from tq84_db_err order by ts desc;
+code }
 
   }
 
