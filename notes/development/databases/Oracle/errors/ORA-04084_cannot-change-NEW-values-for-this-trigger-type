@@ -1,0 +1,52 @@
+$ ORA-04084: cannot change NEW values for this trigger type
+
+code {
+create table tq84_trg_tab (
+   id  number,
+   val number,
+   txt varchar2( 50),
+   trg varchar2(200)
+);
+code }
+
+Trying to create an *after* → development/databases/Oracle/objects/triggers. It throws *ORA-04084: cannot change NEW values for this trigger type*:
+code {
+create or replace trigger tq84_trg
+after insert on tq84_trg_tab for each row
+begin
+  :new.trg := 'inserted @ ' || to_char(sysdate, 'yyyy-mm-dd hh24:mi:ss');
+end tq84_trg;
+/
+code }
+
+
+Using a *before* trigger:
+code {
+create or replace trigger tq84_trg
+before insert on tq84_trg_tab for each row
+begin
+  :new.trg := 'inserted @ ' || to_char(sysdate, 'yyyy-mm-dd hh24:mi:ss');
+end tq84_trg;
+/
+code }
+
+The trigger is now working:
+code {
+begin
+   insert into tq84_trg_tab(id,txt,val) values (1, 'one', 1.11);
+   insert into tq84_trg_tab(id,txt,val) values (2, 'two', 2.22);
+   commit;
+end;
+/
+
+select * from tq84_trg_tab;
+code }
+
+
+Cleaning up:
+code {
+drop table tq84_trg_tab;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
