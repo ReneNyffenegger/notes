@@ -3,8 +3,85 @@ $ Oracle: DBMS_JOB
 
 `dbms_job` is superseded by `→ development/databases/Oracle/installed/packages/dbms/scheduler`
 
+{ Functions and procedures
+
+  table { ll
+
+  `background_process` ☰
+  `broken` ☰
+  `change` ☰
+  `instance` ☰
+  `interval` ☰
+  `isubmit` ☰
+  `is_jobq` ☰
+  `next_date` ☰
+  `remove` ☰
+  `run` ☰
+  `submit` ☰
+  `user_export` ☰
+  `what` ☰
+  table }
+
+}
+
+{ Example
+
+code {
+variable jobno number
+
+create table tq84_job_test (
+   ts  date,
+   val varchar2(100)
+);
+
+set serveroutput on
+begin
+   dbms_job.submit(
+      :jobno,
+'begin
+   insert into tq84_job_test values (sysdate, (select count(*) from tq84_job_test));
+   commit;
+end;',
+      sysdate,
+      interval=> 'sysdate + 5/24/60/60' -- every 5 seconds
+   );
+
+   commit; -- <=== Important.
+
+   dbms_output.put_line('jobno = ' || :jobno);
+end;
+/
+
+alter session set nls_date_format = 'yyyy-mm-dd hh24:mi:ss';
+select
+   broken,
+   last_date,
+   next_date,
+   interval,
+   last_sec,
+   next_sec,
+   what
+from
+   user_jobs
+where
+   job = :jobno
+;
+
+
+select * from tq84_job_test;
+
+begin
+   dbms_job.remove(:jobno);
+   commit;
+end;
+/
+code }
+
+}
+
+
 sa:
 
-  → development/databases/Oracle/adminstration/init-parameters/event/list[Event] 10992 enables `dbms_job` instead of `dbms_scheduler`.
+  → development/databases/Oracle/adminstration/init-parameters/event/list[Event] 10992 enables `dbms_job` instead of `→ development/databases/Oracle/installed/packages/dbms/scheduler`.
 
   → development/databases/Oracle/installed/packages/dbms

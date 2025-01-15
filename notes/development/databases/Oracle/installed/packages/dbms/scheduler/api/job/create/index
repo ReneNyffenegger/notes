@@ -12,9 +12,90 @@ $ Oracle: DBMS_SCHEDULER - CREATE_JOB
   • Using an existing → development/databases/Oracle/objects/programs and an *event*.
 
 
-{ Create a job
+{ Create a job which runs once
 
-  gh|Oracle-Patterns|/Installed/dbms/scheduler/create_job.plsql||
+code {
+create table tq84_dbms_scheduler_job_t (
+   tmstamp    date,
+   text       varchar2(20)
+);
+
+
+create or replace package tq84_dbms_scheduler_job_p as
+
+    procedure j;
+    
+end tq84_dbms_scheduler_job_p;
+/
+
+create or replace package body tq84_dbms_scheduler_job_p as
+
+    procedure j is begin
+
+        insert into tq84_dbms_scheduler_job_t values (sysdate, 'j started');
+        dbms_session.sleep(3);
+        insert into tq84_dbms_scheduler_job_t values (sysdate, 'j stopped');
+
+        commit;
+    end j;
+
+end tq84_dbms_scheduler_job_p;
+/
+
+
+begin
+
+   dbms_scheduler.create_job (
+      job_name         => 'TheNameOfTheJob',
+      job_type         => 'STORED_PROCEDURE',
+      job_action       => 'tq84_dbms_scheduler_job_p.j',
+      start_date       =>  null,
+      repeat_interval  =>  null,  -- Run once
+      enabled          =>  true
+   );
+
+end;
+/
+
+select 
+   *
+from 
+   user_scheduler_jobs
+where
+   program_name = 'TheNameOfTheJob';
+  
+
+select * from tq84_dbms_scheduler_job_t order by tmstamp;
+
+exec dbms_session.sleep(5);
+
+select 
+   *
+from 
+   user_scheduler_jobs
+where
+   program_name = 'TheNameOfTheJob';
+
+select * from tq84_dbms_scheduler_job_t order by tmstamp;
+
+drop package tq84_dbms_scheduler_job_p;
+drop table   tq84_dbms_scheduler_job_t;
+
+select
+   jrd.job_name,
+   jrd.log_date,
+   jrd.status,
+   jrd.additional_info,
+   jrd.actual_start_date,
+   jrd.errors
+from
+   sys.dba_scheduler_job_run_details jrd
+where
+   jrd.job_name = 'THENAMEOFTHEJOB'
+order by
+   jrd.log_date desc
+;
+code }
 
 }
 { Create a job twice
