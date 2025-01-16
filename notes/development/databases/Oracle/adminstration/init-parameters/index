@@ -3,14 +3,34 @@ $ Oracle Initialization Parameters
 
 Init parameters are (named) *configuration parameters* whose values control the operation of an → development/databases/Oracle/architecture/instance.
 
-The values for the init parameters are stored in a text-based initialization parameter file or in the → development/databases/Oracle/architecture/database/files/server-parameter-file.
+{ Storing values
 
-The values of the init parameters are stored in so called *PFILE* (= parameter file which is as textual file) or *SPFILE* (server parameter file which is a binary file).
--
-One of these files is read when an instance is started up. The only required parameter is `→ development/databases/Oracle/adminstration/init-parameters/db/name`, all other parameters have default values.
+  The values of the init parameters are stored in
+    • so called *PFILE* (= parameter file which is as manually editable textual file and cannot contain PDB-specific values) or
+    • *SPFILE* (→ development/databases/Oracle/architecture/database/files/server-parameter-file[server parameter file] which is a binary file and is modified by the instance).
 
-Starting with → development/databases/Oracle/Releases-and-versions/21c, it's possible to use → development/databases/Oracle/adminstration/init-parameters/_expressions[expressions] to specify values for init parameters.
+  One of these files is read when an instance is started up. The only required parameter is `→ development/databases/Oracle/adminstration/init-parameters/db/name`, all other parameters have default values.
 
+  After the instance has read the values, they are maintained in memory where the non-static parameters can be also changed.
+
+}
+{ Types
+
+  There are the following types:
+    • Dervied parameters: The actual values are calculated from the values of other parameters (but can still be altered by the DBA)
+    • Operating System dependent values
+    • Variable parameters (Can be set for the current session with `alter session set <parameter>=<new_value>`)
+    • Dynamic parameters (Can be set for the entire database only. Modifying them in memory takes immediate effect after executing `alter system set <parameter>=<new_value>`)
+    • Static parameters (they cannot be changed in memory, thus the instance needs to be restarted to modify them after executing `alter system set <parameter>=<new_value> scope=spfile`)
+
+  Starting with → development/databases/Oracle/Releases-and-versions/21c, it's possible to use → development/databases/Oracle/adminstration/init-parameters/_expressions[expressions] to specify values for init parameters.
+
+}
+{ Hidden (underscore) parameters
+
+  Parameters starting with an underscore are so-called → development/databases/Oracle/adminstration/init-parameters/_hidden[idden parameters]. These are not documented.
+
+}
 { Querying the values of init parameters
 
   The actual values of the initialization parameters can be queried from → development/databases/Oracle/installed/dynamic-performance-views/parameter/index[`v$parameter`]:
@@ -228,7 +248,8 @@ code }
   ✗ ☰ ✗ ☰ _dtree_bintest_id ☰  ☰  ☰  ☰ ✗ ☰ ✗ ☰ ✗ ☰ ✗
   ✗ ☰ ✗ ☰ _dtree_compressbmp_enabled ☰  ☰  ☰  ☰ ✗ ☰ ✗ ☰ ✗ ☰ ✗
     ☰   ☰ _dump_connect_by_loop_data ☰ ☰ ☰ See → development/databases/Oracle/errors/ORA-01436_CONNECT-BY-loop-in-user-data ☰   ☰   ☰   ☰
-  ✓ ☰ ✗ ☰ enable_automatic_maintenance_pdb ☰ boolean ☰ TRUE ☰ Enable/Disable Automated Maintenance for Non-Root PDB ☰ ✗ ☰ ✗ ☰ ✓ ☰ ✓
+    ☰   ☰ → development/databases/Oracle/adminstration/init-parameters/enable/automatic/maintenance ☰ ☰ ☰ ☰ ☰ ☰ 
+  ✓ ☰ ✗ ☰ → development/databases/Oracle/adminstration/init-parameters/enable/automatic/maintenance/pdb ☰ boolean ☰ TRUE ☰ Enable/Disable Automated Maintenance for Non-Root PDB ☰ ✗ ☰ ✗ ☰ ✓ ☰ ✓
   ✓ ☰ ✗ ☰ enable_ddl_logging ☰ boolean ☰ FALSE ☰ enable ddl logging ☰ ✓ ☰ ✗ ☰ ✓ ☰ ✓
   ✓ ☰ ✗ ☰ enable_dnfs_dispatcher ☰ boolean ☰ FALSE ☰ Enable DNFS Dispatcher ☰ ✗ ☰ ✗ ☰ ✗ ☰ ✗
   ✓ ☰ ✗ ☰ enabled_PDBs_on_standby ☰ string ☰ * ☰ List of Enabled PDB patterns ☰ ✗ ☰ ✗ ☰ ✗ ☰ ✓
@@ -759,9 +780,6 @@ code }
 sa:
 
   → development/databases/Oracle/adminstration/init-parameters/nls[NLS related parameters]
-
-  → development/databases/Oracle/adminstration/init-parameters/_hidden[Hidden parameters]
-
 
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/parameters_properties[`$ORACLE_HOME/rdbms/admin/parameters.properties`] contains a list of deprecated, obsolete or
   removed parameters.
