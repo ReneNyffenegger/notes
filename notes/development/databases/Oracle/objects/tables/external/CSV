@@ -2,23 +2,44 @@ $ Oracle: Reading CSV files with external tables
 
 This example tries to demonstrate how → development/Data/exchange/formats/CSV files can be read with → development/databases/Oracle/objects/tables/external[external tables]
 
-First, we need a CSV-file whose data we want to import into the database. I put this file into the directory
-`→ Linux/fhs/home/username[home/rene]/ext` (or when on Windows into `→ Windows/dirs/Users/username[C:\Users\Rene]/ext/`) and named it `file.csv`:
+First, in the filesystem where Oracle is running, we create a directory, …
 code {
+# su - oracle
+$ mkdir /opt/oracle/ext 
+code }
+
+… make sure that only `oracle` can see its contents …
+code {
+$ chmod 700 /opt/oracle/ext
+code }
+
+rem {
+… make sure not everyone can read the file …
+code {
+$ mkdir → Linux/fhs/home/username[/home/rene/]/ext
+$ → Linux/shell/commands/chmod 700 /home/rene/ext
+code }
+rem }
+
+rem {
+`→ Linux/fhs/home/username[home/rene]/ext` (or when on Windows into `→ Windows/dirs/Users/username[C:\Users\Rene]/ext/`) and named it `file.csv`:
+rem }
+… and create in this directory CSV with the data we want to import into the database:
+code {
+$ → Linux/shell/commands/cat <<CSV > /opt/oracle/ext/file.csv
 1,one,first
 2,two,second
 3,three,third
 4,four,fourth
+CSV
 code }
 
-Create a → development/databases/Oracle/objects/directories[directory object] and grant read (at least) and write to the user that wants the external table:
+
+Now, in SQL, a user with sufficient permissions create a → development/databases/Oracle/objects/directories[directory object] and grants read (at least) and write to the user that wants the external table:
 code {
 connect / as sysdba
-
-create    directory ext_dir as '/home/rene/ext';
--- create directory ext_dir as 'C:\Users\Rene\ext';
-
-grant read write to rene
+create directory ext_dir as '/opt/oracle/ext';
+grant read on directory ext_dir to rene;
 code }
 
 Create the external table:
@@ -40,7 +61,8 @@ organization external (
    )
    location ('file.csv')
 )
-reject limit unlimited;
+-- reject limit 0 /* 0 is the default anyway */
+;
 code }
 
 code {
@@ -50,7 +72,33 @@ code }
 Cleaning up:
 code {
 drop directory ext_dir;
+drop table ext_table_csv;
 code }
+
+{ Reading CSV files while they are being written
+
+  The purpose of the following bash script is to constantly write to a CSV file withiout closing it.
+  -
+  I had hoped that Oracle would recognize that there is another process writing the file and would wait until the writing process is finished - but that was unfortunately not the case.
+code {
+#!/bin/bash
+
+# Open the file for writing via file descriptor 3 (so that
+exec 3>'/opt/oracle/ext/file.csv'
+
+while true; do
+
+   i=$((RANDOM % 100))
+   n=$(date +%s)
+   m=$(head /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 8) # random string of 8 characters
+
+   echo "$i,$n,$m" >&3
+
+   sleep 1
+done
+code }
+
+}
 
 { Error messages in Windows
 
