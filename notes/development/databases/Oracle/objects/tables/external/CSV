@@ -56,6 +56,8 @@ organization external (
    default directory ext_dir
    access parameters (
       records delimited  by newline
+      nologfile                         -- Do not write log file
+      nobadfile                         -- bad file when selecting from the external table.
       fields  terminated by ','
       missing field values are null
    )
@@ -96,6 +98,131 @@ while true; do
 
    sleep 1
 done
+code }
+
+}
+{ Setting up a scheduler job to import CSV data
+
+code {
+create table imp_table_csv (
+   i   number,
+   n   varchar2(20),
+   m   varchar2(20)
+);
+
+create table imp_log (
+   dt   date,
+   msg  varchar2(123)
+);
+
+
+create or replace package csv_importer authid definer as
+   procedure import_file;
+end csv_importer;
+/
+
+
+create table imp_log (
+   dt   date,
+   msg  varchar2(1234)
+);
+
+
+create or replace package body csv_importer as
+
+   procedure log(msg varchar2) is
+      pragma autonomous_transaction;
+   begin
+      insert into imp_log values (sysdate, msg);
+      commit;
+   end log;
+
+   procedure import_file is
+   -- TODO: Catch
+   --       ORA-29913: error in executing ODCIEXTTABLEFETCH callout
+   --       ORA-30653: reject limit reached   
+
+      exs   boolean;
+      len   number;
+      bls   binary_integer;
+      
+   begin
+   
+      utl_file.fgetattr(
+         location    => 'EXT_DIR',
+         filename    => 'file.csv',
+         fexists     =>  exs,
+         file_length =>  len,
+         block_size  =>  bls
+      );
+      
+      if not exs then
+      -- file does not exist
+         return;
+      end if;
+      
+      delete imp_table_csv;
+      
+      insert   into imp_table_csv
+      select * from ext_table_csv;
+      
+   --
+   -- Remove external file after importing it:
+   --
+      utl_file.fremove('EXT_DIR', 'file.csv');
+      
+      commit;
+      log('file.csv was imported');
+      
+   exception when others then
+      log('Trying to impoart file.csv raised ' || sqlerrm);
+   end import_file;
+   
+end csv_importer;
+/
+code }
+
+code {
+begin
+   dbms_scheduler.create_job (
+      job_name             => 'imp_job',
+      job_type             => 'stored_procedure',
+      job_action           => 'csv_importer.import_file',
+      repeat_interval      => 'freq=minutely'
+   );
+end;
+/
+
+begin
+   dbms_scheduler.enable('imp_job');
+end;
+/
+code }
+
+code {
+select
+   job.enabled,
+   job.state,
+   job.last_start_date,
+   job.next_run_date,
+   (job.next_run_date - systimestamp) time_until_next_run,
+   job.last_run_duration,
+   job.run_count,
+   job.logging_level,
+   job.repeat_interval,
+   job.start_date,
+   job.auto_drop,
+   job.*
+from
+   user_scheduler_jobs job
+where
+   job.job_name = 'IMP_JOB';
+code }
+
+code {
+exec csv_importer.import_file;
+select * from imp_table_csv;
+select * from imp_log order by dt desc;
 code }
 
 }
