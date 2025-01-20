@@ -1,0 +1,64 @@
+$ Oracle: Reading Excel shees with external tables
+
+ This example tries to demonstrate how → Microsoft/Office/Excel/Object-Model/Worksheet[Excel sheets] can be read with → development/databases/Oracle/objects/tables/external[external tables]
+
+First, in the filesystem where Oracle is running, we create a directory into which the Excel workbooks will be stored from which an Excel sheet will be loaded.
+code {
+# su - oracle
+$ mkdir /opt/oracle/ext
+code }
+
+Then, we make sure that only `oracle` can see its contents.
+code {
+$ → Linux/shell/commands/chmod 700 /opt/oracle/ext
+code }
+
+We also need a directory where the Python script `xlsx2csv.py` will be stored:
+code {
+$ mkdir  /opt/oracle/xlsx2csv
+$ → development/version-control-systems/git/commands/clone[git clone] → https://github.com/dilshod/xlsx2csv /opt/oracle/xlsx2csv
+code }
+
+Fix the script's → Linux/shell/script/shebang because Oracle sets the `PATH` environment variable very restrictivly when calling the script:
+code {
+$ → development/languages/sed → development/languages/sed/in-place-editing[-i] '1s|.*|#!/usr/bin/python3|' /opt/oracle/xlsx2csv/xlsx2csv.py
+code }
+
+We also need a directory object for the directory where the script is located:
+code {
+create directory        XLSX2CSV as '/opt/oracle/xlsx2csv';
+grant read on directory XLSX2CSV to rene;
+code }
+
+We're now able to create the external table
+code {
+create table ext_table_xlsx (
+   i   number,
+   n   varchar2(20),
+   m   varchar2(20)
+)
+organization external (
+   type              oracle_loader
+   default directory ext_dir
+   access parameters (
+      records delimited  by newline
+      preprocessor xlsx2csv:'xlsx2csv.py'
+      nologfile
+      nobadfile      
+      fields  terminated by ','
+      missing field values are null
+   )
+   location ('a.xlsx')
+)
+-- reject limit 0 /* 0 is the default anyway */
+;
+code }
+
+Finally:
+code {
+select * from ext_table_xlsx;
+code }
+
+sa:
+
+  Reading → development/databases/Oracle/objects/tables/external/CSV[CSV files] with → development/databases/Oracle/objects/tables/external[external tables].
