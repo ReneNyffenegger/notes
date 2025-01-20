@@ -85,7 +85,7 @@ code }
 code {
 #!/bin/bash
 
-# Open the file for writing via file descriptor 3 (so that
+# Open the file for writing via file descriptor 3 (so that it remains opened)
 exec 3>'/opt/oracle/ext/file.csv'
 
 while true; do
@@ -120,13 +120,6 @@ create or replace package csv_importer authid definer as
    procedure import_file;
 end csv_importer;
 /
-
-
-create table imp_log (
-   dt   date,
-   msg  varchar2(1234)
-);
-
 
 create or replace package body csv_importer as
 
@@ -205,7 +198,7 @@ select
    job.state,
    job.last_start_date,
    job.next_run_date,
-   (job.next_run_date - systimestamp) time_until_next_run,
+  (job.next_run_date - systimestamp) time_until_next_run,
    job.last_run_duration,
    job.run_count,
    job.logging_level,
