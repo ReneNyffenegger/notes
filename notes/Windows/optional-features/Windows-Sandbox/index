@@ -1,0 +1,32 @@
+$ Windows Sandbox
+
+*Windows Sandbox* runs on top of → Windows/optional-features/Hyper-V.
+
+Whenever *Windows Sandbox* is started, it does so in a clean state. This also means that it is impossible to install a software that requires a reboot.
+
+{ Enabling Windows Sandbox
+ 
+  { PowerShell
+
+    With elevated privileges: Check if Windows Sandbox is already enabled (note that the feature name is `Containers-DisposableClientVM`):
+code {
+PS:> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/get et-windowsOptionalFeature -online | where-object {$_.featureName -eq 'Containers-DisposableClientVM' }
+
+FeatureName : Containers-DisposableClientVM
+State       : Disabled
+code }
+
+    Enabling the feature requires to reboot the machine: 
+code {
+PS:> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/enable -online -featureName 'Containers-DisposableClientVM' -all
+
+Do you want to restart the computer to complete this operation now?
+[Y] Yes  [N] No  [?] Help (default is "Y"):
+code }
+
+  }
+
+}
+
+sa:
+   Windows Sandbox consists of the two services `CmService.dll` and `vmcompute.exe` and the worker process `vmwp.exe`.
