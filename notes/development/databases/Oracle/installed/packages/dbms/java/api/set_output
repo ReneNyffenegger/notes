@@ -1,0 +1,61 @@
+$ Oracle: DBMS_JAVA.SET_OUTPUT
+@ dbms_java.set_output
+
+`dbms_java.set_output` redirects outputof Java procedures/triggers to `→ development/databases/Oracle/installed/packages/dbms/output`.
+
+code {
+create or replace and compile java source named tq84_src as
+public class tq84_cls {
+   public static void write(String msg) {
+       System.out.println (msg);
+   }
+}
+/
+
+alter java source tq84_src compile;
+ 
+create or replace procedure tq84_write(msg varchar2) as
+   language java
+   name 'tq84_cls.write(java.lang.String)';
+/
+code }
+
+The following procedure executes ok, but nothing is (visibly) printed:
+code {
+begin
+   tq84_write('hello world');
+end;
+/
+code}
+   
+Enabling output and trying again:
+code {
+begin
+   dbms_java.set_output(10000);
+end;
+/
+
+begin
+   tq84_write('hello world');
+end;
+/
+code }
+
+If still nothing is visible, perhaps `serveroutput` (SQL*Plus) needs to be enabled, too:
+code {
+set serveroutput on
+
+begin
+   tq84_write('hello world');
+end;
+/
+code }
+
+Cleaning up:
+code {
+drop procedure tq84_write;
+drop java source tq84_src;
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/packages/dbms/java`
