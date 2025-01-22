@@ -1,0 +1,28 @@
+$ Oracle: DBMS_SPM.DROP_SQL_PLAN_BASELINE
+@ dbms_spm.drop_sql_plan_baseline
+
+code {
+declare
+   res number;
+begin
+   
+    for baslin IN (
+        select
+           sql_handle,
+           plan_name
+        from
+           → development/databases/Oracle/installed/data-dictionary/sql/plan/baselines
+        where
+           sql_text like 'select%from xyz%' and
+           parsing_schema_name = user
+    ) loop
+
+        res := dbms_spm.drop_sql_plan_baseline(baslin.sql_handle, baslin.plan_name);
+
+    end loop;
+end;
+/
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/packages/dbms/spm`
