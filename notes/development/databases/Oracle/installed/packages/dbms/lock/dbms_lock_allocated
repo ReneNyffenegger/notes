@@ -1,0 +1,30 @@
+$ Oracle: DBMS_LOCK_ALLOCATED
+@ dbms_lock_allocated
+
+`dbms_lock_allocated` is a → development/databases/Oracle/objects/tables that is populated when a locks are requested using → development/databases/Oracle/installed/packages/dbms/lock/api/allocate_unique[`dbms_lock.allocate_unique`] or `dbms_locak.allocate_unique_autonomous`.
+
+code {
+select
+   lck.type               lock_type,
+   dla.name,
+   lck.lmode,
+   lck.request,
+   round(lck.ctime / 100) tim,
+   lck.block,
+   dla.lockid,
+   lck.sid,
+   round(dla.expiration - sysdate, 1) exp_in_days
+from
+   dbms_lock_allocated dla   left join
+   → development/databases/Oracle/installed/dynamic-performance-views/lock[gv$lock]             lck on dla.lockid = lck.id1;
+code }
+
+{ Cleaning up #dbms_lock_allocated-clean-up
+
+  Records where `expiration` is less than `sysdate` are deleted by → development/databases/Oracle/installed/packages/dbms/lock/api/allocate_unique[`dbms_lock.allocate_unique` or `dbms_locak.allocate_unique_autonomous`]
+  on every 100th attempt to create a new entry.
+
+}
+
+sa:
+  MOS Note  840840.1

@@ -5,13 +5,18 @@ begin
 --
 -- Prevent ORA-29370: pending area is already active:
 --
+-- dbms_resource_manager requires the corresponding privileges
+--
    dbms_resource_manager.clear_pending_area;
 --
    dbms_resource_manager.create_pending_area;
 end;
 /
+code }
 
-select * from dba_rsrc_categories where status = 'PENDING';
+`dbms_resource_manager.create_pending_area` seems to set all resource consumer group categories categories to `PENDING`:
+code {
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/categories where status = 'PENDING';
 code }
 
 code {
@@ -23,7 +28,7 @@ begin
 end;
 /
 
-select * from dba_rsrc_consumer_groups where lower(consumer_group) = 'limit_exec_time_grp';
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/consumer_groups where lower(consumer_group) = 'limit_exec_time_grp';
 code }
 
 code {
@@ -34,11 +39,17 @@ begin
    );
 end;
 /
+code }
 
---
--- Plan exists, but no plan directives were added:
---
-select pln.num_plan_directives, pln.* from dba_rsrc_plans pln where lower(pln.plan) = 'limit_exec_time_pln';
+The plan was created, but no plan directives were added:
+code {
+select
+   pln.num_plan_directives,
+   pln.*
+from
+   → development/databases/Oracle/installed/data-dictionary/rsrc/plans pln
+where
+   lower(pln.plan) = 'limit_exec_time_pln';
 code }
 
 code {
@@ -55,7 +66,7 @@ begin
 end;
 /
 
-select * from dba_rsrc_plan_directives where lower(plan) = 'limit_exec_time_pln';
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/plan_directives where lower(plan) = 'limit_exec_time_pln';
 code }
 
 code {
@@ -96,14 +107,21 @@ end;
 code }
 
 code {
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/consumer_group_privs where granted_group = 'LIMIT_EXEC_TIME_GRP';
+code }
+
+code {
 begin
    dbms_resource_manager.set_initial_consumer_group(
         user             => 'RENE',
         consumer_group   => 'limit_exec_time_grp');
 end;
 /
+code }
 
-select usr.initial_rsrc_consumer_group, usr.*
+code {
+select
+   usr.initial_rsrc_consumer_group
 from
    dba_users usr
 where
@@ -116,7 +134,7 @@ alter system
       scope                     = memory;
 code }
 
-Force a new session:
+Force the → development/databases/Oracle/architecture/session to be → development/databases/Oracle/architecture/session#ora-session-terminate[terminated] so that we can start with a new session:
 code {
 alter session set events 'immediate crash';
 connect rene/rene
@@ -129,7 +147,7 @@ select
 from
    v$session
 where
-   sid = sys_context('userenv', 'sid');
+   sid = → development/databases/Oracle/SQL/functions/sys_context('userenv', 'sid');
 code }
 
 Execute an SQL statement that takes a long time. It will throw *ORA-00040: active time limit exceeded - call aborted* after
@@ -176,13 +194,28 @@ end;
 /
 code }
 
-TODO:
+{ TODO
+
+code {
+begin
+   dbms_resource_manager.switch_consumer_group_for_sess (
+      session_id     => to_number(substr(dbms_session.unique_session_id, 1, 4),'XXXX'),
+      session_serial => to_number(substr(dbms_session.unique_session_id, 5, 4),'XXXX'),
+      consumer_group =>'limit_exec_time_grp'
+   );
+end;
+/
+code }
+
 code {
 select * from v$rsrc_consumer_group;
 select * from v$rsrc_plan;
 select * from v$rsrc_plan_history;
 select * from v$rsrc_session_info;
 code }
+
+
+} 
 
 sa:
  `→ development/databases/Oracle/installed/packages/dbms/resource_manager`, `dbms_resource_manager_privs`

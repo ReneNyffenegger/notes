@@ -1,0 +1,379 @@
+$ DBMS_LOCK: Examples
+
+{ Copy of adp-gmbh.ch: Synchronize sessions so that they starting an action at the same time
+
+  This example is copied from adp-gmbh.ch.
+
+  Three sessions are needed for this experiment.
+
+  Let's say, we want two sessions to do a task concurrently, that is, both tasks should start at the same time.
+
+  This is ideally solved with dbms_lock.
+
+  The following table will be filled by these two tasks:
+code {
+create table lock_test (
+   action varchar(10),
+   when   date
+);
+code }
+
+
+  In the first session, an exclusive lock (indicated by the `x_mode` flag) is requested:
+code {
+declare
+   v_lockhandle varchar2(200);
+   v_result     number;
+begin
+
+   dbms_lock.allocate_unique('control_lock', v_lockhandle);
+
+   v_result := dbms_lock.request(v_lockhandle, dbms_lock.x_mode);
+
+   if v_result <> 0 then
+      dbms_output.put_line(
+             case
+                when v_result=1 then 'Timeout'
+                when v_result=2 then 'Deadlock'
+                when v_result=3 then 'Parameter Error'
+                when v_result=4 then 'Already owned'
+                when v_result=5 then 'Illegal Lock Handle'
+              end);
+   end if;
+
+end;
+/
+code }
+
+  The following block is identical for the two other sessions. Similarly to the
+  first session, a lock is requested, however, this time, the lock is a shared
+  lock (indicated by the ss_mode flag).
+
+  According to the *lock compatibility chart*, a shared lock cannot be aquired if
+  another session holds an exclusive lock. So, if a session executes the
+  following block, it will stop execution on the request() call until the
+  session holding the exclusive lock releases that lock.
+
+  Ok, the following block is started within two different sessions:
+code {
+declare
+   v_result     number;
+   v_lockhandle varchar2(200);
+begin
+
+   dbms_lock.allocate_unique('control_lock', v_lockhandle);
+
+   v_result := dbms_lock.request(v_lockhandle, dbms_lock.ss_mode);
+
+   if v_result <> 0 then
+      dbms_output.put_line(
+           case
+              when v_result=1 then 'Timeout'
+              when v_result=2 then 'Deadlock'
+              when v_result=3 then 'Parameter Error'
+              when v_result=4 then 'Already owned'
+              when v_result=5 then 'Illegal Lock Handle'
+            end);
+   end if;
+
+   insert into lock_test values ('started', sysdate);
+   dbms_lock.sleep(5);
+   insert into lock_test values ('ended'  , sysdate);
+
+   commit;
+
+end;
+/
+code }
+
+  Now, the first session can release the exclusive lock:
+code {
+declare
+   v_lockhandle varchar2(200);
+   v_result     number;
+begin
+
+   dbms_lock.allocate_unique('control_lock', v_lockhandle);
+
+   v_result := dbms_lock.release(v_lockhandle);
+
+   if v_result <> 0 then 
+      dbms_output.put_line(
+           case 
+              when v_result=1 then 'Timeout'
+              when v_result=2 then 'Deadlock'
+              when v_result=3 then 'Parameter Error'
+              when v_result=4 then 'Already owned'
+              when v_result=5 then 'Illegal Lock Handle'
+           end);
+   end if;
+end;
+/
+code }
+
+  As soon as the exclusive lock is released, both sessions that waited on
+  aquiring the shared lock can resume their execution. This time, according to
+  the lock compatibility chart, it is possible for two (or more) sessions to
+  hold a shared lock. This, after all, is why it is called shared.
+
+  The two sessions will return after five seconds. Let's see what they've
+  written into lock_test:
+code {
+select to_char(when,'dd.mm.yyyy hh24:mi:ss'), action from lock_test order by when;
+code }
+
+  Both sessions started at the same time!
+
+}
+
+{ Locking one or all tables
+
+code {
+create or replace package tq84_lock_test authid definer as -- {
+
+   function  i_want_to_read (tab varchar2) return varchar2;
+   function  i_want_to_write(tab varchar2) return varchar2;
+   procedure i_am_done_with (tab varchar2);
+
+   function  prevent_all_modifications     return varchar2;
+   procedure enable_all_modifications;
+
+end tq84_lock_test; -- }
+/
+
+create or replace package body tq84_lock_test as -- {
+
+   -- Private functions {
+
+   function  lockhandle(id varchar2) return varchar2 is -- {
+      lckhnd varchar2(128);
+   begin
+
+      sys.dbms_lock.allocate_unique( -- {
+         lockname        => id,
+         lockhandle      => lckhnd
+      ); -- }
+
+      return lckhnd;
+
+   end lockhandle; -- }
+
+   function  lock_(id varchar2, mode_ integer) return boolean is -- {
+   --
+   -- Returns true if lock could be acquired, and
+   -- false if lock is held by another session.
+   --
+      req_res integer;
+   begin
+
+      req_res := sys.dbms_lock.request ( -- {
+         lockhandle  => lockhandle(id),
+         lockmode    => mode_,
+         timeout     => 0
+      ); -- }
+
+      if req_res  = 1 then return false; end if;
+
+      if req_res not in (0, 4) then -- {
+         raise_application_error(-20800, 'unpexected result when trying to lock ' || id || ': ' || req_res);
+      end if; -- }
+
+      return true;
+
+   end  lock_; -- }
+
+   procedure release_(id varchar2) is -- {
+      req_res integer;
+   begin
+      req_res := dbms_lock.release(lockhandle(id));
+
+      if req_res not in (0, 4) then raise_application_error(-20800, 'unexpected result ' || req_res || ' when trying to release ' || id); end if;
+   end release_; -- }
+
+   -- }
+
+   function  i_want_to_read (tab varchar2) return varchar2 is -- {
+      req_res integer;
+   begin
+
+      if not lock_('all', sys.dbms_lock.s_mode) then -- {
+         return 'All tables are locked';
+      end if; -- }
+
+      if lock_(tab, sys.dbms_lock.s_mode) then -- {
+         return 'OK, table ' || tab || ' is now locked in shared mode';
+      end if; -- }
+
+      return 'Could not acquire lock for table ' || tab;
+
+   end i_want_to_read; -- }
+
+   function  i_want_to_write(tab varchar2) return varchar2 is -- {
+      req_res integer;
+   begin
+
+      if not lock_('all', sys.dbms_lock.s_mode) then -- {
+         return 'All tables are locked';
+      end if; -- }
+
+      if lock_(tab, sys.dbms_lock.x_mode) then -- {
+         return 'OK, table ' || tab || ' is now locked in exclusive mode';
+      end if; -- }
+
+      return 'Could not acquire lock for table ' || tab;
+
+   end i_want_to_write; -- }
+
+   procedure i_am_done_with(tab varchar2) is -- {
+   begin
+
+      release_( tab );
+      release_('all');
+
+   end i_am_done_with; -- }
+
+   function  prevent_all_modifications     return varchar2 is -- {
+   begin
+
+      if lock_('all',sys.dbms_lock.x_mode) then return 'ALL tables are locked'; end if;
+      return 'Cannot exclusively lock ALL tables';
+
+   end prevent_all_modifications; -- }
+
+   procedure enable_all_modifications is -- {
+   begin
+      release_('all');
+   end enable_all_modifications; -- }
+
+end tq84_lock_test; -- }
+/
+code }
+
+code {
+
+alter session set events 'immediate crash';
+
+select sys_context('userenv', 'sid') from dual;
+
+set serveroutput on
+
+   -- T1
+
+begin dbms_output.put_line(tq84_lock_test.i_want_to_read ('T1')); end;
+/
+
+begin dbms_output.put_line(tq84_lock_test.i_want_to_write('T1')); end;
+/
+
+begin tq84_lock_test.i_am_done_with ('T1'); end;
+/
+
+   -- T2
+
+begin dbms_output.put_line(tq84_lock_test.i_want_to_read ('T2')); end;
+/
+
+begin dbms_output.put_line(tq84_lock_test.i_want_to_write('T2')); end;
+/
+
+begin tq84_lock_test.i_am_done_with ('T2'); end;
+/
+code }
+
+code {
+alter session set events 'immediate crash';
+
+select sys_context('userenv', 'sid') from dual;
+
+set serveroutput on
+
+begin dbms_output.put_line(tq84_lock_test.prevent_all_modifications); end;
+/
+
+begin tq84_lock_test.enable_all_modifications; end;
+/
+code }
+
+code {
+select
+  case lck.lmode
+       when 4 then 'S'
+       when 6 then 'X'
+       else to_char(lck.lmode)
+  end                          lm,
+  round(lck.ctime/100)         since_s,
+  ses.username,
+  dla.name,
+  ses.sid
+FROM
+  v$lock                  lck                                  join
+  v$session               ses on lck.sid    = ses.sid          join
+  sys.dbms_lock_allocated dla on dla.lockid = lck.id1
+where
+   1=1
+-- lck.type   = 'UL'   and
+-- dla.name   = 'T1'
+;
+code }
+
+}
+
+{ The blue and green session
+
+  { blue.sql
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/blue.sql||
+
+  }
+  { green.sql
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/green.sql||
+
+  }
+  { run.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/run.bat||
+
+  }
+  { session_blue.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/session_blue.bat||
+
+  }
+  { session_green.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/session_green.bat||
+  }
+  { stop_sessions/blue.sql
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/stop_sessions/blue.sql||
+
+  }
+  { stop_sessions/green.sql
+    gh|Oracle-Patterns|/Installed/dbms/lock/stop_sessions/green.sql||
+  }
+
+  { stop_sessions/run.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/stop_sessions/run.bat||
+
+  }
+
+  { stop_sessions/session_blue.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/stop_sessions/session_blue.bat||
+
+  }
+
+  { stop_sessions/session_green.bat
+
+    gh|Oracle-Patterns|/Installed/dbms/lock/stop_sessions/session_green.bat||
+
+  }
+
+}
+
+sa:
+ `→ development/databases/Oracle/installed/packages/dbms/lock`
+
+  An example of how synchronizing sessions might be used is found in → http://www.adp-gmbh.ch/ora/bad_dynamic_sql.html[Why is dynamic SQL bad]?.
