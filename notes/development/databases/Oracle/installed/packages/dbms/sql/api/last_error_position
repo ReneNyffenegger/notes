@@ -1,6 +1,11 @@
 $ Oracle: DBMS_SQL.LAST_ERROR_POSITION
 
+{ DDL
+
+  `dbms_sql.last_error_position` can be used to find out where a DDL statement has an error:
 code {
+set serveroutput on
+
 declare
    c  integer;
   
@@ -21,10 +26,38 @@ begin
    dbms_sql.parse(c, sql_text, dbms_sql.native);
   
 exception when others then
-   dbms_output.put_line(substr(sql_text, dbms_sql.last_error_position-8, 16));
+--
+-- Print the first 20 characters after the error
+--
+   dbms_output.put_line(substr(sql_text, dbms_sql.last_error_position, 20));
 end;
 /
 code }
+
+}
+{ DML
+
+  For DML statements, `dbms_sql.execute` needs to be called as well:
+code {
+declare
+   c  integer;
+   r  integer;
+   sql_text varchar2(1000) := q'[insert into tq84_ora_01438_test values(1, 12, 123, 1234, 12345)]';
+begin
+
+   c := dbms_sql.open_cursor();
+
+   dbms_sql.parse(c, sql_text, dbms_sql.native);
+   r := dbms_sql.execute(c);
+
+exception when others then
+   dbms_output.put_line(dbms_sql.last_error_position);
+   dbms_output.put_line(substr(sql_text, dbms_sql.last_error_position, 20));
+end;
+/
+code }
+
+}
 
 sa:
   `→ development/databases/Oracle/installed/packages/dbms/sql`
