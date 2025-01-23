@@ -30,21 +30,21 @@ code }
 code {
 select *
 from
-   dbms_xplan.display_cursor(
+   → development/databases/Oracle/installed/packages/dbms/xplan/api/display/cursor(
        format => 'advanced +alias',
-       sql_id =>  dbms_sql_translator.sql_id(q'[select * from tq84_A t where col_2 like 'ABC%']')
+       sql_id =>  → development/databases/Oracle/installed/packages/dbms/sql_translator/api/sql_id[dbms_sql_translator.sql_id](q'[select * from tq84_A t where col_2 like 'ABC%']')
    );
 code }
 
 
-  Unsurprisingly, the query used the index.
+  Unsurprisingly, the query used the → development/databases/Oracle/objects/indexes.
 code {
 -- --------------------------------------------------------------------------------------
 -- | Id  | Operation                           | Name      | Rows  | Bytes | Cost (%CPU)|
 -- --------------------------------------------------------------------------------------
--- |   0 | SELECT STATEMENT                    |           |       |       |     1 (100)|
--- |   1 |  TABLE ACCESS BY INDEX ROWID BATCHED| TQ84_A    |     1 |    29 |     0   (0)|
--- |*  2 |   INDEX RANGE SCAN                  | TQ84_A_IX |     1 |       |     0   (0)|
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select                    |           |       |       |     1 (100)|
+-- |   1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/by-index#ora-table-access-by-index-rowid-batched[TABLE ACCESS BY INDEX ROWID BATCHED]| TQ84_A    |     1 |    29 |     0   (0)|
+-- |*  2 |   → development/databases/Oracle/SQL/statement/execution/plan/operations/index_/range-scan                  | TQ84_A_IX |     1 |       |     0   (0)|
 -- --------------------------------------------------------------------------------------
 code }
 
@@ -58,13 +58,13 @@ Query Block Name / Object Alias (identified by operation id):
 code }
 
    
-  Trying to patch sql so that it does not use index anymore…
+  Trying to patch the SQL statement so that it does not use index anymore…
 code {
 declare
    patch_name varchar2(100);
 begin
    patch_name :=
-      sys.dbms_sqldiag.create_sql_patch(
+      sys.→ development/databases/Oracle/installed/packages/dbms/sqldiag[dbms_sqldiag].create_sql_patch(
         name      => 'TQ84_A_NO_INDEX',
         sql_id    =>  dbms_sql_translator.sql_id(q'[select * from tq84_A t where col_2 like 'ABC%']'),
         hint_text => 'FULL(@"SEL$1" "T"@"SEL$1")'
@@ -94,8 +94,8 @@ from
 -- ----------------------------------------------------------------------------
 -- | Id  | Operation         | Name   | Rows  | Bytes | Cost (%CPU)| Time     |
 -- ----------------------------------------------------------------------------
--- |   0 | SELECT STATEMENT  |        |       |       |     2 (100)|          |
--- |*  1 |  TABLE ACCESS FULL| TQ84_A |     1 |    29 |     2   (0)| 00:00:01 |
+-- |   0 | → development/databases/Oracle/SQL/statement/execution/plan/operations/statement/select  |        |       |       |     2 (100)|          |
+-- |*  1 |  → development/databases/Oracle/SQL/statement/execution/plan/operations/table-access/full[TABLE ACCESS FULL]| TQ84_A |     1 |    29 |     2   (0)| 00:00:01 |
 -- ----------------------------------------------------------------------------
 code }
 
@@ -156,9 +156,16 @@ code }
 }
 
 sa:
+
   SQL patches that are used to inject → development/databases/Oracle/SQL/hints[hints]  should not be confused
-  with the SQL scripts being run after → development/databases/Oracle/adminstration/patching#ora-opatch[OPatch] completes (that also go by the name → development/databases/Oracle/adminstration/patching/SQL-patch[SQL patch]).
+  with the SQL scripts being run after → development/databases/Oracle/adminstration/patching#ora-opatch[OPatch] completes (and also go by the name → development/databases/Oracle/SQL/hints/SQL-Patch[SQL patch]).
+
+ `→ development/databases/Oracle/installed/data-dictionary/sql/patches`
 
   MOS note 1931944.1
 
   SQL Maria: → https://sqlmaria.com/2020/03/10/what-are-query-block-names-and-how-to-find-them/[What are Query Block Names and how to find them]
+
+  Compare with
+    • SQL Plan Baselines
+    • SQL Profiles
