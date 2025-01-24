@@ -16,17 +16,71 @@ $ Oracle SQL Developer
 
   An Oracle account is required to download and/or install SQL Developer.
 
-  The downloaded → development/archive-files/zip does not contain an installer. Thus, it can be extracted to the desired location.
+  { Windows
 
-  It is possible to install SQL Developer with → Windows/Chocolatey. The Oracle account name and password need to be passed with the `-params` argument. In order to remember name and password for future
-  upgrades, `… feature enable -n=useRememberedArgumentsForUpgrade` might be executed first:
+    The downloaded → development/archive-files/zip does not contain an installer. Thus, it can be extracted to the desired location.
+
+    It is possible to install SQL Developer with → Windows/Chocolatey. The Oracle account name and password need to be passed with the `-params` argument. In order to remember name and password for future
+    upgrades, `… feature enable -n=useRememberedArgumentsForUpgrade` might be executed first:
 code {
 → Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] feature  enable -n=useRememberedArgumentsForUpgrades
 → Windows/dirs/ProgramData/chocolatey/bin/choco_exe[choco] install -y oracle-sql-developer --params "/Username:whoAmI /Password:andWhatIsMyPassword"
 code }
 
-  Strangely, when installing SQL developer with chocolatey, the executable was found under
- `→ Windows/dirs/ProgramData/chocolatey/bin[C:\ProgramData\chocolatey\bin]\sqldeveloper.exe`. Not sure if this is expected?
+    Strangely, when installing SQL developer with chocolatey, the executable was found under
+   `→ Windows/dirs/ProgramData/chocolatey/bin[C:\ProgramData\chocolatey\bin]\sqldeveloper.exe`. Not sure if this is expected?
+
+  }
+  { Debian 11
+
+    In Debian 11, I was able to install SQL Developer as follows.
+
+    From the → https://www.oracle.com/database/sqldeveloper/technologies/download/[download page], I downloaded *Other Platforms* (i. e. *not* the RPM version),
+    -
+    and executed this simple script:
+code {
+zipfile=$(ls -1 ~/Downloads/sqldeveloper*no-jre.zip | tail -1)
+if [[ ! -f $zipfile ]]; then
+   echo no zip file found
+   exit 1
+fi
+
+destdir=~/bin
+if [[ ! -d $destdir ]]; then
+   echo creating directory $destdir
+   mkdir -p $destdir
+fi
+
+echo unzipping $zipfile to $destdir
+unzip -d $destdir $zipfile
+code }
+
+    SQL Developer can then be started with
+code {
+$ ~/bin/sqldeveloper/sqldeveloper.sh &
+code }
+
+    I got this message/error:
+code {
+Found /usr/lib/jvm/java-11-openjdk-amd64 to run this product, and the major version of this Java is 11.
+The mandatory minimum major version to run this product is 17.
+This product cannot run with this Java.
+code }
+
+    Indeed:
+code {
+$ java --version | head -1
+openjdk 11.0.25 2024-10-15
+code }
+
+    So…
+code {
+$ sudo → Linux/package-managers/APT/commands/apt/install openjdk-17-jdk
+$ java --version | head -1
+openjdk 17.0.13 2024-10-15
+code }
+
+  }
 
 }
 { No Oracle Home required
