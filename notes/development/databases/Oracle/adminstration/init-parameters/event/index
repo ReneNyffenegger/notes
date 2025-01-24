@@ -1,7 +1,14 @@
 $ Oracle: init parameter EVENT
--
 @ event
 
+Purposes of *diagnostic events* include
+  • Get additional diagnostics
+  • Change the behavior of the Oracle server, like events 10235 (check memory manager internal structures) or 10262 (do not check for memory leaks)
+  • Eabling undocumented features or enabling workaround for known problems
+  • Enable collection of trace or debug information (10046, 10053)
+  • Enable additional error checking
+  • Immediate dump events (→ development/databases/Oracle/tools/oradebug/dump/systemstate[`systemstate`], → development/databases/Oracle/tools/oradebug/dump/pga_detail_get[`pga_detail_get`], `errorstack`, `controlf`, `file_hdrs`, `rdohdr`…)
+  • Dump «something» when a given error (`ORA-…`) occurs (for example, to trace ORA-00942: `942 trace name errorstack level 3`).
 
 { Numeric events
 
@@ -29,7 +36,37 @@ code }
   Note the plural `events` vs the singular `event` and the missing `,` before the `level`.
 
 }
+{ Setting events
 
+  When setting events in the init.ora file, they should be grouped together on subsequent lines, otherwise, only the last event will found will have an effect.
+code {
+event="ddddd trace name context forever, level …"
+event="eeeee trace name context forever, level …"
+event="fffff trace name context forever, level …"
+code }
+
+  Events can also be set with SQL statements.
+code {
+alter session set events='…';
+alter system  set events='…';
+code }
+
+  An `alter system…` will not affect existing connections.
+
+  In addition, events can also for another, specific sessions with a *debug tool* (`oradebug`).
+
+}
+{ Duration of events
+
+  Events that are set with `conext forever, level …` are normally active until the session or instance terminates.
+
+  Events can explicitely turned off, however, by replacing `forever` with `off`:
+code {
+alter session set events '… context off';
+code }
+
+
+}
 { Remove all events
 
 code {
@@ -55,3 +92,5 @@ code {
 code }
 
   → development/databases/Oracle/adminstration/init-parameters
+
+  MOS Note 218105.1

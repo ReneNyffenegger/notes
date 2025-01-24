@@ -3,10 +3,6 @@ $ ORA-01438: value larger than specified precision allowed for this column
 The Oracle error *ORA-01438: value larger than specified precision allowed for this column* is thrown when trying to insert a numerical value
 whose value is too large for the specified size in a table definition, see → development/databases/Oracle/installed/data-dictionary/tab/columns/data_length-precision-scale#ora-insert-values-that-are-too-large.
 
-
-rem {
-  In → development/databases/Oracle/Releases-and-versions/23c[23ai], Oracle seems to be finally able to report a meaningful error message:
-rem }
 code {
 create table tq84_ora_01438_test (
     col_1   number(2) not null,
@@ -15,11 +11,30 @@ create table tq84_ora_01438_test (
     col_4   number(2) not null,
     col_5   number(2) not null
 );
- 
 insert into tq84_ora_01438_test values(1, 12, 123, 12, 1);
-SQL Error: ORA-01438: value 123 greater than specified precision (2, 0) for column 
+--
+-- ORA-01438: value larger than specified precision allows for this column
+code }
+ 
+
+{ Oracle 23ai
+
+  In → development/databases/Oracle/Releases-and-versions/23c[23ai], Oracle seems to be finally able to report a somewhat more meaningful error message:
+code {
+insert into tq84_ora_01438_test values(1, 12, 123, 12, 1);
+--
+-- SQL Error: ORA-01438: value 123 greater than specified precision (2, 0) for column 
 code }
 
+}
+{ CAST
+
+  This error is also thrown when explicitely casting a value like so:
+code {
+select cast(123 as number(2)) from dual;
+code }
+
+}
 
 sa:
   The corresponding error message for text/string values is → development/databases/Oracle/errors/ORA-12899_value-too-large-for-column.
