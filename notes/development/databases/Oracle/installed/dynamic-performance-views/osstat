@@ -2,22 +2,67 @@ $ Oracle: V$OSSTAT
 @ v$osstat
 
 code {
-select *
+select
+   case
+     when stat_name in (
+        'NUM_CPU_CORES', 'NUM_CPU_SOCKETS', 'BUSY_TIME', 'IDLE_TIME', 'FREE_MEMORY_BYTES',
+        'INACTIVE_MEMORY_BYTES') -- Correct?
+        then '  '
+     when stat_name in ('SYS_TIME', 'USER_TIME') then '    '
+   end ||   stat_name,
+   lpad(
+   case
+      when stat_name like '%BYTES' then to_char(value/1024/1024, '999,990' )|| ' mb '
+      when stat_name like '%TIME'  then to_char(value/100/60/60, '999,990' )|| ' hrs'
+      else to_char(value, '9999999990') || '    '
+   end, 15) val_,
+   comments,
+   cumulative,
+   con_id,
+   osstat_id
 from
    v$osstat
-order by case
-    when stat_name in ('NUM_CPUS', 'NUM_CPU_CORES', 'NUM_CPU_SOCKETS') then 0
-    when stat_name like 'AVG%TIME' then 1
-    when stat_name like '%TIME'    then 2
-    when stat_name like '%MEMORY%' then 3
-    when stat_name like '%BYTES%'  then 4
-    else 99 end;
-code }
+model
+   dimension by (stat_name)
+   measures (value, comments, cumulative, con_id, osstat_id)
+   (
+      value   ['TOTAL TIME'] = value['BUSY_TIME'] + value['IDLE_TIME'],
+      comments['TOTAL TIME'] = 'Busy time (= user time + sys time) + Idle time'
+   )
+order by
+case
+    when stat_name =    'NUM_CPUS'               then   1
+    when stat_name =    'NUM_CPU_CORES'          then   2
+    when stat_name =    'NUM_CPU_SOCKETS'        then   3
+    when stat_name like 'VM%BYTES%'              then  54
+    when stat_name like 'AVG%TIME'               then  80
+    when stat_name =    'RSRC_MGR_CPU_WAIT_TIME' then  40
+    when stat_name =    'TOTAL TIME'             then  21
+    when stat_name =    'BUSY_TIME'              then  22
+    when stat_name =    'USER_TIME'              then  23
+    when stat_name =    'SYS_TIME'               then  24
+    when stat_name =    'IDLE_TIME'              then  25
+    when stat_name =    'PHYSICAL_MEMORY_BYTES'  then  50
+    when stat_name =    'FREE_MEMORY_BYTES'      then  51
+    when stat_name =    'INACTIVE_MEMORY_BYTES'  then  52 -- Correct?
+    when stat_name =    'SWAP_FREE_BYTES'        then  53
+    when stat_name =    'IOWAIT_TIME'            then  60
+    when stat_name =    'NICE_TIME'              then  61 -- Correct?
+    when stat_name like 'TCP%'                   then  80
+    when stat_name =    'LOAD'                   then  90
+else 9999 end;
+code  }
 
 sa:
+
+ `v$filestat`, `→ development/databases/Oracle/installed/dynamic-performance-views/iostat/file`
 
   The init parameter `→ development/databases/Oracle/adminstration/init-parameters/cpu/count`
 
   The `→ development/databases/Oracle/SQL-Plus/sqlpath/cpu` script.
 
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  The kernel parameters `net.core.rmem_max` (Global receive size max) and `net.core.wmem_max` (Global send size max).
+  -
+  AFAICT, it is recommended set these parameters when installing Oracle (see → development/databases/Oracle/adminstration/installation/WSL/21c).
