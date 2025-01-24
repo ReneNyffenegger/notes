@@ -1,3 +1,38 @@
 $ apt-key
 
 `apt-key` is a deprecated APT key management utility. Key rings should be managed in `trusted.gpg.d` instead.
+
+{ GPG error: … The following signatures couldn't be verified because the public key is not available: NO_PUBKEY …
+
+code {
+$ → Linux/shell/commands/sudo → Linux/APT/commands/add-apt-repository ppa:oibaf/graphics-drivers
+code }
+
+  This previous command created `→ Linux/fhs/etc/apt/sources_list_d[/etc/apt/sources.list.d]/oibaf-ubuntu-graphics-drivers-plucky.list`.
+
+  Later:
+code {
+$ sudo → Linux/package-managers/APT/commands/apt/update && sudo apt upgrade -y
+…
+Err:4 http://ppa.launchpad.net/oibaf/graphics-drivers/ubuntu plucky InRelease
+  The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 93F4D583494746C8 NO_PUBKEY 957D2708A03A4626
+…
+W: GPG error: http://ppa.launchpad.net/oibaf/graphics-drivers/ubuntu plucky InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 93F4D583494746C8 NO_PUBKEY 957D2708A03A4626
+E: The repository 'http://ppa.launchpad.net/oibaf/graphics-drivers/ubuntu plucky InRelease' is not signed.
+N: Updating from such a repository can't be done securely, and is therefore disabled by default.
+N: See apt-secure(8) manpage for repository creation and user configuration details.
+code }
+
+code {
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv  957D2708A03A4626
+Warning: apt-key is deprecated. Manage keyring files in trusted.gpg.d instead (see apt-key(8)).
+Executing: /tmp/apt-key-gpghome.gU74HbpAfd/gpg.1.sh --keyserver keyserver.ubuntu.com --recv 957D2708A03A4626
+gpg: key 957D2708A03A4626: public key "Launchpad PPA for Fabio Pedretti" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+code }
+
+}
+
+sa:
+ `→ Linux/fhs/etc/apt/trusted_gpg`
