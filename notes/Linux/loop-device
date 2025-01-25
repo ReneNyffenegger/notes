@@ -1,7 +1,56 @@
 
 A *loop device* allows to use a regular file as a → Linux/devices#block-devices[block device]. «Within» that regular file,
-a → Linux/filesystem/filesystems is created and then → Linux/shell/commands/mount[mounted] just as any other
-block device (such as hart drive partitions).
+a → Linux/filesystem/filesystems[filesystem] can then → Linux/shell/commands/mount[mounted] just as any other block device (such as hart drive partitions).
+-
+If the file does not contain a file system, one can also be created with the usual tools.
+
+{ Mounting a copy of a Windows partition
+
+  A loop device can for example be used to mount a copy of a Windows partition.
+
+  First, we need to prepare a directory into which we copy the partition:
+code {
+$ → Linux/shell/commands/sudo mkdir /backup-windows
+$ cd         /backup-windows
+code }
+
+  The Windows partition is on `→ Linux/fhs/dev/nvmeX[/dev/nvme0n1p3]` (the 3rd partition of the 1st namespace of the → hardware/index#hw-nvme[NVMe] device):
+code {
+$ sudo → Linux/shell/commands/dd if=/dev/nvme0n1p3 bs=1M of=nvme0n1p3
+code }
+
+  Find an unused loop device, …
+code {
+$ /usr/sbin/losetup  -f
+/dev/loop0
+code }
+
+  … create the loop device …
+code {
+$ sudo /usr/sbin/losetup /dev/loop0 /backup-windows/nvme0n1p3
+code }
+
+   … and mount it:
+code {
+$ sudo mkdir /backup-windows/mnt
+$ sudo → Linux/shell/commands/mount /dev/loop0 /backup-windows/mnt
+code }
+
+  The mounted files have 777 (`rwxrwxrwx`) permissions, so I, as ordinary user, can access them:
+code {
+$ cd /backup-windows/mnt/
+$ ls
+code }
+
+code {
+$ mount | grep /dev/loop0
+/dev/loop0 on /backup-windows/mnt type fuseblk (rw,relatime,user_id=0,group_id=0,allow_other,blksize=4096)
+code }
+
+  Note that I also found a (smaller) version of `losetup` under `/usr/lib/klibc/bin`.
+
+}
+
 
 sa:
  `→ Linux/fhs/dev/loopX`
