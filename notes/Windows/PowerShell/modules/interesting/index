@@ -1,0 +1,64 @@
+$ Some interesting PowerShell Modules
+-
+
+{ NtObjectManager
+
+code {
+install-module NtObjectManager -scope currentUser
+code }
+
+  Test if installation was ok:
+code {
+new-ntSecurityDescriptor
+code }
+
+  If not, try
+code {
+import-module NtObjectManager
+code }
+
+  Get my SID:
+code {
+PS:> get-ntSid
+
+Name           Sid
+----           ---
+XXXNET\renenyf S-1-5-21-1645522239-1844237615-725345543-11593
+code }
+
+   Get a name from an SID (`-ssdl`):
+code {
+PS:> 22 C:/Users/igsnyre/github/prj/IGS> get-ntsid -sddl S-1-5-21-1645522239-1844237615-725345543-11593
+
+Name           Sid
+----           ---
+XXXNet\renenyf S-1-5-21-1645522239-1844237615-725345543-11593
+code }
+
+code {
+PS:>  get-ntsid -name administrator
+
+Name                    Sid
+----                    ---
+COMP10019\Administrator S-1-5-21-1184239113-4185820157-3952089933-500
+code }
+
+  `get-ntStatus`
+code {
+PS:> cd ntObject:\
+PS:> get-ntDirectory 'NtObject:\unobtainium'
+get-ntDirectory : (0xC000003A) - {Path Not Found}
+  ‥
+PS:> get-ntStatus 0xC000003A
+
+Status   StatusName                   Message
+------   ----------                   -------
+C000003A STATUS_OBJECT_PATH_NOT_FOUND {Path Not Found}...
+code }
+
+  See also James Forshaw: *Windows Security Internals* (A deep Dive into Windows Authentication, Authorization, and Auditing) and the Github repository → https://github.com/tyranid/windows-security-internals[tyranid/windows-security-internals].
+
+  TODO:
+   • `get-ntType` lists object types.
+
+}
