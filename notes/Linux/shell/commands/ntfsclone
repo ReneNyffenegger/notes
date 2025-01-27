@@ -1,0 +1,36 @@
+$ Shell command: ntfsclone
+@ ntfsclone
+
+{ Backing up and restoring an NTFS partition
+
+code {
+$ → Linux/shell/commands/sudo /usr/sbin/ntfsclone --save-image --output /mnt/bkp/windows-clone-2025-01-25 → Linux/fhs/dev/nvmeX[/dev/nvme0n1p3]
+code }
+
+  Note: the backed up image file is smaller than the → Windows/file-system/NTFS partition (318G):
+code {
+$ → Linux/shell/commands/ls -lh /mnt/bkp/windows-clone-2025-01-25 
+-rwxrwxrwx 1 root root 272G Jan 26 17:10 /mnt/bkp/windows-clone-2025-01-25
+
+$ → Linux/shell/commands/lsblk /dev/nvme0n1p3
+NAME      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+nvme0n1p3 259:3    0  318G  0 part 
+code }
+
+  Now: Restarting the computer with Windows and changing (deleting, renaming, creating) some files.
+
+  Then: Again restarting the computer, this time in Linux.
+
+code {
+$ sudo /usr/sbin/ntfsclone --restore-image --overwrite /dev/nvme0n1p3 /mnt/bkp/windows-clone-2025-01-25
+code }
+
+  As far as I can tell, the only difference to using `→ Linux/shell/commands/dd` is that `ntfsclone` creates «sparse files» (which account for the smaller image files).
+
+}
+
+sa:
+
+  → Windows/file-system/NTFS
+
+  → Linux/shell/commands[Shell commands]
