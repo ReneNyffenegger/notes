@@ -9,9 +9,13 @@ $ → Linux/shell/commands/ls -1d \$*
 '$Windows.~WS'
 code }
 
-{ -o show_sys_files
+{ Interesting -o options
 
-  In order to see the NTFS metafiles also, the `-o` option must contain the `show_sys_files` flag:
+  Some interesting ntfs-3g specific → Linux/shell/commands/mount#mount-options[mount options (`-o`)] are listed below.
+
+  {  show_sys_files
+
+    In order to see the NTFS metafiles also, the `-o` option must contain the `show_sys_files` flag:
 code {
 $ cd ..
 $ → Linux/shell/commands/sudo umount /mnt/c
@@ -30,5 +34,40 @@ $ → Linux/shell/commands/ls /mnt/c/\$*
 '$Volume'
 '$Windows.~WS'
 code }
+
+  }
+  { streams_interface
+
+   `streams_interface` controls if and how *alternate data streams* (ADS) can be accessed.
+
+    The value can be set to `none` (which is the default and does not allow accessing data streams), `windows` or `xattr`
+    -
+    With `windows`, a stream is accessed like in Windows, i. e. with a colon (`filename:streamname`)
+    -
+    With `xattr`, the named streams are mapped to `xattrs` and the streams can be accessed with `getfattr` and `setfattr`.
+
+code {
+$ cd ..
+$ → Linux/shell/commands/sudo umount /mnt/c
+$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t ntfs-3g -o show_sys_files,streams_interface=windows /dev/nvme0n1p3 /mnt/c
+$ attr -g ntfs.streams.list /mnt/c/\$LogFile
+attr_get: Operation not supported
+Could not get "ntfs.streams.list" for /mnt/c/$LogFile
+code }
+
+    … hmm, maybe trying `streams_interface=xattrs`:
+code {
+$ → Linux/shell/commands/sudo umount /mnt/c
+$ → Linux/shell/commands/sudo → Linux/shell/commands/mount -t ntfs-3g -o show_sys_files,streams_interface=xattr /dev/nvme0n1p3 /mnt/c
+$ getfattr  /mnt/c/\$Extend/\$UsnJrnl
+getfattr: Removing leading '/' from absolute path names
+# file: mnt/c/$Extend/$UsnJrnl
+user.$J
+user.$J
+user.$Max
+code }
+
+
+  }
 
 }
