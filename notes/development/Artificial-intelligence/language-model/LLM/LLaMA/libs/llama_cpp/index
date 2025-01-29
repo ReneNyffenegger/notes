@@ -20,8 +20,72 @@ P:\ath\to\llama.cpp> build\bin\llama-cli.exe -h
 …
 code }
 
+ }
+ { Built executables
+
+   After building build 4589, I found the following executables under `build/bin` (the common prefix `llama-` is removed):
+   table { ll
+      `batched-bench` ☰
+      `batched` ☰
+      `bench` ☰ Benchmark the performance of the inference for various parameters.
+      `cli` ☰ A CLI tool for accessing and experimenting with most of llama.cpp's functionality.
+      `convert-llama2c-to-ggml` ☰
+      `cvector-generator` ☰
+      `embedding` ☰
+      `eval-callback` ☰
+      `export-lora` ☰
+      `gen-docs` ☰
+      `gguf-hash` ☰
+      `gguf-split` ☰
+      `gguf` ☰
+      `gritlm` ☰
+      `imatrix` ☰
+      `infill` ☰
+      `llava-cli` ☰
+      `lookahead` ☰
+      `lookup-create` ☰
+      `lookup-merge` ☰
+      `lookup-stats` ☰
+      `lookup` ☰
+      `minicpmv-cli` ☰
+      `parallel` ☰
+      `passkey` ☰
+      `perplexity` ☰ A tool for measuring the → https://huggingface.co/docs/transformers/perplexity[perplexity] (and other quality metrics) of a model over a given text.
+      `q8dot` ☰
+      `quantize` ☰
+      `qwen2vl-cli` ☰
+      `retrieval` ☰
+      `run` ☰ A comprehensive example for running llama.cpp models. Useful for inferencing. Used with RamaLama
+      `save-load-state` ☰
+      `server` ☰ A lightweight, → https://github.com/openai/openai-openapi[OpenAI API] compatible, HTTP server for serving LLMs. (`llama-server -m model.gguf --port 11434`)
+      `simple-chat` ☰
+      `simple` ☰ A minimal example for implementing apps with llama.cpp. Useful for developers.
+      `speculative-simple` ☰
+      `speculative` ☰
+      `tokenize` ☰
+      `tts` ☰
+      `vdot` ☰
+   table }
+
+   In addition, I also found the following executables (where the common prefix `test_` is omitted:
+   table { ll
+     `arg-parser` ☰
+     `autorelease` ☰
+     `backend-ops` ☰
+     `barrier` ☰
+     `c` ☰
+     `chat-template` ☰
+     `gguf` ☰
+     `log` ☰
+     `model-load-cancel` ☰
+     `quantize-fns` ☰
+     `quantize-perf` ☰
+     `rope` ☰
+     `tokenizer-0` ☰
+   table }
 
  }
+
  { Using the (deprecated?) Makefile
 
 code {
@@ -29,17 +93,54 @@ cd llama.cpp
 → development/make -j
 code }
 
-  Four executables are created (2024-10-05: this is likely not true anymore)
-    • `main`
-    • `quantize`
-    • `perplexity`
-    • `embedding`
 
   Trying a model:
 code {
 $ curl -OL https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/main/ggml-model-Q4_K_M.gguf
 $ ./llama-cli -m ggml-model-Q4_K_M.gguf  -p "Tell me about programmers and coffee" -n 200
 code }
+
+  }
+
+}
+{ TODO
+
+  { llama build number, build commit, build compiler and build target
+
+    The values  *llama build number*, build commit, build compiler and build target is determined in
+
+    → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh[`scripts/build-info.sh`] determines the following values:
+    table { lll
+      ~Value~ ☰ ~Command~ ☰ ~Example value~
+      llama build number ☰ → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh#L10C10-L10C24[`git rev-list --count HEAD`] ☰ 4589
+      build commit ☰ → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh#L15C10-L15C25[`git rev-parse --short HEAD`] ☰ eb7cf15a
+      build compiler ☰ → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh#L19C10-L19C22[`$CC --version | head -1`] ☰ gcc (Debian 10.2.1-6) 10.2.1 20210110
+      build target ☰  → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh#L23C10-L23C15[`$CC --dumpmachine`] ☰ x86_64-linux-gnu
+    table }
+
+    These value seems then to be used to produce `common/build-info.cpp` from → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/common/build-info.cpp.in[`common/build-info.cpp.in`].
+
+  }
+  { Environment variables
+
+    table { ll
+       `LLAMA_ARG_MODEL` ☰ Model path? (for example `models/7B/ggml-model-f16.gguf`)
+       `GG_BUILD_CUDA` ☰ ?
+       `GG_BUILD_SYCL` ☰ ?
+       `GG_BUILD_VULKAN` ☰ ?
+    table }
+  
+  }
+  { models/7B/ggml-model-f16.gguf
+
+   `models/7B/ggml-model-f16.gguf` is the default path where llama.cpp looks for a model if not explicitely specified, see
+   → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/common/common.h#L25[`#define DEFAULT_MODEL_PATH "models/7B/ggml-model-f16.gguf"`]
+   in → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/common/common.h[`common/common.h`].
+
+  }
+  { ci/run.sh
+
+    See → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/ci/README.md[`ci/README.md`].
 
   }
 
