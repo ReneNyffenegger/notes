@@ -1,0 +1,22 @@
+$ Oracle: SYS_CONTEXT('USERENV', 'DBLINK_INFO')
+
+code {
+create database link tq84_to_10101010
+connect to rene identified by supersecretpassword
+using '(DESCRIPTION=(ADDRESS= (PROTOCOL=tcp) (Host=10.10.10.10) (Port=1521)) (CONNECT_DATA=(service_name=svc_10)))';
+
+begin
+   dbms_utility.exec_ddl_statement@tq84_to_10101010(q'[
+
+create view tq84_dblink_info as
+select
+   → development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'dblink_info') val
+from
+   dual
+
+]');
+end;
+/
+
+select * from tq84_dblink_info@tq84_to_10101010;
+code }

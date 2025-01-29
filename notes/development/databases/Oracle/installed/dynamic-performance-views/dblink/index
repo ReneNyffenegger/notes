@@ -1,9 +1,43 @@
 $ Oracle: V$DBLINK
 @ v$dblink
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/dblink/show-open-dblinks.sql||
+`v$dblink` shows → development/databases/Oracle/architecture/database/link[database links] that were opened by the → development/databases/Oracle/architecture/session that is query from this view:
+code {
+select
+  dbl.protocol,
+  dbl.db_link,
+  dbl.logged_on,
+  dbl.heterogeneous,
+  usr.username,
+  dbl.open_cursors,
+  dbl.in_transaction,
+  dbl.update_sent,
+  dbl.commit_point_strength
+from
+  v$dblink  dbl                                left join
+  → development/databases/Oracle/installed/data-dictionary/users usr on dbl.owner_id = usr.user_id;
+code }
+
+The following query (inspired by MOS note 387848.1) shows *all* open database links:
+code {
+select
+   username,
+   osuser,
+   status,
+   sid,
+   serial#,
+   machine,
+   process,
+   terminal,
+   program
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/session
+where
+   saddr in (select k2gtdses from sys.x$k2gte);
+code }
 
 sa:
-  → development/databases/Oracle/architecture/database/link
+
+ `→ development/databases/Oracle/installed/data-dictionary/db/links`
 
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

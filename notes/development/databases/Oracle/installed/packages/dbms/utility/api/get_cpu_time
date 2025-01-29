@@ -1,0 +1,26 @@
+$ Oracle: DBMS_UTILITY.GET_CPU_TIME
+@ dbms_utility.get_cpu_time
+
+`dbms_utility.get_cpu_time` returns the current CPU time as 100th's of a second from some arbitrary epoch.
+
+Count the number of records for which a `connect by` clause requires approximately 9 to 10 centiseconds of CPU time:
+code {
+with s as (
+   select /*+ materialize */
+      dbms_utility.get_cpu_time tart
+   from
+      dual
+)
+select count(*) from (
+   select
+      null
+   from
+      s connect by s.tart + 10 > dbms_utility.get_cpu_time
+);
+code }
+
+sa:
+
+ Compare with `→ development/databases/Oracle/installed/packages/dbms/utility/api/get_time`
+
+ `→ development/databases/Oracle/installed/packages/dbms/utility`

@@ -1,0 +1,61 @@
+$ Oracle: Join Elimination
+@ join elimination
+
+code {
+create table tq84_p (
+   id   integer primary key,
+   txt  varchar2(10)
+);
+
+create table tq84_c (
+   p_id not null references tq84_p,
+   val number(7,2)
+);
+
+create or replace view tq84_pc_v as
+select
+   p.id   id,
+   p.txt,
+   c.val
+from
+   tq84_p p                   join
+   tq84_c c on p.id = c.p_id
+;
+code }
+
+
+Because of the foreign-primary key relationship between `tq84_c` and `tq84_p` and the `not null` constraint on `p_id`, the optimizer knows that every record in `tq84_c` has exactly one record in `tq84_p`.
+-
+Thus, the following select staement does not have to access `tq84_p`:
+code {
+explain plan for
+select
+   id,
+   val
+from
+   tq84_pc_v;
+
+select * from dbms_xplan.display(format=>'basic');
+------------------------------------
+| Id  | Operation         | Name   |
+------------------------------------
+|   0 | SELECT STATEMENT  |        |
+|   1 |  TABLE ACCESS FULL| TQ84_C |
+------------------------------------
+code }
+
+Cleaning up
+code {
+drop view  tq84_pc_v;
+drop table tq84_c purge;
+drop table tq84_p purge;
+code }
+
+{ TODO
+
+  Is the *internal* function `qctcte1` related to join elimination?
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/join
