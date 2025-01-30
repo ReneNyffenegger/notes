@@ -11,13 +11,23 @@ code {
 cd llama.cpp
 code }
 
+ { Debian
+
+   On Debian, I was able to compile the sources, as indicated in the repository's → https://github.com/ggerganov/llama.cpp/blob/master/docs/build.md#cpu-build[`README.md`] with
+code {
+cmake -B build
+cmake --build build
+code }
+
+   The `-B` and `--build` options specify the  build directory (which is created with `-B`)
+
+ }
  { Windows, with MinGW
 
+   Note the `-G "MinGW Makefiles"` option:
 code {
 P:\ath\to\llama.cpp> cmake -B build -G "MinGW Makefiles"
 P:\ath\to\llama.cpp> cmake --build build --config Release
-P:\ath\to\llama.cpp> build\bin\llama-cli.exe -h
-…
 code }
 
  }
@@ -28,7 +38,7 @@ code }
       `batched-bench` ☰
       `batched` ☰
       `bench` ☰ Benchmark the performance of the inference for various parameters.
-      `cli` ☰ A CLI tool for accessing and experimenting with most of llama.cpp's functionality.
+      `cli` ☰ A CLI tool for accessing and experimenting with most of llama.cpp's functionality. TODO For the `--grammar`, `--grammar-file` and `--json-schema` command line options see `grammars` below.
       `convert-llama2c-to-ggml` ☰
       `cvector-generator` ☰
       `embedding` ☰
@@ -57,7 +67,7 @@ code }
       `retrieval` ☰
       `run` ☰ A comprehensive example for running llama.cpp models. Useful for inferencing. Used with RamaLama
       `save-load-state` ☰
-      `server` ☰ A lightweight, → https://github.com/openai/openai-openapi[OpenAI API] compatible, HTTP server for serving LLMs. (`llama-server -m model.gguf --port 11434`)
+      `server` ☰ A lightweight, → https://github.com/openai/openai-openapi[OpenAI API] compatible, HTTP server for serving LLMs. (`llama-server -m model.gguf --port 11434`). See also `grammars/` below.
       `simple-chat` ☰
       `simple` ☰ A minimal example for implementing apps with llama.cpp. Useful for developers.
       `speculative-simple` ☰
@@ -86,19 +96,138 @@ code }
 
  }
 
- { Using the (deprecated?) Makefile
+ { Using the deprecated Makefile
 
 code {
 cd llama.cpp
 → development/make -j
 code }
 
+  }
 
-  Trying a model:
+  { Trying a model
+
+    Under → https://github.com/ggerganov/llama.cpp/tree/master/models[`models/`], I found some `*.gguf` files which I believed I could use for a first test:
 code {
-$ curl -OL https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/main/ggml-model-Q4_K_M.gguf
-$ ./llama-cli -m ggml-model-Q4_K_M.gguf  -p "Tell me about programmers and coffee" -n 200
+$ build/bin/llama-cli -m models/ggml-vocab-bert-bge.gguf --prompt "tell me a nice story" --predict 100
+…
+llama_model_load: error loading model: missing tensor 'token_embd.weight'
+llama_model_load_from_file_impl: failed to load model
+common_init_from_params: failed to load model 'models/ggml-vocab-bert-bge.gguf'
+main: error: unable to load model
 code }
+
+  Apparently, → https://github.com/ggerganov/llama.cpp/issues/3917#issuecomment-1791494136[the files under `model/` are not real models, just the vocabulary part]. The actual models need to be downloaded.
+
+  So, I download a couple of (small) models…
+code {
+$ mkdir ~/llm-models
+$ → tools/cURL[curl] -L https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/main/ggml-model-Q4_K_M.gguf                                -o ~/llm-models/ggml-model-Q4_K_M.gguf
+$ → tools/cURL[curl] -L https://huggingface.co/TheBloke/dolphin-2.2.1-mistral-7B-GGUF/resolve/main/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf -o ~/llm-models/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf
+$ (cd ~/llm-models; stat --printf '%s\t%n\n' *)
+4368450304      dolphin-2.2.1-mistral-7b.Q4_K_M.gguf
+112858624       ggml-model-Q4_K_M.gguf
+code }
+ 
+  … and test them with the CLI tool:
+code {
+$ ./build/bin/llama-cli -m ~/llm-models/ggml-model-Q4_K_M.gguf                -p "Tell me about programmers and coffee" -n 200
+$ ./build/bin/llama-cli -m ~/llm-models/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf  -p "Tell me about programmers and coffee" -n 200
+code }
+
+  }
+  { examples/
+
+    …
+
+  }
+  { grammars/
+
+    GBNF (GGML BNF) as a format to constrain the output produced by llama.cpp (like, for example: only valid JSON, or emojis)
+
+    GBNF grammars can be useed in
+      • `llama-server` (where the grammer is passed in the `grammar ` body field)
+      • `llama-cli` using the `--grammar` and `--grammar-file` flags
+      • `llama-gbnf-validator`
+
+    See also
+      • `tests/test-json-schema-to-grammar.cpp` (to see which features are likely supported)
+      • → https://github.com/ggerganov/llama.cpp/pull/5978
+      • → https://github.com/ggerganov/llama.cpp/pull/6659
+      • → https://github.com/ggerganov/llama.cpp/pull/6555
+
+   `-j` (`--json-schema`) flag in action:
+code {
+llama-cli \
+  -hfr bartowski/Phi-3-medium-128k-instruct-GGUF \
+  -hff Phi-3-medium-128k-instruct-Q8_0.gguf \
+  -j '{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+            },
+            "age": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 150
+            }
+        },
+        "required": ["name", "age"],
+        "additionalProperties": false
+    },
+    "minItems": 10,
+    "maxItems": 100
+  }' \
+  -p 'Generate a {name, age}[] JSON array with famous actors of all ages.'
+code }
+
+    Any schema can be converted in the command line with
+code {
+examples/json_schema_to_grammar.py name-age-schema.json
+code }
+
+  }
+  { scripts
+
+    table { ll
+      `build-info.sh` ☰
+      `check-requirements.sh` ☰ checks all requirements files for each top-level convert*.py script.
+      `ci-run.sh` ☰ What's the difference to `ci/run.sh`
+      `compare-commits.sh` ☰ Checks out two different commits from the repository, builds the project and then runs `compare-llama-bench.py`
+      `compare-llama-bench.py` ☰
+      `debug-test.sh` ☰
+      `gen-authors.sh` ☰ Adds new authors to the → https://github.com/ggerganov/llama.cpp/blob/master/AUTHORS[`AUTHORS`]
+      `gen-unicode-data.py` ☰
+      `get-flags.mk` ☰
+      `get-hellaswag.sh` ☰
+      `get_hf_chat_template.py` ☰ Fetches the Jinja chat template of a HuggingFace model.
+      `get-pg.sh` ☰
+      `get-wikitext-103.sh` ☰
+      `get-wikitext-2.sh` ☰
+      `get-winogrande.sh` ☰
+      `hf.sh` ☰ Dowonload a Hugging Face model (like for example `./llama-cli -m $(./scripts/hf.sh https://huggingface.co/TheBloke/Mixtral-8x7B-v0.1-GGUF/resolve/main/mixtral-8x7b-v0.1.Q4_K_M.gguf)`)
+      `install-oneapi.bat` ☰
+      `qnt-all.sh` ☰
+      `run-all-perf.sh` ☰
+      `run-all-ppl.sh` ☰
+      `sync-ggml-am.sh` ☰ Synchronize ggml changes to llama.cpp
+      `sync-ggml.last` ☰
+      `sync-ggml.sh` ☰
+      `verify-checksum-models.py` ☰
+      `xxd.cmake` ☰
+    table }
+
+  }
+  { cmake/x64-windows-llvm.cmake
+
+    The `cmake` directory contains a file named `x64-windows-llvm.cmake`.
+
+    Can this file explicitely be used for an LLVM build?
 
   }
 
@@ -106,8 +235,6 @@ code }
 { TODO
 
   { llama build number, build commit, build compiler and build target
-
-    The values  *llama build number*, build commit, build compiler and build target is determined in
 
     → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/scripts/build-info.sh[`scripts/build-info.sh`] determines the following values:
     table { lll
@@ -119,6 +246,12 @@ code }
     table }
 
     These value seems then to be used to produce `common/build-info.cpp` from → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/common/build-info.cpp.in[`common/build-info.cpp.in`].
+
+    However, I don't find `build-info.sh` referenced in any other file except in the → https://github.com/ggerganov/llama.cpp/blob/27d135c970c00f655d486f870edacded792bef5c/Makefile[`Makefile`] which is
+    → https://github.com/ggerganov/llama.cpp/blob/27d135c970c00f655d486f870edacded792bef5c/Makefile#L2[deprecated].
+
+    Therefore, I now believe hat these figures are determined in → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/cmake/build-info.cmake[`cmake/build-info.cmake`]
+    (which in turn seems to be invoked or referenced in → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/common/cmake/build-info-gen-cpp.cmake[`common/cmake/build-info-gen-cpp.cmake`]).
 
   }
   { Environment variables
@@ -140,7 +273,12 @@ code }
   }
   { ci/run.sh
 
+    In addition to → https://github.com/ggerganov/llama.cpp/actions[llama.cpp's github actions], a commit to the repository triggers the execution fo → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/ci/run.sh[`ci/run.sh`].
+    on dedicated cloud instances which permits heavier workloads than just Github actions.
+
     See → https://github.com/ggerganov/llama.cpp/blob/eb7cf15a808d4d7a71eef89cc6a9b96fe82989dc/ci/README.md[`ci/README.md`].
+
+    What's the difference to `scripts/ci-run.sh`
 
   }
 
