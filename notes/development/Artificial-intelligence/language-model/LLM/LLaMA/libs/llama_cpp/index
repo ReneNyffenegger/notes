@@ -126,7 +126,7 @@ $ → tools/cURL[curl] -L https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/m
 $ → tools/cURL[curl] -L https://huggingface.co/TheBloke/dolphin-2.2.1-mistral-7B-GGUF/resolve/main/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf -o ~/llm-models/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf
 code }
 
-   Show the sizes of the downloaded models:
+   … show the sizes of the downloaded models …
 code {
 $ (cd ~/llm-models; stat --printf '%s\t%n\n' *)
 4368450304      dolphin-2.2.1-mistral-7b.Q4_K_M.gguf
@@ -139,7 +139,7 @@ $ ./build/bin/llama-cli -m ~/llm-models/ggml-model-Q4_K_M.gguf                -p
 $ ./build/bin/llama-cli -m ~/llm-models/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf  -p "Tell me about programmers and coffee" -n 200
 code }
 
-    In Windows, with Powershell, a module can be downloaded with
+    In Windows, with → Windows/PowerShell, a module can be downloaded with
 code {
 PS:> $progressPreference = 'SilentlyContinue'
 PS:> → Windows/PowerShell/command-inventory/noun/webRequest/invoke https://huggingface.co/TheBloke/dolphin-2.2.1-mistral-7B-GGUF/resolve/main/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf -outfile ~/llm-models/dolphin-2.2.1-mistral-7b.Q4_K_M.gguf
@@ -393,6 +393,107 @@ code }
 
   }
 
+}
+{ Ollama
+
+  → https://github.com/ollama/ollama[Ollama] is based on llama.cpp.
+
+  { (Manual) installation
+
+    The instructions for a → https://github.com/ollama/ollama/blob/main/docs/linux.md#manual-install[manual instruction] point to a *self-contrained binary* that can be downloaded and extracted:  
+code {
+$ → tools/cURL[curl] -L → https://ollama.com/download/ollama-linux-amd64.tgz -o → Linux/fhs/tmp[/tmp]/ollama-linux-amd64.tgz
+code }
+
+   Inspecting the downloaded → development/archive-files[archive file]:
+code {
+$ → Linux/shell/commands/tar tf /tmp/ollama-linux-amd64.tgz | → Linux/shell/commands/grep -v '/$'
+./bin/ollama
+./lib/ollama/libcudart.so.12
+./lib/ollama/libcublasLt.so.12.4.5.8
+./lib/ollama/libcudart.so.11.0
+./lib/ollama/libcublas.so.11
+./lib/ollama/libcublas.so.12
+./lib/ollama/libcudart.so.11.3.109
+./lib/ollama/libcublas.so.12.4.5.8
+./lib/ollama/libcudart.so.12.4.127
+./lib/ollama/libcublasLt.so.11.5.1.109
+./lib/ollama/libcublasLt.so.11
+./lib/ollama/runners/cuda_v11_avx/ollama_llama_server
+./lib/ollama/runners/cuda_v11_avx/libggml_cuda_v11.so
+./lib/ollama/runners/rocm_avx/ollama_llama_server
+./lib/ollama/runners/rocm_avx/libggml_rocm.so
+./lib/ollama/runners/cuda_v12_avx/ollama_llama_server
+./lib/ollama/runners/cuda_v12_avx/libggml_cuda_v12.so
+./lib/ollama/runners/cpu_avx2/ollama_llama_server
+./lib/ollama/runners/cpu_avx/ollama_llama_server
+./lib/ollama/libcublas.so.11.5.1.109
+./lib/ollama/libcublasLt.so.12
+code }
+
+     These files need to be extracted under `→ Linux/fhs/usr`:
+code {
+$ → Linux/shell/commands/sudo → Linux/shell/commands/tar -C /usr -xzf /tmp/ollama-linux-amd64.tgz
+code }
+
+  }
+  { Testing the installation
+
+    Start the Ollama server:
+code {
+$ ollama server
+code }
+
+    In another terminal:
+code {
+$ ollama -v
+ollama version is 0.5.7
+code }
+
+    As can be seen in the terminal where the server was started, `ollama -v` basically accesses the APi `/api/version`, i. e. something like
+code {
+$ curl -s localhost:11434/api/version
+code }
+
+  }
+  { Web API
+
+code {
+$ curl -s http://localhost:11434/api/generate -d '{
+   "model" : "llama2",
+   "prompt": "tell me about programmers and coffe"
+}' | → development/languages/JavaScript/JSON/tools/jq
+
+{
+  "error": "model 'llama2' not found"
+}
+code }
+
+   The model is not available, we need to pull it:
+code {
+$ curl -s http://localhost:11434/api/pull -d '{
+  "model": "llama2"
+}' | jq
+code }
+
+    After downloading the model, query the available models:
+code {
+$ curl -s http://localhost:11434/api/tags | jq -r '.models[].name'
+code }
+
+     Try again:
+code { 
+$ curl -s http://localhost:11434/api/generate -d '{
+   "model" : "llama2",
+   "prompt": "tell me about programmers and coffe"
+}' | jq
+
+{
+  "error": "model requires more system memory (8.4 GiB) than is available (1.8 GiB)"
+}
+code }
+
+  }
 }
 
 links:
