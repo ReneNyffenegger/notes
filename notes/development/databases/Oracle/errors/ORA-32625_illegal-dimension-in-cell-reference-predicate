@@ -1,0 +1,67 @@
+$ ORA-32625: illegal dimension in cell reference predicate
+
+Preparation:
+code {
+create table tq84_ora_32625 (
+   dim   char(1),
+   m_1   number,
+   m_2   number
+);
+
+begin
+
+   insert into tq84_ora_32625 values ('A',  100,  4);
+   insert into tq84_ora_32625 values ('B',  200,  8);
+   insert into tq84_ora_32625 values ('C', -300,  7);
+   insert into tq84_ora_32625 values ('Y',  -17,  6);
+   insert into tq84_ora_32625 values ('Z',   22,  5);
+
+   commit;
+end;
+/
+code }
+
+The following statement runs ok:
+code {
+select
+   *
+from
+   tq84_ora_32625 → development/databases/Oracle/SQL/select/model
+   dimension by (dim)
+   measures     (m_1, m_2)
+  (
+     m_1[dim > 'Q'] = null
+   )
+;
+--
+-- D        M_1        M_2
+-- - ---------- ----------
+-- A        100          4
+-- B        200          8
+-- C       -300          7
+-- Y                     6
+-- Z                     5
+code }
+
+The following statement references a measure where a dimension was expected, thus *ORA-32625: illegal dimension in cell reference predicate* is thrown:
+code {
+select
+   *
+from
+   tq84_ora_32625 model
+   dimension by (dim)
+   measures     (m_1, m_2)
+  (
+     m_2[m_1 < 0] = null
+  )
+;
+code }
+
+
+Cleaning up:
+code {
+drop table tq84_ora_32625;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]

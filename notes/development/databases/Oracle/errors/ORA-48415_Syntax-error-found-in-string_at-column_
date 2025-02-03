@@ -1,0 +1,22 @@
+$ ORA-48415: Syntax error found in string [] at column []
+
+On an Oracle 19 Database, running on Windows, the following statement threw *ORA-48415: Syntax error found in string [root_dir=logical_path(:1) and physical_filename like '\trace\' and (level = 1 or level = 2) and (logical_path like '] at column [116]*:
+code {
+with fil as (
+   select
+      case when platform_name like 'Microsoft Windows %' then '\' else '/' end separator
+   from
+      v$database
+)
+select
+   null
+from
+   fil                                          cross join
+   v$diag_trace_file_contents trc                     join
+   v$diag_info                inf on inf.value = trc.adr_home || fil.separator || 'trace' || fil.separator || trc.trace_filename
+where
+   inf.name = 'Default Trace File';
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
