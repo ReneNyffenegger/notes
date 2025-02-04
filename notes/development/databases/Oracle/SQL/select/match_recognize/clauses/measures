@@ -1,0 +1,68 @@
+$ Oracle MATCH_RECOGNIZE: MEASURES clause
+@ measures
+
+Example preparation:
+code {
+create table tq84_tab (
+   id     integer         primary key,
+   letter char(1) not null,
+   val    varchar2(5)
+);
+
+begin
+
+   insert into tq84_tab values ( 8, 'R', 'i'   );
+   insert into tq84_tab values (12, 'H', 'ii'  );
+   insert into tq84_tab values (13, 'X', 'iii' );
+   insert into tq84_tab values (19, 'Y', 'iv'  );
+   insert into tq84_tab values (22, 'Z', 'v'   );
+   insert into tq84_tab values (25, 'S', 'vi'  );
+   insert into tq84_tab values (36, 'G', 'vii' );
+   insert into tq84_tab values (38, 'A', 'viii');
+   insert into tq84_tab values (45, 'Q', 'ix'  );
+   insert into tq84_tab values (49, 'W', 'x'   );
+   
+   commit;
+end;
+/
+code }
+
+Select statement
+code {
+select
+   *
+from
+   tq84_tab match_recognize (
+       order by
+          id
+        
+       measures
+          x.id  as id_x,
+          y.id  as id_y,
+          z.id  as id_z,
+          x.val as val_x,
+          y.val as val_y,
+          z.val as val_z
+          
+    -- all rows per match   -- <=  note how using all rows per match adds even more columns (in addition to the rows) to the result set
+       pattern (x y z)
+          
+       define
+          x as letter = 'X',
+          y as letter = 'Y',
+          z as letter = 'Z'
+);
+--
+--      ID_X       ID_Y       ID_Z VAL_X VAL_Y VAL_Z
+-- ---------- ---------- ---------- ----- ----- -----
+--         13         19         22 iii   iv    v    
+code }
+
+Cleaning up:
+code {
+drop table tq84_tab;
+code }
+
+sa:
+  Elements in the `measures` clause need an alias, see → development/databases/Oracle/errors/ORA-62505_expression-needs-to-be-aliased
+
