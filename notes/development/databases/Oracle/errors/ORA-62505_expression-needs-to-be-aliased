@@ -1,0 +1,56 @@
+$ ORA-62505: expression needs to be aliased
+
+When using `→ development/databases/Oracle/SQL/select/match_recognize`, the elements in the `→ development/databases/Oracle/SQL/select/match_recognize/clauses/measures` clause need an alias.
+
+code {
+create table tq84_tab (
+   id     integer         primary key,
+   txt    varchar2(10),
+   num    number
+);
+code }
+
+The following (silly) statement throws *ORA-62505: expression needs to be aliased*;
+code {
+select
+   *
+from
+   tq84_tab match_recognize (
+       order by
+          id
+
+       measures
+          txt,
+          num
+          
+       pattern (a)
+          
+       define
+          a as length(txt) = num
+
+);
+code }
+
+This one runs ok:
+code {
+select
+   *
+from
+   tq84_tab match_recognize (
+       order by
+          id
+
+       measures
+          txt as txt,   -- <== Note the alias
+          num as num
+          
+       pattern (a)
+          
+       define
+          a as length(txt) = num
+
+);
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
