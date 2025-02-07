@@ -17,6 +17,63 @@ gh|Oracle-Patterns|/SQL/insert/insert_all_01.sql||
   gh|Oracle-Patterns|/SQL/insert/insert_all/conditional.sql||
 
 }
+{ Fill parent-table related tables
+
+code {
+create table tq84_src (
+   id   integer,
+   txt  varchar2(10)
+);
+
+begin
+
+   insert into tq84_src values (1, 'A'  );
+   insert into tq84_src values (2, 'B'  );
+   insert into tq84_src values (3, 'C'  );
+   insert into tq84_src values (1, 'aaa');
+   insert into tq84_src values (2, 'bb' );
+   insert into tq84_src values (1, 'aa' );
+
+   commit;
+
+end;
+/
+code }
+
+
+code {
+create table tq84_dest_id  (id integer primary key);
+create table tq84_dest_txt (txt varchar2(10), id references tq84_dest_id);
+code }
+
+
+code {
+insert all
+   when rn = 1 then into tq84_dest_id (id     ) values (id     )
+   when 1= 1   then into tq84_dest_txt(id, txt) values (id, txt)
+select
+   row_number() over (partition by id order by null) rn,
+   id,
+   txt
+from
+   tq84_src;
+ code }
+
+code {
+select * from tq84_dest_id;
+select * from tq84_dest_txt;
+code }
+
+
+  Cleaning up:
+code {
+drop table tq84_src;
+drop table tq84_dest_txt;
+drop table tq84_dest_id;
+code }
+
+
+}
 
 
 sa:

@@ -1,0 +1,35 @@
+$ Oracle: Read-only tables
+
+→ development/databases/Oracle/objects/tables[Tables] can be set *read-only*.
+
+code {
+create table tq84_table (
+  col_1 number,
+  col_2 date
+);
+
+insert into tq84_table values (1, sysdate);
+code }
+
+Making the → development/databases/Oracle/objects/tables *read only*:
+code {
+alter table tq84_table read only;
+code }
+
+Verify that the table is read only in the data dictionary:
+code {
+select read_only from → development/databases/Oracle/installed/data-dictionary/tables[user_tables] where table_name = 'TQ84_TABLE';
+code }
+
+The following statement throws → development/databases/Oracle/errors/ORA-12081_update-operation-not-allowed-on-table-[ORA-12081: update operation not allowed on table]:
+code {
+insert into tq84_table values (2, null);
+code }
+
+Cleaning up:
+code {
+drop table tq84_table purge;
+code }
+
+sa:
+  The following statement throws → development/databases/Oracle/errors/ORA-12081_update-operation-not-allowed-on-table-[ORA-12081: update operation not allowed on table]:

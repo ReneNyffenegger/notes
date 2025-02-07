@@ -1,0 +1,40 @@
+$ ORA-12081: update operation not allowed on table ‥
+
+code {
+create table tq84_x(a number);
+
+begin
+   insert into tq84_x values (1);
+   insert into tq84_x values (2);
+   insert into tq84_x values (3);
+   commit
+end;
+/
+code }
+
+Making the → development/databases/Oracle/objects/tables → development/databases/Oracle/objects/tables/read-only[Read-only]:
+code {
+alter table tq84_x read only;
+code }
+
+Each of the following statements throws *ORA-12081: update operation not allowed on table "RENE"."TQ84_X"*:
+code {
+insert into tq84_x values (-1);
+delete from tq84_x where a > 10;
+delete from tq84_x where a = 1;
+update tq84_x set a = 5 where a = 3;
+code }
+
+Enable → development/databases/Oracle/SQL/DML[DML] again:
+code {
+alter table tq84_x read write;
+code }
+
+Cleaning up:
+code {
+drop table tq84_x;
+code }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
+
