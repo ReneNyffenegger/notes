@@ -1,0 +1,30 @@
+$ Oracle: Creating graphviz files showing referential integrity dependencies
+
+The following query creates a → tools/Graphviz file that shows → development/databases/Oracle/objects/tables/constraints/referential-integrity dependencies:
+code {
+with tabs as (
+    select
+       user own,
+       table_name tab
+    from
+       user_tables
+    where
+       table_name like '‥'
+    and
+       table_name not in (‥)
+)
+select 'digraph {  node [shape = box]' l from dual union all
+select
+-- lower(substr(tac.tab, 9) || ' -> ' || substr(tap.tab, 9))  l
+   lower(       tac.tab     || ' -> ' ||        tap.tab    )  l
+from
+   tabs                 tap                                                                            join
+   dba_constraints      cpk  on tap.own   = cpk.owner and tap.tab             = cpk.table_name         join
+   dba_constraints      cfk  on cpk.owner = cfk.owner and cpk.constraint_name = cfk.r_constraint_name  join
+   tabs                 tac  on tac.own   = cfk.owner and tac.tab             = cfk.table_name
+union all
+   select '}' from dual;
+code }
+
+sa:
+  Creating a graphviz file showing → development/databases/Oracle/installed/data-dictionary/dependencies/graphviz[object dependencies].

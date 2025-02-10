@@ -1,0 +1,42 @@
+$ ORA-22905: cannot access rows from a non-nested table item
+
+code {
+create type tq84_t as object (dummy char(1));
+/
+
+create or replace function tq84_ora_22905 return tq84_t is begin return tq84_t('x'); end;
+/
+code }
+
+This statement runs without problem:
+code {
+select tq84_ora_22905 from dual;
+code }
+
+The following statement throws *ORA-22905: cannot access rows from a non-nested table item*:
+select * from tq84_ora_22905();
+code {
+
+Change the function so that is returns a nested table:
+code {
+create type tq84_nt as table of tq84_t;
+/
+
+create or replace function tq84_ora_22905 return tq84_nt is begin return tq84_nt(tq84_t('x')); end;
+/
+code }
+
+Now, the statement runs ok:
+code {
+select * from tq84_ora_22905();
+code }
+
+Cleaning up:
+code {
+drop type tq84_nt;
+drop type tq84_t;
+drop function tq84_ora_22905;
+code }
+
+sa;
+  → development/databases/Oracle/errors[Other Oracle error messages]
