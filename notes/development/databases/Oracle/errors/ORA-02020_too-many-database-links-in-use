@@ -1,0 +1,23 @@
+$ ORA-02020: too many database links in use
+
+code {
+select 'max open links'    text, to_number(value) value from v$parameter where name = 'open_links' union all
+select 'actual open links' text, count(*) value from v$dblink;
+code }
+
+Close open database links:
+code {
+begin
+   for lnk in (select db_link from v$dblink) loop
+       dbms_session.close_database_link(lnk.db_link);
+   end loop;
+end;
+/
+code }
+
+sa:
+
+   
+  → development/databases/Oracle/architecture/database/link
+
+  → development/databases/Oracle/errors[Other Oracle error messages]
