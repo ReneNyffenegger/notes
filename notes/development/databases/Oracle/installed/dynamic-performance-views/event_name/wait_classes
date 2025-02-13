@@ -1,9 +1,55 @@
-$ V$EVENT_NAME: wait classes
+$ V$EVENT_NAME: Wait Classes
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/event_name/wait_class.sql||
+code {
+select
+   count(*) cnt,
+   wait_class,
+   wait_class#
+from
+   v$event_name
+group by
+   wait_class#,
+   wait_class
+order by
+   count(*) desc;
+--
+--     CNT WAIT_CLASS       WAIT_CLASS#
+---------- ---------------- -----------
+--    1647 Other                      0
+--     170 Idle                       6
+--      80 User I/O                   8
+--      78 Cluster                   11
+--      75 Concurrency                4
+--      61 Administrative             3
+--      43 System I/O                 9
+--      29 Network                    7
+--      29 Configuration              2
+--      21 Application                1
+--      12 Scheduler                 10
+--      11 Queueing                  12
+--       7 Commit                     5
+code }
+
+table { ll
+  Idle ☰ The → development/databases/Oracle/architecture/processes has nothing todo, typically because it waits for the client to send a new SQL statement to process.
+  User I/O ☰ I/O for user queries, including SMON and MMON. Compare with *System I/O*.
+  Cluster ☰ RAC
+  Concurrency ☰ Cannot(?) be tuned - compare with *Configuration*. k
+  Administrative ☰ Caused by a privileged user (
+  System I/O ☰ I/O performed by background processes (like LGWR, DBWR, ARCH, RFS), excluding SMON and MMON. Compare with *User I/O*.
+  Network ☰ High wait times indicate congestion or high latency in the network
+  Configuration ☰ Waits whose wait time can probably be greatly reduced when Oracle is properly tuned. Compare with *Concurrency*.
+  Application ☰ Waits that are caused by the application (client?) themselves (explicit locking, DDL …)jk
+  Scheduler ☰ Resource manager
+  Commit ☰
+  Other ☰ 
+table }
+
 
 sa:
 
  `→ development/databases/Oracle/installed/dynamic-performance-views/event_name`
 
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  MOS note 245055.1

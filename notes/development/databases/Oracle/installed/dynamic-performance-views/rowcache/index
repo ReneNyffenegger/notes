@@ -1,7 +1,50 @@
 $ Oracle: V$ROWCACHE
 @ v$rowcache
 
+code {
+select
+   roc.parameter,
+   roc.type,   
+   roc.usage,   
+   roc.count,
+   roc.gets,   
+   roc.cache#,
+   roc.fastgets,
+   roc.fixed,
+   roc.flushes,
+   roc.getmisses,
+   roc.modifications,
+   roc.scancompletes,
+   roc.scanmisses,
+   roc.scans,
+   roc.dlm_requests,   
+   roc.subordinate#,
+   roc.con_id,
+   roc.dlm_conflicts,  -- obsolete
+   roc.dlm_releases    -- obsolete
+from
+   sys.v_$rowcache roc
+order by
+   roc.usage desc;
+code }
+
+code {
+select
+   s.kqrstcln latch#,
+   r.cache#,
+   r.parameter name,
+   r.type,
+   r.subordinate#
+from
+   v$rowcache r                               join
+   x$kqrst    s on r.cache# = s.kqrstcid
+code }
+
 sa:
   The → development/databases/Oracle/architecture/instance/SGA/Shared-Pool/data-dictionary-cache[Data dictionary cache] (which is also referred to as *row cache*).
 
   → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  MOS Note 468334.1
+
+  The *row cache objects* latch.
