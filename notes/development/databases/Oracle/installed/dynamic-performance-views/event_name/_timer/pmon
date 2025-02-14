@@ -1,6 +1,18 @@
 $ Oracle wait event: pmon timer
 @ pmon timer
 
-sa:,
-  → development/databases/Oracle/architecture/processes/background/PMON
-  → development/databases/Oracle/architecture/processes/background/CLMN
+code {
+select
+   ses.event,                           -- Likely: pmon timer
+   ses.p1text,                          -- Likely: duration,
+   ses.p1,                              -- Likely: 300  (i. e. 3 seconds)
+   ses.wait_time_micro / 1e6 in_wait_s, -- < 3
+   ses.state,
+   ses.status
+from
+   v$session ses
+where
+   ses.type  = 'BACKGROUND' and
+  (ses.program like '%(→ development/databases/Oracle/architecture/processes/background/PMON)' or ses.program like '%(→ development/databases/Oracle/architecture/processes/background/CLMN)')
+;
+code }
