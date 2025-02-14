@@ -11,5 +11,20 @@ Every minute, PMON also terminates processes that have exceeded the resource man
 
 PMON is a → development/databases/Oracle/architecture/processes/background[background process].
 
+code {
+select
+   ses.event,                           -- Likely: pmon timer
+   ses.p1text,                          -- Likely: duration,
+   ses.p1,                              -- Likely: 300  (i. e. 3 seconds)
+   ses.wait_time_micro / 1e6 in_wait_s, -- < 3
+   ses.state,
+   ses.status
+from
+   v$session ses
+where
+   ses.type  = 'BACKGROUND' and
+   ses.program like '%(PMON)';
+code }
+
 sa:
   → development/databases/Oracle/architecture/processes/background/SMON
