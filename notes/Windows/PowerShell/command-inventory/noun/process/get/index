@@ -38,6 +38,35 @@ code }
   }
 
 }
+{ Select my session's processes
+
+code {
+get-process | where-object {
+   $_.SI -eq ([System.Diagnostics.Process]::GetCurrentProcess().SessionId) -and
+ #
+ #    Exclude some well known proceses: 
+ #
+   $_.processName -notin
+      'csrss',
+      'dllhost',
+      'dwm',
+      'explorer',
+      'RuntimeBroker',
+      'SecurityHealthSystray',
+      'ShellExperienceHost',
+      'sihost',
+      'svchost',
+      'taskhostw', 
+      'unsecapp',
+      'winlogon',
+     # WSL related
+      'wsl', 'wslrelay', 'wslhost'
+}
+code }
+
+  TODO: Is `TextInputHost` a well-known process as well?
+
+}
 
 sa:
 
