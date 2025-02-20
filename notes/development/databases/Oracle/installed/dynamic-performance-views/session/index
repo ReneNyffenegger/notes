@@ -35,7 +35,7 @@ Each record in `v$session` shows information about a «current» → development
    `OWNERID`                                             ☰ ID of the user who owns the migratable session.
    `TADDR`                                               ☰ Address (`RAW`) of the transaction, join with `v$transaction`.
    `LOCKWAIT`                                            ☰ Address of the lock that the session is waiting for, `NULL` if not waiting.
-   `STATUS`                                              ☰ `ACTIVE`, `INACTIVE`, `KILLED`, `CACHED` or `SNIPED`
+   `STATUS`                                              ☰ `ACTIVE`, `INACTIVE`, `KILLED`, `CACHED` or `SNIPED`. Compare with column `STATE`.
    `SERVER`                                              ☰ `DEDICATED`, `SHARED`, `PSEUDO`, `POOLED` or `NONE`
    `SCHEMA#`                                             ☰ 
    `SCHEMANAME`                                          ☰ 
@@ -107,7 +107,7 @@ Each record in `v$session` shows information about a «current» → development
    `WAIT_CLASS`                                          ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
    `WAIT_TIME`                                           ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
    `SECONDS_IN_WAIT`                                     ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
-   `STATE`                                               ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
+   `STATE`                                               ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`]. Compare with column `STATUS`.
    `WAIT_TIME_MICRO`                                     ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
    `TIME_REMAINING_MICRO`                                ☰ Column value → development/databases/Oracle/installed/dynamic-performance-views/session/wait#v_sesssion_wait_repl_session[replicated] from → development/databases/Oracle/installed/dynamic-performance-views/session/wait[`v$session_wait`].
    `TOTAL_TIME_WAITED_MICRO`                             ☰
@@ -193,9 +193,53 @@ Each record in `v$session` shows information about a «current» → development
   }
   { SADDR
 
-  The value of `saddr` (the session address) might be joined to
-    • → development/databases/Oracle/installed/data-dictionary/kgllock[`dba_kgllock`]
-    • … ?
+    The value of `saddr` (the session address) might be joined to
+      • → development/databases/Oracle/installed/data-dictionary/kgllock[`dba_kgllock`]
+      • … ?
+
+  }
+  { STATUS, STATE
+
+    table { ll
+      `ACTIVE` ☰
+      `INACTIVE` ☰
+      `KILLED` ☰ The session was killed while it was `INACTIVE` and the session's user did not yet see the ORA-00028 error message (MOS Note 107686.1)|
+      `SNIPED` ☰
+      `CACHED` ☰
+   
+    table }
+
+    TODO:
+code {
+select
+-- count(*),
+   status,   
+   state
+from
+   v$session
+group by
+   status,
+   state
+order by
+   status;
+--
+-- ACTIVE     WAITED KNOWN TIME
+-- ACTIVE     WAITED SHORT TIME
+-- ACTIVE     WAITING
+-- INACTIVE   WAITING
+
+
+select
+   count(*),
+   event           -- Typically SQL*Net message from client ?
+from
+   v$session
+where
+   status = 'INACTIVE' and
+   state  = 'WAITING'
+group by
+   event;
+code }
 
   }
 }

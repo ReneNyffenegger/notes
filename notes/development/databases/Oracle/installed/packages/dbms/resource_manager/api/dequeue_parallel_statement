@@ -1,0 +1,31 @@
+$ DBMS_RESOURCE_MANAGER.DEQUEUE_PARALLEL_STATEMENT
+-
+
+code {
+select
+   ses.sid,
+   ses.serial#,
+   sql.sql_id,
+   sql.sql_text
+from
+   v$session ses                             join
+   v$sqlarea sql on ses.sql_id = sql.sql_id
+where
+   ses.state = 'WAITING' and
+   ses.event = 'resmgr:pq queued';
+
+begin
+  
+   dbms_resource_manager.dequeue_parallel_statement (
+      session_id      => ‥,
+      session_serial  => ‥,
+   -- inst_id         => ‥,
+      sql_id          =>'‥',
+   );
+
+end;
+/
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/packages/dbms/resource_manager`

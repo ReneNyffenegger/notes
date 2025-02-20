@@ -121,8 +121,21 @@ code }
 
   The values for `sid` and `serial` can be found in → development/databases/Oracle/installed/dynamic-performance-views/session#vSsession-sid-serial[`v$session`]
 
+ `alter system kill session` performs the following actions:
+    • Terminates the session
+    • Rolls back its transaction
+    • Releases its locks
+    • Frees its resources
+
+  Sessions that perform network I/O (for example because they're waiting for a replay of a remote database) or are rolling back a transaction cannot be immediately terminated.
+  -
+  In such a case, the session that executes `alter system kill session` waits up to 60 seconds. If this time period is reached, it receives a messages that indicates that the session is *marked* to be terminated
+ (MOS Notes 107686.1, 161794.1).
+
   As per MOS Note 1020720.102 (*ALTER SYSTEM KILL Session Marked for Killed Forever*), a killed session waits for for a *SQLNet message from client* to which it can respond with → development/databases/Oracle/errors/ORA-00028_your-session-has-been-killed. Only when this message
   is received, PMON will take ownership of the process and clean up any resources allocated by that process.
+
+? Killing one of the background processes DBWR, LGWR, SMON or PMON will crash the instance.
 
   See also
     • the → development/databases/Oracle/SQL/statement/nouns/system/alter/kill-session/kill_my_session[procedure `kill_my_session`] procedure,

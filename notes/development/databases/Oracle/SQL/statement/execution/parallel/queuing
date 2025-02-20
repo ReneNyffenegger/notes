@@ -1,6 +1,7 @@
 $ Oracle: Parallel Statement Queuing
 
-If `→ development/databases/Oracle/adminstration/init-parameters/parallel/degree/policy` is set to `auto` or a `parallel` hint and an → development/databases/Oracle/SQL/statement is requested to be → development/databases/Oracle/SQL/statement/execution[executed] in → development/databases/Oracle/SQL/statement/execution/parallel[parallel],
+If `→ development/databases/Oracle/adminstration/init-parameters/parallel/degree/policy` is set to `auto` (or also `adaptive`?)
+or a `parallel` hint is used, and an → development/databases/Oracle/SQL/statement is requested to be → development/databases/Oracle/SQL/statement/execution[executed] in → development/databases/Oracle/SQL/statement/execution/parallel[parallel],
 but the sum of requested and already executing parallel servers exceeds the value of `→ development/databases/Oracle/adminstration/init-parameters/parallel/servers_target`, the statement is *queued* until sufficient servers are available.
 
 Statements are queued with the FIFO principle.
@@ -11,9 +12,49 @@ In addition, it's possible to assign priorities to consumer groups (Package `dbm
 
 Queued statements are waiting for the `→ development/databases/Oracle/installed/dynamic-performance-views/event_name/list/resmgr/pq-queued` event.
 
+Statements executed by users haveing the database resource manager directive `parallel_statement_criticial` set to `bypass_queue` bypass the statement queue.
+
+{ TODO
+
+  { Parameters
+
+code {
+select
+   name,
+   value
+from
+   v$parameter
+where
+   name in (
+       'parallel_degree_policy',
+       'parallel_servers_target'
+   );
+code }
+
+  }
+  { Statement queues
+
+?   With the Database Resource manager, each consumer group has its own statement queue and is assigned a share of the total amount of `parallel_servers_target`.
+
+  }
+
+}
+
 sa:
 
  `→ development/databases/Oracle/adminstration/init-parameters/parallel/degree/policy`
+
+code {
+select
+   sql_id,
+   sql_text
+-- ‥
+from
+   v$sql_monitor
+where
+   status = 'QUEUED';
+code }
+ 
 
   The `no_statement_queuing` and `statement_queuing` hint.
 

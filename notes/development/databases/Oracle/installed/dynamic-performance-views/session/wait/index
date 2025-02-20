@@ -12,7 +12,7 @@ In contrast, → development/databases/Oracle/installed/dynamic-performance-view
   table { ll
      `SID`                           ☰ Identifier that identifies the → development/databases/Oracle/architecture/session[session] which waits for the event described in the record.
      `SEQ#`                          ☰ A unique number, incremented for each wait
-     `EVENT`                         ☰ A textual description of the event that the session is waiting for (if in wait) or the most recent event waited for (if not in wait).
+     `EVENT`                         ☰ A textual description of the event that the session is waiting for (if `STATE = 'WAITING`) or the most recent event waited for (if `STATE <> 'WAITING'`) - See MOS Note 2171986.1
      `P1TEXT`, `P2TEXT`, `P3TEXT`    ☰ A textual description of the 1st, 2nd, 3rd parameter of the wait.
      `P1`, `P2`, `P3`                ☰ Numerical value of the 1st, 2nd, 3rd parameter.
      `P1RAW`, `P2RAW`, `P3RAW`       ☰ → development/databases/Oracle/SQL/data-types/raw[RAW]-value of the 1st, 2nd, 3rd parameter.
@@ -21,9 +21,9 @@ In contrast, → development/databases/Oracle/installed/dynamic-performance-view
      `WAIT_CLASS`                    ☰ Textual description of wait class
      `WAIT_TIME`                     ☰ 0: session is waiting, -1 Last wait duration was less than 1/100 of a second, -2: → development/databases/Oracle/adminstration/init-parameters[parameter] `→ development/databases/Oracle/adminstration/init-parameters/timed/statistics` is `false`, otherwise: duration of last wait in 1/100 of a second.
      `SECONDS_IN_WAIT`               ☰ deprecated in favor of `WAIT_TIME_MICRO` and `TIME_SINCE_LAST_WAIT_MICRO`
-     `STATE`                         ☰ `WAITING`, `WAITED UNKNOWN TIME` (only if parameter `timed_statistics` is false), `WAITED SHORT TIME` (wait time less than 1/100 s), `WAITED KNOWN TIME`
+     `STATE`                         ☰ `WAITING`, `WAITED UNKNOWN TIME` (only if parameter `timed_statistics` is false), `WAITED SHORT TIME` (wait time less than 1/100 s), `WAITED KNOWN TIME` (Actual wait time is displayed in `WAIT_TIME`). Compare with column `STATUS` in `→ development/databases/Oracle/installed/dynamic-performance-views/session`.
      `WAIT_TIME_MICRO`               ☰ Time waited in microseconds of last wait (if not waiting) or duration of current wait (if waiting)
-     `TIME_REMAINING_MICRO`          ☰ 
+     `TIME_REMAINING_MICRO`          ☰ `null`: Session is not waiting. `-1`: Session can indefinitely wait in the current wait. `>0`: Amount of microseconds remaining. `0`: Wait has timed out.
      `HEUR_TIME_WAITED_MICRO`        ☰ New column with Oracle 21c
      `TIME_SINCE_LAST_WAIT_MICRO`    ☰ 0: session is waiting, else time elapsed since last wait
      `CON_ID`                        ☰
