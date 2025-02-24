@@ -1,4 +1,5 @@
 $ Registry: HKEY_CURRENT_USER\Environment
+@ HKEY_CURRENT_USER\Environment
 
 → Windows/PowerShell[PowerShell] allows to → Windows/PowerShell#ps-env-variables[access the values] under this key with
 code {
@@ -6,9 +7,31 @@ PS> echo [environment]::getEnvironmentVariable("PATH", "user" )
 PS> [environment]::→ Microsoft/dot-net/namespaces-classes/System/Environment#dotNet-System-Environment-SetEnvironmentVariable[setEnvironmentVariable]("SOME_VAR", "some value", "user") 
 code }
 
+{ Adding a directorty to PATH or PSModulePath
+
+  The following simple PowerShell script adds the current directory to a user's PSModulePath:
+code {
+set-strictMode -version latest
+
+$addedDirectory=$pwd
+
+$psModules_ = [environment]::getEnvironmentVariable('PSModulePath', 'user')
+
+if ($psModules_ -eq $null) {
+   $psModules = ($addedDirectory)
+}
+else {
+   $psModules = $psModules_ -split ';'
+   $psModules = $psModules + $addedDirectory
+}
+
+[environment]::setEnvironmentVariable('PSModulePath', ($psModules -join ';') , 'user')
+code }
+
+}
 { Changing the value in the registry #hkcu-environment-SendMessage
 
-  If the value is changed directly in the registry, a `→ Windows/dirs/Windows/System32/user32_dll/SendMessage[SendMessage](HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment")` should be executed in order for the changes to take effect.
+  If the value of an environment variable is changed directly in the registry, a `→ Windows/dirs/Windows/System32/user32_dll/SendMessage[SendMessage](HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment")` should be executed in order for the changes to take effect.
 
   In → Windows/PowerShell, this is possible with something like the following
 code {
@@ -23,7 +46,9 @@ code {
 '
 )::SendMessage(0xffff, 0x001A, [UIntPtr]::Zero,  "Environment")
 code }
+
 }
 
 sa:
-  → Windows/registry/environment-variables
+  → Windows/registry/environment-variables,
+ `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Control/Session-Manager/Environment`

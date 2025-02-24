@@ -1,0 +1,45 @@
+$ Oracle: V$SESSION_BLOCKERS
+@ v$session_blockers
+
+`v$session_blockers` displays blocker → development/databases/Oracle/architecture/session[sessions] for each blocked session.
+
+code {
+select
+   sbl.wait_id,
+   sbl.wait_event,
+   ses_blocked.username                blocked_username,
+   ses_blocked.osuser                  blocked_osuser,
+-- ses_blocked.event                   blocked_event,
+   sbl.wait_event,   
+   sql_blocked.sql_text,
+   ses_blocked.sql_exec_start          blocked_sql_exec_start,
+   ses_blocked.seconds_in_wait,
+   ses_blocked.program                 blocked_program,   
+   ses_blocked.module                  blocked_module,
+   --------------------------------------
+   ses_blocker.username                blocker_username,
+   ses_blocker.osuser                  blocker_osuser,
+   ses_blocker.event                   blocker_event,
+   ses_blocker.sql_exec_start          blocker_sql_exec_start,
+   ses_blocker.program                 blocker_program,   
+   ses_blocker.module                  blocker_module,   
+   sbl.sid                             blocked_sid,      
+   sbl.blocker_sid,
+   ses_blocked.final_blocking_session,
+   sbl.blocker_sess_serial#,
+   sbl.sess_serial#                    blocked_sess_serial#,
+   sbl.wait_event_text,
+   --------------------------------------
+   sbl.blocker_instance_id,
+   sbl.con_id
+from
+   v$session_blockers        sbl                                                            join
+   v$session                 ses_blocked  on sbl.sid            = ses_blocked.sid           join
+   v$session                 ses_blocker  on sbl.blocker_sid    = ses_blocker.sid      left join
+   v$sqlarea                 sql_blocked  on ses_blocked.sql_id = sql_blocked.sql_id;
+code }
+
+sa:
+ `→ development/databases/Oracle/installed/dynamic-performance-views/session`
+
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]

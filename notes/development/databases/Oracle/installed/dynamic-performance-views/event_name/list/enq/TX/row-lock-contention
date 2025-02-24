@@ -1,0 +1,28 @@
+$ Oracle wait event: enq: TX - row lock contention
+@ enq: TX - row lock contention
+
+Preparation:
+code {
+create table tq84_tx_row_lock_contention (
+   id integer primary key,
+   txt varchar2(10)
+);
+code }
+
+Session 1:
+code {
+insert into tq84_tx_row_lock_contention values (1, 'one');
+insert into tq84_tx_row_lock_contention values (2, 'two');
+code }
+
+Session 2: the first staement runs OK, the second causes the session to wait on *enq: TX - row lock contention* until the first session commits or rolls back its transaction.
+code {
+insert into tq84_tx_row_lock_contention values (3, 'THREE');
+insert into tq84_tx_row_lock_contention values (2, 'TWO'  );
+code }
+
+
+sa:
+ `→ development/databases/Oracle/installed/dynamic-performance-views/event_name`
+
+  MOS Note 1966048.1
