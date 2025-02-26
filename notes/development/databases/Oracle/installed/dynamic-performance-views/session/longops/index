@@ -30,7 +30,38 @@ order by
    lop.start_time desc;
 code }
 
-{ procedure long_proc
+code {
+select
+   lpad(' ', 2*depth) || pln.operation                       opr,
+   pln.options                                               opt,
+   round(100/nullif(to_number(slo.target), 0)*slo.sofar)     pct,
+   slo.target                                                tgt,
+   slo.sofar,
+   slo.totalwork,
+   slo.units,
+   round((sysdate - slo.start_time       ) * 24 * 60) sta_m_ago,
+   round((sysdate - slo.last_update_time ) * 24 * 60) upd_m_ago,
+   slo.message,
+   ses.state,
+   ses.status  
+-- pln.*,
+-- slo.*
+from
+   v$session         ses                                                     left join
+   v$sql_plan        pln  on ses.sql_address    = pln.address          and 
+                             ses.sql_hash_value = pln.hash_value             left join
+   v$session_longops slo  on pln.address        = slo.sql_address      and
+                             pln.hash_value     = slo.sql_hash_value   and
+                             pln.id             = slo.sql_plan_line_id and
+                             ses.sid            = slo.sid              and
+                             ses.serial#        = slo.serial#
+where
+   ses.sid = ‥
+order by
+   pln.id;
+code }
+
+{ Procedure long_proc
 
 code {
 create table f(g number);
