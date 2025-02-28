@@ -112,13 +112,48 @@ code }
   table }
 
 }
-{ Misc
+{ xlcall.h
+
+  Some interesting typedefs in `xlcall.h`.
+
+  Excel (XLL) uses wide characters for strings:
+code {
+typedef WCHAR XCHAR;
+code }
+
+  Rows, columns and sheet IDs:
+code {
+typedef INT32 RW;
+typedef INT32 COL;
+typedef DWORD_PTR IDSHEET;
+code }
 
   { XLOPER12
 
-   `XLOPER12` was introduced with Excel 2007 to accomodate larger grids and to support Unicode strings.
+  `XLOPER12` is a `union` that combines the following fields in `val`. How `val` is interpreted is defined in the member `xltype` (which is a `DWORD`).
+   table { lll
+     `.val` ☰  Type ☰ `.xltype` ☰ 
+     `num` ☰ `double` ☰ `xltypeNum`☰
+     `str` ☰ `LPSTR` ☰ `xltypeStr`☰
+     `xbool` ☰ `BOOL` ☰ `xltypeBool`☰ 
+     `err` ☰ `int` ☰ `xltypeErr`☰
+     `w` ☰ `int` ☰ `xltypeInt`☰
+     `sref` ☰ `struct` ☰ `xltypeSRef`☰
+     `mref` ☰ `struct` ☰ `xltypeRef`☰
+     `array` ☰ `struct` ☰ `xltypeMulti`☰
+     `flow` ☰ `struct` ☰ `xltypeFlow`☰
+     `bigdata` ☰ `struct` ☰ `xltypeBigData`☰
+   table }
+
+  `LPXLOPER12` is pointer to `XLOPER12`
+
+  `XLOPER12` was introduced with Excel 2007 to accomodate larger grids and to support Unicode strings.
 
   }
+
+}
+{ Misc
+
   { Multithreading
 
     It seems that the XLL interface allows for multithreaded programming (to be confirmed).
