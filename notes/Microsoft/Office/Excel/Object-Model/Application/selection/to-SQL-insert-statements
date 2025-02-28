@@ -1,8 +1,8 @@
 $ Excel: Turn selected region into SQL Insert Statements
 
-The following code, when executed in the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window/index, turns the selected region
+The following code, when executed in the → Microsoft/Office/Visual-Basic-Editor/Immediate-Window, turns the selected region
 (i.e. the → Microsoft/Office/Excel/Object-Model/Application/selection[`selection`] property of the → Microsoft/Office/Excel/Object-Model/Application[`application` object].
-into → development/databases/SQL insert statements:
+into → development/databases/SQL `insert` statements:
 code {
 tableName = "xxx"
 
@@ -17,7 +17,10 @@ for each r in selection.rows                                      : _
           case vbDate                                             : _
                c_(i) = "date '" & format(c, "yyyy-mm-dd") & "'"   : _
           case vbString                                           : _
-               c_(i) = "'" & replace(c, "'", "''") & "'"          : _
+               c_(i) = "'" & replace(                               _
+                             replace(c, "'", "''"),                 _
+                                        "&", "chr(38)")             _
+               & "'"                                              : _
           case vbEmpty                                            : _
                c_(i) = "null"                                     : _
           case else                                               : _
