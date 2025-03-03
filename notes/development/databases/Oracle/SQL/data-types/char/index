@@ -1,7 +1,46 @@
 $ Oracle data type CHAR
 @ char
 
-gh|Oracle-Patterns|/SQL/datatypes/char/select.sql||
+
+{ Comparison
+
+  Values whose types are `CHAR` are compared by trimming white spaces from their right side.
+
+code {
+create table tq84_char (
+   id integer,
+   txt char(10) unique
+);
+code }
+
+  Two records are inserted. Note the trailing spaces in the value of `def`:
+code {
+insert into tq84_char values (1, 'abc'    );
+insert into tq84_char values (2, 'def    ');
+code }
+
+  The following statement throws *ORA-00001: unique constraint (‥) violated*:
+code {
+insert into tq84_char values (3, 'abc    ');
+code }
+
+   The following three select statements return one record each:
+code {
+select id from tq84_char where txt = 'abc'    ;
+select id from tq84_char where txt = 'abc    ';
+select id from tq84_char where txt = 'def '   ;
+code }
+
+  This statemnt does not return a record:
+code {
+select id from tq84_char where txt = ' def'   ;
+code }
+
+code {
+drop table tq84_char purge;
+code }
+
+}
 
 sa:
 
