@@ -74,6 +74,35 @@ code }
 
 
 }
+{ ELSE clause and multiple inserts per match
+
+code {
+create table tq84_d (id number, tx varchar2(10));
+create table tq84_s (id number, tx varchar2(10));
+
+begin
+   insert into tq84_s values (1, 'a');
+   insert into tq84_s values (2, 'b');
+   insert into tq84_s values (3, 'c');
+
+   commit;
+end;
+/
+
+insert all
+   when id = 1 then into tq84_d values (4, 'd')
+                    into tq84_d values (5, 'e')
+   else             into tq84_d values (id, tx)                   
+select
+   *
+from
+   tq84_s;
+
+drop table tq84_d;
+drop table tq84_s;
+code }
+
+}
 
 
 sa:
