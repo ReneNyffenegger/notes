@@ -23,8 +23,57 @@ order by
    owner,
    sum(bytes)
 ;
-
 code }
+
+{ TODO
+
+  The following query demonstrates how *one* total can be produced if the selected non-aggregated columns are dependent on one another (such as in lookup keys):
+code {
+create table tq84_rollup_p (id integer primary key, txt varchar2(10));
+create table tq84_rollup_c (val number, id_p references tq84_rollup_p);
+
+begin
+   insert into tq84_rollup_p values (1, 'abc');
+   insert into tq84_rollup_p values (2, 'def');
+   insert into tq84_rollup_p values (3, 'ghi');
+
+   insert into tq84_rollup_c values ( 40, 1);
+   insert into tq84_rollup_c values ( 20, 1);
+
+   insert into tq84_rollup_c values ( 30, 2);
+
+   insert into tq84_rollup_c values ( 60, 3);
+   insert into tq84_rollup_c values ( 10, 3);
+   insert into tq84_rollup_c values ( 20, 3);
+
+   commit;
+end;
+/
+
+select
+   p.id,
+   nvl(p.txt, '== TOTAL == ') txt,
+   sum(c.val)  sum_val
+from
+   tq84_rollup_p  p   join
+   tq84_rollup_c  c on p.id = c.id_p
+group by
+   rollup(p.id, p.txt)
+having
+   not (grouping(p.id) = 0 and grouping (p.txt) = 1)
+;
+--
+--         ID TXT             SUM_VAL
+-- ---------- ------------ ----------
+--          1 abc                  60
+--          2 def                  30
+--          3 gehi                 90
+--            == TOTAL ==         180
+code }
+
+  I am wondering if there is a more elegant way to achieve the same result.
+
+}
 
 sa:
   → development/databases/Oracle/SQL/select/group-by/extension[`group by` extensions]
