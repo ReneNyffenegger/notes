@@ -4,6 +4,10 @@ $ Oracle: V$TEMPSEG_USAGE
 code {
 select
    tus.username,
+   ses.sid,
+   ses.serial#,           -- same as tus.session_num
+   tus.blocks,
+   tus.extents,
 -- tus."USER",            -- Obsolete and always equal to username. Use quotes to prevent → development/databases/Oracle/errors/ORA-01747_invalid-user-table-column_table-column-or-column-specification[ORA-01747]
    tus.tablespace,
    tus.segtype,
@@ -17,6 +21,7 @@ select
    tus.sql_id_tempseg
 from
    v$tempseg_usage  tus                                    left join
+   → development/databases/Oracle/installed/dynamic-performance-views/session        ses on tus.session_addr   = ses.saddr  left join
    → development/databases/Oracle/installed/dynamic-performance-views/sql/area        sqx on tus.sql_id         = sqx.sql_id left join
    → development/databases/Oracle/installed/dynamic-performance-views/sql/area        sqt on tus.sql_id_tempseg = sqt.sql_id;
 code }
@@ -24,7 +29,7 @@ code }
 
 sa:
 
- `→ development/databases/Oracle/installed/dynamic-performance-views/sort/usage` as a → development/databases/Oracle/objects/synonyms that also points to `v_$tempseg_usage`.
+ `→ development/databases/Oracle/installed/dynamic-performance-views/sort/usage` is a → development/databases/Oracle/objects/synonyms that also points to `v_$tempseg_usage`.
 
  `→ development/databases/Oracle/installed/dynamic-performance-views/temp/space_header`
 

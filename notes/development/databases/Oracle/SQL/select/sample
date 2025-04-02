@@ -23,8 +23,35 @@ from
 SAMPLE(0.1) SEED(42)
 code }
 
-The sample clause logically belongs to the table (or more accurately to the *query table expression*) so that `where` clauses are applied after determining the sample.
+{ Combining with a WHERE clause
 
+  The sample clause logically belongs to the table (or more accurately to the *query table expression*) so that `where` clauses are applied after determining the sample.
+
+code {
+create table tq84_sample (
+   id  integer,
+   val varchar2(3)
+);
+
+insert into tq84_sample
+select
+   level,
+   dbms_random.string('a', 3)
+from
+   dual connect by level <= 100;
+code }
+   
+  Expect approximately 2 records to be returned:
+code {
+select * from tq84_sample sample(20) where mod(id, 10) = 0;
+code }
+
+  Cleaning up:
+code {
+drop table tq84_sample;
+code }
+
+}
 { Execution plan #ora-select-sample-exec-plan
 
   In an → development/databases/Oracle/SQL/statement/execution/plan[execution plan], a `sample` access to table is identified
