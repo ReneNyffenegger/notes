@@ -6,6 +6,53 @@ code }
 
 { OracleInternal.SqlAndPlsqlParser.OracleLpParser
 
+  { ParseStatements
+
+code {
+[OracleInternal.Common.IOracleMetadata] $metaData = $null
+
+$stmts = $parser.ParseStatements($null, @'
+select
+   *
+from
+  dual;
+
+select count(*)
+from all_objects
+where
+   owner       = :own and
+   object_type = :obytype
+;
+'@)
+code }
+
+    Number of statements found:
+code {
+$stmts.count
+code }
+
+    Text of first statement:
+code {
+$stmts[0].text.fragment
+code }
+
+    Number of bind parameters in second statement:
+code {
+$stmts[1].bindParameters.count
+code }
+
+
+    Names of bind parameters:
+code {
+$stmts[1].bindParameters[0].name.fragment
+$stmts[1].bindParameters[1].name.fragment
+code }
+
+code }
+
+  }
+  { TestParse
+
 code {
 PS C:\> $parser = new-object OracleInternal.SqlAndPlsqlParser.OracleLpParser 0
 
@@ -71,11 +118,7 @@ PS C:\> write-host $parsed
   [24,25)  | ';'
 code }
 
-code {
-PS C:\> $stmts = $parser.ParseStatements($null, 'select * from all_tables where owner = :owner; begin null; end;')
-PS C:\> $stmts[0].BindParameters
-
-code }
+  }
 
 }
 
