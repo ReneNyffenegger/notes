@@ -177,7 +177,7 @@ declare
 begin
 
    stmt := 'select count(*) cnt, owner from → development/databases/Oracle/installed/data-dictionary/objects group by owner';
-  
+
    for rec obj_count IN VALUES OF (
        execute immediate stmt
    ) loop
@@ -188,7 +188,9 @@ end;
 /
 code }
 
-  When I mistakenly created an `object type` instead of using a `record` type, Oracle threw the error message PLS-00801: internal error [*** ASSERT at file pdw4.c, line 1006; Cannot coerce from type 25 to type 32; Xanon__0x68e2a910__AB[7, 25]]:
+  { Object type instead ofa record type
+
+    When I mistakenly created an `object type` instead of using a `record` type, Oracle threw the error message PLS-00801: internal error [*** ASSERT at file pdw4.c, line 1006; Cannot coerce from type 25 to type 32; Xanon__0x68e2a910__AB[7, 25]]:
 code {
 create or replace type obj_count as object (
    cnt   number,
@@ -199,7 +201,7 @@ create or replace type obj_count as object (
 declare
    stmt varchar2(4000);
 begin
-  
+
    stmt := 'select count(*) cnt, owner from → development/databases/Oracle/installed/data-dictionary/objects group by owner';
 
    for rec obj_count in values of (
@@ -211,6 +213,40 @@ begin
 end;
 /
 code }
+
+  }
+  { Similar functionality in versions prior to 21c
+
+    The `values of` clause is syntactic sugar which makes it a bit easier to write the code that essentially does the same thing in versions prior to 21c:
+code {
+declare
+
+   stmt varchar2(4000);
+   cur  sys_refcursor;
+
+   type obj_count is record (
+      cnt   number,
+      owner varchar2(128)
+   );
+
+   rec obj_count;
+begin
+
+   stmt := 'select count(*) cnt, owner from dba_objects group by owner';
+
+   open cur for stmt;
+
+   loop
+       fetch cur into rec;
+       dbms_output.put_line(rec.owner || ': ' || rec.cnt);
+       exit when cur%notfound;
+   end loop;
+
+end;
+/
+code }
+
+  }
 
 }
 
