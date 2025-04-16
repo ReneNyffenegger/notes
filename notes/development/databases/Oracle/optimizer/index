@@ -42,6 +42,37 @@ The optimizer is sometimes also referred to by (its legacy name) *cost based opt
     • SQL Performance Analyzer
     • SQL Tuning Advisor
 
+  { Init parameters that influence the optimizer #ora-optimizer-init-params
+
+    As per MOS Note 68735.1, the following → development/databases/Oracle/adminstration/init-parameters[init parameters] influence the optimizer:
+code {
+select
+   name,
+   value,
+   isdefault
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/parameter
+where
+   name like 'optimizer%' or
+   name like 'parallel%'  or
+   name in (
+      'cursor_sharing',
+      'db_file_multiblock_read_count',
+      'hash_area_size',
+      'hash_join_enabled',
+      'query_rewrite_enabled',
+      'query_rewrite_integrity',
+      'sort_area_size',
+      'star_transformation_enabled',
+      'bitmap_merge_area_size',
+      'partition_view_enabled'
+   )
+order by
+   name; 
+code }
+
+  }
+
 }
 { Query transformations #ora-optimizer-qry-tran
 
@@ -127,9 +158,9 @@ sa:
   `→ development/databases/Oracle/SQL-Plus/set/autotrace[set autotrace] on explain` in → development/databases/Oracle/SQL-Plus.
 
   → development/databases/Oracle/optimizer/trace[Tracing the optimizer], for example with
-   → development/databases/Oracle/adminstration/init-parameters/event/list[events] 10053 and 10054:
+   → development/databases/Oracle/adminstration/init-parameters/event/list[events] → development/databases/Oracle/adminstration/init-parameters/event/list/10053 and 10054:
 code {
-alter session set events '10053 trace name context forever';
+alter session set events '→ development/databases/Oracle/adminstration/init-parameters/event/list/10053 trace name context forever';
 code }
 
   → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin/catost_sql[`$ORACLE_HOME/rdbms/admin/catost.sql`]

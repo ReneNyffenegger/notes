@@ -1,17 +1,34 @@
 $ Oracle: DBMS_SQLDIAG.DUMP_TRACE
+@ dbms_sqldiag.dump_trace
 
-`dbms_sqldiag.dump_trace` performs a 10053 → development/databases/Oracle/adminstration/init-parameters/event/list[trace], yet without executing the → development/databases/SQL/statement.
+`dbms_sqldiag.dump_trace` hard-parses an SQL statement to create a → development/databases/Oracle/adminstration/init-parameters/event/list/10053 → development/databases/Oracle/adminstration/init-parameters/event/list[trace],
+yet without (re-)executing the → development/databases/SQL/statement.
 
 code {
+select lower(dummy) from dual;
+
+select sql_id, child_number from → development/databases/Oracle/installed/dynamic-performance-views/sql where sql_text = 'select lower(dummy) from dual';
+-- 68maq1b045ms3	0
+
 begin
    dbms_sqldiag.dump_trace (
-      p_sql_id       => '…'        ,
-      p_child_number =>  …         ,
+      p_sql_id       => '68maq1b045ms3',
+      p_child_number =>  0             ,
       p_component    => 'Optimizer', -- or 'Compiler'
-      p_file_id      => 'CBO_TRACE'
+      p_file_id      => 'Renes10053Test'
    );
 end;
 /
+
+select
+   trc.payload
+from
+   → development/databases/Oracle/installed/dynamic-performance-views/diag/trace_file/contents trc
+where
+   trc.trace_filename like '%Renes10053Test%'
+order by
+   trc.line_number
+;
 code }
 
 sa:

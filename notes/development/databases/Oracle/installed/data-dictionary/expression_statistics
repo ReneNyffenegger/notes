@@ -1,0 +1,45 @@
+$ Oracle: DBA_EXPRESSION_STATISTICS
+@ dba_expression_statistics
+
+code {
+create table tq84_exp_stat (
+   id integer,
+   txt varchar2(128)
+);
+
+insert into tq84_exp_stat select object_id, object_name from dba_objects;
+
+select
+   id,
+   txt,
+   regexp_replace(txt, '[abc]', '#') no_abc
+from
+   tq84_exp_stat;
+   
+begin
+   dbms_stats.flush_database_monitoring_info;
+end;
+/
+
+select
+-- table_name,
+   created, last_modified,
+   expression_text,
+   fixed_cost,
+   evaluation_count,
+   dynamic_cost,
+   snapshot,
+   expression_id
+from
+   user_expression_statistics u
+where
+   u.table_name = 'TQ84_EXP_STAT'
+order by
+   u.created desc;
+code }
+
+sa:
+
+  → development/databases/Oracle/installed/data-dictionary/base-tables/exp[`EXP…` base tables]
+
+  → development/databases/Oracle/installed/data-dictionary[Data dictionary] views related to → development/databases/Oracle/installed/data-dictionary#ora-dd-domain[domains].
