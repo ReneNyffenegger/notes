@@ -7,7 +7,7 @@ When invoking `→ Linux/kernel/compilation/make` with one of these targets, the
 { KCONFIG_DEFCONFIG_LIST
 
   If `cross_compiling` is not defined, the `Makefile` adds the following files to `KCONFIG_DEFCONFIG_LIST`:
-    • `/lib/modules/$(kernel-relase)/.config`
+    • `/lib/modules/$(kernel-release)/.config`
     • `/etc/kernel-config`
     • `/boot/config-$(kernel-release)`
 

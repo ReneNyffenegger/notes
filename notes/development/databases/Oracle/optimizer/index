@@ -19,15 +19,10 @@ The optimizer is sometimes also referred to by (its legacy name) *cost based opt
 
   table { ll
 
-    Query Transformer ☰ If advantageous, the query transformer rewrites the original statement into a semantically equivalent statement  (for example from `… where col in (17, 42)` to `… where col = 17 … union all … where col = 42`).
+    → #ora-optimizer-qry-tran[Query Transformer] ☰ If advantageous, the query transformer rewrites the original statement into a semantically equivalent statement  (for example from `… where col in (17, 42)` to `… where col = 17 … union all … where col = 42`).
     Estimator ☰ Uses statistics to estimate plans' → development/databases/Oracle/optimizer/cost.
     Plan Generator ☰ Compares estimated costs and chooses plan with least cost; passes this plan to the *row source generator*.
   table }
-
-  Because *query tranformation* is the first step and such a transformation might reorder the tables in the SQL statement, some → development/databases/Oracle/SQL/hints[hints] (such as
- `→ development/databases/Oracle/SQL/hints/list/leading`, `ordered` or `→ development/databases/Oracle/SQL/hints/list/qb_name`) loose their meaning. In such a case, it looks as though the hint was ignored.
-  
-
 }
 { Influencing and supporting the optimizer
 
@@ -78,73 +73,105 @@ code }
 
   For achieving better → development/databases/Oracle/SQL/statement/execution/plan[execution plans], the optimizer might choose to *transform* a query.
 
+  The *cost based query transformation* (CBQT) is the first step to optimizer the plan for the execution of an SQL statement.
+  -
+  In this step, the optimizer creates different SQL statements that are semantically equal to the original one. The statement with the lowest cost is then chosen to be executed.
+
+  Because each of these statements need to be separately costed, the query transformation step is relatively costly (with the hope that the overhead is offset by the
+  benefit gained by the result).
+  -
+  Query transformation can be disabled with the → development/databases/Oracle/SQL/hints/list/no_query_transformation[`no_query_transformation` hint].
+  -
+  The amount of effort given to costing can be controlled with the hidden parameter `→ development/databases/Oracle/adminstration/init-parameters/optimizer/cost_based_transformation`.
+
+  Because *query tranformation* is the first step and such a transformation might reorder the tables in the SQL statement, some → development/databases/Oracle/SQL/hints[hints] (such as
+ `→ development/databases/Oracle/SQL/hints/list/leading`, `ordered` or `→ development/databases/Oracle/SQL/hints/list/qb_name`) loose their meaning. In such a case, it looks as though the hint was ignored.
+
+
   Available transformation techniques include
   table { ll
     → development/databases/Oracle/optimizer/query-transformations/or-expansion[OR-expansion] ☰ `where tab.col_1 = 'foo' or tab.col_2 = 'bar'`  -> `where tab.col_1 = 'foo' … UNION ALL … where tab.col_2 = 'bar'`
     → development/databases/Oracle/optimizer/features/view-merging/simple[Simple view merging] ☰ Merging *select-project-join* views
     → development/databases/Oracle/optimizer/features/view-merging/complex[Complex view merging] ☰ Merging views that contain `group by` and `distinct` clauses
     → development/databases/Oracle/optimizer/query-transformations/predicate-pushing[Predicate pushing] ☰ Push a predicate that is formulated on the outer query into the inner query.
-    → development/databases/Oracle/optimizer/features/subquery/unnesting[Subquery unnesting] ☰ Transform a → development/databases/Oracle/SQL/select/subquery into a → development/databases/Oracle/SQL/join operation.
+    → development/databases/Oracle/optimizer/features/subquery/unnesting[Subquery unnesting] ☰ Transform a → development/databases/Oracle/SQL/select/subquery into a → development/databases/Oracle/SQL/join operation. (`IN` or `EXIST` to a *semi join*, `NOT IN` or `NOT EXISTS` to an *anti join*, `NULL` aware  and single `null` aware to an *anti join*). See MOS Note 1082123.1
     Query rewriting ☰ Use a → development/databases/Oracle/objects/views/materialized to improve performance of a query
     Star tranformation ☰ Avoid full table scans of fact tables in a star schema.
     In-memory aggregation (vector group by) ☰
     Cursor duration temporary tables ☰ Temporarily store result of a query blocks that are used multiple times. See also the → development/databases/Oracle/SQL/clauses/with[`with` clause]. 
     Table expansion ☰ See also the `expand_table` → development/databases/Oracle/SQL/hints[hint]
-    Join factorization ☰  Factorize common computations from branches of a → development/databases/Oracle/SQL/select/set-operators/union/all[`union all`] query.
+    Join factorization ☰ Factorize common computations from branches of a → development/databases/Oracle/SQL/select/set-operators/union/all[`union all`] query.
+
+    Aggregate Subquery Elimination ☰
+    Common subexpression elimination ☰
+    Group by placement ☰
+    Intersect conversion into join ☰
+    Join Elimination ☰
+    Join predicate push down (JPPD) ☰ See MOS Note 1082106.1
+    Materialized view rewrite ☰
+    Minus conversion into anti-join ☰
+    Native Full Outer Join ☰ See MOS Note 1082125.1
+    Order by Elimination ☰
+    Outer to inner join conversion ☰
+    Predicate move-around ☰
+    Transitive Predicates ☰ See MOS Note 1082133.1
   table }
 
-  Query transformation can be disabled with the → development/databases/Oracle/SQL/hints/list/no_query_transformation[`no_query_transformation` hint].
+  Filter predicate push-down in a view ? (See MOS Note 1082122.1)
+
 
 }
 { Features #ora-optimizer-features
 
-  The value of `→ development/databases/Oracle/adminstration/init-parameters/optimizer/features_enable` (which corresponds to a relase) determines which features are enabled
-  table { ll
-    ☰ Release
-    Adaptive cursor sharing ☰ 11.1.0.6
-    Join predicate pushdown ☰ 11.1.0.6
-    Use → development/databases/Oracle/optimizer/statistics/extended to estimate selectivity ☰ 11.1.0.6
-    Use native implementation for full outer joins ☰ 11.1.0.6
-    → development/databases/Oracle/objects/tables/partitions/pruning[Partition pruning] using join filtering ☰ 11.1.0.6
-    Group by placement optimization ☰ 11.1.0.6
-    Null aware antijoins ☰ 11.1.0.6
-    Join predicate pushdown ☰ 11.1.0.6
-    Join Factorization ☰ 11.2.0.1
-    Cardinality Feedback ☰ 11.2.0.1
-    → development/databases/Oracle/optimizer/features/subquery/unnesting[Subquery Unnesting] ☰ 11.2.0.1
-    Subquery Coalescing ☰ 11.2.0.1
-    Table Expansion ☰ 11.2.0.1
-    Filtering Join Elimination ☰ 11.2.0.1
-    Dynamic statistics enhancements ☰ 11.2.0.4
-    → development/databases/Oracle/optimizer/adaptive[Adaptive Query Optimization] ☰ 12.1.0.1
-    Online statistics gathering for bulk loads ☰ 12.1.0.1
-    Session level statistics for Global Temporary Tables ☰ 12.1.0.1
-    Multi-table left outer joins ☰ 12.1.0.1
-    Lateral views ☰ 12.1.0.1
-    Batch table access by rowid ☰ 12.1.0.1
-    Null accepting semi joins ☰ 12.1.0.1
-    Scalar subquery unnesting ☰ 12.1.0.1
-    Conversion of joins that produce unnecessary duplicates to semi-joins ☰ 12.1.0.1
-    Parallel Union and Parallel Union All operations ☰ 12.1.0.1
-    Enhance Auto DOP ☰ 12.1.0.1
-    Approximate count distinct ☰ 12.1.0.2
-    Support for Oracle Database In-Memory ☰ 12.1.0.2
-    Group-by and aggregation elimination ☰ 12.1.0.2
-    Query rewrite for approximate query processing ☰ 12.2.0.1
-    Statistics advisor ☰ 12.2.0.1
-    Support for sharded databases ☰ 12.2.0.1
-    Expression tracking ☰ 12.2.0.1
-    Space-saving algorithm for partition synopses ☰ 12.2.0.1
-    Oracle In-Memory Database statistics ☰ 12.2.0.1
-    Support for sharding ☰ 12.2.0.1
-    Cost-based OR expansion ☰ 12.2.0.1
-    Sub-query elimination ☰ 12.2.0.1
-    Multi-column key join elimination ☰ 12.2.0.1
-    SQL Quarantine ☰ 19c
-    Gathering and use of real-time statistics ☰ 19c
-    Use of automatic indexes ☰ 19c
-    WITH clause filter predicate pushdown ☰ → development/databases/Oracle/Releases-and-versions/21c
-    Number of distinct value (NDV) modeling for real time statistics ☰ → development/databases/Oracle/Releases-and-versions/21c
+  The value of `→ development/databases/Oracle/adminstration/init-parameters/optimizer/features_enable` (which corresponds to a release) determines which features are enabled
+  table { lll
+    ☰ Release ☰
+    Adaptive cursor sharing ☰ 11.1.0.6 ☰
+    Join predicate pushdown ☰ 11.1.0.6 ☰
+    Use → development/databases/Oracle/optimizer/statistics/extended to estimate selectivity ☰ 11.1.0.6 ☰
+    Use native implementation for full outer joins ☰ 11.1.0.6 ☰
+    → development/databases/Oracle/objects/tables/partitions/pruning[Partition pruning] using join filtering ☰ 11.1.0.6 ☰
+    Group by placement optimization ☰ 11.1.0.6 ☰
+    Null aware antijoins ☰ 11.1.0.6 ☰
+    Join Factorization ☰ 11.2.0.1 ☰
+    Cardinality Feedback ☰ 11.2.0.1 ☰
+    → development/databases/Oracle/optimizer/features/subquery/unnesting[Subquery Unnesting] ☰ 11.2.0.1 ☰
+    Subquery Coalescing ☰ 11.2.0.1 ☰
+    Table Expansion ☰ 11.2.0.1 ☰
+    Filtering Join Elimination ☰ 11.2.0.1 ☰
+    Dynamic statistics enhancements ☰ 11.2.0.4 ☰ Originally named *dynamic sampling*, renamed in 12c. See init parameter `optimizer_dynamic_sampling`.
+    → development/databases/Oracle/optimizer/adaptive[Adaptive Query Optimization] ☰ 12.1.0.1 ☰
+    Online statistics gathering for bulk loads ☰ 12.1.0.1 ☰
+    Session level statistics for Global Temporary Tables ☰ 12.1.0.1 ☰
+    Multi-table left outer joins ☰ 12.1.0.1 ☰
+    Lateral views ☰ 12.1.0.1 ☰
+    Batch table access by rowid ☰ 12.1.0.1 ☰
+    Null accepting semi joins ☰ 12.1.0.1 ☰
+    Scalar subquery unnesting ☰ 12.1.0.1 ☰
+    Conversion of joins that produce unnecessary duplicates to semi-joins ☰ 12.1.0.1 ☰
+    Parallel Union and Parallel Union All operations ☰ 12.1.0.1 ☰
+    Enhance Auto DOP ☰ 12.1.0.1 ☰ Enabled or disabled with init parameter `parallel_degree_policy`
+    Approximate count distinct ☰ 12.1.0.2 ☰
+    Support for Oracle Database In-Memory ☰ 12.1.0.2 ☰
+    Group-by and aggregation elimination ☰ 12.1.0.2 ☰
+    Query rewrite for approximate query processing ☰ 12.2.0.1 ☰
+    Statistics advisor ☰ 12.2.0.1 ☰
+    Support for sharded databases ☰ 12.2.0.1 ☰
+    Expression tracking ☰ 12.2.0.1 ☰
+    Space-saving algorithm for partition synopses ☰ 12.2.0.1 ☰
+    Oracle In-Memory Database statistics ☰ 12.2.0.1 ☰
+    Support for sharding ☰ 12.2.0.1 ☰
+    Cost-based OR expansion ☰ 12.2.0.1 ☰
+    Sub-query elimination ☰ 12.2.0.1 ☰
+    Multi-column key join elimination ☰ 12.2.0.1 ☰
+    SQL Quarantine ☰ 19c ☰
+    Gathering and use of real-time statistics ☰ 19c ☰
+    Use of automatic indexes ☰ 19c ☰
+    Exists-to-any rewrite of subqueries ☰ → development/databases/Oracle/Releases-and-versions/21c ☰
+    → development/databases/Oracle/SQL/clauses/with[`WITH` clause] filter predicate pushdown ☰ → development/databases/Oracle/Releases-and-versions/21c ☰
+    Number of distinct value (NDV) modeling for real time statistics ☰ → development/databases/Oracle/Releases-and-versions/21c ☰
+    Pushing down group-by into union-all branches ☰  → development/databases/Oracle/Releases-and-versions/23c ☰
+    Subsumption of views or subqueries ☰ → development/databases/Oracle/Releases-and-versions/23c ☰
   table }
 
 }
