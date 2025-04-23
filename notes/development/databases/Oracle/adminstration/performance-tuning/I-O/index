@@ -1,0 +1,69 @@
+$ Oracle: I/O
+@ I/O
+
+The two main factors that control how I/O is performed are:
+  • Asynchronous I/O
+  • Direct I/O
+
+
+sa:
+
+code {
+select *
+from
+   v$metricname
+where
+   group_name = 'I/O Stats by Function Metrics' or
+   metric_name like '%I/O%'
+order by
+   group_name,
+   metric_name;
+
+select * from → development/databases/Oracle/installed/dynamic-performance-views/sysmetric where metric_name like '%I/O%';
+
+select * from → development/databases/Oracle/installed/dynamic-performance-views/statname where name like '%I/O%';
+
+select * from → development/databases/Oracle/installed/dynamic-performance-views/event_name where wait_class in ('User I/O', 'System I/O') or name like '%I/O%' order by wait_class, name;
+
+select * from → development/databases/Oracle/installed/dynamic-performance-views/io/calibration_status;
+
+select * from dba_hist_iostat_filetype;
+select * from dba_hist_iostat_detail;
+select * from dba_hist_iostat_function;
+select * from dba_hist_iostat_filetype_name;
+select * from dba_hist_iostat_function_name;
+select * from → development/databases/Oracle/installed/data-dictionary/rsrc/io_calibrate;
+select * from dba_hist_comp_iostat;
+select * from dba_hist_sess_time_stats /* Especially columns sum_sys_io_wait and sum_user_io_wait */;
+code }
+
+  The → development/databases/Oracle/architecture/instance/SGA/database-buffer-cache
+
+  A → development/databases/Oracle/architecture/processes/server does not directly write to data files. Rather, it writes to the buffer cache and lets background processes do the I/O.
+
+  The init parameters
+    • `dbwr_io_slaves`
+    • `→ development/databases/Oracle/adminstration/init-parameters/disk/async_io`
+    • `fileio_network_adapters`
+
+  Events
+    • `→ development/databases/Oracle/installed/dynamic-performance-views/event_name/list/direct-path/read`
+    • `direct path read (lob)`
+
+  → development/databases/Oracle/errors/ORA-17002_I-O-Error
+
+ `IOSEEKTIM`, `IOTFRSPEED`, `MAXTHR` (→ development/databases/Oracle/optimizer/trace)
+
+ `catio.sql` (`→ Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/rdbms/admin`)
+
+  → development/databases/Oracle/architecture/database/files/Automatic-Storage-Management/disk-group[ASM disk groups] try to distribute data such that it can be accessed in a balanced fashion.
+
+ `→ development/databases/Oracle/architecture/instance/fixed-tables/k/c/f/io`
+
+  *ksf* is the *Kernel Service File I/O* layer.
+  -
+  The *KCBL* (Kernel Cache Buffer Load) module
+
+  → development/databases/Oracle/adminstration/init-parameters/event/list[Events] 10229, 10245, 10284, 10297, 10298
+
+  → development/databases/Oracle/adminstration/performance-tuning
