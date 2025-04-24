@@ -1,6 +1,38 @@
 $ Oracle: checkpoint
 @ checkpoint
 
-A checkpoint is peformed
+A checkpoint corresponds to an SCN in the database's redo thread.
+-
+The SCN of the latest checkpoint indicates where recovery must start when needed.
+
+Checkpoints are recorded in
+  • The control file and
+  • Each datafile header
+
+The checkpoint information is written to the datafile headers the control file by the CKPT background process.
+-
+CKPT also signals DBWR to write blocks to disk.
+
+The information of a checkpoint includes
+  • SCN
+  • Checkpoint position
+  • Location in the redo log (where recovery begins)
+  • etc.
+
+Checkpoints are necessary for recovery.
+
+The goals of checkpoints are
+  • Reduction of recovery time after instance or media failure
+  • Regular writing of dirty buffers from the buffer cache to disk
+  • Make sure that commited data is stored on disk during a consistent shutdown
+  
+
+A checkpoint is performed
+  • When redo log files switch
+  • When the value specified in `log_checkpoint_timeout` is reached
+  • When the amount of bytes in the current redo log reaches `log_checkpoint_interval * IO OS blocks`.
+  • `alter system switch logfile`
+  • `alter system checkpoint`
+rem {
    • When an → development/databases/Oracle/architecture/instance is shutdown (except for `shutdown abort`)
-   • TODO …
+rem }
