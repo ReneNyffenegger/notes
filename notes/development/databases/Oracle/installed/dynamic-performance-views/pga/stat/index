@@ -23,13 +23,12 @@ code }
  `v$pgastat` records the following statistics:
 
   table { ll
-    aggregate PGA auto target ☰
+    aggregate PGA auto target ☰ Alwas equal to `select to_number(value) from v$parameter where name like 'pga_aggregate_target'` ?
     aggregate PGA target parameter ☰
     bytes processed ☰
     cache hit percentage ☰
     extra bytes read/written ☰
     global memory bound ☰
-    max processes count ☰
     maximum MGA allocated ☰
     maximum PGA allocated ☰
     maximum PGA used for auto workareas ☰
@@ -37,7 +36,8 @@ code }
     MGA allocated (under PGA) ☰
     over allocation count ☰
     PGA memory freed back to OS ☰
-    process count ☰ The number of → development/databases/Oracle/architecture/processes[processes] that were active during the last three seconds.
+    process count ☰ The number of → development/databases/Oracle/architecture/processes[processes] that were active during the last three seconds. Compare with `select count(*) from v$process`.
+    max processes count ☰
     recompute count (total) ☰
     total freeable PGA memory ☰
     total PGA allocated ☰
@@ -45,6 +45,19 @@ code }
     total PGA used for auto workareas ☰
     total PGA used for manual workareas ☰
   table }
+
+}
+{ TODO
+
+code {
+select sum(pga_used_mem) from v$process union all
+select value from v$pgastat where name = 'total PGA inuse';
+code }
+
+code {
+select sum(pga_alloc_mem) from v$process union all
+select value from v$pgastat where name = 'total PGA allocated';
+code }
 
 }
 

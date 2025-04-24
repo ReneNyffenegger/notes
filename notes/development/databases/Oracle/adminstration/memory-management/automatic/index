@@ -1,13 +1,21 @@
 $ Oracle: Automatic Memory Management
+@ automatic memory management
 
-When *automatic memory management* is enabled, Oracle will → development/databases/Oracle/adminstration/memory-management[manage memory] for 
+When *automatic memory management* (AMM) is enabled, Oracle will → development/databases/Oracle/adminstration/memory-management[manage memory] for 
 → development/databases/Oracle/architecture/instance/SGA and instance → development/databases/Oracle/architecture/instance/PGA.
 -
-Oracle recommends this method over *manual* memory management.
+Oracle recommends this method over *manual* memory management (but only for databases where where → https://docs.oracle.com/en/database/oracle/oracle-database/19/admin/managing-memory.html#GUID-04EFED7D-D1F1-43C3-B78F-0FF9AFAC02B0[SGA + PGA <= 4GB]).
+
+AMM (which was introduced in 11g) extends ASMM (= Automatic Shared Memory Management, which was introduced in 10g and manages the SGA only).
 
 In order to enable automatic memory management, two → development/databases/Oracle/adminstration/init-parameters[init parameters] are needed to be set:
     • `→ development/databases/Oracle/adminstration/init-parameters/memory/target`
     • `→ development/databases/Oracle/adminstration/init-parameters/memory/target/max` (which is even optional)
+
+When using AMM, it's still possible to set SGA memory size related parameters.
+-
+If none of these is set, MMAN initially assigns 60 % of memory to `sga_target` and 40 % of memory to `pga_aggregate_target` but will then adjust the values as MMAN sees fit.
+
 
 { Automatic Shared Memory Management
 
@@ -21,3 +29,15 @@ In order to enable automatic memory management, two → development/databases/Or
   }
 
 }
+sa:
+
+ `→ development/databases/Oracle/installed/dynamic-performance-views/memory/dynamic_components` shows the current sizes of all dynamically tuned memory components, including the total size of the SGA and the instance PGA.
+ -
+ `→ development/databases/Oracle/installed/dynamic-performance-views/sga/dynamic_componentes` shows the same information except SGA and instance PGA.
+
+  The functionality for Automatic Memory Management is provided by the MMAN (Memory Manager) background process.
+
+  When AMM is enabled, the amount of `memory_target` is created with `→ Linux/fhs/dev/shm` segments (MOS Note 1392549.1):
+code {
+ls -l → Linux/fhs/dev/shm | grep $ORACLE_SID
+code }
