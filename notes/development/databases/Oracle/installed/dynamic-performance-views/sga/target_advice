@@ -1,0 +1,42 @@
+$ Oracle: V$SGA_TARGET_ADVICE
+@ v$sga_target_advice
+
+The purpose of `v$sga_target_advice` is to assist in deciding for a value for the init parameter The init parameter `→ development/databases/Oracle/adminstration/init-parameters/sga/target`.
+
+`v$sga_target_advice` is part of ASSM (Automatic Shared Memory Management).
+
+This view is populated if `→ development/databases/Oracle/adminstration/init-parameters/db/cache/advice` is set to `on` and `→ development/databases/Oracle/adminstration/init-parameters/statistics_level` is `typical` (or `all`).
+
+code {
+select
+   sta.sga_size                 sga_size_mb,
+   sta.sga_size_factor,
+   sta.estd_db_time,
+   sta.estd_physical_reads,
+   sta.estd_buffer_cache_size,
+   sta.estd_shared_pool_size,
+   sta.con_id
+from
+   v$sga_target_advice sta;
+code }
+
+{ TODO
+
+  Is the value of `total_sga_mb` and `sga_size_1_mb` as returned by the following query always equal?
+code {
+select
+   (select round(sum(value)/1024/1024) from v$sga) total_sga_mb,
+   (select sga_size from v$sga_target_advice where sga_size_factor = 1) sga_size_1_mb
+from
+   dual;
+code }
+
+}
+
+sa:
+
+? The information in `→ development/databases/Oracle/installed/dynamic-performance-views/memory/target_advice` is similar to that provided by `v$sga_target_advice`.
+
+  → development/databases/Oracle/installed/dynamic-performance-views[Oracle Dynamic Performance Views]
+
+  MOS Note 1323708.1
