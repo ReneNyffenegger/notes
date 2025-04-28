@@ -8,13 +8,16 @@ An → development/databases/Oracle/architecture/instance is started in phases:
 
 A shutdown has the same phases in reverse order.
 
-{ Shutdown -> nomount
+{ SHUTDOWN -> NOMOUNT
 
   The following steps are performed when an idle (shutdown) instance is broght to *nomount*:
-    • A → development/databases/Oracle/architecture/database/files/server-parameter-file is searched.
+    • A → development/databases/Oracle/architecture/database/files/server-parameter-file[spfile] or pfile is searched.
     • The → development/databases/Oracle/architecture/instance/SGA is sized according to the values found in the parameter file
     • The → development/databases/Oracle/architecture/processes/background[background processes] are started
     • The → development/databases/Oracle/architecture/database/system-files/Automatic-Diagnostic-Repository/alert-log is opened
+    • Semaphores are allocated
+
+  In *nomount* stage, the instance is started but not associated with a database.
 
   An instance needs to be in the nomount state to
     • create a new → development/databases/Oracle/architecture/database
@@ -30,7 +33,7 @@ Database Buffers          268435456 bytes
 Redo Buffers                7737344 bytes
 code }
 
-  `v$sql` is accessible:
+  `→ development/databases/Oracle/installed/dynamic-performance-views/sql` is accessible:
 code {
 set numformat 999999999999999
 set lines 10000
@@ -44,7 +47,7 @@ select
 -- sql_id,
    substr(sql_fulltext, 1, 9000) sql_text
 from
-   v$sql
+   → development/databases/Oracle/installed/dynamic-performance-views/sql
 order by
    first_load_time,
    address desc;
@@ -76,7 +79,7 @@ ERROR at line 1:
 ORA-01507: database not mounted
 code }
 
-  Some → development/databases/Oracle/architecture/processes/server/index[processes] are already available:
+  Some → development/databases/Oracle/architecture/processes/server[processes] are already available:
 code {
 SQL> select ksbdphdl, ksbdpnam, ksbdppri from x$ksbdp where ksbdpser > 0 order by ksbdpnam;
 
@@ -120,6 +123,13 @@ select count(*) from → development/databases/Oracle/architecture/instance/fixe
 0
 code }
 
+  Shared memory is now available:
+code {
+SQL> host ipcs -a
+‥
+code }
+
+
   There *is* a `dual` table, yet without synonym:
 code {
 none> select * from dual;
@@ -140,7 +150,7 @@ select instance_name, startup_time, status, database_status from v$instance;
 code }
 
 }
-{ Nomount -> mount
+{ NOMOUNT -> MOUNT
 
   In order to mount a database, the → development/databases/Oracle/architecture/instance opens the
   → development/databases/Oracle/architecture/database/files/control as specified in the
@@ -148,6 +158,8 @@ code }
 code {
 select value from v$parameter where name = 'control_files';
 code }
+
+  In *mount* phase, the instance is associated with a database.
 
   A mounted database is closed for ordinary users. Only administrators have access to it for a restricted set of operations.
 
@@ -175,23 +187,28 @@ ERROR at line 1:
 ORA-01219: database or pluggable database not open: queries allowed on fixed tables or views only
 code }
 
+  Operations that are typically performed in mount stage include
+    • Renaming datafiles
+    • Enabling or disabling archiving options
+    • Adding, dropping or renaming redo log files
+    • Full database recovery
 
 }
-{ Mount -> open
+{ MOUNT -> OPEN
 
   The control file that was opened in the previous step records the locations of the
   → development/databases/Oracle/architecture/database/files/data[data files] and
   → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] that belong to a
-  → development/databases/Oracle/architecture/database. This information is now needed to
-  open these files.
+  → development/databases/Oracle/architecture/database. This information is now needed to open these files.
 
   If the instance fails to open one of these files or if the *consistency check* is not successful, the instance will issue an error.
   In this case, → development/databases/Oracle/adminstration/backup-recovery/recovery/media[media recovery] is likely.;
 
   The steps to open a mounted database are:
-    • The *online* data files that belong to a non-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/undo are opened
-    • An → development/databases/Oracle/architecture/database/logical-structures/tablespace/undo is acquired
+    • The *online* data files that belong to a non-→ development/databases/Oracle/architecture/database/logical-structures/tablespace/undo are opened and rollforward is applied (possible continuing after the database is open)
+    • An → development/databases/Oracle/architecture/database/logical-structures/tablespace/undo is acquired by SMON
     • The → development/databases/Oracle/architecture/database/files/online-redo-log-files[online redo log files] are opened
+    • SMON(?) makes the database availabe for users
 
   Part of the mount->open process is to execute the DDL statements recorded in `→ development/databases/Oracle/installed/data-dictionary/base-tables/bootstrap`.
   -
@@ -226,7 +243,7 @@ select database_status from v$instance;
 code }
 
 }
-{ Shutdown
+{ SHUTDOWN
 
   { Shutdown modes
 
@@ -250,6 +267,14 @@ code }
     → development/databases/Oracle/adminstration/backup-recovery/recovery/instance is required to startup and reopen a database.
 
   }
+  { Shutdowns taking long
+
+    A shutdown appears to be slow or hang because
+      • processed do not terminate
+      • SMON is cleaning up temp segments or performed delayed block cleanouts
+      • Uncommitted transactions are being rolled back
+
+  }
 
 }
 { Availability on v$ views
@@ -260,6 +285,44 @@ code }
     → development/databases/Oracle/installed/dynamic-performance-views/datafile[`v$datafile`] is only available when the database is mounted.
 
 }
+{ STARTUP RESTRICT #ora-startup-restrict
+ 
+  If a database is started in *restrict mode*, only users that are granted the `restricted session` privilage are allowed to connect to the database.
+
+  This mode is typically used for maintenance operations where the database needs to be operational such as
+    • backups
+    • patching
+    • etc.
+
+  Verify that the mode is restricted with
+code {
+SQL> select logins from → development/databases/Oracle/installed/dynamic-performance-views/instance;
+RESTRICTED
+code }
+
+  A database in restricted mode can be braught back to normal mode with
+code {
+alter system disable restricted session;
+code }
+
+}
+{ Specifying a pfile for startup
+
+code {
+SQL> startup pfile=/path/to/pfile
+code }
+
+}
+{ STARTUP UPGRADE
+
+  With `startup upgrade`, the database is started in *upgrade mode* which is specifically designed for the Database Upgrade Assistant (DBUA) or for manual upgrades.
+
+ `logins` of `v$instance` is `RESTRICTED` with this mode.
+
+  A database in upgrade mode can be braught to normal mode only with shutdown and restart.
+
+}
+
 sa:
   The value of `ORA_<sid>_SHUTDOWN` in the → Windows/registry/tree-structure/key[registry key] → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/ORACLE/KEY_homename[`HKEY_LOCAL_MACHINE\SOFTWARE\ORACLE\KEY_homename`]
 
@@ -271,3 +334,4 @@ sa:
 
   The init parameter `_oradebug_cmds_at_startup` specifies which `→ development/databases/Oracle/tools/oradebug` commands are executed at instance startup.
 
+  MOS Note 3048212.1
