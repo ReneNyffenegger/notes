@@ -69,6 +69,26 @@ $ geodata
 
        The root cells are obtained by projecting a cube onto a sphere.
 
+       The number of bits required to store the id of a tile corresponds to *3 + 2 x level*, which is why the maximum level is 30.
+       -
+       The first three bits encode the face (0 … 5)
+       -
+       The face is followed by *level* pairs of bits that encode the subdivision.
+       -
+       The first bit after the required bist is always `1` followed by `0`.
+       -
+       For example
+code {
+010 1 0000.......0    Face cell 2.
+001 10 100.......0    Subcell 2 of face cell 1.
+100 11 01 1000...0    Subcell 1 of subcell 3 of face 4.
+code }
+
+
+       In S2 the thing contained by a polygon is «on the left» of the polygon's edges.
+       -
+       This is the same as the counter-clockwise rule for small loops, but differs for very large loops that enclose more than half of the sphere.
+
      }
 
   }
@@ -78,6 +98,8 @@ $ geodata
     HEALPix is a projection that is based on subdivisions of a *distorted → https://en.wikipedia.org/wiki/Rhombic_dodecahedron[rhombic dodecahedron]* (a convex polyhedron with 12 congruent rhombic faces).
 
     When subdividing a level, each tile is divided into four tiles so that at any level of subdivisions, all tiles have the same size (equal-area pixelisation).
+
+    Cell boundaries are not geodesics.
 
     HEALPix as an acronym or *Hierarchical Equal Area isoLatitude Pixelisation* (of a 2-sphere).
     -
@@ -90,7 +112,6 @@ $ geodata
     Alternatives for HEALPix include
       • → https://en.wikipedia.org/wiki/Hierarchical_triangular_mesh[Hierarchical Triangular Mesh] (HTM) - but the tiles are not all of equal size
       • → https://en.wikipedia.org/wiki/Quadrilateralized_Spherical_Cube[Quadrilaterilzed Spherical Cube]
-    
 
     { Source code stuff
 
