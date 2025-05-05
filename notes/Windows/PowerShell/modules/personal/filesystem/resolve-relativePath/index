@@ -6,10 +6,10 @@ returns the *relative path* between a directory and a file or directory.
 Thus, it improves the functionality provided by the built-in cmdlet → Windows/PowerShell/command-inventory/noun/path/resolve[`resolve-path`] which only allows to get the relative path from the current directory
 (→ Windows/PowerShell/language/variable/automatic/pwd[`$pwd`]).
 
-
 code {
 resolve-relativePath $fromDir  $destPath
 code }
+
 
 Note: `$fromDir` and `$destPath` must share a common prefix in order for the function to succeed.
 
@@ -17,6 +17,8 @@ This function was inspired (and copied with minor adaptions) by/from
 → https://github.com/webmd-health-services/Carbon/[Carbon's] command → https://get-carbon.org/Resolve-RelativePath.html[`Resolve-RelativePath`].
 -
 The function uses the → Windows/development/WinAPI function `PathRelativePathTo`.
+
+It seems that the returned value of `PathRelativePathTo` always starts with a dot.
 
 { Simple example
 
@@ -40,6 +42,30 @@ PS:> resolve-relativePath  x/y  x/a/b, x/y/z, x/
 ..\a\b
 .\z
 ..\
+code }
+
+}
+{ Quirk
+
+  The function currently calls `PathRelativePathTo` with the → https://github.com/ReneNyffenegger/ps-modules-filesystem/blob/d5acd52da38ebee39a7b9aef2b66ef631fe56699/filesystem.psm1#L67C67-L67C80[Directory] attribute for the `$fromDir` and
+  the → https://github.com/ReneNyffenegger/ps-modules-filesystem/blob/d5acd52da38ebee39a7b9aef2b66ef631fe56699/filesystem.psm1#L67C114-L67C135[Normal (File)] attribute for `$destPath`.
+
+  Thus, when going from a directory to another, the function returns a somewhat quirky result (`..\..` would already be ok):
+code {
+PS: 32 C:/Users/igsnyre/a/b/c/d> resolve-relativePath   a/b/c/d   a/b
+..\..\..\b
+code }
+
+  This behavior should probably be changed once.
+
+}
+{ PowerShell 7
+
+  In PowerShell 7 (Netstandard 2.1?), relative paths can apparently be queried like so:
+code {
+[System.IO.DirectoryInfo]$x = './a/b/c/d'
+[System.IO.DirectoryInfo]$y = './a/b/x/y'
+[System.IO.Path]::GetRelativePath($x,$y)
 code }
 
 }
