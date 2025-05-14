@@ -1,0 +1,48 @@
+$ ORA-12713: Character data loss in NCHAR/CHAR conversion
+
+rem {
+
+code {
+select
+   value
+from
+   v$nls_parameters
+where
+   parameter = 'NLS_CHARACTERSET';
+--   
+-- VALUE
+-- -------------
+-- WE8MSWIN1252
+code }
+
+code {
+create table tq84_ora_12713 (name varchar2(100));
+
+
+create or replace procedure tq84_ins(name varchar2) as
+begin 
+   insert into tq84_ora_12713 values (name);
+end tq84_ins;
+/
+code }
+
+Insert value that is incompatible with `WE8MSWIN1252` without raising an error:
+code {
+alter session set nls_nchar_conv_excp = false;
+exec tq84_ins('Nguyễn Tấn Dũng')
+select * from tq84_ora_12713;
+-- NAME
+-- ---------------
+-- Nguy¿n T¿n Dung
+code }
+
+Raise an exception when trying to insert an incompatible value:
+code {
+alter session set nls_nchar_conv_excp = true;
+exec tq84_ins('Борис Николаевич Ельцин')
+code }
+
+rem }
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
