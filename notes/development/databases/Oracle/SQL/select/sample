@@ -40,7 +40,7 @@ select
 from
    dual connect by level <= 100;
 code }
-   
+
   Expect approximately 2 records to be returned:
 code {
 select * from tq84_sample sample(20) where mod(id, 10) = 0;
@@ -76,7 +76,7 @@ begin
    → development/databases/Oracle/installed/packages/dbms/stats/api/gather/table_stats(user, 'tq84_smp');
 end;
 /
-   
+
 
 → development/databases/Oracle/SQL/statement/verbs/explain for
    select
@@ -102,8 +102,32 @@ drop table tq84_smp;
 code }
 
 }
-{ Sampling views using DISTINCT, GROUP BY etc.
+{ Selecting approximately N records
 
+  The `sample` clause only allows to specify an approximate percentage of the returned records, not an approximate amount of records.
+
+  The following example demonstrates how it is possible to select approximately *n* (here: 1234) records from a table:
+code {
+create table tq84_t (id integer);
+
+insert into tq84_t
+select
+   dbms_random.value(1, 100000000)
+from
+   dual connect by level <= 1000000;
+
+select
+   count(*)
+from
+   tq84_t
+where
+   mod(id, trunc((select count(*) / 1234 from tq84_t))) = 0;
+
+drop table tq84_t;
+code }
+
+}
+{ Sampling views using DISTINCT, GROUP BY etc.
 
 code {
 select
