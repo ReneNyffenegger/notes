@@ -7,7 +7,43 @@ SQL> → development/databases/Oracle/SQL-Plus/set/serveroutput on
 SQL> → development/databases/Oracle/SQL-Plus/execute[exec] dbms_output.put_line('Hello world');
 code }
 
+{ Writing (long) CLOBs #dbms_output-put-line-linesize
+
+  This example writes a clob with 600 characters while → development/databases/Oracle/SQL-Plus/set/linesize[`linesize`] is set to 320. Thus, SQL*Plus will insert a
+  new line after 320 characters which distorts the written text.
+
+  Because the maximum value sthat can be set for `linesize` is 32767, the implication is that clobs longer than that cannot be faithfully be printed with `dbms_output.put_line`.
+
+
+code {
+set serveroutput on format wrapped
+
+set lines 320 -- Set to low value for brevity of text
+
+declare
+   out  clob;
+begin
+   out :=        '         1         2         3         4         5         6         7         8         9        |' || chr(10);
+   out := out || '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789' || chr(10);
+   out := out || '--------------------------------------------------------------------------------------------------|' || chr(10);
+   out := out || 'This text contains 600 characters and demonstrates that clobs whose length exceed 32K (the        |' || chr(10);
+   out := out || 'maximum value for linesize) cannot be printed correctly because SQL*Plus will insert a new line   |' || chr(10);
+   out := out || 'after linesize.                                                                                   |' || chr(10);
+
+
+   dbms_output.put_line('lenght of out = ' || length(out));
+   dbms_output.put_line(out);
+
+end;
+/
+code }
+
+}
+
 sa:
-  `→ development/databases/Oracle/installed/packages/dbms/output`
+
+  → development/databases/Oracle/SQL/data-types/lob/SQL-Plus
+
+ `→ development/databases/Oracle/installed/packages/dbms/output`
 
   The → development/databases/SQL-Server#from-oracle-to-sql-server[SQL Server equivalent] for `dbms_output.put_line` is *roughly* `print`.
