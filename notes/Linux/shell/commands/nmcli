@@ -1,6 +1,8 @@
 $ Shell command: nmcli
 @ nmcli
 
+`nmcli` is a command-line tool for controlling the → Linux/networking/NetworkManager.
+
 { Connect to a new WiFi Hotspot
 
   Show SSIDs
@@ -39,10 +41,10 @@ code }
   -
   If this is the case can be verified with
 code {
-iw list | grep -A 10 'Supported interface modes'
+sudo iw list | grep -A 10 'Supported interface modes'
 code }
 
-  Create the hotspot:
+  Create the hotspot (unfortunately, I was unable to connect to the hotspot created with the following command):
 code {
 sudo nmcli device wifi hotspot con-name tq84-hotspot ssid tq84-ssid band bg password tq84-password
 code }
@@ -55,8 +57,24 @@ code }
   Remove the hotspot:
 code {
 sudo nmcli connection delete tq84-hotspot
-Copy
+code }
 
+  Trying to create a hotspot like outlined in → https://unix.stackexchange.com/a/310699[this stackexchange answer] seemed to have more success (after I modified the `802-11-wireless-security.pmf` parameter to `1`).
+  -
+  Find the device name (in my case `wlp111s0`:
+code {
+  nmcli device
+code }
+
+  Then set up the hotspot:
+code {
+# sudo nmcli connection add type wifi ifname wlp111s0    con-name tq84-hotspot    autoconnect no  ssid tq84-ssid
+  sudo nmcli connection add type wifi ifname wlp111s0    con-name tq84-hotspot    autoconnect yes ssid tq84-ssid
+  sudo nmcli connection modify tq84-hotspot 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
+  sudo nmcli connection modify tq84-hotspot wifi-sec.key-mgmt wpa-psk
+  sudo nmcli connection modify tq84-hotspot wifi-sec.psk tq84password
+  sudo nmcli connection modify tq84-hotspot 802-11-wireless-security.pmf 1
+  sudo nmcli connection up tq84-hotspot
 code }
 
 }
