@@ -19,17 +19,16 @@ $ → Linux/shell/commands/sudo → Linux/shell/commands/ss -plntu | → Linux/s
 code }
 
 code {
-$ sudo Linux/init/systemd/tools/systemctl start nginx
+$ sudo → Linux/init/systemd/tools/systemctl start nginx
 code }
 
 code {
-$ sudo Linux/init/systemd/tools/systemctl stop nginx
+$ sudo → Linux/init/systemd/tools/systemctl stop nginx
 code }
 
 code {
-$ sudo Linux/init/systemd/tools/systemctl restart nginx
+$ sudo → Linux/init/systemd/tools/systemctl restart nginx
 code }
-
 
   Without systemd?
 code {
@@ -37,7 +36,7 @@ code {
 code }
 
 code {
-# Linux/init/systemd/tools/systemctl status nginx
+# → Linux/init/systemd/tools/systemctl status nginx
 code }
 
 }
@@ -51,12 +50,13 @@ code }
 }
 { Digging into the source code
 
-
   { auto/configure
 
-   `auto/configure` is used in place of the traditional `./configure` to configure the options with which nginx will be compiled.
+   → https://github.com/nginx/nginx/blob/master/auto/configure[`auto/configure`] is used in place of the traditional `→ development/GNU-Build-System/configure` to configure the options with which nginx will be compiled.
 
-    The very first thing that `auto/configure` does is to call → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L10[`auto/options`].
+    The set of configurable options is → https://nginx.org/en/docs/configure.html[documented here].
+
+    The → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/configure#L10[very first] thing that `auto/configure` does is to call → https://github.com/nginx/nginx/blob/master/auto/options[`auto/options`]. 
 
   }
   { auto/options
@@ -193,7 +193,28 @@ code }
      • `auto/os/solaris`
 
   }
+  { main()
 
+    The `main()` function is defined in → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/core/nginx.c#L197[`src/core/nginx.c`].
+
+  }
+  { ngx_master_process_cycle()
+
+    → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/os/unix/ngx_process_cycle.c#L74[`ngx_master_process_cycle`] is the master process.
+    -
+    It
+      • reads the configuration file,
+      • creates cycles, and
+      • starts and controls child processes.
+
+    It does not perform any I/O and responds only to signals.
+
+  }
+  { ngx_process_events_and_timers()
+
+    → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/event/ngx_event.c#L195[`ngx_process_events_and_timers`] is the *nginx event loop*.
+
+  }
   { Configuration variables
 
     table { llllll
@@ -388,6 +409,63 @@ code }
     A list of module names is found in `objs/ngx_modules.c` and assigned to `ngx_module_names`.
 
   }
+
+}
+{ Querying the configure options
+
+  The configure options with which nginx was built can be quried like so:
+code {
+→ Linux/shell/commands/sudo /usr/sbin/nginx -V 2>&1  | → Linux/shell/commands/grep '^configure arguments' | → development/languages/sed 's/ --/\n--/g'
+code }
+
+  On my current → Linux/distributions/Debian system, this command returned:
+code {
+configure arguments:
+--with-cc-opt='→ development/languages/C-C-plus-plus/GCC/options/g → development/languages/C-C-plus-plus/GCC/options/O_uppercase[-O2] -ffile-prefix-map=/build/nginx-AoTv4W/nginx-1.22.1=. → development/languages/C-C-plus-plus/GCC/options/f/stack/protector[-fstack-protector-strong] -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2'
+--with-ld-opt='-Wl,-z,relro -Wl,-z,now -fPIC'
+--prefix=/usr/share/nginx
+--conf-path=→ Linux/fhs/etc/nginx/nginx_conf
+--http-log-path=/var/log/nginx/access.log
+--error-log-path=stderr
+--lock-path=/var/lock/nginx.lock
+--pid-path=/run/nginx.pid
+--modules-path=/usr/lib/nginx/modules
+--http-client-body-temp-path=/var/lib/nginx/body
+--http-fastcgi-temp-path=/var/lib/nginx/fastcgi
+--http-proxy-temp-path=/var/lib/nginx/proxy
+--http-scgi-temp-path=/var/lib/nginx/scgi
+--http-uwsgi-temp-path=/var/lib/nginx/uwsgi
+--with-compat
+--with-debug
+--with-pcre-jit
+--with-http_ssl_module
+--with-http_stub_status_module
+--with-http_realip_module
+--with-http_auth_request_module
+--with-http_v2_module
+--with-http_dav_module
+--with-http_slice_module
+--with-threads
+--with-http_addition_module
+--with-http_flv_module
+--with-http_gunzip_module
+--with-http_gzip_static_module
+--with-http_mp4_module
+--with-http_random_index_module
+--with-http_secure_link_module
+--with-http_sub_module
+--with-mail_ssl_module
+--with-stream_ssl_module
+--with-stream_ssl_preread_module
+--with-stream_realip_module
+--with-http_geoip_module=dynamic
+--with-http_image_filter_module=dynamic
+--with-http_perl_module=dynamic
+--with-http_xslt_module=dynamic
+--with-mail=dynamic
+--with-stream=dynamic
+--with-stream_geoip_module=dynamic
+code }
 
 }
 { TODO

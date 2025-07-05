@@ -1,0 +1,37 @@
+$ gcc -fstack-protector
+
+{ The protected c function
+
+  This simple function will be compiled with and without stack protection:
+  gh|about-gcc|/options/f/stack/protector/func.c||
+
+}
+{ The Makefile
+
+  This Makefile produces three assembly files from the c function, one without stack protection, one compiled with `-fstack-protector` and
+  one compiled with `-fstack-protector-strong`:
+  gh|about-gcc|/options/f/stack/protector/Makefile||
+
+}
+{ Produced difference
+
+  When compiled with `-fstack-protector` or `-fstack-protector-strong`, the compiler inserted the following code before the call to `g`:
+code {
+sub	rsp, 32
+mov	rax, QWORD PTR fs:40
+mov	QWORD PTR -8[rbp], rax
+xor	eax, eax
+lea	rax, -18[rbp]
+code }
+and this code after the call:
+code {
+mov	rax, QWORD PTR -8[rbp]
+sub	rax, QWORD PTR fs:40
+je	.L2
+call	__stack_chk_fail@PLT
+L2:
+code }
+
+  I was unable to detect a difference between compiling with `-fstack-protector` and `-fstack-protector-strong`.
+
+}
