@@ -63,8 +63,10 @@ code }
 
     → https://github.com/nginx/nginx/blob/master/auto/options[`auto/options`] contains a list of shell variables which correspond to configurable options.
 
-    The variable are assigned default values, for example
+    Some variables are assigned default values, for example
     → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L62[`HTTP_SSL=NO`] or → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L86[`HTTP_REWRITE=YES`].
+    -
+    The variable `CC` is → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/options#L20C1-L20C13[set to `cc`] unless `$CC` is already set.
 
     The script → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/options#L184-L420[iterates over all arguments] given to `auto/configure` and replaces the default values with the ones specified when `auto/configure` is called, for example like so:
 code {
@@ -89,7 +91,7 @@ code }
   }
   { auto/init
 
-   `auto/init` is the second script that is → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L11[called from `auto/configure`].
+    → https://github.com/nginx/nginx/blob/master/auto/init[`auto/init`] is the second script that is → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/configure#L11[called from `auto/configure`].
 
     This script defines the paths of the following files which are all found under `$NGX_OBJS`:
       • → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L6[`Makefile`] (but compare with → https://github.com/nginx/nginx/blob/efc6a217b92985a1ee211b6bb7337cd2f62deb90/auto/init#L17[this line])
@@ -106,9 +108,21 @@ code }
   }
   { auto/cc/conf
 
-   `auto/cc/conf` specifies options (etc.?) with which the compiler is invoked.
+   → https://github.com/nginx/nginx/blob/master/auto/cc/conf[`auto/cc/conf`] specifies options (etc.?) with which the compiler is invoked.
 
-    Depending on the present compiler, it sources `auto/cc/gcc`, `auto/cc/icc`, `auto/cc/msvc` etc.
+   `auto/cc/conf` sources → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/cc/conf#L37[`auto/cc/name`] which, depending on the compiler this script finds, sets
+    the variable `NGX_CC_NAME`, for example to the value → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/cc/name#L43-L45[`gcc`] in the case of the GNU compiler.
+
+    Depending → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/cc/conf#L81[on the value of `NGX_CC_NAME`], the script then sources `auto/cc/gcc`, `auto/cc/icc`, `auto/cc/msvc` etc.
+
+   `auto/cc/conf` is called from → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/auto/configure#L50[`auto/configure`].
+
+  }
+  { auto/cc/<compiler>
+
+   `auto/cc/<compiler>` (such as for example `auto/cc/gcc`) seem to basically set variables like `CFLAGS`.
+
+    Interestingly `auto/cc/gcc` → https://github.com/nginx/nginx/blob/master/auto/cc/gcc#L172[sets] → development/languages/C-C-plus-plus/GCC/options/g[`-g`].
 
   }
   { auto/have

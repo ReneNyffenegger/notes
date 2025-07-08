@@ -1,0 +1,30 @@
+$ gcc -rdynamic
+@ -rdynamic
+
+`-rdynamic` passes the flag `export-dynamic` to the ELF linker (if the target supports it) which instructs the linker to add all rather than only the used ones symbols to tye dynamic symbol table.
+
+This option is needed for some uses of `dlopen` or to obtain backtraces from a program.
+
+{ Obtaining a backtrace from a program
+
+  The following program should be compiled with `-rdynamic`:
+  gh|about-gcc|/options/r/dynamic/prog.c||
+
+
+  The program prints something like
+code {
+./prog(backtr+0x1f) [0x563568ad6188]
+./prog(func_D+0xe) [0x563568ad61f4]
+./prog(func_C+0xe) [0x563568ad6205]
+./prog(+0x1216) [0x563568ad6216]
+./prog(func_A+0xe) [0x563568ad6227]
+./prog(main+0xe) [0x563568ad6238]
+/lib/x86_64-linux-gnu/libc.so.6(+0x2724a) [0x7f690547024a]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x85) [0x7f6905470305]
+./prog(_start+0x21) [0x563568ad60a1]
+code }
+
+}
+
+sa:
+  → development/languages/C-C-plus-plus/GCC/options
