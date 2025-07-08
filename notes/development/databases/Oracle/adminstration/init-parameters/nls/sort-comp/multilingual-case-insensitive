@@ -1,0 +1,41 @@
+$ Oracle: Multilingual case insenstive sorting / string comparison
+
+If sorting is set to *multilingual case insenstive* (`nls_sort = ‥_m_ci` or `‥_m_ai`)
+
+code {
+create table tq84_words (
+    txt_1   nvarchar2(20),
+    txt_2   nvarchar2(20)
+);
+
+begin
+   insert into tq84_words values (n'foo!'  , n'_baz'  );
+   insert into tq84_words values (n'___bar', n'bar!!!');
+   insert into tq84_words values (n'?baz'  , n'.foo'  );
+   commit;
+end;
+/
+
+
+alter session set → development/databases/Oracle/adminstration/init-parameters#ora-nls_sort[nls_sort] = binary;
+alter session set → development/databases/Oracle/adminstration/init-parameters#ora-nls_comp[nls_comp] = binary;
+
+select * from tq84_words where txt_1 = txt_2;
+select * from tq84_words order by txt_1;
+select * from tq84_words order by txt_2;
+
+alter session set nls_comp = linguistic;
+alter session set nls_sort = generic_m_ci;
+
+select * from tq84_words where txt_1 = txt_2;
+select * from tq84_words order by txt_1;
+select * from tq84_words order by txt_2;
+
+drop table tq84_words;
+code }
+
+{ TODO
+
+  `nls_sort=punctuation`
+
+}

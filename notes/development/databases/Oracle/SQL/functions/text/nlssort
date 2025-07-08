@@ -1,0 +1,45 @@
+$ Oracle SQL function: NLSSORT
+@ nlssort
+
+`nlssort(txt)` returns a `raw`:
+code {
+create table tq84_nlssort as
+select
+   nlssort(dummy ,'nls_sort=''GERMAN''') dummy_nlssort
+from
+   dual;
+   
+select
+   data_type
+from
+   user_tab_cols
+where
+   table_name = 'TQ84_NLSSORT';
+--
+-- RAW
+   
+select * from tq84_nlssort;
+--
+-- 7D000200
+
+drop table tq84_nlssort purge;
+code }
+
+{ Getting Unicode representation of a string #ora-nlssort-unicode
+
+  With the `unicode_binary` collation, `nlssort` returns the → development/Unicode/Codepoints[Unicode codepoints] for strings:
+code {
+select
+   nlssort(n'Ł'  , 'nls_sort=''unicode_binary''') L,
+   nlssort(n'u'  , 'nls_sort=''unicode_binary''') u,
+   nlssort(n'k'  , 'nls_sort=''unicode_binary''') l,
+   nlssort(n'Łuk', 'nls_sort=''unicode_binary''') Luk
+from
+  dual;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/SQL/functions/text[Functions related to text and strings]
+

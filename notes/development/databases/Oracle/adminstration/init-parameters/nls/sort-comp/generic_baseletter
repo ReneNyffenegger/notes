@@ -1,0 +1,58 @@
+$ Oracle: NLS_SORT=GENERIC_BASELETTER
+
+When → development/databases/Oracle/adminstration/init-parameters/nls#ora-nls_sort[`nls_sort`] is set to `generic_baseletter` (and `nls_comp` to `linguistic`), Oracle does not take accents into consideration when comparing strings.
+
+code {
+
+create table tq84_names (
+    id   integer,
+    name nvarchar2(10)
+);
+
+begin
+   insert into tq84_names values ( 1, 'Jérôme'  );
+   insert into tq84_names values ( 2, 'Zoë'     );
+   insert into tq84_names values ( 3, 'François');
+   insert into tq84_names values ( 4, 'René'    );
+   insert into tq84_names values ( 5, 'Šárka'   );
+   insert into tq84_names values ( 6, 'Błażej'  );
+   insert into tq84_names values ( 7, 'Željko'  );
+   commit;
+end;
+/
+
+select * from tq84_names where name = 'Rene';
+--
+-- No record found
+
+alter session set nls_comp = linguistic;
+alter session set nls_sort = generic_baseletter;
+select * from tq84_names where name = 'Rene';
+--
+-- No record found
+
+create index tq84_names_ix_1 on tq84_names (name);
+explain plan for select * from tq84_names where name = 'Rene';
+select * from dbms_xplan.display(format=>'basic');
+-- ----------------------------------------
+-- | Id  | Operation         | Name       |
+-- ----------------------------------------
+-- |   0 | SELECT STATEMENT  |            |
+-- |   1 |  TABLE ACCESS FULL| TQ84_NAMES |
+-- ----------------------------------------
+
+create index tq84_names_ix_2 on tq84_names (nlssort(name, 'nls_sort=generic_baseletter'));
+
+
+explain plan for select * from tq84_names where name = 'Rene';
+select * from dbms_xplan.display(format=>'basic');
+-- -------------------------------------------------------
+-- | Id  | Operation                   | Name            |
+-- -------------------------------------------------------
+-- |   0 | SELECT STATEMENT            |                 |
+-- |   1 |  TABLE ACCESS BY INDEX ROWID| TQ84_NAMES      |
+-- |   2 |   INDEX RANGE SCAN          | TQ84_NAMES_IX_2 |
+-- -------------------------------------------------------
+
+drop table tq84_names purge;
+code }

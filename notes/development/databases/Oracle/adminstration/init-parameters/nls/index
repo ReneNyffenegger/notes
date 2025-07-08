@@ -11,7 +11,7 @@ NLS_CURRENCY              SFr.
 NLS_DATE_LANGUAGE         ENGLISH
 NLS_DUAL_CURRENCY         SF
 NLS_ISO_CURRENCY          SWITZERLAND
-NLS_LANGUAGE              ENGLISH
+→ #ora-nls_language[NLS_LANGUAGE]              ENGLISH
 NLS_LENGTH_SEMANTICS      BYTE
 NLS_NCHAR_CONV_EXCP       FALSE
 NLS_NUMERIC_CHARACTERS    .'
@@ -53,6 +53,8 @@ code }
    • `LINGUISTIC` (Behvavior of comparison is specified with → #ora-nls_sort[`nls_sort`])
    • `ANSI` (supported for backward compatibility, `LINGUISTIC` is preferred)
 
+  When `nls_comp` is set to `binary`, the the value of `nls_sort` is essentially ignored for *comparison operators* (but not for `order by`!).
+
   If `NLS_COMP` is not set in the → development/databases/Oracle/adminstration/init-parameters, its value shows up as
   → development/databases/Oracle/SQL/null[`null`] in `V$PARAMETER`, `V$SYSTEM_PARAMETER`, `V$PARAMETER2`, `V$SYSTEM_PARAMETER2` and
   `NLS_INSTANCE_PARAMETERS`, but behaves as though it was set to `BINARY`.
@@ -69,7 +71,7 @@ code }
 
   The value of `NLS_LANG` sets the language and territory of both, the session running on the Server, and the client.
   -
-  Do not confuse `NLS_LANG` with `NLS_LANGUAGE` (`NLS_LANG`, unlike `NLS_LANGUAGE`, is *not* an → development/databases/Oracle/adminstration/init-parameters[init parameter] that can be set in `init.ora` or an spfile).
+  Do not confuse `NLS_LANG` with → #ora-nls_language[`NLS_LANGUAGE`] (`NLS_LANG`, unlike `NLS_LANGUAGE`, is *not* an → development/databases/Oracle/adminstration/init-parameters[init parameter] that can be set in `init.ora` or an spfile).
 
  `NLS_LANG` has three components, all of which are optional.
   table { ll
@@ -123,9 +125,11 @@ code }
   }
 
 }
-{ NLS_LANGUAGE
+{ NLS_LANGUAGE #ora-nls_language
 
   Do not confuse `NLS_LANGUAGE` with → #ora-nls_lang[`NLS_LANG`]: The language part of `NLS_LANG` sets the (default) value for `NLS_LANGUAGE`.
+
+  The value of `nls_language` determines the default value of #ora-nls_sort[`nls_sort`].
 
 }
 { NLS_LENGTH_SEMANTICS #ora-nls_length_semantics
@@ -168,13 +172,16 @@ code }
 
   The value of `NLS_SORT` specifies the → development/Unicode/collation[collating] sequence for character value comparison. Thus, this value influences the
   outcome of
-    • → development/databases/Oracle/SQL/select/order-by[`order by`]
+    • → development/databases/Oracle/SQL/select/order-by[`order by`] (even if `nls_comp` is `binary`, see MOS Note 227335.1).
     • → development/databases/Oracle/SQL/select/group-by[`group by`]
     • Comparison operators (such as `<`, `>`, `<=`, `>=` and even `=` or `<>`).
     • The `in` operator
     • `like`, `instr`
     • `min`, `max`, `greatest`, `least`
-    • → development/databases/Oracle/SQL/statement/execution/plan[Execution plans] where → development/databases/Oracle/objects/indexes[indexes] are involved (compare with the `nlssort()` function)
+    • `nls_initcap`, `nls_lower`, `nls_upper`
+    • `regexp_instr`, `regexp_like`, `regexp_replace`, `regexp_substr`
+    • `→ development/databases/Oracle/SQL/functions/text/nlssort`
+    • → development/databases/Oracle/SQL/statement/execution/plan[Execution plans] where → development/databases/Oracle/objects/indexes[indexes] are involved (compare with the `→ development/databases/Oracle/SQL/functions/text/nlssort` function)
 
   ? The exact operators and query clauses that obey the `NLS_SORT` parameter depend on the value of the `NLS_COMP` parameter.
   If an operator or clause does not obey the `NLS_SORT` value, as determined by `NLS_COMP`, the collation used is `BINARY`.
@@ -183,13 +190,21 @@ code }
 
   If `_CI` is appended to the value of `NLS_SORT`, the values are compared case-insensitively (see for example → development/databases/Oracle/SQL/clauses/where#ora-where-ci[selecting case insensitively in a `where` clause]).
   -
-  Appending `_AI` causes the values to be sorted accent-insensitively.
+  Appending `_AI` causes the values to be also sorted accent-insensitively.
+  -
+  There is no predefined case-insenstive but accent-sensitive sort definition (MOS Note 296556.1).
+
+  When `_M_CI` or `_M_AI` is appended, punctuation characters are → development/databases/Oracle/adminstration/init-parameters/nls/sort-comp/multilingual-case-insensitive[ignored when comparing strings for sorting].
 
   The value of `NLS_SORT` can also be set using the environment variable `NLS_SORT`.
 
   The current value of `NLS_SORT` is returned by `→ development/databases/Oracle/SQL/functions/sys_context[sys_context]('userenv', 'nls_sort')`.
 
   The value of `NLS_SORT` influences the behavior of comparison operations (for example in the `where` clause) if `NLS_COMP` is set to linguistics;
+
+  If not specifically set, the value of `nls_sort` is determined by the value of → #ora-nls_language[`nls_language`].
+
+  If `nls_sort` is set to → development/databases/Oracle/adminstration/init-parameters/nls/sort-comp/generic_baseletter[`generic_baseletter`], accents are not taken into accounts when comparing strings.
  
 }
 { NLS_TERRITORY #ora-nls_territory
