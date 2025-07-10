@@ -1,0 +1,45 @@
+$ System.Threading.Mutex (enum)
+
+{ Powershell 7 example
+
+  In a Powershell 7 session, we create a mutex:
+code {
+PS C:\> [bool] $newMutex = $false
+PS C:\> $mutex = new-object System.Threading.Mutex($true, 'mtxTQ84', [ref] $newMutex)
+PS C:\> $newMutex
+True
+code }
+  
+  In another Powershell 7 session, we create a mutex with the same name.
+  -
+  After creating the mutex, the value of `$newMutex` is `False` and indicates that the name was already known:
+code {
+PS C:\> [bool] $newMutex = $false
+PS C:\> $mutex = new-object System.Threading.Mutex($true, 'mtxTQ84', [ref] $newMutex)
+PS C:\> $newMutex
+False
+code }
+
+  In the second session, we wait until the first session releases the mutex:
+code {
+PS C:\> $mutex.WaitOne()
+code }
+
+  We then release the mutex in the first session. Note how the blocked second session becomes unblocked:
+code {
+PS C:\> $mutex.ReleaseMutex()
+code }
+
+  We now wait in the first session until the second session releases the mutex ‥
+code {
+PS C:\> $mutex.WaitOne()
+code }
+
+  ‥ and release the mutex in the first session:
+code {
+PS C:\> $mutex.ReleaseMutex()
+code }
+
+
+}
+

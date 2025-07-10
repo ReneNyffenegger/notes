@@ -17,10 +17,18 @@ $ PowerShell cmdLet Foreach-Object
   and that the percent sign also acts as the arithmetic modulus → Windows/PowerShell/language/operator.
 
 }
-{ Run script blocks in parallel (PowerShell Core)
+{ Powershell 7: Parallel execution
 
+  With Powershell 7, the objects passed to `foreach-object` can be processed in parallel by specifying the `-parallel` parameter:
+
+  By default, PowerShell starts up to five threads in parallel:
 code {
-get-random (1..10) -shuffle | foreach-object -parallel { "Sleeping $_ seconds"; start-sleep $_ ; "Slept $_ seconds"} -throttleLimit 10
+7,5,2,3,6,4,8,1 | forEach-object -parallel { write-output "Thread $_ started at $(get-date -format 'mm:ss'). PID = $pid, TID = $([System.Threading.Thread]::CurrentThread.ManagedThreadId)"; start-sleep $_; write-output "Thread $_ is stopping" }
+code }
+
+  The number of maximum concurrent threads can be adjusted with `-throttleLimit`:
+code {
+get-random (1..10) -shuffle| forEach-object -parallel { write-output "Thread started at $(get-date -format 'mm:ss'). PID = $pid, TID = $([System.Threading.Thread]::CurrentThread.ManagedThreadId)"; start-sleep $_ } -throttleLimit 8
 code }
 
 }
