@@ -64,28 +64,31 @@ It should be noted that Microsoft not only refers to background processes as ser
   }
 
 }
-{ User Account
+{ User Account #windows-service-user-account
 
   A service executes in the security context of a → Windows/user-account[user account].
 
   There are three special predefined local accounts for services. These accounts are not recognized by the *security subsystem* (and hence are not
-  look-up-able with `LookupAccountName` and don't have a password).
+  look-up-able with `LookupAccountName` and don't have a password). See also → Windows/security/SID/S-1-5-18_19_20
     • LocalService
     • NetworkService
-    • LocalSystem
+    • LocalSystem (See → Windows/security/SID/S-1-5/18)
 
   The user account under which a service runs can be determined with variations of the following PowerShell commands:
 code {
-(get-cimInstance -className win32_service -filter "name='W32Time'").startName
-get-cimInstance -className win32_service | select-object name,startname
+(→ Windows/PowerShell/command-inventory/noun/cimInstance/get -className win32_service -filter "name='W32Time'").startName
+→ Windows/PowerShell/command-inventory/noun/cimInstance/get -className win32_service | select-object name,startname
 code }
 
+  In the registry, this account is stored in the value → Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/_driver_name_#reg-services-objectname[`ObjectName`] under the key\
+ `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/System/CurrentControlSet/Services/_driver_name_`.
+
 }
-{ Installed services after an fresh Windows 10 installation
+{ Installed services after a fresh Windows 10 installation
 
    This following table shows the services I found after a fresh installation of → Windows/versions/10[Windows 10].
 
-   The table was extracted using `→ Windows/PowerShell/command-inventory/noun/table/format` print the full column width:
+   The table was extracted using `→ Windows/PowerShell/command-inventory/noun/table/format` to print the full column width:
 
 code {
 PS C:\> → Windows/PowerShell/command-inventory/noun/service/get | → Windows/PowerShell/command-inventory/noun/table/format -wrap -autosize
