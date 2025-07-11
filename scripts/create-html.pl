@@ -923,7 +923,7 @@ sub replace_external_link { #_{
     →\ *            # start with an arrow, followed by 0 or more blanks
     (               #   capture linked page.
        [^\ \[]+     #   linked page must not have spaces nor opening bracket
-       (\.|localhost) #   linked page must have at least one dot or onsist of the word localhost
+       (\.|:|localhost) #   linked page must have at least one dot, one colon or consist of the word localhost
        [^\ \[]+     #   linked page must not have spaces nor opening bracket
     )
     (\[             # followed by an optional square bracket
