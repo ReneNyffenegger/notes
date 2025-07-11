@@ -1,0 +1,65 @@
+$ Powershell command noun: threadJob
+
+The PowerShell command noun `threadJob` is available with Powershell 7.
+
+{ Starting jobs with and without a mutex #ps-threadJob-mutex
+
+  The following example tries to demonostrate how using a `→ Microsoft/dot-net/namespaces-classes/System/Threading/Mutex` object prevents race conditions.
+  -
+  Change the value of the variable `$useMutex` to either use or not use the mutex:
+code {
+$shared = @{accu = 0}
+
+$nofThreads = 10
+$threads    = @()
+
+for ($t = 0; $t -lt $nofThreads; $t++) {
+
+   $threads += start-threadJob {
+
+      $useMutex = $false   ###  Change here!  ###
+
+      if ($useMutex) {
+         [bool] $newMutex = $false
+          $mtx = new-object → Microsoft/dot-net/namespaces-classes/System/Threading/Mutex[System.Threading.Mutex]($true, 'tq84-mtx', [ref] $newMutex)
+      }
+
+      for ($i = 0; $i -lt 10 ; $i++) {
+
+          $shared = $using:shared
+
+          if ($useMutex) {
+             $mtx.WaitOne()
+          }
+          $accu_ = $shared.accu
+          $accu_ = $accu_ + 1
+          start-sleep -milliseconds 1  # Give race condition more chance to occur
+          $shared.accu = $accu_
+
+          if ($useMutex) {
+             $mtx.RelaseMutex()
+          }
+
+          $cur ++
+      }
+   }
+}
+
+$t = 0
+while ($t -lt $nofThreads) {
+   if ($threads[$t].state -eq 'Completed') {
+      $t++
+   }
+   else {
+      start-sleep 1
+   }
+}
+
+write-host "accu = $($shared.accu)"
+code }
+
+}
+
+sa:
+
+  → Windows/PowerShell/command-inventory/noun
