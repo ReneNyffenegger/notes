@@ -1,0 +1,159 @@
+$ GCC: libbacktrace
+
+*libbacktrace* is a library that can be linked into a program or another library to produce *symbolic backtrace*.
+
+{ backtrace.h
+
+  → https://github.com/gcc-mirror/gcc/blob/master/libbacktrace/backtrace.h[`backtrace.h`] declares and documents the library's
+  public function and data types, such as
+    • `backtrace_full`
+    • `backtrace_simple`
+    • `backtrace_print`
+    • `backtrace_syminfo`
+    • `backtrace_pcinfo`
+    • `backtrace_create_state`
+    • `backtrace_state` (which is returned by `backtrace_create_state`)
+    • `backtrace_full_callback`
+    • `backtrace_syminfo_callback`
+    • `backtrace_simple_callback`
+    • `backtrace_error_callback`
+
+
+
+}
+{ backtrace-supported.h
+
+ `backtrace-supported.h` is generated when `libbacktrace` is built.
+  
+  This header file will assign `0` or `1` to the following four macros
+  table { ll
+    `BACKTRACE_SUPPORTED` ☰ If `0`, `libbacktrace` won't likely work.
+    `BACKTRACE_USES_MALLOC` ☰ `0` means that `libbacktrace` uses `mmap` instead of `malloc`.
+    `BACKTRACE_SUPPORTS_THREADS` ☰ If `0`, the `threaded` parameter must be `0` when `backtrace_create_state` is called.
+    `BACKTRACE_SUPPORTS_DATA` ☰ `1` indicates that `backtrace_syminfo` works for variables.
+  table }
+
+}
+{ Thread safety
+
+  → https://github.com/gcc-mirror/gcc/blob/981bd3e62cd271f620892cf5db56f00b4df50156/libbacktrace/README#L11C49-L15C53[On systems that use `dl_iterate_phdr`], such as *GNU/Linux*, the first
+  call to a `libbacktrace` function will call `dl_iterate_phdr` which is generally not async-signal-safe.
+
+  Therefore, programs that call libbacktrace from a signal handler should
+  ensure that they make an initial call from outside of a signal handler.
+
+}
+{ Example
+
+code {
+#include <stdio.h>
+#include <backtrace.h>
+
+static struct backtrace_state *g_state = NULL;
+
+int cb_frame(
+      void         *data,
+      uintptr_t     pc,
+      const char   *filename,
+      int           lineno,
+      const char   *function
+    ) {
+
+//  In c++, you might want to use (include <cxxabi.h>)
+//     int status;
+//     char *demangled = abi::__cxa_demangle(function, NULL, NULL, &status);
+
+    const char *func_name = function; // (status == 0 && demangled) ? demangled : function;
+    printf("%-25s  %16lx %4d %-32s %s\n",
+       (char*) data, // cast data to char* in order to prevent warning format ‘%s’ expects argument of type ‘char *
+       pc,
+       lineno,
+       func_name ? func_name : "??",
+       filename  ? filename  : "??"
+       );
+
+//  free(demangled);
+
+    return 0;
+}
+
+void cb_error(
+      void       *data,
+      const char *msg,
+      int         errnum
+    ) {
+
+    printf("Error %d occurred: %s (%s)\n",
+       errnum,
+       msg,
+      (char*) data // cast data to char* in order to prevent warning format ‘%s’ expects argument of type ‘char *
+    );
+}
+
+void start_backtrace(char* data) {
+
+    printf("\n");
+    printf("data                                     pc line function                         source file\n");
+    printf("========================== ================ ==== ================================ ==========================\n");
+
+    backtrace_full(
+       g_state,
+       1,                     // number of frames to skip skip
+       cb_frame,  
+       cb_error,
+       data
+    );
+
+    printf("\n");
+}
+
+void third_func() {
+    start_backtrace("backtrace from func_c");
+}
+
+void second_func() {
+    third_func();
+}
+
+void first_func() {
+    second_func();
+}
+
+int main(int argc __attribute__((unused)), char **argv) {
+
+   g_state = backtrace_create_state(
+       argv[0],
+       0,            // threaded
+       cb_error,
+       NULL          // data. What is this used for.
+   );
+
+    first_func();
+    return 0;
+}
+code }
+
+  Use `-g` when compiling and link with `backtrace`. This example can be compiled, for example, with
+code {
+$ gcc → development/languages/C-C-plus-plus/GCC/options/g -fdebug-prefix-map=$PWD=. -Wall -Wextra backtrace-test.c -o backtrace-test -lbacktrace
+code }
+
+  The `-fdebug-prefix-map` option is used to cut the path of source file `backtrace-test.c` to make the output a bit tidier.
+
+  When running, the example prints something similar to
+code {
+data                                     pc line function                         source file
+========================== ================ ==== ================================ ==========================
+backtrace from func_c          5596a41403f9   63 third_func                       ./backtrace-test.c
+backtrace from func_c          5596a414040a   67 second_func                      ./backtrace-test.c
+backtrace from func_c          5596a414041b   71 first_func                       ./backtrace-test.c
+backtrace from func_c          5596a414045e   83 main                             ./backtrace-test.c
+backtrace from func_c          7f059ea42249   58 __libc_start_call_main           ../sysdeps/nptl/libc_start_call_main.h
+backtrace from func_c          7f059ea42304  360 __libc_start_main_impl           ../csu/libc-start.c
+backtrace from func_c          5596a4140200    0 ??                               ??
+backtrace from func_c      ffffffffffffffff    0 ??                               ??
+code }
+}
+
+sa:
+ `libbacktrace` relies on the C++ unwind API defined at → https://itanium-cxx-abi.github.io/cxx-abi/abi-eh.html.

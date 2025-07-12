@@ -142,6 +142,52 @@ code {
 code }
 
   }
+  { obj/ngx_modules.c
+
+   `obj/ngx_modules.c` is a generated file.
+
+   `auto/init` sets the variable → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/auto/init#L7[`$NGX_MODULES_C` to `obj/ngx_modules.c`].
+
+   `auto/make` sets the variable → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/auto/make#L193C1-L193C14[`ngx_modules_c` from `$NGX_MODULES_C`] (by replacing `/` with either a forward or backward slash, depending on the environment).
+    -
+    It then → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/auto/make#L521[iterates] → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/auto/make#L529[three]
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/auto/make#L542[times] over the elements of the `$ngx_module_modules` array and writes into `obj/ngx_modules.c`.
+
+    The procued file contains an array, named `ngx_modules` of pointers to `ngx_module_t`, such as
+code {
+ngx_module_t *ngx_modules[] = {
+    &ngx_core_module,
+    &ngx_errlog_module,
+    &ngx_conf_module,
+    &ngx_openssl_module,
+     …
+    NULL
+};
+code }
+
+   `src/core/ngx_module.c` → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_module.c#L30-L33[iterates over the elements] in `ngx_modules`
+    and sets each module's `index` and `name`.
+    -
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_module.c#L43[`ngx_cycle_modules()`]
+    creates a list of modules.
+
+  }
+  { Modules
+
+    There are a few module types:
+      • CORE
+      • HTTP
+      • HTTP_FILTER
+      • HTTP_INIT_FILTER
+      • MAIL
+      • STREAM
+      • MISC
+
+    The variable `DYNAMIC_MODULES` …
+
+    For each module that needs to be added, `auto/modules` sets a few variables an then calls `auto/module`.
+
+  }
   { auto/module
 
     As far as I can tell, `auto/module` is only called from `auto/modules`.
@@ -209,7 +255,43 @@ code }
   }
   { main()
 
-    The `main()` function is defined in → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/core/nginx.c#L197[`src/core/nginx.c`].
+    The → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L197[`main()`] function is defined in → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/core/nginx.c#L197[`src/core/nginx.c`].
+
+  }
+  { Configuration 
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L77-L84[`struct ngx_command_s`] associates a configuration name with a call back function
+   (such as for example → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L1553[`ngx_set_worker_processes`]) that processes the configuration directive when encountered
+    -
+   `ngx_command_s` is typedefed to `ngx_command_t`.
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L42[`ngx_core_commands`] is an array of `ngx_command_t` objects.
+    -
+    The association of names to the call back functions is done when it is initialzied (see for example → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L79-L84[here]).
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L116-L132[`struct ngx_conf_s`] (typedefed to  → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L16[`ngx_conf_t`]) …
+
+   `main` -> `ngx_init_cycle` -> `ngx_conf_parse` -> `ngx_conf_handler`
+
+     
+  }
+  { ngx_conf_parse
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.c#L158[`ngx_conf_parse`] (→ https://github.com/nginx/nginx/blob/master/src/core/ngx_conf_file.c[`src/core/ngx_conf_file.c`]) is called from
+    different places, such as
+       • `main()` -> `ngx_init_cycle()` -> `ngx_conf_param()`(→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.c#L93[here], where no filename is passed).
+       • `main()` -> `ngx_init_cycle()` -> (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_cycle.c#L284[here], where a filename is passed).
+       • `main()` -> `ngx_init_cycle()` -> `ngx_conf_parse()` -> `ngx_conf_handler()` -> `ngx_events_block()` 
+       • `main()` -> `ngx_init_cycle()` -> `ngx_conf_parse()` -> `ngx_conf_handler()` -> `ngx_http_block()`
+
+rem {
+    initiates the parsing of the configuration file.
+rem }
+
+  }
+  { processes
+
+    The number of worker processes can be specified with the configuration directive `worker_process` (whose value can be set to `auto`).
 
   }
   { ngx_master_process_cycle()
@@ -417,12 +499,7 @@ code }
 
 
   }
-  { Misc
 
-   `objs/ngx_modules.c` seems to be created when making the executable, possibly when calling the `auto/configure` script.
-    A list of module names is found in `objs/ngx_modules.c` and assigned to `ngx_module_names`.
-
-  }
 
 }
 { Querying the configure options
