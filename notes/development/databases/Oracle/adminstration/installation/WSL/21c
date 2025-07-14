@@ -13,6 +13,14 @@ code {
 PS:> wsl --install OracleLinux_8_7
 code }
 
+  { Update 2025-07-14
+
+    When I tried to install Oracle 21c on Windows 11 in July 2025, I found an Oracle 8.10 distribution with `wsl -l -o`.
+
+    However, trying to install it was not without problem, see
+    → Windows/dirs/Windows/System32/wsl_exe/install/Failed-to-install_from-the-Microsoft-Store[Failed to install OracleLinux_8_10 from the Microsoft Store: The server name or address could not be resolved].
+
+  }
 }
 { Check WSL version
 
@@ -39,10 +47,10 @@ code {
 # cat /etc/oracle-release
 Oracle Linux Server release 8.7
 
-# cat /etc/readhat-release
+# cat /etc/redhat-release
 Red Hat Enterprise Linux release 8.7 (Ootpa)
 
-# cat /etc/os-release
+# cat → Linux/fhs/etc/os-release
 NAME="Oracle Linux Server"
 VERSION="8.7"
 ID="ol"
@@ -76,7 +84,7 @@ code }
 
   I cannot look up internet domains, proabably because WSL generates `→ Linux/fhs/etc/resolv_conf`.
 
-  This behvavior can be configured in `/etc/wsl.conf`.
+  This behvavior can be configured in `→ Linux/fhs/etc/wsl_conf`
   -
   I have no such file …
 code {
@@ -123,7 +131,7 @@ code {
 code }
 
   This preinstallatin package
-    • the oraInventory (oinstall) and OSDBA (dba) oper, backupdba, dgdba, racdba, and kmdba groups
+    • creates the oraInventory (oinstall) and OSDBA (dba) oper, backupdba, dgdba, racdba, and kmdba → Linux/group[groups]
     • creates the oracle user and assigns it to these groups: `id oracle`
     • sets `sysctl.conf` settings, system startup parameters, and driver parameters to values based on recommendations from the Oracle Database Preinstallation RPM program
     • Setting user limits (`/etc/security/limits.d/oracle-database-preinstall-21c.conf`)
@@ -258,19 +266,27 @@ chown -R oracle:oinstall /home/oracle/scripts
 chmod u+x /home/oracle/scripts/*.sh
 code }
 
+  Add `setEnv.sh` to `→ Linux/fhs/home/username/_bash_profile`:
+code {
+echo '. $HOME/scripts/setEnv.sh' >> ~/.bash_profile
+code }
+
 }
 { Download Oracle binaries
 
   Find  LINUX.X64_213000_db_home.zip at → https://www.oracle.com/database/technologies/oracle21c-linux-downloads.html
 
-  TODO: Is at this point `$ORACLE_HOME` set?
+  Export `$ORACLE_HOME` because it is not set yet (this is used below in the `cd` command).
+code {
+$ . $HOME/scripts/setEnv.sh
+code }
 
 code {
-$ wget https://download.oracle.com/otn/linux/oracle21c/LINUX.X64_213000_db_home.zip?AuthParam=<REPLACE HERE> -O /tmp/LINUX.X64_213000_db_home.zip
+$ → tools/wget https://download.oracle.com/otn/linux/oracle21c/LINUX.X64_213000_db_home.zip?AuthParam=<REPLACE HERE> -O /tmp/LINUX.X64_213000_db_home.zip
 
 $ cd $ORACLE_HOME
 
-$ unzip -oq /tmp/LINUX.X64_213000_db_home.zip
+$ → Linux/shell/commands/unzip -oq /tmp/LINUX.X64_213000_db_home.zip
 code }
 
 }
@@ -325,17 +341,26 @@ code {
 $ exit
 code }
 
-  Run first script:
+  Run the first mentioned script (`→ Linux/fhs/u01/app/oraInventory/orainstRoot_sh`):
 code {
 # /u01/app/oraInventory/orainstRoot.sh
+The execution of the script is complete.
 code }
 
-  Run second script
+  Run the second mentioned script:
 code {
-# /u01/app/oracle/product/21.0.0/dbhome_1/root.sh
+# → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/root_sh[/u01/app/oracle/product/21.0.0/dbhome_1/root.sh]
 Check /u01/app/oracle/product/21.0.0/dbhome_1/install/root_LIGS10019_2024-12-27_15-57-03-373919026.log for the output of root script
 code }
 
+  { Determine host's IP Address
+
+    In order to be able to connect to the new database from the WSL host, I need to determine the guest's IP address. This requires the `hostname` executable which is not:
+code {
+# dnf install -y hostname
+code }
+
+  }
 }
 { Start listnener
 
@@ -346,10 +371,10 @@ $ lsnrctl start
 code }
 
 }
-{ Create a database
+{ Create a database #wsl-ora-21
 
 code {
-$ dbca -silent -createDatabase                                                 \
+$ → Linux/fhs/u01/app/oracle/product/vv-v-v/dbhome_n/bin/dbca[dbca] -silent -createDatabase                                                 \
      -templateName General_Purpose.dbc                                         \
      -gdbname                   ${ORACLE_SID}                                  \
      -sid                       ${ORACLE_SID} -responseFile NO_VALUE           \
@@ -370,20 +395,21 @@ $ dbca -silent -createDatabase                                                 \
      -ignorePreReqs
 code }
 
+  As per MOS Note 235965.1, the following warning can be safeily ignored:
+code {
+[WARNING] [DBT-11217] Unable to check available shared memory on specified node(s) ([null]).
+code }
+
 }
 { Connect from host
 
-  In order to be able to connect to the new database from the WSL host, I need to determine the guest's IP address. This requires the `hostname` executabale which is not installed.
-
-  So, I need to become root again (or should have set up sudo correctly…):
+ `hostname -I` determines a → Windows/Subsystem-for-Linux#wsl-ip-of-guest[WSL guest's' IP address]:
 code {
-# dnf install -y hostname
-  …
-# hostname -I
+$ hostname -I
 172.25.11.143
 code }
+    Now, with this IP address, I can connect from the WSL host (*if* it has Oracle client installed):
 
-  Now, with this IP address, I can connect from the WSL host (*if* it has Oracle client installed):
 code {
 PS:> sqlplus sys/SysPassword1@172.25.11.143:1521/cdb1 as sysdba
 code }
@@ -391,24 +417,24 @@ code }
 }
 { /etc/oratab
 
-  `dbc1` does not automatically start:
+ `dbc1` does not automatically start:
 
 code {
-$ grep -v '^\s*$\|^\s*#' /etc/oratab
+$ → Linux/shell/commands/grep -v '^\s*$\|^\s*#' → Linux/fhs/etc/oratab
 cdb1:/u01/app/oracle/product/21.0.0/dbhome_1:N
 code }
 
    Change it (as root (to prevent in place error )):
 code {
-# sed -i '/^cdb1:/s/N *$/Y/' /etc/oratab
+# → development/languages/sed -i '/^cdb1:/s/N *$/Y/' /etc/oratab
 code }
 
 }
 { Make sure PDB starts also when the instance starts
 
-  I don't want to execute `alter pluggble database pdb1 open` every time when the instance starts again:
+  I don't want to execute `alter pluggble database pdb1 open` every time when the instance starts again (run as `oracle`):
 code {
-sqlplus / as sysdba <<EOF
+$ sqlplus / as sysdba <<EOF
 alter pluggable database ${PDB_NAME} save state;
 exit
 EOF
@@ -419,9 +445,9 @@ code }
 }
 { TODO
 
-  Enable Oracle Managed Files (OMF) …
+  Enable Oracle Managed Files (OMF) … (run as `oracle`):
 code {
-sqlplus / as sysdba <<EOF
+$ sqlplus / as sysdba <<EOF
 alter system set db_create_file_dest='${DATA_DIR}';
 EOF
 code }
