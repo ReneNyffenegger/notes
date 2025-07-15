@@ -271,7 +271,15 @@ code }
 
    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L42[`ngx_core_commands`] is an array of `ngx_command_t` objects.
     -
-    The association of names to the call back functions is done when it is initialzied (see for example → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L79-L84[here]).
+    The association of names to the call back functions is done when it is initialized (see for example → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L79-L84[here]).
+
+    Similarly to `ngx_core_commands`, there is also the variable → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.c#L183[`ngx_http_core_commands`] which takes care of configuration options such as → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.c#L283[`listen`].
+
+    Each config option is associated with a callback function which is assigned to the member → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L80[`set`] of the `ngx_command_s` struct.
+    -
+    In the case of `listen`, this callback function is → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.c#L4015[`ngx_http_core_listen`] which is called
+    «indirectly» from → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.c#L463[here].
+
 
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L116-L132[`struct ngx_conf_s`] (typedefed to  → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L16[`ngx_conf_t`]) …
 
@@ -298,6 +306,49 @@ code }
 rem {
     initiates the parsing of the configuration file.
 rem }
+
+  }
+  { ngx_conf_read_token
+  
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.c#L503[`ngx_conf_read_token()`] returns → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.c#L246-L252[one of]
+      table { ll
+       `NGX_OK` ☰ A config option, such as `listen 8080;` or `worker_processes auto;`
+       `NGX_CONF_BLOCK_START` ☰ The token is the name of a «named block», for example `http {` or `server {`
+       `NGX_CONF_BLOCK_DONE` ☰ The terminating `}` of a «named block»
+       `NGX_CONF_FILE_DONE` ☰ The end
+       `NGX_ERROR`☰
+      table }
+
+  }
+  { HTTP/Connections etc.
+
+   `ngx_epoll_process_events' calls `ngx_event_accept`.
+    -
+   `ngx_event_accept` calls `ngx_http_init_connection`
+
+  }
+  { ngx_os_io_t
+
+   `ngx_os_io_t` seems to be a platform dependend struct to store function pointers for sending and receiving functions
+  (→ https://github.com/nginx/nginx/blob/master/src/os/unix/ngx_os.h#L26-L35[`src/os/unix/ngx_os.h`] and → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/win32/ngx_os.h#L26-L35[`src/os/win32/ngx_os.h`]).
+
+   `src/core/ngx_connection.c` defines the → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.c#L13[variable `ngx_io` of type `ngx_os_io_t`].
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_linux_init.c#L16[`ngx_linux_io`] (whose type is `ngx_os_io_t`.
+
+   `src/event/ngx_event.h` defines macros such as → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L416-L422[`ngx_recv` for `ngx_io.recv`] etc.
+
+  }
+  { ngx_unix_recv
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_recv.c#L14[`ngx_unix_recv`] …
+
+
+
+  }
+  { ngx_http_read_request_header
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L1581[`ngx_http_read_request_header`]
 
   }
   { processes
