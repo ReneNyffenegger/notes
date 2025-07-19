@@ -5,10 +5,41 @@ In ~little endian~, a number  is laid out in memory with the least significant b
 
 In ~big endian~, the number is stored with the order of bytes reversed.
 
-*Big endian* is also referred to as *network byte order* (See → development/web/RFC 1700).
+*Big endian* is also referred to as *network byte order* (See → development/web/RFC 1700) (see the c functions
+→ https://linux.die.net/man/3/ntohs[`htonl()`, `htons()`, `ntohl()` and `ntohs()`]).
 
 → hardware/CPUs/Intel[Intel CPUs] are *little endian*.
 
+{ C program to determine endianness
+
+  The following C program (which I found → https://web.archive.org/web/20230413151324/https://bruceblinn.com/linuxinfo/ByteOrder.html[here]) determines the endianness of the machine it runs on:
+code {
+#include <stdio.h>
+
+int main() {
+
+   union {
+      int  i;
+      char c[sizeof(int)];
+   } u;
+
+   u.i = 1;
+
+   if (u.c[0] == 1) {
+      printf("Little endian\n");
+   }
+   else {
+      printf("Big endian\n");
+   }
+}
+code }
+
+}
+
+
 sa:
+
+  Types in the → Linux/kernel/source[Linux kernel source] to → Linux/kernel/source/include/uapi/linux/types_h#linux-types-h-endian[express endianness].
+
   In an Oracle database, the endianness of a database can be determined by → development/databases/Oracle/SQL/join[joining]
   → development/databases/Oracle/installed/dynamic-performance-views/database#v_database-platform_id[`v$database` to `v$transportable_platform`].
