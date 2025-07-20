@@ -1,0 +1,64 @@
+$ include/uapi/linux/eventpoll.h
+
+{ epoll_event #linux-epoll_event
+
+code {
+struct epoll_event {
+	→ Linux/kernel/source/include/uapi/linux/types_h#linux-types-h-__poll_t[__poll_t] events;
+	__u64 data;
+} EPOLL_PACKED;
+code }
+
+  The `data` member specifies the data that the kernel should save and return when `epoll_wait` is called.
+
+  { glibc
+
+    Compare this struct with → https://github.com/bminor/glibc/blob/8cab264b26411579051de930417ca4a346e0254c/sysdeps/unix/sysv/linux/sys/epoll.h#L85-L89[the definition in glibc]:
+code {
+struct epoll_event
+{
+  uint32_t events;	/* → #linux-epoll-event-masks[Epoll events] */
+  epoll_data_t data;	/* User data variable */
+} __EPOLL_PACKED;
+code }
+
+    `epoll_data_t` is → https://github.com/bminor/glibc/blob/8cab264b26411579051de930417ca4a346e0254c/sysdeps/unix/sysv/linux/sys/epoll.h#L77-L83[defined as]
+code {
+typedef union epoll_data
+{
+  void *ptr;
+  int fd;
+  uint32_t u32;
+  uint64_t u64;
+} epoll_data_t;
+code }
+
+  }
+
+}
+{ epoll event masks #linux-epoll-event-masks
+
+ `eventpoll.h` → https://github.com/torvalds/linux/blob/990b11a523a80de81ca4eacb1bdac80ad78fdf11/include/uapi/linux/eventpoll.h#L30-L42[defines the following] *epoll event masks*:
+  table { lll
+    `EPOLLIN` ☰ The associated file is available for `read(2)` operations. ☰ 0x00000001
+    `EPOLLPRI` ☰ There is an exceptional condition on the file descriptor. ☰ 0x00000002
+    `EPOLLOUT` ☰ The associated file is available for `write(2)` operations. ☰ 0x00000004
+    `EPOLLERR` ☰ ☰ 0x00000008
+    `EPOLLHUP` ☰ Hang up happened on the associated file descriptor. ☰ 0x00000010
+    `EPOLLNVAL` ☰ ☰ 0x00000020
+    `EPOLLRDNORM` ☰ ☰ 0x00000040
+    `EPOLLRDBAND` ☰ ☰ 0x00000080
+    `EPOLLWRNORM` ☰ ☰ 0x00000100
+    `EPOLLWRBAND` ☰ ☰ 0x00000200
+    `EPOLLMSG` ☰ ☰ 0x00000400
+    `EPOLLRDHUP` ☰ … *This flag is especially useful for writing simple code to detect peer shutdown when using edge-triggered monitoring.* ☰ 0x00002000
+
+    `EPOLLET` ☰ Requests *edge-triggered notification* for the associated file descriptor. (The default behavior for epoll is *level-triggered*. ☰ `1U << 31`
+  table }
+
+  These bits can be set in the `events` member of → #linux-epoll_event[`struct epoll_event`].
+
+}
+
+sa:
+ `→ Linux/kernel/source/fs/eventpoll_c`

@@ -1,0 +1,36 @@
+$ include/uapi/linux/in.h
+
+*Definitions of the → development/networking/IP[Internet Protocol]*.
+
+{ in_addr #in_addr
+
+ `in_addr` stores an IP 4 internet address, i. e. 4 bytes (or 32 bits) in big endian order:
+code {
+struct in_addr {
+	__be32	s_addr;
+};
+code }
+
+}
+
+{ sockaddr_in #sockaddr_in
+
+?`__be16` is a big endian unsigned int.
+
+code {
+struct sockaddr_in {
+  → Linux/kernel/source/include/uapi/linux/socket_h#__kernel_sa_familiy_t[__kernel_sa_family_t]	sin_family;	/* Address family		*/
+  __be16		sin_port;	/* Port number			*/
+  struct → #in_addr[in_addr]	sin_addr;	/* Internet address		*/
+
+  /* Pad to size of `struct sockaddr'. */
+  unsigned char		__pad[__SOCK_SIZE__ - sizeof(short int) -
+			sizeof(unsigned short int) - sizeof(struct in_addr)];
+};
+code }
+
+  Compare `sockaddr_in` with → Linux/kernel/source/include/linux/socket_h#sockaddr[`sockaddr`].
+  -
+  The `_in` in `sockaddr_in` likely stands for *internet* (hence the members `sin_port` and `sin_addr` where `s` possibly stands for *socket*).
+
+}
