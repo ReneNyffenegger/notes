@@ -331,9 +331,12 @@ rem }
   }
   { HTTP/Connections etc.
 
-   `ngx_epoll_process_events' calls `ngx_event_accept`.
+   `ngx_epoll_process_events` calls `ngx_event_accept`.
     -
-   `ngx_event_accept` calls `ngx_http_init_connection`
+   `ngx_event_accept` calls `ngx_http_init_connection`.
+    -
+    A function pointer to `ngx_http_init_connection` is → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http.c#L1824[assigned to `ls->handler`] in `ngx_http_add_listening`
+   (`ls` being an instance of `ngx_listening_t` → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http.c#L1817[returned by] `ngx_http_add_listening`).
 
   }
   { ngx_socket_t
@@ -354,7 +357,7 @@ rem }
     This macro is used for example in
       • `src/core/ngx_connection.c` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.c#L490[function `ngx_open_listening_sockets`]),
       • `src/event/ngx_event_connect.c` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event_connect.c#L41[function `ngx_event_connect_peer`]),
-      • `src/evetn/ngx_event_acceptex.c` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event_acceptex.c#L107[function `ngx_event_post_acceptex`]),
+      • `src/event/ngx_event_acceptex.c` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event_acceptex.c#L107[function `ngx_event_post_acceptex`]),
       • `src/core/ngx_resolver.c` (`ngx_udp_connect` and `ngx_tcp_connect`)
       • `src/core/ngx_syslog.c` (`ngx_syslog_init_peer`)
 
@@ -417,6 +420,17 @@ rem }
       • starts and controls child processes.
 
     It does not perform any I/O and responds only to signals.
+
+  }
+  { epoll
+
+    Part of the initilization of nginx seems to be to check
+    if → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.c#L1304-L1306[calling `epoll_create()` is successfull] and depending
+    on the result to set → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.c#L1308[the event module].
+
+    The «real» epoll file descriptor is → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L330[created in `ngx_epoll_init`].
+    -
+    This file descriptor is assigned to the «per-process» global variable → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L133_[`ep`].
 
   }
   { ngx_process_events_and_timers()
