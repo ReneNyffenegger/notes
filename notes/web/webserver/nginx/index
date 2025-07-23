@@ -365,11 +365,24 @@ rem }
   { struct ngx_listening_s
 
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L18-L92[`struct ngx_listening_s`] and
-    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L16[`typedef struct ngx_listening_s ngx_listening_t`] in `src/coer/ngx_connection.h`.
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L16[`typedef struct ngx_listening_s ngx_listening_t`] in `src/core/ngx_connection.h`.
 
     Some interesting members include:
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L19[`ngx_socket_t fd`]
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L38[`ngx_connection_handler_pt handler`] (The *handler* of accepted connections)
+
+  }
+  { struct ngx_connection_s
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L124-L203[`struct ngx_connection_s`] in `src/core/ngx_connection.h` and the corresponding
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L26[`typedef struct ngx_connection_s ngx_connection_t;`] in `src/core/ngx_core.h`.
+
+    A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L36[`ngx_connection_handler_pt`] takes an `ngx_connection_t` as argument.
+
+  }
+  { ngx_connection_handler_pt
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L36[`ngx_connection_handler_pt`].
 
   }
   { ngx_create_listening
@@ -397,12 +410,31 @@ rem }
 
    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_recv.c#L14[`ngx_unix_recv`] …
 
-
-
   }
   { ngx_http_read_request_header
 
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L1581[`ngx_http_read_request_header`]
+
+  }
+  { ngx_event_s
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L30-L13[`struct ngx_event_s`] in `src/event/ngx_event.h` and the corresponding
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L24[`typedef struct ngx_event_s ngx_event_t`] in `src/core/ngx_core.h`.
+
+    A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L35[`ngx_event_handler_pt`] takes an `ngx_event_t` as argument.
+
+  }
+  { ngx_event_handler_pt
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L35[`ngx_event_handler_pt`].
+
+   `ngx_event_handler_pt` is found, among others, in
+     • `struct ngx_event_s` (member → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L103[`handler`])
+     • `struct ngx_event_handler_pt` (members → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event_openssl.h#L132-L133[`saved_read_handler` and `saved_write_handler`]).
+     • as parameter of the → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L176[`notify`] function pointer in `ngx_event_actions_t`
+
+     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L437[TODO 1] and
+     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L765[TODO 2].
 
   }
   { processes
@@ -424,7 +456,7 @@ rem }
   }
   { epoll
 
-    Part of the initilization of nginx seems to be to check
+    Part of the initialization of nginx seems to be to check
     if → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.c#L1304-L1306[calling `epoll_create()` is successfull] and depending
     on the result to set → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.c#L1308[the event module].
 
