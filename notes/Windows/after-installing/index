@@ -860,32 +860,38 @@ code }
 
   { 2025-07-15: Older trials
 
-  Should → https://github.com/PowerShell/PowerShell/releases[the newest PowerShell version installed, anyway]?
-
- ~TODO~: the following download takes quite a bit of time, and → Microsoft/dot-net/namespaces-classes/System/Net/WebClient[`System.Net.WebClient`] is deprecated anyway. So, try to use
- `downloadFile()`, found in the `temp-scripts-and-utilities` repository.
-
+    Find a → https://github.com/PowerShell/PowerShell/releases[PowerShell release number] and assign it to a variable:
 code {
-# $ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.0.3/PowerShell-7.0.3-win-x64.zip'                     , "$downloadFolder/PowerShell.zip")
-  $ua.downloadFile('https://github.com/PowerShell/PowerShell/releases/download/v7.1.0-preview.6/PowerShell-7.1.0-preview.6-win-x64.zip' , "$downloadFolder/PowerShell.zip")
-
-$newestPsDir = "$binPath/PowerShell7"
-if (→ Windows/PowerShell/command-inventory/noun/path/test[test-path] $newestPsDir) {
-   → Windows/PowerShell/command-inventory/noun/item/remove[remove-item] -recurse $newestPsDir
-}
-
-→ Windows/PowerShell/command-inventory/noun/archive/expand[expand-archive] $downloadFolder/PowerShell.zip $newestPsDir
+$psRel = '7.5.2'
+$psBit = 'x86'   # or x64
 code }
 
 code {
-addDirToPath $newestPsDir
+$ua.downloadFile("https://github.com/PowerShell/PowerShell/releases/download/v$psRel/PowerShell-$psRel-win-$psBit.zip", "$downloadFolder/PowerShell-$psBit.zip")
 code }
 
 code {
-remove-item "$downloadFolder/PowerShell.zip"
+$null = mkdir $binPath/pwsh
+$null = mkdir $binPath/pwsh/$psBit
+expand-archive "$downloadFolder/PowerShell-$psBit.zip" $binPath/pwsh/$psBit
 code }
 
-  { TODO: set-slipboardText set-clipboard
+     Test installation:
+code {
+& $binPath/pwsh/$psBit/pwsh
+code }
+
+code {
+addDirToPath $binPath/pwsh/$psBit
+code }
+
+    Clean up:
+code {
+exit # If still in powershell 7 session‥
+remove-item "$downloadFolder/PowerShell-$psBit.zip"
+code }
+
+  { TODO: set-clipboardText set-clipboard
 
     Does the newest PowerShell version come with either `set-→ Windows/PowerShell/command-inventory/noun/clipboard[clipboard]` or `set-clipboardText`? Otherwise, it might be added with
 code {

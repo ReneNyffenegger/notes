@@ -1,0 +1,103 @@
+$ PowerShell cmdLet Start-ThreadJob
+@ start-threadJob
+
+{ -ThrottleLimit
+
+? When starting a thread, the parameter `-throttleLimit` sets the maximum number of concurrent running threads. This number can be upped and affects already started threads:
+code {
+foreach ($t in 0..9) {
+   start-threadJob -scriptBlock {
+      param($x)
+
+       foreach ($i in 1 .. 10) {
+          write-host "thread $x is running (i = $i)"
+          start-sleep 1
+       }
+   } -streamingHost $host -throttleLimit 4 -argumentList $t
+ }
+
+start-sleep 5
+
+#
+# start an 'empty thread' just to increase the throttle limit in order to
+# run all threads concurrently:
+#
+$null = start-threadJob -scriptBlock {} -throttleLimit 11
+code }
+
+}
+{ Calling a function
+
+ → https://stackoverflow.com/a/76847044/180275[This stackoverflow answer] has a good summary that explains how a function can be called from
+ a thread and why it needs to be done as shown below: 
+code {
+function func {
+   param([string] $arg)
+
+   $sleepDuration = get-random -maximum 5
+   start-sleep $sleepDuration
+   return "returning after $sleepDuration second(s), arg = $arg"
+}
+
+$threads = @()
+foreach ($t in 'seven', 'eight-three', 'three', 'forty-eight', 'nine', 'one-hundred', 'twelve') {
+
+   $threads += start-threadJob {
+      param($arg)
+
+      $function:func = $using:function:func
+      func $arg
+
+   } -throttleLimit 10 -argumentList $t
+}
+
+$null = wait-job -job $threads
+
+foreach ($thread in $threads) {
+   receive-job $thread
+}
+code }
+
+  In order to use *hyphenated function names*, curly braces need to be used, like so:
+code {
+function hyphenated-funcname {
+   param([string] $arg)
+
+   $sleepDuration = get-random -maximum 5
+   start-sleep $sleepDuration
+   return "returning after $sleepDuration second(s), arg = $arg"
+}
+
+$threads = @()
+foreach ($t in 'seven', 'eight-three', 'three', 'forty-eight', 'nine', 'one-hundred', 'twelve') {
+
+   $threads += start-threadJob {
+      param($arg)
+
+      ${function:func-alias} = ${using:function:hyphenated-funcname}  # <<< Note the curly braces here.
+      func-alias $arg
+
+   } -throttleLimit 10 -argumentList $t
+}
+
+‥
+code }
+
+}
+{ -StreamingHost #start-threadJob-streamingHost
+
+? By default, the thread's output is collected inot the job data stream and won't be shown in the host (unless explicitely requested with `receive-job`)
+  -
+  With `-StreamingHost`, this output can be sent to the specified host:
+code {
+foreach ($t in 1..10) {
+   start-threadJob -scriptBlock {
+      param($x)
+      write-host "thread $x is going to sleep"
+      start-sleep $x
+      write-host "thread $x has woken up"
+   } -streamingHost → Windows/PowerShell/language/variable/automatic/host -argumentList $t
+}
+code }
+
+}

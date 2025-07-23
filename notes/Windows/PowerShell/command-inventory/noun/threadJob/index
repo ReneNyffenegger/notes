@@ -2,6 +2,30 @@ $ Powershell command noun: threadJob
 
 The PowerShell command noun `threadJob` is available with Powershell 7.
 
+{ Collecting output produced by threads
+
+code {
+$threads = @()
+foreach ($t in 'seven', 'eight-three', 'three', 'forty-eight', 'nine', 'one-hundred', 'twelve') {
+
+   $threads += start-threadJob {
+      param($arg)
+      start-sleep (get-random -maximum 10)
+      return "$arg has $($arg.length) characters"
+   } -argumentList $t
+}
+
+#
+# Wait until threads are finished
+#
+$null = wait-job -job $threads
+
+foreach ($thread in $threads) {
+   receive-job $thread
+}
+code }
+
+}
 { Starting jobs with and without a mutex #ps-threadJob-mutex
 
   The following example tries to demonstrate how using a `→ Microsoft/dot-net/namespaces-classes/System/Threading/Mutex` object prevents race conditions.
