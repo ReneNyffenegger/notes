@@ -1,0 +1,68 @@
+$ PowerShell: Filling Excel sheets with multiple threads
+
+This example tries to demonstrate how mutliple threads, started with `→ Windows/PowerShell/command-inventory/noun/threadJob/start`, can be used to fill Excel worksheets
+concurrently in PowerShell:
+code {
+$xlsPath   = "$env:temp\thread-test.xlsx"
+
+if (test-path $xlsPath) {
+   remove-item $xlsPath
+}
+
+$xls = new-object -comObject excel.application
+
+$xls.visible = $true
+
+$su = $xls.screenUpdating
+$xls.screenUpdating = $false
+
+
+$wb = $xls.workbooks.add()
+
+$shNames = 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'
+
+$threads = @()
+foreach ($shName in $shNames) {
+
+   $threads += start-threadJob {
+      param($wb, $shName) 
+
+      $sh = $wb.worksheets.add()
+      $sh.name = $shName
+
+      foreach ($c in 1 .. 30) {
+      foreach ($r in 1 .. 30) {
+         $sh.cells($r, $c).numberFormat = '@'
+         $sh.cells($r, $c).value = "$c / $r"
+      }}
+
+      return $sh
+
+   } `
+   -throttleLimit $shNames.length `
+   -argumentList  $xls,$shName
+}
+
+$null = wait-job -job $threads
+$shs = @()
+foreach ($thread in $threads) {
+   $shs += receive-job $thread
+}
+
+$wb.SaveAs($xlsPath)
+
+$xls.screenUpdating = $su
+# $xls.visible = $true
+
+read-host "Press Enter to finish"
+
+$xls.quit()
+
+$null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($wb )
+$null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($xls)
+foreach ($sh in $shs) {
+  $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($sh)
+}
+[GC]::Collect()
+[GC]::WaitForPendingFinalizers()
+code }
