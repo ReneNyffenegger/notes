@@ -30,9 +30,7 @@ code }
   }
   { After reboot
 
-?   After rebooting, I found the directory `C:\ProgramData\Microsoft\Windows\Containers` which I believe was not there
-    before enabling Windows Sandbox.
-
+?   After rebooting, I found that the directory `C:\ProgramData\Microsoft\Windows\Containers` was modified.
   }
 
 }
@@ -42,11 +40,20 @@ code }
 code {
 PS:\> WindowsSandbox.exe
 code }
+ 
+  { Unable to reach Microsoft Store
+  
+    After enabling and starting Windows Sandbox on a Windows 11 machine, I got the error message:
+   *Unable to reach Microsoft Store. Continuing with Classic Windows Sandbox.* (Error 0x80072ee7).
+
+  }
 
 }
 { Exploring the new environment
 
-  Starting a PowerShell session reveals that the (default?) user is *WDAGUtilityAccount*:
+  { User accounts
+
+    Starting a PowerShell session reveals that the (default?) user is *WDAGUtilityAccount*:
 code {
 PS C:\Users\WDAGUtilityAccount> function prompt {'PS> '}
 code }
@@ -63,6 +70,44 @@ Public
 WDAGUtilityAccount
 code }
 
+  }
+  { No Notepad
+
+    There is no `notepad.exe`, at least not under `c:\Windows`, `C:\Windows\System32` or `C:\Users\WDAGUtilityAccount\AppData\Local\Microsoft\WindowsApps`.
+
+  }
+  { Other missing objects under C:\Windows\System32
+
+    On the host, I find more files/directories under `C:\Windows\System32` ‥
+code {
+PS: 3 C:/Users/rene> (ls c:\windows\System32 | measure).count
+4769
+code }
+    ‥ than in the Sandbox:
+code {
+PS C:\Users\WDAGUtilityAccount> (ls c:\windows\System32 | measure).count
+4539
+code }
+
+  }
+  { Only one running Sandbox instance allowed
+
+    Trying to start a second Sandbox instance while another is already running results in the message *Only one running instance of Windows Sandbox is allowed*.
+
+  }
+  { Persisting modifications
+
+    Starting with *Windows 11, version 22H2*, modifications made in the Sandbox are persisted accroos reboots *if* a reboot is initiated from *within* the sandbox, for example with
+code {
+shutdown -r -t 0
+code }
+
+    On the other hand, if I simply shut down the Sandobx with the following command, all modifications will be lost:
+code {
+shutdown -s -t 0
+code }
+
+  }
 }
 { Install WinGet
 
