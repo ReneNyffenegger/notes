@@ -70,13 +70,28 @@ code }
 }
 { Trying to install Windows 11
 
-  { The boot loader failed
+  { The boot loader failed (After displaying Start PXE over IPv4)
 
-    When trying to install Windows 11, I've received the error 1) *The bood loader failed*, 2) *A boot image was not found* or 3) *The boot loader did not load an operating system*, followed by
+    When trying to install Windows 11, I was first shown *Start PXE over IPv4* and then, I've received the error 1) *The boot loader failed*, 2) *A boot image was not found* or 3) *The boot loader did not load an operating system*, followed by
    *No operating system was loaded. Your virtual machine may be configured incorrectly. Exit an re-configure your VM or click restart to retry the current boot sequence again*:
     gh|about-Hyper-V|/img/The-boot-loader-failed.png|*|
 
-    → https://www.youtube.com/watch?v=I_xN6ZpyET8[It turns out] that in order to load the ISO file, a key must be pressed *before* (or shortly after?) the boot process has started.
+  → https://www.youtube.com/watch?v=I_xN6ZpyET8[It turns out] that in order to load the ISO file, a key must be pressed *before* (or shortly after?) the boot process has started.
+
+    { Update 2025-07-25 / Windows 11 host
+
+      While the mentioned fix worked on a Windows 10 host where I tried to install Windows 11, it didn't work anymore on a Windows 11 host where I also tried to install Windows 11.
+
+    }
+    { Alteratively: set delay option
+
+      In a virtual machine's settings, at the bottom, in *Automatic Start Action*, a value for *Automatic start delay* can be configured (the default seems to be 0 seconds).
+      
+      I tried to increase it to 10 seconds, but it didn't help on the Windows 11 host (2025-07-25).
+      -
+      This is likely not surprising as this setting is supposed to reduce resource contention between virtual machines.
+
+    }
 
   }
   { This PC doesn't curretly meet Windows 11 system requirements
@@ -93,9 +108,26 @@ code {
 → Windows/dirs/Windows/System32[C:\Windows\System32]> → Windows/dirs/Windows/System32/oobe/BypassNRO_cmd[oobe\bypassnro]
 code }
 
-    Ater rebooting, the user can click on a text which then skips this step.
+    After rebooting, the user can click on a text that says *I don't have internet* which then skips this step.
 
   }
+  { Network
+
+    After Windows 11 was installed and I logged in for the first time, there was no internet connection. (I am not sure if this is related to the previous point).
+
+    In order for the guest to have Internet, in the *Hyper-V Manager*, I went to *Actions* (top right pane), chose *Virtual Switch Manager*, selected *External* and pressed the button *Create Virtual Switch*.
+    -
+    The drop-down suggested a (unconnected WiFi connection), so I had to select the (connected) Ethernet connection.
+
+    After creating the ndew virtual switch, I assigned it to the guest and rebooted.
+
+  }
+  { Further observations
+
+    After installing Windows 11 24H2, it required 22 GB of disk.
+
+  }
+
 }
 { Drivers
 
