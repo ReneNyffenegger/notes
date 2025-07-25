@@ -8,7 +8,7 @@ That said, → https://learn.microsoft.com/en-us/windows/security/application-se
 that as of Windows 11, version 22H2, the data persists through a restart initiated from inside the virtualized environment.
 
 { Enabling Windows Sandbox
- 
+
   { PowerShell
 
     With elevated privileges: Check if Windows Sandbox is already enabled (note that the → Windows/dirs/Windows/System32/Dism_exe#dism-available-features[feature] name is `Containers-DisposableClientVM`):
@@ -19,7 +19,7 @@ FeatureName : Containers-DisposableClientVM
 State       : Disabled
 code }
 
-    Enabling the feature requires to reboot the machine: 
+    Enabling the feature requires to reboot the machine:
 code {
 PS:> → Windows/PowerShell/command-inventory/noun/windowsOptionalFeature/enable -online -featureName 'Containers-DisposableClientVM' -all
 
@@ -40,9 +40,9 @@ code }
 code {
 PS:\> WindowsSandbox.exe
 code }
- 
+
   { Unable to reach Microsoft Store
-  
+
     After enabling and starting Windows Sandbox on a Windows 11 machine, I got the error message:
    *Unable to reach Microsoft Store. Continuing with Classic Windows Sandbox.* (Error 0x80072ee7).
 
@@ -108,6 +108,26 @@ shutdown -s -t 0
 code }
 
   }
+  { Virtual disks etc
+
+    After starting Windows Sandbox, I found a newly created directory under `→ Windows/dirs/ProgramData/Microsoft/Windows/Containers/ContainerStorages` whose name was a → development/UUID-GUID[GUID].
+    -
+    This directory contained,  file named `sandbox.vhdx`, a file named `sandbox.vmgs` (which seems tob be a virtual machine guest state file) and `Bindings\config.json` which references
+    → Windows/dirs/Windows/System32/CatRoot[`C:\Windows\System32\Catroot\{01234567-89ab-cdef-0123-4567890abcdef}` (that last part of the directory being another GUID in curly braces).
+
+  }
+}
+{ Newer Version with Windows 11, 24H2  and KB10D
+
+  → https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/windows-sandbox-versions[With Windows 11, 24H2 and KB10D], a newer version of
+  Windows Sandbox is available which features new command line functionality.
+
+? In order to check if KB10D is installed, the following command can be used:
+code {
+get-hotfix -id KB10D
+code }
+
+
 }
 { Install WinGet
 
