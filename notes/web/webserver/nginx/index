@@ -273,10 +273,9 @@ code }
   }
   { Configuration 
 
-   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L77-L84[`struct ngx_command_s`] associates a configuration name with a call back function
+    `struct ngx_command_s` associates a configuration name with a call back function
    (such as for example → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L1553[`ngx_set_worker_processes`]) that processes the configuration directive when encountered
-    -
-   `ngx_command_s` is typedefd to `ngx_command_t`.
+
 
    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/nginx.c#L42[`ngx_core_commands`] is an array of `ngx_command_t` objects.
     -
@@ -297,6 +296,18 @@ code }
    `main` -> `ngx_init_cycle` -> `ngx_conf_parse` -> `ngx_conf_handler`
 
      
+  }
+  { struct ngx_command_s
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_conf_file.h#L77-L84[`struct ngx_command_s`]
+
+   `ngx_command_s` is typedefd to `ngx_command_t`.
+
+    Noteable members
+      • `name`
+      • `type`
+      • `set`
+
   }
   { ngx_get_options
 
@@ -329,6 +340,30 @@ rem }
       table }
 
   }
+  { struct ngx_str_s
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_string.h#L16-L19[`struct ngx_str_s`] has the two members
+     • `len` and
+     • `data`
+
+  }
+  { struct ngx_buf_s / ngx_buf_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_buf.h#L20-L56[`struct ngx_buf_s`]
+
+  }
+  { struct ngx_chain_s
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_buf.h#L59-L62[`struct ngx_chain_sngx_buf_s`]
+
+   `ngx_chain_s` seems to represent a node in a linked list of `ngx_buf_s` elements.
+
+  }
+  { ngx_bufs_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_buf.h#L65-L68[`typedef struct { … } ngx_bufs_t`]
+
+  }
   { HTTP/Connections etc.
 
    `ngx_epoll_process_events` calls `ngx_event_accept`.
@@ -345,6 +380,13 @@ rem }
    `SOCKET` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/win32/ngx_socket.h#L21[`src/os/win32/ngx_socket.h`]).
 
   }
+  { struct ngx_cycle_s / ngx_cycle_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_cycle.h#L39-L86[`struct ngx_cycle_s`] … and the → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L17[typedef]
+
+    *Wow*, → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_cycle.h#L40[`conf_ctx`] is a pointer to a pointer to a pointer to a pointer to `void`.
+
+  }
   { ngx_http_conf_port_t
 
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.h#L270-L275[Defined in] `src/http/ngx_http_core_module.h`.
@@ -352,7 +394,7 @@ rem }
   }
   { ngx_socket
 
-   `ngx_socked` is defined in → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_socket.h#L21[`src/os/unix/ngx_socket.h`] and → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/win32/ngx_socket.h#L25-L26[`src/os/win32/ngx_socket.h`].
+   `ngx_socket` is defined in → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_socket.h#L21[`src/os/unix/ngx_socket.h`] and → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/win32/ngx_socket.h#L25-L26[`src/os/win32/ngx_socket.h`].
 
     This macro is used for example in
       • `src/core/ngx_connection.c` (→ https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.c#L490[function `ngx_open_listening_sockets`]),
@@ -380,12 +422,68 @@ rem }
       • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http.c#L1824[`ngx_http_init_connection`] in `ngx_http_add_listening`
 
   }
-  { struct ngx_connection_s
+  { struct ngx_connection_s / ngx_connection_t
 
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L124-L203[`struct ngx_connection_s`] in `src/core/ngx_connection.h` and the corresponding
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L26[`typedef struct ngx_connection_s ngx_connection_t;`] in `src/core/ngx_core.h`.
 
+    Noteable members:
+      • `data` (TODO: see → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http_request.c#L221[here])
+      • `fd` (which is an `ngx_socket_t`)
+      • `read` and `write` (which are `ngx_event_t`)
+      • `recv` and `send`
+      • `ssl` (compare with `ssl` in `ngx_http_connection_t`).
+
     A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L36[`ngx_connection_handler_pt`] takes an `ngx_connection_t` as argument.
+
+  }
+  { ngx_http_connection_t
+
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L317-L337[`typedef struct { … } ngx_http_connection_t`].
+
+    Noteable members:
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L322[`ssl_servername`]
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L333[`keepalive_timeout`]
+      • `ssl` (which is a flag). Compare with the member `ssl` in `ngx_connection_s`
+
+  }
+  { struct ngx_module_s / ngx_module_t
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L227-L262[`struct ngx_module_s`] and the corresponding
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_core.h#L15[`typedef struct ngx_module_s ngx_module_t`].
+
+    Noteable members:
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L231[`name`]
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L240[`commands`] (
+      • `init_xxx`, `exit_xxx`
+
+  }
+  { ngx_event_module_t
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L446-L453[`typedef struct { … } ngx_event_module_t`]. (Note: there is no named struct `ngx_event_module_s`).
+
+    Noteable members:
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L452[`actions`] which is an `ngx_event_actions_t`.
+
+  }
+  { ngx_event_actions_t
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L166-L183[`typedef struct { … } ngx_event_actions_t`].
+
+    All members are function pointers:
+code {    
+ngx_int_t  (*add           )(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+ngx_int_t  (*del           )(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+ngx_int_t  (*enable        )(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+ngx_int_t  (*disable       )(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
+ngx_int_t  (*add_conn      )(ngx_connection_t *c);
+ngx_int_t  (*del_conn      )(ngx_connection_t *c, ngx_uint_t flags);
+ngx_int_t  (*notify        )(ngx_event_handler_pt handler);
+ngx_int_t  (*process_events)(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags);
+ngx_int_t  (*init          )(ngx_cycle_t *cycle, ngx_msec_t timer);
+void       (*done          )(ngx_cycle_t *cycle);
+code }
+
 
   }
   { ngx_connection_handler_pt
@@ -413,9 +511,95 @@ rem }
     HTTP request was accepted.
 
   }
+  { ngx_http_create_request
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L528[`ngx_http_create_request`] returns a pointer to a `ngx_http_request_t`.
+
+  }
+  { ngx_http_alloc_request
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L560[`ngx_http_create_request`] returns a pointer to `ngx_http_request_t` (as does also `ngx_http_create_request`).
+
+    Misc observations:
+       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L586[`r->http_connection`] is set to → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L569[`c->data`] (via the temporary variable `hc`).
+       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L594[`r->read_event_handler`] is set to `ngx_http_block_reading`
+
+  }
+  { ngx_http_request_handler
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L2430[`ngx_http_request_handler`] takes a pointer to `ngx_event_t` and returns `void`.
+
+  }
+  { ngx_http_keepalive_handler
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http_request.c#L3299[`rev->handler = ngx_http_keepalive_handler;`]
+
+  }
+  { struct ngx_http_request_s / ngx_http_request_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L381-L607[`struct ngx_http_request_s`]
+
+    Notable members:
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L384[`connection`] (a pointer to a `ngx_connection_t`]
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L391-L392[`read_event_handler` and `write_event_handler`] (which are `ngx_http_event_handler_pt`)
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L456[`http_connection`] (which is a `ngx_http_connection_t`)
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L417[`request_line`]
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L435[`content_handler`] (a `ngx_http_handler_pt`)
+
+    A pointer to `ngx_http_request_t` is returned by `ngx_http_create_request`.
+
+  }
+  { ngx_http_core_main_conf_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.h#L154-L178[`ngx_http_core_main_conf_t`]
+
+    Noteable members:
+      • `servers`
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.h#L177[`phases`], an array of `ngx_http_phase_t`
+      • `phase_engine`
+
+  }
+  { ngx_http_phase_t
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.h#L149-L151[`ngx_http_phase_t`] which is essentially an array of handlers.
+
+  }
+  { ngx_http_phases
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.h#L109-L128[`ngx_http_phases`] is an enum with the following items:
+    table { ll
+      `NGX_HTTP_POST_READ_PHASE` ☰
+      `NGX_HTTP_SERVER_REWRITE_PHASE` ☰
+      `NGX_HTTP_FIND_CONFIG_PHASE` ☰
+      `NGX_HTTP_POST_REWRITE_PHASE` ☰
+      `NGX_HTTP_PREACCESS_PHASE` ☰
+      `NGX_HTTP_ACCESS_PHASE` ☰
+      `NGX_HTTP_POST_ACCESS_PHASE` ☰
+      `NGX_HTTP_PRECONTENT_PHASE` ☰
+      `NGX_HTTP_CONTENT_PHASE` ☰ This is the (imho) interesting phase where the response is generated.
+      `NGX_HTTP_LOG_PHASE` ☰
+    table }
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http.c#L455[`ngx_http_init_phase_handlers`] 
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http.c#L487[iterates over each «handler type»] and seems to initialize a «checker» function.
+
+    { NGX_HTTP_CONTENT_PHASE - ngx_http_static_module
+
+      A prominent module that us used in the `NGX_HTTP_CONTENT_PHASE` is `ngx_http_static_module` which is initizlied in → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/modules/ngx_http_static_module.c#L282-L297[`ngx_http_static_init`].
+
+      This module's handler is → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/modules/ngx_http_static_module.c#L49[`ngx_http_static_handler`].
+
+    }
+    { See also
+
+      See also the → https://nginx.org/en/docs/dev/development_guide.html#http_phases[Nginx documentation]
+
+    }
+
+  }
   { ngx_os_io_t
 
-   `ngx_os_io_t` seems to be a platform dependend struct to store function pointers for sending and receiving functions
+   `ngx_os_io_t` seems to be a platform dependent struct to store function pointers for sending and receiving functions
   (→ https://github.com/nginx/nginx/blob/master/src/os/unix/ngx_os.h#L26-L35[`src/os/unix/ngx_os.h`] and → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/win32/ngx_os.h#L26-L35[`src/os/win32/ngx_os.h`]).
 
    `src/core/ngx_connection.c` defines the → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.c#L13[variable `ngx_io` of type `ngx_os_io_t`].
@@ -435,12 +619,29 @@ rem }
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L1581[`ngx_http_read_request_header`]
 
   }
-  { ngx_event_s
+  { struct ngx_event_s / ngx_event_t
 
-    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L30-L13[`struct ngx_event_s`] in `src/event/ngx_event.h` and the corresponding
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L30-L138[`struct ngx_event_s`] in `src/event/ngx_event.h` and the corresponding
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L24[`typedef struct ngx_event_s ngx_event_t`] in `src/core/ngx_core.h`.
 
+    Noteable members:
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L31[`data`]
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L103[`handler`] (which is an `ngx_event_handler_pt`])
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L114[`timer`] (which is an `ngx_rbtree_node_t`]
+
     A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L35[`ngx_event_handler_pt`] takes an `ngx_event_t` as argument.
+
+    { data
+
+     `data` can be set to
+        • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_connection.c#L1235-L1236[`ngx_connection_t`]
+        • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/modules/ngx_epoll_module.c#L769[`ngx_event_handler_pt`]
+        • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_cycle.c#L1437[`ngx_cycle_t`]
+        • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_resolver.c#L191[`ngx_resolver_t`]
+        • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_open_file_cache.c#L987[`ngx_open_file_cache_event_t`]
+        • `ngx_resolver_ctx_t`
+
+    }
 
   }
   { ngx_event_handler_pt
@@ -454,6 +655,31 @@ rem }
 
      → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L437[TODO 1] and
      → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L765[TODO 2].
+
+  }
+  { ngx_http_event_handler_pt
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http_request.h#L378[`ngx_http_event_handler_pt`]
+     
+  }
+  { ngx_http_process_request
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L2077[`ngx_http_process_request`] receives a pointer to an `ngx_http_request_t` and returns `void`.
+
+  }
+  { ngx_http_process_request_uri
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.c#L1270[`ngx_http_process_request_uri`]
+
+  }
+  { ngx_http_parse_complex_uri
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_parse.c#L1245C1-L1245C27[`ngx_http_parse_complex_uri`]
+
+  }
+  { ngx_http_handler
+
+    → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_core_module.c#L834[`ngx_http_handler`]
 
   }
   { processes
@@ -482,6 +708,15 @@ rem }
     The «real» epoll file descriptor is → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L330[created in `ngx_epoll_init`].
     -
     This file descriptor is assigned to the «per-process» global variable → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/modules/ngx_epoll_module.c#L133_[`ep`].
+
+  }
+  { ngx_process_events
+
+   `ngx_process_events` is a macro that is → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L400[defined as `ngx_event_actions.process_events`].
+
+    This macro is → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L248[used] in `ngx_process_events_and_timers`.
+    -
+    With epoll, this calls `ngx_epoll_process_events`.
 
   }
   { ngx_process_events_and_timers()
