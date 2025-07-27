@@ -417,6 +417,7 @@ rem }
     Some interesting members include:
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L19[`ngx_socket_t fd`]
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L38[`ngx_connection_handler_pt handler`] (The *handler* of accepted connections).
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.h#L50[`connection`] (a pointer to an ngx_connection_s which has the member `listening` which points to an `ngx_listening_s`).
 
     The member `handler` is set to
       • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/http/ngx_http.c#L1824[`ngx_http_init_connection`] in `ngx_http_add_listening`
@@ -433,6 +434,7 @@ rem }
       • `read` and `write` (which are `ngx_event_t`)
       • `recv` and `send`
       • `ssl` (compare with `ssl` in `ngx_http_connection_t`).
+      • `listening` (an `ngx_listening_s` which has the member `connection` which points to a `ngx_connection_s`)
 
     A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L36[`ngx_connection_handler_pt`] takes an `ngx_connection_t` as argument.
 
@@ -452,10 +454,15 @@ rem }
     → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L227-L262[`struct ngx_module_s`] and the corresponding
     → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_core.h#L15[`typedef struct ngx_module_s ngx_module_t`].
 
+    Each module is described by a `ngx_module_s`.
+
     Noteable members:
       • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L231[`name`]
       • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_module.h#L240[`commands`] (
       • `init_xxx`, `exit_xxx`
+
+    See also:
+      • `ngx_count_modules()`
 
   }
   { ngx_event_module_t
@@ -597,6 +604,16 @@ code }
     }
 
   }
+  { ngx_time_update()
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_times.c#L81[`ngx_time_update()`] → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_times.c#L99[sets] `ngx_current_msec` etc.
+
+  }
+  { ngx_event_expire_timers()
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event_timer.c#L54[`ngx_event_expire_timers`]
+
+  }
   { ngx_os_io_t
 
    `ngx_os_io_t` seems to be a platform dependent struct to store function pointers for sending and receiving functions
@@ -604,7 +621,7 @@ code }
 
    `src/core/ngx_connection.c` defines the → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_connection.c#L13[variable `ngx_io` of type `ngx_os_io_t`].
 
-   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_linux_init.c#L16[`ngx_linux_io`] (whose type is `ngx_os_io_t`.
+   → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/os/unix/ngx_linux_init.c#L16[`ngx_linux_io`] (whose type is `ngx_os_io_t`).
 
    `src/event/ngx_event.h` defines macros such as → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/event/ngx_event.h#L416-L422[`ngx_recv` for `ngx_io.recv`] etc.
 
@@ -626,8 +643,8 @@ code }
 
     Noteable members:
       • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L31[`data`]
-      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L103[`handler`] (which is an `ngx_event_handler_pt`])
-      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L114[`timer`] (which is an `ngx_rbtree_node_t`]
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L103[`handler`] (which is an `ngx_event_handler_pt`)
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.h#L114[`timer`] (which is an `ngx_rbtree_node_t`)
 
     A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L35[`ngx_event_handler_pt`] takes an `ngx_event_t` as argument.
 
@@ -642,6 +659,26 @@ code }
         • `ngx_resolver_ctx_t`
 
     }
+    { See also
+
+      → https://nginx.org/en/docs/dev/development_guide.html#events[The Nginx documentation]
+  
+    }
+
+  }
+  { struct ngx_rbtree_s / ngx_rbtree_t
+
+    A → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_rbtree.h#L37-L41[`struct ngx_rbtree_s`] has the members
+      • `root` (a `ngx_rbtree_node_t`)
+      • `sentinel` (a `ngx_rbtree_node_t`)
+      • `insert` (a `ngx_rbtree_insert_pt`)
+
+    A somewhat important rb tree is → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event_timer.c#L13[`ngx_event_timer_rbtree`]
+
+  }
+  { struct ngx_rbtree_node_s / ngx_rbtree_node_t
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/core/ngx_rbtree.h#L22-L29[`struct ngx_rbtree_node_s`]
 
   }
   { ngx_event_handler_pt
@@ -716,12 +753,62 @@ code }
 
     This macro is → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L248[used] in `ngx_process_events_and_timers`.
     -
-    With epoll, this calls `ngx_epoll_process_events`.
+    With epoll, this calls `ngx_epoll_process_events()`.
 
   }
+  { ngx_epoll_process_events()
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/modules/ngx_epoll_module.c#L784[`ngx_epoll_process_events()`] is the function that calls
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/modules/ngx_epoll_module.c#L800[`epoll_wait`].
+
+    Note that the function `ngx_epoll_process_events` has the parameter `timer` which corresponds to the next timer event as found in the `ngx_event_timer_rbtree` and is passed to `epoll_wait`.
+
+  }
+  { ngx_worker_process_init
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/os/unix/ngx_process_cycle.c#L753[unix] and win32?
+
+  }
+  { ngx_event_process_init
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L636[`ngx_event_process_init()`]
+
+    Observations:
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L675[Calls] `ngx_event_timer_init()`
+      • → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L679-L696[initiaizes] the one(?) modules whose type is `NGX_EVENT_MODULE`.
+      • under certain circumstances, calls → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L708[`sigaction(SIGALARM…)`] and → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event.c#L719[`settimer()`]
+
+
+  }
+  { ngx_event_timer_init
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/event/ngx_event_timer.c#L23[`ngx_event_timer_init()`] initializes the `ngx_event_timer_rbtree`.
+
+  }
+  { ngx_worker_process_cycle
+
+    → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/os/unix/ngx_process_cycle.c#L699[Unix] and → https://github.com/nginx/nginx/blob/4da771108282cd233ddc37f83ba8bd01981beeb7/src/os/win32/ngx_process_cycle.c#L570[Win32].
+
+  }
+  
   { ngx_process_events_and_timers()
 
     → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/event/ngx_event.c#L195[`ngx_process_events_and_timers`] is the *nginx event loop*.
+
+    Notable functions that are called from `ngx_process_events_and_timers` include
+      • `ngx_event_find_timer()` (if `ngx_timer_resolution` is false)
+      • `ngx_process_events()`
+      • `ngx_event_expire_timers()`
+
+  }
+  { ngx_event_find_timer()
+
+    → https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/event/ngx_event_timer.c#L33[`ngx_event_find_timer()`] finds the «next» point in time stored in `ngx_event_timer_rbtree` and returns
+    the time left until that timer expires, or `NGX_TIMER_INFINITE` if no timer event is outstanding.
+    
+    The returned value is 0 for already expired timers (→ https://github.com/nginx/nginx/blob/0bb7489cb2fcc60ce24fae2d5581c7441bfa0931/src/event/ngx_event_timer.c#L49C25-L49C48[`return (timer > 0 ? timer : 0)`]).
+
+    The returned value will eventually be passed to `epoll_wait` (*if* epoll is used), see `ngx_epoll_process_events()`.
 
   }
   { ngx_add_timer / ngx_event_add_timer
@@ -996,7 +1083,20 @@ code }
     What is the purpose of using `--without-http`?
 
   }
+  { Dynamic modules
 
+    Configuring:
+code {
+./configure --with-http_image_filter_module=dynamic
+./configure --add-dynamic-module=/path/to/module
+code }
+
+    `nginx.conf`
+code {
+load_module modules/ngx_http_image_filter_module.so;
+code }
+
+  }
 }
 
 sa:
