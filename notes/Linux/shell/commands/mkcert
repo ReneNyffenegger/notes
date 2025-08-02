@@ -1,0 +1,104 @@
+$ Shell command: mkcert
+@ mkcert
+
+
+It generates a local certificate authority on your machine.
+It creates self-signed ssl certificates against that authority.
+
+`mkcert`
+  • Creates and installs a local certficate authority (CA) in the system root store
+  • creates locally-trusted («self-signed» ?) development certificates against this CA, without the need for configuring it.
+
+`mkcert` does not automatically configure (web-) servers to use the certificates.
+
+{ Using mkcert to test HTTPS on a local web server
+
+  { mkcert -install
+
+    First, we need to create and install a local CA. This needs to be done only one on a machine:
+code {
+$ mkcert -install
+Created a new local CA 💥
+Sudo password:
+The local CA is now installed in the system trust store! ⚡️
+Warning: "certutil" is not available, so the CA can't be automatically installed in Firefox and/or Chrome/Chromium! ⚠️
+Install "certutil" with "apt install libnss3-tools" and re-run "mkcert -install" 👈
+code }
+
+   This local CA seems to be installed under `/usr/local/share/ca-certficates` (note the timestamp is the same as when `mkcert -install` was executed)
+code {
+$ ls -ltr /usr/local/share/ca-certificates | tail -1
+-rw-r--r-- 1 root root 1619 Aug  2 14:07 mkcert_development_CA_157960383946293083787711498334715383889.crt
+code }
+
+  I also find three new/modified files under `→ Linux/fhs/etc/ssl/certs`: 
+code {
+$ ls -ltr /etc/ssl/certs | tail -3
+lrwxrwxrwx 1 root root     98 Aug  2 14:07 mkcert_development_CA_157960383946293083787711498334715383889.pem -> /usr/local/share/ca-certificates/mkcert_development_CA_157960383946293083787711498334715383889.crt
+-rw-r--r-- 1 root root 218210 Aug  2 14:07 → Linux/fhs/etc/ssl/certs/ca-certficates_crt[ca-certificates.crt]
+lrwxrwxrwx 1 root root     65 Aug  2 14:07 5e562614.0 -> mkcert_development_CA_157960383946293083787711498334715383889.pem
+code }
+
+  Because `mkcert` complained about `→ Linux/shell/commands/certutil` not being available, we install it as recommended:
+code {
+$ → Linux/shell/commands/sudo apt install -y libnss3-tools
+code }
+
+  Install CA for firefox and/or Chome/Chromium as well:
+code {
+$ sudo mkcert -install
+The local CA is already installed in the system trust store! 👍
+The local CA is now installed in the Firefox and/or Chrome/Chromium trust store (requires browser restart)! 🦊
+code }
+
+? It seems that the CA for firefox/Chrome was installed under `~/.pki/nssdb`:
+code {
+$ ls -ltr ~/.pki/nssdb/
+code }
+
+  }
+  { mkcert localhost
+
+    With the local CA, we can issue certificates, here for `localhost`:
+code {
+$ mkcert localhost
+Created a new certificate valid for the following names 📜
+ - "localhost"
+
+The certificate is at "./localhost.pem" and the key at "./localhost-key.pem" ✅
+
+It will expire on 2 November 2027 🗓
+code }
+
+    These two files `localhost.pem` and `localhost-key.pem` need then to be configured in the web server, for example for nginx in the nginx.conf file with
+code {
+http {
+  server {
+    listen 443 ssl;
+    server_name localhost;
+
+    ssl_certificate     /path/to/directory/localhost.pem;
+    ssl_certificate_key /path/to/directory/localhost-key.pem;
+
+  }
+}
+code }
+
+  }
+
+}
+{ TODO
+  { CAROOT
+
+code {
+$ mkcert -CAROOT
+/home/rene/.local/share/mkcert
+code }
+
+  }
+
+}
+
+sa:
+
+  → Linux/shell/commands[Shell commands]
