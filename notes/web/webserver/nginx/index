@@ -428,13 +428,15 @@ rem }
       • `src/core/ngx_syslog.c` (`ngx_syslog_init_peer`)
 
   }
-  { ngx_http_output_body_filter_pt / ngx_http_top_body_filter
+  { ngx_http_output_body_filter_pt / ngx_http_top_body_filter, ngx_http_top_header_filter
 
     → https://github.com/nginx/nginx/blob/50932c3c6c1d2c442ef08241443162c7a3ed58b3/src/http/ngx_http_core_module.h#L527-L528[`typedef`] for a function pointer taking an `ngx_http_request_t` and an `ngx_chain_t` and returning an `ngx_int_t`.
 
     → https://github.com/nginx/nginx/blob/50932c3c6c1d2c442ef08241443162c7a3ed58b3/src/http/ngx_http.h#L196[`ngx_http_top_body_filter`] is a variable whose type is `ngx_http_output_body_filter_pt`
 
     The `ngx_http_write_filter_module` assigns `ngx_http_write_filter` to `ngx_http_top_body_filter`.
+
+    Simlarly also for → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/http/ngx_http.c#L74[`ngx_http_top_header_filter`].
 
   }
   { ngx_http_write_filter_module
@@ -511,6 +513,7 @@ rem }
       • `recv` and `send`
       • `ssl` (compare with `ssl` in `ngx_http_connection_t`).
       • `listening` (an `ngx_listening_s` which has the member `connection` which points to a `ngx_connection_s`)
+      • → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/core/ngx_connection.h#L133-L134[`send_chain` and `recv_chain`] (whose type is `ngx_send_chain_pt` and `ngx_recv_chain_pt`). It seems that these function pointers point to functions (like `ngx_send_chain` or `ngx_ssl_send_chain`?) that *actually read or write* data from a socket.
 
     A function that matches → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/core/ngx_core.h#L36[`ngx_connection_handler_pt`] takes an `ngx_connection_t` as argument.
 
@@ -532,6 +535,12 @@ rem }
     Noteable members:
       • → https://github.com/nginx/nginx/blob/50932c3c6c1d2c442ef08241443162c7a3ed58b3/src/event/ngx_event_openssl.h#L108[`ctx`], a pointer to `SSL_CTX`, compare with the member `session_ctx` of `ngx_ssl_connection_s`
       • → https://github.com/nginx/nginx/blob/50932c3c6c1d2c442ef08241443162c7a3ed58b3/src/event/ngx_event_openssl.h#L112[`certs`]
+
+  }
+  { ngx_ssl_write()
+
+    → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/event/ngx_event_openssl.c#L2749[`ngx_ssl_write()`] is the function that calls
+    → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/event/ngx_event_openssl.c#L2764[`SSL_write()`].
 
   }
   { ngx_http_connection_t
@@ -658,13 +667,25 @@ code }
     → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L381-L607[`struct ngx_http_request_s`]
 
     Notable members:
-      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L384[`connection`] (a pointer to a `ngx_connection_t`])
+      • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L384[`connection`] (a pointer to a `ngx_connection_t`)
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L391-L392[`read_event_handler` and `write_event_handler`] (which are `ngx_http_event_handler_pt`)
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L456[`http_connection`] (which is a `ngx_http_connection_t`)
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L417[`request_line`]
+      • → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/http/ngx_http_request.h#L405[`headers_in`] (which is a `ngx_http_headers_in_t`)
+      • → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/http/ngx_http_request.h#L406[`headers_out`] (which is a `ngx_http_header_out_t`)
       • → https://github.com/nginx/nginx/blob/c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff/src/http/ngx_http_request.h#L435[`content_handler`] (a `ngx_http_handler_pt`)
 
     A pointer to `ngx_http_request_t` is returned by `ngx_http_create_request`.
+
+  }
+  { ngx_http_headers_in_t
+
+    → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/http/ngx_http_request.h#L184-L256[`typedef struct { … } ngx_http_headers_in_t`]
+
+  }
+  { ngx_http_headers_out_t
+
+    → https://github.com/nginx/nginx/blob/251444fcf4434bfddbe3394a568c51d4f7bd857f/src/http/ngx_http_request.h#L259-L294[`typedef struct { … } ngx_http_headers_out_t`]
 
   }
   { ngx_http_core_main_conf_t
