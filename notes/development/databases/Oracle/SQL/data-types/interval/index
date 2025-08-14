@@ -35,7 +35,53 @@ code }
   Compare with → development/databases/Oracle/SQL/data-types/timestamp#ora-ts-diff-sec[calculation of difference of two timestamps in seconds].
 
 }
+{ AVG and SUM
 
+  With Oracle 23ai, it is possible to directly calculate `AVG` and `SUM` aggregates on interval datatypes:
+code {
+create table tq84_avg_interval (
+    crt   varchar2(10),
+    tim  interval day(3) to second(0)
+);
+
+begin
+   insert into tq84_avg_interval values ('abc', '1 01:01:01');
+   insert into tq84_avg_interval values ('abc', '3 03:03:03');
+   insert into tq84_avg_interval values ('xyz', '2 02:02:02');
+   commit;
+end;
+/
+
+select
+   crt,
+   avg(tim) avg_,
+   sum(tim) sum_
+from
+   tq84_avg_interval
+group by
+   crt;
+code }
+
+  Prior to 23ai, trying to calculate the average or sum resulted in ORA-00932: inconsistent datatypes: expected NUMBER got INTERVAL DAY TO SECOND.
+  -
+  In order to still determine the average and sum, the following detour can be used:
+code {
+select
+   crt,
+   interval '0 00:00:01' day(3) to second(0) * avg(extract (day from tim * 86400)) avg_,
+   interval '0 00:00:01' day(3) to second(0) * sum(extract (day from tim * 86400)) sum_
+from
+   tq84_avg_interval
+group by
+   crt;
+code }
+
+   Cleaning up:
+code {
+code }
+
+
+}
 { Some statements
 
   gh|Oracle-Patterns|/SQL/datatypes/interval/some.sql||

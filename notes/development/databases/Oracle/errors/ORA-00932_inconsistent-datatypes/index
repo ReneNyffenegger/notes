@@ -240,6 +240,39 @@ from
 code }
 
 }
+{ ORA-00932: inconsistent datatypes: expected NUMBER got INTERVAL DAY TO SECOND
+
+code {
+create table tq84_avg_interval (
+    crt   varchar2(10),
+    tim  interval day(3) to second(0)
+);
+
+begin
+   insert into tq84_avg_interval values ('abc', '1 01:01:01');
+   insert into tq84_avg_interval values ('abc', '3 03:03:03');
+   insert into tq84_avg_interval values ('xyz', '2 02:02:02');
+   commit;
+end;
+/
+
+--
+-- In version prior to 23ai, the following statement throws 
+-- ORA-00932: inconsistent datatypes: expected NUMBER got INTERVAL DAY TO SECOND
+--
+select
+   crt,
+   avg(tim)
+from
+   tq84_avg_interval
+group by
+   crt;
+
+-- Cleaning up:
+drop table tq84_avg_interval purge;
+code }
+
+}
 
 sa:
 
