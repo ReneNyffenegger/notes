@@ -137,7 +137,7 @@ code }
     After starting Windows Sandbox, I found a newly created directory under `→ Windows/dirs/ProgramData/Microsoft/Windows/Containers/ContainerStorages` whose name was a → development/UUID-GUID[GUID].
     -
     This directory contained,  file named `sandbox.vhdx`, a file named `sandbox.vmgs` (which seems tob be a virtual machine guest state file) and `Bindings\config.json` which references
-    → Windows/dirs/Windows/System32/CatRoot[`C:\Windows\System32\Catroot\{01234567-89ab-cdef-0123-4567890abcdef}` (that last part of the directory being another GUID in curly braces).
+   `→ Windows/dirs/Windows/System32/CatRoot[C:\Windows\System32\Catroot]\{01234567-89ab-cdef-0123-4567890abcdef}` (that last part of the directory being another GUID in curly braces).
 
   }
 }
@@ -195,12 +195,20 @@ code {
 code }
 
   }
-  { MappedFolders
+  { Mapped folders
 
+    Host directories can be mapped to directories on the Sandbox:
 code {
 <MappedFolders>
    <MappedFolder> <HostFolder>C:\Users\rene\xyz</HostFolder> <SandboxFolder>C:\host</SandboxFolder>      <ReadOnly>true</ReadOnly> </MappedFolder>
    <MappedFolder> <HostFolder>D:\Software</HostFolder>       <SandboxFolder>C:\software</SandboxFolder>  <ReadOnly>true</ReadOnly> </MappedFolder>
+</MappedFolders>
+code }
+
+   It's possible to specify the host directory with a relative path. This path is interpreted in relation to the `.wsb` file:
+code {
+<MappedFolders>
+   <MappedFolder> <HostFolder>./HostFolder> <SandboxFolder>C:\curDir</SandboxFolder>/MappedFolder>
 </MappedFolders>
 code }
 
@@ -235,7 +243,6 @@ code {
 PS C:\Users\rene> $env:host_folder_dir=$pwd
 PS C:\Users\rene> WindowsSandbox mapped-folder.wsb
 code }
-    
 
     }
   }
