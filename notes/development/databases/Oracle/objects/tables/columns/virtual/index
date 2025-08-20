@@ -4,7 +4,7 @@ $ Oracle: Virtual columns
 A *virtual column* is essentially an expression that provides a value at query time (which thus → development/databases/Oracle/objects/tables/columns/virtual/vs-default-values[differs from a `default` value] which provides a value at
 `insert` time).
 -
-Because the value is computed, it does not take disk space.
+Because the value is computed, it does not take disk space (except for → #ora-materialized-virtual-col[materialized virtual columns]).
 
 In many respects, virtual columns can be treated like ordinary → development/databases/Oracle/objects/tables/columns[columns], notably, they
   • can be used for → development/databases/Oracle/objects/indexes[indexes] (which is equivalent to a → development/databases/Oracle/objects/indexes/function-based) and
@@ -79,7 +79,15 @@ code }
   → development/databases/Oracle/errors/ORA-54002_only-pure-functions-can-be-specified-in-a-virtual-column-expression
 
 }
+{ Materialized virtual columns #ora-materialized-virtual-col
 
+  Starting with → development/databases/Oracle/Releases-and-versions/23c[Oracle 23.7], Oracle allows to create *materialized* virtual columns where the calcualted value is *stored* at DML time, which eliminates possibly
+  costly calulations at query time
+code {
+generated always as (‥) MATERIALIZED
+code }
+
+} 
 { Modifying virtual columns
 
   gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/virtual/modify.sql||
@@ -202,5 +210,3 @@ sa:
     • → development/databases/Oracle/errors/ORA-54008_expression-column-is-not-supported-for-an-index-organized-table (An → development/databases/Oracle/objects/tables/organization/iot cannot have virtual columns)
 
   → development/databases/Oracle/objects/tables/columns/virtual/identify-in-data-dictionary
-
-? Oracle → development/databases/Oracle/Releases-and-versions/23c[23.7] apparently has *materialized* virtual columns where the value is calculated *and stored* at insert time.
