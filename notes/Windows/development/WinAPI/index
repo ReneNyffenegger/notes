@@ -63,6 +63,36 @@ The default calling convention for the Win32 API is → development/languages/C-
   With 64-bit versions of Windows, patching the SSDT has become more difficult because of → https://en.wikipedia.org/wiki/Kernel_Patch_Protection[Kernel Patch Protection].
 
 }
+{ Querying functions
+
+   → https://github.com/reverseame/winapi-categories[reverseame/winapi-categories] is a github repository that classifies WinAPI functions and syscalls.
+
+   For a given function, query the DLL where it is located, the header file where it is defined, the return type and its arguments:
+code {
+$winApiFunc = (invoke-RestMethod -useBasicParsing https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/winapi_categories.json).DrawText
+$winApiFunc.dll
+$winApiFunc.header
+$winApiFunc.return_type
+$winApiFunc.n_arguments
+foreach ($arg in $winApiFunc.arguments) { $arg }
+code }
+
+   Find a function's category. Make sure to run this jq script in PowerShell 7.2 (because → https://github.com/cli/cli/issues/3425[earlier versions of PowerShell seem to mangle double quotes within single quotes).
+code {
+(invoke-webRequest -useBasicParsing https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/winapi_functions_by_category.json).content | jq -r 'to_entries[] | select(.value[] == "d") | .key'
+code }
+
+  Display all functions of a given category: 
+code {
+(invoke-RestMethod -useBasicParsing https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/winapi_functions_by_category.json)."Font and Text"
+code }
+
+  Find categories:
+code {
+invoke-restMethod https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/categories.txt | findstr.exe /i management | sort.exe
+code }
+
+}
 { TODO
 
   { WinRT
