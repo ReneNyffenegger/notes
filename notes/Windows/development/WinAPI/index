@@ -77,7 +77,7 @@ $winApiFunc.n_arguments
 foreach ($arg in $winApiFunc.arguments) { $arg }
 code }
 
-   Find a function's category. Make sure to run this jq script in PowerShell 7.2 (because → https://github.com/cli/cli/issues/3425[earlier versions of PowerShell seem to mangle double quotes within single quotes).
+   Find a function's category. Make sure to run this jq script in PowerShell 7.2 (because → https://github.com/cli/cli/issues/3425[earlier versions of PowerShell seem to mangle double quotes within single quotes]).
 code {
 (invoke-webRequest -useBasicParsing https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/winapi_functions_by_category.json).content | jq -r 'to_entries[] | select(.value[] == "d") | .key'
 code }
@@ -90,6 +90,12 @@ code }
   Find categories:
 code {
 invoke-restMethod https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/categories.txt | findstr.exe /i management | sort.exe
+code }
+
+  Find functions that match a given regular expression and print their associated category in tabular form:
+code {
+(invoke-webrequest -useBasicParsing https://raw.githubusercontent.com/reverseame/winapi-categories/refs/heads/main/winapi_categories.json).content |
+   jq -r '["Key", "Category"], (to_entries | map(select(.key | test("font"; "i"))) | map([.key, .value.category] ) | .[] ) | @tsv'
 code }
 
 }
