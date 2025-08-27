@@ -70,6 +70,40 @@ code }
   Some possible problems are addressed in → https://security.stackexchange.com/questions/226095/pythons-http-server-library-basic-security-checks[this Stack Exchange/Information Security] question.
 
 }
+{ Some notes on the code
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L218[`BaseServer.serve_forever()`] handles one request at a time until shutdown.
+  -
+ `serve_forever()` → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L240[calls] → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L305[`BaseServer._handle_request_noblock()`] to handle a request.
+
+ `BaseServer._handle_request_noblock()`
+    • → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L313[calls `self.get_request()`] (which returns `request` (a `socket` object) and `client_address`)
+    • calls → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L318[calls `self.process_request()`] and passes `request` and `client_address` to this method.
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L343[`BaseServer.process_request()`] calls
+     • `self.finish_request()` and
+     • `self.shutdown_request()`
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L360[`BaseServer.finish_request()`]
+    • instantiates in instance of the `RequestHandlerClass` that was passed to the the constructor of `HTTPServer`
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/http/server.py#L173[`class BaseHTTPRequestHandler`]
+    • derives from → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L788[`StreamRequestHandler`] (which in turn derives from → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L742[`BaseRequestHandler`]
+    • does not seem to have an explicit constructor
+
+  The → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L760[constructor] of → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L742[`BaseRequestHandler`]
+    • takes `request` (a `socket` object), `client_address` and `server`.
+
+  The → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L450[constructor of `TCPServer`]
+    • → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L452[passes] the server address and the «RequestHandlerClass» to the parent's class (`BaseServer`) constructor
+    • → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L453[instantiates] the member `socket` with a `socket.socket` object.
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L505[`TCPServer.get_request()`] calls → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L511[`self.socket.accept()`] which returns `request` (a `socket` object)
+  and `client_address`.
+
+  
+
+}
 { TODO
 
   Is Python 2 `SimpleHTTPServer` merged into `http.server` in Python 3?
