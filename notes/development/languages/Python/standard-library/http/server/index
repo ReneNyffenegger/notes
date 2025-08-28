@@ -72,6 +72,20 @@ code }
 }
 { Some notes on the code
 
+  The → https://github.com/python/cpython/blob/d910b93f786982a11d7d6b7562716c2f50513f00/Lib/socketserver.py#L203[constructor of `BaseServer`] takes
+    • a `server_address` and a
+    • `RequestHandlerClass` (of which an object is intantiated for each request. This class should/must implement `handle()`. I believe it must inherit from `socketserver.BaseRequestHandler`)
+
+  The → https://github.com/python/cpython/blob/d910b93f786982a11d7d6b7562716c2f50513f00/Lib/socketserver.py#L450[constructor of (the derived class) `TCPServer`] additionally takes the
+    • optional boolean value `bind_and_activate`
+
+  The (derived classes) → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L115[`http.HTTPServer`] and
+  →   https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L128[`http.ThreadingHTTPServer`] do not have an explicit constructor.
+
+  → https://github.com/python/cpython/blob/d910b93f786982a11d7d6b7562716c2f50513f00/Lib/socketserver.py#L742[`BaseRequestHandler`] is the base class for objects that handle requests.
+  -
+  This object → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L362[is instantiated] in the method `BaseServer.finish_request`.
+
   → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L218[`BaseServer.serve_forever()`] handles one request at a time until shutdown.
   -
  `serve_forever()` → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L240[calls] → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L305[`BaseServer._handle_request_noblock()`] to handle a request.
@@ -87,9 +101,29 @@ code }
   → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L360[`BaseServer.finish_request()`]
     • instantiates in instance of the `RequestHandlerClass` that was passed to the the constructor of `HTTPServer`
 
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L788[`StreamRequestHandler`] does not override `handle()`.
+
+  → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L809[`StreamRequestHandler.setup()`] creates the members → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L816[`rfile`]
+  and `wfile`.
+
   → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/http/server.py#L173[`class BaseHTTPRequestHandler`]
     • derives from → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L788[`StreamRequestHandler`] (which in turn derives from → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L742[`BaseRequestHandler`]
     • does not seem to have an explicit constructor
+
+  → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L459[`BaseHTTPRequestHandler.handle()`] calls `handle_one_request()` until `self.close_connection` is `True`.
+
+  → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L422[`BaseHTTPRequestHandler.handle_one_request()`] (which normally does not need to be overridden) handles one → development/web/HTTP#http-request[HTTP request].
+  -
+  This method
+    • → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L294[reads the request line] (for example `GET /index.html HTTP/1.0`)
+    • Calls → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L441[`self.parse_request()`]
+    • Calls → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L444-L451[`do_XYZ`] (where `XYZ` is the request type), for example `do_GET`.
+
+  → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L294[`BaseHTTPRequestHandler.parse_request()`]
+    • Sets → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L310[`request_line`]
+    • Determines the HTTP request version and → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L347[stores it in `request_version`]
+    • Sets → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L362[`command` and `path`]
+    • → https://github.com/python/cpython/blob/03f8d3b0db829dc710869d2fa58a6b75f7b3089b/Lib/http/server.py#L373[Calls `http.client.parse_headers`] and sets `headers`
 
   The → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L760[constructor] of → https://github.com/python/cpython/blob/bbcb75c986c47887e6c0757e63d59cd7af544f39/Lib/socketserver.py#L742[`BaseRequestHandler`]
     • takes `request` (a `socket` object), `client_address` and `server`.
