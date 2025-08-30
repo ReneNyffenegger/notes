@@ -1,0 +1,108 @@
+$ Python standard library: decimal
+@ decimal
+ 
+`decimal` is a replacement for the → development/languages/Python/types/float[`float` type] when precision is important, such as in financial applications.
+
+{ Parsing JSON floats #py-parse-json-floats
+
+code {
+#!/usr/bin/env python3
+
+import → development/languages/Python/standard-library/json
+
+def totalValue(obj):
+    total = 0
+    for x in obj:
+        val = x['val']
+        print(f'val = {format(val, ".20f")}')
+        total = total + x['val']
+    
+    print(f'total: {total}')
+
+jsonTxt = '''
+[
+  { "id": 1, "val": 0.1        },
+  { "id": 2, "val": 0.1        },
+  { "id": 3, "val": 0.1        },
+  { "id": 4, "val": 0.00000001 }
+]
+'''
+
+jsonObj = json.loads(jsonTxt)
+print(json.dumps(jsonObj, indent=3))
+
+totalValue(jsonObj)
+
+
+print('-------------------------')
+
+import decimal
+
+class decenc(json.JSONEncoder): 
+    def default(self, obj): 
+      if isinstance(obj, decimal.Decimal): 
+         return format(obj, '.8f') 
+      return super().default(obj) 
+
+# decimal.getcontext().prec = 9
+jsonObj = json.loads(jsonTxt, parse_float=decimal.Decimal)
+print(json.dumps(jsonObj, indent=3, cls=decenc))
+
+totalValue(jsonObj)
+code }
+
+  The output of the script is
+code {
+[
+   {
+      "id": 1,
+      "val": 0.1
+   },
+   {
+      "id": 2,
+      "val": 0.1
+   },
+   {
+      "id": 3,
+      "val": 0.1
+   },
+   {
+      "id": 4,
+      "val": 1e-08
+   }
+]
+val = 0.10000000000000000555
+val = 0.10000000000000000555
+val = 0.10000000000000000555
+val = 0.00000001000000000000
+total: 0.30000001000000004
+-------------------------
+[
+   {
+      "id": 1,
+      "val": "0.10000000"
+   },
+   {
+      "id": 2,
+      "val": "0.10000000"
+   },
+   {
+      "id": 3,
+      "val": "0.10000000"
+   },
+   {
+      "id": 4,
+      "val": "0.00000001"
+   }
+]
+val = 0.10000000000000000000
+val = 0.10000000000000000000
+val = 0.10000000000000000000
+val = 0.00000001000000000000
+total: 0.30000001
+code }
+
+}
+
+sa:
+  → development/languages/Python/standard-library
