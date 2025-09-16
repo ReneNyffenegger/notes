@@ -18,12 +18,24 @@ code }
     { Installation from a zip file within PowerShell
 
 code {
-$version = '13.1.1'
+$latest_rel = → Windows/PowerShell/command-inventory/noun/restMethod/invoke https://gitlab.com/api/v4/projects/graphviz%2Fgraphviz/releases/permalink/latest
+$version = $latest_rel.tag_name
+
+#
+# Download ZIP
+#   TODO: Should probably be using $latest_rel.assets to determine download link:
+#
 $progressPreference = 'SilentlyContinue'
-invoke-webRequest "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/$version/windows_10_cmake_Release_Graphviz-$version-win64.zip" -outFile $env:temp\graphviz.zip
-tar.exe xf $env:temp\graphviz.zip -C $env:temp
+→ Windows/PowerShell/command-inventory/noun/webRequest/invoke "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/$version/windows_10_cmake_Release_Graphviz-$version-win64.zip" -outFile $env:temp\graphviz.zip
+
+→ Windows/dirs/Windows/System32/tar_exe xf $env:temp\graphviz.zip -C $env:temp
 mv "$env:temp\Graphviz-$version-win64\bin" $home\bin\graphviz
+
+#
+# Set → Windows/development/environment-variables/PATH temporarily ‥
 $env:path="$home\bin\graphviz;$env:path"
+# ‥ or, alternatively permanently:
+# → Windows/PowerShell/modules/personal/WinConfig/add-dirToPath add-dirToPath $home\bin\graphviz
 code }
 
     }
