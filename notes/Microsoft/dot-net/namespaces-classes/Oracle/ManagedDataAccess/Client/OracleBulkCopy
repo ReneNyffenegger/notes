@@ -3,36 +3,37 @@ $ Oracle.ManagedDataAccess.Client.OracleBulkCopy (class)
 
 code {
 # using namespace OracleManagedDataAccess.Client
-add-type -path h:\Oracle.ManagedDataAccess.19.11.0.dll  # Windows Server 2019
+→ Windows/PowerShell/command-inventory/noun/type/add -path h:\Oracle.ManagedDataAccess.19.11.0.dll  # Windows Server 2019
 
 $conSrc = new-object Oracle.ManagedDataAccess.Client.OracleConnection "Data Source=‥; User Id=‥; password=‥"
 $conDst = new-object Oracle.ManagedDataAccess.Client.OracleConnection "Data Source=‥; User Id=‥; password=‥"
-  
+
 $conSrc.Open()
 $conDst.Open()
-  
-$cmd = $conDst.CreateCommand()
-  
-$cmd.CommandText = "drop table tq84_copied_objs purge	"
-$null = $cmd.ExecuteNonQuery() # returns -
 
-$cmd.CommandText = "create table tq84_copied_objs as select * from user_objects where rownum = 0"
+$cmd = $conDst.CreateCommand()
+
+$cmd.CommandText = "drop table tq84_copied_objs purge"
 $null = $cmd.ExecuteNonQuery() # returns -1
-  
-  
-$datTbl  = new-object System.Data.DataTable 
+
+$cmd.CommandText = "create table tq84_copied_objs as select * from → development/databases/Oracle/installed/data-dictionary/objects[user_objects] where rownum = 0"
+$null = $cmd.ExecuteNonQuery()
+
+$datTbl  = → Windows/PowerShell/command-inventory/noun/object/new System.Data.DataTable
 $datAdp = new-object Oracle.ManagedDataAccess.Client.OracleDataAdapter("select * from user_objects", $conSrc)
 $nofRec = $datAdp.Fill($datTbl)
 write-host "Filled $nofRec records"
 
-$rOracleBulkCopy = new-object Oracle.ManagedDataAccess.Client.OracleBulkCopy $conDst # ,[Oracle.ManagedDataAccess.Client.OracleBulkCopyOptions] # ::UseInternalTransaction
-$rOracleBulkCopy.DestinationTableName = "tq84_copied_objs";
-# $rOracleBulkCopy.DestinationTableName = "TQ84_COPIED_OBJS";
-$rOracleBulkCopy.WriteToServer($datTbl)
-  
+$oraCpy = new-object Oracle.ManagedDataAccess.Client.OracleBulkCopy $conDst
+$oraCpy.DestinationTableName = "tq84_copied_objs";
+$oraCpy.WriteToServer($datTbl)
+
 $conSrc.Close()
 $conDst.Close()	
 code }
+
+When I used a `OracleBulkCopy` in a Windows 2019 Server environment with .Net version 4.7.01390 (`(get-itemProperty 'hklm:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').version`), I had to use
+ManagedDataAccess 19.11.0.
 
 sa:
  `→ Microsoft/dot-net/namespaces-classes/Oracle/ManagedDataAccess/Client/OracleBulkCopyOptions`
