@@ -1,0 +1,41 @@
+$ Oracle.ManagedDataAccess.Client.OracleBulkCopy (class)
+@ Oracle.ManagedDataAccess.Client.OracleBulkCopy
+
+code {
+# using namespace OracleManagedDataAccess.Client
+add-type -path h:\Oracle.ManagedDataAccess.19.11.0.dll  # Windows Server 2019
+
+$conSrc = new-object Oracle.ManagedDataAccess.Client.OracleConnection "Data Source=‥; User Id=‥; password=‥"
+$conDst = new-object Oracle.ManagedDataAccess.Client.OracleConnection "Data Source=‥; User Id=‥; password=‥"
+  
+$conSrc.Open()
+$conDst.Open()
+  
+$cmd = $conDst.CreateCommand()
+  
+$cmd.CommandText = "drop table tq84_copied_objs purge	"
+$null = $cmd.ExecuteNonQuery() # returns -
+
+$cmd.CommandText = "create table tq84_copied_objs as select * from user_objects where rownum = 0"
+$null = $cmd.ExecuteNonQuery() # returns -1
+  
+  
+$datTbl  = new-object System.Data.DataTable 
+$datAdp = new-object Oracle.ManagedDataAccess.Client.OracleDataAdapter("select * from user_objects", $conSrc)
+$nofRec = $datAdp.Fill($datTbl)
+write-host "Filled $nofRec records"
+
+$rOracleBulkCopy = new-object Oracle.ManagedDataAccess.Client.OracleBulkCopy $conDst # ,[Oracle.ManagedDataAccess.Client.OracleBulkCopyOptions] # ::UseInternalTransaction
+$rOracleBulkCopy.DestinationTableName = "tq84_copied_objs";
+# $rOracleBulkCopy.DestinationTableName = "TQ84_COPIED_OBJS";
+$rOracleBulkCopy.WriteToServer($datTbl)
+  
+$conSrc.Close()
+$conDst.Close()	
+code }
+
+sa:
+ `→ Microsoft/dot-net/namespaces-classes/Oracle/ManagedDataAccess/Client/OracleBulkCopyOptions`
+
+links:
+  → https://github.com/oracle/dotnet-db-samples/blob/master/samples/bulk-copy/oracle-bulk-copy.cs
