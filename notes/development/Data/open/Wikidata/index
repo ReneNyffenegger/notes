@@ -495,38 +495,28 @@ code }
 
     The data type of a property item (`wd:P…`) can be queried with `wikibase:propertyType`.
 
-    As of October 2022, there are 17 property (or data) types:
-    table { ll
-      `http://wikiba.se/ontology#CommonsMedia` ☰
-      `http://wikiba.se/ontology#ExternalId` ☰
-      `http://wikiba.se/ontology#GeoShape` ☰
-      `http://wikiba.se/ontology#GlobeCoordinate` ☰
-      `http://wikiba.se/ontology#Math` ☰
-      `http://wikiba.se/ontology#Monolingualtext` ☰
-      `http://wikiba.se/ontology#MusicalNotation` ☰
-      `http://wikiba.se/ontology#Quantity` ☰
-      `http://wikiba.se/ontology#String` ☰
-      `http://wikiba.se/ontology#TabularData` ☰
-      `http://wikiba.se/ontology#Time` ☰
-      `http://wikiba.se/ontology#Url` ☰
-      `http://wikiba.se/ontology#WikibaseForm` ☰
-      `http://wikiba.se/ontology#WikibaseItem` ☰
-      `http://wikiba.se/ontology#WikibaseLexeme` ☰
-      `http://wikiba.se/ontology#WikibaseProperty` ☰
-      `http://wikiba.se/ontology#WikibaseSense` ☰
-   table }
+    As of September 2025, there are 18 property (or data) types as queried with → https://w.wiki/FTmo[this query]:
+    table { rl
+       9720 ☰ `wikibase:ExternalId`
+       1707 ☰ `wikibase:WikibaseItem`
+       677 ☰ `wikibase:Quantity`
+       346 ☰ `wikibase:String`
+       114 ☰ `wikibase:Url`
+       87 ☰ `wikibase:CommonsMedia`
+       68 ☰ `wikibase:Time`
+       64 ☰ `wikibase:Monolingualtext`
+       36 ☰ `wikibase:Math`
+       22 ☰ `wikibase:WikibaseProperty`
+       19 ☰ `wikibase:WikibaseSense`
+       16 ☰ `wikibase:WikibaseLexeme`
+       10 ☰ `wikibase:GlobeCoordinate`
+       10 ☰ `wikibase:WikibaseForm`
+       6 ☰ `wikibase:MusicalNotation`
+       6 ☰ `wikibase:TabularData`
+       3 ☰ `wikibase:GeoShape`
+       2 ☰ `wikibase:WikibaseEntitySchema`
+    table }
 
-   The list of these property types were obtained with the following query:
-code {
-select distinct
-   ?propertyType
-{
-  [] wikibase:propertyType ?propertyType .
-}
-order by
-  ?propertyType
-code }
-    → https://w.wiki/5pXs[Run it]
 
     A list of properties for a given property type is returned by the following query:
 code {
@@ -540,6 +530,8 @@ select
 }
 code }
   → https://w.wiki/5teD[Run it]
+
+
 
   }
   { wikibase:lemma
@@ -921,13 +913,12 @@ code }
     → https://w.wiki/5qyb[Run it]
 
   }
-  { prov:* TODO
+  { prov:wasDerivedFrom
 
-    `prov:wasDerivedFrom`
+    `prov:wasDerivedFrom` connects `wds:*` to `wdref:*`.
 
   }
   { skos:altLabel
-
 
    `skos:altLabel` assigns a *list of aliases* to a node.
 
@@ -1504,6 +1495,33 @@ select * {
 }
 code }
    → https://w.wiki/5xZ9[Run it]
+
+  }
+  { owl:onProperty
+
+   `owl:onProperty` connects something like `<http://www.wikidata.org/.well-known/genid/…>` to `wdt:P…`:
+code {
+select * { ?well_known_genid owl:onProperty ?wdt }
+code }
+
+    The `rdf:type` of `?well_known_genid` is `owl:Restriction`:
+code {
+select * {
+   ?well_known_genid owl:onProperty ?wdt .
+   optional {  ?well_known_genid rdf:type ?type }
+   filter (?type != owl:Restriction)
+}
+code }
+
+   In addition, `?well_known_genid` relates to `owl:Thing` via `owl:someValuesFrom`:
+code {
+select * {
+   ?well_known_genid owl:onProperty ?wdt .
+   optional {  ?well_known_genid owl:someValuesFrom ?valFrom }
+   filter (?valFrom != owl:Thing)
+}
+code }
+
 
   }
 
