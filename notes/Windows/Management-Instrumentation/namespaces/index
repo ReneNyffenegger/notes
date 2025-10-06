@@ -1,0 +1,76 @@
+$ WMI Namespaces
+
+→ Windows/Management-Instrumentation[WMI] classes are hierarchically organized into *namespaces*.
+
+Some namespaces (such as `root\default`, `root\cimv2`, `root\subscription…`) are created when the system → Windows/booting[boots up].
+
+The name of the *default namespace* is `→ Windows/Management-Instrumentation/namespaces/ROOT/cimv2` (see → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/WBEM/Scripting#reg-wbem-default-namespace[`Default Namespace`] under the → Windows/registry[registry] key
+→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/WBEM/Scripting[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WBEM\Scripting`]).
+
+The namespaces in a given namespace (for example `root`) can be shown like so:
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/cimInstance/get -namespace root -class __namespace | → Windows/PowerShell/command-inventory/noun/object/sort[sort] name
+
+Name            PSComputerName
+----            --------------
+CIMV2
+Cli
+DEFAULT
+directory
+Hardware
+Interop
+Microsoft
+msdtc
+PEH
+RSOP
+SECURITY
+SecurityCenter
+SecurityCenter2
+ServiceModel
+StandardCimv2
+subscription
+WMI
+code }
+
+Similarly, the following command shows the namespaces under `ROOT\CIMV2` (which happens to be he default namespace):
+code {
+PS C:\> → Windows/PowerShell/command-inventory/noun/cimInstance/get -namespace root\cimv2 -class __namespace | → Windows/PowerShell/command-inventory/noun/object/sort[sort] name
+code }
+
+The classes in given namespace can be showns like so:
+code {
+PS C:\> get-cimClass -namespace root\cimv2
+code }
+
+An instance of a particular class can then be obtained like so (note that `-namespace root\cimv2` is not necessary here as it is the default namespace anyway):
+code {
+PS C:\> get-cimInstance -namespace root\cimv2 -class win32_process
+code }
+
+
+{ Recursively traversing namespaces
+
+  A → Windows/PowerShell script (that I found → https://www.blackhat.com/docs/us-15/materials/us-15-Graeber-Abusing-Windows-Management-Instrumentation-WMI-To-Build-A-Persistent%20Asynchronous-And-Fileless-Backdoor-wp.pdf[here]) can be used to
+  show the namespaces:
+code {
+function get-wmiNamespace {
+   param($namespace='ROOT')
+   get-wmiObject -namespace $namespace -class __NAMESPACE | forEach-object { (
+     $ns='{0}\{1}' -f $_.__NAMESPACE, $_.name)
+     get-wminamespace -namespace $ns
+   }
+}
+
+# $wmiClasses=
+get-wminamespace | forEach-object {
+  $namespace=$_
+  get-wmiObject -namespace $namespace -list | forEach-object {
+     $_.path.path
+  }
+} | sort-object -unique
+code }
+
+}
+
+sa:
+  • → Windows/Management-Instrumentation
