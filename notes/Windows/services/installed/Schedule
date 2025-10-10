@@ -2,12 +2,28 @@ $ Windows service: Schedule
 
 The *Task Scheduler*.
 
+{ Run a powershell script at start up #task-scheduler-ps-at-startup
+
+  The following sequence of Powershell commands configures the task schuduler such that it starts a powershell script when the system starts up:
+code {
+$act = → Windows/PowerShell/command-inventory/noun/scheduledTaskAction/new      -execute powershell.exe -argument '-file c:\project-X\Health-monitor.ps1'
+$trg = → Windows/PowerShell/command-inventory/noun/scheduledTaskTrigger/new    -atStartup
+$prc = new-scheduledTaskPrincipal   -userId "NT AUTHORITY\SYSTEM" -logonType ServiceAccount
+$set = new-scheduledTaskSettingsSet -executionTimeLimit (new-timeSpan -seconds 0)  # Make sure task is not stopped if it runs longer than a given period.
+
+→ Windows/PowerShell/command-inventory/noun/scheduledTask/register -taskName 'Health monitor'  -action $act -trigger $trg -settings $set -principal $prc # -runLevel Highest
+code }
+
+}
+
 sa:
 
-  → Windows/dirs/Windows/System32/schtasks_exe[`schtasks.exe`] is the *Task Scheduler Configuration Tool*. Its deprecated cousin is → Windows/dirs/Windows/System32/at_exe[`at.exe`].
+ `→ Windows/dirs/Windows/System32/schtasks_exe`is the *Task Scheduler Configuration Tool*. Its deprecated cousin is → Windows/dirs/Windows/System32/at_exe[`at.exe`].
   -
-  → Windows/dirs/Windows/System32/taskschd_msc[`taskschd.msc`]
+ `→ Windows/dirs/Windows/System32/taskschd_msc`
 
-  → Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Schedule/TaskCache/Tree[`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree`]
+ `→ Windows/registry/tree/HKEY_LOCAL_MACHINE/Software/Microsoft/Windows-NT/CurrentVersion/Schedule/TaskCache/Tree`
 
   → Windows/automatically-started-programs
+
+ `→ Windows/PowerShell/command-inventory/noun/scheduledTaskAction/new`
