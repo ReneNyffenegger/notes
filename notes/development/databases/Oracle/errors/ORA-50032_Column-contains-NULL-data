@@ -1,0 +1,38 @@
+$ ORA-50032: Column contains NULL data
+
+{ PowerShell code
+
+code {
+add-type -path $pwd\Oracle.ManagedDataAccess.core.23.26.0.dll
+
+$ora = new-object Oracle.ManagedDataAccess.Client.OracleConnection('User Id=elar;Password=elar;Data Source=SVA10MIG')
+$ora.Open()
+
+$cmd = $ora.CreateCommand()
+$cmd.CommandText = "select object_name, subobject_name from all_objects where rownum < 50" # subobject_name likely contains NULL values
+$rdr = $cmd.ExecuteReader()
+
+while ($rdr.Read()) {
+   write-host "$($rdr.GetString(0)) - $($rdr.GetString(1))"
+}
+
+$ora.Close()
+code }
+
+
+{ SQLERRM does not know about this error
+
+code {
+set serveroutput on
+begin
+   dbms_output.put_line(sqlerrm(-50032));
+end;
+/
+
+ORA-50032: Message 50032 not found;  product=RDBMS; facility=ORA
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/errors[Other Oracle error messages]
