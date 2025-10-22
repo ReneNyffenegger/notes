@@ -22,16 +22,21 @@ Windows uses a *flat address space* except for the `FS` → development/language
   The amount of virtual memory that is currently stored in physical memory is referred to as the *working set*.
 
 }
-{ Determining size of memory on the command line
+{ Determining size of memory on the command line #win-memory-cmdline
 
-  On the command line (→ Windows/dirs/Windows/System32/cmd_exe[`cmd.exe`], → Windows/PowerShell), the size of the memory can be determined like so:
+  On the command line (`→ Windows/dirs/Windows/System32/cmd_exe`, → Windows/PowerShell), the size of the memory can be determined like so:
 code {
 C:\> → Windows/dirs/Windows/System32/systeminfo_exe[systeminfo] | → Windows/dirs/Windows/System32/findstr_exe[findstr] /c:"Total Physical Memory"
 code }
 
   Alternativaly, using `→ Windows/PowerShell/command-inventory/noun/cimInstance/get`:
 code {
-PS C:\> (→ Windows/PowerShell/command-inventory/noun/cimInstance/get win32_physicalMemory | → Windows/PowerShell/command-inventory/noun/object/measure -property capacity -sum).sum / 1GB
+PS C:\> (→ Windows/PowerShell/command-inventory/noun/cimInstance/get → Windows/Management-Instrumentation/namespaces/ROOT/cimv2/win32/physical/memory | → Windows/PowerShell/command-inventory/noun/object/measure -property capacity -sum).sum / 1GB
+code }
+
+  ‥ or (possibly more straightforward?)
+code {
+(get-cimInstance → Windows/Management-Instrumentation/namespaces/ROOT/cimv2/win32/computer/system).totalPhysicalMemory / 1gb
 code }
 
   The following → Windows/PowerShell command reports the total physical memory in gigabytes (rounded to one decimal place):

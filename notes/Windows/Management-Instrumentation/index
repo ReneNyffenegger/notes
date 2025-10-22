@@ -50,9 +50,33 @@ WMI clients are:
   These DLLs and MOF files are located under → Windows/dirs/Windows/System32/wbem[%SYSTEMROOT%\System32\wbem].
 
 }
+{ Classes have a hierarchy #wmi-class-hierarchy
+
+code {
+function cim-classHierarchy([cimClass] $cls) {
+   if ($cls.cimSuperClass -ne $null) {
+      cim-classHierarchy $cls.cimSuperClass
+   }
+
+   $p = $cls.cimSystemProperties
+  "$($p.namespace) $($p.className)"
+}
+code }
+
+code {
+PS C:\> cim-classHierarchy (get-cimclass → Windows/Management-Instrumentation/namespaces/ROOT/cimv2/win32/computer/system[Win32_ComputerSystem])
+ROOT/Cimv2 CIM_ManagedSystemElement
+ROOT/Cimv2 CIM_LogicalElement
+ROOT/Cimv2 CIM_System
+ROOT/Cimv2 CIM_ComputerSystem
+ROOT/Cimv2 CIM_UnitaryComputerSystem
+ROOT/Cimv2 Win32_ComputerSystem
+code }
+
+}
 { Hierarchical Namespace
 
-  WMI classes are hierarchically organized into → Windows/Management-Instrumentation/namespaces[namespaces].
+  WMI classes are also hierarchically organized into → Windows/Management-Instrumentation/namespaces[namespaces].
 
 }
 { Remote usage
