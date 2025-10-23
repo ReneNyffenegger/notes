@@ -88,6 +88,52 @@ code }
   gh|Oracle-Patterns|/DatabaseObjects/Tables/columns/identity/intro.sql||
 
 }
+{ Getting the inserted ID in Powershell
+
+code {
+using namespace Oracle.ManagedDataAccess.Client
+using namespace System.Data
+
+add-type -path P:\ath\to\Oracle.ManagedDataAccess.core.23.26.0.dll
+
+function exec($conn, $sql) {
+   $cmd = $conn.CreateCommand()
+   $cmd.CommandText = $sql
+   $null = $cmd.ExecuteNonQuery()
+}
+
+
+$conn = new-object OracleConnection('user id=rene;password=rene;data source=ora19')
+$conn.Open()
+
+exec $conn 'create table tq84_id(id integer generated always as identity primary key, txt varchar2(20))'
+
+$ins = $conn.CreateCommand()
+$ins.BindByName = $true
+$ins.CommandText = 'insert into tq84_id (txt) values (:txt) returning id into :id'
+
+$ins.GetType().FullName
+$ins.GetType().BaseType.FullName
+
+$p_id  = $ins.Parameters.Add('id' , [OracleDbType]::Int64, [ParameterDirection]::Output)
+$p_txt = $ins.Parameters.Add('txt', [OracleDbType]::Varchar2, 20)
+
+function ins-rec($txt) {
+   $p_txt.value = $txt
+   $null = $ins.ExecuteNonQuery()
+   write-host "inserted record with txt = $txt and id = $($p_id.Value)"
+}
+
+ins-rec 'one'
+ins-rec 'two'
+ins-rec 'three'
+
+exec $conn 'drop table tq84_id purge'
+
+$conn.Close()
+code }
+
+}
 { ORA-01031: insufficient privileges
 
   In order to create tables with identity columns, the `create sequence` → development/databases/Oracle/security/privileges[privilege] is required. Without that privilege, the error message
