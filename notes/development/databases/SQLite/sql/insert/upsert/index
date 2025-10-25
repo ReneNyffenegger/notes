@@ -19,10 +19,26 @@ The table that the `upsert` clause is used on requires at least a → developmen
   gh|about-sqlite|/sql/insert/upsert/do-update.sql||
 
 }
+{ Get ROWID for existing and new records #sqlite-upsert-rowid
+
+  The → development/databases/SQLite/tables/rowid of a table that stores unique values can be selected for new and existing values like so:
+code {
+drop table if exists tq84_t;
+
+create table tq84_t(id integer primary key, val text not null unique);
+
+insert into tq84_t(val) values ('one'  ) on conflict do update set val = val returning rowid;
+insert into tq84_t(val) values ('two'  ) on conflict do update set val = val returning rowid;
+insert into tq84_t(val) values ('three') on conflict do update set val = val returning rowid;
+insert into tq84_t(val) values ('two'  ) on conflict do update set val = val returning rowid;
+insert into tq84_t(val) values ('four' ) on conflict do update set val = val returning rowid;
+code }
+
+}
 
 sa:
 
   The `on conflict` clause (which applies to unique, not null, check and → development/databases/SQLite/tables/constraints/primary-key#sqlite-pk-on-conflict[primary key], but not foreign key,
-  → development/databases/SQLite/tables/constraints).
+  → development/databases/SQLite/tables/constraints[constraints]).
 
   The `→ development/databases/SQLite/sql/replace` statement (which is an alias for `insert or replace`).
