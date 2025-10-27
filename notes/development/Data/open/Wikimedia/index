@@ -1,22 +1,31 @@
 
+{ Wikimedia projects
 
-table { ll
-  Wikipedia ☰ All the world's knowledge
-  → development/Data/open/Wikidata ☰ The database of structured information
-  → development/Data/open/Wikimedia/Commons ☰ The world’s largest free-to-use-library of illustrations, photos, drawings, videos and music.
-  Wikibooks ☰ Collection of free e-book resources (textboosk, annotated texts, instructional guides, manuals)
-  Wiktionary ☰ A dictionary for over 170 languages which aims to describe all words of all languages
-  Wikiquote ☰ A collection of sourced quotations from notable people and creative works in 75 languages
-  Wikisource ☰
-  Wikiversity ☰
-  Wikispecies ☰ A taxonomy-database that covers living and fossil representatives of Animalia, Plantae, Fungi, Bacteria, Archaea, Protista etc.
-  Wikistats ☰
-  Wikitech ☰ Technical documentation of the Wikimedia Foundation infrastructure and services.
-  Wiki Replicas ☰
-  Wikimedia Cloud Services (WMCS) ☰ Tools, services and support for technical collaborators of Wikimeda software projects.
+  TODO: Is this a (complete) list of Wikimedia projects.
+  -
+  Compare Wikimedia projects with → https://en.wikipedia.org/wiki/Wikipedia:WikiProject[(Wikipedia) WikiProjects].
 
-table }
+  table { ll
+    Wikipedia ☰ All the world's knowledge
+    → development/Data/open/Wikidata ☰ The database of structured information
+    → development/Data/open/Wikimedia/Commons ☰ The world’s largest free-to-use-library of illustrations, photos, drawings, videos and music.
+    Wikibooks ☰ Collection of free e-book resources (textboosk, annotated texts, instructional guides, manuals)
+    Wiktionary ☰ A dictionary for over 170 languages which aims to describe all words of all languages
+    Wikiquote ☰ A collection of sourced quotations from notable people and creative works in 75 languages
+    Wikisource ☰
+    Wikiversity ☰
+    Wikispecies ☰ A taxonomy-database that covers living and fossil representatives of Animalia, Plantae, Fungi, Bacteria, Archaea, Protista etc. The corresponsing url seems to be `→ https://species.wikimedia.org/[species.wikimedia.org]/‥`!
+    Wikistats ☰ → https://stats.wikimedia.org/[stats.wikimedia.org]
+    Wikitech ☰ Technical documentation of the Wikimedia Foundation infrastructure and services. → https://wikitech.wikimedia.org/wiki/Main_Page[wikitech.wikimedia.org]
+    Wiki Replicas ☰
+    Wikimedia Cloud Services (WMCS) ☰ Tools, services and support for technical collaborators of Wikimeda software projects.
 
+  table }
+
+  See also → https://opendata.renenyffenegger.ch/Wikimedia/Wikidata/entity/Q14827288[Q14827288].
+
+
+}}
 { Misc
 
   { Quarry
@@ -38,6 +47,64 @@ table }
 
    The (nonprofit) Wikimedia Foundation (WMF) hosts *Wikimedia projects'* websites (Wikipedia, Wikinews etc:)
 
+  }
+  { Wikimedia Analytics API
+
+    The Wikimedia Analytics API allows to access data aobut Wikimedia projects such as
+      • page views
+      • unique devices
+      • etc.
+
+    The API endpoint is `https://wikimedia.org/api/rest_v{version number}/metrics/‥`, for example
+      • → https://wikimedia.org/api/rest_v1/metrics/pageviews/top/de.wikipedia/all-access/2025/09/22
+      • → https://wikimedia.org/api/rest_v1/metrics/pageviews/aggregate/en.wikipedia.org/all-access/all-agents/monthly/2023010100/2024010100
+
+    The following example uses `→ development/languages/Python/libraries/requests` to download the top 1000 views articles of a given day on a given wikipedia project:
+code {
+#!/usr/bin/env python3
+
+import requests
+
+project = 'en.wikipedia'
+access  = 'all-access'
+year    = '2025'
+month   = '09'
+day     = '22'
+
+
+res = requests.get(
+  f'https://wikimedia.org/api/rest_v1/metrics/pageviews/top/{project}/{access}/{year}/{month}/{day}',
+#   headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+    headers = {'User-Agent': "Rene's Wikimedia API test" }
+)
+
+if res.status_code != 200:
+ #
+ # Alternatively, use res.raise_for_status()
+ #
+   print(f"HTTP Status: {res.status_code}")
+   quit()
+
+data = res.json()
+
+for i in data['items']:
+  # print(i['project'])
+  # print(i['access' ])
+  # print(i['year'   ])
+  # print(i['month'  ])
+  # print(i['day'    ])
+
+    for a in i['articles']:
+       print(f"{a['rank']:>4} {a['views']:>5} {a['article']}")
+code }
+
+    See also: → https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/
+
+    { Analytics Query Service (AQS)
+
+      → https://wikitech.wikimedia.org/wiki/Data_Platform/Systems/AQS
+
+    }
   }
 
 }
