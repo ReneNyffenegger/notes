@@ -109,9 +109,14 @@ code }
 }
 { synchronous
 
- `pragma synchronous = OFF` prevents → development/databases/SQLite from doing `fsync`'s when writing.
+ `pragma synchronous = OFF` prevents → development/databases/SQLite from doing `fsync`'s when writing which helps improve the → development/databases/SQLite/Performance[performance], however, the database is not transactionally safe anymore.
 
-  This helps improve the → development/databases/SQLite/Performance[performance], however, the database is not transactionally safe anymore.
+  This pragma cannot be changed within a transaction:
+code {
+sqlite> begin transaction;
+sqlite> pragma synchronous = off;
+Parse error: Safety level may not be changed inside a transaction
+code }
 
   TODO: → https://github.com/sqlite/sqlite/blob/c7cbcfbbbd522c972527b92b9dfee63c82a97fbc/src/sqliteInt.h#L1414-L1432[These comments and defines] in the source code:
 code {

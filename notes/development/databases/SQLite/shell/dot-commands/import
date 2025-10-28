@@ -1,0 +1,47 @@
+$ SQLite shell: .import
+@ .import
+
+code {
+.import <file> <table>
+code }
+
+{ Example
+
+  Create CSV:
+code {
+$ echo 'id,txt,val
+1,one,first number
+42,forty-two,famous number
+10000,ten thousand,big number' > /tmp/data.csv
+
+sqlite3 imported.db '.import /tmp/data.csv data'
+code }
+
+  Create «loader» script:
+code {
+$ echo '
+.mode csv
+.import /tmp/data.csv data' > /tmp/load.sql
+code }
+
+  Import CSV:
+code {
+$ sqlite3 imported.db '.read /tmp/load.sql'
+code }
+
+  Table is created with `text` columns:
+code {
+$ sqlite3 imported.db '.schema data'
+
+CREATE TABLE data(
+  "id" TEXT,
+  "txt" TEXT,
+  "val" TEXT
+);
+code }
+
+  In order to make sure that the datatypes are correct, it is suggested to create the table before it is loaded.
+
+}
+sa:
+  → development/databases/SQLite/import-export 

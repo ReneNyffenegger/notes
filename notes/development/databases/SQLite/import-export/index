@@ -1,0 +1,65 @@
+$ SQLite: Export and import
+
+{ Loading «embedded data» with a Python script
+
+code {
+#!/usr/bin/env python3
+
+import re
+import os
+import sqlite3
+
+dbFileName  = 'load-test.db'
+
+if os.path.exists(dbFileName):
+   os.remove(dbFileName)
+
+db = sqlite3.connect(dbFileName)
+
+cur = db.cursor()
+
+cur.execute('''
+create table data (
+   num_1    integer not null,
+   num_2    integer not null,
+   val_1    text    not null,
+   val_2    text    not null
+)
+'''
+)
+
+cur.execute('pragma synchronous  = off'   )
+cur.execute('pragma journal_mode = memory')
+
+cur.execute('begin transaction')
+
+cur.executemany("insert into data(num_1, num_2, val_1, val_2) values (?,?,?,'constant text')", [
+ #
+ # make sure the individual inserted fields have the
+ # correct data type:
+ #
+   [
+      int(fields[0]),
+      int(fields[1]),
+          fields[2]
+   ]
+   for fields in [ re.split(' +', line.strip())
+   for line in '''
+   1   101  first
+  22     2  second
+ 333   303  third
+4444    44  fourth
+'''.split('\n')
+    if line            # With python's peculiarty, the ''' ‥ ''' construct creates an empty line a t the beginning which needs to be removed
+]])
+
+cur.execute('end transaction')
+code }
+
+}
+
+sa:
+
+  The → development/databases/SQLite/shell[SQLite shell] command `→ development/databases/SQLite/shell/dot-commands/import`.
+
+  Export and import a database with → development/databases/SQLite/shell/dump/export-import[`.dump`].
