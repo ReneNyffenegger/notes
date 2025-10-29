@@ -1,12 +1,147 @@
 $ winrm.vbs
 
+`winrm.vbs` is the *Windows Remote Management Command Line Tool*.
+-
+This tool allows to configure → Windows/services/installed/WinRM.
+
+This script is started by `→ Windows/dirs/Windows/System32/winrm_cmd`.
+
 ? winrm.vbs can be used to
   • enumerate → Windows/Management-Instrumentation[WMI] object instances
   • invoke methods
   • remotely create and remove object instances (where the → Windows/services/installed/WinRM[WinRM] → Windows/services[service] is running)
   • configure → Windows/services/installed/WinRM[WinRM] settings
 
-sa:
-  → Windows/dirs/Windows/System32/winrm_cmd[`winrm.cmd`]
 
-  → Windows/services/installed/WinRM
+{ Quickconfig
+
+ `winrm quickconfig` enable the WS-Management protocol on the local computer and sets up the default configuration for remote management.
+
+  The command
+    • starts the WinRM service if it is not already started
+    • Configures a HTTP or HTTPS listener to receive WS-Management protocol messages and opens the corresponding ports
+    • Defines ICF exceptions for the WinRM service
+
+code {
+PS C:\Users\rene> winrm quickconfig
+WinRM service is already running on this machine.
+WinRM is already set up for remote management on this computer.
+code }
+
+  A HTTPS listener is created with `winrm quickconfig -transport:https`
+
+}
+{ Get a list of authentication settings
+
+code {
+PS C:\Users\rene> winrm get winrm/config
+Config
+    MaxEnvelopeSizekb = 500
+    MaxTimeoutms = 60000
+    MaxBatchItems = 32000
+    MaxProviderRequests = 4294967295
+    Client
+        NetworkDelayms = 5000
+        URLPrefix = wsman
+        AllowUnencrypted = false
+        Auth
+            Basic = true
+            Digest = true
+            Kerberos = true
+            Negotiate = true
+            Certificate = true
+            CredSSP = false
+        DefaultPorts
+            HTTP = 5985
+            HTTPS = 5986
+        TrustedHosts
+    Service
+        RootSDDL = O:NSG:BAD:P(A;;GA;;;BA)(A;;GR;;;IU)S:P(AU;FA;GA;;;WD)(AU;SA;GXGW;;;WD)
+        MaxConcurrentOperations = 4294967295
+        MaxConcurrentOperationsPerUser = 1500
+        EnumerationTimeoutms = 240000
+        MaxConnections = 300
+        MaxPacketRetrievalTimeSeconds = 120
+        AllowUnencrypted = false
+        Auth
+            Basic = false
+            Kerberos = true
+            Negotiate = true
+            Certificate = false
+            CredSSP = false
+            CbtHardeningLevel = Relaxed
+        DefaultPorts
+            HTTP = 5985
+            HTTPS = 5986
+        IPv4Filter = *
+        IPv6Filter = *
+        EnableCompatibilityHttpListener = false
+        EnableCompatibilityHttpsListener = false
+        CertificateThumbprint
+        AllowRemoteAccess = true
+    Winrs
+        AllowRemoteShellAccess = true
+        IdleTimeout = 7200000
+        MaxConcurrentUsers = 2147483647
+        MaxShellRunTime = 2147483647
+        MaxProcessesPerShell = 2147483647
+        MaxMemoryPerShellMB = 2147483647
+        MaxShellsPerUser = 2147483647
+code }
+
+  The previous command prints the same out as `winrm get http://schemas.microsoft.com/wbem/wsman/1/config` (at least on my current environment).
+
+}
+{ Confirm that WinRM is listening
+
+code {
+PS C:\Users\rene> winrm enumerate winrm/config/listener
+Listener
+    Address = *
+    Transport = HTTP
+    Port = 5985
+    Hostname
+    Enabled = true
+    URLPrefix = wsman
+    CertificateThumbprint
+    ListeningOn = 10.22.123.123, 127.0.0.1, ::1, fd80‥
+code }
+
+}
+
+{ TODO
+
+  Compare with
+code {
+PS C:\Users\rene> ls → Windows/PowerShell/language/provider/wsman[wsman:]\localhost\Service
+
+
+   WSManConfig: Microsoft.WSMan.Management\WSMan::localhost\Service
+
+Type            Name                           SourceOfValue   Value
+----            ----                           -------------   -----
+System.String   RootSDDL                                       O:NSG:BAD:P(A;;GA;;;BA)(A;;GR;;;IU)S:P(AU;FA;GA;;;WD)(AU;SA;GXGW;;;WD)
+System.String   MaxConcurrentOperations                        4294967295
+System.String   MaxConcurrentOperationsPerUser                 1500
+System.String   EnumerationTimeoutms                           240000
+System.String   MaxConnections                                 300
+System.String   MaxPacketRetrievalTimeSeconds                  120
+System.String   AllowUnencrypted                               false
+Container       Auth
+Container       DefaultPorts
+System.String   IPv4Filter                                     *
+System.String   IPv6Filter                                     *
+System.String   EnableCompatibilityHttpList...                 false
+System.String   EnableCompatibilityHttpsLis...                 false
+System.String   CertificateThumbprint
+System.String   AllowRemoteAccess                              true
+code }
+
+}
+
+sa:
+
+ `→ Windows/dirs/Windows/System32/WsmAuto_dll`
+
+ `→ Windows/dirs/Windows/System32/winrs_exe`
+
