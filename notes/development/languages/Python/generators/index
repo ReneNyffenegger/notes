@@ -6,6 +6,50 @@ A generator creates → development/languages/Python/iterable/iterator[iterators
 
 In order to define a generator function, the → development/languages/Python/statements/yield[`yield`] statement (or the equivalent(?) *yield expression*) is used.
 
+code {
+def gen():
+    yield 42
+    yield 99
+    yield -1
+
+g = gen()
+
+print(g.__class__) # <class 'generator'>
+
+g.__next__()  # 42
+g.__next__()  # 99
+g.__next__()  # -1
+g.__next__()  #    -> StopIteration is raised
+code }
+ 
+{ Generator methods .send(), .throw(), .close() #py-gen-send-throw-close
+
+  → https://peps.python.org/pep-0342/[PEP 342] added the methods `.send()`, `.throw()` and `.close()` to generators.
+
+  { send()
+
+   `send()` takes exactly one argument.
+
+    Calling `.send(None)` is equivalent to calling `next()`.
+
+   `send()`, like `next()`, returns the next yielded value or raises `StopIteration`.
+
+code {
+def gen():
+   val_to_user = 42
+   while( val_from_user := (yield val_to_user)) != None:
+       val_to_user = val_from_user + 3
+
+g = gen()
+g.send(None)   #  42
+g.send(17)     #  20
+g.send(3)      #  6
+g.send(None)   #  Raises StopIteration
+code }
+
+  }
+
+}
 { Generator expression
 
   A *generator expression* is basically an expression followed by a `for` and optional `if` clause:
@@ -16,6 +60,12 @@ code {
 
 <class 'generator'>
 code }
+
+}
+{ Problems
+
+  Because the presence or absense of `yield` or `yield from` in a function's body determines if the function is a generator («coroutine»),
+  refactoring (i. e. removing/adding `yield` or `yield from` to/from a function) can lead to unobvious errors.
 
 }
 
