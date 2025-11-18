@@ -1,4 +1,103 @@
 $ System.Net.Security.SslStream (class)
+@ System.Net.Security.SslStream
 
 `System.Net.Security.SslStream` derives from `System.Net.Security.AuthenticatedStream` and
 provides a → Microsoft/dot-net/namespaces-classes/System/IO/Stream[Stream] for → development/security/cryptography/SSL-TLS communication.
+
+{ Simple HTTPS Client #SslStream-HTTPS-Client
+
+  The following simple example demonstrate how `System.Net.Security.SslStream` can be combined with `→ Microsoft/dot-net/namespaces-classes/System/Net/Sockets/TcpClient` to establish
+  establish → development/web/HTTPS connection:
+code {
+$domain = 'renenyffenegger.ch'
+$conn  = new-object System.Net.Sockets.TcpClient($domain, 443)
+
+[System.Net.Sockets.NetworkStream] $connStream = $conn.GetStream()
+
+$sslStream = New-Object System.Net.Security.SslStream($connStream,$false)
+$sslStream.AuthenticateAsClient($domain)
+
+$reader = new-object System.IO.StreamReader($sslStream)
+$writer = new-object System.IO.StreamWriter($sslStream)
+
+$writer.AutoFlush = $true
+
+#
+#    Send → development/web/HTTP/request[request] header, terminated
+#    by an empty line
+#
+$writer.WriteLine('GET / HTTP/1.1')
+$writer.WriteLine("Host: $domain")
+$writer.WriteLine('')
+
+#
+#    Read response from server.
+#
+while ($reader.Peek() -ne -1) {
+   write-host ($reader.ReadLine())
+}
+code }
+
+}
+
+{ Methods and properties
+
+   table { ll
+
+     `AuthenticateAsClient()` ☰
+     `AuthenticateAsClientAsync()` ☰
+     `AuthenticateAsServer()` ☰
+     `AuthenticateAsServerAsync()` ☰
+     `BeginAuthenticateAsClient()` ☰
+     `BeginAuthenticateAsServer()` ☰
+     `BeginRead()` ☰
+     `BeginWrite()` ☰
+     `CanRead` ☰
+     `CanSeek` ☰
+     `CanTimeout` ☰
+     `CanWrite` ☰
+     `CheckCertRevocationStatus` ☰
+     `CipherAlgorithm` ☰
+     `CipherStrength` ☰
+     `Dispose()` ☰
+     `DisposeAsync()` ☰
+     `EndAuthenticateAsClient()` ☰
+     `EndAuthenticateAsServer()` ☰
+     `EndRead()` ☰
+     `EndWrite()` ☰
+     `Finalize()` ☰
+     `Flush()` ☰
+     `FlushAsync()` ☰
+     `HashAlgorithm` ☰
+     `HashStrength` ☰
+     `IsAuthenticated` ☰
+     `IsEncrypted` ☰
+     `IsMutuallyAuthenticated` ☰
+     `IsServer` ☰
+     `IsSigned` ☰
+     `KeyExchangeAlgorithm` ☰
+     `KeyExchangeStrength` ☰
+     `Length` ☰
+     `LocalCertificate` ☰
+     `NegotiateClientCertificateAsync()` ☰
+     `NegotiatedApplicationProtocol` ☰
+     `NegotiatedCipherSuite` ☰
+     `Position` ☰
+     `Read()` ☰
+     `ReadAsync()` ☰
+     `ReadByte()` ☰
+     `ReadTimeout` ☰
+     `RemoteCertificate` ☰
+     `Seek()` ☰
+     `SetLength()` ☰
+     `ShutdownAsync()` ☰
+     `SslProtocol` ☰
+     `TargetHostName` ☰
+     `TransportContext` ☰
+     `Write()` ☰
+     `WriteAsync()` ☰
+     `WriteTimeout` ☰
+
+  table }
+
+}
