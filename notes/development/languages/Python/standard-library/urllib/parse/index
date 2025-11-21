@@ -29,6 +29,23 @@ code }
   Note: the values in the → development/languages/Python/types/dict returned by `parse_qs` are → development/languages/Python/types/list[lists]!
 
 }
+{ quote /quote_plus
+
+  Note the different treatment of the space and the forward slash in `quote` and `quote_plus`:
+code {
+import urllib.parse
+
+print(urllib.parse.quote(     'AAA BBB/CCC'))   # -> AAA%20BBB/CCC
+print(urllib.parse.quote_plus('AAA BBB/CCC'))   # -> AAA+BBB%2FCCC
+code }
+
+  Non ASCII characters:
+code {
+print(urllib.parse.quote(     'ä ö ü')) # -> %C3%A4%20%C3%B6%20%C3%BC
+print(urllib.parse.quote_plus('ä ö ü')) # -> %C3%A4+%C3%B6+%C3%BC
+code }
+
+}
 { unquote / unquote_plus #py-urllib-parse-unquote
 
  `unquote` decodes → development/web/URI-URL-URN-IRI-URC#url-encoding[percent encoding]. `unquote_plus` additionally replaces a `+` with a space:
@@ -42,10 +59,10 @@ code }
 }
 { urlencode #py-urllib-parse-urlencode
 
- `urlencode` (presumably) uses `unquote_plus` to create a → development/web/URI-URL-URN-IRI-URC#url-query[URL query] from the key values given in a → development/languages/Python/types/dict:
+ `urlencode` (presumably) uses `quote` to create a → development/web/URI-URL-URN-IRI-URC#url-query[URL query] from the key values given in a → development/languages/Python/types/dict:
 code {
 from urllib.parse import urlencode
-urlencode({'num': 42, 'txt': '"hello" <world>'})  #  --> num=42&txt=hello+world
+urlencode({'num': 42, 'txt': '"hello" <world>'})  #  --> num=42&txt=%22hello%22+%3Cworld%3E
 code }
 
 }
@@ -64,4 +81,10 @@ code }
 }
 
 sa:
+
   → development/languages/Python/standard-library
+  -
+  → development/languages/Python/standard-library/html#py-html-escape[`html.escape`] and
+  → development/languages/Python/standard-library/html#py-html-unescape[`html.unescape`]
+  
+
