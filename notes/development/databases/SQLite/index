@@ -15,6 +15,46 @@
   SQLite does not require a server installation.
   
 }
+{ Opening/connecting to other SQLite databases
+
+  Use `.databases` to show currently opened (attached) databases 
+code {
+sqlite> .databases
+main: /home/rene/my.db r/w
+code }
+
+  Attach another database:
+code {
+sqlite> attach database '/home/rene/foo.db' as foo;
+code }
+
+  We operate on two databases now:
+code {
+sqlite> .databases
+main: /home/rene/my.db r/w
+foo: /home/rene/foo.db r/w
+code }
+
+  Create table in `foo.db`:
+code {
+sqlite> create table foo.x as select 42 num, 'hello world' txt;
+code }
+
+code {
+sqlite> detach database foo;
+code }
+
+code {
+.quit
+code }
+
+code {
+$ sqlite3 /home/rene/foo.db 'select * from x;'
+42|hello world
+code }
+  
+
+}
 { Turning off autocommit
 
   SQLite commits every statement by default (so called *auto commit*).
