@@ -2,10 +2,28 @@ $ PowerShell: Multithreaded Web Server
 
 For a project running in a Windows environment, I needed a → web/webserver.
 
+Because the web server needed to be multithreaded and I wanted to start the threads with `→ Windows/PowerShell/command-inventory/noun/threadJob/start`, *PowerShell 7* is required to run the web server.
+
 For future reference, the non-project related code is put to → https://github.com/ReneNyffenegger/ps7-multithreaded-webserver[github].
 
-The functionality fits into one file:
-gh|ps7-multithreaded-webserver|/webserver.ps1||
+{ Source code
+
+  The functionality fits into one file:
+  gh|ps7-multithreaded-webserver|/webserver.ps1||
+
+}
+{ Starting the web server when the machine boots up
+
+  The following commands can be used to start the webserver → Windows/PowerShell/command-inventory/noun/scheduledTask/register[when the machine boots up]:
+code {
+$wdr = 'C:/development/ps/webserver'
+$act = new-scheduledTaskAction      -execute C:/development/ps/7.5.4/pwsh.exe -argument "-file $wdr/webserver.ps1" -workingDirectory $wdr
+$trg = new-scheduledTaskTrigger     -atStartup
+$prc = new-scheduledTaskPrincipal   -userId "NT AUTHORITY\SYSTEM" -logonType ServiceAccount
+register-scheduledTask -taskName 'dashboard webserver' -taskPath \TQ84\Prj  -action $act -trigger $trg -settings $set -principal $prc
+code }
+
+}
 
 sa:
  `→ Microsoft/dot-net/namespaces-classes/System/Net/HttpListener` etc.
