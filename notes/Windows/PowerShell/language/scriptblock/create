@@ -1,0 +1,25 @@
+$ Powershell: Create a Script Block
+
+The following function `crate-script-block` creates a → Windows/PowerShell/language/scriptblock that captures the value of the parameter `$var` with which it was created.
+-
+In order for this to work, → Microsoft/dot-net/namespaces-classes/System/Management/Automation/ScriptBlock/GetNewClosure[`GetNewClosure`] must be executed on the initial script block.
+
+The returned scrip block also takes a parameter which is assigned when the script block is executed.
+
+code {
+function create-script-block {
+   param ($var)
+
+   return {
+      param($p)
+      write-host "p = $p, var = $var"
+   }.GetNewClosure()
+}
+
+
+$s1 = create-script-block  42
+$s2 = create-script-block 'hello world'
+
+& $s1 'one'
+& $s2 'two'
+code }
