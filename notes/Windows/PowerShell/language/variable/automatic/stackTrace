@@ -1,0 +1,44 @@
+$ PowerShell: the automatic variable $stackTrace
+@ $stackTrace
+
+`$stackTrace` is an → Windows/PowerShell/language/variable/automatic[automatic variable] whose type is `string` (!) which contains the stack trace for the most recent error.
+
+Unfortunately, in a `catch` block, it does not indicate the source of the exception:
+code {
+function func-a {
+  func-b
+}
+function func-b {
+   [int] $x = 'boom'
+}
+function func-c {
+   func-d
+}
+function func-d {
+   func-a
+}
+
+try {
+   func-d
+}
+catch {
+  write-host ($stackTrace.GetType().FullName)
+  write-host '------'
+  write-host $stackTrace
+}
+code }
+
+The output of the above code is:
+code {
+System.String
+------
+   at System.Number.StringToNumber(String str, NumberStyles options, NumberBuffer& number, NumberFormatInfo info, Boolean parseDecimal)
+   at System.Number.ParseInt32(String s, NumberStyles style, NumberFormatInfo info)
+   at System.ComponentModel.Int32Converter.FromString(String value, NumberFormatInfo formatInfo)
+   at System.ComponentModel.BaseNumberConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+code }
+
+sa:
+  Other → Windows/PowerShell/language/variable/automatic[automatic variables], such as `→ Windows/PowerShell/language/variable/automatic/error`.
+
+  → Windows/PowerShell/language/error-handling[Error handling in PowerShell]
