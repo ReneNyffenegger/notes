@@ -83,6 +83,32 @@ write-host "accu = $($shared.accu)"
 code }
 
 }
+{ global: variables
+
+  The following test demonstrates that `global:` variable is global to the script block of the thread, *not* global to the entire script or shared among the script:
+code {
+function thr($i) {
+   start-threadJob -scriptBlock {
+       param($p)
+
+       function set-tid {
+           $global:tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
+       }
+
+       set-tid
+
+       write-host "start of $p, tid = $tid"
+       start-sleep 2
+       write-host "  end of $p, tid = $tid"
+
+   } -streamingHost $host -argumentList $i -throttleLimit 9
+}
+
+$threads = 1 .. 9 | % { thr $_ }
+$null = wait-job $threads
+code }
+
+}
 
 sa:
 

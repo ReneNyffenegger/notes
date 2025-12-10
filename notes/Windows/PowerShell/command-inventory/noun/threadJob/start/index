@@ -101,6 +101,34 @@ foreach ($t in 1..10) {
 code }
 
 }
+{ Relationship to Operating System Threads
+
+  The following test shows that at least one, sometimes more, Operating System Threads are craeted with the invocation of `start-threadJob`:
+code {
+function thr($i) {
+   start-threadJob -scriptBlock {
+       param($p)
+
+       write-host "  $p, number of threads of $p : $((get-cimInstance win32_thread -filter "processHandle = $pid").count)"
+       start-sleep 15
+       write-host "  $p, number of threads of $p : $((get-cimInstance win32_thread -filter "processHandle = $pid").count)"
+
+   } -streamingHost $host -argumentList $i -throttleLimit 9
+}
+
+write-host "Number of threads : $((get-cimInstance win32_thread -filter "processHandle = $pid").count)"
+
+$threads = 1 .. 9 | % {
+   thr $_ 
+   start-sleep 1
+}
+$null = wait-job $threads
+
+write-host "Number of threads : $((get-cimInstance win32_thread -filter "processHandle = $pid").count)"
+code }
+
+}
+
 sa:
 
   A → web/webserver/ps/multithreaded[multithreaded web server] using `start-threadJob` to manage HTTP connections concurrently.
