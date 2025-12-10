@@ -7,6 +7,53 @@ A parent-child relationship between two *DataTable's* can be established with a 
 → Microsoft/dot-net/namespaces-classes/System/Data/DataTableReader[`System.Data.DataTableReader`] obtains the contents of one or more `DataTable` objects in the form of one or more read-only, forward-only result sets and
 thus allows to iterate over the rows in a `DataTable`.
 
+{ Powershell/Oracle example
+
+code {
+#
+#  Script must possibly be run in a 32-bit environment.
+#
+
+$oraUser       = '‥'
+$oraPw         = '‥'
+$dataSource    = '‥'
+
+$assembly = [System.Reflection.Assembly]::LoadWithPartialName('System.Data.OracleClient')
+
+if (! $assembly) {
+   write-host 'System.Data.OracleClient could not be loaded!'
+   return
+}
+
+$connStr = "User Id=$oraUser;Password=$oraPw;Data Source=$dataSource"
+
+$conn = new-object System.Data.OracleClient.OracleConnection($connStr)
+$conn.Open()
+
+if ($conn.state -ne 'Open') {
+   write-host 'could not open connection'
+   return
+}
+
+$cmd = new-object System.Data.OracleClient.OracleCommand
+$cmd.Connection = $conn
+$cmd.CommandText = "select * from user_objects where object_type in ('TABLE', 'VIEW') order by object_name"
+
+$tab = new-object System.Data.DataTable
+$tab.Load($cmd.ExecuteReader())
+
+write-host "Selected $($tab.Rows.Count) rows"
+$tab | select-object object_name, object_type > result.txt
+
+$tab | foreach-object {
+    write-host $_.created
+}
+
+$conn.Close()
+code }
+
+}
+
 sa:
 
   Rows of a `DataTable` are represented by instances of → Microsoft/dot-net/namespaces-classes/System/Data/DataRow[`System.Data.DataRow`], columns
