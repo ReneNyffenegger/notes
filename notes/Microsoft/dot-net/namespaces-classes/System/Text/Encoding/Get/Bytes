@@ -1,0 +1,76 @@
+$ System.Text.Encoding - GetBytes()
+
+The following script prints different output, depending the encoding of the file and if it is run with PowerShell 5 or PowerShell 7
+code {
+$enc_utf_8   = [System.Text.Encoding]::GetEncoding('utf-8'     )
+$enc_latin_1 = [System.Text.Encoding]::GetEncoding('iso-8859-1')
+
+write-host 'Bytes in UTF-8'
+foreach ($b in $enc_utf_8.GetBytes('René')) {
+   write-host "  $b"
+}
+write-host 'Bytes in Latin-1'
+foreach ($b in $enc_latin_1.GetBytes('René')) {
+   write-host "  $b"
+}
+code }
+
+For the following conditions:
+  • Powershell 5, Script is Latin-1
+  • Powershell 5, Script is UTF-8 with BOM
+  • Powershell 7, Script is UTF-8
+the output is:
+code {
+Bytes in UTF-8
+  82
+  101
+  110
+  195
+  169
+Bytes in Latin-1
+  82
+  101
+  110
+  233
+code }
+
+For the following conditions
+  • PowerShell 5, Script is UTF-8 without BOM
+the output is
+code {
+Bytes in UTF-8
+  82
+  101
+  110
+  195
+  131
+  194
+  169
+Bytes in Latin-1
+  82
+  101
+  110
+  195
+  169
+code }
+
+For the following conditions
+  • PowerShell 7, Script is latin-1
+code {
+Bytes in UTF-8
+  82
+  101
+  110
+  239
+  191
+  189
+Bytes in Latin-1
+  82
+  101
+  110
+  63
+code }
+
+
+sa:
+ `→ Microsoft/dot-net/namespaces-classes/System/Text/Encoding`
