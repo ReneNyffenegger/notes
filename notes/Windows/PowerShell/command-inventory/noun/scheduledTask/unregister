@@ -1,8 +1,27 @@
-$ PowerShell cmdLet unregister-scheduledTask
+$ PowerShell cmdLet Unregister-ScheduledTask
 
 code {
 unregister-scheduledTask tskXyz -confirm:$false
 code }
+
+{ Error: No matching MSFT_ScheduledTask objects found by CIM query for instances of ‥
+
+  When I tried to execute
+code {
+unregister-ScheduledTask -taskName renesTask -taskPath '\Foo\Bar'
+code }
+  I got the error message
+code {
+unregister-ScheduledTask : No matching MSFT_ScheduledTask objects found by CIM query for instances of the Root/Microsoft/Windows/TaskScheduler/MSFT_ScheduledTask class on the  CIM server:
+SELECT * FROM MSFT_ScheduledTask  WHERE ((TaskName LIKE 'renesTask')) AND ((TaskPath LIKE '\\Foo\\Bar')). Verify query parameters and retry.
+code }
+
+  I was able to delete the task by appending a final backslash to the task path:
+code {
+unregister-ScheduledTask -taskName renesTask -taskPath '\Foo\Bar\'
+code }
+
+}
 
 sa:
   → Windows/PowerShell/command-inventory/noun/scheduledTask
