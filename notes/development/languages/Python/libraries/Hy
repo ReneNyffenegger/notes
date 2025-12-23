@@ -1,0 +1,229 @@
+$ Python library: Hy
+
+Hy (or «Hylang») is a Lisp dialect that owes a lot to Clojure and provides direct access to Python's built-ins and third-party Python libraries,
+
+Hy is neither minimal nor elegant.
+-
+That said, it does away with the terrible whitespace rules of Python!
+
+A `*.hy` program can be executed with the executable `hy`:
+code {
+$ hy ~/dev/hy/first.hy
+code }
+
+A simple *hello x* program:
+code {
+#!/usr/bin/env hy
+(defn hello-x [x] (print "Hello " x))
+(hello-x "World")
+code }
+
+{ Datatypes
+
+  table { ll
+    ~Python~ ☰ ~Hy~
+    `int`☰ 42
+    `float` ☰ 4.2
+    `complex` ☰ 4.2j
+    `bool` ☰ `True`, `False`
+    `bytes` ☰ b'‥`
+    Tuple ☰ `#(1 2 3)`
+    Set ☰ `#{1 2 3}` (curly braces)
+    List ☰ `[1 2 3]`
+    Dict ☰ `{"num" 42 "txt" "Hello World"}
+  table }
+ 
+  Start `hy` with `--repl-output-fn=repr` to display values in Python syntax.
+
+}
+{ Macros
+
+  { defmacro
+
+    Macros are called when a Hy program is begin translated to Python ast objects.
+
+code {
+(print "Program is being run")
+
+(defmacro twice [x]
+   (print "macro twice is called for" x)
+   (setv res (+ x x))
+   (print "res was evaluated to" res)
+    res
+)
+
+(print "t1:" (twice 10))
+(print "t2:" (twice 21))
+
+(print "End of program")
+code }
+
+  Output is:
+code {
+macro twice is called for hy.models.Integer(10)
+res was evaluated to 20
+macro twice is called for hy.models.Integer(21)
+res was evaluated to 42
+Program is being run
+t1: 20
+t2: 42
+End of program
+code }
+
+      { Demonstration with hy2py
+
+        The following program, ‥
+code {
+(defmacro M [] 42)
+(defn     F [] 99)
+
+(print (M))
+(print (F))
+code }
+
+        ‥ when processed with `hy2py`, produces:
+code {
+import hy
+hy.macros.macro('M')(lambda: 42)
+
+def F():
+    return 99
+print(42)
+print(F())
+code }
+
+        Note: the invocation of the macro is replaced with the value of result of the macro while the function `F` is created and called.
+
+      }
+
+   }
+   { defreader
+
+    `defreader` creates a *reader macro* at parse time (i. e. at a lower leve than an ordinary macro).
+
+     A reader macro receives a parser object (a `hy.HyReader` object named `&reader`?) with which it parses the subsequent text.
+     -
+     When the reader macro returns, the standard Hy parsers picks up where the reader macro left.
+
+     A reader macro is called with a hash symbol (`#mymacro`).
+     -
+     The macro should return a model or something that is convertible to a model.
+
+     Two reader macros that does not read anything:
+code {
+(defreader NUM 42)
+(defreader TXT "Hello world")
+(print #NUM #TXT)
+
+code }
+
+   }
+   { Misc
+
+    `do-mac` is a shorthand for defining and immediately calling a regular macro with no arguments.
+
+    `eval-when-compile` evaluates some code at compile-time, but contributes no code to the final program, like a macro that returns `None` in a context where the `None` doesn't do anything.
+
+     `eval-and-compile` evaluates some code at compile-time, like `eval-when-compile`, but also leaves the same code to be re-evaluated at run-time.
+
+   }
+
+}
+{ Calling methods / functions in modules
+
+  Calling `upper()` and `endswith()` on a string:
+code {
+(.upper "abc")
+(.endswidth "abc" "c") ; evaluates to True
+(.endswidth "abc" "d") ; evaluates to False
+code }
+
+code {
+(import os)
+(.get os.environ "PATH")
+code }
+
+}
+{ require
+
+ `(require ‥)` seems to import macros (but not functions)
+
+ `lib.hy`:
+code {
+(defmacro M [x] (print x))
+code }
+
+  Usling `lib.hy`:
+code {
+(require lib [M])
+(M "foo")
+code }
+
+  The documenation says that if `lib.hy` is altered after running the program that requires it, the program will still print the same output because it was saved in bytecode, but I didn't
+  find this to be true.
+
+}
+{ hyrule
+
+ `hyrule` is the *standard library* for hy.
+
+  It can be installed with pip.
+
+  See also `→ development/languages/Python/libraries/toolz` (or cytoolz) and `metadict`.
+
+}
+{ Comments
+
+  A comments starts with `;`.
+
+  Multiline comments are embedded within `/* ‥ */`.
+
+  Like Clojure, there are also *Extensible Data Notion*: `#_`.
+
+}
+{ TODO
+
+  { Models
+
+    Models can be created with
+      • constructors
+      • `quote`
+      • `quasiquote`
+      • `hy.as-model`
+
+  }
+  { Identifiers
+
+    { Dotted itentifiers
+
+     `abc.def.ghi` is syntactic sugar for `(. abc def ghi)`.
+
+     `..abc.def.ghi` is syntactic suger for `(.. abc def ghi)`.
+
+      Hy provides defintions for `.` and `...`.
+
+
+ Hy provides defintions for `.` and `...`.
+    }
+
+  }
+  { Tilde
+
+    A quoted (?) expression:
+code {
+=> `(+ 4 (+ 5 6))
+'(+ 4 (+ 5 6))
+code }
+
+   Unquoting a list within a quoted (?) expression:
+code {
+=> `(+ 4 ~(+ 5 6))
+'(+ 4 11)
+code }
+
+  }
+
+}
+
+sa:
+  → https://github.com/gilch/hissp[Hissp] is another Lisp embedded into Python and is created by a Hy developer.
