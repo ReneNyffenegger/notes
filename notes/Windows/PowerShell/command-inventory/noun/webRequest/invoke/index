@@ -195,9 +195,19 @@ code }
 }
 { Show redirection
 
+  By setting the option `-maximumRedirection` to `0`, it is possible to show where a HTTP resource is redirected to:
 code {
-$resp = invoke-webrequest -uri $URL -maximumRedirection 0 -errorAction ignore
-$resp.header.headerss['location']
+$url = 'https://claude.ai/install.ps1'
+# $url = 'https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/bootstrap.ps1'
+
+$resp = invoke-webRequest -useBasicParsing -uri $url -maximumRedirection 0 -errorAction ignore	
+
+if ($resp.statusCode -eq 200){
+   write-host "resource is not redirected"
+}
+elseif ($resp.statusCode -in 301, 302, 307, 308) {
+   write-host "resource is redirected to $($resp.headers['Location'])"
+}
 code }
 
   This does not seem to work with Powershell Core.
