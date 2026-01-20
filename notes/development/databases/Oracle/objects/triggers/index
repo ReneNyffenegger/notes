@@ -26,6 +26,30 @@ The SQL statements of a trigger are not shown in the → development/databases/O
   gh|Oracle-Patterns|/DatabaseObjects/Triggers/ddl_instead_of.sql||
 
 }
+{ Disabling/enabling triggers #ora-trg-disable
+
+  A trigger can be disabled or enabled.
+
+  The following code fragment creates a trigger that is initially disabled
+code {
+create or replace trigger ‥
+   before insert or update on ‥
+   for each row
+   DISABLE
+begin
+  ‥
+end;
+/
+code }
+
+  A disabled trigger can then be enabled with
+code {
+alter trigger ‥ ENABLE;
+code }
+
+  See also → #ora-disable-logon-trg[disabling logon triggers].
+
+}
 { Logon trigger #ora-logon-triggers
 
   The following code is a *simple* example that tries to demonstrate how a logon trigger might be formulated. In real life, to record user logons, `aud$` would be used.
@@ -68,13 +92,15 @@ code }
     A failing logon trigger on schema does not prevent the user from logging in!
 
   }
-  { Disabling logon triggers
+  { Disabling logon triggers #ora-disable-logon-trg
 
     Logon triggers (as well as other system triggers) can be disabled by setting `_system_trigger_enabled` to `false`. This could be necessary if a logon trigger was written badly and prevents users from
     logging in.
 code {
 → development/databases/Oracle/SQL/statement/nouns/system/alter set "_system_trig_enabled" = false scope=both;
 code }
+
+    See also → #ora-trg-disable[disabling triggers].
 
   }
   { Finding logon triggers in DBA_TRIGGERS
