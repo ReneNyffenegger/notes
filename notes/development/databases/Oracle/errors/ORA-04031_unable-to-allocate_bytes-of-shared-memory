@@ -6,7 +6,9 @@ there is plenty of free memory in the System.
 This is because the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool#ora-shared-pool-alloc-mem[Shared pool heap manager] allocates *contiguous* memory and the largest chunk
 of contiguous memory might be well below the total amount of free memory.
 
-An ORA-04031 error is often related to the value of `→ development/databases/Oracle/adminstration/init-parameters/shared/pool/size`.
+An ORA-04031 error is often related to
+  • the value of `→ development/databases/Oracle/adminstration/init-parameters/shared/pool/size` and/or
+  • the database not finding large enough chunks of memory because of fragmentation
 
 The most obvious fix for ORA-04031 errors is to increase the size of the → development/databases/Oracle/architecture/instance/SGA/Shared-Pool. When doing that, it might be useful to
 consult `v$shared_pool_advice`.
@@ -14,6 +16,26 @@ consult `v$shared_pool_advice`.
 Others solutions include:
   • Reducing the value of `→ development/databases/Oracle/adminstration/init-parameters/session/cached/cursors`
   • Reducing the value of `cursor_space_for_time`
+
+{ Getting a snapshot of the shared pool when the error occurs
+
+  Oracle creates a trace file in the ADR (or `user_dump_dest` before 11g) directory.
+
+  { Before Oracle 9.2.0.5
+
+  Possible values for level seem to be 1, 2, 3 or 32.
+code {
+alter session set events '4031 trace name errorstack level 3';
+code }
+
+  Adding 536870912 to the level will generate the 5 largest supheaps *and* the 5 largest heap areas within each of those.
+code {
+alter session set events '4031 trace name heapdump level 536870914';
+code }
+
+  }
+
+}
 
 sa:
 
