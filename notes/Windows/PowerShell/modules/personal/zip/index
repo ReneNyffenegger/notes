@@ -26,6 +26,24 @@ foreach ($file in → Windows/PowerShell/command-inventory/noun/item/get _instal
 close-zipArchive $zip
 code }
 
+  { Using resolve-relativePath
+
+    Add file files under `./scripts`, except `→ development/version-control-systems/git/gitignore` and `readme.txt` to a zip file, but without `script/` prefix:
+code {
+$dirToZip = "$psScriptRoot/scripts"
+$zipPath  = "$psScriptRoot/files.zip"
+$zip      = new-zipArchive $zipPath
+
+$files = get-childItem -file -recurse "$dirToZip/*" -exclude '→ development/version-control-systems/git/gitignore`, 'readme.txt'
+foreach ($file in $files) {
+   add-zipEntry $file $(→ Windows/PowerShell/modules/personal/filesystem/resolve-relativePath $dirToZip $file) $zip
+}
+
+close-zipArchive $zip
+code }
+
+  }
+
 }
 { Source code
 
