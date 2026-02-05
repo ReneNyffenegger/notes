@@ -147,9 +147,45 @@ code }
 { PowerShell cmdlets
 
   Some possibly interesting cmdlets related to HyperV include
-    • `get-vm`, `set-vm`
+    • `→ Windows/PowerShell/command-inventory/noun/vm/get`, `set-vm`
     • `checkpoint-vm`
-    • `get-vmCheckpoint`, `restore-vmCheckpoint`, `remove-vmCheckpoint`, `rename-vmCheckpoint`
+    • `get-vmSnapshot`, `restore-vmSnapshot`, `remove-vmSnapshot`, `rename-vmSnapshot`
+
+  `‥-vmCheckpoint` are aliases for `‥-vmSnapshot`.
+  -
+? It seems that Microsoft prefers checkpoint over snapshot in the context of HyperV to prevent confustion with VSS/NTFS snapshots.
+
+}
+{ Taking and restoring a checkpoint in PowerShell
+
+code {
+PS: 22 C:/Users/igsnyre> $vmname = 'win11'
+PS: 23 C:/Users/igsnyre> (get-vm $vmname).state  # Returned Off in my test
+PS: 24 C:/Users/igsnyre> checkpoint-VM -name $vmname -snapshotName 'preToolInstallation'
+code }
+ 
+  Verify checkpoint was taken:
+code {
+PS: 25 C:/Users/igsnyre> get-vmCheckpoint $vmname
+code }
+
+code {
+start-vm $vmname
+code }
+
+   Connect to the VM from the Hyper-V Manager, do stuff‥
+
+code {
+stop-vm $vmname
+get-vm $vmname).state # Returns Off
+code }
+
+code {
+restore-vmCheckpoint -vmName $vmname -name preToolInstallation -confirm:$false
+start-vm $vmname
+code }
+
+  Note that `restore-vmCheckpoint` restores also the VM's network settings etc. to the state it had before taking the snapshot.
 
 }
 { Drivers
