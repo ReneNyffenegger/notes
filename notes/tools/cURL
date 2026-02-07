@@ -77,7 +77,7 @@ code }
 
   }
   { -T #curl-T
-  
+
     When used with → development/web/HTTP, `-T` (or `--upload-file`) initiates a → development/web/HTTP/request-methods[`PUT` request] to upload a file to the web server.
 
   }
@@ -116,6 +116,8 @@ curl -s $url   \
 
 DATA
 code }
+
+       See also → #curl-here-doc-pipe[this example]
 
     }
 
@@ -196,6 +198,35 @@ code }
     TODO: How (if) is this option related to `--negotiate`?
 
   }
+
+}
+{ Combining a here-document with piping the result into another program (for exmample jq) #curl-here-doc-pipe
+
+  The following example demonstrates how the value → #curl-here-doc[for `-d` comes from a here-document] and the result
+  is piped into another executable (here: `→ development/languages/JavaScript/JSON/tools/jq`)
+code {
+model=claude-sonnet-4-5
+content='how do I ‥'
+anthropicApiKey=‥
+
+curl https://api.anthropic.com/v1/messages \
+   -H "Content-Type: application/json" \
+   -H "x-api-key: $anthropicApiKey" \
+   -H "anthropic-version: 2023-06-01" \
+   -s \
+   -d @- << EOF | → development/languages/JavaScript/JSON/tools/jq
+{
+     "model"     : "$model",
+     "max_tokens": 1000,
+     "messages": [
+       {
+         "role": "user",
+         "content": "$content"
+       }
+     ]
+   }
+EOF
+code }
 
 }
 { All command line options
