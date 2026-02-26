@@ -1,6 +1,50 @@
 $ %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 
+code {
+PS C:\> [Environment]::GetFolderPath('Startup')
+C:\Users\Rene\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+code }
+
+{ Addding some programs to be started automatically when logging in
+
+  Open Outlook, Teams and Windows Terminal automatically when logging in (check first if applications are alread listed, possibly disabled, in *Startup Apps* of the → Windows/dirs/Windows/System32/Taskmgr_exe[Task Manager])
+code {
+$startup = [Environment]::GetFolderPath('Startup')
+$progs   = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs" 
+
+$outlookLnk = get-childItem $progs -recurse -filter "*Outlook*.lnk" | select-object -First 1
+if ($outlookLnk) {
+   copy-item $outlookLnk.FullName $startup -force
+}
+
+$teamsLnk = get-childItem $progs -recurse -filter "*Teams*.lnk" |
+            where-object { $_.Name -notlike "*classic*" -and $_.Name -notlike "*work or school*" } |
+            select-object -first 1
+if ($teamsLnk) {
+   copy-Item $teamsLnk.FullName $startup -force
+}
+
+$wtLnk     = get-childItem $progs -recurse -filter "*Terminal*.lnk" |
+             where-object { $_.Name -like "*Windows Terminal*" } |
+             select-object -first 1
+
+if ($wtLnk) {
+    copy-item $wtLnk.FullName $startup -Force
+}
+else {
+  # Fallback: create shortcut manually
+    $WshShell = new-object -comObject WScript.Shell
+    $shortcut = $WshShell.CreateShortcut("$startup\Windows Terminal.lnk")
+    $shortcut.TargetPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+    $shortcut.Save()
+}
+code }
+
+}
+
 sa:
   → Windows/automatically-started-programs
+
+ `→ Windows/dirs/ProgramData/Microsoft/Windows/Start-Menu/Programs/StartUp`
 
   The → Microsoft/dot-net enumeration → Microsoft/dot-net/namespaces-classes/System/Environment/SpecialFolder[`System.Environment+SpecialFolder`].
