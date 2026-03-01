@@ -236,18 +236,22 @@ code }
     ? Claude Code gives access to Pro and Max from the command line.
 
     }
+    { Misc
 
+     `~/.claude/CLAUDE.md`
+
+    }
 
   }
   { OpenCode
 
     → https://opencode.ai/[opencode.ai]
 
-    What is → https://opencode.ai/config.json 
+    What is → https://opencode.ai/config.json
 
     OpenCode comes with a set of free models but popular coding models can be used by creating a → https://opencode.ai/zen[Zen] account.
     -
-    OpenCode supports 75+ LLM providers (see `/connect` command)
+    OpenCode supports 75+ LLM providers using the → https://ai-sdk.dev/[AI SDK and] models.dev. See also the  `/connect` and `/models` commands.
     -
    *OpenCode Go* is a low cost subscription plan that provides reliable access to popular open coding models
 
@@ -264,7 +268,7 @@ code }
       Installation with one of (more alternatives available, such as `choco install opencode` on Windows):
 code {
 curl -fsSL → https://opencode.ai/install | bash
-npm i   -g opencode-ai 
+npm i   -g opencode-ai
 bun add -g opencode-ai
 code }
 
@@ -287,10 +291,117 @@ code }
 
       Session data is stored in `~/.local/share/opencode`
 
+      { Configuration
+
+       table { ll
+        `.well-known/opencode` ☰ Organizational defaults. Fetched automatically when you authenticate with a provider that supports it.
+	`~/.config/opencode/opencode.json` ☰ User preferences
+	`$OPENCODE_CONFIG` ☰ Environment variable for custom overrides
+	`opencode.json` ☰ In a project's directory
+	`.opencode/` ☰ Directories for agents, commands, plugins
+	`$OPENCODE_CONFIG_CONTENT` ☰ Runtime overrides
+       table }
+      }
+
+      { HTTP Server
+
+?     `opencode serve` starts a headless HTTP server for API access (OpenAPI endpoint)
+       -
+?     `opencode web` starts a local HTTP server.
+
+      }
+      { Attaching to a HTTP server
+
+       `opencode web --port 4096`
+
+       `opencode attach http://localhost:4096`
+
+      }
+      { Tools
+
+        → https://opencode.ai/docs/tools/[Tools] allow the LLM to perform actions in a codebase.
+
+	There is a set of built-in tools:
+	table { ll
+	  bash ☰ Execute shell commands
+	  edit ☰ Edit files using exact string replacements. The *edit* permission covers all file modifications: edit, write, patch, multiedit)
+	  write ☰ Create or overwrite files
+	  read ☰ Read files from a codebase
+	  grep ☰ Search files using regular expressions
+	  glob ☰ Find files by pattern matchin
+	  list ☰ List files and directories in a given path
+	  lsp ☰ *Experimental*. Interact with a configured LSP server to get code intelligence features (deifnitions, references, hover info, call hierarchy)
+	  patch ☰ Apply patches to files
+	  skill ☰ Load a `SKILL.md` file and return its content in the conversation.
+	  todowrite ☰ Manage todo lists during coding sessions
+	  todoread ☰ Read exisitng todo lists
+	  webfetch ☰ Performs web seraches using Exa AI
+	  question ☰ Ask the user questions during executions
+        table }
+
+
+	Customs tools or MCP servers allow to extend these tools with arbitrary code.
+
+	The access to tools can be controlled through *permissions*.
+
+      }
+
+    }
+    { AGENTS.md
+
+     `AGENTS.md` files are tried to be located in
+        • Project root
+	• `~/.config/opencode/AGENTS.md`
+
+      OpenCode also reads `CLAUDE.md` if no `AGENTS.md file is found in the project root and `~/.claude/CLAUDE.md` if
+      no `~/.config/opencode/AGENTS.md` is found.
+
+    }
+    { Agents
+
+      There are two types of agents:
+      table { ll
+        Primary agents ☰ They're interacted with directly and cycled through using the tab ek
+	Subageents ☰ Invoked by the primary agents or by @ mentioning them in a message.
+      table }
+
+      The two built-in primary agents are
+      table { ll
+        Build ☰ Stadnared agent for development work. All tools are enabled
+	Plan ☰ Used for planning and analysis. Permissions are set to *ask* for write, patch, edit, bash.
+      table }
+
+      The two build-in subagents are
+      table { ll
+         Explore ☰ Used to explore codebases. No acccess to writing tools.
+	 General ☰ Used to research complex questions and execute multi-step tasks. Except for *todo*, this subagent has full tool access
+      table }
+
+      Then, there seem to be also *hidden system agents*:
+      table { ll
+        Use compaction ☰ Comacts long context into a smaller summary.
+	Use title ☰ Creates session titles
+	Use summary ☰ Creates session summaries
+      table }
+
+      A new agent can be created with the interactive command:
+code {
+opencode agent create
+code }
+
     }
     { TODO
 
       How do I login with a Copilot account?
+
+      Subdirectories:
+        • `agents/`
+	• `commands/`
+	• `modes/`
+	• `plugins/`
+	• `skills/`
+	• `tools/`
+	• `themes/`
 
     }
 
@@ -460,14 +571,14 @@ code }
 
   }
   { Model Context Protocol (MCP)
-  
+
     The → https://modelcontextprotocol.io[Model Context Protocol] (MCP) enables the integration between LLM applications, external applications and tools.
 
   }
   { Agent Communicatino Protocol (ACP)
 
     ACP seems to define how Agents talk to each other.
-    
+
   }
   { AGENTS.md
 
