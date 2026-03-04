@@ -257,7 +257,6 @@ code }
 
     A provider's API keys are stored in `~/.local/share/opencode/auth.json` after executing the `/connect` command.
 
-
     { OpenCode Zen
 
       OpenCode Zen is a list of models provided by the OpenCode team that have been tested and verified to work well with OpenCode.
@@ -321,6 +320,24 @@ code }
 
         An `AGENTS.md` file is created with `/init`.
 
+        Commands related to sessions include
+        table { ll
+          `/new` ☰ Create new session. Should be used when starting a new task. Shortcut: `ctrl-x n`
+          `/sessions` ☰ View and switch sessions
+          `/undo` ☰ Undo last operation. Requires to be in a git repository?
+          `/redo` ☰ Redo undone operation
+          `/compact` ☰ Compress context
+          `/export` ☰ Export conversation history
+          `/share` ☰ Generate a link to → https://opencode.ai/docs/share/[share] a session
+          `/unshare` ☰ Remove the link and delete the related data
+          `opencode import` ☰ Import session from file or URL (CLI command)
+          `opencode export` ☰ Export session as JSON (CLI command)
+        table }
+
+     ?  Is `/fork` a command that belongs to this table as well?
+
+     ?  Allegedly, session related data is stored under `~/.local/share/opencode/storage` (but I could only partly verify this claim).
+
       }
       { Configuration
 
@@ -333,7 +350,26 @@ code }
         `$OPENCODE_CONFIG_CONTENT` ☰ Runtime overrides
        table }
       }
+      { Prompting
 
+?       Allegedly, a file can be referred to in a prompt by prepending it with `@` (*What does @script.sh do*).
+        -
+        This is especially useful for file/pathname completion while typing.
+
+        Shell commands can be executed with an exclaimatinmark: `!ls` 
+
+      }
+      { Copying text
+
+        Text is copied by simply selecting it with the mouse.
+        
+     ? `ctrl-c` *does not* copy text, rather, it cancels the current operation.
+
+       `ctrl-x y` copies the last message.
+
+       `/copy` copies the entire session transcript.
+       
+      }
       { HTTP Server
 
 ?     `opencode serve` starts a headless HTTP server for API access (OpenAPI endpoint)
@@ -368,8 +404,11 @@ code }
           todoread ☰ Read exisitng todo lists
           webfetch ☰ Performs web seraches using Exa AI
           question ☰ Ask the user questions during executions
+          plan_enter ☰ *Experimental*: enter plan mode
+          plan_exit ☰ *Experimental*: exit plan mode
         table }
 
+      ? Experimental features are enabled by setting the environment variable `OPENCODE_EXPERIMENTAL=true` (or `OPENCODE_EXPERIMENTAL_PLAN_MODE=true` for only the corresponding tools).
 
         Customs tools or MCP servers allow to extend these tools with arbitrary code.
 
@@ -378,14 +417,26 @@ code }
       }
 
     }
-    { AGENTS.md
+    { Rule files (AGENTS.md, CLAUDE.mde)
 
      `AGENTS.md` files are tried to be located in
-        • Project root
+        • In all directories traversing up from the current directory to the project root
         • `~/.config/opencode/AGENTS.md`
 
-      OpenCode also reads `CLAUDE.md` if no `AGENTS.md file is found in the project root and `~/.claude/CLAUDE.md` if
-      no `~/.config/opencode/AGENTS.md` is found.
+      OpenCode also reads `CLAUDE.md` if no `AGENTS.md` file is found in the project root and `~/.claude/CLAUDE.md` if
+      no `~/.config/opencode/AGENTS.md` is found. (At least, that's my understanding)
+
+      Rules can also be specified in the `instruction` fields of the `opencode.json` config file.
+      -
+      The `instruction` field is especially useful for *monorepos* to load all subprojects' rules: `{"instructions": ["packages/*/AGENTS.md"] }`.
+      -
+      The value of `instructions` can be an URL (with a timeout of 5 seconds when trying to fetch from it).
+
+      Rule files can reference other (rule?) files with `@path/to/rule.md`.
+
+      The found rules are merged, not overwritten.
+
+      A rule file, if it does not already exist, can be created with `/init`.
 
     }
     { Agents
@@ -402,7 +453,9 @@ code }
         Plan ☰ Used for planning and analysis. Permissions are set to *ask* for write, patch, edit, bash.
       table }
 
-      The two build-in subagents are
+    ? The Plan agent has no write rights, except for `.opencode/plans/*.md` files.
+
+      The two built-in subagents are
       table { ll
          Explore ☰ Used to explore codebases. No acccess to writing tools.
          General ☰ Used to research complex questions and execute multi-step tasks. Except for *todo*, this subagent has full tool access
@@ -415,6 +468,33 @@ code }
         Use summary ☰ Creates session summaries
       table }
 
+      Primary agents are selected using `tab`.
+      -
+      Subagents are invoked by primary agents or manually be referencing them with `@agent-name <description of task>`,
+      for example with `@explore summarize the functionality of the project`
+
+      Primary agents use the subagents' *description* to decide if they want to invoke a given subagent.
+
+     `ctrl-x a` displays the available primary agents.
+
+      → https://learnopencode.com/en/5-advanced/02a-agent-quickstart.html#complete-configuration-fields-reference[Agent configuration values] (yaml with which the agent's `.md` start or in `opencode.json`):
+      table { lll
+       `description` ☰ string ☰ Recommended. Agent summary, affects Primary Agent's auto-selection decisions
+       `mode` ☰ enum ☰ subagent | primary | all. Default all
+       `model` ☰ string ☰ Format provider/model. If empty, inherits Primary Agent's current model
+       `prompt` ☰ string ☰ System prompt (for JSON config, use body text in Markdown)
+       `temperature` ☰ number ☰ 0-1, controls response randomness
+       `top_p` ☰ number ☰ 0-1, nucleus sampling parameter
+       `steps` ☰ number ☰ Maximum iteration steps, prevents infinite loops
+       `hidden` ☰ boolean ☰ If true, hides from @ autocomplete menu
+       `color` ☰ string ☰ Hexadecimal color #RRGGBB, for UI differentiation
+       `permission` ☰ object ☰ Permission configuration object
+       `disable` ☰ boolean ☰ Whether to disable this Agent
+       `options` ☰ object ☰ Pass-through parameter container for uncommon Provider parameters
+       Other fields ☰ any ☰ Unknown fields are automatically passed through to Provider (e.g., `reasoningEffort`)
+      table }
+
+
       A new agent can be created with the interactive command:
 code {
 opencode agent create
@@ -423,14 +503,31 @@ code }
     }
     { opencode run
 
-     `opencode run` is for → https://github.com/galpt/you/blob/f66ae9511b4818cd980d50a5ef015c9fa8e9c3ba/TECHNICAL_DETAILS.md?plain=1#L213-L216[non-interactive* automation].
+     `opencode run` is for → https://github.com/galpt/you/blob/f66ae9511b4818cd980d50a5ef015c9fa8e9c3ba/TECHNICAL_DETAILS.md?plain=1#L213-L216[non-interactive automation]: it runs a task and then exits:
       -
-      Unfortunately, it
+     `opencode run "What is the purpose of this project"`
+
+
+      Unfortunately, `opencode run`
         • doesn't show real-time progress
         • has limited control over execution flow
         • orchestration is harder to implement
 
       the HTTP API does not have these drawbacks.
+
+    }
+    { opencode stats
+
+     `opencode stats` shows the
+       • accumulated count of sessions, messages
+       • Tokens and money spent on them (pay special attention to *Cache Read* as these are saved tokens and reduce cost)
+       • Usage of tools
+
+     `opencode stats --project` reports the stats for the project in which the command is executed.
+
+     `opencode stats --models` shows the statistics per model.
+      -
+      The top 3 models can be displayed with `opencode stats --models 3`
 
     }
     { TODO
