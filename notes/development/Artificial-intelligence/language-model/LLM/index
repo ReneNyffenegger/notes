@@ -338,6 +338,13 @@ code }
 
      ?  Allegedly, session related data is stored under `~/.local/share/opencode/storage` (but I could only partly verify this claim).
 
+        As far as I can see, OpenCode sends these three initial messages when connecting to an MCP:
+code {
+{"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"opencode","version":"1.2.20"}},"jsonrpc":"2.0","id":0}
+{"method":"notifications/initialized","jsonrpc":"2.0"}
+{"method":"tools/list","jsonrpc":"2.0","id":1}
+code }
+
       }
       { Configuration
 
@@ -718,6 +725,56 @@ code }
   { Model Context Protocol (MCP)
 
     The → https://modelcontextprotocol.io[Model Context Protocol] (MCP) enables the integration between LLM applications, external applications and tools.
+
+    The MCP protocol is built on → development/languages/JavaScript/JSON/RPC[JSON-RPC 2.0].
+
+    An MCP server is communicated with either
+       • using stdin/stdout, or
+       • HTTP POST requests
+
+    The core primitives of MCP are
+    table { ll
+      Tools ☰ Invoking a function such as reading a file, query a database etc.
+      Resources ☰ Provide informations such as file content, database records
+      Prompts ☰ Reusable templates
+    table }
+
+    As far as I can see, possible(?), required(?) or optional(?) methods include
+      • `initialize`
+      • `tools/list`
+      • `tools/call`
+      • `tools/call`
+      • `resources/list`
+      • `resources/read`
+      • `resources/subscribe`
+      • `resources/templates/list`
+      • `prompts/list`
+      • `prompts/get`
+
+    Calling a tool:
+code {
+{
+   "jsonrpc":"2.0",
+   "method" :"tools/call",
+   "params" :{"name": "currentDate"},
+   "id"     : 123
+}
+code }
+
+    Calling a tool with arguments
+code {
+{
+   "jsonrpc":"2.0",
+   "method" :"tools/call",
+   "params" :{
+                "name"    : "currentDate",
+                "arguments: {"location": "Zurich"}
+             },
+   "id"     : 123
+}
+code }
+
+    See also → https://modelcontextprotocol.io/[modelcontextprotocol.io].
 
   }
   { Agent Communicatino Protocol (ACP)

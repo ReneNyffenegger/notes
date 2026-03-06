@@ -5,7 +5,7 @@ $ jq --arg
 
 The arguments passed with `--arg` are interpreted as strings:
 code {
-$ jq  --arg num1 40 --arg num2 2 -n '$num1 + $num2'
+$ jq  --arg num1 40 --arg num2 2 → development/languages/JavaScript/JSON/tools/jq/options/n-null-input[-n] '$num1 + $num2'
 "402"
 code }
 
@@ -14,3 +14,32 @@ code {
 $ → development/languages/JavaScript/JSON/tools/jq → development/languages/JavaScript/JSON/tools/jq/options/arg num1 40 → development/languages/JavaScript/JSON/tools/jq/options/arg num2 2 -n '($num1 | → development/languages/JavaScript/JSON/tools/jq/operators-functions/to#jq-tonumber[tonumber]) + ($num2 | → development/languages/JavaScript/JSON/tools/jq/operators-functions/to#jq-tonumber[tonumber])'
 code }
 
+{ Create a JSON document from a template
+
+code {
+template='{
+   "id" :  $id,
+   "val":  $val
+}'
+
+payload=$(jq -n --arg id 42 --arg val 'Hello world' "$template")
+
+echo $payload
+code }
+
+ `$payload` is `{ "id": "42", "val": "Hello world" }`.
+  -
+  Note that `42` and `Hello world` are interpreted as strings.
+
+  Use `--argjson` to produce a numerical `id` and a string `val`:
+code {
+payload=$(jq -n --argjson id 42 --argjson val '"Hello world"' "$template")
+echo $payload
+code }
+
+  With `--argjson`, payload is `{ "id": 42, "val": "Hello world" }`.
+
+}
+
+sa:
+  `--arg` often seems to be combined with → development/languages/JavaScript/JSON/tools/jq/options/n-null-input[`-n`].
