@@ -57,7 +57,7 @@ $ Shell command: lsblk
     `UUID` ☰ filesystem UUID
     `PTUUID` ☰ partition table identifier (usually UUID)
     `PTTYPE` ☰ partition table type
-    `PARTTYPE` ☰ partition type code or UUID
+    `PARTTYPE` ☰ partition type code or UUID. `PARTTYPENAME` returns a more descriptive text for the GUID (see → https://de.wikipedia.org/wiki/GUID_Partition_Table[Wikipedia])
     `PARTTYPENAME` ☰ partition type name
     `PARTLABEL` ☰ partition LABEL
     `PARTUUID` ☰ partition UUID
@@ -100,7 +100,22 @@ $ Shell command: lsblk
   table }
 
 }
+{ -o
 
+code {
+# lsblk -o +NAME,PARTUUID,PARTTYPE,TYPE,FSTYPE,SIZE,MOUNTPOINT
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS NAME      PARTUUID                             PARTTYPE                             TYPE FSTYPE   SIZE MOUNTPOINT
+sda           8:0    1   7.5G  0 disk             sda                                                                                 disk          7.5G 
+└─sda1        8:1    1   7.5G  0 part             sda1      14e785c5-01                          0xc                                  part vfat     7.5G 
+nvme0n1     259:0    0 238.5G  0 disk             nvme0n1                                                                             disk        238.5G 
+├─nvme0n1p1 259:1    0   100M  0 part /boot/efi   nvme0n1p1 f6cf495b-6bf9-4eff-bb49-6d6e45b0e9d0 c12a7328-f81f-11d2-ba4b-00a0c93ec93b part vfat     100M /boot/efi
+├─nvme0n1p2 259:2    0    16M  0 part             nvme0n1p2 2dfe186d-580a-4222-93af-c2ad66176ec9 e3c9e316-0b5c-4db8-817d-f92df00215ae part           16M 
+├─nvme0n1p3 259:3    0   100G  0 part             nvme0n1p3 a122444b-362e-4473-8d5f-7b0937015779 ebd0a0a2-b9e5-4433-87c0-68b6b72699c7 part ntfs     100G 
+├─nvme0n1p4 259:4    0   893M  0 part             nvme0n1p4 080b18c7-af94-4949-93c0-9f440219fe7d de94bba4-06d1-4d40-a16a-bfd50179d6ac part ntfs     893M 
+└─nvme0n1p5 259:5    0 137.5G  0 part /           nvme0n1p5 7f5c7250-0cbc-4c9b-b7a9-b875d6e15253 0fc63daf-8483-4772-8e79-3d69d8477de4 part btrfs  137.5G /
+code }
+
+}
 { -f #lsblk-f
 
 code {
