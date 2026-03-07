@@ -1,5 +1,5 @@
 
-→ Linux/devices#block-devices[Block devices] can be divided into one or more partitions. The layout of the parititions is recorded in the → hardware/harddisk/partition-table
+→ Linux/devices#block-devices[Block devices] can be divided into one or more partitions. The layout of the partitions is recorded in the → hardware/harddisk/partition-table
 which is usually found in sector 0 of the disk. (BSD users speak of *disk slices* and *disk labels*).
 
 
@@ -15,16 +15,35 @@ which is usually found in sector 0 of the disk. (BSD users speak of *disk slices
 
 { Directories required for booting
 
-  The directories → Linux/fhs/etc/index and → Linux/fhs/usr/index are required in the boot process. Therefore, they should be in the root partition, or mounted early.
+  The directories `→ Linux/fhs/etc` and `→ Linux/fhs/usr` are required in the boot process. Therefore, they should be in the root partition, or mounted early.
 
 }
-
 { Tools to manage partitions
 
  `→ Linux/shell/commands/fdisk`, `→ Linux/shell/commands/gdisk`, `→ Linux/shell/commands/parted`, `partx` etc.
 
 }
+{ Superblock
 
+  The superblock records some information about the filesystem it belongs to, for example
+    • block count
+    • inode count
+    • supported features
+    • maintenance information
+    • → #fs-uuid[filesystem UUID]
+
+}
+{ Filesystem UUID #fs-uuid
+
+ The purpose of the filesystem UUID is to uniquely identify a partition and to make it discoverable, for example
+   • `→ Linux/fhs/etc/fstab`
+   • `/EFI/debian/grub.cfg` on the EFI System Partition
+
+  The filesystem UUID is reported, for example, with the `UUID` → Linux/shell/commands/lsblk#lsblk-o[format] of `→ Linux/shell/commands/lsblk`.
+
+  The fileystem UUID must not be confused with the partition UUID (`PARTUUID`) which is stored in the GPT partition table entry for that partition.
+
+}
 { TODO
 
  → Linux/filesystem/filesystems#btrfs partitioning (seems to replace →  hardware/harddisk/MBR and → hardware/harddisk/GPT partitioning).
@@ -35,9 +54,7 @@ which is usually found in sector 0 of the disk. (BSD users speak of *disk slices
 
     Solid state drives don't have physical cylinders or heads anyway.
 
-
   }
-
 }
 
 sa:
