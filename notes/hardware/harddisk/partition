@@ -11,7 +11,7 @@ which is usually found in sector 0 of the disk. (BSD users speak of *disk slices
  `→ Linux/shell/commands/lsblk → Linux/shell/commands/lsblk#lsblk-f[-f]`
 
   On Windows: `diskpart list disk` (→ Windows/dirs/Windows/System32/diskpart_exe[`diskpart.exe`]).
- 
+
 }
 
 { Directories required for booting
@@ -34,23 +34,56 @@ which is usually found in sector 0 of the disk. (BSD users speak of *disk slices
     • → #fs-uuid[filesystem UUID]
 
 }
-{ Filesystem UUID #fs-uuid
+{ GUIDs / UUIDs
 
- The purpose of the filesystem UUID is to uniquely identify a partition and to make it discoverable, for example
-   • `→ Linux/fhs/etc/fstab`
-   • `/EFI/debian/grub.cfg` on the EFI System Partition
+  There are up to (at least) three → development/UUID-GUID[GUIDs] (UUIDs) that are related to a partion
+     • Filessystem UUID
+     • Partition type UUID
+     • Partition UUID
 
-  The filesystem UUID is reported, for example, with the `UUID` → Linux/shell/commands/lsblk#lsblk-o[format] of `→ Linux/shell/commands/lsblk`.
+  These GUIDs can be be shown, for example, with `→ Linux/shell/commands/lsblk` like so:
+code {
+# lsblk -o NAME,UUID,PARTUUID,PARTTYPE,TYPE,FSTYPE
 
-  The fileystem UUID must not be confused with the → #fs-partition-uuid[partition UUID]
+NAME        UUID                                 PARTUUID                             PARTTYPE                             TYPE FSTYPE
+nvme0n1                                                                                                                    disk 
+├─nvme0n1p1 BC6A-B14F                            f6cf495b-6bf9-4eff-bb49-6d6e45b0e9d0 c12a7328-f81f-11d2-ba4b-00a0c93ec93b part vfat
+├─nvme0n1p2                                      2dfe186d-580a-4222-93af-c2ad66176ec9 e3c9e316-0b5c-4db8-817d-f92df00215ae part 
+├─nvme0n1p3 B2586C6C586C3171                     a122444b-362e-4473-8d5f-7b0937015779 ebd0a0a2-b9e5-4433-87c0-68b6b72699c7 part ntfs
+├─nvme0n1p4 A684C1BB84C18DED                     080b18c7-af94-4949-93c0-9f440219fe7d de94bba4-06d1-4d40-a16a-bfd50179d6ac part ntfs
+└─nvme0n1p5 748c91ba-39f3-47ed-902d-4109bb0db688 7f5c7250-0cbc-4c9b-b7a9-b875d6e15253 0fc63daf-8483-4772-8e79-3d69d8477de4 part btrfs
+code }
+     
 
-}
-{ Partition type UUID #fs-partition-uuid
+  { Filesystem UUID #fs-uuid
 
-  The partition type UUID (`PARTUUID`) is stored in the GPT partition table entry for that partition and must not be confused with the → #fs-uuid[filesystem uuid].
+   The purpose of the filesystem UUID is to uniquely identify a partition and to make it discoverable, for example
+     • `→ Linux/fhs/etc/fstab`
+     • `/EFI/debian/grub.cfg` on the EFI System Partition
 
-  See also  → https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs[Wikipedia] (table must be opened).
+    The filesystem UUID is reported, for example, with the `UUID` → Linux/shell/commands/lsblk#lsblk-o[format] of `→ Linux/shell/commands/lsblk`.
 
+    The fileystem UUID must not be confused with the → #fs-partition-uuid[partition UUID]
+
+  }
+  { Partition type UUID #fs-partition-uuid
+
+    The partition type UUID (`PARTUUID`) is stored in the → hardware/harddisk/partition-table#gpt-partition-table[GPT partition table] entry for that partition and must not be confused with the → #fs-uuid[filesystem uuid].
+
+    Some important partition types in my little world are:
+    table { ll
+
+     `0fc63daf-8483-4772-8e79-3d69d8477de4` ☰ Linux filesystem data
+     `c12a7328-f81f-11d2-ba4b-00a0c93ec93b` ☰ → hardware/UEFI/ESP[EFI System Partition]
+     `de94bba4-06d1-4d40-a16a-bfd50179d6ac` ☰ Windows Recovery Environment
+     `e3c9e316-0b5c-4db8-817d-f92df00215ae` ☰ Microsoft Reserved Partition (MSR)
+     `ebd0a0a2-b9e5-4433-87c0-68b6b72699c7` ☰ Basic data partition (This seems to be a Microsoft thingy, reported as «Microsoft reserved» with `fdisk -l`)
+
+    table }
+
+    See also  → https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs[Wikipedia] (table must be opened).
+
+  }
 }
 { TODO
 
@@ -72,3 +105,5 @@ sa:
   → projects/Partition-tables-and-file-systems
 
   Remove an old partition with `wipefs`.
+
+  The Powershell command `→ Windows/PowerShell/command-inventory/noun/partition/get`
