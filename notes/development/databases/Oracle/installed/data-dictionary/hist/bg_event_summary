@@ -1,0 +1,41 @@
+$ Oracle: DBA_HIST_BG_EVENT_SUMMARY
+@ dba_hist_bg_event_summary
+
+? `dba_hist_bg_event_summary` records snapshots from `→ development/databases/Oracle/installed/dynamic-performance-views/session/event` or background event activity.
+
+code {
+select
+   snp_id,
+   to_char(int_beg, 'yyyy-mm-dd hh24:mi:ss')  int_beg,
+   to_char(int_end, 'yyyy-mm-dd hh24:mi:ss')  int_end,
+   cls,
+   evt,
+   to_char((twm_act - twm_prev) / 1000, '99,999,990.000')  tw_mil_s,
+   waits_act  - waits_prev                                 waits,
+   tmouts_act - tmouts_prev                                tmouts 
+-- twm_act, twm_prev
+from
+(
+   select
+      snp.snap_id                                                                         snp_id,
+      snp.begin_interval_time                                                             int_beg,
+      snp.end_interval_time                                                               int_end,
+      bge.event_name                                                                      evt,
+      bge.wait_class                                                                      cls,
+      --
+      bge.time_waited_micro                                                               twm_act,
+      bge.total_waits                                                                     waits_act,
+      bge.total_timeouts                                                                  tmouts_act,
+      --
+      lag(bge.time_waited_micro) over (partition by bge.event_id order by bge.snap_id)    twm_prev,
+      lag(bge.total_waits      ) over (partition by bge.event_id order by bge.snap_id)    waits_prev,
+      lag(bge.total_timeouts   ) over (partition by bge.event_id order by bge.snap_id)    tmouts_prev
+   from
+      dba_hist_snapshot          snp                                                       left join
+      dba_hist_bg_event_summary  bge on bge.snap_id = snp.snap_id and bge.dbid = snp.dbid
+)
+where
+   timestamp '2026-03-04 11:05:00' between int_beg and int_end
+order by
+    twm_act - twm_prev desc;
+code }
