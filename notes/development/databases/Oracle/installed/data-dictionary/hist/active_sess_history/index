@@ -57,6 +57,37 @@ code }
  `JDBC Thin Client`, `spssengine.exe`, `nunit-console.exe`, `Microsoft.Mashup.Container.NetFX40.exe` etc.
 
 }
+{ SQL Statements with most samples
+
+  Find the SQL statements that were most often running when a sample was taken, thus indicating that these statements are either run many times or running long (or a combination of both).
+
+code {
+with his as (
+   select
+      count(*) cnt,
+      user_id  usr,
+      sql_id
+   from
+      dba_hist_active_sess_history
+   where
+      user_id <> 0
+   group by
+      user_id,
+      sql_id
+)
+select
+   his.cnt,
+   usr.username,
+   sql.sql_text
+from
+   his                                               left join
+   dba_hist_sqltext sql on his.sql_id = sql.sql_id   left join
+   dba_users        usr on his.usr    = usr.user_id
+order by
+   his.cnt desc;
+code }
+
+}
 { Big query
 
 code {
