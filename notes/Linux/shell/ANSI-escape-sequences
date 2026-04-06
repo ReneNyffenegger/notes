@@ -105,7 +105,7 @@ code }
     The output of the script is
 
     gh|ANSI-escape-sequences|/img/bg-48-fg-38-5.png||
-  
+
     Apparently, → https://github.com/segaleran/eran-dotfiles/blob/master/bin/terminalcolors.py[this python script]
     and → https://gist.github.com/hSATAC/1095100[this Perl script] do more or less the same thing.
     -
@@ -132,7 +132,7 @@ code }
 
   Using `H` to position the cursor on specific coordinates.
 
-  The first number ist the y coordinate, the second number the 
+  The first number ist the y coordinate, the second number the
   x coordinate.
 
   gh|ANSI-escape-sequences|/position-cursor||
@@ -150,6 +150,40 @@ code }
 { Clearing the screen
 
   gh|ANSI-escape-sequences|/clear-screen||
+
+}
+{ Saving and restoring the screen
+
+code {
+echo -en '\e[?1049h'
+
+find .
+
+echo -en '\e[?1049l'
+code }
+
+}
+{ Erasing/clearing the current line
+
+
+ `\e[K` erases from the cursor to the end of line.
+
+code {
+echo -ne "\e[?25l"     # hide the cursor
+for w in one two three four five six seven eight nine ten; do
+   echo -en "\e[K$w\r" # Erase current line and put cursor at the start of the line (`\r`)
+   sleep 1
+done
+echo -e '\e[?25h'      # Show the cursor
+code }
+
+  These are the line erasing commands:
+  table { ll
+   `\e[K`   ☰ Same as `\e0K`
+   `\e[0K`  ☰ From cursor to end of line
+   `\e[1K`  ☰ From start of line to cursor
+   `\e[2K`  ☰ Entire line
+  table }
 
 }
 { Resetting all settings
