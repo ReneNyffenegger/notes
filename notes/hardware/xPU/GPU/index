@@ -53,6 +53,7 @@ code }
 
 }
 { Libraries
+
   { NCCL
 
    *NCCL* (NVIDIA Collective Communication Library, pronounced as «Nickel») provides primitives for inter-GPU communication.
@@ -74,6 +75,8 @@ code }
 
    *NVIDIA cuBLAS* is a GPU-accelerated library for accelerating AI and HPC applications.
 
+    BLAS stands for *Basic Linear Algebra Subprograms*.
+
   }
   { NPP
 
@@ -88,6 +91,8 @@ code }
 
   ? NPP++ seems to be a C++ extension for NPP.
 
+  ? npp stands for *Nvidia performance primitives*.
+
   }
   { NVML #gpu-nvml
 
@@ -95,6 +100,10 @@ code }
 
     See also the python library `→ development/languages/Python/libraries/pyNVML`.
 
+  }
+  { nvcc
+
+   `nvcc` is the CUDA compiler.
   }
   { nvprof
 
@@ -113,7 +122,7 @@ code }
   { NVIDIA Container Toolkit
 
     The → https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html[NVIDIA Container Toolkit] is a collection of libraries and utilities that allows containerized applications to interact with the host's GPUs by
-    njecting the user mode driver libraries (e.g. `libcuda.so`, required device nodes (presumably `/dev/nvidia-*`?) and utilities such as `nvidia-smi` into the container as it starts.
+    injecting the user mode driver libraries (e.g. `libcuda.so`, required device nodes (presumably `/dev/nvidia-*`?) and utilities such as `nvidia-smi` into the container as it starts.
 
     It currently includes
      • Container Runtime (`nvidia-container-runtime`)
@@ -124,6 +133,47 @@ code }
      • Container Library (`libnvidia-container1`)
 
   }
+  { RAPIDS
+
+    The *Nvidia RAPIDS data science framework* is a collection of libraries which are designed to have a similar look
+    and feel to working in Python yet with optimized Cuda primitives and high-bandwith GPU memory under the hood.
+
+    { APIs
+
+      table { ll
+
+        cuDF ☰ cuDF is a `pandas` like GPU DataFrame library (built on the Apache Arrow columnar memory format).
+        dask-cuDF ☰ Dask-cuDF extends Dask where necessary to allow its DataFrame partitions to be processed using cuDF GPU DataFrames instead of Pandas DataFrames. Dask-cuDF is used to leverage multiple gpus and multiple nodes for more performance at larger scales
+        cuML ☰ cuML is `scikit-learn` like suite of machine learning libraries.
+        cuGraph ☰ Graph analytics like NetworkX
+        cuxfilter ☰ onnector library
+        Java + cuDF ☰ Java bindings for the cuDF library.
+        cuCIM ☰ GPU accelerated I/O, computer vision & image processing primitives
+        cuVS ☰ GPU-accelerated vector search and clustering.
+        KvikIO ☰ A Python and C++ library for high performance file IO using GPUDirect Storage (GDS).
+        RAFT ☰ Fundamental widely-used algorithms and primitives for vector search, machine learning, and information retrieval.
+        Dask-CUDA ☰ Various utilities to improve deployment and management of Dask workers on CUDA-enabled systems.
+        RMM ☰ RAPIDS Memory Manager, used for all device memory allocations in cuDF (C++ and Python) and other RAPIDS libraries.
+        RapidsMPF ☰ RAPIDS Multi-Process Foundation (rapidsmpf) is a collection of multi-GPU, distributed memory algorithms written in C++ and exposed to Python.
+        UCXX ☰ The Python interface for UCX.
+        nvForest ☰ A lightweight RAPIDS library for fast inference for decision tree models on NVIDIA GPUs and CPUs.
+      table }
+
+    }
+    { Libraries
+
+      table { ll
+        libcudf ☰ A C/C++ CUDA library for implementing standard dataframe operations.
+        libcuml ☰ A C/C++ CUDA library for cuML.
+        libkvikio ☰ A C++ header-only library providing bindings to cuFile, which enables GPUDirect Storage (GDS).
+        librapidsmpf ☰ A C++ collection of multi-GPU, distributed memory algorithms.
+        libucxx ☰ An object-oriented C++ interface for UCX, with native support for Python bindings.
+        rapids-cmake ☰ A collection of CMake modules that are useful for all CUDA RAPIDS projects.
+      table }
+
+    }
+
+  }
   { Docker images
 
     Nvidia provides docker images for CUDA on the docker hub under → https://hub.docker.com/r/nvidia/cuda[`nvidia/cuda`].
@@ -132,12 +182,13 @@ code }
 
     The docker images come in → https://hub.docker.com/r/nvidia/cuda#overview-of-images[three flavors]:
     table { ll
-      `base` ☰ Includes the CUDA runtime (cudart)
-      `runtime` ☰  Builds on `base` and includes the *CUDA math libraries* and *NCCL*. A runtime image that also includes *cuDNN* is available. Some images may also include *TensorRT*.
-      `devel` ☰ Builds on `runtime` and includes headers, development tools for building CUDA images. These images are particularly useful for multi-stage builds.
+      `base` ☰ Includes the CUDA runtime (cudart, `libcudart.so`)
+      `runtime` ☰ Builds on `base` and includes the *CUDA math libraries* and *NCCL*. A runtime image that also includes *cuDNN* is available. Some images may also include *TensorRT*.
+      `devel` ☰ Builds on `runtime` and includes headers, static librariesx and, development tools for building CUDA images. These images are particularly useful for multi-stage builds.
     table }
 
-
+    The images are found in the → https://gitlab.com/nvidia/container-images/cuda[CUDA gitlab repository] under `dist/$cuda_version/$os/[base|runtime|devel]`, for
+    exalmpe → https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/12.1.1/ubuntu2204/runtime[`cuda/dist/12.1.1/ubuntu2204/runtime`].
   }
 }
 
