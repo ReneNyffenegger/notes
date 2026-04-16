@@ -5,7 +5,27 @@ $ Oracle: V$SYSTEM_EVENT
 → development/databases/Oracle/architecture/instance/startup-shutdown[started up], broken up
 for each → development/databases/Oracle/installed/dynamic-performance-views/event_name#ora-interesting-event-names[event].
 
-gh|oracle-patterns|/Installed/dynamic-performance-views/system/event/order-by-time_waited.sql||
+code {
+select
+   sev.event,
+   sev.total_timeouts,
+   total_timeouts_fg,
+   round(sev.time_waited_micro_fg / 1000 / 1000 / 24 / 60 / 60, 1) waited_hrs_fg,
+   round(sev.time_waited_micro    / 1000 / 1000 / 24 / 60 / 60, 1) waited_hrs,
+-- round(sev.time_waited          / 100         / 24 / 60 / 60, 1) waited_hrs,
+-- round(sev.time_waited_fg       / 100         / 24 / 60 / 60, 1) waited_fg_hrs,
+   round(sev.average_wait_fg      / 100         / 24 / 60 / 60, 1) avg_wait_fg_hrs,
+   round(sev.average_wait         / 100         / 24 / 60 / 60, 1) avg_wait_hrs,
+   sev.total_waits,
+   sev.total_waits_fg,
+   sev.wait_class
+from
+   v$system_event  sev
+where
+   sev.wait_class not in ('Idle')
+order by
+   sev.time_waited_micro_fg desc;
+code }
 
 sa:
 
