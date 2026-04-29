@@ -2,7 +2,7 @@ $ Oracle cursor attributes
 
 2018-11-15: *Moved and adapted from `adp-gmbh.ch`*
 
-There are five → development/databases/Oracle/SQL/cursor[cursor] attributes:
+There are some → development/databases/Oracle/SQL/cursor[cursor] attributes:
   • `%isopen`
   • `%found`
   • `%notfound`
@@ -30,7 +30,7 @@ insert into cur_attr_exmpl values ( 101, 'one hundred and one');
 insert into cur_attr_exmpl values (1000, 'thousand'           );
 code }
 
-{ %is_open
+{ %IS_OPEN
 
    With `%isopen`, it is possible to test whether a cursor was opened: 
 
@@ -80,9 +80,9 @@ Fourth test: cursor is not open
 code }
 
 }
-{ %found
+{ %FOUND
 
-  `%found` returns true if the last fetch operation on the cursor fetched a row.
+ `%found` returns true if the last fetch operation on the cursor fetched a row.
   
   If %found is used on a cursor that is not open (`%open` is false), an ~ORA-01001: invalid cursor is raised. %notfound returns null is returned~:
 
@@ -146,9 +146,9 @@ fetched: one hundred and one
 code }
 
 }
-{ %notfound
+{ %NOTFOUND
 
-  `%notfound` returns true if the last fetch operation on the cursor did not fetch a row.
+ `%notfound` returns true if the last fetch operation on the cursor did not fetch a row.
   
   If `%notfound` is used on a cursor that is not open (`%open` being false), an ~ORA-01001: invalid cursor is raised~. 
 
@@ -212,9 +212,9 @@ fetched: one hundred and one
 code }
 
 }
-{ %rowcount
+{ %ROWCOUNT
 
-  `%rowcount` returns the number of rows that have been fetched so far. So, it increases with each fetch: 
+ `%rowcount` returns the number of rows that have been fetched so far. So, it increases with each fetch: 
 
 code {
 declare
@@ -258,9 +258,9 @@ code }
   See also → development/databases/Oracle/SQL/cursor/attributes/rowcount[`%rowcount%`]
 
 }
-{ %bulk_rowcount
+{ %BULK_ROWCOUNT
 
-  `%bulk_rowcount` similar to `%rowcount`, but is used in → http://www.adp-gmbh.ch/ora/plsql/bc/index.html[bulk collects].
+ `%bulk_rowcount` similar to `%rowcount`, but is used in → http://www.adp-gmbh.ch/ora/plsql/bc/index.html[bulk collects].
 
 code {
 declare
@@ -301,6 +301,58 @@ code {
   fourty-two
 
 Totally 3 rows fetched
+code }
+
+}
+{ An old test
+
+  This is an old test that I excavated ‥
+code {
+create table tq84_cursor_attr_test (
+   a number
+);
+
+set serveroutput on
+begin
+
+  insert into tq84_cursor_attr_test select rownum from all_objects where rownum <= 10;
+  dbms_output.put_line('rowcount: ' || sql%rowcount);
+
+  insert into tq84_cursor_attr_test select * from tq84_cursor_attr_test;
+  dbms_output.put_line('rowcount: ' || sql%rowcount);
+
+  insert into tq84_cursor_attr_test select * from tq84_cursor_attr_test;
+  dbms_output.put_line('rowcount: ' || sql%rowcount);
+
+  insert into tq84_cursor_attr_test select * from tq84_cursor_attr_test;
+  dbms_output.put_line('rowcount: ' || sql%rowcount);
+
+  delete from tq84_cursor_attr_test where a = 5;
+  if sql%found then
+     dbms_output.put_line(sql%rowcount || ' rows were deleted');
+  else
+     dbms_output.put_line('no rows were deleted');
+  end if;
+
+  delete from tq84_cursor_attr_test where a = 5;
+  if sql%notfound then
+     dbms_output.put_line('no rows were deleted');
+  else
+     dbms_output.put_line(sql%rowcount || ' rows where deleted');
+  end if;
+
+  delete from tq84_cursor_attr_test where a=2;
+  delete from tq84_cursor_attr_test where a=3;
+  dbms_output.put_line('sql%rowcount before commit: ' || sql%rowcount);
+
+  commit;
+
+  dbms_output.put_line('sql%rowcount after commit: ' || sql%rowcount);
+
+end;
+/
+
+drop table tq84_cursor_attr_test purge;
 code }
 
 }

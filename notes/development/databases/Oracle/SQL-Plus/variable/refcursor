@@ -1,0 +1,40 @@
+$ SQL*Plus: REFCURSOR variables
+@ refcursor
+
+code {
+create table tq84_rc_tbl (a number, b varchar2(10));
+
+begin
+   insert into tq84_rc_tbl values (1, 'one'  );
+   insert into tq84_rc_tbl values (2, 'two'  );
+   insert into tq84_rc_tbl values (3, 'three');
+   commit;
+end;
+/
+
+create or replace procedure tq84_rc_proc(rc in out sys_refcursor) as
+begin
+   open rc for select * from tq84_rc_tbl;
+end;
+/
+
+variable rc_var refcursor
+
+exec tq84_rc_proc(:rc_var)
+
+
+print rc_var
+--          A B         
+-- ---------- ----------
+--          1 one       
+--          2 two       
+--          3 three     
+
+drop procedure tq84_rc_proc;
+drop table     tq84_rc_tbl;
+code }
+
+sa:
+  SQL*PLus → development/databases/Oracle/SQL-Plus/variable[variables]
+
+  Using ref cursors with → http://www.adp-gmbh.ch/perl/dbi/refcursor.html[Perl DBI]
