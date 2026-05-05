@@ -10,6 +10,8 @@ The value of the execution policy for the current user is stored in the → Wind
 
 { TODO
 
+  { Setting is overridden
+
 code {
 PS: C:\> set-executionPolicy bypass -scope process
 code }
@@ -19,6 +21,41 @@ code }
     Due to the override, your shell will retain its current effective
     execution policy of RemoteSigned. Type "Get-ExecutionPolicy -List" to view your execution policy settings. For more information please see "Get-Help Set-ExecutionPolicy.
   "
+
+  }
+  { ‥ must be set through Group Policy ‥
+
+
+code {
+PS C:\> set-executionPolicy -scope user -executionPolicy bypass -force
+set-executionPolicy : Cannot set execution policy. Execution policies at the MachinePolicy or UserPolicy scop
+be set through Group Policy.
+At line:1 char:1
++ set-executionPolicy -scope user -executionPolicy bypass -force
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [Set-ExecutionPolicy], InvalidOperationException
+    + FullyQualifiedErrorId : CantSetGroupPolicy,Microsoft.PowerShell.Commands.SetExecutionPolicyCommand
+code }
+
+rem {
+    This Group Policy setting can be set under `→ Windows/dirs/Windows/System32/gpedit_msc` -> Computer Configuration -> Administrative Templates -> Windows Components -> Windows PowerShell by enabling
+   *Turn on Script Execution* and choosing *Allow all scripts*, followed by `gpudate.exe` and starting a new PowerShell session.
+    -
+    However, after changing the GP, I get:
+code {
+
+PS C:\> /path/to/some/script.ps1
+
+Security warning
+Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your
+computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning
+message. Do you want to run C:\path\to\some\script.ps1?
+[D] Do not run  [R] Run once  [S] Suspend  [?] Help (default is "D"):
+code }
+
+rem }
+
+  }
 
 }
 
