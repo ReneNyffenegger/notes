@@ -10,7 +10,68 @@ get-winEvent  security     # requires admin privileges
 get-winEvent -providerName Microsoft-Windows-Kernel-Power
 code }
 
-{ -filterXml
+{ -ListLog
+
+  Without admin privileges:
+code {
+PS C:\> get-winEvent -listLog *
+
+LogMode   MaximumSizeInBytes RecordCount LogName
+-------   ------------------ ----------- -------
+Circular            15728640       12392 Windows PowerShell
+Circular            20971520       31792 System
+Get-WinEvent : Could not retrieve information about the Security log. Error: Attempted to perform an unauthorized operation..
+code }
+
+  With admin privileges
+code {
+PS C:\> get-winEvent -listLog *
+
+LogMode   MaximumSizeInBytes RecordCount LogName
+-------   ------------------ ----------- -------
+Circular            15728640       12392 Windows PowerShell
+Circular            20971520       31792 System
+Circular            20971520       25200 Security
+Circular             1052672           0 Palo Alto Networks
+Circular             1052672         107 OneApp_IGCC
+Circular             1052672        1517 OAlerts
+Circular            20971520           0 Key Management Service
+Get-WinEvent : Could not retrieve information about the Internet Explorer log. Error: Attempted to perform an unauthorized operation..
+
+PS C:\> get-winEvent -listLog * -errorAction silent
+code }
+
+  Find a log name
+code {
+get-winEvent -listLog * -errorAction silent | where { $_.logname -match 'hyper-v' }
+code }
+
+
+}
+{ -LogName
+
+  Use `get-winevent -LogName Microsoft-Windows-Hyper-V-Hypervisor* -MaxEvents 20 | select id, message, providername` to find a log name.
+
+code {
+get-winevent -LogName Microsoft-Windows-Hyper-V-Hypervisor* -MaxEvents 20 | select id, message, logname
+code }
+
+}
+{ -ProviderName
+
+  Why?
+code {
+PS C:\> get-winEvent -ProviderName *
+Get-WinEvent : Could not retrieve information about the Microsoft-System-Diagnostics-DiagnosticInvoker provider. Error: The resource loader cache doesn't have loaded MUI entry.
+code }
+
+  This seems to work better:
+code {
+get-winEvent -ProviderName Microsoft-Windows-Hyper-V-Hypervisor -maxEvents 20
+code }
+
+}
+{ -FilterXml
 
 code {
 $time_from = (→ Windows/PowerShell/command-inventory/noun/date/get[get-date]).AddHours(-10).ToString( "→ Microsoft/dot-net/namespaces-classes/System/String/Format/_format-strings#dot-net-date-format-strings[yyyy-MM-ddTHH:mm:ss.fffZ]" )
@@ -42,8 +103,6 @@ code }
 
   `get-eventLog` returns instances of `System.Diagnostics.EventLogEntry` objects, `get-winEvent` instances of `System.Diagnostics.Eventing.Reader.EventLogRecord`.
 
-  links:
-    • → https://devblogs.microsoft.com/scripting/use-powershell-cmdlet-to-filter-event-log-for-easy-parsing/[Use PowerShell Cmdlet to Filter Event Log for Easy Parsing]
 
 }
 
@@ -56,3 +115,6 @@ sa:
  `get-winEvent` is one of the cmdLets with the → Windows/PowerShell/command-inventory/parameter/computerName[`-computerName` parameter].
 
   → Windows/PowerShell/command-inventory/noun/winEvent
+
+links:
+  • → https://devblogs.microsoft.com/scripting/use-powershell-cmdlet-to-filter-event-log-for-easy-parsing/[Use PowerShell Cmdlet to Filter Event Log for Easy Parsing]
