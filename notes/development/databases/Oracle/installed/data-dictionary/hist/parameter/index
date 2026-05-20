@@ -1,0 +1,30 @@
+$ Oracle: DBA_HIST_PARAMETER
+$ dba_hist_parameter
+
+{ Determining when a parameter value has changed
+
+code {
+select * from (
+   select
+      snp.begin_interval_time  beg,
+      snp.end_interval_time    end,
+      par.value,
+      lag(par.value) over (order by par.snap_id) prev_value,
+      par.isdefault,
+      par.ismodified
+   from
+      dba_hist_parameter par                                       join
+      dba_hist_snapshot  snp on par.snap_id = snp.snap_id
+   where
+      par.parameter_name = 'cursor_sharing'
+   order by
+      par.snap_id desc
+)
+where
+   value != prev_value;
+code }
+
+}
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/hist[`dba_hist*` views]
