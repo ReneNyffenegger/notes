@@ -32,6 +32,20 @@ In an → development/databases/Oracle[Oracle] database, parallel → developmen
   For example, in a parallel select statement with a `sum()`, the PX servers sum part of the data while the QC in the end will calculate the final
   sum from the results from the PX servers.
 
+  { Connection queues #ora-px-queue
+
+    The QC and the PXs exchange data and messages using *queues*.
+
+    These queues are protected with the *PX qref latch*. I didn't find this name in `v$latch`, but an → development/databases/Oracle/installed/dynamic-performance-views/event_name/list/PX/qref-latch[event with this name] is present.
+
+    A parallel query with a DOP of n requires `n^2 + 2n` connections.
+
+    Each connection has a number of buffers allocated (see `select * from v$px_process_sysstat where statistic like 'Buffers%';`).
+
+    See also KB178327.
+
+  }
+
 }
 { Ranger
 
