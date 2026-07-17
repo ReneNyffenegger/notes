@@ -17,6 +17,24 @@ code {
 unregister-scheduledTask 'testy testy' -confirm:$false   
 code }
 
+{ Start Powershell when I log on
+
+code {
+$null = register-scheduledTask -taskPath tq84 -taskName 'Start PS when logging on' -inputObject ( `
+  new-ScheduledTask `
+     -action    ( → Windows/PowerShell/command-inventory/noun/scheduledTaskAction/new      `
+                 -execute 'powershell.exe'   ) `
+     -trigger   ( → Windows/PowerShell/command-inventory/noun/scheduledTaskTrigger/new     `
+                 -atLogOn                      `
+                 -user $(whoami)             ) `
+     -principal ( new-scheduledTaskPrincipal   `
+                 -userID  $(whoami)            `
+                 -logonType interactive      ) )
+
+code }
+
+}
+
 sa:
 
  `→ development/tools/scripts/personal/notif_ps1`

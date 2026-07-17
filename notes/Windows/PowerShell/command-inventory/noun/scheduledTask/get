@@ -15,7 +15,7 @@ code }
 
     It seems that a trailing slash is required in the following case.
     -
-    The following command produces `PS D:\exports> Get-ScheduledTask -TaskPath '\x\syn' Get-ScheduledTask : No MSFT_ScheduledTask objects found with property 'TaskPath' equal to '\x\syn'.  Verify the value of the property and retry.`
+    The following command produces `PS D:\exports> Get-ScheduledTask -TaskPath '\x\syn' Get-ScheduledTask : No → Windows/Management-Instrumentation/namespaces/microsoft/windows/taskScheduler/msft_scheduledTask[MSFT_ScheduledTask] objects found with property 'TaskPath' equal to '\x\syn'. Verify the value of the property and retry.`
 code {
 get-scheduledTask -taskPath '\x\syn'
 code }
@@ -23,6 +23,16 @@ code }
     However, this works:
 code {
 get-scheduledTask -taskPath '\x\syn\'
+code }
+
+  }
+  { Forward slashes don't work
+
+    Apparently, when specifying a task path, backward slashed are required. Forward slashed cause an error:
+code {
+PS C:\> get-scheduledTask -taskPath /tq84/ -taskname *
+Get-ScheduledTask : No matching MSFT_ScheduledTask objects found by CIM query for instances of the Root/Microsoft/Windows/TaskScheduler/MSFT_ScheduledTask class on the  CIM server:
+SELECT * FROM MSFT_ScheduledTask WHERE ((TaskName LIKE '%')) AND ((TaskPath LIKE '/tq84/')).
 code }
 
   }
