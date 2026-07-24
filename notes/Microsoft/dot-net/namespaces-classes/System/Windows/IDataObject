@@ -20,8 +20,40 @@ A basic implementation of this interface is implemented with `System.Windows.Dat
 { Misc
 
 code {
+add-type -assemblyName PresentationCore
 $clip = [Windows.Clipboard]::GetDataObject()
 if ('Csv' -in $clip.GetFormats()) {$mem = $clip.GetData('Csv'); $buf = [byte[]]::new($mem.length); $null = $mem.Read($buf, 0, $mem.length)}; $x = ''; foreach ($c in $buf) { $x = $x += [char]$c} ; $x
+code }
+
+code {
+add-type -assemblyName PresentationCore
+
+$clip = [Windows.Clipboard]::GetDataObject()
+
+foreach ($fmt in $clip.GetFormats()) {
+   try {
+      $dat = $clip.GetData($fmt)
+      $typ = $dat.GetType()
+   }
+   catch {
+      $typ = '?'
+   }
+
+   '{0,-50} {1}' -f $fmt, $typ
+}
+code }
+
+  Memory stream to text:
+code {
+add-type -assemblyName PresentationCore
+
+$clip = [Windows.Clipboard]::GetDataObject()
+
+$mem = $clip.GetData('Xml Spreadsheet')
+$enc = [System.Text.Encoding]::GetEncoding("ISO-8859-1")
+
+$str = $enc.GetString($mem.ToArray())
+write-host $str
 code }
 
 }
