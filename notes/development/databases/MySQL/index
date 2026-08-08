@@ -50,9 +50,43 @@ Do data directories contain a sub-directory for each database?
 -
 Compare the `datadir` configuration option.
 
-{ Starting the MySQL daemon / service
+{ Installation
 
-  On Windows, the MySQL → Windows/services[service] can be started with → Windows/dirs/Program-Files/MySQL/MySQL-Server-v_v/bin/mysqld_exe[`mysqld.exe`]
+  { Debian
+
+    I was able to install MariaDB with
+code {
+→ Linux/shell/commands/sudo apt install -y mariadb-server
+code }
+
+  }
+  { Windows
+
+    In order to change the *installation path* when installing on → Windows, MySQL in their finite wisdom has chosen to let a user do that by clicking an inconspicuous* link named «advanced option».
+
+  }
+
+}
+{ MySQL daemon / service
+
+  { Linux / Debian
+
+    The following commands worked with a MariaDB intallation. I assume it works equally with mysql.
+
+code {
+sudo → Linux/init/systemd/tools/systemctl status  mariadb
+sudo → Linux/init/systemd/tools/systemctl enable  mariadb
+sudo → Linux/init/systemd/tools/systemctl disable mariadb
+sudo → Linux/init/systemd/tools/systemctl start   mariadb
+sudo → Linux/init/systemd/tools/systemctl stop    mariadb
+code }
+
+  }
+  { Windows
+
+     On Windows, the MySQL → Windows/services[service] can be started with → Windows/dirs/Program-Files/MySQL/MySQL-Server-v_v/bin/mysqld_exe[`mysqld.exe`]
+
+  }
 
 }
 { Starting MySQL client
@@ -90,6 +124,16 @@ code }
     • `'mysql.session'@'localhost'`
     • `'mysql.infoschema'@'localhost'`
 
+? I've seen the recommendation to follow the creation of a user modifying his rights with `flush privileges`.
+
+  { Allow root to login with password
+
+code {
+lter user root@localhost identified via unix_socket or mysql_native_password using password ('squareR00t');
+code }
+
+  }
+
 }
 { Engines
 
@@ -107,6 +151,13 @@ code }
 
 code {
 select * from information_schema.innodb_tables where name = 'ts/tab';
+code }
+
+  }
+  { Sphinx
+
+code {
+install soname 'ha_sphinx'
 code }
 
   }
@@ -277,8 +328,8 @@ show processlist
 code }
 
 The id of the process is retrieved by `show processlist`.
-code { 
-kill 20 
+code {
+kill 20
 code }
 
 }
@@ -453,11 +504,6 @@ code }
   The `user` option under `[mysqld]` in the → development/databases/MySQL/configuration/server-instance[configuration file].
 
 }
-{ Installation
-
-  In order to change the *installation path* when installing on → Windows, MySQL in their finite wisdom has chosen to let a user do that by clicking an inconspicuous* link named «advanced option».
-
-}
 { datadir
 
   The location of the datadir can be found with
@@ -577,7 +623,7 @@ select * from information_schema.st_spatial_reference_systems where srs_id in (
    0   , --                          (cartesian projection)
    4326, -- WGS 84                   (= GPS coordinates)
    3857  -- WGS 84 / Pseudo-Mercator (map projection used on Google Maps, OpenStreetMap etc., but not in paper maps) 
-);
+
 code }
 
 
