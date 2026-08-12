@@ -321,13 +321,29 @@ show global variables like 'autocommit';
 code }
 
 }
-{ Sessions
+{ Sessions / Processes
 
+  The *processlist* seems to show connected users and what SQL statement they're currently executing (column `info`):
 code {
 show processlist
 code }
 
-The id of the process is retrieved by `show processlist`.
+  Compare with `information_schema.processlist`:
+code {
+select
+   id,
+   user,
+   db,
+   time,
+   state,
+   info   as sql_stmt
+from
+   information_schema.processlist
+where
+   command = 'Query';
+code }
+
+  Terminating a session:
 code {
 kill 20
 code }
@@ -590,27 +606,6 @@ code {
 select * from performance_schema.events_waits_history where thread_id = 13 order by event_id;
 select * from performance_schema.events_waits_summary_global_by_event_name;
 code }
-
-}
-{ Processes
-
-The *processlist* seems to show connected users and what SQL statement they're currently executing (column `info`):
-code {
-show processlist;
-select * from information_schema.processlist;
-
-select
-   id,
-   user,
-   db,
-   time,
-   state,
-   info   as sql_stmt
-from
-   information_schema.processlist
-where
-   command = 'Query';
-code}
 
 }
 { Parallel execution
