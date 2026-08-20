@@ -79,6 +79,63 @@ code }
   gh|oracle_scriptlets|/ash-awr/awr/stats_in_period.sql||
 
 }
+{ Find statements which high CPU time, physical read/written bytes, execution numbers etc.
+
+code {
+with bas as (
+   select
+      to_char(snp.begin_interval_time, 'yyyy-mm-dd hh24:mi:ss') snap_begin,
+      sta.sql_id,
+      count(*) cnt,
+      to_char(sum(sta.cpu_time_delta / 1e6), '999,990.0') cpu_tm_d_s,
+      to_char(sum(sta.cpu_time_total / 1e6), '999,990.0') cpu_tm_t_s,
+      sum(sta.executions_delta          ) exec_d,
+      sum(sta.executions_total          ) exec_t,
+      sum(sta.physical_read_bytes_delta ) phys_rb_d,
+      sum(sta.physical_read_bytes_total ) phys_rb_t,
+      sum(sta.physical_write_bytes_delta) phys_wb_d,
+      sum(sta.physical_write_bytes_total) phys_wb_t,
+      row_number() over (partition by snp.begin_interval_time order by
+         sum(sta.cpu_time_total            )
+      -- sum(sta.executions_total          )
+      -- sum(sta.physical_write_bytes_delta)
+      -- sum(sta.physical_read_bytes_delta )
+      desc) rn
+   from
+      sys.dba_hist_sqlstat  sta                                                                 left join
+      sys.dba_hist_snapshot snp on sta.snap_id         = snp.snap_id and sta.dbid = snp.dbid -- left join
+   -- sys.dba_hist_sqltext  txt on sta.sql_id          = txt.sql_id  and sta.dbid = txt.dbid    left join
+   -- sys.dba_users         usr on sta.parsing_user_id = usr.user_id
+   where
+      snp.begin_interval_time > sysdate - 1
+   -- and sql_id not in ('‥', '‥')
+   group by
+      snp.begin_interval_time,
+      sta.sql_id
+)
+select
+   bas.snap_begin,
+   bas.sql_id,
+   bas.cnt,
+   bas.cpu_tm_d_s,
+   bas.cpu_tm_t_s,
+   bas.exec_d,
+   bas.exec_t,
+   bas.phys_rb_d,
+   bas.phys_rb_t,
+   bas.phys_wb_d,
+   bas.phys_wb_t,
+   txt.sql_text
+from
+   bas                                                     left join
+   sys.dba_hist_sqltext  txt on bas.sql_id  = txt.sql_id
+where
+   bas.rn = 1
+order by
+   snap_begin desc;
+code }
+
+}
 { Stats of a given SQL ID
 
   Report an → development/databases/Oracle/SQL/statement[SQL statement's] (identified by `sql_id`) statistics in each snapshot:

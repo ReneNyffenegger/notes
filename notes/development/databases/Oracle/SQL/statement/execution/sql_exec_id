@@ -12,6 +12,51 @@ As → https://tanelpoder.com/2011/10/24/what-the-heck-is-the-sql-execution-id-s
   • `→ development/databases/Oracle/installed/dynamic-performance-views/sql/monitor`
   • `→ development/databases/Oracle/installed/dynamic-performance-views/sql/plan/monitor`
 
+
+{ Test
+
+code {
+create table tq84_dual as select * from dual;
+
+set serveroutput on
+declare
+    cnt     pls_integer := 0;
+    dummy_  char(1);
+    end_at  timestamp := systimestamp + interval '5' second;
+begin
+    while systimestamp < end_at loop
+        select dummy
+          into dummy_
+          from tq84_dual;
+
+        cnt := cnt + 1;
+    end loop;
+
+    dbms_output.put_line('Executed statement ' || cnt || ' times.');
+end;
+/
+
+select
+   systimestamp - ash.sample_time          ash_sample_time_ago,
+   ash.sql_id,
+   ash.sql_exec_id - lead(ash.sql_exec_id) over (partition by ash.session_id, ash.session_serial#, ash.sql_id, ash.sql_child_number order by ash.sample_id desc)  "exec d",
+   ash.sql_exec_id - 16*1024*1024                                                                                                                                 "exec 0",
+   sql.executions                                                                                                                                                 "exec s",
+   ash.sql_exec_id,
+   count(*) over (partition by ash.session_id, ash.session_serial#) cnt_,
+   ash.session_id     sid,
+   ash.session_serial# ser
+from
+   v$active_session_history ash left join
+   v$sqlarea                sql on ash.sql_id = sql.sql_id
+where
+   ash.sql_id = (select sql_id from v$sql where sql_text = 'SELECT DUMMY FROM TQ84_DUAL')
+order by
+   ash.sample_time desc;
+code }
+
+}
+
 sa:
 
   → development/databases/Oracle/installed/data-dictionary/hist/active_sess_history/sql-statement-duration
