@@ -39,6 +39,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 code }
 
+     The `camera` and `scene` objects are passed to `renderer.render()` in order to render a scene as viewed from the camera.
+
   }
 
 }
@@ -220,6 +222,8 @@ code }
   }
   { Animation loop
 
+    The callback function that is called after specifying it with `setAnimationLoop()` generally modifies the scene and
+    then calls `renderer.render(scene, camera)`:
 code {
 const clock    = new THREE.Clock();
 const renderer = new THREE.WebGLRenderer();
@@ -243,6 +247,10 @@ function animate() {
    stats.update();
 }
 code }
+
+    For on-demand rendering, no animation loop is required. Simply calling `renderer.render()` is sufficient.
+
+    If the camera is controlled by a *control*, the animation loop will likely have to call `controls.update()` as well.
 
   }
 
@@ -918,7 +926,9 @@ code }
   -
   Because a `Controls` object does not inherit from `Object3D`, it cannot (and needs not) be added to a scene.
 
-  The → https://github.com/mrdoob/three.js/blob/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/src/extras/Controls.js#L5[constructor of `Controls`] takes the controlled object and and optional DOM element.
+  The → https://github.com/mrdoob/three.js/blob/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/src/extras/Controls.js#L5[constructor of `Controls`] takes
+    • the controlled object (typically: the camera) and an
+    • optional DOM element (which is the HTML element used for the event listeners).
 
   → https://github.com/mrdoob/three.js/tree/04d8b8b4eea328616ecc6c6f15e14fa699a0ade4/examples/jsm/controls[`examples/jsm/controls`] defines the following classes that inherit from `Control`:
     table { ll
@@ -930,7 +940,10 @@ code }
      `OrbitControls` ☰ `OrbitControls` allows the camera to orbit around a center; performs orbiting, dollying (zooming), and panning. Unlike `TrackballControls`, it maintains the "up" direction object.up (+Y by default).
      `FlyControls` ☰ For arbitrary transformations of the camera in 3D space without any limitations. Keys *yaw*: `A` = `arrow left`: left, `D` = `arrow right`: right; `R`: elevate, `F`: descend. *Roll*: `Q` and `E`. *Pitch*:  `arrow up` and `arrow down`. *Zoom*: `W` = left mouse button: forward, `S` = right mouse button: backward. 
      `FirstPersonControls` ☰ An alternative implementation of `FlyControls`
+     `MapControls` ☰  Looking at a map from a bird's eye perspective. `MapControls` inherits from `OrbitControls`, with a specific preset for mouse/touch interaction and disabled screen space panning by default.
     table }
+
+   In most cases, the animation loop should call `controls.update()`.
 
 }
 { EventDispatcher
@@ -982,6 +995,11 @@ code }
   The `AxesHelper` class draws three lines from the origin to the positive coordinates with the X-axes being red, the Y-axes being green and the Z-axes being blue.
   -
  `AxesHelper` inherits from `LineSegments`.
+
+}
+{ GridHelper
+
+ `GridHelper` derives from `LineSegments` and draws a two-dimensional grid.
 
 }
 { src/…
@@ -1147,7 +1165,6 @@ code }
      Compare `renderer.setClearColor()` with `scene.background`.
 
    }
-
 }
 
 sa:
