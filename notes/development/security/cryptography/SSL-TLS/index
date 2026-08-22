@@ -64,6 +64,8 @@ SSL is the predecessor of TLS.
 
     table }
 
+    The ClientHello message can be used for TLS fingerprinting.
+
   }
 
 }
@@ -109,6 +111,40 @@ SSL is the predecessor of TLS.
      • `*.p7b`
      • `*.p7s`
      • `*.pfx`
+
+}
+{ Server Name Indication (SNI)
+  
+  SNI is an extension to TLS which allows the client to name the hostname it intends to contact. This is useful in cases where multiple hostnames are served under the
+  same IP address.
+
+}
+{ TLS Fingerprinting
+
+  The ClientHello (which is sent in plaintext) allows to create a client's fingerprint.
+
+  { JA3
+
+   `JA3 = MD5(TLSVersion, Ciphers, Extensions, EllipticCurves, EllipticCurvePointFormats)`
+
+    JA3 had a few drawbacks which produced different hashes for the same client
+      • The client might send the extensions in a different order
+      • The introduction of *GREASE* (Generate Random Extensions And Sustain Extensibility) to prevent ecosystem ossification.
+      • Malware clients shufflng the cypher list (*Cypher Stunting*)
+
+  }
+  { JA4+
+
+    The goal of JA4+ was to fix the drawbacks of JA3.
+
+    A JA4+ fingerprint consists of three segments:
+      • Metadata: Protocol (TCP/QUIC), TLS version, SNI presence, and counts of ciphers/extensions
+      • Ciphers: A truncated SHA-256 hash of the *sorted* cipher list.
+      • Extensions: A hash of the sorted extensions and signature alorithms where non-identifiying GREASE values are removed.
+
+
+  }
+
 
 }
 
