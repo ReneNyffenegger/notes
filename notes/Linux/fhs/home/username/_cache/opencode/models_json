@@ -9,5 +9,42 @@ code {
 $ opencode models --refresh
 code }
 
+{ Querying the file with jq #opencode-models-jq
+
+  I believe this query finds all providers:
+code {
+$ → development/languages/JavaScript/JSON/tools/jq -r 'keys[]' ~/.cache/opencode/models.json | → Linux/shell/commands/grep open
+openai
+opencode
+opencode-go
+openrouter
+code }
+
+  This seems to find all models of a given provider (here: `openrouter`):
+code {
+$ → development/languages/JavaScript/JSON/tools/jq -r '.openrouter.models | keys[]' ~/.cache/opencode/models.json
+aion-labs/aion-2.0
+aion-labs/aion-3.0
+aion-labs/aion-3.0-mini
+aion-labs/aion-rp-llama-3.1-8b
+allenai/olmo-3-32b-think
+‥
+code }
+
+  Show details of a given model of a provider:
+code {
+$ → development/languages/JavaScript/JSON/tools/jq '.openrouter.models."stealth/ox-alpha"' ~/.cache/opencode/models.json
+code }
+
+  Which providers offer `stealth/ox-alpha`?
+code {
+$ → development/languages/JavaScript/JSON/tools/jq  -r 'paths | select(.[-1] == "stealth/ox-alpha") | .[0]'  ~/.cache/opencode/models.json
+nano-gpt
+openrouter
+kilo
+code }
+
+}
+
 sa:
   → development/Artificial-intelligence/models/database
