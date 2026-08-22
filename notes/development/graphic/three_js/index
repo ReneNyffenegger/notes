@@ -909,6 +909,31 @@ code }
   }
 
 }
+{ Local and world space
+
+  There are tow relevant coordinate spaces:
+    • Local space where coordinates are relative to a (parent) object. If the parent object moves or rotates, the child object goes with it.
+    • World space where coordinates are relative to the scene.
+
+
+   Conversion:
+code {
+const wPos  = new THREE.Vector3();
+const wQuat = new THREE.Quaternion();
+const wScal = new THREE.Vector3();
+
+obj.getWorldPosition(wPos);
+obj.getWorldQuaternion(wQuat);
+obj.getWorldScale(wScal);
+
+const localPos      = new THREE.Vector3(1, 0, 0);
+const worldPod      = obj.localToWorld(localPos.clone());
+const localPosAgain = obj.worldToLocal(worldPos.clone());
+code }
+ 
+
+
+}
 { Group
 
   The purpose of `Group` is to make working with groups of objects syntactically easier.
@@ -1045,7 +1070,7 @@ code }
   }
   { src/math
 
-    → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/math[`src/math`] contains
+    → https://github.com/mrdoob/three.js/tree/4f25a3195afaab6e4fdff7b44264587f0098dd71/src/math[`src/math`] defines the following classes (which inherit from no other class):
       • `Box2.js` - an axis-aligned bounding-box in 2D space
       • `Box3.js` - an axis-aligned bounding-box in 3D space Which is used, for example, to represent certain objects' bounding boxes
       • `Color.js`
@@ -1060,7 +1085,7 @@ code }
       • `Matrix3.js`
       • `Matrix4.js`
       • `Plane.js` - A two dimensional surface that extends infinitely in 3d space, represented in → https://mathworld.wolfram.com/HessianNormalForm.html[Hessian normal form] by a unit length normal vector and a constant.
-      • `Quaternion.js` - → https://en.wikipedia.org/wiki/Quaternion[Quaternion], used in three.js to represent rotations.
+      • `Quaternion.js` - → https://en.wikipedia.org/wiki/Quaternion[Quaternion], used in three.js to represent rotations. Using quaternions avoids *gimbal locks* (which are possible with Euler angles).
       • `Ray.js` - Used by `Raycaster`
       • `Sphere.js` - Which is used, for example, to represent certain objects' bounding spheres
       • `Spherical.js` - A point in → https://en.wikipedia.org/wiki/Spherical_coordinate_system[spherical coordinates]. Compare with `Cylindrical`.
@@ -1071,8 +1096,6 @@ code }
       • `Vector4.js`
 
     In addition, the directory also contains the `interpolants` directory.
-
-  }
 
 }
 { ComputeBoundingBox, ComputeBoundingSphere
@@ -1143,11 +1166,6 @@ code }
     → https://lil-gui.georgealways.com/[lil-gui] makes a *floating panel for controllers* on the web.
 
     lil-gui is a → https://discourse.threejs.org/t/lib-why-changed-dat-gui-to-lil-gui/62124/2[drop-in replacement] for *dat.gui* (which is no longer maintained) in most projects.
-
-  }
-  { World unit
-
-    What is a world unit.
 
   }
   { AnimationMixer
