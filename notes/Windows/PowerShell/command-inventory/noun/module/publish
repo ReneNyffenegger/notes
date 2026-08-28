@@ -17,6 +17,35 @@ code }
   When a module is published, a `.nuspec` file is added.
 
 }
+{ Could not create SSL/TLS secure channel
+
+
+code {
+PS: C:\> publish-module -name rene.wsb -NuGetApiKey $env:nugetApiKey
+Publish-PSArtifactUtility : Failed to publish module 'Rene.wsb': 'The request was aborted: Could not create SSL/TLS secure channel.
+code }
+
+  Running the following commands as administrator helped circumvent the above error, after starting a new Powershell session (see → https://learn.microsoft.com/en-us/powershell/gallery/powershellget/install-powershellget?view=powershellget-3.x[here]).
+code {
+install-module PowerShellGet                      -repository PSGallery -force -allowClobber
+install-module Microsoft.PowerShell.PSResourceGet -repository PSGallery -force
+code }
+
+}
+{ Failed to generate the compressed file for module 'C:\Program Files\dotnet\dotnet.exe failed to pack: error
+
+  After "fixing" the above error, I then got this:
+code {
+PS: C:\> publish-module -name rene.wsb -NuGetApiKey $env:nugetApiKey
+Publish-PSArtifactUtility : Failed to generate the compressed file for module 'C:\Program Files\dotnet\dotnet.exe failed to pack: error
+code }
+
+  I was able to "fix" this error by executing the following command and then starting a new powershell session.
+code {
+invoke-webRequest -uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -outFile "$env:LOCALAPPDATA\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
+code }
+
+}
 
 sa:
 
