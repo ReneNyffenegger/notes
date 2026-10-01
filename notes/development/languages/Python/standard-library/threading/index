@@ -9,6 +9,42 @@ gh|about-python|/standard-library/threading/demo.py||
   gh|about-python|/standard-library/threading/start-join.py||
 
 }
+{ daemon
+
+  A thread has a (boolean) `daemon` property. As soon as all threads running have set this property to true, the process exits immediatly.
+  -
+  Thus daemon-threads may not be able clean up their resources.
+
+  The main (initial) thread does not have this property set.
+
+  Demonstration program:
+code {
+import sys
+import threading
+import time
+
+
+def work():
+    time.sleep(10)
+    print('Finished')
+
+
+daemon = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else True
+
+thread = threading.Thread(target=work)
+thread.daemon = daemon
+thread.start()
+
+print(f'Main finished; daemon={daemon}')
+code }
+
+  Execute with
+code {
+python3 /tmp/x.py true
+python3 /tmp/x.py false
+code }
+
+}
 
 sa:
  `→ development/languages/Python/standard-library/threading/Lock`
