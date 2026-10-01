@@ -1,0 +1,78 @@
+$ Python standard library: selectors
+@ selectors
+
+`selectors` allows high-level and efficient I/O multiplexing, built upon the `→ development/languages/Python/standard-library/select` module primitives.
+
+{ Check for available classes (selectors)
+
+code {
+import selectors
+
+for c in ['SelectSelector', 'PollSelector', 'EpollSelector', 'DevpollSelector', 'KqueueSelector']:
+    print(f"{c:<15} is {'not' if not hasattr(selectors, c) else '   '} available")
+code }
+
+}
+{ Default selector
+
+code {
+>>> import selectors
+>>> selectors.DefaultSelector().__class__
+<class 'selectors.EpollSelector'>
+code }
+
+}
+{ Simple echo server py-selectors-echo-server
+
+  The following code is copied from → https://docs.python.org/3/library/selectors.html[Python's documentation]:
+code {
+import → development/languages/Python/standard-library/socket
+import selectors
+
+sel = selectors.DefaultSelector()
+
+def accept(sock, mask):
+    conn, addr = sock.accept()  # Should be ready
+    print('accepted', conn, 'from', addr)
+    conn.setblocking(False)
+    sel.register(conn, selectors.EVENT_READ, read)
+
+def read(conn, mask):
+    data = conn.recv(1000)  # Should be ready
+    if data:
+        print('echoing', repr(data), 'to', conn)
+        conn.send(data)  # Hope it won't block
+    else:
+        print('closing', conn)
+        sel.unregister(conn)
+        conn.close()
+
+sock = socket.socket()
+sock.bind(('localhost', 1234))
+
+# puts the socket into listening mode and
+# allow up to 42 pending connection requests
+# to wait in the operating system’s connection queue.
+sock.listen(42)
+
+sock.setblocking(False)
+
+#
+# Monitor sock for EVENT_READ (which indicates
+# a new connection request here?)
+# The third argument can be any object and is returned
+# as key.data in the loop below.
+# 
+sel.register(sock, selectors.EVENT_READ, accept)
+
+while True:
+    events = sel.select()
+    for key, mask in events:
+        callback = key.data
+        callback(key.fileobj, mask)
+code }
+
+}
+
+sa:
+  The → development/languages/Python/standard-library
