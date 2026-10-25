@@ -1,6 +1,99 @@
 $ Python standard library: typing
 @ typing
 
+{ Any
+
+ `Any` is the default annotation for all arguments or return types that are not explicitely specified.
+
+}
+{ Callable
+
+ `Callable[ [t1, t2], tr ]` is a callback function that expects two arguments of types `t1` and `t2` and returns a `tr`.
+
+  It's possible to define only the return type: `Callable[ ..., tr]`. (Note there are no square brackets around the ellipsis).
+
+}
+{ Dict
+
+code {
+from typing import Dict
+
+opts: Dict[int, str] = {}
+
+def add_opt(k: int, v: str) -> None:
+    opts[k] = v
+
+
+def show_kv(d: Dict[int, str]):
+    for k in d:
+        print(str(k) + ': ' + d[k])
+
+
+add_opt(4, 'four' )
+add_opt(1, 'one'  )
+add_opt(8, 'eight')
+
+show_kv(opts)
+code }
+
+  Compare with `Mapping`.
+
+}
+{ Mapping
+
+  Compare with `Dict` and `MutableMapping`.
+
+}
+{ None
+
+  The return type of `__init__` should be annotated with `-> None`.
+
+}
+{ NoReturn
+
+ `NoReturn` indicates that a a function does not return normally, such as `sys.exit`.
+
+code {
+from typing import NoReturn
+
+def fail() -> NoReturn:
+    raise RuntimeError('failed')
+code }
+
+}
+{ Optional
+
+code {
+from typing import Optional
+
+def p(a: Optional[int] = 42, b: Optional[str] = 'Hello world'):
+    print(f'a = {a}')
+    print(f'b = {b}')
+
+p(b='hi')
+code }
+
+}
+{ Sequence
+
+ `Sequence[int]`
+
+}
+{ TypeVar
+
+code {
+from typing import TypeVar
+x = TypeVar('y')
+code }
+
+code {
+$ pyright /tmp/u.py
+  /tmp/u.py:2:1 - error: TypeVar must be assigned to a variable named "y" (reportGeneralTypeIssues)
+code }
+
+
+}
+
 sa:
 
  `→ development/languages/Python/standard-library/typing/NamedTuple`
@@ -8,3 +101,5 @@ sa:
  `→ development/languages/Python/standard-library/types`
 
   → development/languages/Python/standard-library
+
+  → development/languages/Python/PEP/0484[PEP 484]
