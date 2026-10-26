@@ -1,0 +1,50 @@
+$ Oracle: DBA_HIST_PROCESS_WAITTIME
+@ dba_hist_process_waittime
+
+`dba_hist_process_waittime` shows CPU and wait time by process type.
+
+code {
+with d as (
+   select
+      prw.process_type,
+      nvl(sum (case when prw.wait_class_type = 'System I/O'     then value / 1e6 end), 0) io_sys,
+      nvl(sum (case when prw.wait_class_type = 'User I/O'       then value / 1e6 end), 0) io_usr,
+      nvl(sum (case when prw.wait_class_type = 'Administrative' then value / 1e6 end), 0) admin,
+      nvl(sum (case when prw.wait_class_type = 'Application'    then value / 1e6 end), 0) app,
+      nvl(sum (case when prw.wait_class_type = 'CPU Used'       then value / 1e6 end), 0) cpu,
+      nvl(sum (case when prw.wait_class_type = 'Commit'         then value / 1e6 end), 0) commit_,
+      nvl(sum (case when prw.wait_class_type = 'Concurrency'    then value / 1e6 end), 0) conc,
+      nvl(sum (case when prw.wait_class_type = 'Configuration'  then value / 1e6 end), 0) conf,
+      nvl(sum (case when prw.wait_class_type = 'Idle'           then value / 1e6 end), 0) idle,
+      nvl(sum (case when prw.wait_class_type = 'Network'        then value / 1e6 end), 0) net,
+      nvl(sum (case when prw.wait_class_type = 'Scheduler'      then value / 1e6 end), 0) sched,
+      nvl(sum (case when prw.wait_class_type = 'Other'          then value / 1e6 end), 0) other
+   from
+      dba_hist_process_waittime  prw                                join
+      dba_hist_snapshot          snp on prw.snap_id = snp.snap_id
+   where
+      snp.begin_interval_time > sysdate - 2
+group by
+   prw.process_type
+)
+select
+   to_char(d.idle    , '999,999,990.0') idle    ,
+   to_char(d.io_sys  , '999,999,990.0') io_sys  ,
+   to_char(d.io_usr  , '999,999,990.0') io_usr  ,
+   to_char(d.admin   , '999,999,990.0') admin   ,
+   to_char(d.app     , '999,999,990.0') app     ,
+   to_char(d.cpu     , '999,999,990.0') cpu     ,
+   to_char(d.commit_ , '999,999,990.0') commit_ ,
+   to_char(d.conc    , '999,999,990.0') conc    ,
+   to_char(d.conf    , '999,999,990.0') conf    ,
+   to_char(d.net     , '999,999,990.0') net     ,
+   to_char(d.sched   , '999,999,990.0') sched   ,
+   to_char(d.other   , '999,999,990.0') other
+from
+   d
+order by
+   d.io_sys + d.io_usr + d.admin + d.app + d.cpu + d.commit_ + d.conc + d.idle + d.net + d.sched + d.other desc;
+code }
+
+sa:
+  → development/databases/Oracle/installed/data-dictionary/hist[`dba_hist*` views]
