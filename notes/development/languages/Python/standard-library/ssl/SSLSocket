@@ -1,0 +1,43 @@
+$ Python standard library: ssl.SSLSocket
+@ ssl.SSLSocket
+
+The class `ssl.SSLSocket is derived from `→ development/languages/Python/standard-library/socket[socket].socket` and wraps the underlying
+OS socket in an → development/security/cryptography/SSL-TLS[SSL] context when necessary, and provides read and write method over that channel.
+
+`SSLSocket` isntances must be created with `ssl_context.wrap_socket()` (where `ssl_context` is an instance of `ssl.SSLContext`).
+
+code {
+import socket
+import ssl
+
+hostname = "raw.githubusercontent.com"
+port = 443
+path = "/python/cpython/refs/heads/main/Lib/ssl.py"
+
+context = ssl.create_default_context()
+
+with socket.create_connection((hostname, port)) as sock:
+    with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+
+        request = (
+            f"GET {path} HTTP/1.1\r\n"
+            f"Host: {hostname}\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+        ).encode()
+
+        ssock.sendall(request)
+
+        response = b""
+        while True:
+            chunk = ssock.recv(4096)
+            if not chunk:
+                break
+            response += chunk
+
+print(response.decode())
+code }
+
+sa:
+ `→ development/languages/Python/standard-library/ssl`
+
