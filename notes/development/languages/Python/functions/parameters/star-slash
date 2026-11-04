@@ -1,0 +1,70 @@
+$ Python function parameters: stars and slashes
+
+{ Star
+
+  The `*` makes all *following* → development/languages/Python/functions/parameters keyword-only.
+
+  If `F` were tried to be called so: `F(1,2,3,4)`, Python would raise *TypeError: F() takes 2 positional arguments but 4 were given*.
+
+code {
+def F(a, b, *, c, d=100):
+    print(f'{a=}')
+    print(f'{b=}')
+    print(f'{c=}')
+    print(f'{d=}')
+
+F(1,2,c=3)      # d does not need to be specified because it has a default value
+F(1,2,c=3, d=4)
+F(1,2,d=4, c=3)
+code }
+
+}
+{ Slash
+
+  The `/` makes all *preceding* → development/languages/Python/functions/parameters positional-only.
+
+  If `F` were tried to be called so: `F(a=1, b=2, c=3)`, Python would raise *TypeError: F() got some positional-only arguments passed as keyword arguments: 'a, b'*.
+
+code {
+def F(a, b, /, c, d=100):
+    print(f'{a=}')
+    print(f'{b=}')
+    print(f'{c=}')
+    print(f'{d=}')
+
+F(1, 2, 3)             # c is positional; d uses its default
+F(1, 2, 3, d=4)
+F(1, 2, c=3, d=4)
+code }
+
+}
+{ Using both, the star and the slash
+
+code {
+def F(a, b, /, c, *, d, e=100):
+    print(f'{a=}, {b=}, {c=}, {d=}, {e=}')
+code }
+
+  For `F`, the parameters
+   • `a` and `b` are positional-only.
+   • `c` can be positional or keyword.
+   • `d` and `e` are keyword-only.
+
+ `F` may be called with variations of
+code {
+F(1, 2, 3, d=4)
+F(1, 2, c=3, d=4, e=5)
+code }
+
+  The following calls are invalid and raise *TypeError: F() got some positional-only arguments passed as keyword arguments: 'a, b'*
+code {
+F(a=1, b=2, c=3, d=4)
+F(1, 2, 3, 4)
+code }
+
+}	
+
+sa:
+  → https://peps.python.org/pep-3102/[PEP 3102]: Keyword-Only Arguments
+  -
+  → https://peps.python.org/pep-0570/[PEP 570]: Python Positional-Only Parameters
