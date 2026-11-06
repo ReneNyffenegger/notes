@@ -3,7 +3,7 @@ $ Large Language Models (LLMs)
 
 { Classification based on the Transformer architecture
 
-  Transformer based LLMs can be clasified into the three variations:
+  Transformer based LLMs can be classified into the three variations:
     • Encoder only
     • Decoder only
     • Encoder-Decoder
@@ -32,6 +32,28 @@ $ Large Language Models (LLMs)
 
   ? Context size/length: the number of tokens taken into account to predict the next token.
 
+  { Distillation
+
+    Distillation means training a student model to imitate the outputs of a teacher model.
+   (Hinton, G., Vinyals, O. & Dean, J.: → https://arxiv.org/abs/1503.02531[Distilling the knowledge in a neural network])
+    -
+    Distillation can create smaller, cheaper versions of models or transfer abilities between models
+
+    Possibly unexpected effects of distillation include:
+    - performance increase beyond the teacher
+    - affecting fairness properties
+    - unwanted behavior increase
+
+  }
+  { Model card
+
+    A model (typically? always?) comes with a model card (a `README.md` file, or part of it?) which provides
+    information about the model.
+
+    See for example → https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/blob/main/README.md?code=true[this `README.md`]
+    where the model card starts → https://huggingface.co/HuggingFaceH4/zephyr-7b-beta/blob/main/README.md?code=true#L195[on line 195].
+
+  }
   { Components of a transformer LLM
 
     A transformer LLM consists of a
@@ -102,17 +124,18 @@ $ Large Language Models (LLMs)
     BERT is not an autoregressive model (the B stands for *bidirectional*).
 
   }
-  { GGUF
+  { File formats
+    { GGUF
 
-    GGUF (GGML Universal File) is format to to stores both tensors and metadata in a single file whose goal is to save and load of model data fast.
-    -
-    Another focus of GGUF is quantization (which reduces memory usage and increases speed by reducing precision in the model weights, which, of course, also lowers the model's accuracy).
+      GGUF (GGML Universal File) is format to to stores both tensors and metadata in a single file whose goal is to save and load of model data fast.
+      -
+      Another focus of GGUF is quantization (which reduces memory usage and increases speed by reducing precision in the model weights, which, of course, also lowers the model's accuracy).
 
-    GGUF was introduced as successor of file formats such as GGML in August 2023 by the llama.cpp project.
+      GGUF was introduced as successor of file formats such as GGML in August 2023 by the llama.cpp project.
 
-    GGUF are typically created by converting models of machine learning libraries such as PyTorch.
+      GGUF are typically created by converting models of machine learning libraries such as PyTorch.
 
-    { gguf-tools (antirez)
+      { gguf-tools (antirez)
 
 code {
 git clone → https://github.com/antirez/gguf-tools
@@ -122,13 +145,21 @@ curl -OL https://huggingface.co/aisuko/gpt2-117M-gguf/resolve/main/ggml-model-Q4
 ./gguf-tools show ggml-model-Q4_K_M.gguf
 code }
 
+      }
+      { convert-hf-to-gguf.py
+
+        → https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py[`convert_hf_to_gguf.py`] (of  → https://github.com/ggerganov/llama.cpp[llama.cpp]) converts HuggingFace to GGUF.
+
+      }
+
     }
-    { convert-hf-to-gguf.py
+    { SafeTensors
 
-      → https://github.com/ggerganov/llama.cpp/blob/master/convert_hf_to_gguf.py[`convert_hf_to_gguf.py`] (of  → https://github.com/ggerganov/llama.cpp[llama.cpp]) converts HuggingFace to GGUF.
+      SafeTensors is the standard file format for HuggingFace.
 
-    }
-
+      Unlike GGUF, SafeTensors contains tensor data only. GGUF also includes metadata.
+  
+    } 
   }
   { Prompt Injection
 
