@@ -1,7 +1,10 @@
 
 { GPU
 
-  Among others, Nvidia is a fabless company which designs → hardware/xPU/GPU[GPUs] and has become the dominant supplier of → development/Artificial-intelligence[artificial intelligence] hardware (and software).
+  Among others, Nvidia is a fabless company which designs → hardware/xPU/GPU[GPUs] and has become the
+  dominant supplier of → development/Artificial-intelligence[artificial intelligence] hardware (and software).
+
+  All NVIDIA GPUs architectures use → development/endianness[little endian].
 
 }
 { CUDA
@@ -11,6 +14,43 @@
 }
 { TODO
 
+  { Software stack
+
+    Programming Nvidia GPUs is divided into
+    - The CUDA Toolkit for building applications (conists of compilers, libraries, developer tools and binary utilities)
+    - The NVIDIA Driver for running them
+
+    The driver can be installed independently from the CUDA Toolkit.
+
+  }
+  { Compute capablity (CC)
+
+    The compute capability difines the hardware features and supported instructions exhibited by a given NVDIDA GPU architecture.
+
+    Nvidia lists them → https://developer.nvidia.com/cuda/gpus[here] and → https://developer.nvidia.com/cuda/gpus/legacy[here] (legacy).
+
+    { Obtaining compute capability
+
+      The compute capability of a GPU can be queried with
+code {
+nvidia-smi --query-gpu=name,compute_cap
+code }
+
+     At runtime, it can be obtained with `cudaDeviceGetAttribute()` (`libcu++`) or `nvmlDeviceGetCudaComputeCapability()` (NVML API).
+
+    }
+
+  }
+  { Architecture-specific features
+
+    Compute capabilities introduced with a cmopute architecture  are generally available on subsequent architectures.
+
+    However, starting with computue capability 9.0, there are specialized compute features which are not guaranteed to
+    be availabe on subsequent architecture, the so called *architecture-specific features*.
+
+    An example of an architecture specific feature is *Tensor Core Operation*.
+
+  }
   { nvidia-smi #nvidia-smi
 
     → https://developer.nvidia.com/nvidia-system-management-interface[`nvidia-smi`] is a command line utility to manage and monitor Nvidia GPU chips (Tesla, Quadro, GRID and GeForce devices from the Fermi
@@ -39,14 +79,14 @@ code }
   }
   { nouveau
 
-    → https://nouveau.freedesktop.org/[nouveau] aims to build high-quality, free/libre software drivers for nVidia cards (apparently by reverse engineering the original nVidia drivers?)
+    → https://nouveau.freedesktop.org/[nouveau] aims to build high-quality, free/libre software drivers for Nvidia cards (apparently by reverse engineering the original Nvidia drivers?)
 
     Nouveau is composed of 
       • a Linux kernel KMS driver (nouveau),
       • Gallium3D drivers in Mesa, and
       • the Xorg DDX (xf86-video-nouveau).
 
-    Nouveau tries to support all nVidia cards. However, it's deemed infeasible to document which cards and BIOSes actually work.
+    Nouveau tries to support all Nvidia cards. However, it's deemed infeasible to document which cards and BIOSes actually work.
     -
     The → https://nouveau.freedesktop.org/FeatureMatrix.html[feature matrix] might give an idea on which features are supported on a given card family.
 
