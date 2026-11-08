@@ -33,7 +33,7 @@ code }
   `-K` ☰ Enables GSSAPI-based authentication and forwarding (delegation) of GSSAPI credentials to the server.
   `-k` ☰
   `-M` ☰ Places the ssh client into “master” mode for connection sharing.
-  `-N` ☰ Do not execute a remote command, useful for just forwarding ports.
+  `-N` ☰ Do not execute a remote command, useful for just forwarding ports (for example when using → #ssh-tunneling[`-L`]).
   `-n` ☰ Redirects → development/stdin-stdout-stderr[stdin] from `→ Linux/fhs/dev/null` (preventing reading from stdin). `-n` must be used when ssh is run in the background.  A common trick is to use this to run X11 programs on a remote machine: `ssh -n shadows.cs.hut.fi emacs &` will start an emacs on `shadows.cs.hut.f`i, and the X11 connection will be automatically forwarded over an encrypted channel. The ssh program will be put in the background. (This does not work if ssh needs to ask for a password or passphrase; see also the `-f` option.)
   `-q` ☰ Quiet mode, compare with `-v`
   `-s` ☰
@@ -72,19 +72,30 @@ code }
 }
 { SSH Tunneling / port forwarding #ssh-tunneling
 
-  SSH can forward connections to a local port to another machine.
+  SSH can forward connections to a given local port to a port on another machine.
 
 code {
-ssh         -L 8888:localhost:8888   username_on_server@ip_of_server
-ssh -p 2222 -L 8888:localhost:8888   username_on_server@ip_of_server
+LOCALPORT=33333
+REMOTEPORT=3333
+USER=rene
+IP=23.‥
+
+ssh -N \
+    -o ExitOnForwardFailure=yes \
+    -L 127.0.0.1:$LOCALPORT:127.0.0.1:$REMOTEPORT \
+    $USER@$IP 
 code }
 
    This command connect as user `username_on_server` on server `ip_of_server` and tunnels
    connections to port 8888 on the local host to port 8888 on the remote server.
 
-  `-p 2222` uses port 2222 instead of the default port 22.
-
    Multiple `-L` arguments can be used.
+
+   Using `-p 2222` uses port 2222 instead of the default port 22.
+
+   Possibly `-i path/to/privatekey` is another option to add.
+
+   Compare with the `-R` and `-D` options.
 
 }
 { scp
