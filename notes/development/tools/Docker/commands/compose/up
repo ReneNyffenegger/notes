@@ -1,0 +1,57 @@
+$ docker compose up
+
+{ Simple example
+
+  { docker-compose.yaml
+
+code {
+services:
+  database:
+    image: pgvector/pgvector:0.7.2-pg16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: renes-test-db
+    ports:
+      - 5432:5432
+code }
+
+  }
+  { Running the container
+
+code {
+$ → development/tools/Docker/commands/compose up -d
+code }
+
+code {
+→ development/databases/PostgreSQL/psql -h localhost -p 5432 -U admin -d renes-test-db
+code }
+
+    Alternatively, direct connection inside the container:
+code {
+docker compose exec database psql -U admin -d renes-test-db
+code }
+
+  }
+  { Remove container and image
+
+code {
+docker compose down
+docker image rm pgvector/pgvector:0.7.2-pg16
+code }
+
+    Alternatively, in one go:
+code {
+docker compose down --rmi all
+code }
+
+    Verification:
+code {
+docker container ls -a
+docker image ls
+code }
+
+  }
+
+}
