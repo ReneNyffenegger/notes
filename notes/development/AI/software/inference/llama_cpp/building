@@ -1,0 +1,134 @@
+$ Building/compiling llama.cpp
+
+Some notes on building → development/AI/software/inference/llama_cpp.
+
+Get the sources:
+code {
+→ development/version-control-systems/git/commands/clone[git clone] https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+code }
+
+Query the GPU's compute capability …
+code {
+$ nvidia-smi --query-gpu=compute_cap --format=csv,noheader
+89
+code }
+
+… and remember it for later:
+code {
+GPU_CC=89
+code }
+
+Verify that the compiler is able to compile for the desired compute capability:
+code {
+$ nvcc --list-gpu-arch
+…
+compute_75
+compute_80
+compute_86
+compute_87
+…
+code }
+
+Prepare the compilation:
+code {
+$ cmake -B build                       \
+    -DGGML_CUDA=ON                     \
+    -DCMAKE_CUDA_ARCHITECTURES=$GPU_CC \
+    -DCMAKE_BUILD_TYPE=Release
+code }
+
+Compile the sources:
+code {
+$ time cmake --build build --config Release -j $(→ Linux/shell/commands/nproc)
+code }
+
+{ Older notes
+
+  These notes are older and likely outdated.
+
+ { Windows, with MinGW
+
+   Note the `-G "MinGW Makefiles"` option:
+code {
+P:\ath\to\llama.cpp> cmake -B build -G "MinGW Makefiles"
+P:\ath\to\llama.cpp> cmake --build build --config Release
+code }
+
+ }
+ { Built executables
+
+   After building build 4589, I found the following executables under `build/bin` (the common prefix `llama-` is removed):
+   table { ll
+      `batched-bench` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/batched-bench/README.md[Benchmark the batched decoding performance]
+      `batched` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/batched/README.md[Demonstration of batched generation from a given prompt]. A swift clone is found under → https://github.com/ggerganov/llama.cpp/tree/master/examples/batched.swift[`examples/batched.swift`]
+      `bench` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/llama-bench/README.md[Benchmark the performance] of the inference for various parameters.
+      `cli` ☰ A CLI tool for accessing and → https://github.com/ggerganov/llama.cpp/blob/master/examples/main/README.md[experimenting with most of llama.cpp's functionality]. TODO For the `--grammar`, `--grammar-file` and `--json-schema` command line options see `grammars` below.
+      `convert-llama2c-to-ggml` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/convert-llama2c-to-ggml/README.md[This example] reads weights from Andrej Karpathy's → https://github.com/karpathy/llama2.c[llama2.c project] and saves them in ggml compatible format. The vocab that is available in `models/ggml-vocab.bin` is used by default
+      `cvector-generator` ☰ Demonstration of how to → https://github.com/ggerganov/llama.cpp/blob/master/examples/cvector-generator/README.md[generate a control vector using gguf models].
+      `embedding` ☰ Demonstrates the → https://github.com/ggerganov/llama.cpp/blob/master/examples/embedding/README.md[generation of a(?) high-dimensional vector of a given text]
+      `eval-callback` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/eval-callback/README.md[Using callbacks during intference] to print all operations and tensor data to the console.
+      `export-lora` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/export-lora/README.md[Apply LORA adapters to base models and export the resulting model]
+      `gen-docs` ☰
+      `gguf-hash` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/gguf-hash/README.md[Hash GGUF files] to detect difference on a per model and per tensor level.
+      `gguf-split` ☰ CLI to → https://github.com/ggerganov/llama.cpp/blob/master/examples/gguf-split/README.md[split and merge GGUF files]
+      `gguf` ☰
+      `gritlm` ☰ Example for → https://github.com/ggerganov/llama.cpp/blob/master/examples/gritlm/README.md[Generative Representational Instruction Tuning (GRIT)]. A → https://github.com/ContextualAI/gritlm[gritlm] model can generate embeddings as well as "normal" text generation depending on the instructions in the prompt.
+      `imatrix` ☰ Computes an → https://github.com/ggerganov/llama.cpp/blob/master/examples/imatrix/README.md[importance matrix for a model and given text dataset] - which Can be used during quantization to enchance the quality of the quantized models (See → https://github.com/ggerganov/llama.cpp/pull/4861[Pull Request 4861])
+      `infill` ☰ → https://github.com/ggerganov/llama.cpp/tree/master/examples/infill[Using the infill mode] with Code Llama models supporting infill mode.
+      `llava-cli` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/llava/README.md[LLaVA ?]
+      `lookahead` ☰ Demonstration of → https://github.com/ggerganov/llama.cpp/blob/master/examples/lookahead/README.md[lookahead decoding technique], see also → https://lmsys.org/blog/2023-11-21-lookahead-decoding/[Break the Sequential Dependency of LLM Inference Using Lookahead Decoding] and → https://github.com/ggerganov/llama.cpp/pull/4207[Pull Request 4207]
+      `lookup-create` ☰ Demonstration of → https://github.com/ggerganov/llama.cpp/blob/master/examples/lookup/README.md[Prompt Lookup Decoding], see also → https://github.com/apoorvumang/prompt-lookup-decoding[apoorvumang/prompt-lookup-decoding], → https://github.com/ggerganov/llama.cpp/pull/4484[Pull Reqeust 4484] and → https://github.com/ggerganov/llama.cpp/issues/4226[Issue 4226].
+      `lookup-merge` ☰
+      `lookup-stats` ☰
+      `lookup` ☰
+      `minicpmv-cli` ☰
+      `parallel` ☰ (Simplified) simulation of → https://github.com/ggerganov/llama.cpp/blob/master/examples/parallel/README.md[erving incoming requests in parallel]
+      `passkey` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/passkey/README.md[A passkey retrieval task] is an evaluation method used to measure a language models ability to recall information from long contexts. See also Pull Requests → https://github.com/ggerganov/llama.cpp/pull/3856[3856] and → https://github.com/ggerganov/llama.cpp/pull/4810[4810].
+      `perplexity` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/perplexity/README.md[A tool] for measuring the → https://huggingface.co/docs/transformers/perplexity[perplexity] (and other quality metrics) of a model over a given text.
+      `q8dot` ☰
+      `quantize` ☰ → https://github.com/ggerganov/llama.cpp/blob/master/examples/quantize/README.md[…]
+      `qwen2vl-cli` ☰
+      `retrieval` ☰ Demonstration of a simple → https://github.com/ggerganov/llama.cpp/blob/master/examples/retrieval/README.md[retrieval technique based on cosine similarity].
+      `run` ☰ A comprehensive example for (→ https://github.com/ggerganov/llama.cpp/blob/master/examples/run/README.md[minimally]) running llama.cpp models. Useful for inferencing. Used with RamaLama
+      `save-load-state` ☰
+      `server` ☰ The → https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md[LLaMA.cpp HTTP Server]: A lightweight, → https://github.com/openai/openai-openapi[OpenAI API] compatible, HTTP server for serving LLMs. Based on → https://github.com/yhirose/cpp-httplib[cpp-httplib] and → https://github.com/nlohmann/json[nlohman/json]. (`llama-server -m model.gguf --port 11434`). See also `grammars/` below.
+      `simple-chat` ☰ Demonstration of a → https://github.com/ggerganov/llama.cpp/blob/master/examples/simple-chat/README.md[simple chat program] using the chat template from the GGUF file.
+      `simple` ☰ A → https://github.com/ggerganov/llama.cpp/blob/master/examples/simple/README.md[minimal example] for implementing apps with llama.cpp. Useful for developers.
+      `speculative-simple` ☰ Demonstration of → https://github.com/ggerganov/llama.cpp/blob/master/examples/speculative-simple/README.md[basic greedy speculative decoding]
+      `speculative` ☰ Demonstration of → https://github.com/ggerganov/llama.cpp/blob/master/examples/speculative/README.md[speculative decoding and tree-based speculative decoding techniques]
+      `tokenize` ☰ → https://github.com/ggerganov/llama.cpp/tree/master/examples/tokenize[…]
+      `tts` ☰ → https://github.com/ggerganov/llama.cpp/tree/master/examples/tts[…]
+      `vdot` ☰
+   table }
+
+   In addition, I also found the following executables (Again, with the common prefix `test_` omitted):
+   table { ll
+     `arg-parser` ☰
+     `autorelease` ☰
+     `backend-ops` ☰
+     `barrier` ☰
+     `c` ☰
+     `chat-template` ☰
+     `gguf` ☰
+     `log` ☰
+     `model-load-cancel` ☰
+     `quantize-fns` ☰
+     `quantize-perf` ☰
+     `rope` ☰
+     `tokenizer-0` ☰
+   table }
+
+ }
+
+ { Using the deprecated Makefile
+
+code {
+cd llama.cpp
+→ development/make -j
+code }
+
+  }
+
+
+}
