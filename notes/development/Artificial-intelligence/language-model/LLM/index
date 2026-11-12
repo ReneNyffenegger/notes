@@ -288,6 +288,15 @@ code }
 
     A provider's API keys are stored in `~/.local/share/opencode/auth.json` after executing the `/connect` command.
 
+    { AGENTS.md discovery
+
+      V2 discovers
+        • `→ Linux/fhs/home/username/_config/opencode[~/.config/opencode]/AGENTS.md`
+	• If below home directory: Ambient `AGENTS.md` files from the current directory up to home
+	b If not below home directory: Discovery stops at the project root.
+
+
+    }
     { OpenCode Zen
 
       OpenCode Zen is a list of models provided by the OpenCode team that have been tested and verified to work well with OpenCode.
@@ -339,6 +348,30 @@ $ opencode upgrade
 $ opencode --version
 1.18.18
 code }
+
+      { Updating from V1 to V2
+        
+	Opencode v1.19.0 introduced the `--major` flag for `opencode upgrade`.
+
+	Since I am running verion 1.18.18, I first upgrade to the newest V1 version:
+code {
+$ opencode upgrade
+‥
+
+$ opencode --version
+1.19.5
+code }
+
+	Then, I upgrade to the newest version:
+code {
+$ opencode upgrade --major
+‥
+$ opencode --version
+opencode v2.2.7
+code }
+     
+      }
+
 
     }
     { Misc
@@ -413,6 +446,53 @@ code }
         `.opencode/` ☰ Directories for agents, commands, plugins
         `$OPENCODE_CONFIG_CONTENT` ☰ Runtime overrides
        table }
+        
+	{ Relaoding the configuration
+
+code {
+$ opencode reload
+Configuration reloaded
+code }
+
+	}
+	{ opencode debug config
+
+	 `opencode debug config` does not check the configuration files for errors like a linter but
+	  rather displays what it ended up using:
+code {
+$ opencode debug config
+[
+  {
+    "type": "document",
+    "info": {
+      "websearch": {
+        "provider": "opencode"
+      },
+
+      ‥
+code }
+
+        }
+
+        { Paths
+
+code {
+$ opencode debug paths
+home       /home/rene
+data       /home/rene/.local/share/opencode
+cache      /home/rene/.cache/opencode
+config     /home/rene/.config/opencode
+state      /home/rene/.local/state/opencode
+tmp        /tmp/opencode
+bin        /home/rene/.cache/opencode/bin
+log        /home/rene/.local/share/opencode/log
+repos      /home/rene/.local/share/opencode/repos
+db         /home/rene/.local/share/opencode/opencode.db
+code }
+
+        ? `/etc/opencode` (a.k.a. the *system directory*, used for machine-wide settings) is not reported.
+
+	}
 
       }
       { Prompting
@@ -435,19 +515,27 @@ code }
        `/copy` copies the entire session transcript.
        
       }
+      { Opencode service
+
+code {
+$ opencode service status
+http://127.0.0.1:49374
+code }
+
+      }
       { HTTP Server
 
 ?     `opencode serve` starts a headless HTTP server for API access (OpenAPI endpoint)
        -
 ?     `opencode web` starts a local HTTP server.
 
-      }
-      { Attaching to a HTTP server
+        { Attaching to a HTTP server
 
-       `opencode web --port 4096`
+         `opencode web --port 4096`
 
-       `opencode attach http://localhost:4096`
+         `opencode attach http://localhost:4096`
 
+        }
       }
       { Tools
 
@@ -523,6 +611,19 @@ code }
 	  • `tui.prompt.append`
 	  • `tui.command.execute`
 	  • `tui.toast.show`
+
+      }
+      { Claude Agent
+
+        → https://opencode.ai/docs/claude-agent[Claude Agent] allows to run *Claude Code* on my machine which in turn allows to use my Claude plan.
+code {
+$ claude auth login
+$ opencode
+/connect
+  ‥ choose for example clage-agent/opus#high
+/models
+code }
+
 
       }
 
