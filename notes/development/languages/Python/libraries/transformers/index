@@ -15,7 +15,7 @@ code }
 { Standard classes
 
 ? A model is required to use three classes derived from
-   • `PreTrainedModel`
+   • `reTrainedModel`
    • `PreTrainedConfig`
    • `PreTrainedTokenizer` (NLP), `ImageProcessingMixin` (?) for vision, `FeatureExtractionMixin` (?) for audio, `ProcessorMixin` (?) for multimodal inputs
 
@@ -77,13 +77,55 @@ code }
 }
 { PreTrainedConfig
 
- `PreTrainedConfig` is the base class that implements methods for loading and saving configurations.
+  → https://github.com/huggingface/transformers/blob/3322f226a02c5c3a3c1a3f0f4a3c9cee50789f6d/src/transformers/configuration_utils.py#L299[`PreTrainedConfig`] is the base class that implements methods for loading and saving configurations.
+
+  Class attributes which are overridden in derived classes:
+  table { lll
+    ~attribute~ ☰ ~type~ ☰
+    `model_type` ☰ `str` ☰
+    `attribute_map` ☰ `dict[str, str]` ☰ maps model specific attribute names to the standardized naming of attributes.
+    `base_model_tp_plan` ☰ `dict[str, Any]` ☰  maps sub-modules FQNs of a base model to a tensor parallel plan applied to the sub-module when `model.tensor_parallel` is called.
+    `base_model_fsdp_plan` ☰ `dict[Any, str]` ☰ maps sub-modules of a base model to an FSDP2 sharding strategy (e.g. `"free_full_weight"` / `"keep_full_weight"`). Keys can be wildcard module paths (e.g. `"layers.*"`) or tuples of paths (grouped into a single `fully_shard` call).
+    `base_model_pp_plan` ☰ `dict[str, tuple[list[str]]]` ☰ maps child-modules of a base model to a pipeline parallel plan that enables users to place the child-module on the appropriate device.
+  table }
+
 
   Common attributes in derived classes include
     • `hidden_size`
     • `num_attention_heads`
     • `num_hidden_layers`
     • `vocab_size` (Text models only)
+
+  An example of a class that inherits from `PreTrainedConfig` is → https://github.com/huggingface/transformers/blob/3322f226a02c5c3a3c1a3f0f4a3c9cee50789f6d/src/transformers/models/qwen2/configuration_qwen2.py#L25[`Qwen2Config`].
+
+code {
+from transformers import AutoConfig
+
+model_id = 'Qwen/Qwen2.5-0.5B-Instruct' # 'google-bert/bert-base-uncased'
+
+cfg = AutoConfig.from_pretrained(model_id)
+print(type(cfg))
+
+print(f'model_type:          {cfg.model_type}')
+print(f'hidden_size:         {cfg.hidden_size}')
+print(f'num_attention_heads: {cfg.num_attention_heads}')
+print(f'vocab_size:          {cfg.vocab_size}')
+print('attribute-map')
+for k, v in cfg.attribute_map.items():
+    print(f'  {k:40} = {v}')
+
+print('base_model_tp_plan')
+for k, v in cfg.base_model_tp_plan.items():
+    print(f'  {k:40} = {v}')
+
+print('base_model_fsdp_plan')
+for k, v in cfg.base_model_fsdp_plan.items():
+    print(f'  {k:40} = {v}')
+
+print('base_model_pp_plan')
+for k, v in cfg.base_model_pp_plan.items():
+    print(f'  {k:40} = {v}')
+code }
 
 }
 { GPT2LMHeadModel
